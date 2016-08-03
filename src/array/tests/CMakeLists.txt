@@ -3,7 +3,7 @@
 #
 
 set(newComponentTests
-    testNewComponent.cpp
+    testArrayAccesssor.cpp
    )
 
 #
@@ -14,7 +14,6 @@ foreach(test ${newComponentTests})
     blt_add_executable( NAME ${test_name}
                         SOURCES ${test}
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON geosx_core 
                         SYSTEM_DEPENDS_ON gtest )
                         
     blt_add_test( NAME ${test_name} 
