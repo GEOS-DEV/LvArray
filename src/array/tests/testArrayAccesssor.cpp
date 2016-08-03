@@ -21,7 +21,7 @@
 #pragma clang diagnostic push
 #endif
 
-#include "../src/array/MultidimensionalArray.hpp"
+#include "../src/MultidimensionalArray.hpp"
 #include <sys/time.h>
 #include <stdint.h>
 #include <string>

@@ -2,8 +2,8 @@
 #
 # Specify all headers
 #
-set(geosx_headers
-  ${geosx_headers}
+set(cxx-utilities_headers
+  ${cxx-utilities_headers}
   	array/MultidimensionalArray.hpp
     PARENT_SCOPE )
 
