@@ -3,8 +3,8 @@
 use gcc-4.9.3p
 use clang-3.8.1
 
-g++      -std=c++14 -O3  -o gcc49.x    main.cpp
-clang++  -std=c++14 -O3  -o clang38.x  main.cpp
+g++      -std=c++14 -O3 -I../src -o gcc49.x    arrayAccessorPerformance.cpp
+clang++  -std=c++14 -O3 -I../src -o clang38.x  arrayAccessorPerformance.cpp
 
 echo gcc49
 for i in `seq 1 10`;

@@ -149,7 +149,7 @@ if args.xcode:
 if unknown_args:
     cmakeline += " " + " ".join( unknown_args )
 
-cmakeline += " %s/../src " % scriptsdir
+cmakeline += " %s/.. " % scriptsdir
 
 # Dump the cmake command to file for convenience
 cmdfile = open("%s/cmake_cmd" % buildpath, "w")

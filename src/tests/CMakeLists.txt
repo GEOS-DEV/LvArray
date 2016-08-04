@@ -4,6 +4,8 @@
 
 set(newComponentTests
     testArrayAccesssor.cpp
+    testObjectCatalog.cpp
+    testStringUtilities.cpp
    )
 
 #

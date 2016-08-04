@@ -8,28 +8,28 @@ project(cxx-utilities LANGUAGES CXX)
 ################################
 # Include blt
 ################################
-include(cmake/blt/SetupBLT.cmake)
+include(src/cmake/blt/SetupBLT.cmake)
 
 ################################
 # Include standard build system logic and options
 ################################
-include(cmake/CMakeBasics.cmake)
+include(src/cmake/CMakeBasics.cmake)
 
 ################################
 # Add components
 ################################
-add_subdirectory(array)
+add_subdirectory(src)
 
 
 ################################
 # Add docs
 ################################
 if (ENABLE_DOCS)
-  add_subdirectory(docs)
+  add_subdirectory(src/docs)
 endif()
 
 
-add_code_check_targets(uncrustify.cfg)
+#add_code_check_targets(uncrustify.cfg)
 
 
 ################################
