@@ -15,7 +15,3 @@ foreach(child ${children})
     endif()
   endif()
 endforeach()
-                   
-#if (ENABLE_DOCS)
-#  add_subdirectory(docs)
-#endif()
