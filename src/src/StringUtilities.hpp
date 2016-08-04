@@ -5,13 +5,13 @@
  *      Author: rrsettgast
  */
 
-#ifndef STRINGUTILITIES_HPP_
-#define STRINGUTILITIES_HPP_
+#ifndef CXX_UTILITIES_STRINGUTILITIES_HPP_
+#define CXX_UTILITIES_STRINGUTILITIES_HPP_
 
 
-#include <cxxabi.h>
+//#include <cxxabi.h>
 #include <string>
-#include <memory>
+//#include <memory>
 
 namespace cxx_utilities
 {

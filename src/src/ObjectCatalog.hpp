@@ -219,7 +219,7 @@ public:
  * generation of a CatalogEntry<BaseType,ClassName,...> prior to main().
  */
 #define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ...) \
-  namespace { CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_##DerivedType; }
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_##DerivedType; }
 
 #ifdef __clang__
 #pragma clang diagnostic push

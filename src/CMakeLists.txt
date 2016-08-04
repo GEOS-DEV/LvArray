@@ -2,9 +2,13 @@
 set(cxx-utilities_headers
     src/MultidimensionalArray.hpp
     src/ObjectCatalog.hpp 
+    src/SetSignalHandling.hpp
+    src/stackTrace.hpp
     src/StringUtilities.hpp )
 
 set(cxx-utilities_sources
+    src/SetSignalHandling.cpp
+    src/stackTrace.cpp
     src/StringUtilities.cpp )
 
 add_subdirectory(tests)
@@ -13,6 +17,7 @@ message("adding cxxutilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
+                 HEADERS_OUTPUT_SUBDIR cxx-utilities
                  DEPENDS_ON        
                  SYSTEM_DEPENDS_ON 
                  )
@@ -22,5 +27,5 @@ blt_add_library( NAME             cxx-utilities
 #                        HEADERS     ${cxx-utilities_headers}
 #                        DESTINATION ${cxx-utilities_headersdest})
 
-target_include_directories( cxx-utilities PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
-target_include_directories( cxx-utilities PUBLIC ${CMAKE_SOURCE_DIR}/src )
+target_include_directories( cxx-utilities PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src )
+#target_include_directories( cxx-utilities PUBLIC ${CMAKE_SOURCE_DIR}/src )
