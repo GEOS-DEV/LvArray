@@ -71,6 +71,7 @@ TEST(testArrayAccessor,ArrayInterface2)
     {
       std::cout<<memblock[a*lengths[1]+b]<<" ?= ";
       std::cout<<array[a][b]<<std::endl;
+      assert(memblock[a*lengths[1]+b]==array[a][b]);
     }
   }
 }
@@ -107,6 +108,10 @@ TEST(testArrayAccessor,ArrayInterface3)
         std::cout<<"("<<a<<","<<b<<","<<c<<") -> ";
         std::cout<<memblock[a][b][c]<<" ?= ";
         std::cout<<array3[a][b][c]<<" ?= "<<array1[c]<<std::endl;
+
+        assert(memblock[a][b][c]==array1[c]);
+        assert(memblock[a][b][c]==array2[b][c]);
+        assert(memblock[a][b][c]==array3[a][b][c]);
       }
       std::cout<<std::endl;
     }

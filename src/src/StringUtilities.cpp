@@ -9,7 +9,7 @@
 
 namespace cxx_utilities
 {
-inline std::string demangle( const std::string& name )
+std::string demangle( const std::string& name )
 {
 
   int status = -4; // some arbitrary value to eliminate the compiler warning

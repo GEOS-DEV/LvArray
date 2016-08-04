@@ -16,7 +16,8 @@ foreach(test ${newComponentTests})
     blt_add_executable( NAME ${test_name}
                         SOURCES ${test}
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        SYSTEM_DEPENDS_ON gtest )
+                        SYSTEM_DEPENDS_ON gtest
+                        DEPENDS_ON cxx-utilities )
                         
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}

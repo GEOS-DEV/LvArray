@@ -13,7 +13,7 @@ blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
                  DEPENDS_ON        
-                 SYSTEM_DEPENDS_ON gtest
+                 SYSTEM_DEPENDS_ON 
                  )
 
 #set(cxx-utilities_headersdest ${HEADER_INCLUDES_DIRECTORY}/cxx-utilities)

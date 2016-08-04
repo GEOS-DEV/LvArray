@@ -17,7 +17,7 @@
 /**
  * namespace to hold the object catalog classes
  */
-namespace objectcatalog
+namespace cxx_utilities
 {
 
 /**
@@ -36,7 +36,7 @@ public:
   CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling constructor for CatalogInterface< "<< geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling constructor for CatalogInterface< "<< demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
   }
@@ -45,7 +45,7 @@ public:
   virtual ~CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling destructor for CatalogInterface< "<< geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling destructor for CatalogInterface< "<< demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
   }
@@ -101,8 +101,8 @@ public:
     CatalogInterface<BASETYPE, ARGS ...>()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling constructor for CatalogEntry< "<< geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" , "<<geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling constructor for CatalogEntry< "<< demangle(typeid(TYPE).name())
+              <<" , "<<demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
   }
@@ -111,8 +111,8 @@ public:
   ~CatalogEntry() override final
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling destructor for CatalogEntry< "<< geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" , "<<geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling destructor for CatalogEntry< "<< demangle(typeid(TYPE).name())
+              <<" , "<<demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
 
@@ -145,8 +145,8 @@ public:
   virtual std::unique_ptr<BASETYPE> Allocate( ARGS& ... args ) const override final
   {
 #if OBJECTCATALOGVERBOSE > 0
-    std::cout << "Creating type "<< geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" from catalog of "<<geosx::stringutilities::demangle(typeid(BASETYPE).name())<<std::endl;
+    std::cout << "Creating type "<< demangle(typeid(TYPE).name())
+              <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
     return std::unique_ptr<BASETYPE>( new TYPE( args ... ) );
   }
@@ -167,8 +167,8 @@ public:
   CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling constructor for CatalogueEntryConstructor< "<< geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" , "<<geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling constructor for CatalogueEntryConstructor< "<< demangle(typeid(TYPE).name())
+              <<" , "<<demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
 
@@ -177,10 +177,10 @@ public:
 
 #if OBJECTCATALOGVERBOSE > 0
     std::cout <<"Registered  "
-              <<geosx::stringutilities::demangle(typeid(BASETYPE).name())
+              <<demangle(typeid(BASETYPE).name())
               <<" catalogue component of derived type "
-              <<geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" where "<<geosx::stringutilities::demangle(typeid(TYPE).name())<<"::CatalogueName() = "<<TYPE::CatalogName() << std::endl;
+              <<demangle(typeid(TYPE).name())
+              <<" where "<<demangle(typeid(TYPE).name())<<"::CatalogueName() = "<<TYPE::CatalogName() << std::endl;
 #endif
   }
 
@@ -188,8 +188,8 @@ public:
   ~CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    std::cout << "Calling destructor for CatalogueEntryConstructor< "<< geosx::stringutilities::demangle(typeid(TYPE).name())
-              <<" , "<<geosx::stringutilities::demangle(typeid(BASETYPE).name())
+    std::cout << "Calling destructor for CatalogueEntryConstructor< "<< demangle(typeid(TYPE).name())
+              <<" , "<<demangle(typeid(BASETYPE).name())
               <<" , ... >"<<std::endl;
 #endif
   }
@@ -219,7 +219,7 @@ public:
  * generation of a CatalogEntry<BaseType,ClassName,...> prior to main().
  */
 #define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ...) \
-  namespace { objectcatalog::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry; }
+  namespace { CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_##DerivedType; }
 
 #ifdef __clang__
 #pragma clang diagnostic push
