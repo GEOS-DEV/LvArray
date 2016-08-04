@@ -9,6 +9,7 @@ set(cxx-utilities_sources
 
 add_subdirectory(tests)
 
+message("adding cxxutilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}

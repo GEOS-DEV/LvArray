@@ -18,7 +18,7 @@ foreach(test ${newComponentTests})
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
                         SYSTEM_DEPENDS_ON gtest
                         DEPENDS_ON cxx-utilities )
-                        
+
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}
                   )
