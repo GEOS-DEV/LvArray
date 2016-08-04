@@ -5,6 +5,7 @@
 set(newComponentTests
     testArrayAccesssor.cpp
     testObjectCatalog.cpp
+    testSFINAE.cpp
     testStringUtilities.cpp
    )
 
