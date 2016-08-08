@@ -31,8 +31,217 @@ uint64_t GetTimeMs64()
 
 }
 
+double MatrixMultiply_1D( int const num_i,
+                          int const num_j,
+                          int const num_k,
+                          int const ITERATIONS,
+                          double const * const  A,
+                          double const * const  B,
+                          double * const  C )
+{
+  uint64_t startTime = GetTimeMs64();
+  for( int iter = 0 ; iter < ITERATIONS ; ++iter )
+  {
+    for( int i = 0 ; i < num_i ; ++i )
+    {
+      for( int j = 0 ; j < num_j ; ++j )
+      {
+        for( int k = 0 ; k < num_k ; ++k )
+        {
+          C[ i*num_j+j ] += A[ i*num_k+k ] * B[ k*num_j+j ];
+        }
+      }
+    }
+  }
+  uint64_t endTime = GetTimeMs64();
+  return ( endTime - startTime ) / 1000.0;
+}
+
+double MatrixMultiply_1Dr( int const num_i,
+                          int const num_j,
+                          int const num_k,
+                          int const ITERATIONS,
+                          double const * const __restrict__  A,
+                          double const * const __restrict__ B,
+                          double * const __restrict__ C )
+{
+  uint64_t startTime = GetTimeMs64();
+  for( int iter = 0 ; iter < ITERATIONS ; ++iter )
+  {
+    for( int i = 0 ; i < num_i ; ++i )
+    {
+      for( int j = 0 ; j < num_j ; ++j )
+      {
+        for( int k = 0 ; k < num_k ; ++k )
+        {
+          C[ i*num_j+j ] += A[ i*num_k+k ] * B[ k*num_j+j ];
+        }
+      }
+    }
+  }
+  uint64_t endTime = GetTimeMs64();
+  return ( endTime - startTime ) / 1000.0;
+}
+
+#define MATMULT \
+uint64_t startTime = GetTimeMs64(); \
+for( int iter = 0 ; iter < ITERATIONS ; ++iter ) \
+{ \
+  for( int i = 0 ; i < num_i ; ++i ) \
+  { \
+    for( int j = 0 ; j < num_j ; ++j ) \
+    { \
+      for( int k = 0 ; k < num_k ; ++k ) \
+      { \
+        C[i][j] += A[i][k] * B[k][j]; \
+      } \
+    } \
+  } \
+} \
+uint64_t endTime = GetTimeMs64(); \
+return ( endTime - startTime ) / 1000.0;
+
+inline double MatrixMultiply_2D_accessorInline( int const num_i,
+                                                int const num_j,
+                                                int const num_k,
+                                                int const ITERATIONS,
+                                                ArrayAccessor<double,2> A,
+                                                ArrayAccessor<double,2> B,
+                                                ArrayAccessor<double,2> C )
+{
+  MATMULT
+}
+
+double MatrixMultiply_2D_accessor( int const num_i,
+                                   int const num_j,
+                                   int const num_k,
+                                   int const ITERATIONS,
+                                   ArrayAccessor<double,2> A,
+                                   ArrayAccessor<double,2> B,
+                                   ArrayAccessor<double,2> C )
+{
+  MATMULT
+}
+
+inline double MatrixMultiply_2D_accessorInlineRef( int const num_i,
+                                                int const num_j,
+                                                int const num_k,
+                                                int const ITERATIONS,
+                                                ArrayAccessor<double,2>& A,
+                                                ArrayAccessor<double,2>& B,
+                                                ArrayAccessor<double,2>& C )
+{
+  MATMULT
+}
+
+double MatrixMultiply_2D_accessorRef( int const num_i,
+                                   int const num_j,
+                                   int const num_k,
+                                   int const ITERATIONS,
+                                   ArrayAccessor<double,2>& A,
+                                   ArrayAccessor<double,2>& B,
+                                   ArrayAccessor<double,2>& C )
+{
+  MATMULT
+}
 
 
+
+double MatrixMultiply_2D_copyConstruct( int const num_i,
+                                        int const num_j,
+                                        int const num_k,
+                                        int const ITERATIONS,
+                                        ArrayAccessor<double,2> A0,
+                                        ArrayAccessor<double,2> B0,
+                                        ArrayAccessor<double,2> C0 )
+{
+  ArrayAccessor<double,2> A(A0);
+  ArrayAccessor<double,2> B(B0);
+  ArrayAccessor<double,2> C(C0);
+  MATMULT
+}
+
+
+double MatrixMultiply_2D_copyConstruct2( int const num_i,
+                                        int const num_j,
+                                        int const num_k,
+                                        int const ITERATIONS,
+                                        ArrayAccessor<double,2> A0,
+                                        ArrayAccessor<double,2> B0,
+                                        ArrayAccessor<double,2> C0 )
+{
+  ArrayAccessor<double,2> A( A0.data(), A0.lengths() );
+  ArrayAccessor<double,2> B( B0.data(), B0.lengths() );
+  ArrayAccessor<double,2> C( C0.data(), C0.lengths() );
+  MATMULT
+}
+
+
+double MatrixMultiply_2D_constructAccessorR( int const num_i,
+                                            int const num_j,
+                                            int const num_k,
+                                            int const ITERATIONS,
+                                            double * const __restrict__ ptrA,
+                                            int64 * lengthA,
+                                            double * const __restrict__ ptrB,
+                                            int64 * lengthB,
+                                            double * const __restrict__ ptrC,
+                                            int64 * lengthC )
+{
+  ArrayAccessor<double,2> A( ptrA, lengthA );
+  ArrayAccessor<double,2> B( ptrB, lengthB );
+  ArrayAccessor<double,2> C( ptrC, lengthC );
+
+  MATMULT
+}
+
+double MatrixMultiply_2D_constructAccessor( int const num_i,
+                                            int const num_j,
+                                            int const num_k,
+                                            int const ITERATIONS,
+                                            double * const ptrA,
+                                            int64 * lengthA,
+                                            double * const ptrB,
+                                            int64 * lengthB,
+                                            double * const ptrC,
+                                            int64 * lengthC )
+{
+  ArrayAccessor<double,2> A( ptrA, lengthA );
+  ArrayAccessor<double,2> B( ptrB, lengthB );
+  ArrayAccessor<double,2> C( ptrC, lengthC );
+
+  MATMULT
+}
+
+
+//
+//double MatrixMultiply_2D_accessorSliced( int const num_i,
+//                                         int const num_j,
+//                                         int const num_k,
+//                                         int const ITERATIONS,
+//                                         ArrayAccessor<double,2> A,
+//                                         ArrayAccessor<double,2> B,
+//                                         ArrayAccessor<double,2> C )
+//{
+//  uint64_t startTime = GetTimeMs64();
+//  for( int iter = 0 ; iter < ITERATIONS ; ++iter )
+//  {
+//    for( int i = 0 ; i < num_i ; ++i )
+//    {
+//      ArrayAccessor<double,1> arrayAi = A[i];
+//      ArrayAccessor<double,1> arrayCi = C[i];
+//      for( int j = 0 ; j < num_j ; ++j )
+//      {
+//        for( int k = 0 ; k < num_k ; ++k )
+//        {
+//          arrayCi[j] += arrayAi[k] * B[k][j];
+//        }
+//      }
+//    }
+//  }
+//  uint64_t endTime = GetTimeMs64();
+//  return ( endTime - startTime ) / 1000.0;
+//}
 
 int main( int argc, char* argv[] )
 {
@@ -44,18 +253,27 @@ int main( int argc, char* argv[] )
   const int ITERATIONS = std::stoi( argv[4] );
   const int seedmod = std::stoi( argv[5] );
 
+  const int output = std::stoi( argv[6] );
+
   //***************************************************************************
   //***** Setup Arrays ********************************************************
   //***************************************************************************
   double A[num_i][num_k];
   double B[num_k][num_j];
-  double C1[num_i][num_j];
-  double C2[num_i][num_j];
-  double C3[num_i][num_j];
 
-//  std::vector<double> badvector(100);
-//  std::vector<int64> lengthJunk = {1,2};
-//  ArrayAccessor<double,2> badArray( badvector, lengthJunk );
+  double * const C1a = new double[num_i*num_j];
+  double * const C1b = new double[num_i*num_j];
+  double C2_native[num_i][num_j];
+  double * const C2_1 = new double[num_i*num_j];
+  double * const C2_2 = new double[num_i*num_j];
+  double * const C2_3 = new double[num_i*num_j];
+  double * const C2_4 = new double[num_i*num_j];
+  double * const C2_5 = new double[num_i*num_j];
+  double * const C2_6 = new double[num_i*num_j];
+  double * const C2_7 = new double[num_i*num_j];
+  double * const C2_8 = new double[num_i*num_j];
+  double * const C2_9 = new double[num_i*num_j];
+  double * const C2_10 = new double[num_i*num_j];
 
   srand( seed * seedmod );
 
@@ -73,18 +291,27 @@ int main( int argc, char* argv[] )
   {
     for( int j = 0 ; j < num_j ; ++j )
     {
-      C1[i][j] = 0.0;
-      C2[i][j] = 0.0;
-      C3[i][j] = 0.0;
+      C1a[i*num_j+j] = 0.0;
+      C1b[i*num_j+j] = 0.0;
+      C2_native[i][j] = 0.0;
+      C2_1[i*num_j+j] = 0.0;
+      C2_2[i*num_j+j] = 0.0;
+      C2_3[i*num_j+j] = 0.0;
+      C2_4[i*num_j+j] = 0.0;
+      C2_5[i*num_j+j] = 0.0;
+      C2_6[i*num_j+j] = 0.0;
+      C2_7[i*num_j+j] = 0.0;
+      C2_8[i*num_j+j] = 0.0;
+      C2_9[i*num_j+j] = 0.0;
+      C2_10[i*num_j+j] = 0.0;
     }
   }
 
-  //***************************************************************************
-  //***** native 1D array *****************************************************
-  //***************************************************************************
-  double const * const __restrict__  A1d = &(A[0][0]);
-  double const * const __restrict__  B1d = &(B[0][0]);
-  double * const __restrict__  C1d = &(C1[0][0]);
+  double runTime1  = MatrixMultiply_1D( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1a );
+  double runTime1r = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1b );
+
+
+
 
   uint64_t startTime = GetTimeMs64();
   for( int iter = 0 ; iter < ITERATIONS ; ++iter )
@@ -95,46 +322,33 @@ int main( int argc, char* argv[] )
       {
         for( int k = 0 ; k < num_k ; ++k )
         {
-          C1d[ i*num_j+j ] += A1d[ i*num_k+k ] * B1d[ k*num_j+j ];
+          C2_native[i][j] += A[i][k] * B[k][j];
         }
       }
     }
   }
   uint64_t endTime = GetTimeMs64();
-  double runTime1 = ( endTime - startTime ) / 1000.0;
+  double runTime2_native = ( endTime - startTime ) / 1000.0;
 
 
-  //***************************************************************************
-  //***** native 2D array *****************************************************
-  //***************************************************************************
 
-  startTime = GetTimeMs64();
-  for( int iter = 0 ; iter < ITERATIONS ; ++iter )
-  {
-    for( int i = 0 ; i < num_i ; ++i )
-    {
-      for( int j = 0 ; j < num_j ; ++j )
-      {
-        for( int k = 0 ; k < num_k ; ++k )
-        {
-          C2[i][j] += A[i][k] * B[k][j];
-        }
-      }
-    }
-  }
-  endTime = GetTimeMs64();
-  double runTime2a = ( endTime - startTime ) / 1000.0;
 
-  //***************************************************************************
-  //***** ArrayAccessor 2D array **********************************************
-  //***************************************************************************
+
 
   int64 lengthsA[] = { num_i , num_k };
   int64 lengthsB[] = { num_k , num_j };
   int64 lengthsC[] = { num_i , num_j };
   ArrayAccessor<double,2> accessorA( &(A[0][0]), lengthsA );
   ArrayAccessor<double,2> accessorB( &(B[0][0]), lengthsB );
-  ArrayAccessor<double,2> accessorC( &(C3[0][0]), lengthsC );
+  ArrayAccessor<double,2> accessorC_1( C2_1, lengthsC );
+  ArrayAccessor<double,2> accessorC_2( C2_2, lengthsC );
+  ArrayAccessor<double,2> accessorC_3( C2_3, lengthsC );
+  ArrayAccessor<double,2> accessorC_4( C2_4, lengthsC );
+  ArrayAccessor<double,2> accessorC_5( C2_5, lengthsC );
+  ArrayAccessor<double,2> accessorC_8( C2_8, lengthsC );
+  ArrayAccessor<double,2> accessorC_9( C2_9, lengthsC );
+
+
 
   startTime = GetTimeMs64();
   for( int iter = 0 ; iter < ITERATIONS ; ++iter )
@@ -145,61 +359,111 @@ int main( int argc, char* argv[] )
       {
         for( int k = 0 ; k < num_k ; ++k )
         {
-          accessorC[i][j] += accessorA[i][k] * accessorB[k][j];
+          accessorC_1[i][j] += accessorA[i][k] * accessorB[k][j];
         }
       }
     }
   }
   endTime = GetTimeMs64();
-  double runTime2b = ( endTime - startTime ) / 1000.0;
+  double runTime2_1 = ( endTime - startTime ) / 1000.0;
 
 
-  //***************************************************************************
-  //***** ArrayAccessor 2D array with subAccessors ****************************
-  //***************************************************************************
 
-  Array<double,2> arrayCopyC( lengthsC );
-  ArrayAccessor<double const,2> accessorBconst( &(B[0][0]), lengthsB );
+  double runTime2_2 = MatrixMultiply_2D_accessor(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_2 );
+  double runTime2_3 = MatrixMultiply_2D_accessorInline( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_3 );
+
+  double runTime2_4 = MatrixMultiply_2D_accessorRef(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_4 );
+  double runTime2_5 = MatrixMultiply_2D_accessorInlineRef( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_5 );
+
+  double runTime2_6 = MatrixMultiply_2D_constructAccessor( num_i, num_j, num_k, ITERATIONS,
+                                                          &(A[0][0]), lengthsA,
+                                                          &(B[0][0]), lengthsB,
+                                                          C2_6, lengthsC );
+
+  double runTime2_7 = MatrixMultiply_2D_constructAccessorR( num_i, num_j, num_k, ITERATIONS,
+                                                          &(A[0][0]), lengthsA,
+                                                          &(B[0][0]), lengthsB,
+                                                          C2_7, lengthsC );
+
+  double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
+  double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
 
-  startTime = GetTimeMs64();
-  for( int iter = 0 ; iter < ITERATIONS ; ++iter )
+  if( output >= 3 )
   {
+    double error1a = 0.0;
+    double error1b = 0.0;
+    double error2_1 = 0.0;
+    double error2_2 = 0.0;
+    double error2_3 = 0.0;
+    double error2_4 = 0.0;
+    double error2_5 = 0.0;
+    double error2_6 = 0.0;
+    double error2_7 = 0.0;
+    double error2_8 = 0.0;
+    double error2_9 = 0.0;
+    double error2_10 = 0.0;
+
     for( int i = 0 ; i < num_i ; ++i )
     {
-      ArrayAccessor<double,1> arrayAi = accessorA[i];
-      ArrayAccessor<double,1> arrayCi = arrayCopyC[i];
       for( int j = 0 ; j < num_j ; ++j )
       {
-        for( int k = 0 ; k < num_k ; ++k )
-        {
-          arrayCi[j] += arrayAi[k] * accessorBconst[k][j];
-        }
+        error1a  += pow( C1a[i*num_j+j] - C2_native[i][j] , 2 ) ;
+        error1b  += pow( C1b[i*num_j+j] - C2_native[i][j] , 2 ) ;
+        error2_1 += pow( C2_native[i][j] - C2_1[i*num_j+j] , 2 ) ;
+        error2_2 += pow( C2_native[i][j] - C2_2[i*num_j+j] , 2 ) ;
+        error2_3 += pow( C2_native[i][j] - C2_3[i*num_j+j] , 2 ) ;
+        error2_4 += pow( C2_native[i][j] - C2_4[i*num_j+j] , 2 ) ;
+        error2_5 += pow( C2_native[i][j] - C2_5[i*num_j+j] , 2 ) ;
+        error2_6 += pow( C2_native[i][j] - C2_6[i*num_j+j] , 2 ) ;
+        error2_7 += pow( C2_native[i][j] - C2_7[i*num_j+j] , 2 ) ;
+        error2_8 += pow( C2_native[i][j] - C2_8[i*num_j+j] , 2 ) ;
+        error2_9 += pow( C2_native[i][j] - C2_9[i*num_j+j] , 2 ) ;
       }
     }
+    std::cout<<"error1a = "<<error1a<<std::endl;
+    std::cout<<"error1b = "<<error1b<<std::endl;
+    std::cout<<"error2_1 = "<<error2_1<<std::endl;
+    std::cout<<"error2_2 = "<<error2_2<<std::endl;
+    std::cout<<"error2_3 = "<<error2_3<<std::endl;
+    std::cout<<"error2_4 = "<<error2_4<<std::endl;
+    std::cout<<"error2_5 = "<<error2_5<<std::endl;
+    std::cout<<"error2_6 = "<<error2_6<<std::endl;
+    std::cout<<"error2_7 = "<<error2_7<<std::endl;
+    std::cout<<"error2_8 = "<<error2_8<<std::endl;
+    std::cout<<"error2_9 = "<<error2_9<<std::endl;
   }
-  endTime = GetTimeMs64();
-  double runTime2c = ( endTime - startTime ) / 1000.0;
 
-  double error12a = 0.0;
-  double error12b = 0.0;
-  double error2a2b = 0.0;
-  double error2a2c = 0.0;
-
-  for( int i = 0 ; i < num_i ; ++i )
+  if( output == 1 )
   {
-    for( int j = 0 ; j < num_j ; ++j )
-    {
-      error12a  += pow( C1[i][j] - C2[i][j] , 2 ) ;
-      error12b  += pow( C1[i][j] - C3[i][j] , 2 ) ;
-      error2a2b += pow( C2[i][j] - C3[i][j] , 2 ) ;
-      error2a2c += pow( arrayCopyC[i][j] - C3[i][j] , 2 ) ;
-    }
+    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, 1.0);
+    printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / runTime1);
+    printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / runTime1);
+    printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / runTime1);
+    printf( "accessor pbv                         : %8.3f, %8.3f\n", runTime2_2, runTime2_2 / runTime1);
+    printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / runTime1);
+    printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / runTime1);
+    printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / runTime1);
+    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / runTime1);
+    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
+    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
+    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
   }
-  printf( "1d, 2d_native, 2db: %6.3f %6.3f %6.3f %6.3f\n", runTime1, runTime2a, runTime2b, runTime2c );
-  //std::cout<<"error12a = "<<error12a<<std::endl;
-  //std::cout<<"error12b = "<<error12b<<std::endl;
-  //std::cout<<"error2a2b = "<<error2a2b<<std::endl;
-  //std::cout<<"error2a2c = "<<error2a2c<<std::endl;
+
+  if( output == 2 )
+  {
+    printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f \n", runTime1,
+                                                                                          runTime1r,
+                                                                                          runTime2_native,
+                                                                                          runTime2_1,
+                                                                                          runTime2_2,
+                                                                                          runTime2_3,
+                                                                                          runTime2_4,
+                                                                                          runTime2_5,
+                                                                                          runTime2_6,
+                                                                                          runTime2_7,
+                                                                                          runTime2_8,
+                                                                                          runTime2_9 );
+  }
   return 0;
 }

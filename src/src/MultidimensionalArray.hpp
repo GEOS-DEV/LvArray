@@ -51,7 +51,7 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const data, int64 const * const length ):
+  ArrayAccessor( T * const __restrict__ data, int64 const * const length ):
     m_data(data),
     m_lengths(length),
     m_stride(CalulateStride(length)),
@@ -64,7 +64,7 @@ public:
    *
    * Constructor that delegates to pointer only constructor, but does a check for correct size of length vector.
    */
-  ArrayAccessor( T * const data, std::vector<int64> const & length ):
+  ArrayAccessor( T * const __restrict__ data, std::vector<int64> const & length ):
     ArrayAccessor( data, length.data() )
   {
     assert(length.size()==NDIM);
@@ -112,28 +112,28 @@ public:
    * @param rhs object to copy
    * copy assignment operator invokes direct copy of each member in source.
    */
-  ArrayAccessor & operator=( ArrayAccessor const & rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    m_stride         = rhs.m_stride;
-    m_childInterface = rhs.m_childInterface;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor const & rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    m_stride         = rhs.m_stride;
+//    m_childInterface = rhs.m_childInterface;
+//    return *this;
+//  }
 
   /**
    * @param source object to move
    * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
    * is a straight copy assignment....so this is really just a copy constructor.
    */
-  ArrayAccessor & operator=( ArrayAccessor && rhs )
-  {
-    m_data           = std::move(rhs.m_data);
-    m_lengths        = std::move(rhs.m_lengths);
-    m_stride         = std::move(rhs.m_stride);
-    m_childInterface = std::move(rhs.m_childInterface);
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor && rhs )
+//  {
+//    m_data           = std::move(rhs.m_data);
+//    m_lengths        = std::move(rhs.m_lengths);
+//    m_stride         = std::move(rhs.m_stride);
+//    m_childInterface = std::move(rhs.m_childInterface);
+//    return *this;
+//  }
 
   /**
    * @param index index of the element in array to access
@@ -171,15 +171,18 @@ public:
     return stride;
   }
 
+  T * __restrict__ data() { return m_data ;}
+  int64 const * __restrict__ lengths() { return m_lengths ;}
+
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * m_data;
+  T * __restrict__ m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
   int64 const * m_lengths;
 
   /// the stride, or number of array entires between each iteration of the first index of this array/sub-array
-  int64 m_stride;
+  int64 const m_stride;
 
   /// a child ArrayAccessor to represent the sub-array below the current array for a given value of the first array index
   /// of this array.
@@ -206,7 +209,7 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const data, int64 const * const length ):
+  ArrayAccessor( T * const __restrict__ data, int64 const * const length ):
     m_data(data),
     m_lengths(length)
   {}
@@ -218,7 +221,7 @@ public:
    *
    * Constructor that delegates to pointer only constructor, but does a check for correct size of length vector.
    */
-  ArrayAccessor( T * const data, std::vector<int64> const & length ):
+  ArrayAccessor( T * const __restrict__ data, std::vector<int64> const & length ):
     ArrayAccessor( data, length.data() )
   {
     assert(length.size()==1);
@@ -263,24 +266,24 @@ public:
    * @param rhs object to copy
    * copy assignment operator invokes direct copy of each member in source.
    */
-  ArrayAccessor & operator=( ArrayAccessor const & rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor const & rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    return *this;
+//  }
 
   /**
    * @param source object to move
    * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
    * is a straight copy assignment....so this is really just a copy constructor.
    */
-  ArrayAccessor & operator=( ArrayAccessor && rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor && rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    return *this;
+//  }
 
 
   /**
@@ -297,12 +300,16 @@ public:
   }
 
 
+  T * __restrict__ data() { return m_data ;}
+  int64 const * __restrict__ lengths() { return m_lengths ;}
+
+
   /// make ArrayAccessor classes with NDIM=2 friends, so that their operator[] can access m_data.
   friend class ArrayAccessor<T,2>;
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * m_data;
+  T * __restrict__ m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
   int64 const * m_lengths;
@@ -361,6 +368,10 @@ public:
 
   //***** Accessors **********************************************************
 
+  inline ArrayAccessor<T,NDIM> Accessor()
+  {
+    return m_interface;
+  }
 
   inline rtype operator[](int64 const index)
   {
