@@ -24,9 +24,7 @@ add_subdirectory(src)
 ################################
 # Add docs
 ################################
-if (ENABLE_DOCS)
-  add_subdirectory(src/docs)
-endif()
+add_subdirectory(src/docs)
 
 
 #add_code_check_targets(uncrustify.cfg)
