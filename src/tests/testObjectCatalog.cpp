@@ -93,6 +93,7 @@ REGISTER_CATALOG_ENTRY( Base, Derived2, int&, double const & )
 
 TEST(testObjectCatalog,testRegistration)
 {
+  std::cout<<"EXECUTING MAIN"<<std::endl;
   int junk = 1;
   double junk2 = 3.14;
   std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory("derived1",junk,junk2);
@@ -100,4 +101,5 @@ TEST(testObjectCatalog,testRegistration)
 
   assert( derived1->getName() == Derived1::CatalogName() );
   assert( derived2->getName() == Derived2::CatalogName() );
+  std::cout<<"EXITING MAIN"<<std::endl;
 }

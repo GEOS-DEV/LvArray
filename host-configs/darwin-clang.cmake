@@ -1,5 +1,5 @@
 
-set(RAJA_DIR "/Users/rrsettgast/Codes/geosx/RAJA/install-clang-release" CACHE PATH "")
+#set(RAJA_DIR "/Users/rrsettgast/Codes/geosx/RAJA/install-clang-release" CACHE PATH "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/hc-defaults.cmake")
 
