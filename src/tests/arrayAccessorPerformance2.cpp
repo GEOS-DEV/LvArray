@@ -170,9 +170,9 @@ double MatrixMultiply_2D_copyConstruct2( int const num_i,
                                         ArrayAccessor<double,2> B0,
                                         ArrayAccessor<double,2> C0 )
 {
-  int64 stridesA[] = { num_i * num_k, 1 };
-  int64 stridesB[] = { num_k * num_j, 1 };
-  int64 stridesC[] = { num_i * num_j, 1 };
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
 
   ArrayAccessor<double,2> A( A0.data(), A0.lengths(), stridesA );
   ArrayAccessor<double,2> B( B0.data(), B0.lengths(), stridesB );
@@ -192,9 +192,9 @@ double MatrixMultiply_2D_constructAccessorR( int const num_i,
                                             double * const __restrict__ ptrC,
                                             int64 * lengthC )
 {
-  int64 stridesA[] = { num_i * num_k, 1 };
-  int64 stridesB[] = { num_k * num_j, 1 };
-  int64 stridesC[] = { num_i * num_j, 1 };
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
 
   ArrayAccessor<double,2> A( ptrA, lengthA, stridesA );
   ArrayAccessor<double,2> B( ptrB, lengthB, stridesB );
@@ -215,9 +215,9 @@ double MatrixMultiply_2D_constructAccessor( int const num_i,
                                             int64 * lengthC )
 {
 
-  int64 stridesA[] = { num_i * num_k, 1 };
-  int64 stridesB[] = { num_k * num_j, 1 };
-  int64 stridesC[] = { num_i * num_j, 1 };
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
 
   ArrayAccessor<double,2> A( ptrA, lengthA, stridesA );
   ArrayAccessor<double,2> B( ptrB, lengthB, stridesB );
@@ -352,9 +352,9 @@ int main( int argc, char* argv[] )
   int64 lengthsB[] = { num_k , num_j };
   int64 lengthsC[] = { num_i , num_j };
 
-  int64 stridesA[] = { num_i * num_k, 1 };
-  int64 stridesB[] = { num_k * num_j, 1 };
-  int64 stridesC[] = { num_i * num_j, 1 };
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
 
   ArrayAccessor<double,2> accessorA( &(A[0][0]), lengthsA, stridesA );
   ArrayAccessor<double,2> accessorB( &(B[0][0]), lengthsB, stridesB );
@@ -393,18 +393,18 @@ int main( int argc, char* argv[] )
   double runTime2_4 = MatrixMultiply_2D_accessorRef(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_4 );
   double runTime2_5 = MatrixMultiply_2D_accessorInlineRef( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_5 );
 
-//  double runTime2_6 = MatrixMultiply_2D_constructAccessor( num_i, num_j, num_k, ITERATIONS,
-//                                                          &(A[0][0]), lengthsA,
-//                                                          &(B[0][0]), lengthsB,
-//                                                          C2_6, lengthsC );
-//
-//  double runTime2_7 = MatrixMultiply_2D_constructAccessorR( num_i, num_j, num_k, ITERATIONS,
-//                                                          &(A[0][0]), lengthsA,
-//                                                          &(B[0][0]), lengthsB,
-//                                                          C2_7, lengthsC );
-//
-//  double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
-//  double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
+  double runTime2_6 = MatrixMultiply_2D_constructAccessor( num_i, num_j, num_k, ITERATIONS,
+                                                          &(A[0][0]), lengthsA,
+                                                          &(B[0][0]), lengthsB,
+                                                          C2_6, lengthsC );
+
+  double runTime2_7 = MatrixMultiply_2D_constructAccessorR( num_i, num_j, num_k, ITERATIONS,
+                                                          &(A[0][0]), lengthsA,
+                                                          &(B[0][0]), lengthsB,
+                                                          C2_7, lengthsC );
+
+  double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
+  double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
 
   if( output >= 3 )
@@ -462,13 +462,12 @@ int main( int argc, char* argv[] )
     printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / runTime1);
     printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / runTime1);
     printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / runTime1);
-//    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / runTime1);
-//    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
-//    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
-//    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
+    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / runTime1);
+    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
+    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
+    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
   }
 
-#if 0
   if( output == 2 )
   {
     printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f \n", runTime1,
@@ -484,6 +483,6 @@ int main( int argc, char* argv[] )
                                                                                           runTime2_8,
                                                                                           runTime2_9 );
   }
-#endif
+
   return 0;
 }
