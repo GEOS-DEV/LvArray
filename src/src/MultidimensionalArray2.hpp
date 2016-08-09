@@ -85,26 +85,26 @@ public:
    * @param rhs object to copy
    * copy assignment operator invokes direct copy of each member in source.
    */
-  ArrayAccessor & operator=( ArrayAccessor const & rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    m_strides        = rhs.m_strides;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor const & rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    m_strides        = rhs.m_strides;
+//    return *this;
+//  }
 
   /**
    * @param source object to move
    * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
    * is a straight copy assignment....so this is really just a copy constructor.
    */
-  ArrayAccessor & operator=( ArrayAccessor && rhs )
-  {
-    m_data           = std::move(rhs.m_data);
-    m_lengths        = std::move(rhs.m_lengths);
-    m_strides         = std::move(rhs.m_strides);
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor && rhs )
+//  {
+//    m_data           = std::move(rhs.m_data);
+//    m_lengths        = std::move(rhs.m_lengths);
+//    m_strides        = std::move(rhs.m_strides);
+//    return *this;
+//  }
 
   /**
    * @param index index of the element in array to access
@@ -118,7 +118,7 @@ public:
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
 #endif
-    return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), &(m_lengths[1]), &(m_strides[1]) );
+    return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
   }
 
   T * data() { return m_data ;}
@@ -162,30 +162,6 @@ public:
   {}
 
 
-    /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer only constructor, but does a check for correct size of length vector.
-   */
-  ArrayAccessor( T * const data, std::vector<int64> const & length ):
-    ArrayAccessor( data, length.data() )
-  {
-    assert(length.size()==1);
-  }
-
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer/vector constructor, but does a check for correct size of data vector.
-   */
-  ArrayAccessor( std::vector<T> & data, std::vector<int64> const & length ):
-    ArrayAccessor( data.data(), length )
-  {
-    assert(data.size()==length[0]);
-  }
-
   /// default destructor
   ~ArrayAccessor() = default;
 
@@ -213,24 +189,24 @@ public:
    * @param rhs object to copy
    * copy assignment operator invokes direct copy of each member in source.
    */
-  ArrayAccessor & operator=( ArrayAccessor const & rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor const & rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    return *this;
+//  }
 
   /**
    * @param source object to move
    * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
    * is a straight copy assignment....so this is really just a copy constructor.
    */
-  ArrayAccessor & operator=( ArrayAccessor && rhs )
-  {
-    m_data           = rhs.m_data;
-    m_lengths        = rhs.m_lengths;
-    return *this;
-  }
+//  ArrayAccessor & operator=( ArrayAccessor && rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    return *this;
+//  }
 
 
   /**

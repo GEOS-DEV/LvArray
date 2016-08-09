@@ -307,8 +307,10 @@ int main( int argc, char* argv[] )
     }
   }
 
+  double minRunTime = 1.0e99;
   double runTime1  = MatrixMultiply_1D( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1a );
   double runTime1r = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1b );
+  minRunTime = std::min(runTime1,runTime1r);
 
 
 
@@ -329,7 +331,7 @@ int main( int argc, char* argv[] )
   }
   uint64_t endTime = GetTimeMs64();
   double runTime2_native = ( endTime - startTime ) / 1000.0;
-
+  minRunTime = std::min( minRunTime, runTime2_native );
 
 
 
@@ -388,6 +390,15 @@ int main( int argc, char* argv[] )
   double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
   double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
+  minRunTime = std::min( minRunTime, runTime2_1 );
+  minRunTime = std::min( minRunTime, runTime2_2 );
+  minRunTime = std::min( minRunTime, runTime2_3 );
+  minRunTime = std::min( minRunTime, runTime2_4 );
+  minRunTime = std::min( minRunTime, runTime2_5 );
+  minRunTime = std::min( minRunTime, runTime2_6 );
+  minRunTime = std::min( minRunTime, runTime2_7 );
+  minRunTime = std::min( minRunTime, runTime2_8 );
+  minRunTime = std::min( minRunTime, runTime2_9 );
 
   if( output >= 3 )
   {
@@ -436,18 +447,18 @@ int main( int argc, char* argv[] )
 
   if( output == 1 )
   {
-    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, 1.0);
-    printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / runTime1);
-    printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / runTime1);
-    printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / runTime1);
-    printf( "accessor pbv                         : %8.3f, %8.3f\n", runTime2_2, runTime2_2 / runTime1);
-    printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / runTime1);
-    printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / runTime1);
-    printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / runTime1);
-    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / runTime1);
-    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
-    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
-    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
+    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, minRunTime);
+    printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / minRunTime);
+    printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / minRunTime);
+    printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / minRunTime);
+    printf( "accessor pbv                         : %8.3f, %8.3f\n", runTime2_2, runTime2_2 / minRunTime);
+    printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / minRunTime);
+    printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / minRunTime);
+    printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / minRunTime);
+    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / minRunTime);
+    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / minRunTime);
+    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / minRunTime);
+    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / minRunTime);
   }
 
   if( output == 2 )

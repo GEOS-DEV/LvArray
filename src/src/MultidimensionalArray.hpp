@@ -58,30 +58,6 @@ public:
     m_childInterface(ArrayAccessor<T,NDIM-1>( m_data, &(length[1]) ) )
   {}
 
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer only constructor, but does a check for correct size of length vector.
-   */
-  ArrayAccessor( T * const data, std::vector<int64> const & length ):
-    ArrayAccessor( data, length.data() )
-  {
-    assert(length.size()==NDIM);
-  }
-
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer/vector constructor, but does a check for correct size of data vector.
-   */
-  ArrayAccessor( std::vector<T> & data, std::vector<int64> const & length ):
-    ArrayAccessor( data.data(), length )
-  {
-    assert(data.size()==m_stride*length[0]);
-  }
-
   /// default destructor
   ~ArrayAccessor() = default;
 
@@ -179,7 +155,7 @@ private:
   T * m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  int64 const * m_lengths;
+  int64 const * const m_lengths;
 
   /// the stride, or number of array entires between each iteration of the first index of this array/sub-array
   int64 const m_stride;
@@ -213,31 +189,6 @@ public:
     m_data(data),
     m_lengths(length)
   {}
-
-
-    /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer only constructor, but does a check for correct size of length vector.
-   */
-  ArrayAccessor( T * const data, std::vector<int64> const & length ):
-    ArrayAccessor( data, length.data() )
-  {
-    assert(length.size()==1);
-  }
-
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
-   *
-   * Constructor that delegates to pointer/vector constructor, but does a check for correct size of data vector.
-   */
-  ArrayAccessor( std::vector<T> & data, std::vector<int64> const & length ):
-    ArrayAccessor( data.data(), length )
-  {
-    assert(data.size()==length[0]);
-  }
 
   /// default destructor
   ~ArrayAccessor() = default;
