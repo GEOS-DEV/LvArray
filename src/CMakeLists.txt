@@ -1,8 +1,11 @@
 
 set(cxx-utilities_headers
+    src/Macros.hpp
     src/MultidimensionalArray.hpp
+    src/MultidimensionalArray2.hpp
     src/ObjectCatalog.hpp 
     src/SetSignalHandling.hpp
+    src/SFINAE_Macros.hpp
     src/stackTrace.hpp
     src/StringUtilities.hpp )
 

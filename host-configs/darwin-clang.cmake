@@ -1,5 +1,5 @@
 
-set(RAJA_DIR "/Users/rrsettgast/Codes/geosx/RAJA/install-clang-release" CACHE PATH "")
+#set(RAJA_DIR "/Users/rrsettgast/Codes/geosx/RAJA/install-clang-release" CACHE PATH "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/hc-defaults.cmake")
 
@@ -11,3 +11,5 @@ include("${CMAKE_CURRENT_LIST_DIR}/hc-defaults.cmake")
 #set(MPI_C_COMPILER       "/opt/local/bin/mpicxx-openmpi-clang37" CACHE PATH "" FORCE)
 #set(MPI_CXX_COMPILER     "/opt/local/bin/mpicxx-openmpi-clang37" CACHE PATH "" FORCE)
 #set(MPI_Fortran_COMPILER "/opt/local/bin/mpifort-openmpi-clang37" CACHE PATH "" FORCE)
+
+set( DOXYGEN_EXECUTABLE "doxygen" CACHE PATH "" FORCE )

@@ -11,7 +11,7 @@
 #include <string>
 #include <math.h>
 
-#include "MultidimensionalArray.hpp"
+#include "MultidimensionalArray2.hpp"
 
 using namespace multidimensionalArray;
 uint64_t GetTimeMs64()
@@ -170,9 +170,13 @@ double MatrixMultiply_2D_copyConstruct2( int const num_i,
                                         ArrayAccessor<double,2> B0,
                                         ArrayAccessor<double,2> C0 )
 {
-  ArrayAccessor<double,2> A( A0.data(), A0.lengths() );
-  ArrayAccessor<double,2> B( B0.data(), B0.lengths() );
-  ArrayAccessor<double,2> C( C0.data(), C0.lengths() );
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
+
+  ArrayAccessor<double,2> A( A0.data(), A0.lengths(), stridesA );
+  ArrayAccessor<double,2> B( B0.data(), B0.lengths(), stridesB );
+  ArrayAccessor<double,2> C( C0.data(), C0.lengths(), stridesC );
   MATMULT
 }
 
@@ -188,9 +192,13 @@ double MatrixMultiply_2D_constructAccessorR( int const num_i,
                                             double * const __restrict__ ptrC,
                                             int64 * lengthC )
 {
-  ArrayAccessor<double,2> A( ptrA, lengthA );
-  ArrayAccessor<double,2> B( ptrB, lengthB );
-  ArrayAccessor<double,2> C( ptrC, lengthC );
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
+
+  ArrayAccessor<double,2> A( ptrA, lengthA, stridesA );
+  ArrayAccessor<double,2> B( ptrB, lengthB, stridesB );
+  ArrayAccessor<double,2> C( ptrC, lengthC, stridesC );
 
   MATMULT
 }
@@ -206,9 +214,14 @@ double MatrixMultiply_2D_constructAccessor( int const num_i,
                                             double * const ptrC,
                                             int64 * lengthC )
 {
-  ArrayAccessor<double,2> A( ptrA, lengthA );
-  ArrayAccessor<double,2> B( ptrB, lengthB );
-  ArrayAccessor<double,2> C( ptrC, lengthC );
+
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
+
+  ArrayAccessor<double,2> A( ptrA, lengthA, stridesA );
+  ArrayAccessor<double,2> B( ptrB, lengthB, stridesB );
+  ArrayAccessor<double,2> C( ptrC, lengthC, stridesC );
 
   MATMULT
 }
@@ -307,10 +320,8 @@ int main( int argc, char* argv[] )
     }
   }
 
-  double minRunTime = 1.0e99;
   double runTime1  = MatrixMultiply_1D( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1a );
   double runTime1r = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1b );
-  minRunTime = std::min(runTime1,runTime1r);
 
 
 
@@ -331,7 +342,7 @@ int main( int argc, char* argv[] )
   }
   uint64_t endTime = GetTimeMs64();
   double runTime2_native = ( endTime - startTime ) / 1000.0;
-  minRunTime = std::min( minRunTime, runTime2_native );
+
 
 
 
@@ -340,15 +351,20 @@ int main( int argc, char* argv[] )
   int64 lengthsA[] = { num_i , num_k };
   int64 lengthsB[] = { num_k , num_j };
   int64 lengthsC[] = { num_i , num_j };
-  ArrayAccessor<double,2> accessorA( &(A[0][0]), lengthsA );
-  ArrayAccessor<double,2> accessorB( &(B[0][0]), lengthsB );
-  ArrayAccessor<double,2> accessorC_1( C2_1, lengthsC );
-  ArrayAccessor<double,2> accessorC_2( C2_2, lengthsC );
-  ArrayAccessor<double,2> accessorC_3( C2_3, lengthsC );
-  ArrayAccessor<double,2> accessorC_4( C2_4, lengthsC );
-  ArrayAccessor<double,2> accessorC_5( C2_5, lengthsC );
-  ArrayAccessor<double,2> accessorC_8( C2_8, lengthsC );
-  ArrayAccessor<double,2> accessorC_9( C2_9, lengthsC );
+
+  int64 stridesA[] = { num_k, 1 };
+  int64 stridesB[] = { num_j, 1 };
+  int64 stridesC[] = { num_j, 1 };
+
+  ArrayAccessor<double,2> accessorA( &(A[0][0]), lengthsA, stridesA );
+  ArrayAccessor<double,2> accessorB( &(B[0][0]), lengthsB, stridesB );
+  ArrayAccessor<double,2> accessorC_1( C2_1, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_2( C2_2, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_3( C2_3, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_4( C2_4, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_5( C2_5, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_8( C2_8, lengthsC, stridesC );
+  ArrayAccessor<double,2> accessorC_9( C2_9, lengthsC, stridesC );
 
 
 
@@ -390,15 +406,6 @@ int main( int argc, char* argv[] )
   double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
   double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
-  minRunTime = std::min( minRunTime, runTime2_1 );
-  minRunTime = std::min( minRunTime, runTime2_2 );
-  minRunTime = std::min( minRunTime, runTime2_3 );
-  minRunTime = std::min( minRunTime, runTime2_4 );
-  minRunTime = std::min( minRunTime, runTime2_5 );
-  minRunTime = std::min( minRunTime, runTime2_6 );
-  minRunTime = std::min( minRunTime, runTime2_7 );
-  minRunTime = std::min( minRunTime, runTime2_8 );
-  minRunTime = std::min( minRunTime, runTime2_9 );
 
   if( output >= 3 )
   {
@@ -447,18 +454,18 @@ int main( int argc, char* argv[] )
 
   if( output == 1 )
   {
-    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, minRunTime);
-    printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / minRunTime);
-    printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / minRunTime);
-    printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / minRunTime);
-    printf( "accessor pbv                         : %8.3f, %8.3f\n", runTime2_2, runTime2_2 / minRunTime);
-    printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / minRunTime);
-    printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / minRunTime);
-    printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / minRunTime);
-    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / minRunTime);
-    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / minRunTime);
-    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / minRunTime);
-    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / minRunTime);
+    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, 1.0);
+    printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / runTime1);
+    printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / runTime1);
+    printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / runTime1);
+    printf( "accessor pbv                         : %8.3f, %8.3f\n", runTime2_2, runTime2_2 / runTime1);
+    printf( "accessor pbv inline                  : %8.3f, %8.3f\n", runTime2_3, runTime2_3 / runTime1);
+    printf( "accessor pbr                         : %8.3f, %8.3f\n", runTime2_4, runTime2_4 / runTime1);
+    printf( "accessor pbr inline                  : %8.3f, %8.3f\n", runTime2_5, runTime2_5 / runTime1);
+    printf( "accessor construct from ptr          : %8.3f, %8.3f\n", runTime2_6, runTime2_6 / runTime1);
+    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
+    printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
+    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
   }
 
   if( output == 2 )
@@ -476,5 +483,6 @@ int main( int argc, char* argv[] )
                                                                                           runTime2_8,
                                                                                           runTime2_9 );
   }
+
   return 0;
 }

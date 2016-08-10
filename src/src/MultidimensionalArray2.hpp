@@ -20,6 +20,7 @@
 #define THIS_RESTRICT __restrict__
 #endif
 
+
 #if 0
 #include "common/DataTypes.hpp"
 #else
@@ -59,11 +60,10 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
+  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length, int64 const * const PTR_RESTRICT strides ):
     m_data(data),
     m_lengths(length),
-    m_stride(CalulateStride(length)),
-    m_childInterface(ArrayAccessor<T,NDIM-1>( m_data, &(length[1]) ) )
+    m_strides(strides)
   {}
 
   /// default destructor
@@ -76,8 +76,7 @@ public:
   ArrayAccessor( ArrayAccessor const & source ):
     m_data(source.m_data),
     m_lengths(source.m_lengths),
-    m_stride(source.m_stride),
-    m_childInterface(source.m_childInterface)
+    m_strides(source.m_strides)
   {}
 
   /**
@@ -88,8 +87,7 @@ public:
   ArrayAccessor( ArrayAccessor && source ):
     m_data( std::move(source.m_data) ),
     m_lengths( std::move(source.m_lengths) ),
-    m_stride( std::move(source.m_stride) ),
-    m_childInterface( std::move(source.m_childInterface) )
+    m_strides( std::move(source.m_strides) )
   {}
   
   /**
@@ -100,8 +98,7 @@ public:
 //  {
 //    m_data           = rhs.m_data;
 //    m_lengths        = rhs.m_lengths;
-//    m_stride         = rhs.m_stride;
-//    m_childInterface = rhs.m_childInterface;
+//    m_strides        = rhs.m_strides;
 //    return *this;
 //  }
 
@@ -114,8 +111,7 @@ public:
 //  {
 //    m_data           = std::move(rhs.m_data);
 //    m_lengths        = std::move(rhs.m_lengths);
-//    m_stride         = std::move(rhs.m_stride);
-//    m_childInterface = std::move(rhs.m_childInterface);
+//    m_strides        = std::move(rhs.m_strides);
 //    return *this;
 //  }
 
@@ -126,33 +122,12 @@ public:
    * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
    * sub-array.
    */
-  inline ArrayAccessor<T,NDIM-1> & operator[](int64 const index) THIS_RESTRICT
+  inline ArrayAccessor<T,NDIM-1> operator[](int64 const index) THIS_RESTRICT
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
 #endif
-    m_childInterface.m_data = &(m_data[index*m_stride]);
-    return m_childInterface;
-  }
-
-  /// make ArrayAccessor classes with one higher order in dimension friends, so that their operator[] can access m_data.
-  friend class ArrayAccessor<T,NDIM+1>;
-
-  /**
-   *
-   * @param lengths
-   * @return number of data entries until the next value
-   *
-   * function to calculate the stride of this. Used to set m_stride in constructor.
-   */
-  static int64 CalulateStride( int64 const * const PTR_RESTRICT lengths )
-  {
-    int64 stride = 1;
-    for( int a=1 ; a<NDIM ; ++a )
-    {
-      stride *= lengths[a];
-    }
-    return stride;
+    return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
   }
 
   T * data() { return m_data ;}
@@ -160,17 +135,14 @@ public:
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * PTR_RESTRICT m_data;
+  T * const PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
   int64 const * const PTR_RESTRICT m_lengths;
 
-  /// the stride, or number of array entires between each iteration of the first index of this array/sub-array
-  int64 const m_stride;
+  /// the stride, or number of array entries between each iteration of the first index of this array/sub-array
+  int64 const * const PTR_RESTRICT m_strides;
 
-  /// a child ArrayAccessor to represent the sub-array below the current array for a given value of the first array index
-  /// of this array.
-  ArrayAccessor<T,NDIM-1> m_childInterface;
 };
 
 /**
@@ -193,10 +165,11 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
+  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length, int64 const * const ):
     m_data(data),
     m_lengths(length)
   {}
+
 
   /// default destructor
   ~ArrayAccessor() = default;
@@ -258,17 +231,12 @@ public:
     return m_data[index];
   }
 
-
   T * data() { return m_data ;}
   int64 const * lengths() { return m_lengths ;}
 
-
-  /// make ArrayAccessor classes with NDIM=2 friends, so that their operator[] can access m_data.
-  friend class ArrayAccessor<T,2>;
-
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * PTR_RESTRICT m_data;
+  T * const PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
   int64 const * const PTR_RESTRICT m_lengths;
