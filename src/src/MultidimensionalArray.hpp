@@ -12,6 +12,14 @@
 
 #define ARRAY_BOUNDS_CHECK 0
 
+#ifdef __clang__
+#define PTR_RESTRICT __restrict__
+#define THIS_RESTRICT
+#elif __GNUC__
+#define PTR_RESTRICT __restrict__
+#define THIS_RESTRICT __restrict__
+#endif
+
 #if 0
 #include "common/DataTypes.hpp"
 #else
@@ -51,7 +59,7 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const data, int64 const * const length ):
+  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
     m_data(data),
     m_lengths(length),
     m_stride(CalulateStride(length)),
@@ -118,7 +126,7 @@ public:
    * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
    * sub-array.
    */
-  inline ArrayAccessor<T,NDIM-1> & operator[](int64 const index)
+  inline ArrayAccessor<T,NDIM-1> & operator[](int64 const index) THIS_RESTRICT
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -137,7 +145,7 @@ public:
    *
    * function to calculate the stride of this. Used to set m_stride in constructor.
    */
-  static int64 CalulateStride( int64 const * const lengths )
+  static int64 CalulateStride( int64 const * const PTR_RESTRICT lengths )
   {
     int64 stride = 1;
     for( int a=1 ; a<NDIM ; ++a )
@@ -152,10 +160,10 @@ public:
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * m_data;
+  T * PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  int64 const * const m_lengths;
+  int64 const * const PTR_RESTRICT m_lengths;
 
   /// the stride, or number of array entires between each iteration of the first index of this array/sub-array
   int64 const m_stride;
@@ -185,7 +193,7 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const data, int64 const * const length ):
+  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
     m_data(data),
     m_lengths(length)
   {}
@@ -242,7 +250,7 @@ public:
    * @return a reference to the m_data[index], where m_data is a T*.
    * This function simply returns a reference to the pointer deferenced using index.
    */
-  inline T& operator[](int64 const index)
+  inline T& operator[](int64 const index) THIS_RESTRICT
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -260,10 +268,10 @@ public:
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * m_data;
+  T * PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  int64 const * m_lengths;
+  int64 const * const PTR_RESTRICT m_lengths;
 };
 
 
