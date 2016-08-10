@@ -109,9 +109,9 @@ TEST(testArrayAccessor,ArrayInterface3)
         std::cout<<memblock[a][b][c]<<" ?= ";
         std::cout<<array3[a][b][c]<<" ?= "<<array1[c]<<std::endl;
 
-        assert(memblock[a][b][c]==array1[c]);
-        assert(memblock[a][b][c]==array2[b][c]);
-        assert(memblock[a][b][c]==array3[a][b][c]);
+        assert(&(memblock[a][b][c])==&(array1[c]));
+        assert(&(memblock[a][b][c])==&(array2[b][c]));
+        assert(&(memblock[a][b][c])==&(array3[a][b][c]));
       }
       std::cout<<std::endl;
     }

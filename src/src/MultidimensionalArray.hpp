@@ -59,11 +59,11 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
-    m_data(data),
-    m_lengths(length),
-    m_stride(CalulateStride(length)),
-    m_childInterface(ArrayAccessor<T,NDIM-1>( m_data, &(length[1]) ) )
+  ArrayAccessor( T * const PTR_RESTRICT inputData, int64 const * const PTR_RESTRICT inputLength ):
+    m_data(inputData),
+    m_lengths(inputLength),
+    m_stride(CalulateStride(inputLength)),
+    m_childInterface(ArrayAccessor<T,NDIM-1>( m_data, &(inputLength[1]) ) )
   {}
 
   /// default destructor
