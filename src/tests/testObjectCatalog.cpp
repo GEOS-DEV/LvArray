@@ -42,7 +42,7 @@ public:
     std::cout<<"calling Base destructor"<<std::endl;
   }
 
-  using CatalogInterface = CatalogInterface< Base, int&, double const &  >;
+  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int&, double const &  >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;
