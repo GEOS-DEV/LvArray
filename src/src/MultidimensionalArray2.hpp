@@ -25,12 +25,7 @@
 #include "common/DataTypes.hpp"
 #else
 #include <assert.h>
-using  int32     = std::int32_t;
-using uint32     = std::uint32_t;
-using  int64     = std::int64_t;
-using uint64     = std::uint64_t;
-using std_size_t = std::size_t;
-using string     = std::string;
+using  integer_t     = int;
 #endif
 
 
@@ -61,8 +56,8 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
   ArrayAccessor( T * const PTR_RESTRICT inputData,
-                 int64 const * const PTR_RESTRICT inputLength,
-                 int64 const * const PTR_RESTRICT intputStrides ):
+                 integer_t const * const PTR_RESTRICT inputLength,
+                 integer_t const * const PTR_RESTRICT intputStrides ):
     m_data(inputData),
     m_lengths(inputLength),
     m_strides(intputStrides)
@@ -124,7 +119,7 @@ public:
    * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
    * sub-array.
    */
-  inline ArrayAccessor<T,NDIM-1> operator[](int64 const index) THIS_RESTRICT
+  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) THIS_RESTRICT
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -133,17 +128,17 @@ public:
   }
 
   T * data() { return m_data ;}
-  int64 const * lengths() { return m_lengths ;}
+  integer_t const * lengths() { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
   T * const PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  int64 const * const PTR_RESTRICT m_lengths;
+  integer_t const * const PTR_RESTRICT m_lengths;
 
   /// the stride, or number of array entries between each iteration of the first index of this array/sub-array
-  int64 const * const PTR_RESTRICT m_strides;
+  integer_t const * const PTR_RESTRICT m_strides;
 
 };
 
@@ -168,8 +163,8 @@ public:
    * no calculation of stride is necessary for NDIM=1.
    */
   ArrayAccessor( T * const PTR_RESTRICT inputData,
-                 int64 const * const PTR_RESTRICT intputLength,
-                 int64 const * const ):
+                 integer_t const * const PTR_RESTRICT intputLength,
+                 integer_t const * const ):
     m_data(inputData),
     m_lengths(intputLength)
   {}
@@ -227,7 +222,7 @@ public:
    * @return a reference to the m_data[index], where m_data is a T*.
    * This function simply returns a reference to the pointer deferenced using index.
    */
-  inline T& operator[](int64 const index) THIS_RESTRICT
+  inline T& operator[](integer_t const index) THIS_RESTRICT
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -236,14 +231,14 @@ public:
   }
 
   T * data() { return m_data ;}
-  int64 const * lengths() { return m_lengths ;}
+  integer_t const * lengths() { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
   T * const PTR_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  int64 const * const PTR_RESTRICT m_lengths;
+  integer_t const * const PTR_RESTRICT m_lengths;
 };
 
 
@@ -270,13 +265,13 @@ public:
 
 
   template< class U=T>
-  Array( int64 const lengths[NDIM] ):
+  Array( integer_t const lengths[NDIM] ):
   m_memory(),
   m_lengths(),
   m_interface( ArrayAccessor<T,NDIM>(nullptr,lengths) )
 //  m_interface( ArrayAccessor<T,NDIM>(nullptr,lengths) )
   {
-    int64 size = 1;
+    integer_t size = 1;
     for( int a=0 ; a<NDIM ; ++a )
     {
       m_lengths[a] = lengths[a];
@@ -304,14 +299,14 @@ public:
     return m_interface;
   }
 
-  inline rtype operator[](int64 const index)
+  inline rtype operator[](integer_t const index)
   {
     return m_interface[index];
   }
 
 private:
   memBlock m_memory;
-  int64 m_lengths[NDIM] = {0};
+  integer_t m_lengths[NDIM] = {0};
   ArrayAccessor<T,NDIM> m_interface;
 
 };

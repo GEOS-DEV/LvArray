@@ -31,18 +31,18 @@ using namespace multidimensionalArray;
 
 TEST(testArrayAccessor,ArrayInterface1)
 {
-  int64 const lengths[1] = {8};
-  int64 const n = lengths[0];
+  integer_t const lengths[1] = {8};
+  integer_t const n = lengths[0];
   double memblock[n] ;
 
-  for( int a=0 ; a<n ; ++a )
+  for( integer_t a=0 ; a<n ; ++a )
   {
     memblock[a] = a;
   }
 
   ArrayAccessor<double,1> array(memblock,lengths);
 
-  for( int a=0 ; a<n ; ++a )
+  for( integer_t a=0 ; a<n ; ++a )
   {
     std::cout<<array[a]<<std::endl;
   }
@@ -50,13 +50,13 @@ TEST(testArrayAccessor,ArrayInterface1)
 
 TEST(testArrayAccessor,ArrayInterface2)
 {
-  int64 const lengths[2] = {2,8};
-  int64 const n = lengths[0]*lengths[1];
+  integer_t const lengths[2] = {2,8};
+  integer_t const n = lengths[0]*lengths[1];
   double memblock[n] ;
 
-  for( int a=0 ; a<lengths[0] ; ++a )
+  for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
-    for( int b=0 ; b<lengths[1] ; ++b )
+    for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
       memblock[a*lengths[1]+b] = a*lengths[1]+b;
     }
@@ -65,9 +65,9 @@ TEST(testArrayAccessor,ArrayInterface2)
   ArrayAccessor<double,2> array(memblock,lengths);
 
 
-  for( int a=0 ; a<lengths[0] ; ++a )
+  for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
-    for( int b=0 ; b<lengths[1] ; ++b )
+    for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
       std::cout<<memblock[a*lengths[1]+b]<<" ?= ";
       std::cout<<array[a][b]<<std::endl;
@@ -78,14 +78,14 @@ TEST(testArrayAccessor,ArrayInterface2)
 
 TEST(testArrayAccessor,ArrayInterface3)
 {
-  constexpr int64 lengths[3] = {2,2,3};
+  constexpr integer_t lengths[3] = {2,2,3};
   double memblock[lengths[0]][lengths[1]][lengths[2]] ;
 
-  for( int a=0 ; a<lengths[0] ; ++a )
+  for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
-    for( int b=0 ; b<lengths[1] ; ++b )
+    for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
-      for( int c=0 ; c<lengths[2] ; ++c )
+      for( integer_t c=0 ; c<lengths[2] ; ++c )
       {
         memblock[a][b][c] = a*lengths[1]*lengths[2]+b*lengths[2]+c;
       }
@@ -95,15 +95,15 @@ TEST(testArrayAccessor,ArrayInterface3)
   ArrayAccessor<double,3> array3(&(memblock[0][0][0]),lengths);
 
 
-  for( int a=0 ; a<lengths[0] ; ++a )
+  for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
     ArrayAccessor<double,2> array2 = array3[a];
 
-    for( int b=0 ; b<lengths[1] ; ++b )
+    for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
       ArrayAccessor<double,1> array1 = array2[b];
 
-      for( int c=0 ; c<lengths[2] ; ++c )
+      for( integer_t c=0 ; c<lengths[2] ; ++c )
       {
         std::cout<<"("<<a<<","<<b<<","<<c<<") -> ";
         std::cout<<memblock[a][b][c]<<" ?= ";
