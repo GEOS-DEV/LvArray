@@ -60,10 +60,12 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length, int64 const * const PTR_RESTRICT strides ):
-    m_data(data),
-    m_lengths(length),
-    m_strides(strides)
+  ArrayAccessor( T * const PTR_RESTRICT inputData,
+                 int64 const * const PTR_RESTRICT inputLength,
+                 int64 const * const PTR_RESTRICT intputStrides ):
+    m_data(inputData),
+    m_lengths(inputLength),
+    m_strides(intputStrides)
   {}
 
   /// default destructor
@@ -165,9 +167,11 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length, int64 const * const ):
-    m_data(data),
-    m_lengths(length)
+  ArrayAccessor( T * const PTR_RESTRICT inputData,
+                 int64 const * const PTR_RESTRICT intputLength,
+                 int64 const * const ):
+    m_data(inputData),
+    m_lengths(intputLength)
   {}
 
 

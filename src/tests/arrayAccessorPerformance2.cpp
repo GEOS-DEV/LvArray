@@ -420,7 +420,6 @@ int main( int argc, char* argv[] )
     double error2_7 = 0.0;
     double error2_8 = 0.0;
     double error2_9 = 0.0;
-    double error2_10 = 0.0;
 
     for( int i = 0 ; i < num_i ; ++i )
     {

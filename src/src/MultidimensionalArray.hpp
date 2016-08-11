@@ -193,9 +193,9 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const PTR_RESTRICT data, int64 const * const PTR_RESTRICT length ):
-    m_data(data),
-    m_lengths(length)
+  ArrayAccessor( T * const PTR_RESTRICT inputData, int64 const * const PTR_RESTRICT inputLength ):
+    m_data(inputData),
+    m_lengths(inputLength)
   {}
 
   /// default destructor
