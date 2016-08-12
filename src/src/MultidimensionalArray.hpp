@@ -24,7 +24,7 @@
 #include "common/DataTypes.hpp"
 #else
 #include <assert.h>
-using  integer_t     = int;
+using  integer_t     = unsigned int;
 #endif
 
 
