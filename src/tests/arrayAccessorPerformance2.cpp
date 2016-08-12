@@ -256,7 +256,7 @@ double MatrixMultiply_2D_constructAccessor( integer_t const num_i,
 //  return ( endTime - startTime ) / 1000.0;
 //}
 
-integer_t main( integer_t argc, char* argv[] )
+int main( int argc, char* argv[] )
 {
   integer_t seed = time( NULL );
 

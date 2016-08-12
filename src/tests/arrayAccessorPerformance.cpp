@@ -101,6 +101,7 @@ for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter ) \
 uint64_t endTime = GetTimeMs64(); \
 return ( endTime - startTime ) / 1000.0;
 
+
 inline double MatrixMultiply_2D_accessorInline( integer_t const num_i,
                                                 integer_t const num_j,
                                                 integer_t const num_k,
@@ -243,7 +244,7 @@ double MatrixMultiply_2D_constructAccessor( integer_t const num_i,
 //  return ( endTime - startTime ) / 1000.0;
 //}
 
-integer_t main( integer_t argc, char* argv[] )
+int main( int argc, char* argv[] )
 {
   integer_t seed = time( NULL );
 
@@ -361,7 +362,7 @@ integer_t main( integer_t argc, char* argv[] )
       {
         for( integer_t k = 0 ; k < num_k ; ++k )
         {
-          accessorC_1[i][j] += accessorA[i][k] * accessorB[k][j] + 3.1415 * accessorA[i][k] + 1.61803 * accessorB[k][j];
+          accessorC_1[i][j] += accessorA[i][k] * accessorB[k][j] + 3.1415 * accessorA[i][k] + 1.61803 * accessorB[k][j];;
         }
       }
     }
