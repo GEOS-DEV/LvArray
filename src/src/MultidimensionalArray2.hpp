@@ -13,11 +13,11 @@
 #define ARRAY_BOUNDS_CHECK 0
 
 #ifdef __clang__
-#define PTR_RESTRICT __restrict__
-#define THIS_RESTRICT
+#define restrict __restrict__
+#define restrict_this
 #elif __GNUC__
-#define PTR_RESTRICT __restrict__
-#define THIS_RESTRICT __restrict__
+#define restrict __restrict__
+#define restrict_this __restrict__
 #endif
 
 
@@ -55,9 +55,9 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  ArrayAccessor( T * const PTR_RESTRICT inputData,
-                 integer_t const * const PTR_RESTRICT inputLength,
-                 integer_t const * const PTR_RESTRICT intputStrides ):
+  ArrayAccessor( T * const restrict inputData,
+                 integer_t const * const restrict inputLength,
+                 integer_t const * const restrict intputStrides ):
     m_data(inputData),
     m_lengths(inputLength),
     m_strides(intputStrides)
@@ -119,7 +119,15 @@ public:
    * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
    * sub-array.
    */
-  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) THIS_RESTRICT
+  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) restrict_this
+  {
+#if ARRAY_BOUNDS_CHECK == 1
+    assert( index < m_lengths[0] );
+#endif
+    return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
+  }
+
+  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) const restrict_this
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -128,17 +136,20 @@ public:
   }
 
   T * data() { return m_data ;}
+  T const * data() const { return m_data ;}
+
   integer_t const * lengths() { return m_lengths ;}
+  integer_t const * lengths() const { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * const PTR_RESTRICT m_data;
+  T * const restrict m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  integer_t const * const PTR_RESTRICT m_lengths;
+  integer_t const * const restrict m_lengths;
 
   /// the stride, or number of array entries between each iteration of the first index of this array/sub-array
-  integer_t const * const PTR_RESTRICT m_strides;
+  integer_t const * const restrict m_strides;
 
 };
 
@@ -162,8 +173,8 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.
    */
-  ArrayAccessor( T * const PTR_RESTRICT inputData,
-                 integer_t const * const PTR_RESTRICT intputLength,
+  ArrayAccessor( T * const restrict inputData,
+                 integer_t const * const restrict intputLength,
                  integer_t const * const ):
     m_data(inputData),
     m_lengths(intputLength)
@@ -222,7 +233,7 @@ public:
    * @return a reference to the m_data[index], where m_data is a T*.
    * This function simply returns a reference to the pointer deferenced using index.
    */
-  inline T& operator[](integer_t const index) THIS_RESTRICT
+  inline T& operator[](integer_t const index) restrict_this
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -235,10 +246,10 @@ public:
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
-  T * const PTR_RESTRICT m_data;
+  T * const restrict m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  integer_t const * const PTR_RESTRICT m_lengths;
+  integer_t const * const restrict m_lengths;
 };
 
 

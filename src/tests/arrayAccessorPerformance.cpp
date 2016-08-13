@@ -262,19 +262,19 @@ int main( int argc, char* argv[] )
   double A[num_i][num_k];
   double B[num_k][num_j];
 
-  double * const C1a = new double[num_i*num_j];
-  double * const C1b = new double[num_i*num_j];
+  double * const restrict C1a = new double[num_i*num_j];
+  double * const restrict C1b = new double[num_i*num_j];
   double C2_native[num_i][num_j];
-  double * const C2_1 = new double[num_i*num_j];
-  double * const C2_2 = new double[num_i*num_j];
-  double * const C2_3 = new double[num_i*num_j];
-  double * const C2_4 = new double[num_i*num_j];
-  double * const C2_5 = new double[num_i*num_j];
-  double * const C2_6 = new double[num_i*num_j];
-  double * const C2_7 = new double[num_i*num_j];
-  double * const C2_8 = new double[num_i*num_j];
-  double * const C2_9 = new double[num_i*num_j];
-  double * const C2_10 = new double[num_i*num_j];
+  double * const restrict C2_1 = new double[num_i*num_j];
+  double * const restrict C2_2 = new double[num_i*num_j];
+  double * const restrict C2_3 = new double[num_i*num_j];
+  double * const restrict C2_4 = new double[num_i*num_j];
+  double * const restrict C2_5 = new double[num_i*num_j];
+  double * const restrict C2_6 = new double[num_i*num_j];
+  double * const restrict C2_7 = new double[num_i*num_j];
+  double * const restrict C2_8 = new double[num_i*num_j];
+  double * const restrict C2_9 = new double[num_i*num_j];
+  double * const restrict C2_10 = new double[num_i*num_j];
 
   srand( seed * seedmod );
 
