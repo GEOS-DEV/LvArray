@@ -25,7 +25,7 @@
 #include "common/DataTypes.hpp"
 #else
 #include <assert.h>
-using  integer_t     = unsigned int;
+using  integer_t     = int;
 #endif
 
 
@@ -119,7 +119,7 @@ public:
    * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
    * sub-array.
    */
-  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) restrict_this
+  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index)
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -127,12 +127,128 @@ public:
     return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
   }
 
-  inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index) const restrict_this
+  inline ArrayAccessor<T,NDIM-1> const operator[](integer_t const index) const
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
 #endif
     return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
+  }
+
+  T * restrict data() { return m_data ;}
+  T const * restrict data() const { return m_data ;}
+
+  integer_t const * lengths() { return m_lengths ;}
+  integer_t const * lengths() const { return m_lengths ;}
+
+private:
+  /// pointer to beginning of data for this array, or sub-array.
+  T * const restrict m_data;
+
+  /// pointer to array of length NDIM that contains the lengths of each array dimension
+  integer_t const * const restrict m_lengths;
+
+  /// the stride, or number of array entries between each iteration of the first index of this array/sub-array
+  integer_t const * const restrict m_strides;
+
+};
+
+
+
+#if 0
+
+template< typename T >
+class ArrayAccessor<T,2>
+{
+public:
+
+  /// deleted default constructor
+  ArrayAccessor() = delete;
+
+  /**
+   * @param data pointer to the beginning of the data
+   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
+   *
+   * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
+   */
+  ArrayAccessor( T * const restrict inputData,
+                 integer_t const * const restrict inputLength,
+                 integer_t const * const restrict intputStrides ):
+    m_data(inputData),
+    m_lengths(inputLength),
+    m_strides(intputStrides)
+  {}
+
+  /// default destructor
+  ~ArrayAccessor() = default;
+
+  /**
+   * @param source object to copy
+   * copy constructor invokes direct copy of each member in source
+   */
+  ArrayAccessor( ArrayAccessor const & source ):
+    m_data(source.m_data),
+    m_lengths(source.m_lengths),
+    m_strides(source.m_strides)
+  {}
+
+  /**
+   * @param source object to move
+   * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
+   * is a straight copy. Not really a move, but rather a copy.
+   */
+  ArrayAccessor( ArrayAccessor && source ):
+    m_data( std::move(source.m_data) ),
+    m_lengths( std::move(source.m_lengths) ),
+    m_strides( std::move(source.m_strides) )
+  {}
+
+  /**
+   * @param rhs object to copy
+   * copy assignment operator invokes direct copy of each member in source.
+   */
+//  ArrayAccessor & operator=( ArrayAccessor const & rhs )
+//  {
+//    m_data           = rhs.m_data;
+//    m_lengths        = rhs.m_lengths;
+//    m_strides        = rhs.m_strides;
+//    return *this;
+//  }
+
+  /**
+   * @param source object to move
+   * move constructor invokes direct move of each member in source. In the case of data members that are pointers, this
+   * is a straight copy assignment....so this is really just a copy constructor.
+   */
+//  ArrayAccessor & operator=( ArrayAccessor && rhs )
+//  {
+//    m_data           = std::move(rhs.m_data);
+//    m_lengths        = std::move(rhs.m_lengths);
+//    m_strides        = std::move(rhs.m_strides);
+//    return *this;
+//  }
+
+  /**
+   * @param index index of the element in array to access
+   * @return a reference to the member m_childInterface, which is of type ArrayAccessor<T,NDIM-1>.
+   * This function sets the data pointer for m_childInterface.m_data to the location corresponding to the input
+   * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
+   * sub-array.
+   */
+  inline T * restrict operator[](integer_t const index)
+  {
+#if ARRAY_BOUNDS_CHECK == 1
+    assert( index < m_lengths[0] );
+#endif
+    return &(m_data[index*m_strides[0]]);
+  }
+
+  inline T const * restrict operator[](integer_t const index) const
+  {
+#if ARRAY_BOUNDS_CHECK == 1
+    assert( index < m_lengths[0] );
+#endif
+    return &(m_data[index*m_strides[0]]);
   }
 
   T * data() { return m_data ;}
@@ -152,6 +268,11 @@ private:
   integer_t const * const restrict m_strides;
 
 };
+
+
+#endif
+
+
 
 /**
  * Specialization for the ArrayAccessor<typename T, int NDIM> class template. This specialization defines the lowest
@@ -233,7 +354,7 @@ public:
    * @return a reference to the m_data[index], where m_data is a T*.
    * This function simply returns a reference to the pointer deferenced using index.
    */
-  inline T& operator[](integer_t const index) restrict_this
+  inline T& operator[](integer_t const index)
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_lengths[0] );
@@ -241,8 +362,16 @@ public:
     return m_data[index];
   }
 
-  T * data() { return m_data ;}
-  integer_t const * lengths() { return m_lengths ;}
+  inline T const & operator[](integer_t const index) const
+  {
+#if ARRAY_BOUNDS_CHECK == 1
+    assert( index < m_lengths[0] );
+#endif
+    return m_data[index];
+  }
+
+  T * restrict data() { return m_data ;}
+  integer_t const * restrict lengths() { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.

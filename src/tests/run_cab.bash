@@ -4,11 +4,11 @@
 use gcc-4.9.3p
 use clang-3.8.1
 
-g++      -std=c++14 -O3 -Wno-vla  -I../src -o gcc49.x    arrayAccessorPerformance.cpp
-clang++  -std=c++14 -O3           -I../src -o clang38.x  arrayAccessorPerformance.cpp
+g++      -std=c++14 -O3 -march=native -Wno-vla  -I../src -o gcc49.x    arrayAccessorPerformance.cpp
+clang++  -std=c++14 -O3 -march=native           -I../src -o clang38.x  arrayAccessorPerformance.cpp
 
-g++      -std=c++14 -O3 -Wno-vla -I../src -o gcc49.x2    arrayAccessorPerformance2.cpp
-clang++  -std=c++14 -O3          -I../src -o clang38.x2  arrayAccessorPerformance2.cpp
+g++      -std=c++14 -O3 -march=native -Wno-vla -I../src -o gcc49.x2    arrayAccessorPerformance2.cpp
+clang++  -std=c++14 -O3 -march=native          -I../src -o clang38.x2  arrayAccessorPerformance2.cpp
 
 echo gcc49
 for i in `seq 1 10`;

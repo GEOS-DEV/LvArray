@@ -14,7 +14,7 @@
 #include "MultidimensionalArray2.hpp"
 
 using namespace multidimensionalArray;
-uint64_t GetTimeMs64()
+inline uint64_t GetTimeMs64()
 {
   struct timeval tv;
 
@@ -105,8 +105,8 @@ inline double MatrixMultiply_2D_accessorInline( integer_t const num_i,
                                                 integer_t const num_j,
                                                 integer_t const num_k,
                                                 integer_t const ITERATIONS,
-                                                ArrayAccessor<double const,2> A,
-                                                ArrayAccessor<double const,2> B,
+                                                ArrayAccessor<double const,2> const A,
+                                                ArrayAccessor<double const,2> const B,
                                                 ArrayAccessor<double,2> C )
 {
   MATMULT
@@ -116,8 +116,8 @@ double MatrixMultiply_2D_accessor( integer_t const num_i,
                                    integer_t const num_j,
                                    integer_t const num_k,
                                    integer_t const ITERATIONS,
-                                   ArrayAccessor<double const,2> A,
-                                   ArrayAccessor<double const,2> B,
+                                   ArrayAccessor<double const,2> const A,
+                                   ArrayAccessor<double const,2> const B,
                                    ArrayAccessor<double,2> C )
 {
   MATMULT
@@ -127,8 +127,8 @@ inline double MatrixMultiply_2D_accessorInlineRef( integer_t const num_i,
                                                 integer_t const num_j,
                                                 integer_t const num_k,
                                                 integer_t const ITERATIONS,
-                                                ArrayAccessor<double const,2> & A,
-                                                ArrayAccessor<double const,2> & B,
+                                                ArrayAccessor<double const,2> const & A,
+                                                ArrayAccessor<double const,2> const & B,
                                                 ArrayAccessor<double,2> & C )
 {
   MATMULT
@@ -138,8 +138,8 @@ double MatrixMultiply_2D_accessorRef( integer_t const num_i,
                                    integer_t const num_j,
                                    integer_t const num_k,
                                    integer_t const ITERATIONS,
-                                   ArrayAccessor<double const,2> & A,
-                                   ArrayAccessor<double const,2> & B,
+                                   ArrayAccessor<double const,2> const & A,
+                                   ArrayAccessor<double const,2> const & B,
                                    ArrayAccessor<double,2> & C )
 {
   MATMULT
@@ -151,12 +151,12 @@ double MatrixMultiply_2D_copyConstruct( integer_t const num_i,
                                         integer_t const num_j,
                                         integer_t const num_k,
                                         integer_t const ITERATIONS,
-                                        ArrayAccessor<double const,2> A0,
-                                        ArrayAccessor<double const,2> B0,
+                                        ArrayAccessor<double const,2> const A0,
+                                        ArrayAccessor<double const,2> const B0,
                                         ArrayAccessor<double,2> C0 )
 {
-  ArrayAccessor<double const,2> A(A0);
-  ArrayAccessor<double const,2> B(B0);
+  ArrayAccessor<double const,2> const A(A0);
+  ArrayAccessor<double const,2> const B(B0);
   ArrayAccessor<double,2> C(C0);
   MATMULT
 }
@@ -166,16 +166,16 @@ double MatrixMultiply_2D_copyConstruct2( integer_t const num_i,
                                         integer_t const num_j,
                                         integer_t const num_k,
                                         integer_t const ITERATIONS,
-                                        ArrayAccessor<double const,2> A0,
-                                        ArrayAccessor<double const,2> B0,
+                                        ArrayAccessor<double const,2> const A0,
+                                        ArrayAccessor<double const,2> const B0,
                                         ArrayAccessor<double,2> C0 )
 {
-  integer_t stridesA[] = { num_k, 1 };
-  integer_t stridesB[] = { num_j, 1 };
-  integer_t stridesC[] = { num_j, 1 };
+  integer_t const stridesA[] = { num_k, 1 };
+  integer_t const stridesB[] = { num_j, 1 };
+  integer_t const stridesC[] = { num_j, 1 };
 
-  ArrayAccessor<double const,2> A( A0.data(), A0.lengths(), stridesA );
-  ArrayAccessor<double const,2> B( B0.data(), B0.lengths(), stridesB );
+  ArrayAccessor<double const,2> const A( A0.data(), A0.lengths(), stridesA );
+  ArrayAccessor<double const,2> const B( B0.data(), B0.lengths(), stridesB );
   ArrayAccessor<double,2> C( C0.data(), C0.lengths(), stridesC );
   MATMULT
 }
@@ -192,12 +192,12 @@ double MatrixMultiply_2D_constructAccessorR( integer_t const num_i,
                                             double * const __restrict__ ptrC,
                                             integer_t const * const lengthC )
 {
-  integer_t stridesA[] = { num_k, 1 };
-  integer_t stridesB[] = { num_j, 1 };
-  integer_t stridesC[] = { num_j, 1 };
+  integer_t const stridesA[] = { num_k, 1 };
+  integer_t const stridesB[] = { num_j, 1 };
+  integer_t const stridesC[] = { num_j, 1 };
 
-  ArrayAccessor<double const,2> A( ptrA, lengthA, stridesA );
-  ArrayAccessor<double const,2> B( ptrB, lengthB, stridesB );
+  ArrayAccessor<double const,2> const A( ptrA, lengthA, stridesA );
+  ArrayAccessor<double const,2> const B( ptrB, lengthB, stridesB );
   ArrayAccessor<double,2> C( ptrC, lengthC, stridesC );
 
   MATMULT
@@ -215,12 +215,12 @@ double MatrixMultiply_2D_constructAccessor( integer_t const num_i,
                                             integer_t const * const lengthC )
 {
 
-  integer_t stridesA[] = { num_k, 1 };
-  integer_t stridesB[] = { num_j, 1 };
-  integer_t stridesC[] = { num_j, 1 };
+  integer_t const stridesA[] = { num_k, 1 };
+  integer_t const stridesB[] = { num_j, 1 };
+  integer_t const stridesC[] = { num_j, 1 };
 
-  ArrayAccessor<double const,2> A( ptrA, lengthA, stridesA );
-  ArrayAccessor<double const,2> B( ptrB, lengthB, stridesB );
+  ArrayAccessor<double const,2> const A( ptrA, lengthA, stridesA );
+  ArrayAccessor<double const,2> const B( ptrB, lengthB, stridesB );
   ArrayAccessor<double,2> C( ptrC, lengthC, stridesC );
 
   MATMULT
@@ -348,16 +348,16 @@ int main( int argc, char* argv[] )
 
 
 
-  integer_t lengthsA[] = { num_i , num_k };
-  integer_t lengthsB[] = { num_k , num_j };
-  integer_t lengthsC[] = { num_i , num_j };
+  integer_t const lengthsA[] = { num_i , num_k };
+  integer_t const lengthsB[] = { num_k , num_j };
+  integer_t const lengthsC[] = { num_i , num_j };
 
-  integer_t stridesA[] = { num_k, 1 };
-  integer_t stridesB[] = { num_j, 1 };
-  integer_t stridesC[] = { num_j, 1 };
+  integer_t const stridesA[] = { num_k, 1 };
+  integer_t const stridesB[] = { num_j, 1 };
+  integer_t const stridesC[] = { num_j, 1 };
 
-  ArrayAccessor<double const,2> accessorA( &(A[0][0]), lengthsA, stridesA );
-  ArrayAccessor<double const,2> accessorB( &(B[0][0]), lengthsB, stridesB );
+  ArrayAccessor<double const,2> const accessorA( &(A[0][0]), lengthsA, stridesA );
+  ArrayAccessor<double const,2> const accessorB( &(B[0][0]), lengthsB, stridesB );
   ArrayAccessor<double,2> accessorC_1( C2_1, lengthsC, stridesC );
   ArrayAccessor<double,2> accessorC_2( C2_2, lengthsC, stridesC );
   ArrayAccessor<double,2> accessorC_3( C2_3, lengthsC, stridesC );

@@ -11,10 +11,10 @@
 #include <string>
 #include <math.h>
 
-#include "MultidimensionalArray.hpp"
+#include "MultidimensionalArray3.hpp"
 
 using namespace multidimensionalArray;
-uint64_t GetTimeMs64()
+inline uint64_t GetTimeMs64()
 {
   struct timeval tv;
 
@@ -308,10 +308,8 @@ int main( int argc, char* argv[] )
     }
   }
 
-  double minRunTime = 1.0e99;
   double runTime1  = MatrixMultiply_1D( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1a );
   double runTime1r = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1b );
-  minRunTime = std::min(runTime1,runTime1r);
 
 
 
@@ -332,7 +330,6 @@ int main( int argc, char* argv[] )
   }
   uint64_t endTime = GetTimeMs64();
   double runTime2_native = ( endTime - startTime ) / 1000.0;
-  minRunTime = std::min( minRunTime, runTime2_native );
 
 
 
@@ -391,6 +388,9 @@ int main( int argc, char* argv[] )
   double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
   double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
+  double minRunTime = 1.0e99;
+  minRunTime = std::min(runTime1,runTime1r);
+  minRunTime = std::min( minRunTime, runTime2_native );
   minRunTime = std::min( minRunTime, runTime2_1 );
   minRunTime = std::min( minRunTime, runTime2_2 );
   minRunTime = std::min( minRunTime, runTime2_3 );
