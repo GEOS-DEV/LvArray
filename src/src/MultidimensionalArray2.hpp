@@ -63,6 +63,19 @@ public:
     m_strides(intputStrides)
   {}
 
+  /**
+   * @param data pointer to the beginning of the data
+   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
+   *
+   * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
+   */
+  ArrayAccessor( T * const restrict inputData ):
+    m_data(    inputData + 1 + 2*(*reinterpret_cast<integer_t*>(inputData)) ),
+    m_lengths( reinterpret_cast<integer_t*>( inputData ) + 1 ),
+    m_strides( reinterpret_cast<integer_t*>( inputData ) + 1 + *reinterpret_cast<integer_t*>(inputData)  )
+  {}
+
+
   /// default destructor
   ~ArrayAccessor() = default;
 
@@ -301,6 +314,10 @@ public:
     m_lengths(intputLength)
   {}
 
+  ArrayAccessor( T * const restrict inputData ):
+    m_data( static_cast<integer_t*>( inputData + 1 + static_cast<int>(2*(inputData[0])))),
+    m_lengths( static_cast<integer_t*>( inputData + 1 ) )
+  {}
 
   /// default destructor
   ~ArrayAccessor() = default;

@@ -227,6 +227,25 @@ double MatrixMultiply_2D_constructAccessor( integer_t const num_i,
 }
 
 
+double MatrixMultiply_2D_constructAccessorR2( integer_t const num_i,
+                                            integer_t const num_j,
+                                            integer_t const num_k,
+                                            integer_t const ITERATIONS,
+                                            double const * const __restrict__ ptrA,
+                                            integer_t const * const lengthA,
+                                            double const * const __restrict__ ptrB,
+                                            integer_t const * const lengthB,
+                                            double * const __restrict__ ptrC )
+{
+  integer_t const stridesA[] = { num_k, 1 };
+  integer_t const stridesB[] = { num_j, 1 };
+
+  ArrayAccessor<double const,2> const A( ptrA, lengthA, stridesA );
+  ArrayAccessor<double const,2> const B( ptrB, lengthB, stridesB );
+  ArrayAccessor<double,2> C( ptrC );
+
+  MATMULT
+}
 //
 //double MatrixMultiply_2D_accessorSliced( integer const num_i,
 //                                         integer const num_j,
@@ -277,16 +296,16 @@ int main( int argc, char* argv[] )
   double * const restrict C1a = new double[num_i*num_j];
   double * const restrict C1b = new double[num_i*num_j];
   double C2_native[num_i][num_j];
-  double * const restrict C2_1 = new double[num_i*num_j];
-  double * const restrict C2_2 = new double[num_i*num_j];
-  double * const restrict C2_3 = new double[num_i*num_j];
-  double * const restrict C2_4 = new double[num_i*num_j];
-  double * const restrict C2_5 = new double[num_i*num_j];
-  double * const restrict C2_6 = new double[num_i*num_j];
-  double * const restrict C2_7 = new double[num_i*num_j];
-  double * const restrict C2_8 = new double[num_i*num_j];
-  double * const restrict C2_9 = new double[num_i*num_j];
-  double * const restrict C2_10 = new double[num_i*num_j];
+  double * const restrict C2_1 =  new double[num_i*num_j];
+  double * const restrict C2_2 =  new double[num_i*num_j];
+  double * const restrict C2_3 =  new double[num_i*num_j];
+  double * const restrict C2_4 =  new double[num_i*num_j];
+  double * const restrict C2_5 =  new double[num_i*num_j];
+  double * const restrict C2_6 =  new double[num_i*num_j];
+  double * const restrict C2_7 =  new double[num_i*num_j];
+  double * const restrict C2_8 =  new double[num_i*num_j];
+  double * const restrict C2_9 =  new double[num_i*num_j];
+  double * const restrict C2_10 = new double[ num_i*num_j + 1 + 2*2 ];
 
   srand( seed * seedmod );
 
@@ -316,7 +335,7 @@ int main( int argc, char* argv[] )
       C2_7[i*num_j+j] = 0.0;
       C2_8[i*num_j+j] = 0.0;
       C2_9[i*num_j+j] = 0.0;
-      C2_10[i*num_j+j] = 0.0;
+      C2_10[i*num_j+j+5] = 0.0;
     }
   }
 
@@ -355,6 +374,14 @@ int main( int argc, char* argv[] )
   integer_t const stridesA[] = { num_k, 1 };
   integer_t const stridesB[] = { num_j, 1 };
   integer_t const stridesC[] = { num_j, 1 };
+
+  integer_t * C2Header = reinterpret_cast<integer_t*>(C2_10);
+  C2Header[0] = 2;
+  C2Header[1] = num_i;
+  C2Header[2] = num_j;
+  C2Header[3] = num_j;
+  C2Header[4] = 1;
+
 
   ArrayAccessor<double const,2> const accessorA( &(A[0][0]), lengthsA, stridesA );
   ArrayAccessor<double const,2> const accessorB( &(B[0][0]), lengthsB, stridesB );
@@ -406,6 +433,11 @@ int main( int argc, char* argv[] )
   double runTime2_8 = MatrixMultiply_2D_copyConstruct( num_i, num_j, num_k, ITERATIONS,  accessorA, accessorB, accessorC_8 );
   double runTime2_9 = MatrixMultiply_2D_copyConstruct2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_9 );
 
+  double runTime2_10 = MatrixMultiply_2D_constructAccessorR2( num_i, num_j, num_k, ITERATIONS,
+                                                          &(A[0][0]), lengthsA,
+                                                          &(B[0][0]), lengthsB,
+                                                          C2_10 );
+
 
   if( output >= 3 )
   {
@@ -420,6 +452,7 @@ int main( int argc, char* argv[] )
     double error2_7 = 0.0;
     double error2_8 = 0.0;
     double error2_9 = 0.0;
+    double error2_10 = 0.0;
 
     for( integer_t i = 0 ; i < num_i ; ++i )
     {
@@ -436,6 +469,7 @@ int main( int argc, char* argv[] )
         error2_7 += pow( C2_native[i][j] - C2_7[i*num_j+j] , 2 ) ;
         error2_8 += pow( C2_native[i][j] - C2_8[i*num_j+j] , 2 ) ;
         error2_9 += pow( C2_native[i][j] - C2_9[i*num_j+j] , 2 ) ;
+        error2_10 += pow( C2_native[i][j] - C2_10[i*num_j+j+5] , 2 ) ;
       }
     }
     std::cout<<"error1a = "<<error1a<<std::endl;
@@ -449,6 +483,7 @@ int main( int argc, char* argv[] )
     std::cout<<"error2_7 = "<<error2_7<<std::endl;
     std::cout<<"error2_8 = "<<error2_8<<std::endl;
     std::cout<<"error2_9 = "<<error2_9<<std::endl;
+    std::cout<<"error2_10= "<<error2_10<<std::endl;
   }
 
   if( output == 1 )
@@ -465,22 +500,24 @@ int main( int argc, char* argv[] )
     printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
     printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
     printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
+    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_10, runTime2_10 / runTime1);
   }
 
   if( output == 2 )
   {
-    printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f \n", runTime1,
-                                                                                          runTime1r,
-                                                                                          runTime2_native,
-                                                                                          runTime2_1,
-                                                                                          runTime2_2,
-                                                                                          runTime2_3,
-                                                                                          runTime2_4,
-                                                                                          runTime2_5,
-                                                                                          runTime2_6,
-                                                                                          runTime2_7,
-                                                                                          runTime2_8,
-                                                                                          runTime2_9 );
+    printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f \n", runTime1,
+                                                                                                runTime1r,
+                                                                                                runTime2_native,
+                                                                                                runTime2_1,
+                                                                                                runTime2_2,
+                                                                                                runTime2_3,
+                                                                                                runTime2_4,
+                                                                                                runTime2_5,
+                                                                                                runTime2_6,
+                                                                                                runTime2_7,
+                                                                                                runTime2_8,
+                                                                                                runTime2_9,
+                                                                                                runTime2_10 );
   }
 
   return 0;
