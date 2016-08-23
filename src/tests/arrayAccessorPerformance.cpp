@@ -11,7 +11,7 @@
 #include <string>
 #include <math.h>
 
-#include "MultidimensionalArray3.hpp"
+#include "MultidimensionalArray.hpp"
 
 using namespace multidimensionalArray;
 inline uint64_t GetTimeMs64()
@@ -401,7 +401,7 @@ int main( int argc, char* argv[] )
   minRunTime = std::min( minRunTime, runTime2_8 );
   minRunTime = std::min( minRunTime, runTime2_9 );
 
-  if( output >= 3 )
+  if( output > 2 )
   {
     double error1a = 0.0;
     double error1b = 0.0;
@@ -445,9 +445,9 @@ int main( int argc, char* argv[] )
     std::cout<<"error2_9 = "<<error2_9<<std::endl;
   }
 
-  if( output == 1 )
+  if( output > 1 )
   {
-    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, minRunTime);
+    printf( "1d array                             : %8.3f, %8.3f\n", runTime1, runTime1/minRunTime);
     printf( "1d array restrict                    : %8.3f, %8.3f\n", runTime1r, runTime1r / minRunTime);
     printf( "2d native                            : %8.3f, %8.3f\n", runTime2_native, runTime2_native / minRunTime);
     printf( "accessor no func                     : %8.3f, %8.3f\n", runTime2_1, runTime2_1 / minRunTime);
@@ -461,7 +461,7 @@ int main( int argc, char* argv[] )
     printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / minRunTime);
   }
 
-  if( output == 2 )
+  if( output == 1 )
   {
     printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f \n", runTime1,
                                                                                           runTime1r,
