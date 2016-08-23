@@ -80,7 +80,7 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  virtual std::unique_ptr<BASETYPE> Allocate( ARGS& ... args ) const = 0;
+  virtual std::unique_ptr<BASETYPE> Allocate( ARGS&&... args ) const = 0;
 
   /**
    * static method to create a new object that derives from BASETYPE
@@ -88,10 +88,10 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS& ... args )
+  static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS&&... args )
   {
     CatalogInterface<BASETYPE, ARGS ...> const * const entry = GetCatalog().at( objectTypeName ).get();
-    return entry->Allocate( args ... );
+    return entry->Allocate( std::forward<ARGS>(args)... );
   }
 
 };
@@ -152,13 +152,14 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  virtual std::unique_ptr<BASETYPE> Allocate( ARGS& ... args ) const override final
+  virtual std::unique_ptr<BASETYPE> Allocate( ARGS&&... args ) const override final
   {
 #if OBJECTCATALOGVERBOSE > 0
     std::cout << "Creating type "<< demangle(typeid(TYPE).name())
               <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
-    return std::unique_ptr<BASETYPE>( new TYPE( args ... ) );
+    return std::make_unique<BASETYPE>( std::forward<ARGS>(args)... );
+//    return std::unique_ptr<BASETYPE>( new TYPE( std::forward<ARGS>(args)... ) );
   }
 };
 
