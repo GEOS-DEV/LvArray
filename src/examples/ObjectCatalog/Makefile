@@ -1,7 +1,11 @@
-CPP=g++-mp-5
+CPP=g++
 
 test: main.o Derived1.o StringUtilities.o
 	${CPP} -std=c++14 -o test    main.o StringUtilities.o Derived1.o
+
+testlib: main.o libDerived2.a StringUtilities.o
+	${CPP} -std=c++14 -o testlib main.o StringUtilities.o  Derived1.o -Wl,-all_load -L. -lDerived2 
+#	${CPP} -std=c++14 -o testlib main.o -Wl,--whole-archive -L. -lDerived 
 
 
 main.o: main.cpp
@@ -21,9 +25,6 @@ libDerived2.a: Derived2.cpp Derived2.hpp Base.hpp
 	ar qcsv libDerived2.a  Derived2.o
 	ranlib libDerived2.a
 	
-testlib: main.o libDerived2.a StringUtilities.o
-	${CPP} -std=c++14 -o testlib main.o StringUtilities.o  Derived1.o -Wl,-all_load -L. -lDerived2 
-#	${CPP} -std=c++14 -o testlib main.o -Wl,--whole-archive -L. -lDerived 
 	
 	
 clean:

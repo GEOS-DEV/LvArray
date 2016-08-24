@@ -80,7 +80,7 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  virtual std::unique_ptr<BASETYPE> Allocate( ARGS&&... args ) const = 0;
+  virtual std::unique_ptr<BASETYPE> Allocate( ARGS... args ) const = 0;
 
   /**
    * static method to create a new object that derives from BASETYPE
@@ -88,10 +88,10 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS&&... args )
+  static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS... args )
   {
     CatalogInterface<BASETYPE, ARGS ...> const * const entry = GetCatalog().at( objectTypeName ).get();
-    return entry->Allocate( std::forward<ARGS>(args)... );
+    return entry->Allocate( args... );
   }
 
 };
@@ -100,7 +100,7 @@ public:
  * class to hold allocation capability for specific target derived types
  * @tparam TYPE this is the derived type
  * @tparam BASETYPE this is the base class that TYPE derives from
- * @tparam ARGS constructor arguemtns
+ * @tparam ARGS constructor arguments
  */
 template<typename BASETYPE, typename TYPE, typename ... ARGS>
 class CatalogEntry : public CatalogInterface<BASETYPE, ARGS ...>
@@ -152,13 +152,13 @@ public:
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
-  virtual std::unique_ptr<BASETYPE> Allocate( ARGS&&... args ) const override final
+  virtual std::unique_ptr<BASETYPE> Allocate( ARGS... args ) const override final
   {
 #if OBJECTCATALOGVERBOSE > 0
     std::cout << "Creating type "<< demangle(typeid(TYPE).name())
               <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
-    return std::make_unique<BASETYPE>( std::forward<ARGS>(args)... );
+    return std::make_unique<TYPE>( args... );
 //    return std::unique_ptr<BASETYPE>( new TYPE( std::forward<ARGS>(args)... ) );
   }
 };

@@ -14,7 +14,7 @@
 class Derived1 : public Base
 {
 public:
-  Derived1( int junk, double const & junk2);
+  Derived1( int junk, double const & junk2, Parameter& param );
 
   ~Derived1();
 

@@ -16,11 +16,6 @@
 #include "Derived1.hpp"
 using namespace cxx_utilities;
 
-template< typename T, typename... ARGS >
-std::unique_ptr<T> wrapper( ARGS&&... args )
-{
-  return std::make_unique<T>(std::forward<ARGS>(args)...);
-}
 
 int main( int argc, char *argv[] )
 {
@@ -28,10 +23,11 @@ int main( int argc, char *argv[] )
   int junk = 1;
   double junk2 = 3.14;
   double junk3 = 2*3.14;
-//  std::unique_ptr<Base> dptr1a = std::make_unique<Derived1>( junk,junk2 );
+  Parameter param;
 
-//  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory("derived1",junk,junk2);
-//  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory("derived2",junk,junk3);
+  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2, param);
+  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk3, param);
 
   std::cout<<"EXITING MAIN"<<std::endl;
 }
+

@@ -14,10 +14,32 @@
 #include "ObjectCatalog.hpp"
 #include <string>
 
+class Parameter
+{
+public:
+  Parameter() = default;
+  ~Parameter() = default;
+  Parameter(Parameter const & source ):
+    member(source.member)
+  {
+    std::cout<<"called copy constructor for Parameter"<<std::endl;
+  }
+
+  Parameter(Parameter && source ):
+    member(std::move(source.member))
+  {
+    std::cout<<"called move constructor for Parameter"<<std::endl;
+  }
+
+  double member;
+
+
+};
+
 class Base
 {
 public:
-  Base( int junk, double const & junk2)
+  Base( int junk, double const & junk2, Parameter& pbv )
   {
     std::cout<<"calling Base constructor with arguments ("<<junk<<" "<<junk2<<")"<<std::endl;
   }
@@ -27,7 +49,7 @@ public:
     std::cout<<"calling Base destructor"<<std::endl;
   }
 
-  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const &  >;
+  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const & , Parameter& >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;
