@@ -17,19 +17,21 @@
 class Parameter
 {
 public:
-  Parameter() = default;
-  ~Parameter() = default;
+  Parameter(){}
+  ~Parameter(){}
   Parameter(Parameter const & source ):
     member(source.member)
   {
     std::cout<<"called copy constructor for Parameter"<<std::endl;
   }
 
+#if( __cplusplus >= 201103L )
   Parameter(Parameter && source ):
     member(std::move(source.member))
   {
     std::cout<<"called move constructor for Parameter"<<std::endl;
   }
+#endif
 
   double member;
 

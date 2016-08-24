@@ -30,6 +30,13 @@
 namespace cxx_utilities
 {
 
+
+#if( __cplusplus < 201402L )
+
+#else
+
+#endif
+
 /**
  *  This class provides the base class/interface for the catalog value objects
  *  @tparam BASETYPE This is the base class of the objects that the factory produces.
@@ -158,8 +165,11 @@ public:
     std::cout << "Creating type "<< demangle(typeid(TYPE).name())
               <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
+#if( __cplusplus >= 201402L )
     return std::make_unique<TYPE>( args... );
-//    return std::unique_ptr<BASETYPE>( new TYPE( std::forward<ARGS>(args)... ) );
+#else
+    return std::unique_ptr<BASETYPE>( new TYPE( args... ) );
+#endif
   }
 };
 
@@ -184,7 +194,12 @@ public:
 #endif
 
     std::string name = TYPE::CatalogName();
-    ( CatalogInterface<BASETYPE, ARGS ...>::GetCatalog() ).insert( std::make_pair( name, std::make_unique< CatalogEntry<BASETYPE, TYPE, ARGS ...> >() ) );
+#if( __cplusplus >= 201402L )
+    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> > temp = std::make_unique< CatalogEntry<BASETYPE, TYPE, ARGS ...> >();
+#else
+    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> >( new CatalogEntry<BASETYPE, TYPE, ARGS ...>()  );
+#endif
+    ( CatalogInterface<BASETYPE, ARGS ...>::GetCatalog() ).insert( std::move(std::make_pair( name, std::move(temp) ) ) );
 
 #if OBJECTCATALOGVERBOSE > 0
     std::cout <<"Registered  "
