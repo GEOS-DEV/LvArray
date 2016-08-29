@@ -24,6 +24,11 @@
 #define OBJECTCATALOGVERBOSE 0
 #endif
 
+
+#ifndef BASEHOLDSCATALOG
+#define BASEHOLDSCATALOG 1
+#endif
+
 /**
  * namespace to hold the object catalog classes
  */
@@ -78,7 +83,12 @@ public:
    */
   static CatalogType& GetCatalog()
   {
+#if BASEHOLDSCATALOG == 1
     return BASETYPE::GetCatalog();
+#else
+    static CatalogType catalog;
+    return catalog;
+#endif
   }
 
   /**
