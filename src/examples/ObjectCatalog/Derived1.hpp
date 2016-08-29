@@ -19,7 +19,7 @@ public:
   ~Derived1();
 
   static std::string CatalogName() { return "derived1"; }
-  std::string getName() { return CatalogName(); }
+  std::string const getName() const override final { return CatalogName(); }
 
 };
 

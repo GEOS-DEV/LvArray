@@ -111,6 +111,22 @@ public:
     return entry->Allocate( args... );
   }
 
+  template< typename TYPE >
+  static TYPE& catalog_cast( BASETYPE& object )
+  {
+    std::string castedName = TYPE::CatalogName();
+    std::string objectName = object.getName();
+
+    if( castedName != objectName )
+    {
+#if OBJECTCATALOGVERBOSE > 1
+      std::cout << "Invalid Cast of "<< objectName <<" to "<<castedName<<std::endl;
+#endif
+    }
+
+    return static_cast<TYPE&>(object);
+  }
+
 };
 
 /**

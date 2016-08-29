@@ -28,6 +28,9 @@ int main( int argc, char *argv[] )
   std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2, param);
   std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk3, param);
 
+  Base::CatalogInterface::catalog_cast<Derived1>(*(derived2.get()));
+
+
   std::cout<<"EXITING MAIN"<<std::endl;
 }
 

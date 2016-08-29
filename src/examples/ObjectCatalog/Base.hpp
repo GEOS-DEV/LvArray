@@ -58,7 +58,7 @@ public:
     return catalog;
   }
 
-//  virtual std::string getName() = 0;
+  virtual std::string const getName() const = 0;
 };
 
 #endif
