@@ -20,13 +20,6 @@ void handler(int sig, int exitFlag, int exitCode )
 
   // get void*'s for all entries on the stack
   size = backtrace(array, 100);
-
-  // print out all the frames to stderr
-//  fprintf(stderr, "Error: signal %d:\n", sig);
-//  backtrace_symbols_fd(array, size, STDERR_FILENO);
-
-
-//  char** mangled_name = backtrace_symbols(array, size);
   char ** messages    = backtrace_symbols(array, size);
 //  fprintf(stderr,"attempting unmangled trace: \n");
 //  fprintf(stderr,"0         1         2         3         4         5         6         7         8         9         : \n");
@@ -36,11 +29,9 @@ void handler(int sig, int exitFlag, int exitCode )
   for ( int i = 1 ; i < size && messages != NULL ; ++i)
   {
     char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
-//      std::cout<<messages[i]<<std::endl;
 
 #if __APPLE__ && __MACH__
     mangled_name = &(messages[i][58]);
-//      std::cout<<mangled_name<<std::endl;
     for (char *p = messages[i] ; *p ; ++p)
     {
       if (*p == '+')
@@ -80,11 +71,10 @@ void handler(int sig, int exitFlag, int exitCode )
 #endif
       *offset_begin++ = '\0';
       *offset_end++ = '\0';
-//    std::cout<<mangled_name<<std::endl;
 
       int status;
       char * real_name = abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
-//          std::cout<<status<<std::endl;
+
       // if demangling is successful, output the demangled function name
       if (status == 0)
       {
