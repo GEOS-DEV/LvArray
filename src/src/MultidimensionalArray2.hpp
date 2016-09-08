@@ -410,7 +410,7 @@ public:
   }
 
   T * restrict data() { return m_data ;}
-  integer_t const * restrict lengths() { return m_lengths ;}
+  integer_t const * lengths() { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
