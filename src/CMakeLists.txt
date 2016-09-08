@@ -1,5 +1,6 @@
 
 set(cxx-utilities_headers
+    src/InputDocumentation.hpp
     src/Macros.hpp
     src/MultidimensionalArray.hpp
     src/MultidimensionalArray2.hpp
