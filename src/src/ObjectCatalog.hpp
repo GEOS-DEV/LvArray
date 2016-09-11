@@ -45,7 +45,7 @@ namespace cxx_utilities
 /**
  *  This class provides the base class/interface for the catalog value objects
  *  @tparam BASETYPE This is the base class of the objects that the factory produces.
- *  @tparam ...ARGS  variadic template pack to hold the parameters needed for the constructor of the BASETYPE
+ *  @tparam ARGS  variadic template pack to hold the parameters needed for the constructor of the BASETYPE
  */
 template<typename BASETYPE, typename ... ARGS>
 class CatalogInterface
@@ -93,7 +93,6 @@ public:
 
   /**
    * pure virtual to create a new object that derives from BASETYPE
-   * @param name this is the key that was used to select the correct catalog entry
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
@@ -181,7 +180,6 @@ public:
 
   /**
    * inherited virtual to create a new object that derives from BASETYPE
-   * @param name this is the key that was used to select the correct catalog entry
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */

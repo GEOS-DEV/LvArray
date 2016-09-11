@@ -37,7 +37,7 @@ public:
     std::cout<<"calling Base constructor with arguments ("<<junk<<" "<<junk2<<")"<<std::endl;
   }
 
-  ~Base()
+  virtual ~Base()
   {
     std::cout<<"calling Base destructor"<<std::endl;
   }
