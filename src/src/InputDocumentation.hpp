@@ -18,7 +18,7 @@ struct InputDocumentation
   std::string m_varType = "";
   std::string m_varDescription = "";
   int m_level = 0;
-  std::unordered_map<std::string,InputDocumentation> m_child;
+  std::map<std::string,InputDocumentation> m_child;
 
   // TODO THIS ISN'T CORRECT. FIX IT.
   void Print(  ) const
