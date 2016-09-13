@@ -3,8 +3,6 @@
 #
 
 set(newComponentTests
-    arrayAccessorPerformance.cpp
-    arrayAccessorPerformance2.cpp
     testArrayAccesssor.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
