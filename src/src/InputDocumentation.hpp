@@ -20,18 +20,32 @@ struct InputDocumentation
   unsigned int m_level = 0;
   std::map<std::string,InputDocumentation> m_child;
 
-  // TODO THIS ISN'T CORRECT. FIX IT.
-  void Print(  ) const
+
+  void Write(const std::string& fname) const
+  {
+    FILE * outputFile = fopen(fname.c_str(), "w");
+    fprintf(outputFile, "<?xml version=\"1.0\" ?>\n\n");
+    WriteXMLStructure(outputFile);
+    fclose(outputFile);
+  }
+
+  void WriteXMLStructure(FILE * outputFile) const
   {
     std::string indent( m_level*2, ' ');
-    std::cout<<indent<<"m_varName        = "<<m_varName<<"\n";
-    std::cout<<indent<<"m_varType        = "<<m_varType<<"\n";
-    std::cout<<indent<<"m_varDescription = "<<m_varDescription<<"\n\n";
+    std::string indent_b( m_level*2 + strlen(m_varName.c_str()), ' ');
+    
+    fprintf(outputFile, "%s<%s m_varType=\"%s\"\n%s  m_varDescription=\"%s\">\n", indent.c_str(),
+                                                                  m_varName.c_str(),
+                                                                  m_varType.c_str(),
+                                                                  indent_b.c_str(),
+                                                                  m_varDescription.c_str());
+    
     for( auto const & child : m_child )
     {
-      std::cout<<indent<<"node "<<child.first<<"\n";
-      child.second.Print();
+      child.second.WriteXMLStructure(outputFile);
     }
+
+    fprintf(outputFile, "%s</%s>\n", indent.c_str(), m_varName.c_str());
   }
 };
 }
