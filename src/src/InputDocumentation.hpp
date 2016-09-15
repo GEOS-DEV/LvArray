@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <iostream>
+#include <map>
 namespace cxx_utilities
 {
 struct InputDocumentation
@@ -20,8 +21,8 @@ struct InputDocumentation
   unsigned int m_level = 0;
   std::map<std::string,InputDocumentation> m_child;
 
-
-  void Write(const std::string& fname) const
+  /*
+  void Write(std::string const & fname) const
   {
     FILE * outputFile = fopen(fname.c_str(), "w");
     fprintf(outputFile, "<?xml version=\"1.0\" ?>\n\n");
@@ -47,6 +48,7 @@ struct InputDocumentation
 
     fprintf(outputFile, "%s</%s>\n", indent.c_str(), m_varName.c_str());
   }
+  */
 };
 }
 
