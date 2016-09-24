@@ -17,13 +17,14 @@ namespace cxx_utilities
 struct DocumentationNode
 {
   std::string m_name              = "";
-  std::string  m_stringKey        = "";
+  std::string m_stringKey         = "";
   int m_intKey                    = -1;
   std::string m_type              = "";
   std::string m_shortDescription  = "";
   std::string m_longDescription   = "";
   int m_level                     = -1;
-  unsigned int m_isInput = 0;
+  std::string m_default           = "";
+  unsigned int m_isInput          =  0;
   std::map<std::string,DocumentationNode> m_child = {};
 
   // TODO THIS ISN'T CORRECT. FIX IT.
