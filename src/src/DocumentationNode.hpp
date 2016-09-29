@@ -88,11 +88,13 @@ public:
 
 
   std::string const & getName() const { return m_name; }
+  void setName(std::string className) { m_name = className; }
   std::string const & getStringKey() const { return m_stringKey; }
   int const & getIntKey() const { return m_intKey; }
   void setIntKey( int intKey ) { m_intKey = intKey; }
   std::string const & getDataType() const { return m_dataType; }
   std::string const & getSchemaType() const { return m_schemaType; }
+  void setSchemaType( std::string typeName ) { m_schemaType = typeName; }
   std::string const & getShortDescription() const { return m_shortDescription; }
   std::string const & getLongDescription() const { return m_longDescription; }
   std::string const & getDefault() const { return m_default; }
