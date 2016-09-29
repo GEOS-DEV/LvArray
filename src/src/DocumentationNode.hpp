@@ -59,19 +59,19 @@ public:
 
 
 
-  std::string const & name() const { return m_name; }
-  std::string const & stringKey() const { return m_stringKey; }
-  int const & intKey() const { return m_intKey; }
+  std::string const & getName() const { return m_name; }
+  std::string const & getStringKey() const { return m_stringKey; }
+  int const & getIntKey() const { return m_intKey; }
   void setIntKey( int intKey ) { m_intKey = intKey; }
-  std::string const & dataType() const { return m_dataType; }
-  std::string const & schemaType() const { return m_schemaType; }
-  std::string const & shortDescription() const { return m_shortDescription; }
-  std::string const & longDescription() const { return m_longDescription; }
+  std::string const & getDataType() const { return m_dataType; }
+  std::string const & getSchemaType() const { return m_schemaType; }
+  std::string const & getShortDescription() const { return m_shortDescription; }
+  std::string const & getLongDescription() const { return m_longDescription; }
   std::string const & getDefault() const { return m_default; }
-  std::string const & groups() const { return m_groups; }
-  unsigned int const & level() const { return m_level; }
-  unsigned int const & isInput() const { return m_isInput; }
-  unsigned int const & verbosity() const { return m_verbosity; }
+  std::string const & getGroups() const { return m_groups; }
+  unsigned int const & getLevel() const { return m_level; }
+  unsigned int const & getIsInput() const { return m_isInput; }
+  unsigned int const & getVerbosity() const { return m_verbosity; }
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
   std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
