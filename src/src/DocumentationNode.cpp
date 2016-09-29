@@ -80,4 +80,34 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
   return &(m_child.at(name));
 }
 
+void DocumentationNode::Print(  ) const
+{
+
+  if( m_level == 0 )
+  {
+    std::cout<<"ROOT NODE:"<<m_name<<std::endl;
+  }
+
+  std::string indent( m_level*4, ' ');
+  std::cout<<indent<<"m_name              = "<<m_name<<std::endl;
+  std::cout<<indent<<"m_stringKey         = "<<m_stringKey<<std::endl;
+  std::cout<<indent<<"m_intKey            = "<<m_intKey<<std::endl;
+  std::cout<<indent<<"m_dataType          = "<<m_dataType<<std::endl;
+  std::cout<<indent<<"m_schemaType        = "<<m_schemaType<<std::endl;
+  std::cout<<indent<<"m_shortDescription  = "<<m_shortDescription<<std::endl;
+  std::cout<<indent<<"m_longDescription   = "<<m_longDescription<<std::endl;
+  std::cout<<indent<<"m_default           = "<<m_default<<std::endl;
+  std::cout<<indent<<"m_groups            = "<<m_groups<<std::endl;
+  std::cout<<indent<<"m_level             = "<<m_level<<std::endl;
+  std::cout<<indent<<"m_isInput           = "<<m_isInput<<std::endl;
+  std::cout<<indent<<"m_verbosity         = "<<m_verbosity<<std::endl;
+
+  for( auto const & child : m_child )
+  {
+    std::cout<<indent<<"node "<<child.first<<"\n";
+    child.second.Print();
+  }
+}
+
+
 }
