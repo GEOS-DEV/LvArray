@@ -26,7 +26,7 @@ public:
                      std::string const & schemaType,
                      std::string const & shortDescription,
                      std::string const & longDescription,
-                     std::string const & default0,
+                     std::string const & defaultVal,
                      std::string const & groups,
                      unsigned int const & level,
                      unsigned int const & isInput,
