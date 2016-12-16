@@ -96,6 +96,7 @@ public:
   std::string const & getSchemaType() const { return m_schemaType; }
   void setSchemaType( std::string typeName ) { m_schemaType = typeName; }
   std::string const & getShortDescription() const { return m_shortDescription; }
+  void setShortDescription( std::string shortDescription ) { m_shortDescription = shortDescription; }
   std::string const & getLongDescription() const { return m_longDescription; }
   std::string const & getDefault() const { return m_default; }
   std::string const & getGroups() const { return m_groups; }
