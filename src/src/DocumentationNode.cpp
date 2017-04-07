@@ -67,8 +67,11 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
   // name exists
   if( iter != m_child.end() )
   {
-    if( iter->second != newNode )
+    if( newNode.m_dataType != "" &&
+        newNode.m_dataType != iter->second.m_dataType )
     {
+      iter->second.Print();
+      newNode.Print();
       std::cout<<"documentation node already exists, but has different attributes than specified"<<std::endl;
       exit(0);
     }
