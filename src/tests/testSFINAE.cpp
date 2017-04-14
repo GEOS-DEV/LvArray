@@ -72,7 +72,8 @@ struct Bar_EnumClass : Foo_EnumClass {};
 
 HAS_MEMBER_DATA(memberName)
 HAS_STATIC_MEMBER_DATA(memberName)
-HAS_MEMBER_FUNCTION( memberName, int, , VA_LIST(int), VA_LIST(int(1)) )
+//HAS_MEMBER_FUNCTION( memberName, int, , VA_LIST(int), VA_LIST(int(1)) )
+HAS_MEMBER_FUNCTION0( memberName )
 HAS_MEMBER_FUNCTION( memberName2, double, , VA_LIST(int,double), VA_LIST(int(1),double(1)) )
 HAS_STATIC_MEMBER_FUNCTION(memberName,int,int(1))
 HAS_ENUM(memberName)
@@ -102,9 +103,16 @@ TEST(test_sfinae,test_has_staticdatamember)
 
 TEST(test_sfinae,test_has_memberfunction)
 {
+
+  std::cout<<"has_memberfunction_memberName<"<<typeid(Foo_MemberFunction_1Arg).name()<<">::value = "<<has_memberfunction_memberName<Foo_MemberFunction_1Arg>::value<<std::endl;
+  std::cout<<"has_memberfunction_memberName<"<<typeid(Bar_MemberFunction_1Arg).name()<<">::value = "<<has_memberfunction_memberName<Bar_MemberFunction_1Arg>::value<<std::endl;
+
+
   EXPECT_FALSE( has_memberfunction_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_StaticMemberData>::value );
+//  EXPECT_TRUE(  has_memberfunction0_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_TRUE(  has_memberfunction_memberName<Foo_MemberFunction_1Arg>::value );
+//  EXPECT_TRUE(  has_memberfunction0_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_Using>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_Typedef>::value );

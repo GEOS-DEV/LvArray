@@ -48,6 +48,25 @@ public: \
     static constexpr bool value = test<TT>(0); \
   };
 
+
+
+#define HAS_MEMBER_FUNCTION0(NAME) \
+  template<typename TT > \
+  struct has_memberfunction_ ## NAME \
+  { \
+private: \
+    template<typename U> static constexpr auto test(int)->decltype( std::is_member_function_pointer<decltype(&U::NAME)>::value, bool() ) \
+    { \
+      return std::is_member_function_pointer<decltype(&U::NAME)>::value; \
+    } \
+    template<typename U> static constexpr auto test(...)->bool \
+    { \
+      return false; \
+    } \
+public: \
+    static constexpr bool value = test<TT>(0); \
+  };
+
 #define HAS_MEMBER_FUNCTION(NAME, RTYPE, CONST, PARAMS, ARGS ) \
   template<typename TT > \
   struct has_memberfunction_ ## NAME \
@@ -147,6 +166,10 @@ public: \
     wrapper ## FUNCNAME<T> temp; \
     return temp.f(this); \
   }
+
+//  HAS_MEMBER_FUNCTION0(resize)
+//  HAS_MEMBER_FUNCTION(resize, void, , VA_LIST(std::size_t), VA_LIST(std::size_t(1)) )
+//  CONDITIONAL_VIRTUAL_FUNCTION( ViewWrapper<T>,resize, void,, VA_LIST(localIndex a), VA_LIST(static_cast<size_t>(a)) )
 
 
 template<class TT>
