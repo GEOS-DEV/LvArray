@@ -138,7 +138,7 @@ public: \
   { \
     RTYPE f( CLASSNAME * const obj,PARAMS ) \
     { \
-      return (*obj).m_data.FUNCNAME(ARGS); \
+      return (*obj).m_data->FUNCNAME(ARGS); \
     } \
   }; \
   virtual RTYPE FUNCNAME(PARAMS) CONST override final \
@@ -158,7 +158,7 @@ public: \
   { \
     RTYPE f( CLASSNAME CONST * const obj ) \
     { \
-      return (*obj).m_data.FUNCNAME(); \
+      return (*obj).m_data->FUNCNAME(); \
     } \
   }; \
   virtual RTYPE FUNCNAME() CONST override final \
