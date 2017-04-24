@@ -128,6 +128,7 @@ public:
   unsigned int m_level             =  0;
   unsigned int m_isInput           =  0;
   unsigned int m_verbosity         =  0;
+  unsigned int m_isRegistered      =  0;
   DocumentationNode * m_parentNode = nullptr;
   std::map<std::string,DocumentationNode> m_child = {};
 
