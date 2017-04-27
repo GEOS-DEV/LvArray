@@ -124,7 +124,7 @@ public:
   std::string m_longDescription    = "";
   std::string m_default            = "";
   std::string m_groups             = "";
-  unsigned int m_managedByParent   =  0;
+  int m_managedByParent   =  0;
   unsigned int m_level             =  0;
   unsigned int m_isInput           =  0;
   unsigned int m_verbosity         =  0;
