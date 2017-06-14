@@ -1,5 +1,6 @@
 
 set(cxx-utilities_headers
+    src/DocumentationNode.hpp
     src/Macros.hpp
     src/MultidimensionalArray.hpp
     src/MultidimensionalArray2.hpp
@@ -10,6 +11,7 @@ set(cxx-utilities_headers
     src/StringUtilities.hpp )
 
 set(cxx-utilities_sources
+    src/DocumentationNode.cpp
     src/SetSignalHandling.cpp
     src/stackTrace.cpp
     src/StringUtilities.cpp )

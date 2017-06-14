@@ -49,8 +49,6 @@ public:
   ArrayAccessor() = delete;
 
   /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
@@ -135,7 +133,6 @@ public:
 
   /**
    *
-   * @param lengths
    * @return number of data entries until the next value
    *
    * function to calculate the stride of this. Used to set m_stride in constructor.
@@ -183,8 +180,6 @@ public:
   ArrayAccessor() = delete;
 
   /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array has length NDIM
    *
    * Base constructor that takes in raw data pointers, sets member pointers. Unlike the higher dimensionality arrays,
    * no calculation of stride is necessary for NDIM=1.

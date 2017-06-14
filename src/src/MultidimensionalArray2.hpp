@@ -148,6 +148,17 @@ public:
     return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
   }
 
+
+  inline T& operator()( integer_t const index0, integer_t const index1 )
+  {
+    return m_data[index0*m_strides[0]+index1];
+  }
+  inline T const & operator()( integer_t const index0, integer_t const index1 ) const
+  {
+    return m_data[index0*m_strides[0]+index1];
+  }
+
+
   T * restrict data() { return m_data ;}
   T const * restrict data() const { return m_data ;}
 
@@ -263,6 +274,17 @@ public:
 #endif
     return &(m_data[index*m_strides[0]]);
   }
+
+
+  inline T& operator()( integer_t const index0, integer_t const index1 )
+  {
+    return m_data[index0*m_strides[0]+index1];
+  }
+  inline T const & operator()( integer_t const index0, integer_t const index1 ) const
+  {
+    return m_data[index0*m_strides[0]+index1];
+  }
+
 
   T * data() { return m_data ;}
   T const * data() const { return m_data ;}
@@ -388,7 +410,7 @@ public:
   }
 
   T * restrict data() { return m_data ;}
-  integer_t const * restrict lengths() { return m_lengths ;}
+  integer_t const * lengths() { return m_lengths ;}
 
 private:
   /// pointer to beginning of data for this array, or sub-array.

@@ -3,8 +3,6 @@
 #
 
 set(newComponentTests
-    arrayAccessorPerformance.cpp
-    arrayAccessorPerformance2.cpp
     testArrayAccesssor.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
@@ -25,4 +23,9 @@ foreach(test ${newComponentTests})
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}
                   )
+                  
+if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+set_target_properties(${test_name} PROPERTIES COMPILE_FLAGS "-Wno-everything")
+endif()
+                  
 endforeach()
