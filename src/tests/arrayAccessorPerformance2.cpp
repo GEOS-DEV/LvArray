@@ -500,7 +500,7 @@ int main( int argc, char* argv[] )
     printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_7, runTime2_7 / runTime1);
     printf( "accessor copy construct              : %8.3f, %8.3f\n", runTime2_8, runTime2_8 / runTime1);
     printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_9, runTime2_9 / runTime1);
-    printf( "accessor copy construct ptr          : %8.3f, %8.3f\n", runTime2_10, runTime2_10 / runTime1);
+    printf( "accessor construct from ptr restrict : %8.3f, %8.3f\n", runTime2_10, runTime2_10 / runTime1);
   }
 
   if( output == 2 )

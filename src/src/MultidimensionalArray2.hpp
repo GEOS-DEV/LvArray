@@ -70,9 +70,9 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
   ArrayAccessor( T * const restrict inputData ):
-    m_data(    inputData + 1 + 2*(*reinterpret_cast<integer_t*>(inputData)) ),
-    m_lengths( reinterpret_cast<integer_t*>( inputData ) + 1 ),
-    m_strides( reinterpret_cast<integer_t*>( inputData ) + 1 + *reinterpret_cast<integer_t*>(inputData)  )
+    m_data(    inputData + 1 + 2*(*reinterpret_cast<integer_t* const restrict>(inputData)) ),
+    m_lengths( reinterpret_cast<integer_t* const restrict>( inputData ) + 1 ),
+    m_strides( reinterpret_cast<integer_t* const restrict >( inputData ) + 1 + *reinterpret_cast<integer_t* const restrict>(inputData)  )
   {}
 
 
