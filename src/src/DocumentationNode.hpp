@@ -105,6 +105,7 @@ public:
   unsigned int const & getLevel() const { return m_level; }
   unsigned int const & getIsInput() const { return m_isInput; }
   unsigned int const & getVerbosity() const { return m_verbosity; }
+  void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
   std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
