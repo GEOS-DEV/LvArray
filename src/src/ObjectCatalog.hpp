@@ -460,6 +460,9 @@ public:
 #define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ...) \
   namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_##DerivedType; }
 
+#define REGISTER_CATALOG_ENTRY0( BaseType, DerivedType ) \
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType> catEntry_##DerivedType; }
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #endif
