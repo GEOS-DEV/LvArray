@@ -13,7 +13,9 @@
 namespace cxx_utilities
 {
 
-
+/** This macro creates a struct that has a static member "value" which returns true if the typename "TT" has a
+ *  datamember "NAME".
+ */
 #define HAS_MEMBER_DATA(NAME) \
   template<typename TT> \
   struct has_datamember_ ## NAME \
@@ -50,14 +52,32 @@ public: \
 
 
 
-#define HAS_MEMBER_FUNCTION0(NAME) \
+#define HAS_MEMBER_FUNCTION_NAME(NAME) \
   template<typename TT > \
-  struct has_memberfunction_ ## NAME \
+  struct has_memberfunction_name_ ## NAME \
   { \
 private: \
     template<typename U> static constexpr auto test(int)->decltype( std::is_member_function_pointer<decltype(&U::NAME)>::value, bool() ) \
     { \
       return std::is_member_function_pointer<decltype(&U::NAME)>::value; \
+    } \
+    template<typename U> static constexpr auto test(...)->bool \
+    { \
+      return false; \
+    } \
+public: \
+    static constexpr bool value = test<TT>(0); \
+  };
+
+
+#define HAS_MEMBER_FUNCTION_VARIANT(NAME, VARIANT, RTYPE, CONST, PARAMS, ARGS ) \
+  template<typename TT > \
+  struct has_memberfunction_v ## VARIANT ## _## NAME \
+  { \
+private: \
+    template<typename U> static constexpr auto test(int)->decltype( static_cast<RTYPE (U::*)(PARAMS) CONST>(&U::NAME), bool() ) \
+    { \
+      return std::is_same< decltype( std::declval<U>().NAME(ARGS) ), RTYPE>::value; \
     } \
     template<typename U> static constexpr auto test(...)->bool \
     { \
