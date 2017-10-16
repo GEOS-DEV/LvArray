@@ -30,7 +30,8 @@ void handler(int sig, int exitFlag, int exitCode )
   {
     char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
-#if __APPLE__ && __MACH__
+#ifdef __APPLE__
+#ifdef __MACH__
     mangled_name = &(messages[i][58]);
     for (char *p = messages[i] ; *p ; ++p)
     {
@@ -60,14 +61,17 @@ void handler(int sig, int exitFlag, int exitCode )
       }
     }
 #endif
+#endif
 
     // if the line could be processed, attempt to demangle the symbol
     if (mangled_name && offset_begin && offset_end &&
         mangled_name < offset_begin)
     {
       *mangled_name++ = '\0';
-#if __APPLE__ && __MACH__
+#ifdef __APPLE__
+#ifdef __MACH__
       *(offset_begin-1) = '\0';
+#endif
 #endif
       *offset_begin++ = '\0';
       *offset_end++ = '\0';

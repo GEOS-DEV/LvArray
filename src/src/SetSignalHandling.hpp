@@ -8,6 +8,9 @@
 #ifndef COMPONENTS_CORE_SRC_CODINGUTILITIES_SETSIGNALHANDLING_HPP_
 #define COMPONENTS_CORE_SRC_CODINGUTILITIES_SETSIGNALHANDLING_HPP_
 
+#ifndef __APPLE__
+#define __APPLE__ 0
+#endif
 #include <exception>
 
 namespace cxx_utilities

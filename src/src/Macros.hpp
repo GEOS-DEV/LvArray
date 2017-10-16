@@ -8,6 +8,8 @@
 #ifndef MACROS_HPP_
 #define MACROS_HPP_
 
+
+
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
 
