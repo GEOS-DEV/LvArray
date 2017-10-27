@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 //#include <memory>
+#include<iostream>
 
 namespace cxx_utilities
 {
