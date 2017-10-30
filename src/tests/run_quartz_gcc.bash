@@ -1,6 +1,6 @@
 #!/bin/bash
 
-module add gcc/7.1.0
+#module add gcc/7.1.0
 
 rm *.o gcc71.x
 g++  -std=c++14 -O3     -march=native -Wno-vla -I../src  -I. -c arrayAccessorPerformance.cpp
