@@ -11,9 +11,9 @@
 #include <string>
 #include <math.h>
 
-#include "Array.hpp"
 #include <chrono>
 #include <thread>
+#include "../src/ArrayView.hpp"
 
 inline uint64_t GetTimeMs64()
 {
