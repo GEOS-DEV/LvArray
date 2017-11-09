@@ -4,6 +4,8 @@ set(cxx-utilities_headers
     src/Macros.hpp
     src/MultidimensionalArray.hpp
     src/MultidimensionalArray2.hpp
+    src/ManagedArray.hpp
+    src/ArrayView.hpp
     src/ObjectCatalog.hpp 
     src/SetSignalHandling.hpp
     src/SFINAE_Macros.hpp
