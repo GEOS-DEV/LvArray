@@ -21,9 +21,9 @@ void handler(int sig, int exitFlag, int exitCode )
   // get void*'s for all entries on the stack
   size = backtrace(array, 100);
   char ** messages    = backtrace_symbols(array, size);
-//  fprintf(stderr,"attempting unmangled trace: \n");
-//  fprintf(stderr,"0         1         2         3         4         5         6         7         8         9         : \n");
-//  fprintf(stderr,"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n");
+  fprintf(stderr,"attempting unmangled trace: \n");
+  fprintf(stderr,"0         1         2         3         4         5         6         7         8         9         : \n");
+  fprintf(stderr,"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n");
 
   // skip first stack frame (points here)
   for ( int i = 1 ; i < size && messages != NULL ; ++i)
@@ -31,7 +31,6 @@ void handler(int sig, int exitFlag, int exitCode )
     char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
 #ifdef __APPLE__
-#ifdef __MACH__
     mangled_name = &(messages[i][58]);
     for (char *p = messages[i] ; *p ; ++p)
     {
@@ -60,7 +59,6 @@ void handler(int sig, int exitFlag, int exitCode )
         break;
       }
     }
-#endif
 #endif
 
     // if the line could be processed, attempt to demangle the symbol

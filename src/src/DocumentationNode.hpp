@@ -104,7 +104,7 @@ public:
   std::string const & getGroups() const { return m_groups; }
   unsigned int const & getLevel() const { return m_level; }
   unsigned int const & getIsInput() const { return m_isInput; }
-  unsigned int const & getVerbosity() const { return m_verbosity; }
+  int const & getVerbosity() const { return m_verbosity; }
   void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
@@ -128,7 +128,7 @@ public:
   int m_managedByParent   =  0;
   unsigned int m_level             =  0;
   unsigned int m_isInput           =  0;
-  unsigned int m_verbosity         =  0;
+  int m_verbosity         =  0;
   unsigned int m_isRegistered      =  0;
   DocumentationNode * m_parentNode = nullptr;
   std::map<std::string,DocumentationNode> m_child = {};
