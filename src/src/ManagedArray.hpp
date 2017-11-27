@@ -209,6 +209,25 @@ public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
+  /**
+   *
+   * @return total length of the array across all dimensions
+   * @note if this function is called from a function/method where the
+   * ManagedArray is a template parameter, and the template type is specified
+   * then the keyword "template" must be inserted prior to size<>(). For
+   * instance:
+   *
+   * template<typename T>
+   * static int f( ManagedArray<T>& a )
+   * {
+   *  return a.size<int>();          // error: use 'template' keyword to treat
+   *                                 // 'size' as a dependent template name
+   *  return a.template size<int>(); // OK
+   *
+   *  return a.size();               //OK
+   * }
+   *
+   */
   template< typename RTYPE = INDEX_TYPE >
   RTYPE size() const
   {
@@ -221,6 +240,26 @@ public:
   }
 
 
+  /**
+   *
+   * @param dim dimension for which the size is requested
+   * @return length of a single dimensions specified by dim
+   * @note if this function is called from a function/method where the
+   * ManagedArray is a template parameter, and the template type is specified
+   * then the keyword "template" must be inserted prior to size<>(). For
+   * instance:
+   *
+   * template<typename T>
+   * static int f( ManagedArray<T>& a )
+   * {
+   *  return a.size<int>(1);          // error: use 'template' keyword to treat
+   *                                 // 'size' as a dependent template name
+   *  return a.template size<int>(1); // OK
+   *
+   *  return a.size(1);               //OK
+   * }
+   *
+   */
   template< typename RTYPE = INDEX_TYPE >
   RTYPE size( int dim ) const
   {
