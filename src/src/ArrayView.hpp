@@ -53,9 +53,10 @@ public:
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and calculates stride.
    */
-  inline explicit constexpr ArrayView( T * const restrict inputData,
-                                   INDEX_TYPE const * const restrict inputDimensions,
-                                   INDEX_TYPE const * const restrict inputStrides ):
+  inline explicit constexpr
+  ArrayView( T * const restrict inputData,
+             INDEX_TYPE const * const restrict inputDimensions,
+             INDEX_TYPE const * const restrict inputStrides ):
     m_data(inputData),
     m_dims(inputDimensions),
     m_strides(inputStrides)
@@ -80,6 +81,7 @@ public:
 //    m_strides()
 //  {}
 //
+
   /**
    * @param index index of the element in array to access
    * @return a reference to the member m_childInterface, which is of type ArrayView<T,NDIM-1>.
