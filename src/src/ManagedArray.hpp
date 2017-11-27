@@ -389,19 +389,22 @@ public:
   }
 #else
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U >= 3 , ArrayView<T,NDIM-1,INDEX_TYPE> const >::type  operator[](INDEX_TYPE const index) const
+  inline constexpr typename std::enable_if< U >= 3 , ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  operator[](INDEX_TYPE const index) const
   {
     return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==2 , T const * restrict >::type operator[](INDEX_TYPE const index) const
+  inline constexpr typename std::enable_if< U==2 , T const * restrict >::type
+  operator[](INDEX_TYPE const index) const
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==1 , T const & >::type operator[](INDEX_TYPE const index) const
+  inline constexpr typename std::enable_if< U==1 , T const & >::type
+  operator[](INDEX_TYPE const index) const
   {
     return m_data[ index ];
   }
