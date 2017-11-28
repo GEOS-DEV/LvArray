@@ -39,54 +39,56 @@ public:
   bool operator!=(DocumentationNode const & rhs) { return !(*this==rhs); }
 //  friend bool operator==( cxx_utilities::DocumentationNode const & lhs,
 //                          cxx_utilities::DocumentationNode const & rhs );
-//  friend bool operator!=( DocumentationNode const & lhs, DocumentationNode const & rhs );
+//  friend bool operator!=( DocumentationNode const & lhs, DocumentationNode
+// const & rhs );
 
 
   DocumentationNode * AllocateChildNode( std::string const & name,
-                                       std::string const & stringKey,
-                                       int const & intKey,
-                                       std::string const & dataType,
-                                       std::string const & schemaType,
-                                       std::string const & shortDescription,
-                                       std::string const & longDescription,
-                                       std::string const & default0,
-                                       std::string const & groups,
-                                       unsigned int const & parentManaged,
-                                       unsigned int const & isInput,
-                                       unsigned int const & verbosity );
+                                         std::string const & stringKey,
+                                         int const & intKey,
+                                         std::string const & dataType,
+                                         std::string const & schemaType,
+                                         std::string const & shortDescription,
+                                         std::string const & longDescription,
+                                         std::string const & default0,
+                                         std::string const & groups,
+                                         unsigned int const & parentManaged,
+                                         unsigned int const & isInput,
+                                         unsigned int const & verbosity );
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
   void Print(  ) const;
 
   /*
-  void Write(std::string const & fname) const
-  {
-    FILE * outputFile = fopen(fname.c_str(), "w");
-    fprintf(outputFile, "<?xml version=\"1.0\" ?>\n\n");
-    WriteXMLStructure(outputFile);
-    fclose(outputFile);
-  }
+     void Write(std::string const & fname) const
+     {
+     FILE * outputFile = fopen(fname.c_str(), "w");
+     fprintf(outputFile, "<?xml version=\"1.0\" ?>\n\n");
+     WriteXMLStructure(outputFile);
+     fclose(outputFile);
+     }
 
-  void WriteXMLStructure(FILE * outputFile) const
-  {
-    std::string indent( m_level*2, ' ');
-    std::string indent_b( m_level*2 + strlen(m_varName.c_str()), ' ');
-    
-    fprintf(outputFile, "%s<%s m_varType=\"%s\"\n%s  m_varDescription=\"%s\">\n", indent.c_str(),
+     void WriteXMLStructure(FILE * outputFile) const
+     {
+     std::string indent( m_level*2, ' ');
+     std::string indent_b( m_level*2 + strlen(m_varName.c_str()), ' ');
+
+     fprintf(outputFile, "%s<%s m_varType=\"%s\"\n%s
+         m_varDescription=\"%s\">\n", indent.c_str(),
                                                                   m_varName.c_str(),
                                                                   m_varType.c_str(),
                                                                   indent_b.c_str(),
                                                                   m_varDescription.c_str());
-    
-    for( auto const & child : m_child )
-    {
-      child.second.WriteXMLStructure(outputFile);
-    }
 
-    fprintf(outputFile, "%s</%s>\n", indent.c_str(), m_varName.c_str());
-  }
-  */
+     for( auto const & child : m_child )
+     {
+      child.second.WriteXMLStructure(outputFile);
+     }
+
+     fprintf(outputFile, "%s</%s>\n", indent.c_str(), m_varName.c_str());
+     }
+   */
 
 
   std::string const & getName() const { return m_name; }

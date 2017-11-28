@@ -19,23 +19,22 @@ DocumentationNode::DocumentationNode( std::string const & name,
                                       unsigned int const & isInput,
                                       unsigned int const & verbosity,
                                       DocumentationNode * parentNode ):
-    m_name(name),
-    m_stringKey(stringKey),
-    m_intKey(intKey),
-    m_dataType(dataType),
-    m_schemaType(schemaType),
-    m_shortDescription(shortDescription),
-    m_longDescription(longDescription),
-    m_default(default0),
-    m_groups(groups),
-    m_managedByParent(parentManaged),
-    m_level(level),
-    m_isInput(isInput),
-    m_verbosity(verbosity),
-    m_parentNode(parentNode),
-    m_child()
-{
-}
+  m_name(name),
+  m_stringKey(stringKey),
+  m_intKey(intKey),
+  m_dataType(dataType),
+  m_schemaType(schemaType),
+  m_shortDescription(shortDescription),
+  m_longDescription(longDescription),
+  m_default(default0),
+  m_groups(groups),
+  m_managedByParent(parentManaged),
+  m_level(level),
+  m_isInput(isInput),
+  m_verbosity(verbosity),
+  m_parentNode(parentNode),
+  m_child()
+{}
 
 DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & name,
                                                           std::string const & stringKey,
@@ -65,7 +64,8 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                             verbosity,
                             this );
 
-  // a check to see if nodeName exists. if it does, check to see that members are identical
+  // a check to see if nodeName exists. if it does, check to see that members
+  // are identical
   std::map<std::string,DocumentationNode>::iterator iter = m_child.find(name);
 
   // name exists

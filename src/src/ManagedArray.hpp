@@ -23,16 +23,16 @@
 
 #include "ArrayView.hpp"
 
-  template< typename T >
-  struct is_integer
-  {
-    constexpr static bool value = std::is_same<T,int>::value ||
-                                  std::is_same<T,unsigned int>::value ||
-                                  std::is_same<T,long int>::value ||
-                                  std::is_same<T,unsigned long int>::value ||
-                                  std::is_same<T,long long int>::value ||
-                                  std::is_same<T,unsigned long long int>::value;
-  };
+template< typename T >
+struct is_integer
+{
+  constexpr static bool value = std::is_same<T,int>::value ||
+                                std::is_same<T,unsigned int>::value ||
+                                std::is_same<T,long int>::value ||
+                                std::is_same<T,unsigned long int>::value ||
+                                std::is_same<T,long long int>::value ||
+                                std::is_same<T,unsigned long long int>::value;
+};
 
 
 namespace multidimensionalArray
@@ -76,12 +76,12 @@ public:
   inline explicit constexpr ManagedArray( DIMS... dims ):
     dataVector(),
     m_data(),
-    m_dims{ static_cast<INDEX_TYPE>(dims)...},
+    m_dims{ static_cast<INDEX_TYPE>(dims) ...},
     m_strides(),
     m_singleParameterResizeIndex(0)
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
-    static_assert( sizeof...(DIMS) == NDIM , "Error: calling ManagedArray::ManagedArray with incorrect number of arguments.");
+    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling ManagedArray::ManagedArray with incorrect number of arguments.");
     static_assert( check_dim_type<0,DIMS...>::value, "arguments to constructor of geosx::ManagedArray( DIMS... dims ) are incompatible with INDEX_TYPE" );
     CalculateStrides();
 
@@ -166,7 +166,8 @@ public:
   template< typename... DIMS >
   void resize( DIMS... newdims )
   {
-    static_assert( sizeof...(DIMS) == NDIM , "Error: calling template< typename... DIMS > ManagedArray::resize(DIMS...newdims) with incorrect number of arguments.");
+    static_assert( sizeof ... (DIMS) == NDIM,
+                   "Error: calling template< typename... DIMS > ManagedArray::resize(DIMS...newdims) with incorrect number of arguments.");
     static_assert( check_dim_type<0,DIMS...>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE length = 1;
@@ -195,7 +196,6 @@ public:
     CalculateStrides();
     resize();
   }
-
 
 
 
@@ -308,7 +308,6 @@ public:
 
 
 
-
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type push_back( T const & newValue )
   {
@@ -365,15 +364,18 @@ public:
 
   /**
    * @param index index of the element in array to access
-   * @return a reference to the member m_childInterface, which is of type ArrayView<T,NDIM-1>.
-   * This function sets the data pointer for m_childInterface.m_data to the location corresponding to the input
-   * parameter "index". Thus, the returned object has m_data pointing to the beginning of the data associated with its
+   * @return a reference to the member m_childInterface, which is of type
+   * ArrayView<T,NDIM-1>.
+   * This function sets the data pointer for m_childInterface.m_data to the
+   * location corresponding to the input
+   * parameter "index". Thus, the returned object has m_data pointing to the
+   * beginning of the data associated with its
    * sub-array.
    */
 
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U!=1 , ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
     assert( index < m_dims[0] );
@@ -381,7 +383,7 @@ public:
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==1 , T const & >::type
+  inline constexpr typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
     assert( index < m_dims[0] );
@@ -389,21 +391,21 @@ public:
   }
 #else
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U >= 3 , ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  inline constexpr typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
     return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==2 , T const * restrict >::type
+  inline constexpr typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==1 , T const & >::type
+  inline constexpr typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
     return m_data[ index ];
@@ -415,7 +417,7 @@ public:
 
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U!=1 , ArrayView<T,NDIM-1,INDEX_TYPE> >::type
+  inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
     assert( index < m_dims[0] );
@@ -423,7 +425,7 @@ public:
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==1 , T & >::type
+  inline constexpr typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
     assert( index < m_dims[0] );
@@ -431,21 +433,21 @@ public:
   }
 #else
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U>=3 , ArrayView<T,NDIM-1,INDEX_TYPE> >::type
+  inline constexpr typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
     return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==2 , T * restrict >::type
+  inline constexpr typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline constexpr typename std::enable_if< U==1 , T & >::type
+  inline constexpr typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
     return m_data[ index ];
@@ -455,9 +457,7 @@ public:
 
 
 
-
-
-  template< typename...DIMS >
+  template< typename... DIMS >
   inline constexpr T & operator()( DIMS... dims ) const
   {
     return m_data[ linearIndex(dims...) ];
@@ -476,7 +476,8 @@ public:
   /// pointer to beginning of data for this array, or sub-array.
   T * restrict m_data;
 
-  /// pointer to array of length NDIM that contains the lengths of each array dimension
+  /// pointer to array of length NDIM that contains the lengths of each array
+  // dimension
   INDEX_TYPE m_dims[NDIM];
 
   INDEX_TYPE m_strides[NDIM];
@@ -507,28 +508,27 @@ public:
 
 
 
-  template< int DIM, typename INDEX, typename...REMAINING_INDICES >
+  template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_helper
   {
     inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
-                                         INDEX index,
-                                         REMAINING_INDICES... indices )
+                                          INDEX index,
+                                          REMAINING_INDICES... indices )
     {
       return index*strides[0] + index_helper<DIM-1,REMAINING_INDICES...>::f(strides+1,indices...);
     }
   };
 
-  template< typename INDEX, typename...REMAINING_INDICES >
+  template< typename INDEX, typename... REMAINING_INDICES >
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
     inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-                                         INDEX index,
-                                         REMAINING_INDICES... indices )
+                                          INDEX index,
+                                          REMAINING_INDICES... indices )
     {
       return index;
     }
   };
-
 
 
 
@@ -564,24 +564,11 @@ public:
     template< int INDEX=DIM >
     constexpr static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
     {
-      return dims[INDEX] ;
+      return dims[INDEX];
     }
 
   };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

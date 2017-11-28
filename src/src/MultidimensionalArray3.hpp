@@ -7,8 +7,8 @@
 
 #ifndef SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_
 #define SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_
-#include<vector>
-#include<iostream>
+#include <vector>
+#include <iostream>
 
 #define ARRAY_BOUNDS_CHECK 0
 
@@ -60,7 +60,7 @@ public:
     m_lengths( std::move(source.m_lengths) ),
     m_childInterface( std::move(source.m_childInterface) )
   {}
-  
+
   ArrayAccessor & operator=( ArrayAccessor const & rhs )
   {
     m_data           = rhs.m_data;
@@ -97,8 +97,8 @@ public:
     return stride;
   }
 
-  T * data() { return m_data ;}
-  integer_t const * lengths() { return m_lengths ;}
+  T * data() { return m_data;}
+  integer_t const * lengths() { return m_lengths;}
 
 private:
   T * restrict m_data;
@@ -121,13 +121,13 @@ public:
   ~ArrayAccessor() = default;
 
   ArrayAccessor( ArrayAccessor const & source ):
-  m_data(source.m_data),
-  m_lengths(source.m_lengths)
+    m_data(source.m_data),
+    m_lengths(source.m_lengths)
   {}
 
   ArrayAccessor( ArrayAccessor && source ):
-  m_data(source.m_data),
-  m_lengths(source.m_lengths)
+    m_data(source.m_data),
+    m_lengths(source.m_lengths)
   {}
 
   ArrayAccessor & operator=( ArrayAccessor const & rhs )
@@ -149,8 +149,8 @@ public:
     return m_data[index];
   }
 
-  T * data() { return m_data ;}
-  integer_t const * lengths() { return m_lengths ;}
+  T * data() { return m_data;}
+  integer_t const * lengths() { return m_lengths;}
 
   friend class ArrayAccessor<T,2>;
 
@@ -158,17 +158,6 @@ private:
   T * restrict m_data;
   integer_t const * restrict m_lengths;
 };
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -183,9 +172,9 @@ public:
 
 
   Array( integer_t const lengths[NDIM] ):
-  m_memory(),
-  m_lengths(),
-  m_interface( ArrayAccessor<T,NDIM>(nullptr,lengths) )
+    m_memory(),
+    m_lengths(),
+    m_interface( ArrayAccessor<T,NDIM>(nullptr,lengths) )
   {
     integer_t size = 1;
     for( int a=0 ; a<NDIM ; ++a )
@@ -195,7 +184,7 @@ public:
     }
     m_memory.resize(size);
 
-    m_interface = ArrayAccessor<T,NDIM>(m_memory.data(),m_lengths) ;
+    m_interface = ArrayAccessor<T,NDIM>(m_memory.data(),m_lengths);
   }
 
   ~Array() = default;

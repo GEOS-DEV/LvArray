@@ -36,7 +36,7 @@ namespace cxx_utilities
 {
 
 
-#if( __cplusplus < 201402L )
+#if ( __cplusplus < 201402L )
 
 #else
 
@@ -44,15 +44,18 @@ namespace cxx_utilities
 
 /**
  *  This class provides the base class/interface for the catalog value objects
- *  @tparam BASETYPE This is the base class of the objects that the factory produces.
- *  @tparam ARGS  variadic template pack to hold the parameters needed for the constructor of the BASETYPE
+ *  @tparam BASETYPE This is the base class of the objects that the factory
+ * produces.
+ *  @tparam ARGS  variadic template pack to hold the parameters needed for the
+ * constructor of the BASETYPE
  */
-template<typename BASETYPE, typename ... ARGS>
+template<typename BASETYPE, typename... ARGS>
 class CatalogInterface
 {
 public:
-  /// This is the type that will be used for the catalog. The catalog is actually instantiated in the BASETYPE
-  typedef std::unordered_map<std::string, std::unique_ptr< CatalogInterface<BASETYPE, ARGS ...> > > CatalogType;
+  /// This is the type that will be used for the catalog. The catalog is
+  // actually instantiated in the BASETYPE
+  typedef std::unordered_map<std::string, std::unique_ptr< CatalogInterface<BASETYPE, ARGS...> > > CatalogType;
 
   /// default constructor.
   CatalogInterface()
@@ -100,13 +103,14 @@ public:
 
   /**
    * static method to create a new object that derives from BASETYPE
-   * @param objectTypeName The key to the catalog entry that is able to create the correct type.
+   * @param objectTypeName The key to the catalog entry that is able to create
+   * the correct type.
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
   static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS... args )
   {
-    CatalogInterface<BASETYPE, ARGS ...> const * const entry = GetCatalog().at( objectTypeName ).get();
+    CatalogInterface<BASETYPE, ARGS...> const * const entry = GetCatalog().at( objectTypeName ).get();
     return entry->Allocate( args... );
   }
 
@@ -134,13 +138,13 @@ public:
  * @tparam BASETYPE this is the base class that TYPE derives from
  * @tparam ARGS constructor arguments
  */
-template<typename BASETYPE, typename TYPE, typename ... ARGS>
-class CatalogEntry : public CatalogInterface<BASETYPE, ARGS ...>
+template<typename BASETYPE, typename TYPE, typename... ARGS>
+class CatalogEntry : public CatalogInterface<BASETYPE, ARGS...>
 {
 public:
   /// default constructor
-  CatalogEntry() :
-    CatalogInterface<BASETYPE, ARGS ...>()
+  CatalogEntry():
+    CatalogInterface<BASETYPE, ARGS...>()
   {
 #if OBJECTCATALOGVERBOSE > 1
     std::cout << "Calling constructor for CatalogEntry< "<< demangle(typeid(TYPE).name())
@@ -160,22 +164,22 @@ public:
 
   }
 
-  CatalogEntry(CatalogEntry const & source ) :
-    CatalogInterface<BASETYPE, ARGS ...>(source)
+  CatalogEntry(CatalogEntry const & source ):
+    CatalogInterface<BASETYPE, ARGS...>(source)
   {}
 
-  CatalogEntry(CatalogEntry && source ) :
-    CatalogInterface<BASETYPE, ARGS ...>(std::move(source))
+  CatalogEntry(CatalogEntry && source ):
+    CatalogInterface<BASETYPE, ARGS...>(std::move(source))
   {}
 
   CatalogEntry& operator=(CatalogEntry const & source )
   {
-    CatalogInterface<BASETYPE, ARGS ...>::operator=(source);
+    CatalogInterface<BASETYPE, ARGS...>::operator=(source);
   }
 
   CatalogEntry& operator=(CatalogEntry && source )
   {
-    CatalogInterface<BASETYPE, ARGS ...>::operator=(std::move(source));
+    CatalogInterface<BASETYPE, ARGS...>::operator=(std::move(source));
   }
 
   /**
@@ -189,7 +193,7 @@ public:
     std::cout << "Creating type "<< demangle(typeid(TYPE).name())
               <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
-#if( __cplusplus >= 201402L )
+#if ( __cplusplus >= 201402L )
     return std::make_unique<TYPE>( args... );
 #else
     return std::unique_ptr<BASETYPE>( new TYPE( args... ) );
@@ -201,13 +205,15 @@ public:
 /**
  * a class to generate the catalog entry
  */
-template<typename BASETYPE, typename TYPE, typename ... ARGS>
+template<typename BASETYPE, typename TYPE, typename... ARGS>
 class CatalogEntryConstructor
 {
 public:
   /**
-   * Constructor creates a catalog entry using the key defined by TYPE::CatalogName(), and value of CatalogEntry<TYPE,BASETYPE,ARGS...>.
-   * After the constructor is executed, this object may be destroyed without consequence.
+   * Constructor creates a catalog entry using the key defined by
+   * TYPE::CatalogName(), and value of CatalogEntry<TYPE,BASETYPE,ARGS...>.
+   * After the constructor is executed, this object may be destroyed without
+   * consequence.
    */
   CatalogEntryConstructor()
   {
@@ -218,12 +224,13 @@ public:
 #endif
 
     std::string name = TYPE::CatalogName();
-#if( __cplusplus >= 201402L )
-    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> > temp = std::make_unique< CatalogEntry<BASETYPE, TYPE, ARGS ...> >();
+#if ( __cplusplus >= 201402L )
+    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS...> > temp = std::make_unique< CatalogEntry<BASETYPE, TYPE, ARGS...> >();
 #else
-    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS ...> >( new CatalogEntry<BASETYPE, TYPE, ARGS ...>()  );
+    std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS...> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS...> >( new CatalogEntry<BASETYPE, TYPE,
+                                                                                                                                               ARGS...>()  );
 #endif
-    ( CatalogInterface<BASETYPE, ARGS ...>::GetCatalog() ).insert( std::move(std::make_pair( name, std::move(temp) ) ) );
+    ( CatalogInterface<BASETYPE, ARGS...>::GetCatalog() ).insert( std::move(std::make_pair( name, std::move(temp) ) ) );
 
 #if OBJECTCATALOGVERBOSE > 0
     std::cout <<"Registered  "
@@ -256,7 +263,8 @@ template<typename BASETYPE>
 class CatalogInterface<BASETYPE>
 {
 public:
-  /// This is the type that will be used for the catalog. The catalog is actually instantiated in the BASETYPE
+  /// This is the type that will be used for the catalog. The catalog is
+  // actually instantiated in the BASETYPE
   typedef std::unordered_map<std::string, std::unique_ptr< CatalogInterface<BASETYPE> > > CatalogType;
 
   /// default constructor.
@@ -305,7 +313,8 @@ public:
 
   /**
    * static method to create a new object that derives from BASETYPE
-   * @param objectTypeName The key to the catalog entry that is able to create the correct type.
+   * @param objectTypeName The key to the catalog entry that is able to create
+   * the correct type.
    * @param args these are the arguments to the constructor of the target type
    * @return passes a unique_ptr<BASETYPE> to the newly allocated class.
    */
@@ -338,7 +347,7 @@ class CatalogEntry<BASETYPE,TYPE> : public CatalogInterface<BASETYPE>
 {
 public:
   /// default constructor
-  CatalogEntry() :
+  CatalogEntry():
     CatalogInterface<BASETYPE>()
   {
 #if OBJECTCATALOGVERBOSE > 1
@@ -359,11 +368,11 @@ public:
 
   }
 
-  CatalogEntry(CatalogEntry const & source ) :
+  CatalogEntry(CatalogEntry const & source ):
     CatalogInterface<BASETYPE>(source)
   {}
 
-  CatalogEntry(CatalogEntry && source ) :
+  CatalogEntry(CatalogEntry && source ):
     CatalogInterface<BASETYPE>(std::move(source))
   {}
 
@@ -383,7 +392,7 @@ public:
     std::cout << "Creating type "<< demangle(typeid(TYPE).name())
               <<" from catalog of "<<demangle(typeid(BASETYPE).name())<<std::endl;
 #endif
-#if( __cplusplus >= 201402L )
+#if ( __cplusplus >= 201402L )
     return std::make_unique<TYPE>(  );
 #else
     return std::unique_ptr<BASETYPE>( new TYPE(  ) );
@@ -405,7 +414,7 @@ public:
 #endif
 
     std::string name = TYPE::CatalogName();
-#if( __cplusplus >= 201402L )
+#if ( __cplusplus >= 201402L )
     std::unique_ptr< CatalogEntry<BASETYPE, TYPE> > temp = std::make_unique< CatalogEntry<BASETYPE, TYPE> >();
 #else
     std::unique_ptr< CatalogEntry<BASETYPE, TYPE> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE> >( new CatalogEntry<BASETYPE, TYPE>()  );
@@ -452,16 +461,19 @@ public:
 #endif
 
 /**
- * Macro that takes in the base class of the catalog, the derived class, and the argument types for the constructor of
- * the derived class/base class, and create an object of type CatalogEntryConstructor<ClassName,BaseType,__VA_ARGS__> in
- * an anonymous namespace. This should be called from the source file for the derived class, which will result in the
+ * Macro that takes in the base class of the catalog, the derived class, and the
+ * argument types for the constructor of
+ * the derived class/base class, and create an object of type
+ * CatalogEntryConstructor<ClassName,BaseType,__VA_ARGS__> in
+ * an anonymous namespace. This should be called from the source file for the
+ * derived class, which will result in the
  * generation of a CatalogEntry<BaseType,ClassName,...> prior to main().
  */
 #define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ...) \
-  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_##DerivedType; }
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_ ## DerivedType; }
 
 #define REGISTER_CATALOG_ENTRY0( BaseType, DerivedType ) \
-  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType> catEntry_##DerivedType; }
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType> catEntry_ ## DerivedType; }
 
 #ifdef __clang__
 #pragma clang diagnostic push

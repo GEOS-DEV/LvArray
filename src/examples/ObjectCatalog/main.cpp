@@ -33,4 +33,3 @@ int main( int argc, char *argv[] )
 
   std::cout<<"EXITING MAIN"<<std::endl;
 }
-

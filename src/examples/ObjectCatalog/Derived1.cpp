@@ -23,5 +23,3 @@ Derived1::~Derived1()
 }
 
 REGISTER_CATALOG_ENTRY( Base, Derived1, int, double const &, Parameter& )
-
-

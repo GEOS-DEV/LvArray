@@ -89,7 +89,8 @@ HAS_STATIC_MEMBER_DATA(memberName)
 TEST(test_sfinae,test_has_staticdatamember)
 {
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_MemberData>::value );
-//  EXPECT_TRUE(  has_staticdatamember_memberName<Foo_StaticMemberData>::value );
+//  EXPECT_TRUE(  has_staticdatamember_memberName<Foo_StaticMemberData>::value
+// );
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_Using>::value );
@@ -103,12 +104,14 @@ TEST(test_sfinae,test_has_memberfunction_name)
 {
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_StaticMemberData>::value );
-//  EXPECT_TRUE(  has_memberfunction_name_memberName<Foo_MemberFunction_1Arg>::value );
+//  EXPECT_TRUE(
+//  has_memberfunction_name_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_Using>::value );
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_Typedef>::value );
   EXPECT_FALSE( has_memberfunction_name_memberName<Foo_EnumClass>::value );
-//  EXPECT_TRUE(  has_memberfunction_name_memberName2<Foo_MemberFunction_2Arg>::value );
+//  EXPECT_TRUE(
+//  has_memberfunction_name_memberName2<Foo_MemberFunction_2Arg>::value );
 
 }
 
@@ -121,7 +124,8 @@ TEST(test_sfinae,test_has_memberfunction_variant)
   EXPECT_FALSE( has_memberfunction_v0_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_memberfunction_v0_memberName<Foo_StaticMemberData>::value );
 
-//  EXPECT_TRUE(   has_memberfunction_v0_memberName<Foo_MemberFunction_1Arg>::value );
+//  EXPECT_TRUE(
+//   has_memberfunction_v0_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE(  has_memberfunction_v1_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE(  has_memberfunction_v2_memberName<Foo_MemberFunction_1Arg>::value );
 
@@ -130,7 +134,8 @@ TEST(test_sfinae,test_has_memberfunction_variant)
   EXPECT_FALSE( has_memberfunction_v0_memberName<Foo_Typedef>::value );
   EXPECT_FALSE( has_memberfunction_v0_memberName<Foo_EnumClass>::value );
 
-//  EXPECT_TRUE(  has_memberfunction_v0_memberName2<Foo_MemberFunction_2Arg>::value );
+//  EXPECT_TRUE(
+//  has_memberfunction_v0_memberName2<Foo_MemberFunction_2Arg>::value );
 
 }
 
@@ -140,12 +145,14 @@ TEST(test_sfinae,test_has_memberfunction)
 {
   EXPECT_FALSE( has_memberfunction_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_StaticMemberData>::value );
-//  EXPECT_TRUE(  has_memberfunction_memberName<Foo_MemberFunction_1Arg>::value );
+//  EXPECT_TRUE(  has_memberfunction_memberName<Foo_MemberFunction_1Arg>::value
+// );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_Using>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_Typedef>::value );
   EXPECT_FALSE( has_memberfunction_memberName<Foo_EnumClass>::value );
-//  EXPECT_TRUE(  has_memberfunction_memberName2<Foo_MemberFunction_2Arg>::value );
+//  EXPECT_TRUE(  has_memberfunction_memberName2<Foo_MemberFunction_2Arg>::value
+// );
 }
 
 
@@ -155,7 +162,8 @@ TEST(test_sfinae,test_has_staticmemberfunction)
   EXPECT_FALSE( has_staticmemberfunction_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_staticmemberfunction_memberName<Foo_StaticMemberData>::value );
   EXPECT_FALSE(  has_staticmemberfunction_memberName<Foo_MemberFunction_1Arg>::value );
-//  EXPECT_TRUE( has_staticmemberfunction_memberName<Foo_StaticMemberFunction_1Arg>::value );
+//  EXPECT_TRUE(
+// has_staticmemberfunction_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_staticmemberfunction_memberName<Foo_Using>::value );
   EXPECT_FALSE( has_staticmemberfunction_memberName<Foo_Typedef>::value );
   EXPECT_FALSE( has_staticmemberfunction_memberName<Foo_EnumClass>::value );

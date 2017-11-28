@@ -61,44 +61,50 @@ int main( int /*argc*/, char* argv[] )
 
   double * const restrict tempC = new double[num_i*num_j];
 
-  integer_t lengthsA[] = { num_i , num_k };
-  integer_t lengthsB[] = { num_k , num_j };
-  integer_t lengthsC[] = { num_i , num_j };
+  integer_t lengthsA[] = { num_i, num_k };
+  integer_t lengthsB[] = { num_k, num_j };
+  integer_t lengthsC[] = { num_i, num_j };
 
   integer_t stridesA[] = { num_k, 1};
   integer_t stridesB[] = { num_j, 1};
   integer_t stridesC[] = { num_j, 1};
 
 
-  ManagedArray<double,2> ManagedArrayA( num_i , num_k );
-  ManagedArray<double,2> ManagedArrayB( num_k , num_j );
-  ManagedArray<double,2> ManagedArrayC_SquareNFC( num_i , num_j );
-  ManagedArray<double,2> ManagedArrayC_SquarePBV( num_i , num_j );
-  ManagedArray<double,2> ManagedArrayC_SquarePBR( num_i , num_j );
-  ManagedArray<double,2> ManagedArrayC_ParenNFC( num_i , num_j );
-  ManagedArray<double,2> ManagedArrayC_ParenPBV( num_i , num_j );
-  ManagedArray<double,2> ManagedArrayC_ParenPBR( num_i , num_j );
+  ManagedArray<double,2> ManagedArrayA( num_i, num_k );
+  ManagedArray<double,2> ManagedArrayB( num_k, num_j );
+  ManagedArray<double,2> ManagedArrayC_SquareNFC( num_i, num_j );
+  ManagedArray<double,2> ManagedArrayC_SquarePBV( num_i, num_j );
+  ManagedArray<double,2> ManagedArrayC_SquarePBR( num_i, num_j );
+  ManagedArray<double,2> ManagedArrayC_ParenNFC( num_i, num_j );
+  ManagedArray<double,2> ManagedArrayC_ParenPBV( num_i, num_j );
+  ManagedArray<double,2> ManagedArrayC_ParenPBR( num_i, num_j );
 
 
 //
-//  double * const restrict ptrA_SelfDescribing  = new double[num_i*num_k + maxDim()];
-//  double * const restrict ptrB_SelfDescribing  = new double[num_k*num_j + maxDim()];
-//  double * const restrict ptrC_SelfDescribing  = new double[num_i*num_j + maxDim()];
+//  double * const restrict ptrA_SelfDescribing  = new double[num_i*num_k +
+// maxDim()];
+//  double * const restrict ptrB_SelfDescribing  = new double[num_k*num_j +
+// maxDim()];
+//  double * const restrict ptrC_SelfDescribing  = new double[num_i*num_j +
+// maxDim()];
 //
-//  integer_t * A2_dims = reinterpret_cast<integer_t*>( &(ptrA_SelfDescribing[0]) );
+//  integer_t * A2_dims = reinterpret_cast<integer_t*>(
+// &(ptrA_SelfDescribing[0]) );
 //  A2_dims[0] = 2;
 //  A2_dims[1] = num_i;
 //  A2_dims[2] = num_k;
 //  double * ptrAdata_SelfDescribing = &(ptrA_SelfDescribing[maxDim()]);
 //
-//  integer_t * B2_dims = reinterpret_cast<integer_t*>( &(ptrB_SelfDescribing[0]) );
+//  integer_t * B2_dims = reinterpret_cast<integer_t*>(
+// &(ptrB_SelfDescribing[0]) );
 //  B2_dims[0] = 2;
 //  B2_dims[1] = num_k;
 //  B2_dims[2] = num_j;
 //  double * ptrBdata_SelfDescribing = &(ptrB_SelfDescribing[maxDim()]);
 //
 //
-//  integer_t * C2_dims = reinterpret_cast<integer_t*>( &(ptrC_SelfDescribing[0]) );
+//  integer_t * C2_dims = reinterpret_cast<integer_t*>(
+// &(ptrC_SelfDescribing[0]) );
 //  C2_dims[0] = 2;
 //  C2_dims[1] = num_i;
 //  C2_dims[2] = num_j;
@@ -157,10 +163,8 @@ int main( int /*argc*/, char* argv[] )
 
 
 
-
-
-  ArrayView<double ,2> accessorA( A, lengthsA, stridesA );
-  ArrayView<double ,2> accessorB( B, lengthsB, stridesB );
+  ArrayView<double,2> accessorA( A, lengthsA, stridesA );
+  ArrayView<double,2> accessorB( B, lengthsB, stridesB );
   ArrayView<double,2> accessorC_SquareNFC( ptrC_SquareNFC, lengthsC, stridesC );
   ArrayView<double,2> accessorC_SquarePBV( ptrC_SquarePBV, lengthsC, stridesC );
   ArrayView<double,2> accessorC_SquarePBR( ptrC_SquarePBR, lengthsC, stridesC );
@@ -181,17 +185,11 @@ int main( int /*argc*/, char* argv[] )
 
 
 
-
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   double runTime_Direct1dAccess  = MatrixMultiply_1D ( num_i, num_j, num_k, ITERATIONS, A, B, C1D );
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   double runTime_Direct1dRestrict = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, A, B, C1D_restrict );
-
-
-
-
-
 
 
 
@@ -221,14 +219,22 @@ int main( int /*argc*/, char* argv[] )
   double runTime_SquarePBR = MatrixMultiply_2D_accessorRef(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_SquarePBR );
 
 
-//  double runTime_SquareLAC = MatrixMultiply_2D_constructAccessorR( num_i, num_j, num_k, ITERATIONS,
-//                                                                                   A, lengthsA,
-//                                                                                   B, lengthsB,
-//                                                                                   ptrC_SquareLAC, lengthsC );
+//  double runTime_SquareLAC = MatrixMultiply_2D_constructAccessorR( num_i,
+// num_j, num_k, ITERATIONS,
+//                                                                                   A,
+// lengthsA,
+//                                                                                   B,
+// lengthsB,
+//                                                                                   ptrC_SquareLAC,
+// lengthsC );
 
 
 
-  double runTime_PBVSelfDescribing = 100;//MatrixMultiply_2D_accessorRef( num_i, num_j, num_k, ITERATIONS, accessorA_SelfDescribing, accessorB_SelfDescribing, accessorC_SelfDescribing );
+  double runTime_PBVSelfDescribing = 100;//MatrixMultiply_2D_accessorRef( num_i,
+                                         // num_j, num_k, ITERATIONS,
+                                         // accessorA_SelfDescribing,
+                                         // accessorB_SelfDescribing,
+                                         // accessorC_SelfDescribing );
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   startTime = GetTimeMs64();
@@ -253,10 +259,6 @@ int main( int /*argc*/, char* argv[] )
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   double runTime_ParenPBR = MatrixMultiply_2D_accessorRef2( num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_ParenPBR );
-
-
-
-
 
 
 
@@ -287,11 +289,6 @@ int main( int /*argc*/, char* argv[] )
 
 
 
-
-
-
-
-
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
@@ -316,8 +313,6 @@ int main( int /*argc*/, char* argv[] )
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   double runTime_arrayViewParenPBR = MatrixMultiply_2D_accessorRef2( num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_ParenPBR );
-
-
 
 
 
@@ -358,21 +353,21 @@ int main( int /*argc*/, char* argv[] )
     {
       for( integer_t j = 0 ; j < num_j ; ++j )
       {
-        error_SquareNFC += pow( C1D[i*num_j+j] - ptrC_SquareNFC[i*num_j+j] , 2 ) ;
-        error_SquarePBV += pow( C1D[i*num_j+j] - ptrC_SquarePBV[i*num_j+j] , 2 ) ;
-        error_SquarePBR += pow( C1D[i*num_j+j] - ptrC_SquarePBR[i*num_j+j] , 2 ) ;
+        error_SquareNFC += pow( C1D[i*num_j+j] - ptrC_SquareNFC[i*num_j+j], 2 );
+        error_SquarePBV += pow( C1D[i*num_j+j] - ptrC_SquarePBV[i*num_j+j], 2 );
+        error_SquarePBR += pow( C1D[i*num_j+j] - ptrC_SquarePBR[i*num_j+j], 2 );
 
-        error_ParenNFC += pow( C1D[i*num_j+j] - ptrC_ParenNFC[i*num_j+j] , 2 ) ;
-        error_ParenPBV += pow( C1D[i*num_j+j] - ptrC_ParenPBV[i*num_j+j] , 2 ) ;
-        error_ParenPBR += pow( C1D[i*num_j+j] - ptrC_ParenPBR[i*num_j+j] , 2 ) ;
+        error_ParenNFC += pow( C1D[i*num_j+j] - ptrC_ParenNFC[i*num_j+j], 2 );
+        error_ParenPBV += pow( C1D[i*num_j+j] - ptrC_ParenPBV[i*num_j+j], 2 );
+        error_ParenPBR += pow( C1D[i*num_j+j] - ptrC_ParenPBR[i*num_j+j], 2 );
 
-        error_ManagedArraySquareNFC += pow( C1D[i*num_j+j] - ManagedArrayC_SquareNFC[i][j] , 2 ) ;
-        error_ManagedArraySquarePBV += pow( C1D[i*num_j+j] - ManagedArrayC_SquarePBV[i][j] , 2 ) ;
-        error_ManagedArraySquarePBR += pow( C1D[i*num_j+j] - ManagedArrayC_SquarePBR[i][j] , 2 ) ;
+        error_ManagedArraySquareNFC += pow( C1D[i*num_j+j] - ManagedArrayC_SquareNFC[i][j], 2 );
+        error_ManagedArraySquarePBV += pow( C1D[i*num_j+j] - ManagedArrayC_SquarePBV[i][j], 2 );
+        error_ManagedArraySquarePBR += pow( C1D[i*num_j+j] - ManagedArrayC_SquarePBR[i][j], 2 );
 
-        error_ManagedArrayParenNFC += pow( C1D[i*num_j+j] - ManagedArrayC_ParenNFC[i][j] , 2 ) ;
-        error_ManagedArrayParenPBV += pow( C1D[i*num_j+j] - ManagedArrayC_ParenPBV[i][j] , 2 ) ;
-        error_ManagedArrayParenPBR += pow( C1D[i*num_j+j] - ManagedArrayC_ParenPBR[i][j] , 2 ) ;
+        error_ManagedArrayParenNFC += pow( C1D[i*num_j+j] - ManagedArrayC_ParenNFC[i][j], 2 );
+        error_ManagedArrayParenPBV += pow( C1D[i*num_j+j] - ManagedArrayC_ParenPBV[i][j], 2 );
+        error_ManagedArrayParenPBR += pow( C1D[i*num_j+j] - ManagedArrayC_ParenPBR[i][j], 2 );
 
       }
     }
@@ -423,25 +418,25 @@ int main( int /*argc*/, char* argv[] )
   if( output == 1 )
   {
     printf( "%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",
-    runTime_Direct1dAccess,
-    runTime_Direct1dRestrict,
+            runTime_Direct1dAccess,
+            runTime_Direct1dRestrict,
 
-    runTime_SquareNFC,
-    runTime_SquarePBV,
-    runTime_SquarePBR,
+            runTime_SquareNFC,
+            runTime_SquarePBV,
+            runTime_SquarePBR,
 
-    runTime_ParenNFC,
-    runTime_ParenPBV,
-    runTime_ParenPBR,
+            runTime_ParenNFC,
+            runTime_ParenPBV,
+            runTime_ParenPBR,
 
-    runTime_arrayViewSquareNFC,
-    runTime_arrayViewSquarePBV,
-    runTime_arrayViewSquarePBR,
+            runTime_arrayViewSquareNFC,
+            runTime_arrayViewSquarePBV,
+            runTime_arrayViewSquarePBR,
 
-    runTime_arrayViewParenNFC,
-    runTime_arrayViewParenPBV,
-    runTime_arrayViewParenPBR
-    );
+            runTime_arrayViewParenNFC,
+            runTime_arrayViewParenPBV,
+            runTime_arrayViewParenPBR
+            );
   }
   return 0;
 }
