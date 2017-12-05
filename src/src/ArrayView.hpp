@@ -253,7 +253,7 @@ public:
    * @return a reference to the m_data[index], where m_data is a T*.
    * This function simply returns a reference to the pointer deferenced using index.
    */
-  inline constexpr T const & operator[]( INDEX_TYPE const index) const
+  inline T const & operator[]( INDEX_TYPE const index) const
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_dims[0] );
@@ -261,7 +261,7 @@ public:
     return m_data[index];
   }
 
-  inline constexpr T & operator[]( INDEX_TYPE const index)
+  inline T & operator[]( INDEX_TYPE const index)
   {
 #if ARRAY_BOUNDS_CHECK == 1
     assert( index < m_dims[0] );

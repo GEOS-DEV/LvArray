@@ -53,7 +53,7 @@ public:
   using index_type = INDEX_TYPE;
 //  using unsigned_index_type = std::make_unsigned<INDEX_TYPE>;
 
-  using Index_Sequence = std::make_index_sequence<NDIM>;
+//  using Index_Sequence = std::make_index_sequence<NDIM>;
   using iterator = T*;
   using const_iterator = T const *;
   using pointer = T*;
@@ -341,7 +341,7 @@ public:
 //  const_iterator end() const {return &(dataVector[size()]);}
 
 
-  inline constexpr ArrayView<T,NDIM,INDEX_TYPE> View() const
+  inline ArrayView<T,NDIM,INDEX_TYPE> View() const
   {
 //    return ArrayView<T,NDIM>(*this);
     return ArrayView<T,NDIM,INDEX_TYPE>(this->m_data,
@@ -349,7 +349,7 @@ public:
                                         this->m_strides);
   }
 
-  inline constexpr ArrayView<T,NDIM,INDEX_TYPE> View()
+  inline ArrayView<T,NDIM,INDEX_TYPE> View()
   {
     return ArrayView<T,NDIM,INDEX_TYPE>(this->m_data,
                                         this->m_dims,
