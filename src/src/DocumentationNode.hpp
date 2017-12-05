@@ -103,6 +103,7 @@ public:
   void setShortDescription( std::string shortDescription ) { m_shortDescription = shortDescription; }
   std::string const & getLongDescription() const { return m_longDescription; }
   std::string const & getDefault() const { return m_default; }
+  void setDefault( std::string defVal ) { m_default = defVal; }
   std::string const & getGroups() const { return m_groups; }
   unsigned int const & getLevel() const { return m_level; }
   unsigned int const & getIsInput() const { return m_isInput; }
