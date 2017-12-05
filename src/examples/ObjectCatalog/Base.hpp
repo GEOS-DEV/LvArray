@@ -25,7 +25,7 @@ public:
     std::cout<<"called copy constructor for Parameter"<<std::endl;
   }
 
-#if( __cplusplus >= 201103L )
+#if ( __cplusplus >= 201103L )
   Parameter(Parameter && source ):
     member(std::move(source.member))
   {
@@ -51,7 +51,7 @@ public:
     std::cout<<"calling Base destructor"<<std::endl;
   }
 
-  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const & , Parameter& >;
+  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const &, Parameter& >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;

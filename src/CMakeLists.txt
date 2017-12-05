@@ -35,3 +35,5 @@ blt_add_library( NAME             cxx-utilities
 
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src )
 #target_include_directories( cxx-utilities PUBLIC ${CMAKE_SOURCE_DIR}/src )
+
+geosx_add_code_checks(PREFIX cxx-utilities)

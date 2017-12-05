@@ -34,8 +34,6 @@ inline uint64_t GetTimeMs64()
 
 
 
-
-
 using namespace multidimensionalArray;
 
 double MatrixMultiply_1D( integer_t const num_i,
@@ -47,12 +45,12 @@ double MatrixMultiply_1D( integer_t const num_i,
                           double * const  C );
 
 double MatrixMultiply_1Dr( integer_t const num_i,
-                          integer_t const num_j,
-                          integer_t const num_k,
-                          integer_t const ITERATIONS,
-                          double const * const restrict  A,
-                          double const * const restrict B,
-                          double * const restrict C );
+                           integer_t const num_j,
+                           integer_t const num_k,
+                           integer_t const ITERATIONS,
+                           double const * const restrict  A,
+                           double const * const restrict B,
+                           double * const restrict C );
 
 double MatrixMultiply_2D_accessor( integer_t const num_i,
                                    integer_t const num_j,
@@ -64,39 +62,36 @@ double MatrixMultiply_2D_accessor( integer_t const num_i,
 
 
 double MatrixMultiply_2D_accessorRef( integer_t const num_i,
-                                   integer_t const num_j,
-                                   integer_t const num_k,
-                                   integer_t const ITERATIONS,
-                                   ArrayView<double,2> const & A,
-                                   ArrayView<double,2> const & B,
-                                   ArrayView<double,2>& C );
+                                      integer_t const num_j,
+                                      integer_t const num_k,
+                                      integer_t const ITERATIONS,
+                                      ArrayView<double,2> const & A,
+                                      ArrayView<double,2> const & B,
+                                      ArrayView<double,2>& C );
 
 double MatrixMultiply_2D_accessorRef2( integer_t const num_i,
-                                   integer_t const num_j,
-                                   integer_t const num_k,
-                                   integer_t const ITERATIONS,
-                                   ArrayView<double,2> const & A,
-                                   ArrayView<double,2> const & B,
-                                   ArrayView<double,2>& C );
+                                       integer_t const num_j,
+                                       integer_t const num_k,
+                                       integer_t const ITERATIONS,
+                                       ArrayView<double,2> const & A,
+                                       ArrayView<double,2> const & B,
+                                       ArrayView<double,2>& C );
 
 double MatrixMultiply_2D_accessorPBV2( integer_t const num_i,
-                                   integer_t const num_j,
-                                   integer_t const num_k,
-                                   integer_t const ITERATIONS,
-                                   ArrayView<double,2> const  A,
-                                   ArrayView<double,2> const  B,
-                                   ArrayView<double,2> C );
+                                       integer_t const num_j,
+                                       integer_t const num_k,
+                                       integer_t const ITERATIONS,
+                                       ArrayView<double,2> const  A,
+                                       ArrayView<double,2> const  B,
+                                       ArrayView<double,2> C );
 
 double MatrixMultiply_2D_constructAccessorR( integer_t const num_i,
-                                            integer_t const num_j,
-                                            integer_t const num_k,
-                                            integer_t const ITERATIONS,
-                                            double const * const __restrict__ ptrA,
-                                            integer_t const * const lengthA,
-                                            double const * const __restrict__ ptrB,
-                                            integer_t const * const lengthB,
-                                            double * const __restrict__ ptrC,
-                                            integer_t const * const lengthC );
-
-
-
+                                             integer_t const num_j,
+                                             integer_t const num_k,
+                                             integer_t const ITERATIONS,
+                                             double const * const __restrict__ ptrA,
+                                             integer_t const * const lengthA,
+                                             double const * const __restrict__ ptrB,
+                                             integer_t const * const lengthB,
+                                             double * const __restrict__ ptrC,
+                                             integer_t const * const lengthC );

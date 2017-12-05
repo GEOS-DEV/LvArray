@@ -33,7 +33,7 @@ TEST(testArrayAccessor,ArrayInterface1)
 {
   integer_t const lengths[1] = {8};
   integer_t const n = lengths[0];
-  double memblock[n] ;
+  double memblock[n];
 
   for( integer_t a=0 ; a<n ; ++a )
   {
@@ -52,7 +52,7 @@ TEST(testArrayAccessor,ArrayInterface2)
 {
   integer_t const lengths[2] = {2,8};
   integer_t const n = lengths[0]*lengths[1];
-  double memblock[n] ;
+  double memblock[n];
 
   for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
@@ -79,7 +79,7 @@ TEST(testArrayAccessor,ArrayInterface2)
 TEST(testArrayAccessor,ArrayInterface3)
 {
   constexpr integer_t lengths[3] = {2,2,3};
-  double memblock[lengths[0]][lengths[1]][lengths[2]] ;
+  double memblock[lengths[0]][lengths[1]][lengths[2]];
 
   for( integer_t a=0 ; a<lengths[0] ; ++a )
   {

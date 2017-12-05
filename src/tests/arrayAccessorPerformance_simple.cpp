@@ -34,12 +34,12 @@ inline uint64_t GetTimeMs64()
 
 
 double MatrixMultiply_1Dr( integer_t const num_i,
-                          integer_t const num_j,
-                          integer_t const num_k,
-                          integer_t const ITERATIONS,
-                          double const * const restrict  A,
-                          double const * const restrict B,
-                          double * const restrict C )
+                           integer_t const num_j,
+                           integer_t const num_k,
+                           integer_t const ITERATIONS,
+                           double const * const restrict  A,
+                           double const * const restrict B,
+                           double * const restrict C )
 {
   uint64_t startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
@@ -83,9 +83,9 @@ double PBV( integer_t const num_i,
   ArrayAccessor<double const,2> const B( ptrB, lengthB, stridesB );
   ArrayAccessor<double,2> C( ptrC, lengthC, stridesC );
 #else
-  ArrayAccessor<double const,2> const A,
-  ArrayAccessor<double const,2> const B,
-  ArrayAccessor<double,2> C )
+            ArrayAccessor<double const,2> const A,
+            ArrayAccessor<double const,2> const B,
+            ArrayAccessor<double,2> C )
 {
 #endif
 
@@ -109,12 +109,12 @@ double PBV( integer_t const num_i,
 
 
 double PBVP( integer_t const num_i,
-            integer_t const num_j,
-            integer_t const num_k,
-            integer_t const ITERATIONS,
-            ArrayAccessor<double const,2> const A,
-            ArrayAccessor<double const,2> const B,
-            ArrayAccessor<double,2> C )
+             integer_t const num_j,
+             integer_t const num_k,
+             integer_t const ITERATIONS,
+             ArrayAccessor<double const,2> const A,
+             ArrayAccessor<double const,2> const B,
+             ArrayAccessor<double,2> C )
 {
 
   uint64_t startTime = GetTimeMs64();
@@ -223,9 +223,9 @@ int main( int argc, char* argv[] )
   double runTime1r = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, &(A[0][0]), &(B[0][0]), C1 );
 
 
-  integer_t const restrict lengthsA[] = { num_i , num_k };
-  integer_t const restrict lengthsB[] = { num_k , num_j };
-  integer_t const restrict lengthsC[] = { num_i , num_j };
+  integer_t const restrict lengthsA[] = { num_i, num_k };
+  integer_t const restrict lengthsB[] = { num_k, num_j };
+  integer_t const restrict lengthsC[] = { num_i, num_j };
 
   integer_t const restrict stridesA[] = { num_k, 1 };
   integer_t const restrict stridesB[] = { num_j, 1 };
@@ -242,9 +242,9 @@ int main( int argc, char* argv[] )
 
   double runTime2_1 = PBV(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_1 );
   double runTime2_2 = PBV_PointerConstruct_Restrict( num_i, num_j, num_k, ITERATIONS,
-                                                          &(A[0][0]), lengthsA,
-                                                          &(B[0][0]), lengthsB,
-                                                          C2_2, lengthsC );
+                                                     &(A[0][0]), lengthsA,
+                                                     &(B[0][0]), lengthsB,
+                                                     C2_2, lengthsC );
   double runTime2_3 = PBVP(       num_i, num_j, num_k, ITERATIONS, accessorA, accessorB, accessorC_3 );
 
   if( output > 2 )
@@ -257,9 +257,9 @@ int main( int argc, char* argv[] )
     {
       for( integer_t j = 0 ; j < num_j ; ++j )
       {
-        error2_1 += pow( C1[i*num_j+j] - C2_1[i*num_j+j] , 2 ) ;
-        error2_2 += pow( C1[i*num_j+j] - C2_2[i*num_j+j] , 2 ) ;
-        error2_3 += pow( C1[i*num_j+j] - C2_3[i*num_j+j] , 2 ) ;
+        error2_1 += pow( C1[i*num_j+j] - C2_1[i*num_j+j], 2 );
+        error2_2 += pow( C1[i*num_j+j] - C2_2[i*num_j+j], 2 );
+        error2_3 += pow( C1[i*num_j+j] - C2_3[i*num_j+j], 2 );
       }
     }
     std::cout<<"error2_1 = "<<error2_1<<std::endl;

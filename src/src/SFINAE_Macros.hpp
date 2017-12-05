@@ -13,7 +13,8 @@
 namespace cxx_utilities
 {
 
-/** This macro creates a struct that has a static member "value" which returns true if the typename "TT" has a
+/** This macro creates a struct that has a static member "value" which returns
+   true if the typename "TT" has a
  *  datamember "NAME".
  */
 #define HAS_MEMBER_DATA(NAME) \
@@ -72,7 +73,7 @@ public: \
 
 #define HAS_MEMBER_FUNCTION_VARIANT(NAME, VARIANT, RTYPE, CONST, PARAMS, ARGS ) \
   template<typename TT > \
-  struct has_memberfunction_v ## VARIANT ## _## NAME \
+  struct has_memberfunction_v ## VARIANT ## _ ## NAME \
   { \
 private: \
     template<typename U> static constexpr auto test(int)->decltype( static_cast<RTYPE (U::*)(PARAMS) CONST>(&U::NAME), bool() ) \
@@ -188,8 +189,10 @@ public: \
   }
 
 //  HAS_MEMBER_FUNCTION0(resize)
-//  HAS_MEMBER_FUNCTION(resize, void, , VA_LIST(std::size_t), VA_LIST(std::size_t(1)) )
-//  CONDITIONAL_VIRTUAL_FUNCTION( ViewWrapper<T>,resize, void,, VA_LIST(localIndex a), VA_LIST(static_cast<size_t>(a)) )
+//  HAS_MEMBER_FUNCTION(resize, void, , VA_LIST(std::size_t),
+// VA_LIST(std::size_t(1)) )
+//  CONDITIONAL_VIRTUAL_FUNCTION( ViewWrapper<T>,resize, void,,
+// VA_LIST(localIndex a), VA_LIST(static_cast<size_t>(a)) )
 
 
 template<class TT>

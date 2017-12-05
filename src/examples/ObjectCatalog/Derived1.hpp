@@ -22,5 +22,3 @@ public:
   std::string const getName() const override final { return CatalogName(); }
 
 };
-
-

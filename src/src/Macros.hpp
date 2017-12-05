@@ -33,5 +33,6 @@
 //#define CXX_STD 1z
 //#define USE_CXX11
 //#elif
-//#error "No allowable value of __cplusplus preprocessor flag is available. __cplusplus must be >= 199711L"
+//#error "No allowable value of __cplusplus preprocessor flag is available.
+// __cplusplus must be >= 199711L"
 //#endif

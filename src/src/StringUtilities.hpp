@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 //#include <memory>
-#include<iostream>
+#include <iostream>
 
 namespace cxx_utilities
 {
@@ -31,9 +31,6 @@ void equateStlVector( T_RHS & lhs, std::vector<VECTORTYPE> const & rhs )
 
 template<>
 void equateStlVector<std::string,std::string>( std::string & lhs, std::vector<std::string> const & rhs );
-
-
-
 
 
 
