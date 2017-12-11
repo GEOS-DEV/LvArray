@@ -54,8 +54,13 @@ public:
 //  using unsigned_index_type = std::make_unsigned<INDEX_TYPE>;
 
   using Index_Sequence = std::make_index_sequence<NDIM>;
-  using iterator = T*;
-  using const_iterator = T const *;
+
+//  using iterator = T*;
+//  using const_iterator = T const *;
+  using iterator = typename std::vector<T>::iterator;
+  using const_iterator = typename std::vector<T>::const_iterator;
+
+
   using pointer = T*;
   using const_pointer = T const *;
   using reference = T&;
@@ -64,7 +69,7 @@ public:
   using size_type = INDEX_TYPE;
 
 
-  inline explicit constexpr ManagedArray():
+  inline ManagedArray():
     dataVector(),
     m_data(nullptr),
     m_dims{0},
@@ -73,7 +78,7 @@ public:
   {}
 
   template< typename... DIMS >
-  inline explicit constexpr ManagedArray( DIMS... dims ):
+  inline explicit ManagedArray( DIMS... dims ):
     dataVector(),
     m_data(),
     m_dims{ static_cast<INDEX_TYPE>(dims) ...},
@@ -192,6 +197,8 @@ public:
   template< typename TYPE >
   void resize( TYPE newdim )
   {
+    static_assert( is_valid_indexType<TYPE>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+
     m_dims[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resize();
@@ -286,7 +293,7 @@ public:
 
   void erase( iterator index )
   {
-    dataVector.erase(static_cast<typename std::vector<T>::iterator>(index));
+    dataVector.erase( index ) ;
     m_data = dataVector.data();
   }
 
@@ -300,11 +307,16 @@ public:
   T *       data()       {return m_data;}
   T const * data() const {return m_data;}
 
-  iterator begin() {return m_data;}
-  const_iterator begin() const {return m_data;}
+//  iterator begin() {return m_data;}
+//  const_iterator begin() const {return m_data;}
+//
+//  iterator end() {return &(m_data[size()]);}
+//  const_iterator end() const {return &(m_data[size()]);}
+  iterator begin() {return dataVector.begin();}
+  const_iterator begin() const {return dataVector.begin();}
 
-  iterator end() {return &(m_data[size()]);}
-  const_iterator end() const {return &(m_data[size()]);}
+  iterator end() {return dataVector.end();}
+  const_iterator end() const {return dataVector.end();}
 
 
 
@@ -326,9 +338,12 @@ public:
   }
 
   template< int N=NDIM, class InputIt >
-  typename std::enable_if< N==1, void >::type insert( iterator pos, InputIt first, InputIt last)
+  typename std::enable_if< N==1, void >::type insert( const_iterator pos, InputIt first, InputIt last)
   {
-    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
+//    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
+//    std::vector<T> junk;
+//    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
+    dataVector.insert( pos, first, last );
     m_dims[0] = dataVector.size();
     CalculateStrides();
   }
