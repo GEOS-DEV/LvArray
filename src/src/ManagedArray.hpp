@@ -38,6 +38,59 @@ struct is_integer
 namespace multidimensionalArray
 {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value, RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max()  )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< std::is_signed<T>::value && std::is_unsigned<RTYPE>::value, RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max() ||
+      input < 0 )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< ( std::is_signed<T>::value && std::is_signed<RTYPE>::value ) ||
+                         ( std::is_unsigned<T>::value && std::is_unsigned<RTYPE>::value ), RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max() ||
+      input < std::numeric_limits<RTYPE>::lowest() )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+
+
+#pragma GCC diagnostic pop
 
 
 //template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
@@ -325,7 +378,7 @@ public:
   {
     dataVector.push_back(newValue);
     m_data = dataVector.data();
-    m_dims[0] = dataVector.size();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
 
@@ -333,7 +386,7 @@ public:
   typename std::enable_if< N==1, void >::type pop_back()
   {
     dataVector.pop_back();
-    m_dims[0] = dataVector.size();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
 
@@ -344,7 +397,7 @@ public:
 //    std::vector<T> junk;
 //    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
     dataVector.insert( pos, first, last );
-    m_dims[0] = dataVector.size();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
   /**@}*/
