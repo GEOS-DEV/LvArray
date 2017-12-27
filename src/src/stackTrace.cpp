@@ -80,7 +80,7 @@ void handler(int sig, int exitFlag, int exitCode )
       // if demangling is successful, output the demangled function name
       if (status == 0)
       {
-        std::cerr << messages[i] << " : "
+        std::cerr <<messages[i]<<"("<<i<<") "<< " : "
                   << real_name << "+" << offset_begin << offset_end
                   << std::endl;
 
@@ -88,7 +88,7 @@ void handler(int sig, int exitFlag, int exitCode )
       // otherwise, output the mangled function name
       else
       {
-        std::cerr << messages[i] << " : "
+        std::cerr << messages[i]<<"("<<i<<") "<< " : "
                   << mangled_name << "+" << offset_begin << offset_end
                   << std::endl;
       }
@@ -104,7 +104,21 @@ void handler(int sig, int exitFlag, int exitCode )
 
   free(messages);
   if( exitFlag == 1)
+  {
+#if USE_MPI == 1
+  int mpi = 0;
+  MPI_Initialized( &mpi );
+  if ( mpi )
+  {
+    MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
+  }
+  else
+#endif
+  {
     exit(exitCode);
+  }
+
+  }
 
 
 }
