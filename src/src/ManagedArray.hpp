@@ -237,7 +237,7 @@ public:
   }
 
 
-  void resize(int n_dims, const long * dims)
+  void resize(int n_dims, long long const * const dims)
   {
     if ( n_dims != NDIM ) GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
 
