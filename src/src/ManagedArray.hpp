@@ -395,7 +395,7 @@ public:
   {
 //    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
 //    std::vector<T> junk;
-//    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
+//    dataVector.insert( daINDEXtaVector.end(), junk.begin(), junk.end() );
     dataVector.insert( pos, first, last );
     m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
@@ -535,6 +535,17 @@ public:
   inline constexpr INDEX_TYPE linearIndex( DIMS... dims ) const
   {
     return index_helper<NDIM,DIMS...>::f(m_strides,dims...);
+  }
+
+
+  inline INDEX_TYPE const * dims() const
+  {
+    return m_dims;
+  }
+
+  inline INDEX_TYPE const * strides() const
+  {
+    return m_strides;
   }
 
 
