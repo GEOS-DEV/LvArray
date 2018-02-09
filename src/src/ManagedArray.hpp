@@ -548,6 +548,15 @@ public:
     return m_strides;
   }
 
+  inline int getSingleParameterResizeIndex() const
+  {
+    return m_singleParameterResizeIndex;
+  }
+
+  inline void setSingleParameterResizeIndex( int const index )
+  {
+    m_singleParameterResizeIndex = index;
+  }
 
 //private:
   std::vector<T> dataVector;
