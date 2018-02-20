@@ -221,6 +221,31 @@ public:
    */
 
 
+  void resize( int const numDims, INDEX_TYPE const * const dims )
+  {
+    if( numDims != NDIM )
+    {
+      abort();
+    }
+
+    INDEX_TYPE length = 1;
+
+    for( int i=0 ; i<NDIM ; ++i )
+    {
+      m_dims[i] = dims[i];
+    }
+
+    CalculateStrides();
+    resize();
+  }
+
+  void resize( int const numDims, INDEX_TYPE * const dims )
+  {
+    resize( numDims, const_cast<INDEX_TYPE const *>(dims) );
+  }
+
+
+
   template< typename... DIMS >
   void resize( DIMS... newdims )
   {
@@ -234,6 +259,8 @@ public:
     CalculateStrides();
     resize();
   }
+
+
 
   void resize()
   {
