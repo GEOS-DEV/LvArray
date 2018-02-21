@@ -21,6 +21,7 @@
 #include <vector>
 //#include <utility>
 
+#include "common/Logger.hpp"
 #include "ArrayView.hpp"
 
 template< typename T >
@@ -261,6 +262,18 @@ public:
   }
 
 
+  void resize(int n_dims, long long const * const dims)
+  {
+    if ( n_dims != NDIM ) GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
+
+    for (int i = 0; i < NDIM; i++)
+    {
+      m_dims[i] = dims[i];
+    }
+
+    CalculateStrides();
+    resize();
+  }
 
   void resize()
   {
@@ -285,7 +298,6 @@ public:
   }
 
 
-
   void reserve( INDEX_TYPE newLength )
   {
     dataVector.reserve(newLength);
@@ -297,33 +309,11 @@ public:
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
   /**
-   *
    * @return total length of the array across all dimensions
-   * @note if this function is called from a function/method where the
-   * ManagedArray is a template parameter, and the template type is specified
-   * then the keyword "template" must be inserted prior to size<>(). For
-   * instance:
-   *
-   * template<typename T>
-   * static int f( ManagedArray<T>& a )
-   * {
-   *  return a.size<int>();          // error: use 'template' keyword to treat
-   *                                 // 'size' as a dependent template name
-   *  return a.template size<int>(); // OK
-   *
-   *  return a.size();               //OK
-   * }
-   *
    */
-  template< typename RTYPE = INDEX_TYPE >
-  RTYPE size() const
+  INDEX_TYPE size() const
   {
-    if( size_helper<0>::f(m_dims) > std::numeric_limits<RTYPE>::max() ||
-        size_helper<0>::f(m_dims) < std::numeric_limits<RTYPE>::lowest() )
-    {
-      abort();
-    }
-    return static_cast<RTYPE>(size_helper<0>::f(m_dims));
+    return size_helper<0>::f(m_dims);
   }
 
 
@@ -331,34 +321,17 @@ public:
    *
    * @param dim dimension for which the size is requested
    * @return length of a single dimensions specified by dim
-   * @note if this function is called from a function/method where the
-   * ManagedArray is a template parameter, and the template type is specified
-   * then the keyword "template" must be inserted prior to size<>(). For
-   * instance:
-   *
-   * template<typename T>
-   * static int f( ManagedArray<T>& a )
-   * {
-   *  return a.size<int>(1);          // error: use 'template' keyword to treat
-   *                                 // 'size' as a dependent template name
-   *  return a.template size<int>(1); // OK
-   *
-   *  return a.size(1);               //OK
-   * }
    *
    */
-  template< typename RTYPE = INDEX_TYPE >
-  RTYPE size( int dim ) const
+  INDEX_TYPE size( int dim ) const
   {
-    if( m_dims[dim] > std::numeric_limits<RTYPE>::max() ||
-        m_dims[dim] < std::numeric_limits<RTYPE>::lowest() )
-    {
-      abort();
-    }
-    return static_cast<RTYPE>(m_dims[dim]);
+    return m_dims[dim];
   }
+  
 #pragma GCC diagnostic pop
 
+  int numDimensions() const
+  { return NDIM; }
 
   bool empty() const
   {
