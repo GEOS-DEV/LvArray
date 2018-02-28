@@ -21,6 +21,7 @@
 #include <vector>
 //#include <utility>
 
+#include "common/Logger.hpp"
 #include "ArrayView.hpp"
 
 template< typename T >
@@ -38,6 +39,59 @@ struct is_integer
 namespace multidimensionalArray
 {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value, RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max()  )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< std::is_signed<T>::value && std::is_unsigned<RTYPE>::value, RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max() ||
+      input < 0 )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+
+template< typename RTYPE, typename T >
+inline typename std::enable_if< ( std::is_signed<T>::value && std::is_signed<RTYPE>::value ) ||
+                         ( std::is_unsigned<T>::value && std::is_unsigned<RTYPE>::value ), RTYPE >::type
+integer_conversion( T input )
+{
+  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+
+  if( input > std::numeric_limits<RTYPE>::max() ||
+      input < std::numeric_limits<RTYPE>::lowest() )
+  {
+    abort();
+  }
+  return static_cast<RTYPE>(input);
+}
+
+
+
+#pragma GCC diagnostic pop
 
 
 //template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
@@ -53,9 +107,14 @@ public:
   using index_type = INDEX_TYPE;
 //  using unsigned_index_type = std::make_unsigned<INDEX_TYPE>;
 
-//  using Index_Sequence = std::make_index_sequence<NDIM>;
-  using iterator = T*;
-  using const_iterator = T const *;
+  using Index_Sequence = std::make_index_sequence<NDIM>;
+
+//  using iterator = T*;
+//  using const_iterator = T const *;
+  using iterator = typename std::vector<T>::iterator;
+  using const_iterator = typename std::vector<T>::const_iterator;
+
+
   using pointer = T*;
   using const_pointer = T const *;
   using reference = T&;
@@ -64,7 +123,7 @@ public:
   using size_type = INDEX_TYPE;
 
 
-  inline explicit constexpr ManagedArray():
+  inline ManagedArray():
     dataVector(),
     m_data(nullptr),
     m_dims{0},
@@ -73,7 +132,7 @@ public:
   {}
 
   template< typename... DIMS >
-  inline explicit constexpr ManagedArray( DIMS... dims ):
+  inline explicit ManagedArray( DIMS... dims ):
     dataVector(),
     m_data(),
     m_dims{ static_cast<INDEX_TYPE>(dims) ...},
@@ -177,6 +236,20 @@ public:
     resize();
   }
 
+
+  void resize(int n_dims, long long const * const dims)
+  {
+    if ( n_dims != NDIM ) GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
+
+    for (int i = 0; i < NDIM; i++)
+    {
+      m_dims[i] = dims[i];
+    }
+
+    CalculateStrides();
+    resize();
+  }
+
   void resize()
   {
     INDEX_TYPE length = 1;
@@ -192,11 +265,12 @@ public:
   template< typename TYPE >
   void resize( TYPE newdim )
   {
+    static_assert( is_valid_indexType<TYPE>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+
     m_dims[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resize();
   }
-
 
 
   void reserve( INDEX_TYPE newLength )
@@ -210,33 +284,11 @@ public:
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
   /**
-   *
    * @return total length of the array across all dimensions
-   * @note if this function is called from a function/method where the
-   * ManagedArray is a template parameter, and the template type is specified
-   * then the keyword "template" must be inserted prior to size<>(). For
-   * instance:
-   *
-   * template<typename T>
-   * static int f( ManagedArray<T>& a )
-   * {
-   *  return a.size<int>();          // error: use 'template' keyword to treat
-   *                                 // 'size' as a dependent template name
-   *  return a.template size<int>(); // OK
-   *
-   *  return a.size();               //OK
-   * }
-   *
    */
-  template< typename RTYPE = INDEX_TYPE >
-  RTYPE size() const
+  INDEX_TYPE size() const
   {
-    if( size_helper<0>::f(m_dims) > std::numeric_limits<RTYPE>::max() ||
-        size_helper<0>::f(m_dims) < std::numeric_limits<RTYPE>::lowest() )
-    {
-      abort();
-    }
-    return static_cast<RTYPE>(size_helper<0>::f(m_dims));
+    return size_helper<0>::f(m_dims);
   }
 
 
@@ -244,34 +296,17 @@ public:
    *
    * @param dim dimension for which the size is requested
    * @return length of a single dimensions specified by dim
-   * @note if this function is called from a function/method where the
-   * ManagedArray is a template parameter, and the template type is specified
-   * then the keyword "template" must be inserted prior to size<>(). For
-   * instance:
-   *
-   * template<typename T>
-   * static int f( ManagedArray<T>& a )
-   * {
-   *  return a.size<int>(1);          // error: use 'template' keyword to treat
-   *                                 // 'size' as a dependent template name
-   *  return a.template size<int>(1); // OK
-   *
-   *  return a.size(1);               //OK
-   * }
    *
    */
-  template< typename RTYPE = INDEX_TYPE >
-  RTYPE size( int dim ) const
+  INDEX_TYPE size( int dim ) const
   {
-    if( m_dims[dim] > std::numeric_limits<RTYPE>::max() ||
-        m_dims[dim] < std::numeric_limits<RTYPE>::lowest() )
-    {
-      abort();
-    }
-    return static_cast<RTYPE>(m_dims[dim]);
+    return m_dims[dim];
   }
+  
 #pragma GCC diagnostic pop
 
+  int numDimensions() const
+  { return NDIM; }
 
   bool empty() const
   {
@@ -286,7 +321,7 @@ public:
 
   void erase( iterator index )
   {
-    dataVector.erase(static_cast<typename std::vector<T>::iterator>(index));
+    dataVector.erase( index ) ;
     m_data = dataVector.data();
   }
 
@@ -300,11 +335,16 @@ public:
   T *       data()       {return m_data;}
   T const * data() const {return m_data;}
 
-  iterator begin() {return m_data;}
-  const_iterator begin() const {return m_data;}
+//  iterator begin() {return m_data;}
+//  const_iterator begin() const {return m_data;}
+//
+//  iterator end() {return &(m_data[size()]);}
+//  const_iterator end() const {return &(m_data[size()]);}
+  iterator begin() {return dataVector.begin();}
+  const_iterator begin() const {return dataVector.begin();}
 
-  iterator end() {return &(m_data[size()]);}
-  const_iterator end() const {return &(m_data[size()]);}
+  iterator end() {return dataVector.end();}
+  const_iterator end() const {return dataVector.end();}
 
 
 
@@ -313,7 +353,7 @@ public:
   {
     dataVector.push_back(newValue);
     m_data = dataVector.data();
-    m_dims[0] = dataVector.size();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
 
@@ -321,15 +361,18 @@ public:
   typename std::enable_if< N==1, void >::type pop_back()
   {
     dataVector.pop_back();
-    m_dims[0] = dataVector.size();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
 
   template< int N=NDIM, class InputIt >
-  typename std::enable_if< N==1, void >::type insert( iterator pos, InputIt first, InputIt last)
+  typename std::enable_if< N==1, void >::type insert( const_iterator pos, InputIt first, InputIt last)
   {
-    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
-    m_dims[0] = dataVector.size();
+//    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
+//    std::vector<T> junk;
+//    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
+    dataVector.insert( pos, first, last );
+    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
   /**@}*/

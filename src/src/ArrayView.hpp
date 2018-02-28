@@ -196,6 +196,13 @@ public:
     return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
   }
 
+  T * data() {return m_data;}
+  T const * data() const {return m_data;}
+
+  INDEX_TYPE size( int dim = 0 ) const
+  {
+    return m_dims[dim];
+  }
 
 private:
   /// pointer to beginning of data for this array, or sub-array.
@@ -292,6 +299,15 @@ public:
     assert( index < m_dims[0] );
 #endif
     return m_data[index];
+  }
+
+
+  T * data() {return m_data;}
+  T const * data() const {return m_data;}
+
+  INDEX_TYPE size() const
+  {
+    return m_dims[0];
   }
 
 private:
