@@ -4,6 +4,7 @@
 
 set(newComponentTests
     testArrayAccesssor.cpp
+    testManagedArray.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
     testStringUtilities.cpp
@@ -17,7 +18,7 @@ foreach(test ${newComponentTests})
     blt_add_executable( NAME ${test_name}
                         SOURCES ${test}
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON gtest cxx-utilities )
+                        DEPENDS_ON gtest cxx-utilities slic )
 
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}

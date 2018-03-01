@@ -76,7 +76,10 @@ HAS_MEMBER_DATA(memberName)
 TEST(test_sfinae,test_has_datamember)
 {
 //  std::cout<<has_datamember_memberName<Foo_MemberData>::value<<std::endl;
+//  bool test = has_datamember_memberName<Foo_MemberData>::value;
+//  EXPECT_TRUE( test );
 //  EXPECT_TRUE( has_datamember_memberName<Foo_MemberData>::value );
+  EXPECT_FALSE( !has_datamember_memberName<Foo_MemberData>::value );
   EXPECT_FALSE( has_datamember_memberName<Foo_StaticMemberData>::value );
   EXPECT_FALSE( has_datamember_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE( has_datamember_memberName<Foo_StaticMemberFunction_1Arg>::value );
@@ -89,8 +92,7 @@ HAS_STATIC_MEMBER_DATA(memberName)
 TEST(test_sfinae,test_has_staticdatamember)
 {
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_MemberData>::value );
-//  EXPECT_TRUE(  has_staticdatamember_memberName<Foo_StaticMemberData>::value
-// );
+//  ASSERT_TRUE(  has_staticdatamember_memberName<Foo_StaticMemberData>::value);
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_MemberFunction_1Arg>::value );
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_StaticMemberFunction_1Arg>::value );
   EXPECT_FALSE( has_staticdatamember_memberName<Foo_Using>::value );
