@@ -1,5 +1,4 @@
-/*
- * ArrayWrapper.hpp
+/* ArrayWrapper.hpp
  *
  *  Created on: Jul 30, 2016
  *      Author: rrsettgast
@@ -60,7 +59,8 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
    */
-  inline explicit constexpr
+  //inline constexpr explicit constexpr
+  inline explicit
   ArrayView( T * const restrict inputData,
              INDEX_TYPE const * const restrict inputDimensions,
              INDEX_TYPE const * const restrict inputStrides ):
@@ -70,7 +70,7 @@ public:
   {}
 
 
-//  inline constexpr ArrayView( ManagedArray<T,NDIM,INDEX_TYPE> const &
+//  inline constexpr  ArrayView( ManagedArray<T,NDIM,INDEX_TYPE> const &
 // ManagedArray ):
 //    m_data(ManagedArray.m_data),
 //    m_dims(ManagedArray.m_dims),
@@ -85,7 +85,7 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
    */
-//  inline explicit constexpr ArrayView( T * const restrict inputData ):
+//  inline constexpr explicit  ArrayView( T * const restrict inputData ):
 //    m_data(    inputData + maxDim() ),
 //    m_dims( reinterpret_cast<INDEX_TYPE*>( inputData ) + 1 )
 //    m_strides()
@@ -134,6 +134,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U==1, T const & >::type
   inline typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
@@ -185,13 +186,13 @@ public:
 #endif
 
   template< typename... INDICES >
-  inline constexpr T & operator()( INDICES... indices ) const
+  inline T & operator()( INDICES... indices ) const
   {
     return m_data[ linearIndex(indices...) ];
   }
 
   template< typename... INDICES >
-  inline constexpr INDEX_TYPE linearIndex( INDICES... indices ) const
+  inline INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
   }
@@ -218,7 +219,8 @@ private:
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_helper
   {
-    inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
+    //inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
+    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
                                           INDEX index,
                                           REMAINING_INDICES... indices )
     {
@@ -230,8 +232,8 @@ private:
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
     inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-                                          INDEX index,
-                                          REMAINING_INDICES... indices )
+                                INDEX index,
+                                REMAINING_INDICES... indices )
     {
       return index;
     }
@@ -324,3 +326,4 @@ private:
 } /* namespace arraywrapper */
 
 #endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */
+

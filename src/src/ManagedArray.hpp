@@ -107,7 +107,7 @@ public:
   using index_type = INDEX_TYPE;
 //  using unsigned_index_type = std::make_unsigned<INDEX_TYPE>;
 
-  using Index_Sequence = std::make_index_sequence<NDIM>;
+  //using Index_Sequence = std::make_index_sequence<NDIM>;
 
 //  using iterator = T*;
 //  using const_iterator = T const *;
@@ -365,16 +365,20 @@ public:
     CalculateStrides();
   }
 
+
   template< int N=NDIM, class InputIt >
-  typename std::enable_if< N==1, void >::type insert( const_iterator pos, InputIt first, InputIt last)
+  //typename std::enable_if< N==1, void >::type insert( const_iterator pos, InputIt first, InputIt last)
+  typename std::enable_if< N==1, void >::type insert(iterator pos, InputIt first, InputIt last)
   {
 //    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
 //    std::vector<T> junk;
 //    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
+    //dataVector.insert((static_cast<typename std::vector<T>::iterator>(pos), first, last );
     dataVector.insert( pos, first, last );
     m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
   }
+
   /**@}*/
 
 
@@ -383,7 +387,7 @@ public:
 //  const_iterator end() const {return &(dataVector[size()]);}
 
 
-  inline constexpr ArrayView<T,NDIM,INDEX_TYPE> View() const
+  inline ArrayView<T,NDIM,INDEX_TYPE> View() const
   {
 //    return ArrayView<T,NDIM>(*this);
     return ArrayView<T,NDIM,INDEX_TYPE>(this->m_data,
@@ -501,13 +505,13 @@ public:
 
 
   template< typename... DIMS >
-  inline constexpr T & operator()( DIMS... dims ) const
+  inline T & operator()( DIMS... dims ) const
   {
     return m_data[ linearIndex(dims...) ];
   }
 
   template< typename... DIMS >
-  inline constexpr INDEX_TYPE linearIndex( DIMS... dims ) const
+  inline INDEX_TYPE linearIndex( DIMS... dims ) const
   {
     return index_helper<NDIM,DIMS...>::f(m_strides,dims...);
   }
