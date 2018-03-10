@@ -18,7 +18,9 @@ DocumentationNode::DocumentationNode( std::string const & name,
                                       unsigned int const & level,
                                       unsigned int const & isInput,
                                       unsigned int const & verbosity,
-                                      DocumentationNode * parentNode ):
+                                      DocumentationNode * parentNode,
+                                      const bool & write_to_restart,
+                                      const bool & read_from_restart ):
   m_name(name),
   m_stringKey(stringKey),
   m_intKey(intKey),
@@ -33,6 +35,8 @@ DocumentationNode::DocumentationNode( std::string const & name,
   m_isInput(isInput),
   m_verbosity(verbosity),
   m_parentNode(parentNode),
+  m_write_to_restart(write_to_restart),
+  m_read_from_restart(read_from_restart),
   m_child()
 {}
 
@@ -47,7 +51,9 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                                                           std::string const & groups,
                                                           unsigned int const & parentManaged,
                                                           unsigned int const & isInput,
-                                                          unsigned int const & verbosity )
+                                                          unsigned int const & verbosity,
+                                                          bool const & write_to_restart,
+                                                          bool const & read_from_restart )
 {
   DocumentationNode newNode(name,
                             stringKey,
@@ -62,7 +68,9 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                             this->m_level + 1,
                             isInput,
                             verbosity,
-                            this );
+                            this,
+                            write_to_restart,
+                            read_from_restart );
 
   // a check to see if nodeName exists. if it does, check to see that members
   // are identical

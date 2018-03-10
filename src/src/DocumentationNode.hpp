@@ -32,7 +32,9 @@ public:
                      unsigned int const & level,
                      unsigned int const & isInput,
                      unsigned int const & verbosity,
-                     DocumentationNode * m_parentNode );
+                     DocumentationNode * m_parentNode,
+                     bool const & write_to_restart=true,
+                     bool const & read_from_restart=true );
 
 
   bool operator==(DocumentationNode const & rhs);
@@ -54,7 +56,9 @@ public:
                                          std::string const & groups,
                                          unsigned int const & parentManaged,
                                          unsigned int const & isInput,
-                                         unsigned int const & verbosity );
+                                         unsigned int const & verbosity,
+                                         bool const & write_to_restart=true,
+                                         bool const & read_from_restart=true );
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
@@ -92,23 +96,48 @@ public:
 
 
   std::string const & getName() const { return m_name; }
+
   void setName(std::string className) { m_name = className; }
+
   std::string const & getStringKey() const { return m_stringKey; }
+
   int const & getIntKey() const { return m_intKey; }
+
   void setIntKey( int intKey ) { m_intKey = intKey; }
+
   std::string const & getDataType() const { return m_dataType; }
+
   std::string const & getSchemaType() const { return m_schemaType; }
+
   void setSchemaType( std::string typeName ) { m_schemaType = typeName; }
+
   std::string const & getShortDescription() const { return m_shortDescription; }
+
   void setShortDescription( std::string shortDescription ) { m_shortDescription = shortDescription; }
+
   std::string const & getLongDescription() const { return m_longDescription; }
+
   std::string const & getDefault() const { return m_default; }
+
   void setDefault( std::string defVal ) { m_default = defVal; }
+
   std::string const & getGroups() const { return m_groups; }
+
   unsigned int const & getLevel() const { return m_level; }
+
   unsigned int const & getIsInput() const { return m_isInput; }
+
   int const & getVerbosity() const { return m_verbosity; }
+
   void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
+  
+  bool const & getWriteToRestart() const { return m_write_to_restart; }
+
+  void setWriteToRestart( bool write_to_restart ) { m_write_to_restart = write_to_restart; }
+
+  bool const & getReadFromRestart() const { return m_read_from_restart; }
+
+  void setReadFromRestart( bool read_from_restart ) { m_read_from_restart = read_from_restart; }
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
   std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
@@ -134,6 +163,8 @@ public:
   int m_verbosity         =  0;
   unsigned int m_isRegistered      =  0;
   DocumentationNode * m_parentNode = nullptr;
+  bool m_write_to_restart          = true;
+  bool m_read_from_restart         = true;
   std::map<std::string,DocumentationNode> m_child = {};
 
 };
