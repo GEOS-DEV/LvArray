@@ -239,11 +239,14 @@ public:
 
   void resize(int n_dims, long long const * const dims)
   {
-    if ( n_dims != NDIM ) GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
+    if ( n_dims != NDIM )
+    {
+      GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
+    }
 
     for (int i = 0; i < NDIM; i++)
     {
-      m_dims[i] = dims[i];
+      m_dims[i] = integer_conversion<INDEX_TYPE>(dims[i]);
     }
 
     CalculateStrides();
