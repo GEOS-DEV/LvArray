@@ -1,5 +1,7 @@
 
 #include "DocumentationNode.hpp"
+#include "dataRepository/RestartFlags.hpp"
+
 
 namespace cxx_utilities
 {
@@ -19,8 +21,7 @@ DocumentationNode::DocumentationNode( std::string const & name,
                                       unsigned int const & isInput,
                                       unsigned int const & verbosity,
                                       DocumentationNode * parentNode,
-                                      const bool & write_to_restart,
-                                      const bool & read_from_restart ):
+                                      geosx::dataRepository::RestartFlags const & restart_flags ):
   m_name(name),
   m_stringKey(stringKey),
   m_intKey(intKey),
@@ -35,8 +36,7 @@ DocumentationNode::DocumentationNode( std::string const & name,
   m_isInput(isInput),
   m_verbosity(verbosity),
   m_parentNode(parentNode),
-  m_write_to_restart(write_to_restart),
-  m_read_from_restart(read_from_restart),
+  m_restart_flags( restart_flags ),
   m_child()
 {}
 
@@ -52,8 +52,7 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                                                           unsigned int const & parentManaged,
                                                           unsigned int const & isInput,
                                                           unsigned int const & verbosity,
-                                                          bool const & write_to_restart,
-                                                          bool const & read_from_restart )
+                                                          geosx::dataRepository::RestartFlags const & restart_flags )
 {
   DocumentationNode newNode(name,
                             stringKey,
@@ -69,8 +68,7 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                             isInput,
                             verbosity,
                             this,
-                            write_to_restart,
-                            read_from_restart );
+                            restart_flags );
 
   // a check to see if nodeName exists. if it does, check to see that members
   // are identical

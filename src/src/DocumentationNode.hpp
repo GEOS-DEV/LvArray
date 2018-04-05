@@ -11,6 +11,7 @@
 #include <memory>
 #include <iostream>
 #include <map>
+#include "dataRepository/RestartFlags.hpp"
 
 namespace cxx_utilities
 {
@@ -33,8 +34,7 @@ public:
                      unsigned int const & isInput,
                      unsigned int const & verbosity,
                      DocumentationNode * m_parentNode,
-                     bool const & write_to_restart=true,
-                     bool const & read_from_restart=true );
+                     geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ );
 
 
   bool operator==(DocumentationNode const & rhs);
@@ -57,8 +57,7 @@ public:
                                          unsigned int const & parentManaged,
                                          unsigned int const & isInput,
                                          unsigned int const & verbosity,
-                                         bool const & write_to_restart=true,
-                                         bool const & read_from_restart=true );
+                                         geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ);
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
@@ -131,13 +130,9 @@ public:
 
   void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
   
-  bool const & getWriteToRestart() const { return m_write_to_restart; }
+  geosx::dataRepository::RestartFlags getRestartFlags() const { return m_restart_flags; }
 
-  void setWriteToRestart( bool write_to_restart ) { m_write_to_restart = write_to_restart; }
-
-  bool const & getReadFromRestart() const { return m_read_from_restart; }
-
-  void setReadFromRestart( bool read_from_restart ) { m_read_from_restart = read_from_restart; }
+  void setRestartFlags( geosx::dataRepository::RestartFlags flags ) { m_restart_flags = flags; } 
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
   std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
@@ -148,24 +143,23 @@ public:
 
 public:
 
-  std::string m_name               = "";
-  std::string m_stringKey          = "";
-  int         m_intKey             = -1;
-  std::string m_dataType           = "";
-  std::string m_schemaType         = "";
-  std::string m_shortDescription   = "";
-  std::string m_longDescription    = "";
-  std::string m_default            = "";
-  std::string m_groups             = "";
-  int m_managedByParent   =  0;
-  unsigned int m_level             =  0;
-  unsigned int m_isInput           =  0;
-  int m_verbosity         =  0;
-  unsigned int m_isRegistered      =  0;
-  DocumentationNode * m_parentNode = nullptr;
-  bool m_write_to_restart          = true;
-  bool m_read_from_restart         = true;
-  std::map<std::string,DocumentationNode> m_child = {};
+  std::string m_name                                  = "";
+  std::string m_stringKey                             = "";
+  int         m_intKey                                = -1;
+  std::string m_dataType                              = "";
+  std::string m_schemaType                            = "";
+  std::string m_shortDescription                      = "";
+  std::string m_longDescription                       = "";
+  std::string m_default                               = "";
+  std::string m_groups                                = "";
+  int m_managedByParent                               =  0;
+  unsigned int m_level                                =  0;
+  unsigned int m_isInput                              =  0;
+  int m_verbosity                                     =  0;
+  unsigned int m_isRegistered                         =  0;
+  DocumentationNode * m_parentNode                    = nullptr;
+  geosx::dataRepository::RestartFlags m_restart_flags = geosx::dataRepository::RestartFlags::WRITE_AND_READ;
+  std::map<std::string,DocumentationNode> m_child     = {};
 
 };
 
@@ -185,7 +179,8 @@ inline bool DocumentationNode::operator==( DocumentationNode const & rhs )
       m_level == rhs.m_level &&
       m_isInput == rhs.m_isInput &&
       m_verbosity == rhs.m_verbosity &&
-      m_parentNode == rhs.m_parentNode )
+      m_parentNode == rhs.m_parentNode &&
+      m_restart_flags == rhs.m_restart_flags )
   {
     rval = true;
   }
