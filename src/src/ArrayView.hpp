@@ -9,7 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <utility>
-#define ARRAY_BOUNDS_CHECK 0
+#define ARRAY_BOUNDS_CHECK 1
 
 #ifdef __clang__
 #define restrict __restrict__
@@ -68,6 +68,40 @@ public:
     m_dims(inputDimensions),
     m_strides(inputStrides)
   {}
+
+
+
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   */
+  template< bool JUNK = std::is_const<T>::value,
+            typename std::enable_if<!JUNK, int>::type = 0>
+  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+  {
+    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+                                               m_dims,
+                                               m_strides );
+  }
+
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   */
+  template< int U = NDIM,
+            typename std::enable_if<U==1, int>::type = 0>
+  inline
+  operator T *() const
+  {
+    return m_data;
+  }
+
+
+//  template< typename T_CC = typename std::enable_if< !std::is_const<T>::value, T >::type >
+//  ArrayView( ArrayView<T_CC,NDIM,INDEX_TYPE> const & source ):
+//    m_data(const_cast<T const *>(source.m_data) ),
+//    m_dims(source.m_dims),
+//    m_strides(source.m_strides)
+//  {
+//  }
 
 
 //  inline constexpr  ArrayView( ManagedArray<T,NDIM,INDEX_TYPE> const &
@@ -255,86 +289,17 @@ private:
 
 
 
-/**
- * Specialization for the ArrayView<typename T, int NDIM> class template. This
- * specialization defines the lowest
- * level ArrayView in the array hierarchy. Thus this is the only level that
- * actually allows data access, where the
- * other template instantiations only return references to a sub-array. In
- * essence, this is a 1D array.
- */
+
+#if ARRAY_BOUNDS_CHECK==1
 template< typename T, typename INDEX_TYPE >
-class ArrayView<T,1,INDEX_TYPE>
-{
-public:
+using arrayView1d = ArrayView<T,1,INDEX_TYPE>;
 
+#else
 
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array
-   * has length NDIM
-   *
-   * Base constructor that takes in raw data pointers, sets member pointers.
-   * Unlike the higher dimensionality arrays,
-   * no calculation of stride is necessary for NDIM=1.
-   */
-  ArrayView( T * const restrict inputData,
-             INDEX_TYPE const * const restrict inputDimensions,
-             INDEX_TYPE const * const restrict ):
-    m_data(inputData),
-    m_dims(inputDimensions)
-  {}
+template< typename T, typename INDEX_TYPE = int>
+using arrayView1d = T *;
 
-  ArrayView() = delete;
-//  ArrayView( ArrayView const & ) = default;
-//  ArrayView( ArrayView && ) = default;
-//  ArrayView & operator=( ArrayView const & ) = default;
-//  ArrayView & operator=( ArrayView && ) = default;
-//  ~ArrayView() = default;
-
-
-  /**
-   * @param index index of the element in array to access
-   * @return a reference to the m_data[index], where m_data is a T*.
-   * This function simply returns a reference to the pointer deferenced using
-   * index.
-   */
-  //inline constexpr T const & operator[]( INDEX_TYPE const index) const
-  inline T const & operator[]( INDEX_TYPE const index) const
-  {
-#if ARRAY_BOUNDS_CHECK == 1
-    assert( index < m_dims[0] );
 #endif
-    return m_data[index];
-  }
-
-  //inline constexpr T & operator[]( INDEX_TYPE const index)
-  inline T & operator[]( INDEX_TYPE const index)
-  {
-#if ARRAY_BOUNDS_CHECK == 1
-    assert( index < m_dims[0] );
-#endif
-    return m_data[index];
-  }
-
-
-  T * data() {return m_data;}
-  T const * data() const {return m_data;}
-
-  INDEX_TYPE size() const
-  {
-    return m_dims[0];
-  }
-
-private:
-  /// pointer to beginning of data for this array, or sub-array.
-  T * const restrict m_data;
-
-  /// pointer to array of length NDIM that contains the lengths of each array
-  // dimension
-  INDEX_TYPE const * const restrict m_dims;
-};
-
 
 
 } /* namespace arraywrapper */

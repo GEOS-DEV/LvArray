@@ -98,6 +98,7 @@ integer_conversion( T input )
 //class ArrayView;
 
 
+
 template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
 class ManagedArray
 {
@@ -362,6 +363,24 @@ public:
 
   T *       data()       {return m_data;}
   T const * data() const {return m_data;}
+
+
+
+  inline T const *
+  data(INDEX_TYPE const index) const
+  {
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+  inline T *
+  data(INDEX_TYPE const index)
+  {
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+
+
+
 
 //  iterator begin() {return m_data;}
 //  const_iterator begin() const {return m_data;}

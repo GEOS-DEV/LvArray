@@ -48,6 +48,19 @@ TEST(test_managedarray,test_has_sfinae)
 //  EXPECT_FALSE( has_datamember_memberName<Foo_EnumClass>::value );
 }
 
+
+TEST(test_managedarray,test_const)
+{
+  double junk[10];
+  int dim[1]={10};
+  int stride[1]={1};
+
+
+  ArrayView<double, 1, int> array(junk,dim,stride);
+
+  ArrayView<const double, 1, int> arrayC = array;
+
+}
 #else
 
 #include <iostream>
