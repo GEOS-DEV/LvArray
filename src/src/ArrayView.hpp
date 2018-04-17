@@ -104,6 +104,7 @@ public:
    */
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
+  //inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
@@ -112,6 +113,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr typename std::enable_if< U==1, T const & >::type
   inline typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
@@ -120,6 +122,7 @@ public:
   }
 #else
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   inline typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
@@ -127,6 +130,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr typename std::enable_if< U==2, T const * restrict >::type
   inline typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
@@ -147,6 +151,7 @@ public:
 
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
@@ -155,6 +160,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U==1, T & >::type
   inline typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
@@ -163,6 +169,7 @@ public:
   }
 #else
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   inline typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
@@ -170,6 +177,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr  typename std::enable_if< U==2, T * restrict >::type
   inline typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
@@ -177,6 +185,7 @@ public:
   }
 
   template< int U=NDIM >
+  //inline constexpr typename std::enable_if< U==1, T & >::type
   inline typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
@@ -186,12 +195,14 @@ public:
 #endif
 
   template< typename... INDICES >
+  //inline constexpr T & operator()( INDICES... indices ) const
   inline T & operator()( INDICES... indices ) const
   {
     return m_data[ linearIndex(indices...) ];
   }
 
   template< typename... INDICES >
+  //inline constexpr  INDEX_TYPE linearIndex( INDICES... indices ) const
   inline INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
@@ -231,7 +242,8 @@ private:
   template< typename INDEX, typename... REMAINING_INDICES >
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
-    inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    //inline constexpr  static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
                                 INDEX index,
                                 REMAINING_INDICES... indices )
     {
@@ -287,6 +299,7 @@ public:
    * This function simply returns a reference to the pointer deferenced using
    * index.
    */
+  //inline constexpr T const & operator[]( INDEX_TYPE const index) const
   inline T const & operator[]( INDEX_TYPE const index) const
   {
 #if ARRAY_BOUNDS_CHECK == 1
@@ -295,6 +308,7 @@ public:
     return m_data[index];
   }
 
+  //inline constexpr T & operator[]( INDEX_TYPE const index)
   inline T & operator[]( INDEX_TYPE const index)
   {
 #if ARRAY_BOUNDS_CHECK == 1
@@ -326,4 +340,3 @@ private:
 } /* namespace arraywrapper */
 
 #endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */
-

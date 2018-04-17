@@ -425,7 +425,7 @@ public:
 
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
-  inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  inline  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
     assert( index < m_dims[0] );
