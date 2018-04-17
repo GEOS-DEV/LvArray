@@ -165,6 +165,23 @@ public:
   }
 
 
+  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+  {
+    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+                                               m_dims,
+                                               m_strides );
+  }
+
+  operator ArrayView<T,NDIM,INDEX_TYPE>()
+  {
+    return ArrayView<T,NDIM,INDEX_TYPE>( m_data,
+                                               m_dims,
+                                               m_strides );
+  }
+
+
+
+
 //  ManagedArray( ManagedArray && ) = delete;
 //  ManagedArray & operator=( ManagedArray && ) =default;
 //  ManagedArray( ManagedArray && source ):
