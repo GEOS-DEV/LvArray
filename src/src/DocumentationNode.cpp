@@ -1,5 +1,7 @@
 
 #include "DocumentationNode.hpp"
+#include "dataRepository/RestartFlags.hpp"
+
 
 namespace cxx_utilities
 {
@@ -18,7 +20,8 @@ DocumentationNode::DocumentationNode( std::string const & name,
                                       unsigned int const & level,
                                       unsigned int const & isInput,
                                       unsigned int const & verbosity,
-                                      DocumentationNode * parentNode ):
+                                      DocumentationNode * parentNode,
+                                      geosx::dataRepository::RestartFlags const & restart_flags ):
   m_name(name),
   m_stringKey(stringKey),
   m_intKey(intKey),
@@ -33,6 +36,7 @@ DocumentationNode::DocumentationNode( std::string const & name,
   m_isInput(isInput),
   m_verbosity(verbosity),
   m_parentNode(parentNode),
+  m_restart_flags( restart_flags ),
   m_child()
 {}
 
@@ -47,7 +51,8 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                                                           std::string const & groups,
                                                           unsigned int const & parentManaged,
                                                           unsigned int const & isInput,
-                                                          unsigned int const & verbosity )
+                                                          unsigned int const & verbosity,
+                                                          geosx::dataRepository::RestartFlags const & restart_flags )
 {
   DocumentationNode newNode(name,
                             stringKey,
@@ -62,7 +67,8 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                             this->m_level + 1,
                             isInput,
                             verbosity,
-                            this );
+                            this,
+                            restart_flags );
 
   // a check to see if nodeName exists. if it does, check to see that members
   // are identical

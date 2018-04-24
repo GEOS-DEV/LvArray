@@ -11,6 +11,7 @@
 #include <memory>
 #include <iostream>
 #include <map>
+#include "dataRepository/RestartFlags.hpp"
 
 namespace cxx_utilities
 {
@@ -32,7 +33,8 @@ public:
                      unsigned int const & level,
                      unsigned int const & isInput,
                      unsigned int const & verbosity,
-                     DocumentationNode * m_parentNode );
+                     DocumentationNode * m_parentNode,
+                     geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ );
 
 
   bool operator==(DocumentationNode const & rhs);
@@ -54,7 +56,8 @@ public:
                                          std::string const & groups,
                                          unsigned int const & parentManaged,
                                          unsigned int const & isInput,
-                                         unsigned int const & verbosity );
+                                         unsigned int const & verbosity,
+                                         geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ);
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
@@ -92,23 +95,44 @@ public:
 
 
   std::string const & getName() const { return m_name; }
+
   void setName(std::string className) { m_name = className; }
+
   std::string const & getStringKey() const { return m_stringKey; }
+
   int const & getIntKey() const { return m_intKey; }
+
   void setIntKey( int intKey ) { m_intKey = intKey; }
+
   std::string const & getDataType() const { return m_dataType; }
+
   std::string const & getSchemaType() const { return m_schemaType; }
+
   void setSchemaType( std::string typeName ) { m_schemaType = typeName; }
+
   std::string const & getShortDescription() const { return m_shortDescription; }
+
   void setShortDescription( std::string shortDescription ) { m_shortDescription = shortDescription; }
+
   std::string const & getLongDescription() const { return m_longDescription; }
+
   std::string const & getDefault() const { return m_default; }
+
   void setDefault( std::string defVal ) { m_default = defVal; }
+
   std::string const & getGroups() const { return m_groups; }
+
   unsigned int const & getLevel() const { return m_level; }
+
   unsigned int const & getIsInput() const { return m_isInput; }
+
   int const & getVerbosity() const { return m_verbosity; }
+
   void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
+  
+  geosx::dataRepository::RestartFlags getRestartFlags() const { return m_restart_flags; }
+
+  void setRestartFlags( geosx::dataRepository::RestartFlags flags ) { m_restart_flags = flags; } 
 
   std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
   std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
@@ -119,22 +143,23 @@ public:
 
 public:
 
-  std::string m_name               = "";
-  std::string m_stringKey          = "";
-  int         m_intKey             = -1;
-  std::string m_dataType           = "";
-  std::string m_schemaType         = "";
-  std::string m_shortDescription   = "";
-  std::string m_longDescription    = "";
-  std::string m_default            = "";
-  std::string m_groups             = "";
-  int m_managedByParent   =  0;
-  unsigned int m_level             =  0;
-  unsigned int m_isInput           =  0;
-  int m_verbosity         =  0;
-  unsigned int m_isRegistered      =  0;
-  DocumentationNode * m_parentNode = nullptr;
-  std::map<std::string,DocumentationNode> m_child = {};
+  std::string m_name                                  = "";
+  std::string m_stringKey                             = "";
+  int         m_intKey                                = -1;
+  std::string m_dataType                              = "";
+  std::string m_schemaType                            = "";
+  std::string m_shortDescription                      = "";
+  std::string m_longDescription                       = "";
+  std::string m_default                               = "";
+  std::string m_groups                                = "";
+  int m_managedByParent                               =  0;
+  unsigned int m_level                                =  0;
+  unsigned int m_isInput                              =  0;
+  int m_verbosity                                     =  0;
+  unsigned int m_isRegistered                         =  0;
+  DocumentationNode * m_parentNode                    = nullptr;
+  geosx::dataRepository::RestartFlags m_restart_flags = geosx::dataRepository::RestartFlags::WRITE_AND_READ;
+  std::map<std::string,DocumentationNode> m_child     = {};
 
 };
 
@@ -154,7 +179,8 @@ inline bool DocumentationNode::operator==( DocumentationNode const & rhs )
       m_level == rhs.m_level &&
       m_isInput == rhs.m_isInput &&
       m_verbosity == rhs.m_verbosity &&
-      m_parentNode == rhs.m_parentNode )
+      m_parentNode == rhs.m_parentNode &&
+      m_restart_flags == rhs.m_restart_flags )
   {
     rval = true;
   }

@@ -305,4 +305,3 @@ using arrayView1d = T *;
 } /* namespace arraywrapper */
 
 #endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */
-
