@@ -101,6 +101,12 @@ public:
    */
   virtual std::unique_ptr<BASETYPE> Allocate( ARGS... args ) const = 0;
 
+
+  static bool hasKeyName( std::string const & objectTypeName )
+  {
+    return GetCatalog().count( objectTypeName );
+  }
+
   /**
    * static method to create a new object that derives from BASETYPE
    * @param objectTypeName The key to the catalog entry that is able to create

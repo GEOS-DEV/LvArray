@@ -98,6 +98,7 @@ integer_conversion( T input )
 //class ArrayView;
 
 
+
 template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
 class ManagedArray
 {
@@ -164,6 +165,23 @@ public:
   }
 
 
+  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+  {
+    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+                                               m_dims,
+                                               m_strides );
+  }
+
+  operator ArrayView<T,NDIM,INDEX_TYPE>()
+  {
+    return ArrayView<T,NDIM,INDEX_TYPE>( m_data,
+                                               m_dims,
+                                               m_strides );
+  }
+
+
+
+
 //  ManagedArray( ManagedArray && ) = delete;
 //  ManagedArray & operator=( ManagedArray && ) =default;
 //  ManagedArray( ManagedArray && source ):
@@ -220,6 +238,31 @@ public:
    * \defgroup stl container interface
    * @{
    */
+
+
+  void resize( int const numDims, INDEX_TYPE const * const dims )
+  {
+    if( numDims != NDIM )
+    {
+      abort();
+    }
+
+    INDEX_TYPE length = 1;
+
+    for( int i=0 ; i<NDIM ; ++i )
+    {
+      m_dims[i] = dims[i];
+    }
+
+    CalculateStrides();
+    resize();
+  }
+
+  void resize( int const numDims, INDEX_TYPE * const dims )
+  {
+    resize( numDims, const_cast<INDEX_TYPE const *>(dims) );
+  }
+
 
 
   template< typename... DIMS >
@@ -338,6 +381,24 @@ public:
   T *       data()       {return m_data;}
   T const * data() const {return m_data;}
 
+
+
+  inline T const *
+  data(INDEX_TYPE const index) const
+  {
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+  inline T *
+  data(INDEX_TYPE const index)
+  {
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+
+
+
+
 //  iterator begin() {return m_data;}
 //  const_iterator begin() const {return m_data;}
 //
@@ -376,7 +437,7 @@ public:
 //    dataVector.insert(static_cast<typename std::vector<T>::iterator>(pos),first,last);
 //    std::vector<T> junk;
 //    dataVector.insert( dataVector.end(), junk.begin(), junk.end() );
-    //dataVector.insert((static_cast<typename std::vector<T>::iterator>(pos), first, last );
+//    dataVector.insert((static_cast<typename std::vector<T>::iterator>(pos), first, last );
     dataVector.insert( pos, first, last );
     m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
     CalculateStrides();
@@ -519,6 +580,26 @@ public:
     return index_helper<NDIM,DIMS...>::f(m_strides,dims...);
   }
 
+
+  inline INDEX_TYPE const * dims() const
+  {
+    return m_dims;
+  }
+
+  inline INDEX_TYPE const * strides() const
+  {
+    return m_strides;
+  }
+
+  inline int getSingleParameterResizeIndex() const
+  {
+    return m_singleParameterResizeIndex;
+  }
+
+  inline void setSingleParameterResizeIndex( int const index )
+  {
+    m_singleParameterResizeIndex = index;
+  }
 
 //private:
   std::vector<T> dataVector;
