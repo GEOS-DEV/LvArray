@@ -26,9 +26,9 @@ void handler(int sig, int exitFlag, int exitCode )
   fprintf(stderr,"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n");
 
   // skip first stack frame (points here)
-  for ( int i = 1 ; i < size && messages != NULL ; ++i)
+  for ( int i = 1 ; i < size && messages != nullptr ; ++i)
   {
-    char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
+    char *mangled_name = nullptr, *offset_begin = nullptr, *offset_end = nullptr;
 
 #ifdef __APPLE__
     mangled_name = &(messages[i][58]);
