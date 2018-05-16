@@ -21,7 +21,7 @@
 #include <vector>
 //#include <utility>
 
-#include "common/Logger.hpp"
+#include "../../../core/src/common/Logger.hpp"
 #include "ArrayView.hpp"
 
 template< typename T >
