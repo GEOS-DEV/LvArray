@@ -11,7 +11,7 @@
 #include <memory>
 #include <iostream>
 #include <map>
-#include "dataRepository/RestartFlags.hpp"
+#include "../../../core/src/dataRepository/RestartFlags.hpp"
 
 namespace cxx_utilities
 {

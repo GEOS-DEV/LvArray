@@ -74,9 +74,13 @@ public:
   /**
    * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
-  template< bool JUNK = std::is_const<T>::value,
-            typename std::enable_if<!JUNK, int>::type = 0>
-  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+//  template< bool JUNK = std::is_const<T>::value,
+//            typename std::enable_if<!JUNK, int>::type = 0>
+//  template< typename U=T, typename std::enable_if< !std::is_const<U>::value, int >::type = 0 >
+//  template< typename U = T, typename = typename std::enable_if< !std::is_const<U>::value >::type >
+//  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+  template< typename U = T >
+  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
   {
     return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
                                                m_dims,
