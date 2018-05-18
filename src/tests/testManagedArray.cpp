@@ -51,14 +51,16 @@ TEST(test_managedarray,test_has_sfinae)
 
 TEST(test_managedarray,test_const)
 {
-  double junk[10];
+  int junk[10];
   int dim[1]={10};
   int stride[1]={1};
 
 
-  ArrayView<double, 1, int> array(junk,dim,stride);
+  ArrayView<int, 1, int> array(junk,dim,stride);
 
-  ArrayView<const double, 1, int> arrayC = array;
+  ArrayView<const int, 1, int> arrayC = array;
+
+  EXPECT_TRUE( arrayC[9]==array[9] );
 
 }
 #else
