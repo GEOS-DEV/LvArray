@@ -25,7 +25,7 @@ blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
                  HEADERS_OUTPUT_SUBDIR cxx-utilities
-                 DEPENDS_ON        
+                 DEPENDS_ON       chai
                  )
 
 #set(cxx-utilities_headersdest ${HEADER_INCLUDES_DIRECTORY}/cxx-utilities)

@@ -39,6 +39,7 @@
 #include <vector>
 //#include <utility>
 
+#include "chai/ManagedArray.hpp"
 #include "../../../core/src/common/Logger.hpp"
 #include "ArrayView.hpp"
 
