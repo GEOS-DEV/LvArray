@@ -36,8 +36,6 @@
 
 #include <iostream>
 #include <limits>
-#include <vector>
-//#include <utility>
 
 #include "chai/ManagedArray.hpp"
 #include "../../../core/src/common/Logger.hpp"
@@ -113,11 +111,6 @@ integer_conversion( T input )
 #pragma GCC diagnostic pop
 
 
-//template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
-//class ArrayView;
-
-
-
 template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
 class ManagedArray
 {
@@ -125,9 +118,6 @@ public:
 
   using value_type = T;
   using index_type = INDEX_TYPE;
-//  using unsigned_index_type = std::make_unsigned<INDEX_TYPE>;
-
-  //using Index_Sequence = std::make_index_sequence<NDIM>;
 
   using pointer = T*;
   using const_pointer = T const *;
@@ -217,8 +207,7 @@ public:
 
   ManagedArray & operator=( T const & rhs )
   {
-    INDEX_TYPE const length = size();
-    for( INDEX_TYPE a = 0; a < length; ++a )
+    for( INDEX_TYPE a = 0; a < m_length; ++a )
     {
       m_data[a] = rhs;
     }
@@ -249,7 +238,7 @@ public:
       abort();
     }
 
-    for( int i=0 ; i<NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[i] = dims[i];
     }
@@ -270,10 +259,10 @@ public:
   {
     static_assert( sizeof ... (DIMS) == NDIM,
                    "Error: calling template< typename... DIMS > ManagedArray::resize(DIMS...newdims) with incorrect number of arguments.");
-    static_assert( check_dim_type<0,DIMS...>::value, 
+    static_assert( check_dim_type<0, DIMS...>::value, 
                    "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
-    dim_unpack<0,DIMS...>::f( m_dims, newdims...);
+    dim_unpack<0,DIMS...>::f( m_dims, newdims... );
     CalculateStrides();
     resize();
   }
@@ -309,9 +298,9 @@ public:
 
   void reserve( INDEX_TYPE newLength )
   {
-    if( newLength > m_length )
+    if( newLength > dataVector.size() )
     {
-      dataVector.reallocate(newLength);
+      dataVector.reallocate(integer_conversion<uint>(newLength));
       m_data = &dataVector[0];
     }
   }
@@ -346,24 +335,34 @@ public:
   { return NDIM; }
 
   bool empty() const
-  {
-    return size() == 0 ? true : false;
-  }
+  { return m_length == 0; }
 
   void clear()
   {
-#if 0
-    dataVector.clear();
+    dataVector.free();
     m_data = nullptr;
-#endif
+    m_length = 0;
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      m_dims[i] = 1;
+    }
+    m_dims[getSingleParameterResizeIndex()] = 0;
+
+    CalculateStrides();
   }
 
-  void erase( iterator index )
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type erase( iterator index )
   {
-#if 0
-    dataVector.erase( index ) ;
-    m_data = dataVector.data();
-#endif
+    while( index != end() )
+    {
+      *index = *(index + 1);
+      index++;
+    }
+
+    m_dims[0]--;
+    m_length--;
   }
 
   reference front() { return m_data[0]; }
@@ -394,34 +393,42 @@ public:
 
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type push_back( T const & newValue )
+  typename std::enable_if< N == 1, void >::type push_back( T const & newValue )
   {
-#if 0
-    dataVector.push_back(newValue);
-    m_data = dataVector.data();
-    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
-    CalculateStrides();
-#endif
+    m_length++;
+    m_dims[0]++;
+    if( m_length > dataVector.size() )
+    {
+      reserve(2 * m_length);
+    }
+
+    m_data[m_length - 1] = newValue;
   }
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type pop_back()
-  {
-#if 0
-    dataVector.pop_back();
-    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
-    CalculateStrides();
-#endif
-  }
+  { erase(end()); }
 
   template< int N=NDIM, class InputIt >
   typename std::enable_if< N==1, void >::type insert(iterator pos, InputIt first, InputIt last)
   {
-#if 0
-    dataVector.insert( pos, first, last );
-    m_dims[0] = integer_conversion<INDEX_TYPE>(dataVector.size());
-    CalculateStrides();
-#endif
+    const INDEX_TYPE n_elems_to_insert = last - first;
+    const INDEX_TYPE new_length = m_length + n_elems_to_insert;
+    if( new_length > dataVector.size() )
+    {
+      reserve(2 * new_length);
+    }
+
+    for( iterator i = end() - 1; i != pos - 1; i-- )
+    {
+      *(i + n_elems_to_insert) = *i;
+    }
+
+    for( iterator i = pos; i != pos + n_elems_to_insert; ++i )
+    {
+      *i = *first;
+      first++;
+    }
   }
 
   /**@}*/
@@ -455,7 +462,7 @@ public:
   operator[](INDEX_TYPE const index) const
   {
     assert( index < m_dims[0] );
-    return ArrayView<T, NDIM - 1, INDEX_TYPE>( &m_data[ index * m_strides[0]], m_dims + 1, m_strides + 1 );
+    return ArrayView<T, NDIM - 1, INDEX_TYPE>( &m_data[index * m_strides[0]], m_dims + 1, m_strides + 1 );
   }
 
   template< int U=NDIM >
@@ -463,28 +470,28 @@ public:
   operator[](INDEX_TYPE const index) const
   {
     assert( index < m_dims[0] );
-    return m_data[ index ];
+    return m_data[index];
   }
 #else
   template< int U=NDIM >
-  inline typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  inline typename std::enable_if< U >= 3, ArrayView<T, NDIM - 1, INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    return ArrayView<T, NDIM - 1, INDEX_TYPE>( &m_data[index * m_strides[0]], m_dims + 1, m_strides + 1 );
   }
 
   template< int U=NDIM >
-  inline typename std::enable_if< U==2, T const * restrict >::type
+  inline typename std::enable_if< U == 2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
-    return &(m_data[ index*m_strides[0] ]);
+    return &m_data[index * m_strides[0]];
   }
 
   template< int U=NDIM >
-  inline typename std::enable_if< U==1, T const & >::type
+  inline typename std::enable_if< U == 1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
-    return m_data[ index ];
+    return m_data[index];
   }
 
 #endif
@@ -493,40 +500,40 @@ public:
 
 #if ARRAY_BOUNDS_CHECK == 1
   template< int U=NDIM >
-  inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
+  inline typename std::enable_if< U != 1, ArrayView<T, NDIM - 1, INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
     assert( index < m_dims[0] );
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    return ArrayView<T, NDIM - 1, INDEX_TYPE>(&m_data[index * m_strides[0]], m_dims + 1, m_strides + 1 );
   }
 
   template< int U=NDIM >
-  inline typename std::enable_if< U==1, T & >::type
+  inline typename std::enable_if< U == 1, T& >::type
   operator[](INDEX_TYPE const index)
   {
     assert( index < m_dims[0] );
-    return m_data[ index ];
+    return m_data[index];
   }
 #else
   template< int U=NDIM >
-  inline typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
+  inline typename std::enable_if< U >= 3, ArrayView<T, NDIM - 1, INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    return ArrayView<T, NDIM - 1, INDEX_TYPE>( &m_data[index * m_strides[0]], m_dims + 1, m_strides + 1 );
   }
 
   template< int U=NDIM >
-  inline typename std::enable_if< U==2, T * restrict >::type
+  inline typename std::enable_if< U == 2, T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
-    return &(m_data[ index*m_strides[0] ]);
+    return m_data[index * m_strides[0]];
   }
 
   template< int U=NDIM >
-  inline typename std::enable_if< U==1, T & >::type
+  inline typename std::enable_if< U == 1, T & >::type
   operator[](INDEX_TYPE const index)
   {
-    return m_data[ index ];
+    return m_data[index];
   }
 
 #endif
@@ -536,35 +543,27 @@ public:
   template< typename... DIMS >
   inline T & operator()( DIMS... dims ) const
   {
-    return m_data[ linearIndex(dims...) ];
+    return m_data[linearIndex(dims...)];
   }
 
   template< typename... DIMS >
   inline INDEX_TYPE linearIndex( DIMS... dims ) const
   {
-    return index_helper<NDIM,DIMS...>::f(m_strides,dims...);
+    return index_helper<NDIM, DIMS...>::f(m_strides, dims...);
   }
 
 
   inline INDEX_TYPE const * dims() const
-  {
-    return m_dims;
-  }
+  { return m_dims; }
 
   inline INDEX_TYPE const * strides() const
-  {
-    return m_strides;
-  }
+  { return m_strides; }
 
   inline int getSingleParameterResizeIndex() const
-  {
-    return m_singleParameterResizeIndex;
-  }
+  { return m_singleParameterResizeIndex; }
 
   inline void setSingleParameterResizeIndex( int const index )
-  {
-    m_singleParameterResizeIndex = index;
-  }
+  { m_singleParameterResizeIndex = index; }
 
 private:
   chai::ManagedArray<T> dataVector;
@@ -585,14 +584,14 @@ private:
   void resize()
   {
     INDEX_TYPE length = 1;
-    for( int a=0 ; a<NDIM ; ++a )
+    for( int a = 0; a < NDIM; ++a )
     {
       length *= m_dims[a];
     }
 
     if( length > dataVector.size() )
     {
-      dataVector.reallocate(length);
+      dataVector.reallocate(integer_conversion<uint>(length));
       m_data = &dataVector[0];
     }
 
