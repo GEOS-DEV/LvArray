@@ -119,7 +119,7 @@ class ManagedArray
 {
 public:
   using ArrayType = typename std::conditional<internal::is_chaiable<T>::value, internal::ChaiVector<T>, std::vector<T>>::type;
-  // using ArrayType = typename std::conditional<false, internal::ChaiVector<T>, std::vector<T>>::type;
+  // using ArrayType = std::vector<T>;
 
   using value_type = T;
   using index_type = INDEX_TYPE;

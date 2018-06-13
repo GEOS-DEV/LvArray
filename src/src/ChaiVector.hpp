@@ -66,16 +66,16 @@ public:
   { return m_array[ pos ]; }
 
   reference front()
-  { return *begin(); }
+  { return m_array[0]; }
 
   const_reference front() const
-  { return *begin(); }
+  { return m_array[0]; }
 
   reference back()
-  { return *end(); }
+  { return m_array[ m_length ]; }
 
   const_reference back() const
-  { return *end(); }
+  { return m_array[ m_length ]; }
 
   pointer data()
   { return &m_array[0]; }
@@ -88,16 +88,16 @@ public:
 
 
   iterator begin()
-  { return &m_array[0]; }
+  { return &front(); }
 
   const_iterator begin() const
-  { return &m_array[0]; }
+  { return &front(); }
 
   iterator end()
-  { return &m_array[m_length]; }
+  { return &back(); }
 
   const_iterator end() const
-  { return &m_array[m_length]; }
+  { return &back(); }
 
 
   /* Capacity */
@@ -135,15 +135,15 @@ public:
 
   iterator insert( const_iterator pos, const T& value )
   {
-    const size_type index = pos - data();
+    const size_type index = pos - begin();
     reserveForInsert( 1, index );
     m_array[ index ] = value;
   }
 
   template < typename InputIt >
-  iterator insert( iterator pos, InputIt first, InputIt last )
+  iterator insert( const_iterator pos, InputIt first, InputIt last )
   {
-    const size_type index = pos - data();
+    const size_type index = pos - begin();
     const size_type n = last - first;
     reserveForInsert( n, index );
 
@@ -153,20 +153,19 @@ public:
       first++;
     }
 
-    return data() + index;
+    return begin() + index;
   }
 
-  iterator erase( iterator pos )
+  iterator erase( const_iterator pos )
   {
-    iterator initial_pos = pos;
-    while ( pos != end() )
+    const size_type index = pos - begin();
+    m_length--;
+    for ( size_type i = index; i < m_length; ++i )
     {
-      *pos = *( pos + 1 );
-      pos++;
+      m_array[ i ] = m_array[ i + 1 ];
     }
 
-    m_length--;
-    return initial_pos;
+    return begin() + index;
   }
 
   void push_back( const_reference value )
@@ -225,15 +224,15 @@ private:
     return insert_pos;
   }
 
-  void realloc( size_type capacity )
+  void realloc( size_type new_capacity )
   {
-    if ( m_array.size() == 0 )
+    if ( capacity() == 0 )
     {
-      m_array.allocate( capacity );
+      m_array.allocate( new_capacity );
     }
     else
     {
-      m_array.reallocate( capacity );
+      m_array.reallocate( new_capacity );
     }
   }
 
