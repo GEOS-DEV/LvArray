@@ -185,11 +185,18 @@ public:
 
   void resize( size_type count )
   {
-    m_length = count;
-    if ( m_length > capacity() )
+    const size_type new_length = count;
+    if ( new_length > capacity() )
     {
-      reserve( m_length );
+      reserve( new_length );
+      const T default_value = T();
+      for ( size_type i = m_length; i < new_length; ++i )
+      {
+        m_array[ i ] = default_value;
+      }
     }
+
+    m_length = new_length;
   }
 
 private:
