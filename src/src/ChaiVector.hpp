@@ -38,6 +38,27 @@ public:
   using iterator = pointer;
   using const_iterator = const_pointer;
 
+
+  /* Constructors. */
+  ChaiVector() :
+    m_array(),
+    m_length(0)
+  {}
+
+
+  ChaiVector(size_type initial_length) :
+    m_array( initial_length ),
+    m_length(0)
+  {
+    resize( initial_length );
+  }
+
+
+  ChaiVector(const chai::ManagedArray<T>& other, size_type length) :
+    m_array( other ),
+    m_length( length )
+  {}
+
   /* Element access. */
 
 
@@ -182,9 +203,8 @@ public:
   void pop_back()
   { erase( end() ); }
 
-  void resize( size_type count )
+  void resize( const size_type new_length )
   {
-    const size_type new_length = count;
     if ( new_length > capacity() )
     {
       reserve( new_length );
@@ -196,6 +216,13 @@ public:
     }
 
     m_length = new_length;
+  }
+
+
+  ChaiVector<T> deep_copy() const
+  { 
+    chai::ManagedArray<T> copy = chai::deepCopy( m_array );
+    return ChaiVector<T>( copy, m_length );
   }
 
 private:

@@ -39,6 +39,7 @@
 #include <vector>
 //#include <utility>
 
+#include "../../../core/src/codingUtilities/static_if.hpp"
 #include "../../../core/src/common/Logger.hpp"
 #include "ArrayView.hpp"
 #include "ChaiVector.hpp"
@@ -113,12 +114,24 @@ integer_conversion( T input )
 
 #pragma GCC diagnostic pop
 
+template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t > class ManagedArray;
 
-template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
+namespace detail
+{
+template<typename>
+struct is_array : std::false_type {};
+
+template< typename T, int NDIM, typename INDEX_TYPE >
+struct is_array< multidimensionalArray::ManagedArray<T,NDIM,INDEX_TYPE> > : std::true_type{};
+}
+
+
+template< typename T, int NDIM, typename INDEX_TYPE >
 class ManagedArray
 {
 public:
-  using ArrayType = typename std::conditional<internal::is_chaiable<T>::value, internal::ChaiVector<T>, std::vector<T>>::type;
+  static constexpr bool is_chiable = internal::is_chaiable<T>::value;
+  using ArrayType = typename std::conditional<is_chiable, internal::ChaiVector<T>, std::vector<T>>::type;
   // using ArrayType = std::vector<T>;
 
   using value_type = T;
@@ -177,7 +190,6 @@ public:
     }
   }
 
-
   operator ArrayView<T const,NDIM,INDEX_TYPE>() const
   {
     return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
@@ -228,6 +240,14 @@ public:
     }
   }
 
+
+  ManagedArray deepCopy() const
+  {
+    static_assert(is_chiable, "Deep copy only valid for Chai arrays.");
+    ManagedArray copy(*this);
+    copy.m_dataVector = m_dataVector.deep_copy();
+    return copy;
+  }
 
   /**
    * \defgroup stl container interface
@@ -403,15 +423,35 @@ public:
   iterator end() {return m_dataVector.end();}
   const_iterator end() const {return m_dataVector.end();}
 
-
-
-  template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type push_back( T const & newValue )
+  template<int N=NDIM, typename U=T>
+  typename std::enable_if< N==1 && !detail::is_array<U>::value, void >::type
+  push_back( T const & newValue )
   {
     m_dataVector.push_back(newValue);
     m_data = m_dataVector.data();
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
+
+  template<int N=NDIM, typename U=T>
+  typename std::enable_if< N==1 && detail::is_array<U>::value, void >::type 
+  push_back( T const & newValue )
+  {
+    static_if(T::is_chiable)
+    {
+      m_dataVector.push_back(newValue.deepCopy());
+    }
+    end_static_if
+
+    static_if(!T::is_chiable)
+    {
+      m_dataVector.push_back(newValue);
+    }
+    end_static_if
+
+    m_data = m_dataVector.data();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type pop_back()
@@ -420,13 +460,21 @@ public:
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 
-
   template< int N=NDIM, class InputIt >
   typename std::enable_if< N==1, void >::type insert(iterator pos, InputIt first, InputIt last)
   {
     m_dataVector.insert( pos, first, last );
     m_data = m_dataVector.data();
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
+  template< int N=NDIM, typename InputIt, typename U, int D, typename I>
+  typename std::enable_if< NDIM == 1 && 
+                           std::is_same<T, ManagedArray<U, D, I>>::value &&
+                           ManagedArray<U, D, I>::is_chiable >::type
+  insert( iterator pos, InputIt first, InputIt last )
+  {
+    assert(false);
   }
 
   template<int N=NDIM>
@@ -663,8 +711,6 @@ private:
   };
 
 };
-
-
 
 } /* namespace arraywrapper */
 
