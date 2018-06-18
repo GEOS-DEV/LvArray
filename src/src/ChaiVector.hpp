@@ -59,6 +59,11 @@ public:
     m_length( length )
   {}
 
+  ~ChaiVector()
+  {
+    m_array.free();
+  }
+
   /* Element access. */
 
 
