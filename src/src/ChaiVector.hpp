@@ -84,10 +84,10 @@ public:
   { return m_array[0]; }
 
   reference back()
-  { return m_array[ m_length ]; }
+  { return m_array[ m_length - 1 ]; }
 
   const_reference back() const
-  { return m_array[ m_length ]; }
+  { return m_array[ m_length  - 1 ]; }
 
   pointer data()
   { return &m_array[0]; }
@@ -100,16 +100,16 @@ public:
 
 
   iterator begin()
-  { return &front(); }
+  { return &m_array[0]; }
 
   const_iterator begin() const
-  { return &front(); }
+  { return &m_array[0]; }
 
   iterator end()
-  { return &back(); }
+  { return &m_array[ m_length ]; }
 
   const_iterator end() const
-  { return &back(); }
+  { return &m_array[ m_length ]; }
 
 
   /* Capacity */
