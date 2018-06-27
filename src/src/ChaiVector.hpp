@@ -1,28 +1,10 @@
 #include <type_traits>
+#include <iterator>
 #include "chai/ManagedArray.hpp"
-#include "../../../core/src/math/TensorT/TensorT.h"
+#include "chai/ArrayManager.hpp"
 
 namespace internal
 {
-
-template<typename>
-struct is_tensorT : std::false_type {};
-
-template<>
-struct is_tensorT< R1TensorT<3> > : std::true_type{};
-
-template<>
-struct is_tensorT< R2TensorT<3> > : std::true_type{};
-
-template<>
-struct is_tensorT< R2SymTensorT<3> > : std::true_type{};
-
-template< typename T >
-struct is_chaiable
-{
-  static constexpr bool value = std::is_arithmetic<T>::value ||
-                                is_tensorT<T>::value;
-};
 
 template < typename T >
 class ChaiVector
@@ -33,6 +15,7 @@ public:
   using size_type = size_t;
   using reference = T&;
   using const_reference = const T&;
+  using rvalue_reference = T&&;
   using pointer = T*;
   using const_pointer = const T*;
   using iterator = pointer;
@@ -42,48 +25,51 @@ public:
   /* Constructors. */
   ChaiVector() :
     m_array(),
-    m_length(0)
+    m_length( 0 ),
+    m_copied( false )
   {}
 
-
-  ChaiVector(size_type initial_length) :
+  ChaiVector( size_type initial_length ) :
     m_array( initial_length ),
-    m_length(0)
+    m_length( 0 ),
+    m_copied( false )
   {
     resize( initial_length );
   }
 
-
-  ChaiVector(const chai::ManagedArray<T>& other, size_type length) :
-    m_array( other ),
-    m_length( length )
+  ChaiVector( const ChaiVector& source ) :
+    m_array( source.m_array ),
+    m_length( source.m_length ),
+    m_copied( true )
   {}
+
+  ChaiVector( ChaiVector&& source ) :
+    m_array( std::move( source.m_array ) ),
+    m_length( source.m_length ),
+    m_copied( source.m_copied )
+  {
+    source.m_length = 0;
+  }
 
   ~ChaiVector()
   {
-    m_array.free();
+    if ( capacity() > 0 && !m_copied )
+    {
+      clear();
+      m_array.free();
+    }
+  }
+
+  ChaiVector& operator=( ChaiVector&& source )
+  {
+    m_array = std::move( source.m_array );
+    m_length = source.m_length;
+    m_copied = source.m_copied;
+    source.m_length = 0;
+    return *this;
   }
 
   /* Element access. */
-
-
-  reference at( size_type pos )
-  {
-    assert( pos >= 0 );
-    assert( pos < m_length );
-    assert( m_length <= m_array.size() );
-
-    return m_array[ pos ];
-  }
-
-  const_reference at( size_type pos ) const
-  {
-    assert( pos >= 0 );
-    assert( pos < m_length );
-    assert( m_length <= m_array.size() );
-
-    return m_array[ pos ];
-  }
 
   reference operator[]( size_type pos )
   { return m_array[ pos ]; }
@@ -146,32 +132,55 @@ public:
   size_type capacity() const
   { return m_array.size(); }
 
-  void shrink_to_fit()
-  { realloc( m_length ); }
-
 
   /* Modifiers */
 
-  /* Note does not free the associated memory. To do that call reseize(0); shrink_to_fit(). */
+  /* Note does not free the associated memory. */
   void clear()
-  {
-    m_length = 0;
-  }
+  { resize( 0 ); }
 
+  void emplace( size_type n, size_type pos )
+  {
+    if ( n == 0 )
+    {
+      return;
+    }
+
+    size_type new_length = m_length + n;
+    if ( new_length > capacity() )
+    {
+      dynamicRealloc( new_length );
+    }
+
+    for ( size_type i = m_length; i > pos; --i )
+    {
+      const size_type cur_pos = i - 1;
+      m_array[ cur_pos + n ] = std::move( m_array[ cur_pos ] );
+    }
+
+    for ( size_type i = 0; i < n; ++i )
+    {
+      const size_type cur_pos = pos + i;
+      new ( &m_array[ cur_pos ] ) T();
+    }
+
+    m_length = new_length;
+  }
 
   iterator insert( const_iterator pos, const T& value )
   {
     const size_type index = pos - begin();
-    reserveForInsert( 1, index );
-    m_array[ index ] = value;
+    emplace( 1, index );
+    m_array[ index ] = value();
+    return begin() + index;
   }
 
   template < typename InputIt >
   iterator insert( const_iterator pos, InputIt first, InputIt last )
   {
     const size_type index = pos - begin();
-    const size_type n = last - first;
-    reserveForInsert( n, index );
+    const size_type n = std::distance( first, last );
+    emplace( n, index );
 
     for( size_type i = 0; i < n; ++i )
     {
@@ -188,8 +197,10 @@ public:
     m_length--;
     for ( size_type i = index; i < m_length; ++i )
     {
-      m_array[ i ] = m_array[ i + 1 ];
+      m_array[ i ] = std::move( m_array[ i + 1 ] );
     }
+
+    m_array[ m_length ].~T();
 
     return begin() + index;
   }
@@ -202,7 +213,18 @@ public:
       dynamicRealloc( m_length );
     }
 
-    m_array[ m_length - 1 ] = value;
+    new ( &m_array[ m_length - 1] ) T(value);
+  }
+
+  void push_back( rvalue_reference value )
+  {
+    m_length++;
+    if ( m_length > capacity() )
+    {
+      dynamicRealloc( m_length );
+    }
+
+    new ( &m_array[ m_length - 1] ) T( std::move( value ) );
   }
 
   void pop_back()
@@ -212,11 +234,21 @@ public:
   {
     if ( new_length > capacity() )
     {
-      reserve( new_length );
-      const T default_value = T();
+      realloc( new_length );
+    }
+
+    if ( new_length < m_length )
+    {
+      for ( size_type i = new_length; i < m_length; ++i )
+      {
+        m_array[ i ].~T();
+      }
+    }
+    else
+    {
       for ( size_type i = m_length; i < new_length; ++i )
       {
-        m_array[ i ] = default_value;
+        new ( &m_array[ i ] ) T();
       }
     }
 
@@ -226,38 +258,20 @@ public:
 
   ChaiVector<T> deep_copy() const
   { 
-    chai::ManagedArray<T> copy = chai::deepCopy( m_array );
-    return ChaiVector<T>( copy, m_length );
+    return ChaiVector( chai::deepCopy( m_array ), m_length );
   }
 
 private:
 
-  pointer reserveForInsert( size_type n, size_type pos )
-  {
-    if ( n == 0 )
-    {
-      return data() + pos;
-    }
-
-    size_type new_length = m_length + n;
-    if ( new_length > capacity() )
-    {
-      dynamicRealloc( new_length );
-    }
-
-    pointer const insert_pos = data() + pos;
-    pointer cur_pos = data() + m_length - 1;
-    for ( ; cur_pos >= insert_pos ; --cur_pos )
-    {
-      *(cur_pos + n) = *cur_pos;
-    }
-
-    m_length = new_length;
-    return insert_pos;
-  }
+  ChaiVector( chai::ManagedArray<T>&& source, size_type length ) :
+    m_array( std::move( source ) ),
+    m_length( length ),
+    m_copied( false )
+  {}
 
   void realloc( size_type new_capacity )
   {
+    const size_type initial_capacity = capacity();
     if ( capacity() == 0 )
     {
       m_array.allocate( new_capacity );
@@ -273,6 +287,7 @@ private:
 
   chai::ManagedArray<T> m_array;
   size_type m_length;
+  bool m_copied;
 };
 
 } /* namespace internal */
