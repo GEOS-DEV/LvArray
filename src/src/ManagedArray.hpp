@@ -131,7 +131,7 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class ManagedArray
 {
 public:
-  using ArrayType = typename internal::ChaiVector<T>;
+  using ArrayType = typename ChaiVector<T>;
 
   using value_type = T;
   using index_type = INDEX_TYPE;
@@ -662,7 +662,7 @@ private:
 
   int m_singleParameterResizeIndex = 0;
 
-  ManagedArray( internal::ChaiVector<T>&& source, const INDEX_TYPE* dims, int resize_index ) :
+  ManagedArray( ChaiVector<T>&& source, const INDEX_TYPE* dims, int resize_index ) :
     m_dataVector(std::move(source)),
     m_data(m_dataVector.data()),
     m_dims(),
