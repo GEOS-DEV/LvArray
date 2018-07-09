@@ -8,6 +8,7 @@ set(newComponentTests
     testObjectCatalog.cpp
     testSFINAE.cpp
     testStringUtilities.cpp
+    testChaiVector.cpp
    )
 
 set( CXX_UTILITIES_DEP  )
