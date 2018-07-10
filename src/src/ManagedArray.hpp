@@ -131,7 +131,7 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class ManagedArray
 {
 public:
-  using ArrayType = typename ChaiVector<T>;
+  using ArrayType = ChaiVector<T>;
 
   using value_type = T;
   using index_type = INDEX_TYPE;
@@ -444,20 +444,11 @@ public:
   iterator end() {return m_dataVector.end();}
   const_iterator end() const {return m_dataVector.end();}
 
-  template<int N=NDIM, typename U=T>
-  typename std::enable_if< N==1 && !detail::is_array<U>::value, void >::type 
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
   push_back( T const & newValue )
   {
     m_dataVector.push_back(newValue);
-    m_data = m_dataVector.data();
-    m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
-  }
-
-  template<int N=NDIM, typename U=T>
-  typename std::enable_if< N==1 && detail::is_array<U>::value, void >::type 
-  push_back( T const & newValue )
-  {
-    m_dataVector.push_back(newValue.deepCopy());
     m_data = m_dataVector.data();
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
@@ -469,30 +460,12 @@ public:
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 
-  template<int N=NDIM, typename U=T, typename InputIt>
-  typename std::enable_if< N==1 && !detail::is_array<U>::value, void >::type 
+  template<int N=NDIM, typename InputIt>
+  typename std::enable_if< N==1, void >::type 
   insert(iterator pos, InputIt first, InputIt last)
   {
     m_dataVector.insert( pos, first, last );
     m_data = m_dataVector.data();
-    m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
-  }
-
-  template<int N=NDIM, typename U=T, typename InputIt>
-  typename std::enable_if< N==1 && detail::is_array<U>::value, void >::type 
-  insert(iterator pos, InputIt first, InputIt last)
-  {
-    const size_type n = std::distance( first, last );
-    const size_type index = pos - begin();
-    m_dataVector.emplace( n, index );
-    m_data = m_dataVector.data();
-
-    for ( size_type i = 0; i < n; ++i )
-    {
-      m_data[index + i] = first->deepCopy();
-      first++;
-    }
-
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 

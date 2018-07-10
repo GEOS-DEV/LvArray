@@ -18,9 +18,326 @@
 
 #include "gtest/gtest.h"
 #include "ChaiVector.hpp"
+#include <vector>
+#include <string>
 
-
-TEST(ChaiVector, push_back)
+/**
+ * @brief Check that the ChaiVector is equivalent to the std::vector. Checks equality using the
+ * operator[], the iterator interface, and the raw pointer.
+ * @param [in] v the ChaiVector to check.
+ * @param [in] v_ref the std::vector to check against. 
+ */
+template < class T >
+void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_ref )
 {
-  ASSERT_TRUE(true);
+  ASSERT_EQ( v.size(), v_ref.size() );
+  ASSERT_EQ( v.empty(), v_ref.empty() );
+  if ( v.empty() )
+  {
+    ASSERT_EQ( v.size(), 0 );
+    return;
+  }
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v[ i ], v_ref[ i ] );
+  }
+
+  ASSERT_EQ( v.front(), v_ref.front() );
+  ASSERT_EQ( v.back(), v_ref.back() );
+
+  typename ChaiVector< T >::const_iterator it = v.begin();
+  typename std::vector< T >::const_iterator ref_it = v_ref.begin();
+  for ( ; it != v.end(); ++it )
+  {
+    ASSERT_EQ( *it, *ref_it );
+    ++ref_it;
+  }
+
+  const T* v_ptr = v.data();
+  const T* ref_ptr = v_ref.data();
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
+  }
 }
+
+/**
+ * @brief Test the push_back method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] n the number of values to append.
+ * @param [in] get_value a function to generate the values to append.
+ * @return the std::vector compared against.
+ */
+template < class T, class LAMBDA >
+std::vector< T > push_back_test( ChaiVector< T >& v, int n, LAMBDA get_value )
+{
+  EXPECT_TRUE( v.empty() );
+
+  std::vector< T > v_ref;
+  for ( int i = 0; i < n; ++i )
+  {
+    const T& val = get_value( i );
+    v.push_back( val );
+    v_ref.push_back( val );
+  }
+
+  compare_to_reference( v, v_ref );
+  return v_ref;
+}
+
+/**
+ * @brief Test the insert method of the ChaiVector by inserting one value at a time.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] n the number of values to insert.
+ * @param [in] get_value a function to generate the values to insert. 
+ * @return the std::vector compared against.
+ */
+template < class T, class LAMBDA >
+std::vector< T > insert_test( ChaiVector< T >& v, int n, LAMBDA get_value )
+{
+  EXPECT_TRUE( v.empty() );
+
+  std::vector< T > v_ref;
+  for ( int i = 0; i < n; ++i )
+  {
+    const T& val = get_value( i );
+    if ( i % 3 == 0 )       /* Insert at the beginning. */
+    {
+      v.insert( v.begin(), val );
+      v_ref.insert( v_ref.begin(), val );
+    }
+    else if ( i % 3 == 1 )  /* Insert at the end. */
+    {
+      v.insert( v.end(), val );
+      v_ref.insert( v_ref.end(), val );
+    }
+    else                    /* Insert in the middle. */
+    {
+      v.insert( v.begin() + v.size() / 2, val );
+      v_ref.insert( v_ref.begin() + v_ref.size() / 2, val );
+    }
+  }
+
+  compare_to_reference( v, v_ref );
+  return v_ref;
+}
+
+/**
+ * @brief Test the insert method of the ChaiVector by inserting multiple values at once.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] n the number of insertions to do.
+ * @param [in] m the number of values to insert per iteration.
+ * @param [in] get_value a function to generate the values to insert. 
+ * @return the std::vector compared against.
+ */
+template < class T, class LAMBDA >
+std::vector< T > insert_multiple_test( ChaiVector< T >& v, int n, int m, LAMBDA get_value )
+{
+  EXPECT_TRUE( v.empty() );
+  
+  std::vector< T > v_insert;
+  std::vector< T > v_ref;
+  for ( int i = 0; i < n; ++i )
+  {
+    v_insert.clear();
+    for ( int j = 0; j < m; ++j )
+    {
+      v_insert.push_back( get_value( m * i + j ) );
+    }
+
+    if ( i % 3 == 0 )   /* Insert at the beginning. */
+    {
+      v.insert( v.begin(), v_insert.begin(), v_insert.end() );
+      v_ref.insert( v_ref.begin(), v_insert.begin(), v_insert.end() );
+    }
+    else if ( i % 3 == 1 )  /* Insert at the end. */
+    {
+      v.insert( v.end(), v_insert.begin(), v_insert.end() );
+      v_ref.insert( v_ref.end(), v_insert.begin(), v_insert.end() );
+    }
+    else  /* Insert in the middle. */
+    {
+      v.insert( v.begin() + v.size() / 2, v_insert.begin(), v_insert.end() );
+      v_ref.insert( v_ref.begin() + v_ref.size() / 2, v_insert.begin(), v_insert.end() );
+    }
+  }
+
+  compare_to_reference( v, v_ref );
+  return v_ref;
+}
+
+/**
+ * @brief Test the erase method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] v_ref the std::vector to compare against.
+ */
+template < class T >
+void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
+{
+  const int n_elems = v.size();
+  for ( int i = 0; i < n_elems; ++i )
+  {
+    if ( i % 3 == 0 )   /* erase the beginning. */
+    {
+      v.erase( v.begin() );
+      v_ref.erase( v_ref.begin() );
+    }
+    else if ( i % 3 == 1 )  /* erase at the end. */
+    {
+      v.erase( v.end() - 1 );
+      v_ref.erase( v_ref.end() - 1 );
+    }
+    else  /* erase the middle. */
+    {
+      v.erase( v.begin() + v.size() / 2 );
+      v_ref.erase( v_ref.begin() + v_ref.size() / 2 );
+    }
+
+    if ( i % 10 == 0 )
+    {
+      compare_to_reference( v, v_ref );
+    }
+  }
+
+  ASSERT_TRUE( v.empty() );
+  compare_to_reference( v, v_ref );
+}
+
+/**
+ * @brief Test the pop_back method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] v_ref the std::vector to compare against.
+ */
+template < class T >
+void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
+{
+  const int n_elems = v.size();
+  for ( int i = 0; i < n_elems; ++i )
+  {
+    v.pop_back();
+    v_ref.pop_back();
+
+    if ( i % 10 == 0 )
+    {
+      compare_to_reference( v, v_ref );
+    }
+  }
+
+  ASSERT_TRUE( v.empty() );
+  compare_to_reference( v, v_ref );
+}
+
+TEST( ChaiVector, push_back )
+{
+  constexpr int N = 1000;
+
+  {
+    ChaiVector< int > v;
+    push_back_test( v, N, [] ( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< double > v;
+    push_back_test( v, N, [] ( int i ) -> double { return i; } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}
+
+TEST( ChaiVector, insert )
+{
+  constexpr int N = 300;
+
+  {
+    ChaiVector< int > v;
+    insert_test( v, N, [] ( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< double > v;
+    insert_test( v, N, [] ( int i ) -> double { return i; } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    insert_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}
+
+TEST( ChaiVector, insert_multiple )
+{
+  constexpr int N = 100;
+  constexpr int M = 8;
+
+  {
+    ChaiVector< int > v;
+    insert_multiple_test( v, N, M, [] ( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< double > v;
+    insert_multiple_test( v, N, M, [] ( int i ) -> double { return i; } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    insert_multiple_test( v, N, M, [] ( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}
+
+TEST( ChaiVector, erase )
+{
+  constexpr int N = 200;
+
+  {
+    ChaiVector< int > v;
+    std::vector< int > v_ref = push_back_test( v, N, [] ( int i ) -> int { return i; } );
+    erase_test( v, v_ref );
+  }
+
+  {
+    ChaiVector< double > v;
+    std::vector< double > v_ref =  push_back_test( v, N, [] ( int i ) -> double { return i; } );
+    erase_test( v, v_ref );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    std::vector< std::string > v_ref =  push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+    erase_test( v, v_ref );
+  }
+}
+
+TEST( ChaiVector, pop_back )
+{
+  constexpr int N = 300;
+
+  {
+    ChaiVector< int > v;
+    std::vector< int > v_ref = push_back_test( v, N, [] ( int i ) -> int { return i; } );
+    pop_back_test( v, v_ref );
+  }
+
+  {
+    ChaiVector< double > v;
+    std::vector< double > v_ref =  push_back_test( v, N, [] ( int i ) -> double { return i; } );
+    pop_back_test( v, v_ref );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    std::vector< std::string > v_ref =  push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+    pop_back_test( v, v_ref );
+  }
+}
+
+
+/* To Do:
+      resize / capacity
+      deep_copy
+      shallow_copy / when arrays should be free'd
+*/
