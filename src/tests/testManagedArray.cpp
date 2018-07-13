@@ -1096,3 +1096,5 @@ TEST( ManagedArray, shallow_copy_array )
     internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
+
+/* FINISH DOCS! */
