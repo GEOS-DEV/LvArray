@@ -21,6 +21,9 @@
 #include <vector>
 #include <string>
 
+namespace internal
+{
+
 /**
  * @brief Check that the ChaiVector is equivalent to the std::vector. Checks equality using the
  * operator[], the iterator interface, and the raw pointer.
@@ -228,23 +231,215 @@ void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
   compare_to_reference( v, v_ref );
 }
 
+/**
+ * @brief Test the resize method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] n the end size of the vector.
+ * @param [in] get_value a function to generate the values. 
+ */
+template < class T, class LAMBDA >
+void resize_test( ChaiVector< T >& v, int n, LAMBDA get_value )
+{
+  ASSERT_TRUE( v.empty() );
+  
+  v.resize( n / 2 );
+
+  ASSERT_EQ( v.size(), n / 2 );
+  ASSERT_EQ( v.capacity(), n / 2 );
+
+  T* data_ptr = v.data();
+  for ( int i = 0; i < n / 2; ++i )
+  {
+    ASSERT_EQ( data_ptr[ i ], T() );
+    data_ptr[ i ] = get_value( i );
+  }
+
+  /* No reallocation should have occured. */
+  ASSERT_EQ( data_ptr, v.data() );
+
+  v.resize( n / 4 );
+
+  ASSERT_EQ( v.size(), n / 4 );
+  ASSERT_EQ( v.capacity(), n / 2 );
+
+  for ( int i = 0; i < n / 4; ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
+
+  v.resize( n );
+
+  ASSERT_EQ( v.size(), n );
+  ASSERT_EQ( v.capacity(), n );
+
+  for ( int i = 0; i < n; ++i )
+  {
+    v[ i ] = get_value( 2 * i );
+  }
+
+  for ( int i = 0; i < n; ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( 2 * i ) );
+  }
+}
+
+/**
+ * @brief Test the reserve method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to check.
+ * @param [in] n the end size of the vector.
+ * @param [in] get_value a function to generate the values. 
+ */
+template < class T, class LAMBDA >
+void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
+{
+  ASSERT_TRUE( v.empty() );
+  
+  v.reserve( n / 2 );
+
+  ASSERT_EQ( v.size(), 0 );
+  ASSERT_EQ( v.capacity(), n / 2 );
+
+  T* data_ptr = v.data();
+  for ( int i = 0; i < n / 2; ++i )
+  {
+    v.push_back( get_value( i ) );
+  }
+
+  /* No reallocation should have occured. */
+  ASSERT_EQ( data_ptr, v.data() );
+
+  v.reserve( n );
+
+  ASSERT_EQ( v.size(), n / 2 );
+  ASSERT_EQ( v.capacity(), n );
+
+  for ( int i = 0; i < n / 2; ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
+
+  data_ptr = v.data();
+  for ( int i = n / 2; i < n; ++i )
+  {
+    v.push_back( get_value ( i ) );
+  }
+
+  /* No reallocation should have occured. */
+  ASSERT_EQ( data_ptr, v.data() );
+
+  for ( int i = 0; i < n; ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
+}
+
+/**
+ * @brief Test the deep_copy method of the ChaiVector.
+ * @param [in/out] v the ChaiVector to copy.
+ * @param [in] get_value a function to generate the values. 
+ */
+template < class T, class LAMBDA >
+void deep_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
+{
+  ChaiVector< T > v_cpy = v.deep_copy();
+  
+  ASSERT_EQ( v.size(), v_cpy.size() );
+  ASSERT_EQ( v.capacity(), v_cpy.capacity() );
+
+  ASSERT_NE( v.data(), v_cpy.data() );
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v[ i ], v_cpy[ i ] );
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    v_cpy[ i ] = get_value( 2 * i );
+  }
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
+}
+
+/**
+ * @brief Test the shallow copy copy-constructor of the ChaiVector.
+ * @param [in/out] v the ChaiVector to copy.
+ * @param [in] get_value a function to generate the values. 
+ */
+template < class T, class LAMBDA >
+void shallow_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
+{
+  {
+    ChaiVector< T > v_cpy(v);
+    
+    ASSERT_TRUE( v_cpy.isCopy() );
+    ASSERT_EQ( v.size(), v_cpy.size() );
+    ASSERT_EQ( v.capacity(), v_cpy.capacity() );
+
+    ASSERT_EQ( v.data(), v_cpy.data() );
+
+    for ( int i = 0; i < v.size(); ++i )
+    {
+      ASSERT_EQ( v[ i ], v_cpy[ i ] );
+      ASSERT_EQ( v[ i ], get_value( i ) );
+    }
+
+    for ( int i = 0; i < v.size(); ++i )
+    {
+      v_cpy[ i ] = get_value( 2 * i );
+    }
+  }
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( 2 * i ) );
+  }
+}
+
+} /* namespace internal */
+
+
+struct Tensor
+{
+  double x, y, z;
+
+  Tensor():
+    x(), y(), z()
+  {}
+
+  Tensor( double val ):
+    x( val ), y( val ), z( val )
+  {}
+
+  bool operator==(const Tensor& other) const
+  {
+    return x == other.x && y == other.y && z == other.z; 
+  }
+};
+
+
 TEST( ChaiVector, push_back )
 {
   constexpr int N = 1000;
 
   {
     ChaiVector< int > v;
-    push_back_test( v, N, [] ( int i ) -> int { return i; } );
+    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
   }
 
   {
-    ChaiVector< double > v;
-    push_back_test( v, N, [] ( int i ) -> double { return i; } );
+    ChaiVector< Tensor > v;
+    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
   }
 
   {
     ChaiVector< std::string > v;
-    push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -254,38 +449,38 @@ TEST( ChaiVector, insert )
 
   {
     ChaiVector< int > v;
-    insert_test( v, N, [] ( int i ) -> int { return i; } );
+    internal::insert_test( v, N, []( int i ) -> int { return i; } );
   }
 
   {
-    ChaiVector< double > v;
-    insert_test( v, N, [] ( int i ) -> double { return i; } );
+    ChaiVector< Tensor > v;
+    internal::insert_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
   }
 
   {
     ChaiVector< std::string > v;
-    insert_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
+    internal::insert_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
 TEST( ChaiVector, insert_multiple )
 {
   constexpr int N = 100;
-  constexpr int M = 8;
+  constexpr int M = 10;
 
   {
     ChaiVector< int > v;
-    insert_multiple_test( v, N, M, [] ( int i ) -> int { return i; } );
+    internal::insert_multiple_test( v, N, M, []( int i ) -> int { return i; } );
   }
 
   {
-    ChaiVector< double > v;
-    insert_multiple_test( v, N, M, [] ( int i ) -> double { return i; } );
+    ChaiVector< Tensor > v;
+    internal::insert_multiple_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
   }
 
   {
     ChaiVector< std::string > v;
-    insert_multiple_test( v, N, M, [] ( int i ) -> std::string { return std::to_string( i ); } );
+    internal::insert_multiple_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -295,20 +490,20 @@ TEST( ChaiVector, erase )
 
   {
     ChaiVector< int > v;
-    std::vector< int > v_ref = push_back_test( v, N, [] ( int i ) -> int { return i; } );
-    erase_test( v, v_ref );
+    std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::erase_test( v, v_ref );
   }
 
   {
-    ChaiVector< double > v;
-    std::vector< double > v_ref =  push_back_test( v, N, [] ( int i ) -> double { return i; } );
-    erase_test( v, v_ref );
+    ChaiVector< Tensor > v;
+    std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::erase_test( v, v_ref );
   }
 
   {
     ChaiVector< std::string > v;
-    std::vector< std::string > v_ref =  push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
-    erase_test( v, v_ref );
+    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::erase_test( v, v_ref );
   }
 }
 
@@ -318,26 +513,106 @@ TEST( ChaiVector, pop_back )
 
   {
     ChaiVector< int > v;
-    std::vector< int > v_ref = push_back_test( v, N, [] ( int i ) -> int { return i; } );
-    pop_back_test( v, v_ref );
+    std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::pop_back_test( v, v_ref );
   }
 
   {
-    ChaiVector< double > v;
-    std::vector< double > v_ref =  push_back_test( v, N, [] ( int i ) -> double { return i; } );
-    pop_back_test( v, v_ref );
+    ChaiVector< Tensor > v;
+    std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::pop_back_test( v, v_ref );
   }
 
   {
     ChaiVector< std::string > v;
-    std::vector< std::string > v_ref =  push_back_test( v, N, [] ( int i ) -> std::string { return std::to_string( i ); } );
-    pop_back_test( v, v_ref );
+    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::pop_back_test( v, v_ref );
   }
 }
 
+TEST( ChaiVector, resize )
+{
+  constexpr int N = 1000;
 
-/* To Do:
-      resize / capacity
-      deep_copy
-      shallow_copy / when arrays should be free'd
-*/
+  {
+    ChaiVector< int > v;
+    internal::resize_test( v, N, []( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< Tensor > v;
+    internal::resize_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    internal::resize_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}
+
+TEST( ChaiVector, reserve )
+{
+  constexpr int N = 1000;
+
+  {
+    ChaiVector< int > v;
+    internal::reserve_test( v, N, []( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< Tensor > v;
+    internal::reserve_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}
+
+TEST( ChaiVector, deep_copy )
+{
+  constexpr int N = 1000;
+
+  {
+    ChaiVector< int > v;
+    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::deep_copy_test( v, []( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< Tensor > v;
+    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  /* Doesn't work with std::string since Chai does a memcopy under the hood. */
+  // {
+  //   ChaiVector< std::string > v;
+  //   internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+  //   internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+  // }
+}
+
+TEST( ChaiVector, shallow_copy )
+{
+  constexpr int N = 1000;
+
+  {
+    ChaiVector< int > v;
+    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+  }
+
+  {
+    ChaiVector< Tensor > v;
+    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    ChaiVector< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
+}

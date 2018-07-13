@@ -260,7 +260,7 @@ public:
   }
 
   template<typename U=T>
-  typename std::enable_if< !detail::is_array<U>::value, ManagedArray >::type 
+  typename std::enable_if< !detail::is_array<U>::value && !std::is_same<std::string, U>::value, ManagedArray >::type 
   deepCopy() const
   {
     return ManagedArray(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
@@ -281,6 +281,25 @@ public:
 
     return copy;
   }
+
+  template<typename U=T>
+  typename std::enable_if< std::is_same<std::string, U>::value, ManagedArray >::type 
+  deepCopy() const
+  {
+    ManagedArray copy(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
+
+    const T* data_ptr = data(); 
+    T* copy_data_ptr = copy.data();
+    for (size_type i = 0; i < copy.size(); ++i)
+    {
+      new (copy_data_ptr + i) T(data_ptr[i]);
+    }
+
+    return copy;
+  }
+
+  bool isCopy() const
+  { return m_dataVector.isCopy(); }
 
   /**
    * \defgroup stl container interface
@@ -358,6 +377,7 @@ public:
   void reserve( INDEX_TYPE newLength )
   {
     m_dataVector.reserve(newLength);
+    m_data = m_dataVector.data();
   }
 
 
@@ -388,9 +408,10 @@ public:
    *
    */
   INDEX_TYPE size( int dim ) const
-  {
-    return m_dims[dim];
-  }
+  { return m_dims[dim]; }
+
+  INDEX_TYPE capacity() const
+  { return m_dataVector.capacity(); }
   
 #pragma GCC diagnostic pop
 
@@ -398,9 +419,7 @@ public:
   { return NDIM; }
 
   bool empty() const
-  {
-    return size()==0 ? true : false;
-  }
+  { return size() == 0; }
 
   void clear()
   {

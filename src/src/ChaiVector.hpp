@@ -52,7 +52,7 @@ public:
    * @param [in] initial_length the initial length of the vector.
    */
   ChaiVector( size_type initial_length ) :
-    m_array( initial_length ),
+    m_array(),
     m_length( 0 ),
     m_copied( false )
   {
@@ -125,7 +125,7 @@ public:
 
   /**
    * @brief Dereference operator for the underlying active pointer.
-   * @para [in] pos the index to access.
+   * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
    */
   /// @{
@@ -221,13 +221,19 @@ public:
   size_type capacity() const
   { return m_array.size(); }
 
-
-  /* Modifiers */
-
-  /* Note does not free the associated memory. */
+  /**
+   * @brief Resize the vector to length zero.
+   * @note Does not change the capacity.
+   */
   void clear()
   { resize( 0 ); }
 
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
   iterator insert( const_iterator pos, const T& value )
   {
     const size_type index = pos - begin();
@@ -236,6 +242,13 @@ public:
     return begin() + index;
   }
 
+  /**
+   * @brief Insert the given values starting at the give position.
+   * @param [in] pos the position at which to begin the insertion.
+   * @param [in] first iterator to the first value to insert.
+   * @param [in] last iterator to one past the last value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
   template < typename InputIt >
   iterator insert( const_iterator pos, InputIt first, InputIt last )
   {
@@ -252,6 +265,11 @@ public:
     return begin() + index;
   }
 
+  /**
+   * @brief Remove the value at the given position and shift down all subsequent values.
+   * @param [in] pos the position to remove.
+   * @return An iterator to the position at which the erase was done.
+   */
   iterator erase( const_iterator pos )
   {
     const size_type index = pos - begin();
@@ -266,6 +284,10 @@ public:
     return begin() + index;
   }
 
+  /**
+   * @brief Append a value to the end of the array.
+   * @param [in] val the value to append.
+   */
   void push_back( const_reference value )
   {
     m_length++;
@@ -278,9 +300,19 @@ public:
     m_array[ m_length - 1 ] = value;
   }
 
+  /**
+   * @brief Delete the last value.
+   */
   void pop_back()
   { erase( end() ); }
 
+  /**
+   * @brief Resize the vector to the new length.
+   * @param [in] new_length the new length of the vector.
+   * @note If reducing the size the values past the new size are destroyed,
+   * if increasing the size the values past the current size are initialized with
+   * the default constructor.
+   */
   void resize( const size_type new_length )
   {
     if ( new_length > capacity() )
@@ -306,7 +338,13 @@ public:
     m_length = new_length;
   }
 
-
+  /**
+   * @brief Return a copy of *this with a new allocation.
+   * @note The copy only has an allocation in the last touched memory space
+   * of *this.
+   * @note This function effectively does a memcopy of the data, as such it
+   * does not do a true deep copy when holding types such as std::strings.
+   */
   ChaiVector<T> deep_copy() const
   { 
     return ChaiVector( chai::deepCopy( m_array ), m_length );
@@ -314,12 +352,22 @@ public:
 
 private:
 
+  /**
+   * @brief Constructor used in the deep_copy method.
+   * @param [in] source the chai::ManagedArray to use.
+   * @param [in] length the length of the vector.
+   */
   ChaiVector( chai::ManagedArray<T>&& source, size_type length ) :
     m_array( std::move( source ) ),
     m_length( length ),
     m_copied( false )
   {}
 
+  /**
+   * @brief Insert the given number of default values at the given position.
+   * @param [in] n the number of values to insert.
+   * @param [in] pos the position at which to insert.
+   */
   void emplace( size_type n, size_type pos )
   {
     if ( n == 0 )
@@ -333,12 +381,14 @@ private:
       dynamicRealloc( new_length );
     }
 
+    /* Move the existing values down by n. */
     for ( size_type i = m_length; i > pos; --i )
     {
       const size_type cur_pos = i - 1;
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
     }
 
+    /* Initialize the newly vacant values moved out of to the default value. */
     for ( size_type i = 0; i < n; ++i )
     {
       const size_type cur_pos = pos + i;
@@ -348,6 +398,10 @@ private:
     m_length = new_length;
   }
 
+  /**
+   * @brief Reallocate the underlying array to have the given capacity.
+   * @param [in] new_capacity the new capacity.
+   */
   void realloc( size_type new_capacity )
   {
     const size_type initial_capacity = capacity();
@@ -361,6 +415,10 @@ private:
     }
   }
 
+  /**
+   * @brief Performs a dynamic reallocation, which makes the capacity twice the new length.
+   * @param [in] new_length the new length.
+   */
   void dynamicRealloc( size_type new_length )
   { reserve( 2 * new_length ); }
 
