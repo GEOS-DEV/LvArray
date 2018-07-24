@@ -141,6 +141,7 @@ public:
 
   using size_type = INDEX_TYPE;
 
+  using isArray = std::true_type;
 
   inline ManagedArray():
     dataVector(),
