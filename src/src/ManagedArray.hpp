@@ -382,12 +382,19 @@ public:
   {
     dataVector.clear();
     m_data = nullptr;
+    for( int i=0 ; i<NDIM ; ++i )
+    {
+      m_dims[i] = 0;
+    }
   }
 
-  void erase( iterator index )
+  template< int U=NDIM >
+  inline typename std::enable_if< U==1, void >::type
+  erase( iterator index )
   {
     dataVector.erase( index ) ;
     m_data = dataVector.data();
+    --m_dims[0];
   }
 
 
