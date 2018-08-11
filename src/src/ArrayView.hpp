@@ -117,6 +117,21 @@ public:
     return m_data;
   }
 
+  /**
+   * User defined conversion to convert to a reduced dimension array. For example, converting from
+   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+   */
+  template< int U=NDIM >
+  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
+
+  {
+    GEOS_ASSERT(m_dims[NDIM-1]==1,
+                "ManagedArray::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+                "dimension is equal to 1.")
+    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
+                                         m_dims,
+                                         m_strides );
+  }
 
 //  template< typename T_CC = typename std::enable_if< !std::is_const<T>::value, T >::type >
 //  ArrayView( ArrayView<T_CC,NDIM,INDEX_TYPE> const & source ):
