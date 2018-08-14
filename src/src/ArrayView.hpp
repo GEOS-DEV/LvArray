@@ -10,8 +10,8 @@
  *
  * This file is part of the GEOSX Simulation Framework.
  *
- * GEOSX is a free software; you can redistrubute it and/or modify it under
- * the terms of the GNU Lesser General Public Liscense (as published by the
+ * GEOSX is a free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License (as published by the
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
@@ -24,6 +24,7 @@
 
 #ifndef ARRAY_VIEW_HPP_
 #define ARRAY_VIEW_HPP_
+#include <cstring>
 #include <vector>
 #include <iostream>
 #include <utility>
@@ -106,7 +107,7 @@ public:
   }
 
   /**
-   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   * User Defined Conversion operator to move from an ArrayView<T> to T *
    */
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
@@ -147,6 +148,14 @@ public:
 //    m_strides()
 //  {}
 //
+
+  ArrayView( ArrayView const & ) = default;
+
+  ArrayView & operator=( ArrayView const & rhs )
+  {
+    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
+    return *this;
+  }
 
   /**
    * @param index index of the element in array to access
@@ -267,7 +276,12 @@ public:
   T * data() {return m_data;}
   T const * data() const {return m_data;}
 
-  INDEX_TYPE size( int dim = 0 ) const
+  INDEX_TYPE size() const
+  {
+    return size_helper<0>::f(m_dims);
+  }
+
+  INDEX_TYPE size( int dim ) const
   {
     return m_dims[dim];
   }
@@ -305,6 +319,23 @@ private:
     {
       return index;
     }
+  };
+
+
+  template< int DIM >
+  struct size_helper
+  {
+    template< int INDEX=DIM >
+    constexpr static typename std::enable_if<INDEX!=NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    {
+      return dims[INDEX] * size_helper<INDEX+1>::f(dims);
+    }
+    template< int INDEX=DIM >
+    constexpr static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    {
+      return dims[INDEX];
+    }
+
   };
 
 };
