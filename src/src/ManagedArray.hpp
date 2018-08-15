@@ -206,12 +206,12 @@ public:
   operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
 
   {
-    GEOS_ASSERT(m_dims[NDIM-1]==1,
-                "ManagedArray::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
-                "dimension is equal to 1.")
+    assert(m_dims[NDIM-1]==1);//,
+//                "ManagedArray::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+//                "dimension is equal to 1.")
     return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
-                                         m_dims,
-                                         m_strides );
+                                           m_dims,
+                                           m_strides );
   }
 
 

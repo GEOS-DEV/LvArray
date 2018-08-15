@@ -69,16 +69,37 @@ TEST(test_managedarray,test_has_sfinae)
 
 TEST(test_managedarray,test_const)
 {
-  int junk[10];
+  int junk[10] = {1,2,3,4,5,6,7,8,9,10};
   int dim[1]={10};
   int stride[1]={1};
 
 
   ArrayView<int, 1, int> array(junk,dim,stride);
 
-  ArrayView<const int, 1, int> arrayC = array;
+  ArrayView<const int, 1, int> reducedArray = array;
 
-  EXPECT_TRUE( arrayC[9]==array[9] );
+  EXPECT_TRUE( array[9]==array[9] );
+
+  ManagedArray<int, 2 , int> managedArray;
+  managedArray.resize(10,1);
+
+  ArrayView<int, 1, int> array2 = managedArray;
+
+}
+
+
+TEST(test_managedarray,test_udc_dimreduce)
+{
+  int junk[10];
+  int dim[2]={10,1};
+  int stride[2]={1,1};
+
+
+  ArrayView<int, 2, int> array(junk,dim,stride);
+
+  ArrayView<int, 1, int> arrayC = array;
+
+  EXPECT_TRUE( arrayC[9]==array[9][0] );
 
 }
 #else
