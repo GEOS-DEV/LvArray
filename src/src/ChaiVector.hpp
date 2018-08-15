@@ -23,7 +23,7 @@
 
 
 template < typename T >
-class ChaiVector
+class ChaiVector : public chai::CHAICopyable 
 {
 public:
 
@@ -78,11 +78,12 @@ public:
    * @note Unlike the copy constructor this can not trigger a memory movement.
    */
   ChaiVector( ChaiVector&& source ) :
-    m_array( std::move( source.m_array ) ),
+    m_array( source.m_array ),
     m_length( source.m_length ),
     m_copied( source.m_copied )
   {
     source.m_length = 0;
+    source.m_copied = true;
   }
 
   /**
@@ -110,10 +111,11 @@ public:
       m_array.free();
     }
 
-    m_array = std::move( source.m_array );
+    m_array = source.m_array;
     m_length = source.m_length;
     m_copied = source.m_copied;
     source.m_length = 0;
+    source.m_copied = true;
     return *this;
   }
 
@@ -358,7 +360,7 @@ private:
    * @param [in] length the length of the vector.
    */
   ChaiVector( chai::ManagedArray<T>&& source, size_type length ) :
-    m_array( std::move( source ) ),
+    m_array( source ),
     m_length( length ),
     m_copied( false )
   {}
