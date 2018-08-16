@@ -236,7 +236,6 @@ public:
       m_strides[a]  = source.m_strides[a];
     }
 
-    source.clear();
     return *this;
   }
 
@@ -432,6 +431,8 @@ public:
       m_dims[i] = 1;
     }
     m_dims[getSingleParameterResizeIndex()] = 0;
+
+    CalculateStrides();
   }
 
 
