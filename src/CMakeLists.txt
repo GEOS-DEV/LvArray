@@ -10,7 +10,8 @@ set(cxx-utilities_headers
     src/SetSignalHandling.hpp
     src/SFINAE_Macros.hpp
     src/stackTrace.hpp
-    src/StringUtilities.hpp )
+    src/StringUtilities.hpp
+    src/ChaiVector.hpp )
 
 set(cxx-utilities_sources
     src/DocumentationNode.cpp
@@ -25,7 +26,7 @@ blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
                  HEADERS_OUTPUT_SUBDIR cxx-utilities
-                 DEPENDS_ON        
+                 DEPENDS_ON       chai umpire
                  )
 
 #set(cxx-utilities_headersdest ${HEADER_INCLUDES_DIRECTORY}/cxx-utilities)
