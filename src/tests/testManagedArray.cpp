@@ -227,7 +227,6 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
         temp[ k ] = val;
         temp_ref[ k ] = val;
       }
-
       v_insert.push_back( temp );
       v_ref_insert.push_back( temp_ref );
     }
@@ -248,9 +247,23 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
       v_ref.insert( v_ref.begin() + v_ref.size() / 2, v_ref_insert.begin(), v_ref_insert.end() );
     }
   }
-
   compare_to_reference( v, v_ref );
   return v_ref;
+}
+
+
+TEST(test_managedarray,test_udc_dimreduce)
+{
+  int junk[10];
+  int dim[2]={10,1};
+  int stride[2]={1,1};
+
+
+  ArrayView<int, 2, int> array(junk,dim,stride);
+
+  ArrayView<int, 1, int> arrayC = array;
+
+  EXPECT_TRUE( arrayC[9]==array[9][0] );
 }
 
 /**

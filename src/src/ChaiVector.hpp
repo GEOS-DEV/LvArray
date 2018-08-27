@@ -23,7 +23,7 @@
 
 
 template < typename T >
-class ChaiVector : public chai::CHAICopyable 
+class ChaiVector : public chai::CHAICopyable
 {
 public:
 
@@ -349,7 +349,14 @@ public:
    */
   ChaiVector<T> deep_copy() const
   { 
-    return ChaiVector( chai::deepCopy( m_array ), m_length );
+    if( this->capacity() != 0 )
+    {
+      return ChaiVector( chai::deepCopy( m_array ), m_length );
+    }
+    else
+    {
+      return ChaiVector();
+    }
   }
 
 private:
