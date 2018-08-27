@@ -18,12 +18,19 @@
 
 #include <type_traits>
 #include <iterator>
+
+#ifdef USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
-
+#else
+#include <cstdlib>
+#endif
 
 template < typename T >
-class ChaiVector : public chai::CHAICopyable
+class ChaiVector 
+#ifdef USE_CHAI
+: public chai::CHAICopyable
+#endif
 {
 public:
 
@@ -42,7 +49,12 @@ public:
    * @brief Default constructor, creates a new empty vector.
    */
   ChaiVector() :
+#ifdef USE_CHAI
     m_array(),
+#else
+    m_array( nullptr ),
+    m_capacity( 0 ),
+#endif
     m_length( 0 ),
     m_copied( false )
   {}
@@ -52,7 +64,12 @@ public:
    * @param [in] initial_length the initial length of the vector.
    */
   ChaiVector( size_type initial_length ) :
+#ifdef USE_CHAI
     m_array(),
+#else
+    m_array( nullptr ),
+    m_capacity( 0 ),
+#endif
     m_length( 0 ),
     m_copied( false )
   {
@@ -68,6 +85,9 @@ public:
    */
   ChaiVector( const ChaiVector& source ) :
     m_array( source.m_array ),
+#ifndef USE_CHAI
+    m_capacity( source.capacity() ),
+#endif
     m_length( source.m_length ),
     m_copied( true )
   {}
@@ -79,9 +99,16 @@ public:
    */
   ChaiVector( ChaiVector&& source ) :
     m_array( source.m_array ),
+#ifndef USE_CHAI
+    m_capacity( source.capacity() ),
+#endif
     m_length( source.m_length ),
     m_copied( source.m_copied )
   {
+#ifndef USE_CHAI
+    source.m_capacity = 0;
+#endif
+    source.m_array = nullptr;
     source.m_length = 0;
     source.m_copied = true;
   }
@@ -94,7 +121,11 @@ public:
     if ( capacity() > 0 && !m_copied )
     {
       clear();
+#ifdef USE_CHAI
       m_array.free();
+#else
+      std::free( m_array );
+#endif
     }
   }
 
@@ -108,12 +139,23 @@ public:
     if ( capacity() > 0 && !m_copied )
     {
       clear();
+#ifdef USE_CHAI
       m_array.free();
+#else
+      std::free( m_array );
+#endif
     }
 
     m_array = source.m_array;
     m_length = source.m_length;
     m_copied = source.m_copied;
+
+#ifndef USE_CHAI
+    m_capacity = source.m_capacity;
+    source.m_capacity = 0;
+#endif
+
+    source.m_array = nullptr;
     source.m_length = 0;
     source.m_copied = true;
     return *this;
@@ -221,7 +263,13 @@ public:
    * @brief Return the capacity of the vector.
    */
   size_type capacity() const
-  { return m_array.size(); }
+  { 
+#ifdef USE_CHAI
+    return m_array.size();
+#else
+    return m_capacity;
+#endif  
+  }
 
   /**
    * @brief Resize the vector to length zero.
@@ -298,7 +346,7 @@ public:
       dynamicRealloc( m_length );
     }
 
-    new ( &m_array[ m_length - 1] ) T();
+    new ( &m_array[ m_length - 1 ] ) T();
     m_array[ m_length - 1 ] = value;
   }
 
@@ -348,8 +396,9 @@ public:
    * does not do a true deep copy when holding types such as std::strings.
    */
   ChaiVector<T> deep_copy() const
-  { 
-    if( this->capacity() != 0 )
+  {
+#ifdef USE_CHAI
+    if ( capacity() > 0 )
     {
       return ChaiVector( chai::deepCopy( m_array ), m_length );
     }
@@ -357,10 +406,21 @@ public:
     {
       return ChaiVector();
     }
+#else
+    T* copy = static_cast< T* >( std::malloc( capacity() * sizeof( T ) ) );
+    for ( size_type i = 0; i < size(); ++i )
+    {
+      new ( &copy[ i ] ) T();
+      copy[ i ] = m_array[ i ];
+    }
+
+    return ChaiVector( copy, size(), capacity() );
+#endif
   }
 
 private:
 
+#ifdef USE_CHAI
   /**
    * @brief Constructor used in the deep_copy method.
    * @param [in] source the chai::ManagedArray to use.
@@ -371,6 +431,21 @@ private:
     m_length( length ),
     m_copied( false )
   {}
+#else
+  /**
+   * @brief Constructor used in the deep_copy method.
+   * @param [in] source the pointer to wrap. Must have been allocated with malloc.
+   * @param [in] length the length of the array.
+   * @param [in] the capacity of the array.
+   */
+  ChaiVector( T* source, size_type length, size_type capacity ) :
+    m_array( source ),
+    m_capacity( capacity ),
+    m_length( length ),
+    m_copied( false )
+  {}
+#endif
+
 
   /**
    * @brief Insert the given number of default values at the given position.
@@ -413,6 +488,7 @@ private:
    */
   void realloc( size_type new_capacity )
   {
+#ifdef USE_CHAI
     const size_type initial_capacity = capacity();
     if ( capacity() == 0 )
     {
@@ -422,6 +498,10 @@ private:
     {
       m_array.reallocate( new_capacity );
     }
+#else
+    m_array = static_cast< T* >( std::realloc( m_array, new_capacity * sizeof( T ) ) );
+    m_capacity = new_capacity;
+#endif
   }
 
   /**
@@ -431,7 +511,12 @@ private:
   void dynamicRealloc( size_type new_length )
   { reserve( 2 * new_length ); }
 
+#ifdef USE_CHAI
   chai::ManagedArray<T> m_array;
+#else
+  T* m_array;
+  size_type m_capacity;
+#endif
   size_type m_length;
   bool m_copied;
 };
