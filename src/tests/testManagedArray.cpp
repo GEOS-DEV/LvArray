@@ -737,7 +737,10 @@ struct Tensor
 
   bool operator==(const Tensor& other) const
   {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
     return x == other.x && y == other.y && z == other.z; 
+#pragma GCC diagnostic pop
   }
 };
 

@@ -21,6 +21,8 @@
 #include <vector>
 #include <string>
 
+using size_type = ChaiVector< int >::size_type;
+
 namespace internal
 {
 
@@ -41,7 +43,7 @@ void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_r
     return;
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], v_ref[ i ] );
   }
@@ -59,7 +61,7 @@ void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_r
 
   const T* v_ptr = v.data();
   const T* ref_ptr = v_ref.data();
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -348,18 +350,18 @@ void deep_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], v_cpy[ i ] );
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     v_cpy[ i ] = get_value( 2 * i );
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
     ASSERT_EQ( v[ i ], get_value( i ) );
@@ -383,19 +385,19 @@ void shallow_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
 
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for ( int i = 0; i < v.size(); ++i )
+    for ( size_type i = 0; i < v.size(); ++i )
     {
       ASSERT_EQ( v[ i ], v_cpy[ i ] );
       ASSERT_EQ( v[ i ], get_value( i ) );
     }
 
-    for ( int i = 0; i < v.size(); ++i )
+    for ( size_type i = 0; i < v.size(); ++i )
     {
       v_cpy[ i ] = get_value( 2 * i );
     }
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for ( size_type i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], get_value( 2 * i ) );
   }
@@ -418,7 +420,10 @@ struct Tensor
 
   bool operator==(const Tensor& other) const
   {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
     return x == other.x && y == other.y && z == other.z; 
+#pragma GCC diagnostic pop
   }
 };
 
