@@ -21,12 +21,16 @@ set(cxx-utilities_sources
 
 add_subdirectory(tests)
 
+if( ${ENABLE_CHAI})
+    set( cxx_dependencies chai umpire )
+endif()
+
 message("adding cxxutilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
                  HEADERS_OUTPUT_SUBDIR cxx-utilities
-                 DEPENDS_ON       chai umpire
+                 DEPENDS_ON       ${cxx_dependencies}
                  )
 
 #set(cxx-utilities_headersdest ${HEADER_INCLUDES_DIRECTORY}/cxx-utilities)
