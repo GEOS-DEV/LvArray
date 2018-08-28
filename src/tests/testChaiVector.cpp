@@ -436,11 +436,6 @@ TEST( ChaiVector, push_back )
     ChaiVector< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
   }
-
-  {
-    ChaiVector< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-  }
 }
 
 TEST( ChaiVector, insert )
@@ -455,11 +450,6 @@ TEST( ChaiVector, insert )
   {
     ChaiVector< Tensor > v;
     internal::insert_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-  }
-
-  {
-    ChaiVector< std::string > v;
-    internal::insert_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -477,11 +467,6 @@ TEST( ChaiVector, insert_multiple )
     ChaiVector< Tensor > v;
     internal::insert_multiple_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
   }
-
-  {
-    ChaiVector< std::string > v;
-    internal::insert_multiple_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-  }
 }
 
 TEST( ChaiVector, erase )
@@ -497,12 +482,6 @@ TEST( ChaiVector, erase )
   {
     ChaiVector< Tensor > v;
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::erase_test( v, v_ref );
-  }
-
-  {
-    ChaiVector< std::string > v;
-    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::erase_test( v, v_ref );
   }
 }
@@ -522,12 +501,6 @@ TEST( ChaiVector, pop_back )
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::pop_back_test( v, v_ref );
   }
-
-  {
-    ChaiVector< std::string > v;
-    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::pop_back_test( v, v_ref );
-  }
 }
 
 TEST( ChaiVector, resize )
@@ -543,11 +516,6 @@ TEST( ChaiVector, resize )
     ChaiVector< Tensor > v;
     internal::resize_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
   }
-
-  {
-    ChaiVector< std::string > v;
-    internal::resize_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-  }
 }
 
 TEST( ChaiVector, reserve )
@@ -562,11 +530,6 @@ TEST( ChaiVector, reserve )
   {
     ChaiVector< Tensor > v;
     internal::reserve_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-  }
-
-  {
-    ChaiVector< std::string > v;
-    internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -585,13 +548,6 @@ TEST( ChaiVector, deep_copy )
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
   }
-
-  /* Doesn't work with std::string since Chai does a memcopy under the hood. */
-  // {
-  //   ChaiVector< std::string > v;
-  //   internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-  //   internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-  // }
 }
 
 TEST( ChaiVector, shallow_copy )
@@ -608,11 +564,5 @@ TEST( ChaiVector, shallow_copy )
     ChaiVector< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-  }
-
-  {
-    ChaiVector< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
