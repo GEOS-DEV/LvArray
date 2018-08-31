@@ -40,8 +40,8 @@
 #include <iterator>
 //#include <utility>
 
-#include "../../../core/src/codingUtilities/static_if.hpp"
-#include "../../../core/src/common/Logger.hpp"
+//#include "../../../core/src/codingUtilities/static_if.hpp"
+#include "../../../../coreComponents/common/Logger.hpp"
 #include "ArrayView.hpp"
 #include "ChaiVector.hpp"
 
