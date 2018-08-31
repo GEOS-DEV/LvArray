@@ -29,7 +29,7 @@
 #include <memory>
 #include <iostream>
 #include <map>
-#include "../../../core/src/dataRepository/RestartFlags.hpp"
+#include "../../../../coreComponents/dataRepository/RestartFlags.hpp"
 
 namespace cxx_utilities
 {
