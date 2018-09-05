@@ -40,7 +40,7 @@
 
 #include <array>
 #include <vector>
-#include "Logger.hpp"
+//#include "Logger.hpp"
 
 namespace multidimensionalArray
 {
