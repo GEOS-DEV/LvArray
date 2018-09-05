@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <iterator>
 
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
 #else
@@ -28,7 +28,7 @@
 
 template < typename T >
 class ChaiVector 
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
 : public chai::CHAICopyable
 #endif
 {
@@ -49,7 +49,7 @@ public:
    * @brief Default constructor, creates a new empty vector.
    */
   ChaiVector() :
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
@@ -64,7 +64,7 @@ public:
    * @param [in] initial_length the initial length of the vector.
    */
   ChaiVector( size_type initial_length ) :
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
@@ -85,7 +85,7 @@ public:
    */
   ChaiVector( const ChaiVector& source ) :
     m_array( source.m_array ),
-#ifndef USE_CHAI
+#ifndef GEOSX_USE_CHAI
     m_capacity( source.capacity() ),
 #endif
     m_length( source.m_length ),
@@ -99,13 +99,13 @@ public:
    */
   ChaiVector( ChaiVector&& source ) :
     m_array( source.m_array ),
-#ifndef USE_CHAI
+#ifndef GEOSX_USE_CHAI
     m_capacity( source.capacity() ),
 #endif
     m_length( source.m_length ),
     m_copied( source.m_copied )
   {
-#ifndef USE_CHAI
+#ifndef GEOSX_USE_CHAI
     source.m_capacity = 0;
 #endif
     source.m_array = nullptr;
@@ -121,7 +121,7 @@ public:
     if ( capacity() > 0 && !m_copied )
     {
       clear();
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
       m_array.free();
 #else
       std::free( m_array );
@@ -139,7 +139,7 @@ public:
     if ( capacity() > 0 && !m_copied )
     {
       clear();
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
       m_array.free();
 #else
       std::free( m_array );
@@ -150,7 +150,7 @@ public:
     m_length = source.m_length;
     m_copied = source.m_copied;
 
-#ifndef USE_CHAI
+#ifndef GEOSX_USE_CHAI
     m_capacity = source.m_capacity;
     source.m_capacity = 0;
 #endif
@@ -264,7 +264,7 @@ public:
    */
   size_type capacity() const
   { 
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
     return m_array.size();
 #else
     return m_capacity;
@@ -397,7 +397,7 @@ public:
    */
   ChaiVector<T> deep_copy() const
   {
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
     if ( capacity() > 0 )
     {
       return ChaiVector( chai::deepCopy( m_array ), m_length );
@@ -420,7 +420,7 @@ public:
 
 private:
 
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
   /**
    * @brief Constructor used in the deep_copy method.
    * @param [in] source the chai::ManagedArray to use.
@@ -488,7 +488,7 @@ private:
    */
   void realloc( size_type new_capacity )
   {
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
     const size_type initial_capacity = capacity();
     if ( capacity() == 0 )
     {
@@ -511,7 +511,7 @@ private:
   void dynamicRealloc( size_type new_length )
   { reserve( 2 * new_length ); }
 
-#ifdef USE_CHAI
+#ifdef GEOSX_USE_CHAI
   chai::ManagedArray<T> m_array;
 #else
   T* m_array;
