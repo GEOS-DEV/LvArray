@@ -123,7 +123,7 @@ void handler(int sig, int exitFlag, int exitCode )
   free(messages);
   if( exitFlag == 1)
   {
-#ifdef USE_MPI
+#ifdef GEOSX_USE_MPI
   int mpi = 0;
   MPI_Initialized( &mpi );
   if ( mpi )
