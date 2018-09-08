@@ -388,6 +388,27 @@ public:
     resize();
   }
 
+  void resizeDimension( int index, INDEX_TYPE newdim )
+  {
+    if ( !( index < NDIM ) )
+    {
+      GEOS_ERROR("Dimension index exceeds number of dimensions: " << index << " >= " << NDIM);
+    }
+
+    m_dims[index] = newdim;
+    CalculateStrides();
+    resize();
+  }
+
+  template < INDEX_TYPE INDEX >
+  void resizeDimension( INDEX_TYPE newdim )
+  {
+    static_assert( INDEX < NDIM, "Dimension index exceeds number of dimensions" );
+
+    m_dims[INDEX] = newdim;
+    CalculateStrides();
+    resize();
+  }
 
   void reserve( INDEX_TYPE newLength )
   {
