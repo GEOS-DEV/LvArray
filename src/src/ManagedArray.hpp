@@ -168,7 +168,7 @@ public:
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
     static_assert( sizeof ... (DIMS) == NDIM, "Error: calling ManagedArray::ManagedArray with incorrect number of arguments.");
-    static_assert( check_dim_type<0, DIMS...>::value, "arguments to constructor of geosx::ManagedArray( DIMS... dims ) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<DIMS...>::value, "arguments to constructor of geosx::ManagedArray( DIMS... dims ) are incompatible with INDEX_TYPE" );
     CalculateStrides();
 
     resize();
@@ -352,7 +352,7 @@ public:
   {
     static_assert( sizeof ... (DIMS) == NDIM,
                    "Error: calling template< typename... DIMS > ManagedArray::resize(DIMS...newdims) with incorrect number of arguments.");
-    static_assert( check_dim_type<0,DIMS...>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<DIMS...>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE length = 1;
 
@@ -388,24 +388,37 @@ public:
     resize();
   }
 
-  void resizeDimension( int index, INDEX_TYPE newdim )
-  {
-    if ( !( index < NDIM ) )
-    {
-      GEOS_ERROR("Dimension index exceeds number of dimensions: " << index << " >= " << NDIM);
-    }
-
-    m_dims[index] = newdim;
-    CalculateStrides();
-    resize();
-  }
-
   template < INDEX_TYPE INDEX >
   void resizeDimension( INDEX_TYPE newdim )
   {
     static_assert( INDEX < NDIM, "Dimension index exceeds number of dimensions" );
 
     m_dims[INDEX] = newdim;
+    CalculateStrides();
+    resize();
+  }
+
+  template < INDEX_TYPE... INDICES, typename ... DIMS>
+  void resizeDimension( DIMS ... newdims )
+  {
+    static constexpr INDEX_TYPE NUM_INDICES = sizeof...(INDICES);
+    static_assert( NUM_INDICES <= NDIM, "Number of dimensions too large" );
+    static_assert( sizeof...(newdims) == NUM_INDICES, "Number of dimensions does not match number of dimension indices" );
+    static_assert( check_dim_type<DIMS...>::value, "arguments to ManagedArray::resizeDimensions(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_indices<INDICES...>::value, "invalid dimension indices in ManagedArray::resizeDimensions(DIMS...newdims)" );
+
+    // expand both packs into arrays
+//    INDEX_TYPE dim_indices[NUM_INDICES] = { INDICES... };
+//    INDEX_TYPE new_dims[NUM_INDICES] = { newdims... };
+
+    // This is harder to do via compile-time recursion (can't pass two parameter packs)
+//    for (INDEX_TYPE i = 0; i < NUM_INDICES; ++i)
+//    {
+//      m_dims[dim_indices[i]] = integer_conversion<INDEX_TYPE>(new_dims[i]);
+//    }
+
+    dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
+
     CalculateStrides();
     resize();
   }
@@ -728,19 +741,41 @@ private:
   };
 
 
-  template< int INDEX, typename DIM0, typename... DIMS >
-  struct check_dim_type
-  {
-    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<INDEX+1, DIMS...>::value;
-  };
+//  template< int INDEX, typename DIM0, typename... DIMS >
+//  struct check_dim_type
+//  {
+//    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<INDEX+1, DIMS...>::value;
+//  };
+//
+//  template< typename DIM0, typename... DIMS >
+//  struct check_dim_type<NDIM-1,DIM0,DIMS...>
+//  {
+//    constexpr static bool value = is_valid_indexType<DIM0>::value;
+//  };
 
   template< typename DIM0, typename... DIMS >
-  struct check_dim_type<NDIM-1,DIM0,DIMS...>
+  struct check_dim_type
+  {
+    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<DIMS...>::value;
+  };
+
+  template< typename DIM0 >
+  struct check_dim_type<DIM0>
   {
     constexpr static bool value = is_valid_indexType<DIM0>::value;
   };
 
+  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
+  struct check_dim_indices
+  {
+    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDICES...>::value;
+  };
 
+  template< INDEX_TYPE INDEX0 >
+  struct check_dim_indices<INDEX0>
+  {
+    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
+  };
 
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_helper
@@ -783,8 +818,25 @@ private:
     {
       m_dims[NDIM-1] = dim0;
     }
-
   };
+
+
+  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
+  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                          std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
+                                          DIM0 dim0, DIMS... dims )
+  {
+    m_dims[INDEX0] = dim0;
+    dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
+  }
+
+  template<typename... DIMS>
+  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                          std::integer_sequence<INDEX_TYPE> indices,
+                                          DIMS... dims )
+  {
+    // terminates recursion trivially
+  }
 
 };
 
