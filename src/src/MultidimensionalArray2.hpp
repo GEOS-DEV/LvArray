@@ -166,7 +166,7 @@ public:
    */
   inline ArrayAccessor<T,NDIM-1> operator[](integer_t const index)
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
@@ -174,7 +174,7 @@ public:
 
   inline ArrayAccessor<T,NDIM-1> const operator[](integer_t const index) const
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return ArrayAccessor<T,NDIM-1>( &(m_data[index*m_strides[0]]), m_lengths+1, m_strides+1 );
@@ -302,7 +302,7 @@ public:
    */
   inline T * restrict operator[](integer_t const index)
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return &(m_data[index*m_strides[0]]);
@@ -310,7 +310,7 @@ public:
 
   inline T const * restrict operator[](integer_t const index) const
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return &(m_data[index*m_strides[0]]);
@@ -446,7 +446,7 @@ public:
    */
   inline T& operator[](integer_t const index)
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return m_data[index];
@@ -454,7 +454,7 @@ public:
 
   inline T const & operator[](integer_t const index) const
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return m_data[index];

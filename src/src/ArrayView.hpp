@@ -28,7 +28,6 @@
 #include <vector>
 #include <iostream>
 #include <utility>
-#define ARRAY_BOUNDS_CHECK 1
 
 #ifdef __clang__
 #define restrict __restrict__
@@ -183,7 +182,7 @@ public:
    * beginning of the data associated with its
    * sub-array.
    */
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   //inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
@@ -230,7 +229,7 @@ public:
 
 
 
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   //inline constexpr  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
@@ -359,7 +358,7 @@ private:
 
 
 
-#if ARRAY_BOUNDS_CHECK==1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
 template< typename T, typename INDEX_TYPE >
 using arrayView1d = ArrayView<T,1,INDEX_TYPE>;
 

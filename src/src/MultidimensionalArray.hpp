@@ -150,7 +150,7 @@ public:
    */
   inline ArrayAccessor<T,NDIM-1> & operator[](integer_t const index) restrict_this
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     m_childInterface.m_data = &(m_data[index*m_stride]);
@@ -284,7 +284,7 @@ public:
    */
   inline T& operator[](integer_t const index) restrict_this
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_lengths[0] );
 #endif
     return m_data[index];
