@@ -251,21 +251,6 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
   return v_ref;
 }
 
-
-TEST(test_managedarray,test_udc_dimreduce)
-{
-  int junk[10];
-  int dim[2]={10,1};
-  int stride[2]={1,1};
-
-
-  ArrayView<int, 2, int> array(junk,dim,stride);
-
-  ArrayView<int, 1, int> arrayC = array;
-
-  EXPECT_TRUE( arrayC[9]==array[9][0] );
-}
-
 /**
  * @brief Test the erase method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
@@ -744,6 +729,18 @@ struct Tensor
   }
 };
 
+TEST( ManagedArray, udc_dimreduce)
+{
+  int junk[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int dim[2] = {10, 1};
+  int stride[2] = {1, 1};
+
+  ArrayView<int, 2, int> array(junk, dim, stride);
+
+  ArrayView<int, 1, int> arrayC = array;
+
+  EXPECT_EQ( arrayC[9], array[9][0] );
+}
 
 TEST( ManagedArray, test_const )
 {
