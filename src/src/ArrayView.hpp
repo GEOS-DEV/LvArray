@@ -112,7 +112,15 @@ public:
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
   inline
-  operator T *() const
+  operator T *()
+  {
+    return m_data;
+  }
+
+  template< int U = NDIM,
+            typename std::enable_if<U==1, int>::type = 0>
+  inline
+  operator T const *() const
   {
     return m_data;
   }
