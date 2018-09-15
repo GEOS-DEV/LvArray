@@ -250,7 +250,7 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
   compare_to_reference( v, v_ref );
   return v_ref;
 }
-
+  
 /**
  * @brief Test the erase method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
