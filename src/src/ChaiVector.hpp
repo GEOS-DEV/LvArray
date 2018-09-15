@@ -354,7 +354,13 @@ public:
    * @brief Delete the last value.
    */
   void pop_back()
-  { erase( end() ); }
+  {
+    if ( m_length > 0 )
+    {
+      m_length--;
+      m_array[ m_length ].~T();
+    }
+  }
 
   /**
    * @brief Resize the vector to the new length.
