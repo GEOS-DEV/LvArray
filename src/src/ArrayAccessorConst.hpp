@@ -216,7 +216,7 @@ public:
    */
   inline constexpr ArrayAccessor<T,NDIM-1> const operator[](integer_t const index) const
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_dims[0] );
 #endif
     return ArrayAccessor<T,NDIM-1>( &(m_data[ index*stride<NDIM>(m_dims) ] ), m_dims+1 );
@@ -373,7 +373,7 @@ public:
    */
   inline constexpr T & operator[](integer_t const index) const
   {
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index < m_dims[0] );
 #endif
     return m_data[index];
