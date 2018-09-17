@@ -505,7 +505,7 @@ private:
       m_array.reallocate( new_capacity );
     }
 #else
-    m_array = static_cast< T* >( std::realloc( m_array, new_capacity * sizeof( T ) ) );
+    m_array = static_cast< T* >( std::realloc( static_cast< void* >( m_array ), new_capacity * sizeof( T ) ) );
     m_capacity = new_capacity;
 #endif
   }
