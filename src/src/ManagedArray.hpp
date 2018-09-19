@@ -236,7 +236,13 @@ public:
 
   ManagedArray & operator=( ManagedArray const & source )
   {
-    return this->operator=(source.deepCopy());
+    this->resize(NDIM, source.m_dims);
+    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+    {
+      m_data[a] = source.m_data[a];
+    }
+//    return this->operator=(source.deepCopy());
+    return *this;
   }
 
   ManagedArray & operator=( ManagedArray&& source )
