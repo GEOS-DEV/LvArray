@@ -284,6 +284,7 @@ public:
   inline  typename std::enable_if< U>=3, void >::type
   copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
+    assert(false);
   }
 
   template< int U=NDIM >
@@ -292,7 +293,8 @@ public:
   {
     for( INDEX_TYPE a=0 ; a<size(1) ; ++a )
     {
-      m_data[ destIndex ] = m_data[ sourceIndex ];
+//      (*this)[destIndex][a] = (*this)[sourceIndex][a];
+      m_data[destIndex*m_strides[0]+a] = m_data[sourceIndex*m_strides[0]+a];
     }
   }
 
