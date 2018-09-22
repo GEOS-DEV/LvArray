@@ -343,10 +343,10 @@ void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
 template < class T, class LAMBDA >
 void deep_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
 {
-  ChaiVector< T > v_cpy = v.deep_copy();
+  ChaiVector< T > v_cpy;
+  v_cpy = v;
   
   ASSERT_EQ( v.size(), v_cpy.size() );
-  ASSERT_EQ( v.capacity(), v_cpy.capacity() );
 
   ASSERT_NE( v.data(), v_cpy.data() );
 

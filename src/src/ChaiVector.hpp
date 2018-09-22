@@ -16,6 +16,9 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+#ifndef CHAI_VECTOR_HPP_
+#define CHAI_VECTOR_HPP_
+
 #include <type_traits>
 #include <iterator>
 
@@ -127,6 +130,34 @@ public:
       std::free( m_array );
 #endif
     }
+  }
+
+  /**
+   * @brief Move assignment operator, moves the given ChaiVector into *this.
+   * @param [in] source the ChaiVector to move.
+   * @return *this.
+   */
+  ChaiVector& operator=( ChaiVector const& source )
+  {
+    if ( m_copied )
+    {
+#ifdef GEOSX_USE_CHAI
+      m_array = chai::ManagedArray<T>();
+#else
+      m_array = nullptr;
+      m_capacity = 0;
+#endif
+    }
+
+    m_copied = false;
+    resize( source.size() );
+
+    for ( size_type i = 0; i < size(); ++i )
+    {
+      m_array[ i ] = source[ i ];
+    }
+
+    return *this;
   }
 
   /**
@@ -394,64 +425,7 @@ public:
     m_length = new_length;
   }
 
-  /**
-   * @brief Return a copy of *this with a new allocation.
-   * @note The copy only has an allocation in the last touched memory space
-   * of *this.
-   * @note This function effectively does a memcopy of the data, as such it
-   * does not do a true deep copy when holding types such as std::strings.
-   */
-  ChaiVector<T> deep_copy() const
-  {
-#ifdef GEOSX_USE_CHAI
-    if ( capacity() > 0 )
-    {
-      return ChaiVector( chai::deepCopy( m_array ), m_length );
-    }
-    else
-    {
-      return ChaiVector();
-    }
-#else
-    T* copy = static_cast< T* >( std::malloc( capacity() * sizeof( T ) ) );
-    for ( size_type i = 0; i < size(); ++i )
-    {
-      new ( &copy[ i ] ) T();
-      copy[ i ] = m_array[ i ];
-    }
-
-    return ChaiVector( copy, size(), capacity() );
-#endif
-  }
-
 private:
-
-#ifdef GEOSX_USE_CHAI
-  /**
-   * @brief Constructor used in the deep_copy method.
-   * @param [in] source the chai::ManagedArray to use.
-   * @param [in] length the length of the vector.
-   */
-  ChaiVector( chai::ManagedArray<T>&& source, size_type length ) :
-    m_array( source ),
-    m_length( length ),
-    m_copied( false )
-  {}
-#else
-  /**
-   * @brief Constructor used in the deep_copy method.
-   * @param [in] source the pointer to wrap. Must have been allocated with malloc.
-   * @param [in] length the length of the array.
-   * @param [in] the capacity of the array.
-   */
-  ChaiVector( T* source, size_type length, size_type capacity ) :
-    m_array( source ),
-    m_capacity( capacity ),
-    m_length( length ),
-    m_copied( false )
-  {}
-#endif
-
 
   /**
    * @brief Insert the given number of default values at the given position.
@@ -526,3 +500,5 @@ private:
   size_type m_length;
   bool m_copied;
 };
+
+#endif /* CHAI_VECTOR_HPP_ */

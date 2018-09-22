@@ -236,12 +236,15 @@ public:
 
   ManagedArray & operator=( ManagedArray const & source )
   {
-    this->resize(NDIM, source.m_dims);
-    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+    m_dataVector = source.m_dataVector;
+    m_data = m_dataVector.data();
+
+    for( int a=0 ; a<NDIM ; ++a )
     {
-      m_data[a] = source.m_data[a];
+      m_dims[a] = source.m_dims[a];
+      m_strides[a] = source.m_strides[a];
     }
-//    return this->operator=(source.deepCopy());
+
     return *this;
   }
 
@@ -293,7 +296,6 @@ public:
   {
     for( INDEX_TYPE a=0 ; a<size(1) ; ++a )
     {
-//      (*this)[destIndex][a] = (*this)[sourceIndex][a];
       m_data[destIndex*m_strides[0]+a] = m_data[sourceIndex*m_strides[0]+a];
     }
   }
@@ -303,46 +305,6 @@ public:
   copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
     m_data[ destIndex ] = m_data[ sourceIndex ];
-  }
-
-
-  template<typename U=T>
-  typename std::enable_if< !detail::is_array<U>::value && !std::is_same<std::string, U>::value, ManagedArray >::type 
-  deepCopy() const
-  {
-    return ManagedArray(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
-  }
-
-  template<typename U=T>
-  typename std::enable_if< detail::is_array<U>::value, ManagedArray >::type 
-  deepCopy() const
-  {
-    ManagedArray copyInstance(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
-
-    const T* data_ptr = data(); 
-    T* copy_data_ptr = copyInstance.data();
-    for (size_type i = 0; i < copyInstance.size(); ++i)
-    {
-      new (copy_data_ptr + i) T(data_ptr[i].deepCopy());
-    }
-
-    return copyInstance;
-  }
-
-  template<typename U=T>
-  typename std::enable_if< std::is_same<std::string, U>::value, ManagedArray >::type 
-  deepCopy() const
-  {
-    ManagedArray copyInstance(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
-
-    const T* data_ptr = data(); 
-    T* copy_data_ptr = copyInstance.data();
-    for (size_type i = 0; i < copyInstance.size(); ++i)
-    {
-      new (copy_data_ptr + i) T(data_ptr[i]);
-    }
-
-    return copy;
   }
 
   bool isCopy() const
@@ -522,6 +484,15 @@ public:
   typename std::enable_if< N==1, void >::type pop_back()
   {
     m_dataVector.pop_back();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
+  insert(iterator pos, T const& value)
+  {
+    m_dataVector.insert( pos, value );
+    m_data = m_dataVector.data();
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 

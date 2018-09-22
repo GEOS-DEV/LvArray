@@ -564,10 +564,10 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
 template < class T, class LAMBDA >
 void deep_copy_test( const array< T >& v, LAMBDA get_value )
 {
-  array< T > v_cpy = v.deepCopy();
+  array< T > v_cpy;
+  v_cpy = v;
   
   ASSERT_EQ( v.size(), v_cpy.size() );
-  ASSERT_EQ( v.capacity(), v_cpy.capacity() );
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
@@ -597,10 +597,10 @@ void deep_copy_test( const array< T >& v, LAMBDA get_value )
 template < class T, class LAMBDA >
 void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
-  array< array< T > > v_cpy = v.deepCopy();
+  array< array< T > > v_cpy;
+  v_cpy = v;
   
   ASSERT_EQ( v.size(), v_cpy.size() );
-  ASSERT_EQ( v.capacity(), v_cpy.capacity() );
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
