@@ -11,7 +11,8 @@ set(cxx-utilities_headers
     src/SFINAE_Macros.hpp
     src/stackTrace.hpp
     src/StringUtilities.hpp
-    src/ChaiVector.hpp )
+    src/ChaiVector.hpp
+    src/SortedArray.hpp )
 
 set(cxx-utilities_sources
     src/DocumentationNode.cpp

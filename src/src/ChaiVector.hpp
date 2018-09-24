@@ -25,8 +25,17 @@
 #ifdef GEOSX_USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
+#include <mutex>
 #else
 #include <cstdlib>
+#endif
+
+
+#ifdef GEOSX_USE_CHAI
+namespace internal
+{
+static std::mutex chai_lock;
+}
 #endif
 
 template < typename T >
@@ -125,7 +134,9 @@ public:
     {
       clear();
 #ifdef GEOSX_USE_CHAI
+      internal::chai_lock.lock();
       m_array.free();
+      internal::chai_lock.unlock();
 #else
       std::free( m_array );
 #endif
@@ -171,7 +182,9 @@ public:
     {
       clear();
 #ifdef GEOSX_USE_CHAI
+      internal::chai_lock.lock();
       m_array.free();
+      internal::chai_lock.unlock();
 #else
       std::free( m_array );
 #endif
@@ -469,6 +482,7 @@ private:
   void realloc( size_type new_capacity )
   {
 #ifdef GEOSX_USE_CHAI
+    internal::chai_lock.lock();
     const size_type initial_capacity = capacity();
     if ( capacity() == 0 )
     {
@@ -478,6 +492,7 @@ private:
     {
       m_array.reallocate( new_capacity );
     }
+    internal::chai_lock.unlock();
 #else
     m_array = static_cast< T* >( std::realloc( static_cast< void* >( m_array ), new_capacity * sizeof( T ) ) );
     m_capacity = new_capacity;

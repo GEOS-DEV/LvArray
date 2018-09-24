@@ -9,6 +9,7 @@ set(newComponentTests
     testSFINAE.cpp
     testStringUtilities.cpp
     testChaiVector.cpp
+    testSortedArray.cpp
    )
 
 set( CXX_UTILITIES_DEP  )
