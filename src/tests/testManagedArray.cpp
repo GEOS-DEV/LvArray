@@ -18,6 +18,7 @@
 
 
 #include "gtest/gtest.h"
+#include <string>
 
 #include "ManagedArray.hpp"
 
@@ -769,6 +770,11 @@ TEST( ManagedArray, push_back )
     array< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+  {
+    array< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, push_back_array )
@@ -785,6 +791,11 @@ TEST( ManagedArray, push_back_array )
     array< array< Tensor > > v;
     internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+  {
+    array< array< std::string > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, insert )
@@ -800,6 +811,11 @@ TEST( ManagedArray, insert )
   {
     array< Tensor > v;
     internal::insert_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< std::string > v;
+    internal::insert_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -818,6 +834,11 @@ TEST( ManagedArray, insert_array )
     array< array< Tensor > > v;
     internal::insert_array_test( v, N, M, P, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+  {
+    array< array< std::string > > v;
+    internal::insert_array_test( v, N, M, P, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, erase )
@@ -835,6 +856,13 @@ TEST( ManagedArray, erase )
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::erase_test( v, v_ref );
   }
+
+  {
+    array< std::string > v;
+    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::erase_test( v, v_ref );
+  }
+
 }
 
 TEST( ManagedArray, erase_array )
@@ -853,6 +881,12 @@ TEST( ManagedArray, erase_array )
     std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::erase_test( v, v_ref );
   }
+
+  {
+    array< array< std::string > > v;
+    std::vector< std::vector < std::string > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::erase_test( v, v_ref );
+  }
 }
 
 TEST( ManagedArray, pop_back )
@@ -868,6 +902,12 @@ TEST( ManagedArray, pop_back )
   {
     array< Tensor > v;
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::pop_back_test( v, v_ref );
+  }
+
+  {
+    array< std::string > v;
+    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::pop_back_test( v, v_ref );
   }
 }
@@ -888,6 +928,12 @@ TEST( ManagedArray, pop_back_array )
     std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::pop_back_test( v, v_ref );
   }
+
+  {
+    array< array< std::string > > v;
+    std::vector< std::vector < std::string > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::pop_back_test( v, v_ref );
+  }
 }
 
 TEST( ManagedArray, resize )
@@ -902,6 +948,11 @@ TEST( ManagedArray, resize )
   {
     array< Tensor > v;
     internal::resize_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< std::string > v;
+    internal::resize_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -919,6 +970,11 @@ TEST( ManagedArray, resize_array )
     array< array< Tensor > > v;
     internal::resize_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+  {
+    array< array< std::string > > v;
+    internal::resize_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, reserve )
@@ -933,6 +989,11 @@ TEST( ManagedArray, reserve )
   {
     array< Tensor > v;
     internal::reserve_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< std::string > v;
+    internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -950,6 +1011,11 @@ TEST( ManagedArray, reserve_array )
     array< array< Tensor > > v;
     internal::reserve_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+  {
+    array< array< std::string > > v;
+    internal::reserve_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, deep_copy )
@@ -966,6 +1032,12 @@ TEST( ManagedArray, deep_copy )
     array< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -985,6 +1057,12 @@ TEST( ManagedArray, deep_copy_array )
     internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::deep_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
   }
+
+{
+    array< array< std::string > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::deep_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( ManagedArray, shallow_copy )
@@ -1001,6 +1079,12 @@ TEST( ManagedArray, shallow_copy )
     array< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 
@@ -1019,6 +1103,12 @@ TEST( ManagedArray, shallow_copy_array )
     array< array< Tensor > > v;
     internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
+
+  {
+    array< array< std::string > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
   }
 }
 

@@ -109,7 +109,7 @@ public:
   template <class InputIterator>
   void insert(InputIterator first, InputIterator last)
   {
-    for (; first != last; first++)
+    for (; first != last; ++first)
     {
       insert(*first);
     }

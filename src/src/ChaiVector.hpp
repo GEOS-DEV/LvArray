@@ -240,10 +240,10 @@ public:
    */
   /// @{
   reference back()
-  { return m_array[ m_length - 1 ]; }
+  { return m_array[ size() - 1 ]; }
 
   const_reference back() const
-  { return m_array[ m_length  - 1 ]; }
+  { return m_array[ size()  - 1 ]; }
   /// @}
 
   /**
@@ -367,13 +367,13 @@ public:
   iterator erase( const_iterator pos )
   {
     const size_type index = pos - begin();
-    m_length--;
-    for ( size_type i = index; i < m_length; ++i )
+    for ( size_type i = index; i < size() - 1; ++i )
     {
       m_array[ i ] = std::move( m_array[ i + 1 ] );
     }
 
-    m_array[ m_length ].~T();
+    m_array[ size() - 1 ].~T();
+    --m_length;
 
     return begin() + index;
   }
@@ -384,14 +384,14 @@ public:
    */
   void push_back( const_reference value )
   {
-    m_length++;
-    if ( m_length > capacity() )
+    if ( size() + 1 > capacity() )
     {
-      dynamicRealloc( m_length );
+      dynamicRealloc( size() + 1 );
     }
-
-    new ( &m_array[ m_length - 1 ] ) T();
-    m_array[ m_length - 1 ] = value;
+    
+    new ( &m_array[ size() ] ) T();
+    m_array[ size() ] = value;
+    ++m_length;
   }
 
   /**
@@ -399,10 +399,10 @@ public:
    */
   void pop_back()
   {
-    if ( m_length > 0 )
+    if ( size() > 0 )
     {
-      m_length--;
-      m_array[ m_length ].~T();
+      --m_length;
+      m_array[ size() ].~T();
     }
   }
 
@@ -420,16 +420,16 @@ public:
       realloc( new_length );
     }
 
-    if ( new_length < m_length )
+    if ( new_length < size() )
     {
-      for ( size_type i = new_length; i < m_length; ++i )
+      for ( size_type i = new_length; i < size(); ++i )
       {
         m_array[ i ].~T();
       }
     }
     else
     {
-      for ( size_type i = m_length; i < new_length; ++i )
+      for ( size_type i = size(); i < new_length; ++i )
       {
         new ( &m_array[ i ] ) T();
       }
@@ -452,14 +452,14 @@ private:
       return;
     }
 
-    size_type new_length = m_length + n;
+    size_type new_length = size() + n;
     if ( new_length > capacity() )
     {
       dynamicRealloc( new_length );
     }
 
     /* Move the existing values down by n. */
-    for ( size_type i = m_length; i > pos; --i )
+    for ( size_type i = size(); i > pos; --i )
     {
       const size_type cur_pos = i - 1;
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
@@ -483,20 +483,35 @@ private:
   {
 #ifdef GEOSX_USE_CHAI
     internal::chai_lock.lock();
-    const size_type initial_capacity = capacity();
-    if ( capacity() == 0 )
-    {
-      m_array.allocate( new_capacity );
-    }
-    else
-    {
-      m_array.reallocate( new_capacity );
-    }
+    chai::ManagedArray<T> new_array( new_capacity );
     internal::chai_lock.unlock();
 #else
-    m_array = static_cast< T* >( std::realloc( static_cast< void* >( m_array ), new_capacity * sizeof( T ) ) );
+    T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
+#endif
+
+    const size_type new_size = new_capacity > size() ? size() : new_capacity;
+    for ( size_type i = 0; i < new_size; ++i )
+    {
+      new ( &new_array[ i ] ) T( std::move( m_array[ i ] ) );
+    }
+
+    for ( size_type i = 0; i < size(); ++i )
+    {
+      m_array[ i ].~T();
+    }
+
+#ifdef GEOSX_USE_CHAI
+    if ( capacity() != 0 )
+    {
+      internal::chai_lock.lock();
+      m_array.free();
+      internal::chai_lock.unlock();
+    }
+#else
+    std::free( m_array );
     m_capacity = new_capacity;
 #endif
+    m_array = new_array;
   }
 
   /**
