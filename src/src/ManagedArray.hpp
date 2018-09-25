@@ -236,7 +236,13 @@ public:
 
   ManagedArray & operator=( ManagedArray const & source )
   {
-    return this->operator=(source.deepCopy());
+    this->resize(NDIM, source.m_dims);
+    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+    {
+      m_data[a] = source.m_data[a];
+    }
+//    return this->operator=(source.deepCopy());
+    return *this;
   }
 
   ManagedArray & operator=( ManagedArray&& source )
@@ -274,6 +280,32 @@ public:
     }
   }
 
+  template< int U=NDIM >
+  inline  typename std::enable_if< U>=3, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
+  {
+    assert(false);
+  }
+
+  template< int U=NDIM >
+  inline  typename std::enable_if< U==2, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
+  {
+    for( INDEX_TYPE a=0 ; a<size(1) ; ++a )
+    {
+//      (*this)[destIndex][a] = (*this)[sourceIndex][a];
+      m_data[destIndex*m_strides[0]+a] = m_data[sourceIndex*m_strides[0]+a];
+    }
+  }
+
+  template< int U=NDIM >
+  inline typename std::enable_if< U==1, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
+  {
+    m_data[ destIndex ] = m_data[ sourceIndex ];
+  }
+
+
   template<typename U=T>
   typename std::enable_if< !detail::is_array<U>::value && !std::is_same<std::string, U>::value, ManagedArray >::type 
   deepCopy() const
@@ -285,27 +317,27 @@ public:
   typename std::enable_if< detail::is_array<U>::value, ManagedArray >::type 
   deepCopy() const
   {
-    ManagedArray copy(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
+    ManagedArray copyInstance(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
 
     const T* data_ptr = data(); 
-    T* copy_data_ptr = copy.data();
-    for (size_type i = 0; i < copy.size(); ++i)
+    T* copy_data_ptr = copyInstance.data();
+    for (size_type i = 0; i < copyInstance.size(); ++i)
     {
       new (copy_data_ptr + i) T(data_ptr[i].deepCopy());
     }
 
-    return copy;
+    return copyInstance;
   }
 
   template<typename U=T>
   typename std::enable_if< std::is_same<std::string, U>::value, ManagedArray >::type 
   deepCopy() const
   {
-    ManagedArray copy(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
+    ManagedArray copyInstance(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
 
     const T* data_ptr = data(); 
-    T* copy_data_ptr = copy.data();
-    for (size_type i = 0; i < copy.size(); ++i)
+    T* copy_data_ptr = copyInstance.data();
+    for (size_type i = 0; i < copyInstance.size(); ++i)
     {
       new (copy_data_ptr + i) T(data_ptr[i]);
     }
