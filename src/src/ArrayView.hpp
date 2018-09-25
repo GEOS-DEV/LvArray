@@ -176,7 +176,11 @@ public:
 
   ArrayView & operator=( ArrayView const & rhs )
   {
-    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
+//    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
+    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+    {
+      m_data[a] = rhs.m_data[a];
+    }
     return *this;
   }
 
