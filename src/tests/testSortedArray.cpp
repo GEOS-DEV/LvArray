@@ -60,8 +60,8 @@ void compare_to_reference( const SortedArray< T >& v, const std::set< T >& v_ref
 }
 
 /**
- * @brief Test the push_back method of the ChaiVector.
- * @param [in/out] v the ChaiVector to check.
+ * @brief Test the push_back method of the SortedArray.
+ * @param [in/out] v the SortedArray to check.
  * @param [in] n the number of values to append.
  * @param [in] get_value a function to generate the values to append.
  * @return the std::vector compared against.
@@ -83,6 +83,44 @@ std::set< T > insert_test( SortedArray< T >& v, int n, LAMBDA get_value )
   return v_ref;
 }
 
+/**
+ * @brief Test the erase method of the SortedArray.
+ * @param [in/out] v the SortedArray to check.
+ * @param [in] v_ref the std::vector to compare against.
+ */
+template < class T >
+void erase_test( SortedArray< T >& v, std::set< T >& v_ref )
+{
+  const int n_elems = v.size();
+  for ( int i = 0; i < n_elems; ++i )
+  {
+    T value_to_erase;
+    if ( i % 3 == 0 )   /* erase the beginning. */
+    {
+      value_to_erase = *(v.begin());
+    }
+    else if ( i % 3 == 1 )  /* erase at the end. */
+    {
+      value_to_erase = *(v.end());
+    }
+    else  /* erase the middle. */
+    {
+      value_to_erase =*(v.begin() + v.size() / 2);
+    }
+
+    v.erase(value_to_erase);
+    v_ref.erase(value_to_erase);
+
+    if ( i % 10 == 0 )
+    {
+      compare_to_reference( v, v_ref );
+    }
+  }
+
+  ASSERT_TRUE( v.empty() );
+  compare_to_reference( v, v_ref );
+}
+
 } /* namespace internal */
 
 
@@ -95,3 +133,15 @@ TEST( SortedArray, insert )
     internal::insert_test( v, N, []( int i ) -> int { return 2503 * i % 5857; } );
   }
 }
+
+TEST( SortedArray, erase )
+{
+  constexpr int N = 200;
+
+  {
+    SortedArray< int > v;
+    std::set < int > v_ref = internal::insert_test( v, N, []( int i ) -> int { return 2503 * i % 5857; }  );
+    internal::erase_test( v, v_ref );
+  }
+}
+

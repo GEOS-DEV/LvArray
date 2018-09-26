@@ -116,6 +116,20 @@ public:
   }
 
 
+  void erase( const T& value )
+  {
+    iterator pos = find(value);
+    erase( pos );
+  }
+
+
+  void erase( iterator pos )
+  {
+    if (pos == end()) return;
+    m_data.erase(pos);
+  }
+
+
   iterator find(const T& value)
   { return std::lower_bound(begin(), end(), value); }
 
