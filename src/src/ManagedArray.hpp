@@ -41,7 +41,7 @@
 //#include <utility>
 
 //#include "../../../core/src/codingUtilities/static_if.hpp"
-#include "../../../../coreComponents/common/Logger.hpp"
+//#include "../../../../coreComponents/common/Logger.hpp"
 #include "ArrayView.hpp"
 #include "ChaiVector.hpp"
 
@@ -236,7 +236,16 @@ public:
 
   ManagedArray & operator=( ManagedArray const & source )
   {
-    return this->operator=(source.deepCopy());
+    m_dataVector = source.m_dataVector;
+    m_data = m_dataVector.data();
+
+    for( int a=0 ; a<NDIM ; ++a )
+    {
+      m_dims[a] = source.m_dims[a];
+      m_strides[a] = source.m_strides[a];
+    }
+
+    return *this;
   }
 
   ManagedArray & operator=( ManagedArray&& source )
@@ -274,43 +283,28 @@ public:
     }
   }
 
-  template<typename U=T>
-  typename std::enable_if< !detail::is_array<U>::value && !std::is_same<std::string, U>::value, ManagedArray >::type 
-  deepCopy() const
+  template< int U=NDIM >
+  inline  typename std::enable_if< U>=3, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
-    return ManagedArray(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
+    assert(false);
   }
 
-  template<typename U=T>
-  typename std::enable_if< detail::is_array<U>::value, ManagedArray >::type 
-  deepCopy() const
+  template< int U=NDIM >
+  inline  typename std::enable_if< U==2, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
-    ManagedArray copy(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
-
-    const T* data_ptr = data(); 
-    T* copy_data_ptr = copy.data();
-    for (size_type i = 0; i < copy.size(); ++i)
+    for( INDEX_TYPE a=0 ; a<size(1) ; ++a )
     {
-      new (copy_data_ptr + i) T(data_ptr[i].deepCopy());
+      m_data[destIndex*m_strides[0]+a] = m_data[sourceIndex*m_strides[0]+a];
     }
-
-    return copy;
   }
 
-  template<typename U=T>
-  typename std::enable_if< std::is_same<std::string, U>::value, ManagedArray >::type 
-  deepCopy() const
+  template< int U=NDIM >
+  inline typename std::enable_if< U==1, void >::type
+  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
-    ManagedArray copy(m_dataVector.deep_copy(), m_dims, m_singleParameterResizeIndex);
-
-    const T* data_ptr = data(); 
-    T* copy_data_ptr = copy.data();
-    for (size_type i = 0; i < copy.size(); ++i)
-    {
-      new (copy_data_ptr + i) T(data_ptr[i]);
-    }
-
-    return copy;
+    m_data[ destIndex ] = m_data[ sourceIndex ];
   }
 
   bool isCopy() const
@@ -364,10 +358,7 @@ public:
 
   void resize(int n_dims, long long const * const dims)
   {
-    if ( n_dims != NDIM )
-    {
-      GEOS_ERROR("Dimensions mismatch: " << n_dims << " != " << NDIM);
-    }
+    assert( n_dims == NDIM );
 
     for (int i = 0; i < NDIM; i++)
     {
@@ -530,6 +521,15 @@ public:
     m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
+  insert(iterator pos, T const& value)
+  {
+    m_dataVector.insert( pos, value );
+    m_data = m_dataVector.data();
+    m_dims[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
   template<int N=NDIM, typename InputIt>
   typename std::enable_if< N==1, void >::type 
   insert(iterator pos, InputIt first, InputIt last)
@@ -574,7 +574,7 @@ public:
    * sub-array.
    */
 
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   inline  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
@@ -616,7 +616,7 @@ public:
 
 
 
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)

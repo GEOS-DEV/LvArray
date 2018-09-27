@@ -28,7 +28,6 @@
 #include <vector>
 #include <iostream>
 #include <utility>
-#define ARRAY_BOUNDS_CHECK 1
 
 #ifdef __clang__
 #define restrict __restrict__
@@ -113,7 +112,15 @@ public:
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
   inline
-  operator T *() const
+  operator T *()
+  {
+    return m_data;
+  }
+
+  template< int U = NDIM,
+            typename std::enable_if<U==1, int>::type = 0>
+  inline
+  operator T const *() const
   {
     return m_data;
   }
@@ -169,7 +176,11 @@ public:
 
   ArrayView & operator=( ArrayView const & rhs )
   {
-    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
+//    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
+    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+    {
+      m_data[a] = rhs.m_data[a];
+    }
     return *this;
   }
 
@@ -183,7 +194,7 @@ public:
    * beginning of the data associated with its
    * sub-array.
    */
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   //inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
@@ -230,7 +241,7 @@ public:
 
 
 
-#if ARRAY_BOUNDS_CHECK == 1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   //inline constexpr  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
@@ -359,7 +370,7 @@ private:
 
 
 
-#if ARRAY_BOUNDS_CHECK==1
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
 template< typename T, typename INDEX_TYPE >
 using arrayView1d = ArrayView<T,1,INDEX_TYPE>;
 
