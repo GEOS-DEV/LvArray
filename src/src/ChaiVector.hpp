@@ -16,14 +16,26 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+#ifndef CHAI_VECTOR_HPP_
+#define CHAI_VECTOR_HPP_
+
 #include <type_traits>
 #include <iterator>
 
 #ifdef GEOSX_USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
+#include <mutex>
 #else
 #include <cstdlib>
+#endif
+
+
+#ifdef GEOSX_USE_CHAI
+namespace internal
+{
+static std::mutex chai_lock;
+}
 #endif
 
 template < typename T >
@@ -122,11 +134,41 @@ public:
     {
       clear();
 #ifdef GEOSX_USE_CHAI
+      internal::chai_lock.lock();
       m_array.free();
+      internal::chai_lock.unlock();
 #else
       std::free( m_array );
 #endif
     }
+  }
+
+  /**
+   * @brief Move assignment operator, moves the given ChaiVector into *this.
+   * @param [in] source the ChaiVector to move.
+   * @return *this.
+   */
+  ChaiVector& operator=( ChaiVector const& source )
+  {
+    if ( m_copied )
+    {
+#ifdef GEOSX_USE_CHAI
+      m_array = chai::ManagedArray<T>();
+#else
+      m_array = nullptr;
+      m_capacity = 0;
+#endif
+    }
+
+    m_copied = false;
+    resize( source.size() );
+
+    for ( size_type i = 0; i < size(); ++i )
+    {
+      m_array[ i ] = source[ i ];
+    }
+
+    return *this;
   }
 
   /**
@@ -140,7 +182,9 @@ public:
     {
       clear();
 #ifdef GEOSX_USE_CHAI
+      internal::chai_lock.lock();
       m_array.free();
+      internal::chai_lock.unlock();
 #else
       std::free( m_array );
 #endif
@@ -196,10 +240,10 @@ public:
    */
   /// @{
   reference back()
-  { return m_array[ m_length - 1 ]; }
+  { return m_array[ size() - 1 ]; }
 
   const_reference back() const
-  { return m_array[ m_length  - 1 ]; }
+  { return m_array[ size()  - 1 ]; }
   /// @}
 
   /**
@@ -323,13 +367,13 @@ public:
   iterator erase( const_iterator pos )
   {
     const size_type index = pos - begin();
-    m_length--;
-    for ( size_type i = index; i < m_length; ++i )
+    for ( size_type i = index; i < size() - 1; ++i )
     {
       m_array[ i ] = std::move( m_array[ i + 1 ] );
     }
 
-    m_array[ m_length ].~T();
+    m_array[ size() - 1 ].~T();
+    --m_length;
 
     return begin() + index;
   }
@@ -340,14 +384,14 @@ public:
    */
   void push_back( const_reference value )
   {
-    m_length++;
-    if ( m_length > capacity() )
+    if ( size() + 1 > capacity() )
     {
-      dynamicRealloc( m_length );
+      dynamicRealloc( size() + 1 );
     }
-
-    new ( &m_array[ m_length - 1 ] ) T();
-    m_array[ m_length - 1 ] = value;
+    
+    new ( &m_array[ size() ] ) T();
+    m_array[ size() ] = value;
+    ++m_length;
   }
 
   /**
@@ -355,10 +399,10 @@ public:
    */
   void pop_back()
   {
-    if ( m_length > 0 )
+    if ( size() > 0 )
     {
-      m_length--;
-      m_array[ m_length ].~T();
+      --m_length;
+      m_array[ size() ].~T();
     }
   }
 
@@ -376,16 +420,16 @@ public:
       realloc( new_length );
     }
 
-    if ( new_length < m_length )
+    if ( new_length < size() )
     {
-      for ( size_type i = new_length; i < m_length; ++i )
+      for ( size_type i = new_length; i < size(); ++i )
       {
         m_array[ i ].~T();
       }
     }
     else
     {
-      for ( size_type i = m_length; i < new_length; ++i )
+      for ( size_type i = size(); i < new_length; ++i )
       {
         new ( &m_array[ i ] ) T();
       }
@@ -394,64 +438,7 @@ public:
     m_length = new_length;
   }
 
-  /**
-   * @brief Return a copy of *this with a new allocation.
-   * @note The copy only has an allocation in the last touched memory space
-   * of *this.
-   * @note This function effectively does a memcopy of the data, as such it
-   * does not do a true deep copy when holding types such as std::strings.
-   */
-  ChaiVector<T> deep_copy() const
-  {
-#ifdef GEOSX_USE_CHAI
-    if ( capacity() > 0 )
-    {
-      return ChaiVector( chai::deepCopy( m_array ), m_length );
-    }
-    else
-    {
-      return ChaiVector();
-    }
-#else
-    T* copy = static_cast< T* >( std::malloc( capacity() * sizeof( T ) ) );
-    for ( size_type i = 0; i < size(); ++i )
-    {
-      new ( &copy[ i ] ) T();
-      copy[ i ] = m_array[ i ];
-    }
-
-    return ChaiVector( copy, size(), capacity() );
-#endif
-  }
-
 private:
-
-#ifdef GEOSX_USE_CHAI
-  /**
-   * @brief Constructor used in the deep_copy method.
-   * @param [in] source the chai::ManagedArray to use.
-   * @param [in] length the length of the vector.
-   */
-  ChaiVector( chai::ManagedArray<T>&& source, size_type length ) :
-    m_array( source ),
-    m_length( length ),
-    m_copied( false )
-  {}
-#else
-  /**
-   * @brief Constructor used in the deep_copy method.
-   * @param [in] source the pointer to wrap. Must have been allocated with malloc.
-   * @param [in] length the length of the array.
-   * @param [in] the capacity of the array.
-   */
-  ChaiVector( T* source, size_type length, size_type capacity ) :
-    m_array( source ),
-    m_capacity( capacity ),
-    m_length( length ),
-    m_copied( false )
-  {}
-#endif
-
 
   /**
    * @brief Insert the given number of default values at the given position.
@@ -465,14 +452,14 @@ private:
       return;
     }
 
-    size_type new_length = m_length + n;
+    size_type new_length = size() + n;
     if ( new_length > capacity() )
     {
       dynamicRealloc( new_length );
     }
 
     /* Move the existing values down by n. */
-    for ( size_type i = m_length; i > pos; --i )
+    for ( size_type i = size(); i > pos; --i )
     {
       const size_type cur_pos = i - 1;
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
@@ -495,19 +482,36 @@ private:
   void realloc( size_type new_capacity )
   {
 #ifdef GEOSX_USE_CHAI
-    const size_type initial_capacity = capacity();
-    if ( capacity() == 0 )
+    internal::chai_lock.lock();
+    chai::ManagedArray<T> new_array( new_capacity );
+    internal::chai_lock.unlock();
+#else
+    T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
+#endif
+
+    const size_type new_size = new_capacity > size() ? size() : new_capacity;
+    for ( size_type i = 0; i < new_size; ++i )
     {
-      m_array.allocate( new_capacity );
+      new ( &new_array[ i ] ) T( std::move( m_array[ i ] ) );
     }
-    else
+
+    for ( size_type i = 0; i < size(); ++i )
     {
-      m_array.reallocate( new_capacity );
+      m_array[ i ].~T();
+    }
+
+#ifdef GEOSX_USE_CHAI
+    if ( capacity() != 0 )
+    {
+      internal::chai_lock.lock();
+      m_array.free();
+      internal::chai_lock.unlock();
     }
 #else
-    m_array = static_cast< T* >( std::realloc( static_cast< void* >( m_array ), new_capacity * sizeof( T ) ) );
+    std::free( m_array );
     m_capacity = new_capacity;
 #endif
+    m_array = new_array;
   }
 
   /**
@@ -526,3 +530,5 @@ private:
   size_type m_length;
   bool m_copied;
 };
+
+#endif /* CHAI_VECTOR_HPP_ */
