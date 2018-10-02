@@ -657,6 +657,19 @@ public:
     m_singleParameterResizeIndex = index;
   }
 
+  friend std::ostream& operator<< (std::ostream& stream, ManagedArray const & array )
+  {
+    stream<<"{ "<<array.m_data[0];
+    for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
+    {
+      stream<<", "<<array.m_data[a];
+    }
+    stream<<" }";
+    return stream;
+  }
+
+
+
 private:
   ArrayType m_dataVector;
 
