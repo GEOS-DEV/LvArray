@@ -16,36 +16,38 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/* ArrayWrapper.hpp
- *
- *  Created on: Jul 30, 2016
- *      Author: rrsettgast
- */
 
-#ifndef ARRAY_VIEW_HPP_
-#define ARRAY_VIEW_HPP_
+#ifndef ARRAY_SLICE_HPP_
+#define ARRAY_SLICE_HPP_
 #include <cstring>
 #include <vector>
 #include <iostream>
 #include <utility>
 
 #ifdef __clang__
+
 #define restrict __restrict__
 #define restrict_this
+#define CONSTEXPRFUNC constexpr
+
 #elif __GNUC__
+
 #define restrict __restrict__
 #define restrict_this __restrict__
+#define CONSTEXPRFUNC constexpr
+
+#ifdef __INTEL_COMPILER
+
+#define restrict __restrict__
+#define restrict_this __restrict__
+#define CONSTEXPRFUNC
+
 #endif
 
-#include <array>
-#include <vector>
 //#include "Logger.hpp"
 
-namespace multidimensionalArray
+namespace LvArray
 {
-
-//template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t >
-//class ManagedArray;
 
 
 /**
@@ -63,12 +65,20 @@ namespace multidimensionalArray
  * it own the array that defines the shape of the data.
  */
 template< typename T, int NDIM, typename INDEX_TYPE >
-class ArrayView
+class ArraySlice
 {
 public:
+  using index_type = INDEX_TYPE;
+
+  using pointer = T*;
+  using const_pointer = T const *;
+  using reference = T&;
+  using const_reference = T const &;
+
+  using size_type = INDEX_TYPE;
 
   /// deleted default constructor
-  ArrayView() = delete;
+  ArraySlice() = delete;
 
   /**
    * @param data pointer to the beginning of the data
@@ -78,11 +88,10 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
    */
-  //inline constexpr explicit constexpr
   inline explicit
-  ArrayView( T * const restrict inputData,
-             INDEX_TYPE const * const restrict inputDimensions,
-             INDEX_TYPE const * const restrict inputStrides ):
+  ArraySlice( T * const restrict inputData,
+              INDEX_TYPE const * const restrict inputDimensions,
+              INDEX_TYPE const * const restrict inputStrides ):
     m_data(inputData),
     m_dims(inputDimensions),
     m_strides(inputStrides)
@@ -91,36 +100,31 @@ public:
 
 
   /**
-   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
-//  template< bool JUNK = std::is_const<T>::value,
-//            typename std::enable_if<!JUNK, int>::type = 0>
-//  template< typename U=T, typename std::enable_if< !std::is_const<U>::value, int >::type = 0 >
-//  template< typename U = T, typename = typename std::enable_if< !std::is_const<U>::value >::type >
-//  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
   template< typename U = T >
-  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
+  inline
+  operator typename std::enable_if< !std::is_const<U>::value ,
+                                    ArraySlice<T const,NDIM,INDEX_TYPE> >::type ()
   {
-    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+    return ArraySlice<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
                                                m_dims,
                                                m_strides );
   }
 
   /**
-   * User Defined Conversion operator to move from an ArrayView<T> to T *
+   * User Defined Conversion operator to move from an ArraySlice<T> to T *
    */
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
-  inline
-  operator T *()
+  inline operator T *()
   {
     return m_data;
   }
 
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
-  inline
-  operator T const *() const
+  inline operator T const *()
   {
     return m_data;
   }
@@ -130,53 +134,22 @@ public:
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
   template< int U=NDIM >
-  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
+  operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type ()
 
   {
     assert(m_dims[NDIM-1]==1);//,
-//                "ManagedArray::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+//                "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE> is only valid if last "
 //                "dimension is equal to 1.")
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
+    return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data,
                                          m_dims,
                                          m_strides );
   }
 
-//  template< typename T_CC = typename std::enable_if< !std::is_const<T>::value, T >::type >
-//  ArrayView( ArrayView<T_CC,NDIM,INDEX_TYPE> const & source ):
-//    m_data(const_cast<T const *>(source.m_data) ),
-//    m_dims(source.m_dims),
-//    m_strides(source.m_strides)
-//  {
-//  }
 
+  ArraySlice( ArraySlice const & ) = default;
 
-//  inline constexpr  ArrayView( ManagedArray<T,NDIM,INDEX_TYPE> const &
-// ManagedArray ):
-//    m_data(ManagedArray.m_data),
-//    m_dims(ManagedArray.m_dims),
-//    m_strides(ManagedArray.m_strides)
-//  {}
-
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array
-   * has length NDIM
-   *
-   * Base constructor that takes in raw data pointers, sets member pointers, and
-   * calculates stride.
-   */
-//  inline constexpr explicit  ArrayView( T * const restrict inputData ):
-//    m_data(    inputData + maxDim() ),
-//    m_dims( reinterpret_cast<INDEX_TYPE*>( inputData ) + 1 )
-//    m_strides()
-//  {}
-//
-
-  ArrayView( ArrayView const & ) = default;
-
-  ArrayView & operator=( ArrayView const & rhs )
+  ArraySlice & operator=( ArraySlice const & rhs )
   {
-//    memcpy( m_data, rhs.m_data, size()*sizeof(T) );
     for( INDEX_TYPE a=0 ; a<size() ; ++a )
     {
       m_data[a] = rhs.m_data[a];
@@ -187,115 +160,86 @@ public:
   /**
    * @param index index of the element in array to access
    * @return a reference to the member m_childInterface, which is of type
-   * ArrayView<T,NDIM-1>.
+   * ArraySlice<T,NDIM-1>.
    * This function sets the data pointer for m_childInterface.m_data to the
    * location corresponding to the input
    * parameter "index". Thus, the returned object has m_data pointing to the
    * beginning of the data associated with its
    * sub-array.
    */
+  template< int U=NDIM >
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  template< int U=NDIM >
-  //inline constexpr typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
-  inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  //inline constexpr typename std::enable_if< U==1, T const & >::type
-  inline typename std::enable_if< U==1, T const & >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return m_data[ index ];
-  }
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
-  template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
-  inline typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+#endif
   operator[](INDEX_TYPE const index) const
   {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    assert( index >= 0 && index < m_dims[0] );
+    return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   template< int U=NDIM >
-  //inline constexpr typename std::enable_if< U==2, T const * restrict >::type
-  inline typename std::enable_if< U==2, T const * restrict >::type
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+#else
+  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+#endif
+  operator[](INDEX_TYPE const index)
+  {
+    assert( index >= 0 && index < m_dims[0] );
+    return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+  }
+
+#ifndef GEOSX_USE_ARRAY_BOUNDS_CHECK
+  template< int U=NDIM >
+  inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U==1, T const & >::type
-  inline typename std::enable_if< U==1, T const & >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    return m_data[ index ];
-  }
-
-#endif
-
-
-
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  operator[](INDEX_TYPE const index)
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U==1, T & >::type
-  inline typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index)
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return m_data[ index ];
-  }
-#else
-  template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  inline typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  operator[](INDEX_TYPE const index)
-  {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  //inline constexpr  typename std::enable_if< U==2, T * restrict >::type
-  inline typename std::enable_if< U==2, T * restrict >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
     return &(m_data[ index*m_strides[0] ]);
   }
+#endif
 
   template< int U=NDIM >
-  //inline constexpr typename std::enable_if< U==1, T & >::type
-  inline typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index)
+  inline CONSTEXPRFUNC typename std::enable_if< U==1, T const & >::type
+  operator[](INDEX_TYPE const index) const
   {
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+    assert( index >= 0 && index < m_dims[0] );
+#endif
     return m_data[ index ];
   }
 
+
+  template< int U=NDIM >
+  inline CONSTEXPRFUNC typename std::enable_if< U==1, T & >::type
+  operator[](INDEX_TYPE const index)
+  {
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+    assert( index >= 0 && index < m_dims[0] );
 #endif
+    return m_data[ index ];
+  }
+
+
+
+
 
   template< typename... INDICES >
-  //inline constexpr T & operator()( INDICES... indices ) const
-  inline T & operator()( INDICES... indices ) const
+  inline CONSTEXPRFUNC T & operator()( INDICES... indices ) const
   {
     return m_data[ linearIndex(indices...) ];
   }
 
   template< typename... INDICES >
-  //inline constexpr  INDEX_TYPE linearIndex( INDICES... indices ) const
-  inline INDEX_TYPE linearIndex( INDICES... indices ) const
+  inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
   }
@@ -372,16 +316,16 @@ private:
 
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
 template< typename T, typename INDEX_TYPE >
-using arrayView1d = ArrayView<T,1,INDEX_TYPE>;
+using ArraySlice1d = ArraySlice<T,1,INDEX_TYPE>;
 
 #else
 
 template< typename T, typename INDEX_TYPE = int>
-using arrayView1d = T *;
+using ArraySlice1d = T *;
 
 #endif
 
 
-} /* namespace arraywrapper */
+}
 
 #endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */
