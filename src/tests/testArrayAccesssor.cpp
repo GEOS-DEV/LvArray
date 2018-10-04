@@ -40,6 +40,7 @@
 #endif
 
 #include "../src/MultidimensionalArray.hpp"
+#include "../src/Logger.hpp"
 #include <sys/time.h>
 #include <stdint.h>
 #include <string>
@@ -62,7 +63,7 @@ TEST(testArrayAccessor,ArrayInterface1)
 
   for( integer_t a=0 ; a<n ; ++a )
   {
-    std::cout<<array[a]<<std::endl;
+    GEOS_LOG(array[a]);
   }
 }
 
@@ -87,8 +88,7 @@ TEST(testArrayAccessor,ArrayInterface2)
   {
     for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
-      std::cout<<memblock[a*lengths[1]+b]<<" ?= ";
-      std::cout<<array[a][b]<<std::endl;
+      GEOS_LOG(memblock[a*lengths[1]+b] << " ?= " << array[a][b]);
       assert(&(memblock[a*lengths[1]+b])==&(array[a][b]));
     }
   }
@@ -123,15 +123,14 @@ TEST(testArrayAccessor,ArrayInterface3)
 
       for( integer_t c=0 ; c<lengths[2] ; ++c )
       {
-        std::cout<<"("<<a<<","<<b<<","<<c<<") -> ";
-        std::cout<<memblock[a][b][c]<<" ?= ";
-        std::cout<<array3[a][b][c]<<" ?= "<<array1[c]<<std::endl;
+        GEOS_LOG("(" << a << "," << b << "," << c << ") -> " << memblock[a][b][c] <<" ?= "
+                 << array3[a][b][c] << " ?= " << array1[c]);
 
         assert(&(memblock[a][b][c])==&(array1[c]));
         assert(&(memblock[a][b][c])==&(array2[b][c]));
         assert(&(memblock[a][b][c])==&(array3[a][b][c]));
       }
-      std::cout<<std::endl;
+      GEOS_LOG("");
     }
   }
 }

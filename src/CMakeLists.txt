@@ -12,18 +12,22 @@ set(cxx-utilities_headers
     src/stackTrace.hpp
     src/StringUtilities.hpp
     src/ChaiVector.hpp
-    src/SortedArray.hpp )
+    src/SortedArray.hpp
+    src/Logger.hpp )
 
 set(cxx-utilities_sources
     src/DocumentationNode.cpp
     src/SetSignalHandling.cpp
     src/stackTrace.cpp
-    src/StringUtilities.cpp )
+    src/StringUtilities.cpp
+    src/Logger.cpp )
 
 add_subdirectory(tests)
 
+set( cxx_dependencies slic lumberjack )
+
 if( ${ENABLE_CHAI})
-    set( cxx_dependencies chai umpire )
+    set( cxx_dependencies ${cxx_dependencies} chai umpire )
 endif()
 
 message("adding cxxutilities library")

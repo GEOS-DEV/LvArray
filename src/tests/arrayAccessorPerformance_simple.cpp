@@ -280,9 +280,9 @@ int main( int argc, char* argv[] )
         error2_3 += pow( C1[i*num_j+j] - C2_3[i*num_j+j], 2 );
       }
     }
-    std::cout<<"error2_1 = "<<error2_1<<std::endl;
-    std::cout<<"error2_2 = "<<error2_2<<std::endl;
-    std::cout<<"error2_3 = "<<error2_3<<std::endl;
+    GEOS_LOG("error2_1 = " << error2_1);
+    GEOS_LOG("error2_2 = " << error2_2);
+    GEOS_LOG("error2_3 = " << error2_3);
   }
 
   if( output > 1 )

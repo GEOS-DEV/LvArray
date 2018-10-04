@@ -29,6 +29,7 @@
 #include <string>
 #include <math.h>
 
+#include "Logger.hpp"
 #include "MultidimensionalArray2.hpp"
 
 using namespace multidimensionalArray;
@@ -486,18 +487,18 @@ int main( int /*argc*/, char* argv[] )
         error2_10 += pow( C2_native[i][j] - C2_10[i*num_j+j+5], 2 );
       }
     }
-    std::cout<<"error1a = "<<error1a<<std::endl;
-    std::cout<<"error1b = "<<error1b<<std::endl;
-    std::cout<<"error2_1 = "<<error2_1<<std::endl;
-    std::cout<<"error2_2 = "<<error2_2<<std::endl;
-    std::cout<<"error2_3 = "<<error2_3<<std::endl;
-    std::cout<<"error2_4 = "<<error2_4<<std::endl;
-    std::cout<<"error2_5 = "<<error2_5<<std::endl;
-    std::cout<<"error2_6 = "<<error2_6<<std::endl;
-    std::cout<<"error2_7 = "<<error2_7<<std::endl;
-    std::cout<<"error2_8 = "<<error2_8<<std::endl;
-    std::cout<<"error2_9 = "<<error2_9<<std::endl;
-    std::cout<<"error2_10= "<<error2_10<<std::endl;
+    GEOS_LOG("error1a = " << error1a);
+    GEOS_LOG("error1b = " << error1b);
+    GEOS_LOG("error2_1 = " << error2_1);
+    GEOS_LOG("error2_2 = " << error2_2);
+    GEOS_LOG("error2_3 = " << error2_3);
+    GEOS_LOG("error2_4 = " << error2_4);
+    GEOS_LOG("error2_5 = " << error2_5);
+    GEOS_LOG("error2_6 = " << error2_6);
+    GEOS_LOG("error2_7 = " << error2_7);
+    GEOS_LOG("error2_8 = " << error2_8);
+    GEOS_LOG("error2_9 = " << error2_9);
+    GEOS_LOG("error2_10= " << error2_10);
   }
 
   if( output == 1 )

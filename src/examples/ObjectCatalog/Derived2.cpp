@@ -32,12 +32,12 @@
 Derived2::Derived2( int junk, double const & junk2, Parameter& param ):
   Base(junk,junk2,param)
 {
-  std::cout<<"calling Derived2 constructor with arguments ("<<junk<<" "<<junk2<<")"<<std::endl;
+  GEOS_LOG("calling Derived2 constructor with arguments ("<<junk<<" "<<junk2<<")");
 }
 
 Derived2::~Derived2()
 {
-  std::cout<<"calling Derived2 destructor"<<std::endl;
+  GEOS_LOG("calling Derived2 destructor");
 }
 
 REGISTER_CATALOG_ENTRY( Base, Derived2, int, double const &, Parameter& )

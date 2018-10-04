@@ -38,10 +38,8 @@
 #include <limits>
 #include <vector>
 #include <iterator>
-//#include <utility>
 
-//#include "../../../core/src/codingUtilities/static_if.hpp"
-//#include "../../../../coreComponents/common/Logger.hpp"
+#include "Logger.hpp"
 #include "ArrayView.hpp"
 #include "ChaiVector.hpp"
 
