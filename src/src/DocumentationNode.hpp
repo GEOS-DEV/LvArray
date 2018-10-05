@@ -79,7 +79,7 @@ public:
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
-  void Print(  ) const;
+  std::string toString() const;
 
   /*
      void Write(std::string const & fname) const
