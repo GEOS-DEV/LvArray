@@ -204,6 +204,27 @@ public:
     source.clear();
   }
 
+
+
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T> to T *
+   */
+  template< int U = NDIM,
+            typename std::enable_if<U==1, int>::type = 0>
+  inline
+  operator T *()
+  {
+    return m_data;
+  }
+
+  template< int U = NDIM,
+            typename std::enable_if<U==1, int>::type = 0>
+  inline
+  operator T const *() const
+  {
+    return m_data;
+  }
+
   operator ArrayView<T const,NDIM,INDEX_TYPE>() const
   {
     return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
