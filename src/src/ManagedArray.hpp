@@ -566,7 +566,7 @@ public:
   inline  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
   operator[](INDEX_TYPE const index) const
   {
-    assert( index < m_dims[0] );
+    assert( index >= 0 && index < m_dims[0] );
     return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
@@ -574,7 +574,7 @@ public:
   inline typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
-    assert( index < m_dims[0] );
+    assert( index >= 0 && index < m_dims[0] );
     return m_data[ index ];
   }
 #else
@@ -608,7 +608,7 @@ public:
   inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
   operator[](INDEX_TYPE const index)
   {
-    assert( index < m_dims[0] );
+    assert( index >= 0 && index < m_dims[0]  );
     return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
@@ -616,7 +616,7 @@ public:
   inline typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
-    assert( index < m_dims[0] );
+    assert( index >= 0 && index < m_dims[0] );
     return m_data[ index ];
   }
 #else
@@ -677,6 +677,19 @@ public:
   {
     m_singleParameterResizeIndex = index;
   }
+
+  friend std::ostream& operator<< (std::ostream& stream, ManagedArray const & array )
+  {
+    stream<<"{ "<<array.m_data[0];
+    for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
+    {
+      stream<<", "<<array.m_data[a];
+    }
+    stream<<" }";
+    return stream;
+  }
+
+
 
 private:
   ArrayType m_dataVector;
