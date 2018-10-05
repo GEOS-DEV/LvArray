@@ -28,13 +28,16 @@
  */
 
 #include "Logger.hpp"
-#include <mpi.h>
+
 #include <stdlib.h>
 #include <fstream>
 #include <string>
 
-#include "slic/GenericOutputStream.hpp"
+#ifdef GEOSX_USE_MPI
 #include "slic/LumberjackStream.hpp"
+#endif
+
+#include "slic/GenericOutputStream.hpp"
 
 namespace geosx
 {
@@ -54,64 +57,76 @@ std::ofstream rank_stream;
 
 } /* namespace internal */
 
-void InitializeLogger(int mpi_rank, int mpi_n_ranks, int mpi_comm, const std::string& rank_output_dir)
+#ifdef GEOSX_USE_MPI
+
+void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 {
-  internal::rank = mpi_rank;
-  internal::n_ranks = mpi_n_ranks;
+  MPI_Comm_rank(mpi_comm, &internal::rank);
+  MPI_Comm_size(mpi_comm, &internal::n_ranks);
+
   axom::slic::initialize();
   axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
 
-  if ( internal::n_ranks > 1 )
-  {
-    std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                          std::string( "MESSAGE=<MESSAGE>\n" ) +
-                          std::string( "<TIMESTAMP>\n" ) +
-                          std::string( "LEVEL=<LEVEL>\n" ) +
-                          std::string( "RANKS=<RANK>\n") +
-                          std::string( "LOCATION=<FILE> : <LINE>\n" ) +
-                          std::string( 100, '*' ) + std::string("\n");
+  std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
+                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
+                        std::string( "RANKS=<RANK>\n") +
+                        std::string( "MESSAGE=<MESSAGE>\n" ) +
+                        std::string( "<TIMESTAMP>\n" ) +
+                        std::string( 100, '*' ) + std::string("\n");
 
-    const int ranks_limit = 5;
-    axom::slic::LumberjackStream * const stream = new axom::slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
-    axom::slic::addStreamToAllMsgLevels( stream );
-  }
-  else
-  {
-    std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                          std::string( "MESSAGE=<MESSAGE>\n" ) +
-                          std::string( "<TIMESTAMP>\n" ) +
-                          std::string( "LEVEL=<LEVEL>\n" ) +
-                          std::string( "RANKS=<RANK>\n") +
-                          std::string( "LOCATION=<FILE> : <LINE>\n" ) +
-                          std::string( 100, '*' ) + std::string("\n");
-
-    axom::slic::GenericOutputStream * const stream = new axom::slic::GenericOutputStream(&std::cout, format );
-    axom::slic::addStreamToAllMsgLevels( stream );
-  }
+  const int ranks_limit = 5;
+  axom::slic::LumberjackStream * const stream = new axom::slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
+  axom::slic::addStreamToAllMsgLevels( stream );
 
   if ( rank_output_dir != "" )
   {
     internal::using_cout_for_rank_stream = false;
 
-#ifdef GEOSX_USE_MPI
-    if ( rank != 0 )
+    if ( internal::rank != 0 )
     {
-      MPI_Barrier(MPI_COMM_GEOSX);
+      MPI_Barrier(mpi_comm);
     }
     else
     {
-#endif
       std::string cmd = "mkdir -p " + rank_output_dir;
       std::system(cmd.c_str());
-#ifdef GEOSX_USE_MPI
-      MPI_Barrier(MPI_COMM_GEOSX);
+      MPI_Barrier(mpi_comm);
     }
-#endif
 
     std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
     internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
   }
 }
+
+#else
+
+void InitializeLogger(const std::string& rank_output_dir)
+{
+  axom::slic::initialize();
+  axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
+
+  std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
+                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
+                        std::string( "MESSAGE=<MESSAGE>\n" ) +
+                        std::string( "<TIMESTAMP>\n" ) +
+                        std::string( 100, '*' ) + std::string("\n");
+
+  axom::slic::GenericOutputStream * const stream = new axom::slic::GenericOutputStream(&std::cout, format );
+  axom::slic::addStreamToAllMsgLevels( stream );
+
+  if ( rank_output_dir != "" )
+  {
+    internal::using_cout_for_rank_stream = false;
+
+    std::string cmd = "mkdir -p " + rank_output_dir;
+    std::system(cmd.c_str());
+
+    std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
+    internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
+  }
+}
+
+#endif
 
 void FinalizeLogger()
 {

@@ -27,7 +27,12 @@
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
 #include <fstream>
+#include "../../../common/GeosxConfig.hpp"
 #include "slic/slic.hpp"
+
+#ifdef GEOSX_USE_MPI
+#include <mpi.h>
+#endif
 
 #define GEOS_LOG(msg)                                                          \
   do {                                                                         \
@@ -98,7 +103,11 @@ extern std::ofstream rank_stream;
 
 } /* namespace internal */
 
-void InitializeLogger(int mpi_rank, int mpi_n_ranks, int mpi_comm, const std::string& rank_output_dir="");
+#ifdef GEOSX_USE_MPI
+void InitializeLogger(MPI_Comm comm, const std::string& rank_output_dir="");
+#else
+void InitializeLogger(const std::string& rank_output_dir="");
+#endif
 
 void FinalizeLogger();
 
