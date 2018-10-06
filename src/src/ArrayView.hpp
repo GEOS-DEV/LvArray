@@ -29,12 +29,44 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
+
+
+  ArrayView( ArrayView const & source )
+  {
+    //This triggers Chai::ManagedArray CC
+  }
+
+  ArrayView( ArrayView && source )
+  {
+
+  }
+
+  ArrayView & operator=( ArrayView const & source )
+  {
+
+  }
+
+  ArrayView & operator=( ArrayView && source )
+  {
+
+  }
+
   using ArrayType = ChaiVector<T>;
   using iterator = typename ArrayType::iterator;
   using const_iterator = typename ArrayType::const_iterator;
 
-private:
+protected:
   ArrayType m_dataVector;
+
+  INDEX_TYPE m_dimsMem[NDIM];
+
+  INDEX_TYPE m_stridesMem[NDIM];
+
+
+  ArrayView():
+    ArraySlice( nullptr, m_dimsMem, m_stridesMem ),
+    m_dataVector()
+  {}
 
 };
 }
