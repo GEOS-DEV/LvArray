@@ -77,25 +77,8 @@ public:
 
   using size_type = INDEX_TYPE;
 
-  /// deleted default constructor
-  ArraySlice() = delete;
 
-  /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array
-   * has length NDIM
-   *
-   * Base constructor that takes in raw data pointers, sets member pointers, and
-   * calculates stride.
-   */
-  inline explicit
-  ArraySlice( T * const restrict inputData,
-              INDEX_TYPE const * const restrict inputDimensions,
-              INDEX_TYPE const * const restrict inputStrides ):
-    m_data(inputData),
-    m_dims(inputDimensions),
-    m_strides(inputStrides)
-  {}
+
 
 
 
@@ -141,8 +124,8 @@ public:
 //                "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE> is only valid if last "
 //                "dimension is equal to 1.")
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data,
-                                         m_dims,
-                                         m_strides );
+                                            m_dims,
+                                            m_strides );
   }
 
 
@@ -175,7 +158,9 @@ public:
 #endif
   operator[](INDEX_TYPE const index) const
   {
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index >= 0 && index < m_dims[0] );
+#endif
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
@@ -187,7 +172,9 @@ public:
 #endif
   operator[](INDEX_TYPE const index)
   {
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
     assert( index >= 0 && index < m_dims[0] );
+#endif
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
@@ -257,12 +244,52 @@ public:
     return m_dims[dim];
   }
 
+  // TODO get rid of this????
+  int numDimensions() const
+  {
+    return NDIM;
+  }
+
+  inline INDEX_TYPE const * dims() const
+  {
+    return m_dims;
+  }
+
+  inline INDEX_TYPE const * strides() const
+  {
+    return m_strides;
+  }
+
+protected:
+  /// deleted default constructor
+  ArraySlice():
+    m_data(nullptr),
+    m_dims(nullptr),
+    m_strides(nullptr)
+  {}
+
+  /**
+   * @param data pointer to the beginning of the data
+   * @param length pointer to the beginning of an array of lengths. This array
+   * has length NDIM
+   *
+   * Base constructor that takes in raw data pointers, sets member pointers, and
+   * calculates stride.
+   */
+  inline explicit
+  ArraySlice( T * const restrict inputData,
+              INDEX_TYPE const * const restrict inputDimensions,
+              INDEX_TYPE const * const restrict inputStrides ):
+    m_data(inputData),
+    m_dims(inputDimensions),
+    m_strides(inputStrides)
+  {}
+
 private:
   /// pointer to beginning of data for this array, or sub-array.
   T * const restrict m_data;
 
-  /// pointer to array of length NDIM that contains the lengths of each array
-  // dimension
+  /// pointer to array of length NDIM that contains the lengths of each array dimension
   INDEX_TYPE const * const restrict m_dims;
 
   INDEX_TYPE const * const restrict m_strides;

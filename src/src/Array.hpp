@@ -16,23 +16,9 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * ArrayWrapper.hpp
- *
- *  Created on: Jul 30, 2016
- *      Author: rrsettgast
- */
+#ifndef ARRAY_HPP_
+#define ARRAY_HPP_
 
-#ifndef MANAGED_ARRAY_HPP_
-#define MANAGED_ARRAY_HPP_
-
-#ifdef __clang__
-#define restrict __restrict__
-#define restrict_this
-#elif __GNUC__
-#define restrict __restrict__
-#define restrict_this __restrict__
-#endif
 
 #include <iostream>
 #include <limits>
@@ -56,11 +42,8 @@ struct is_integer
 };
 
 
-namespace multidimensionalArray
+namespace LvArray
 {
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
 
 
 template< typename RTYPE, typename T >
@@ -110,10 +93,7 @@ integer_conversion( T input )
 }
 
 
-
-#pragma GCC diagnostic pop
-
-template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t > class ManagedArray;
+template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t > class Array;
 
 namespace detail
 {
@@ -121,12 +101,12 @@ template<typename>
 struct is_array : std::false_type {};
 
 template< typename T, int NDIM, typename INDEX_TYPE >
-struct is_array< multidimensionalArray::ManagedArray<T,NDIM,INDEX_TYPE> > : std::true_type{};
+struct is_array< multidimensionalArray::Array<T,NDIM,INDEX_TYPE> > : std::true_type{};
 }
 
 
 template< typename T, int NDIM, typename INDEX_TYPE >
-class ManagedArray
+class Array
 {
 public:
   using ArrayType = ChaiVector<T>;
@@ -146,39 +126,29 @@ public:
 
   using isArray = std::true_type;
 
-  inline ManagedArray():
-    m_dataVector(),
-    m_data(nullptr),
-    m_dims{0},
-    m_strides{0},
+  inline Array():
+    ArrayView(),
     m_singleParameterResizeIndex(0)
   {
     CalculateStrides();
   }
 
   template< typename... DIMS >
-  inline explicit ManagedArray( DIMS... dims ):
-    m_dataVector(),
-    m_data(),
-    m_dims{ static_cast<INDEX_TYPE>(dims) ...},
-    m_strides(),
-    m_singleParameterResizeIndex(0)
+  inline explicit Array( DIMS... dims ):
+    Array()
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
-    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling ManagedArray::ManagedArray with incorrect number of arguments.");
-    static_assert( check_dim_type<0, DIMS...>::value, "arguments to constructor of geosx::ManagedArray( DIMS... dims ) are incompatible with INDEX_TYPE" );
-    CalculateStrides();
+    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
+    static_assert( check_dim_type<0, DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
-    resize();
+    resize( dims... );
   }
 
-  ManagedArray( ManagedArray const & source ):
-    m_dataVector(source.m_dataVector),
-    m_data(m_dataVector.data()),
-    m_dims(),
-    m_strides(),
+  Array( Array const & source ):
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
+    // This DOES NOT trigger Chai::ManagedArray CC
+
     for( int a=0 ; a<NDIM ; ++a )
     {
       m_dims[a]     = source.m_dims[a];
@@ -186,21 +156,10 @@ public:
     }
   }
 
-  ManagedArray( ManagedArray&& source ):
-    m_dataVector(std::move(source.m_dataVector)),
-    m_data(m_dataVector.data()),
-    m_dims(),
-    m_strides(),
+  Array( Array&& source ):
+    ArrayView( std::move( source ) ),
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
-  {
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      m_dims[a] = source.m_dims[a];
-      m_strides[a] = source.m_strides[a];
-    }
-
-    source.clear();
-  }
+  {}
 
 
 
@@ -246,14 +205,14 @@ public:
 
   {
     assert(m_dims[NDIM-1]==1);//,
-//                "ManagedArray::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+//                "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
 //                "dimension is equal to 1.")
     return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
                                            m_dims,
                                            m_strides );
   }
 
-  ManagedArray & operator=( ManagedArray const & source )
+  Array & operator=( Array const & source )
   {
     m_dataVector = source.m_dataVector;
     m_data = m_dataVector.data();
@@ -267,7 +226,7 @@ public:
     return *this;
   }
 
-  ManagedArray & operator=( ManagedArray&& source )
+  Array & operator=( Array&& source )
   {
     m_dataVector = std::move(source.m_dataVector);
     m_data = m_dataVector.data();
@@ -282,7 +241,7 @@ public:
     return *this;
   }
 
-  ManagedArray & operator=( T const & rhs )
+  Array & operator=( T const & rhs )
   {
     INDEX_TYPE const length = size();
     for( INDEX_TYPE a=0 ; a<length ; ++a )
@@ -364,8 +323,8 @@ public:
   void resize( DIMS... newdims )
   {
     static_assert( sizeof ... (DIMS) == NDIM,
-                   "Error: calling template< typename... DIMS > ManagedArray::resize(DIMS...newdims) with incorrect number of arguments.");
-    static_assert( check_dim_type<0,DIMS...>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+                   "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments.");
+    static_assert( check_dim_type<0,DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE length = 1;
 
@@ -391,7 +350,7 @@ public:
   template< typename TYPE >
   void resize( TYPE newdim )
   {
-    static_assert( is_valid_indexType<TYPE>::value, "arguments to ManagedArray::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( is_valid_indexType<TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     m_dims[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
@@ -407,41 +366,10 @@ public:
 
 
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-
-  /**
-   * @return total length of the array across all dimensions
-   */
-  INDEX_TYPE size() const
-  {
-    INDEX_TYPE length = 1;
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      length *= m_dims[dim];
-    }
-
-    assert( length == m_dataVector.size() );
-    return length;
-  }
-
-
-  /**
-   *
-   * @param dim dimension for which the size is requested
-   * @return length of a single dimensions specified by dim
-   *
-   */
-  INDEX_TYPE size( int dim ) const
-  { return m_dims[dim]; }
-
   INDEX_TYPE capacity() const
   { return m_dataVector.capacity(); }
   
-#pragma GCC diagnostic pop
 
-  int numDimensions() const
-  { return NDIM; }
 
   bool empty() const
   { return size() == 0; }
@@ -548,123 +476,6 @@ public:
                                         this->m_strides);
   }
 
-  /**
-   * @param index index of the element in array to access
-   * @return a reference to the member m_childInterface, which is of type
-   * ArrayView<T,NDIM-1>.
-   * This function sets the data pointer for m_childInterface.m_data to the
-   * location corresponding to the input
-   * parameter "index". Thus, the returned object has m_data pointing to the
-   * beginning of the data associated with its
-   * sub-array.
-   */
-
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  template< int U=NDIM >
-  inline  typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==1, T const & >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return m_data[ index ];
-  }
-#else
-  template< int U=NDIM >
-  inline typename std::enable_if< U >= 3, ArrayView<T,NDIM-1,INDEX_TYPE> const >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==2, T const * restrict >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    return &(m_data[ index*m_strides[0] ]);
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==1, T const & >::type
-  operator[](INDEX_TYPE const index) const
-  {
-    return m_data[ index ];
-  }
-
-#endif
-
-
-
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  template< int U=NDIM >
-  inline typename std::enable_if< U!=1, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  operator[](INDEX_TYPE const index)
-  {
-    assert( index >= 0 && index < m_dims[0]  );
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index)
-  {
-    assert( index >= 0 && index < m_dims[0] );
-    return m_data[ index ];
-  }
-#else
-  template< int U=NDIM >
-  inline typename std::enable_if< U>=3, ArrayView<T,NDIM-1,INDEX_TYPE> >::type
-  operator[](INDEX_TYPE const index)
-  {
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==2, T * restrict >::type
-  operator[](INDEX_TYPE const index)
-  {
-    return &(m_data[ index*m_strides[0] ]);
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index)
-  {
-    return m_data[ index ];
-  }
-
-#endif
-
-
-
-  template< typename... DIMS >
-  inline T & operator()( DIMS... dims ) const
-  {
-    return m_data[ linearIndex(dims...) ];
-  }
-
-  template< typename... DIMS >
-  inline INDEX_TYPE linearIndex( DIMS... dims ) const
-  {
-    return index_helper<NDIM,DIMS...>::f(m_strides,dims...);
-  }
-
-
-  inline INDEX_TYPE const * dims() const
-  {
-    return m_dims;
-  }
-
-  inline INDEX_TYPE const * strides() const
-  {
-    return m_strides;
-  }
 
   inline int getSingleParameterResizeIndex() const
   {
@@ -690,20 +501,10 @@ public:
 
 
 private:
-  ArrayType m_dataVector;
-
-  /// pointer to beginning of data for this array, or sub-array.
-  T * restrict m_data;
-
-  /// pointer to array of length NDIM that contains the lengths of each array
-  // dimension
-  INDEX_TYPE m_dims[NDIM];
-
-  INDEX_TYPE m_strides[NDIM];
 
   int m_singleParameterResizeIndex = 0;
 
-  ManagedArray( ChaiVector<T>&& source, const INDEX_TYPE* dims, int resize_index ) :
+  Array( ChaiVector<T>&& source, const INDEX_TYPE* dims, int resize_index ) :
     m_dataVector(std::move(source)),
     m_data(m_dataVector.data()),
     m_dims(),
@@ -727,7 +528,12 @@ private:
     }
 
     m_dataVector.resize( length );
-    m_data = m_dataVector.data();
+    setDataPointer();
+  }
+
+  void setDataPointer()
+  {
+    const_cast<T *>(m_data) = m_dataVector.data();
   }
 
   template< typename CANDIDATE_INDEX_TYPE >
@@ -749,30 +555,6 @@ private:
   struct check_dim_type<NDIM-1,DIM0,DIMS...>
   {
     constexpr static bool value = is_valid_indexType<DIM0>::value;
-  };
-
-
-
-  template< int DIM, typename INDEX, typename... REMAINING_INDICES >
-  struct index_helper
-  {
-    inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
-                                          INDEX index,
-                                          REMAINING_INDICES... indices )
-    {
-      return index*strides[0] + index_helper<DIM-1,REMAINING_INDICES...>::f(strides+1,indices...);
-    }
-  };
-
-  template< typename INDEX, typename... REMAINING_INDICES >
-  struct index_helper<1,INDEX,REMAINING_INDICES...>
-  {
-    inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-                                          INDEX index,
-                                          REMAINING_INDICES... indices )
-    {
-      return index;
-    }
   };
 
 
@@ -799,6 +581,6 @@ private:
 
 };
 
-} /* namespace arraywrapper */
+}
 
-#endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */
+#endif /* ARRAY_HPP_ */
