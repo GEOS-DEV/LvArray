@@ -33,11 +33,17 @@
 #include <fstream>
 #include <string>
 
+#ifdef GEOSX_USE_ATK
+
 #ifdef GEOSX_USE_MPI
 #include "slic/LumberjackStream.hpp"
 #endif
 
 #include "slic/GenericOutputStream.hpp"
+
+#endif
+
+#include "stackTrace.hpp"
 
 namespace geosx
 {
@@ -102,6 +108,7 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 
 void InitializeLogger(const std::string& rank_output_dir)
 {
+#ifdef GEOSX_USE_ATK
   axom::slic::initialize();
   axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
 
@@ -124,15 +131,37 @@ void InitializeLogger(const std::string& rank_output_dir)
     std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
     internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
   }
+#endif
 }
 
 #endif
 
 void FinalizeLogger()
 {
+#ifdef GEOSX_USE_ATK
   axom::slic::flushStreams();
   axom::slic::finalize();
+#endif
 }
+
+void geos_abort()
+{
+  cxx_utilities::handler1(EXIT_FAILURE);
+#ifdef GEOSX_USE_MPI
+  int mpi = 0;
+  MPI_Initialized( &mpi );
+  if ( mpi )
+  {
+    MPI_Abort( MPI_COMM_GEOSX, EXIT_FAILURE );
+  }
+  else
+#endif
+  {
+    exit( EXIT_FAILURE );
+  }
+}
+
+
 
 } /* namespace logger */
 

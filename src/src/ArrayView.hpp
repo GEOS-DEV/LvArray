@@ -21,6 +21,7 @@
 
 
 #include "ArraySlice.hpp"
+#include "ChaiVector.hpp"
 
 
 namespace LvArray
@@ -29,6 +30,26 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
+
+  using ArrayType = ChaiVector<T>;
+  using iterator = typename ArrayType::iterator;
+  using const_iterator = typename ArrayType::const_iterator;
+
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::size;
+
+  ArrayView():
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
+    m_dataVector()
+  {}
+
+  ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, dims, strides )
+  {
+
+  }
 
 
   ArrayView( ArrayView const & source )
@@ -51,9 +72,54 @@ public:
 
   }
 
-  using ArrayType = ChaiVector<T>;
-  using iterator = typename ArrayType::iterator;
-  using const_iterator = typename ArrayType::const_iterator;
+
+
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   */
+//  template< typename U = T >
+//  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
+//  {
+//    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+//                                               m_dims,
+//                                               m_strides );
+//  }
+
+  /**
+   * User defined conversion to convert to a reduced dimension array. For example, converting from
+   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+   */
+  template< int U=NDIM >
+  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
+  {
+    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
+                   "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+                   "dimension is equal to 1." );
+
+    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
+                                           m_dims,
+                                           m_strides );
+  }
+
+
+
+  void setDataPtr()
+  {
+    T*& dataPtr = const_cast<T*&>(this->m_data);
+    dataPtr = m_dataVector.data() ;
+  }
+
+  void setDimsPtr()
+  {
+    INDEX_TYPE*& dimsPtr = const_cast<INDEX_TYPE*&>(this->m_dims);
+    dimsPtr = m_dimsMem;
+  }
+
+  void setStridesPtr()
+  {
+    INDEX_TYPE*& stridesPtr = const_cast<INDEX_TYPE*&>(this->m_strides);
+    stridesPtr = m_stridesMem;
+  }
 
 protected:
   ArrayType m_dataVector;
@@ -63,10 +129,6 @@ protected:
   INDEX_TYPE m_stridesMem[NDIM];
 
 
-  ArrayView():
-    ArraySlice( nullptr, m_dimsMem, m_stridesMem ),
-    m_dataVector()
-  {}
 
 };
 }

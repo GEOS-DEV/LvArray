@@ -59,7 +59,7 @@ void setSignalHandling( void (*handler)( int ) )
   signal(SIGCONT, handler);
   signal(SIGCHLD, handler);
 
-#if __APPLE__
+#ifdef __APPLE__
 #if __clang__
 
 #elif __GNUC__

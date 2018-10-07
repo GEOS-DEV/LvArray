@@ -19,7 +19,7 @@
 #ifndef SRC_COMMON_SORTEDARRAY
 #define SRC_COMMON_SORTEDARRAY
 
-#include "ManagedArray.hpp"   /* for ManagedArray */
+#include "Array.hpp"   /* for Array */
 #include <algorithm>          /* for std::binary_search, std::lower_bound */
 
 template< typename T, typename INDEX_TYPE=std::int_fast32_t >
@@ -27,12 +27,12 @@ class SortedArray
 {
 
 public:
-  using iterator = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::iterator;
-  using const_iterator = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::const_iterator;
-  using size_type = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::size_type;
-  using value_type = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::value_type;
-  using pointer = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::pointer;
-  using const_pointer = typename multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE>::const_pointer;
+  using iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::iterator;
+  using const_iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::const_iterator;
+  using size_type = typename LvArray::Array<T, 1, INDEX_TYPE>::size_type;
+  using value_type = typename LvArray::Array<T, 1, INDEX_TYPE>::value_type;
+  using pointer = typename LvArray::Array<T, 1, INDEX_TYPE>::pointer;
+  using const_pointer = typename LvArray::Array<T, 1, INDEX_TYPE>::const_pointer;
 
 
   SortedArray():
@@ -146,7 +146,7 @@ public:
   { return std::is_sorted(begin(), end()); }
 
 private:
-  multidimensionalArray::ManagedArray<T, 1, INDEX_TYPE> m_data;
+  LvArray::Array<T, 1, INDEX_TYPE> m_data;
 };
 
 #endif /* SRC_COMMON_SORTEDARRAY */
