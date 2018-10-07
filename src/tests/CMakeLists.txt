@@ -3,8 +3,7 @@
 #
 
 set(newComponentTests
-    testArrayAccesssor.cpp
-    testManagedArray.cpp
+    testArray.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
     testStringUtilities.cpp

@@ -1,7 +1,6 @@
 message("Processing cxx-utilities.cmake")
 
 
-
 if( ( NOT BLT_CXX_STD STREQUAL c++14 ) AND (NOT BLT_CXX_STD STREQUAL c++11))
     MESSAGE(FATAL_ERROR "c++11/14 is NOT enabled. cxx-utilities requires c++11/14")
 endif()

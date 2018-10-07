@@ -71,6 +71,8 @@
     }                                                                          \
   } while (false)
 
+#ifdef GEOSX_USE_ATK
+
 /* Always active */
 #define GEOS_ERROR(msg) SLIC_ERROR(msg)
 #define GEOS_ERROR_IF(EXP, msg) SLIC_ERROR_IF(EXP, msg)
@@ -83,12 +85,75 @@
 #define GEOS_ASSERT(EXP) SLIC_ASSERT(EXP)
 #define GEOS_ASSERT_MSG(EXP, msg) SLIC_ASSERT_MSG(EXP, msg)
 #define GEOS_CHECK(EXP, msg) SLIC_CHECK_MSG(EXP, msg)
+#else
+
+#define GEOS_ERROR_IF(EXP, msg)                               \
+  do {                                                        \
+    if (EXP)                                                  \
+    {                                                         \
+      std::cout << "***** GEOS_ERROR "<<std::endl;            \
+      std::cout << "***** FILE: " << __FILE__ << std::endl;   \
+      std::cout << "***** LINE: " << __LINE__ << std::endl;   \
+      std::cout << msg << std::endl;                          \
+      geosx::logger::geos_abort();                            \
+    }                                                         \
+  } while (false)
+
+#define GEOS_WARNING_IF(EXP, msg)                             \
+  do {                                                        \
+    if (EXP)                                                  \
+    {                                                         \
+      std::cout << "***** GEOS_WARNING "<<std::endl;          \
+      std::cout << "***** FILE: " << __FILE__ << std::endl;   \
+      std::cout << "***** LINE: " << __LINE__ << std::endl;   \
+      std::cout << msg << std::endl;                          \
+    }                                                         \
+  } while (false)
+
+#define GEOS_INFO_IF(EXP, msg)                                \
+  do {                                                        \
+    if (EXP)                                                  \
+    {                                                         \
+      std::cout << "***** GEOS_INFO "<<std::endl;             \
+      std::cout << "***** FILE: " << __FILE__ << std::endl;   \
+      std::cout << "***** LINE: " << __LINE__ << std::endl;   \
+      std::cout << msg << std::endl;                          \
+    }                                                         \
+  } while (false)
+
+#ifdef GEOSX_DEBUG
+
+#define GEOS_ASSERT(EXP, msg) GEOS_ERROR_IF(!(EXP), msg)
+
+#define GEOS_CHECK(EXP, msg) GEOS_WARNING_IF(!(EXP), msg)
+
+#else /* #ifdef GEOSX_DEBUG */
+
+#define GEOS_ASSERT(EXP, msg) ((void) 0)
+
+#define GEOS_CHECK(EXP, msg) ((void) 0)
+
+#endif /* #ifdef GEOSX_DEBUG */
+
+#define GEOS_ERROR(msg) GEOS_ERROR_IF(true, msg)
+
+#define GEOS_WARNING(msg) GEOS_WARNING_IF(true, msg)
+
+#define GEOS_INFO(msg) GEOS_INFO_IF(true, msg)
+
+#endif /* #ifdef GEOSX_USE_ATK */
+
+
+
 
 namespace geosx
 {
 
 namespace logger
 {
+
+void geos_abort();
+
 
 namespace internal
 {

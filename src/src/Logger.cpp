@@ -35,6 +35,8 @@
 #include <fstream>
 #include <string>
 
+#ifdef GEOSX_USE_ATK
+
 #ifdef GEOSX_USE_MPI
 #include "axom/slic/streams/LumberjackStream.hpp"
 #endif
@@ -42,6 +44,10 @@
 #include "axom/slic/streams/GenericOutputStream.hpp"
 
 using namespace axom;
+
+#endif
+
+#include "stackTrace.hpp"
 
 namespace geosx
 {
@@ -131,7 +137,6 @@ void InitializeLogger(const std::string& rank_output_dir)
 {
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
-
   slic::GenericOutputStream* stream = internal::createGenericStream();
   slic::addStreamToAllMsgLevels( stream );
 
@@ -154,6 +159,25 @@ void FinalizeLogger()
   slic::flushStreams();
   slic::finalize();
 }
+
+void geos_abort()
+{
+  cxx_utilities::handler1(EXIT_FAILURE);
+#ifdef GEOSX_USE_MPI
+  int mpi = 0;
+  MPI_Initialized( &mpi );
+  if ( mpi )
+  {
+    MPI_Abort( MPI_COMM_GEOSX, EXIT_FAILURE );
+  }
+  else
+#endif
+  {
+    exit( EXIT_FAILURE );
+  }
+}
+
+
 
 } /* namespace logger */
 

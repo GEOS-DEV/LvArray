@@ -20,12 +20,12 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#include "ManagedArray.hpp"
+#include "Array.hpp"
 
-using namespace multidimensionalArray;
+using namespace LvArray;
 
 template < typename T >
-using array = ManagedArray< T, 1 >;
+using array = Array< T, 1 >;
 
 namespace internal
 {
@@ -730,32 +730,32 @@ struct Tensor
   }
 };
 
-TEST( ManagedArray, udc_dimreduce)
-{
-  int junk[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  int dim[2] = {10, 1};
-  int stride[2] = {1, 1};
+//TEST( ManagedArray, udc_dimreduce)
+//{
+//  int junk[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+//  int dim[2] = {10, 1};
+//  int stride[2] = {1, 1};
+//
+//  ArrayView<int, 2, int> array(junk, dim, stride);
+//
+//  ArrayView<int, 1, int> arrayC = array;
+//
+//  EXPECT_EQ( arrayC[9], array[9][0] );
+//}
 
-  ArrayView<int, 2, int> array(junk, dim, stride);
-
-  ArrayView<int, 1, int> arrayC = array;
-
-  EXPECT_EQ( arrayC[9], array[9][0] );
-}
-
-TEST( ManagedArray, test_const )
-{
-  int junk[ 10 ];
-  int dim[ 1 ] = { 10 };
-  int stride[ 1 ] = { 1 };
-
-
-  ArrayView< int, 1, int > array( junk, dim, stride );
-
-  ArrayView< const int, 1, int > arrayC = array;
-
-  EXPECT_TRUE( arrayC[ 9 ] == array[ 9 ] );
-}
+//TEST( ManagedArray, test_const )
+//{
+//  int junk[ 10 ];
+//  int dim[ 1 ] = { 10 };
+//  int stride[ 1 ] = { 1 };
+//
+//
+//  ArrayView< int, 1, int > array( junk, dim, stride );
+//
+//  ArrayView< const int, 1, int > arrayC = array;
+//
+//  EXPECT_TRUE( arrayC[ 9 ] == array[ 9 ] );
+//}
 
 TEST( ManagedArray, push_back )
 {

@@ -19,10 +19,12 @@
 
 #ifndef ARRAY_SLICE_HPP_
 #define ARRAY_SLICE_HPP_
+
 #include <cstring>
 #include <vector>
 #include <iostream>
 #include <utility>
+#include "Logger.hpp"
 
 #ifdef __clang__
 
@@ -36,7 +38,7 @@
 #define restrict_this __restrict__
 #define CONSTEXPRFUNC constexpr
 
-#ifdef __INTEL_COMPILER
+#elif __INTEL_COMPILER
 
 #define restrict __restrict__
 #define restrict_this __restrict__
@@ -44,7 +46,6 @@
 
 #endif
 
-//#include "Logger.hpp"
 
 namespace LvArray
 {
@@ -107,7 +108,7 @@ public:
 
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
-  inline operator T const *()
+  inline operator T const *() const
   {
     return m_data;
   }
@@ -120,9 +121,9 @@ public:
   operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type ()
 
   {
-    assert(m_dims[NDIM-1]==1);//,
-//                "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE> is only valid if last "
-//                "dimension is equal to 1.")
+    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
+                   "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE> is only valid if last "
+                   "dimension is equal to 1." );
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data,
                                             m_dims,
                                             m_strides );
@@ -152,9 +153,9 @@ public:
    */
   template< int U=NDIM >
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  inline typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
-  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  inline typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #endif
   operator[](INDEX_TYPE const index) const
   {
@@ -164,11 +165,13 @@ public:
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
+
+
   template< int U=NDIM >
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  inline typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
-  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  inline typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #endif
   operator[](INDEX_TYPE const index)
   {
@@ -180,14 +183,16 @@ public:
 
 #ifndef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U==2 && std::is_scalar<T>::value,
+                                                T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U==2 && std::is_scalar<T>::value,
+                                                T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
     return &(m_data[ index*m_strides[0] ]);
@@ -285,7 +290,7 @@ protected:
     m_strides(inputStrides)
   {}
 
-private:
+protected:
   /// pointer to beginning of data for this array, or sub-array.
   T * const restrict m_data;
 
@@ -293,6 +298,8 @@ private:
   INDEX_TYPE const * const restrict m_dims;
 
   INDEX_TYPE const * const restrict m_strides;
+
+
 
 
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
