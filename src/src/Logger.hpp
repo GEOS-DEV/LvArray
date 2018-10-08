@@ -28,7 +28,7 @@
 
 #include <fstream>
 #include "common/GeosxConfig.hpp"
-#include "slic/slic.hpp"
+#include "axom/slic/interface/slic.hpp"
 
 #ifdef GEOSX_USE_MPI
 #include <mpi.h>
