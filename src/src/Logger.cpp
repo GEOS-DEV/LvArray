@@ -16,9 +16,11 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
+#endif
 
 /*
  * Logger.cpp
@@ -138,4 +140,6 @@ void FinalizeLogger()
 
 } /* namespace geosx */
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif

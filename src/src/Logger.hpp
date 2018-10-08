@@ -27,7 +27,7 @@
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
 #include <fstream>
-#include "../../../common/GeosxConfig.hpp"
+#include "common/GeosxConfig.hpp"
 #include "slic/slic.hpp"
 
 #ifdef GEOSX_USE_MPI

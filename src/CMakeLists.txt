@@ -44,7 +44,7 @@ blt_add_library( NAME             cxx-utilities
 #                        DESTINATION ${cxx-utilities_headersdest})
 
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src )
-#target_include_directories( cxx-utilities PUBLIC ${CMAKE_SOURCE_DIR}/src )
+target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )
 
 if( ENABLE_UNCRUSTIFY )
 geosx_add_code_checks(PREFIX cxx-utilities)
