@@ -16,6 +16,10 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+/**
+ * @file Array.hpp
+ */
+
 #ifndef ARRAY_HPP_
 #define ARRAY_HPP_
 
@@ -103,7 +107,10 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 struct is_array< Array<T,NDIM,INDEX_TYPE> > : std::true_type{};
 }
 
-
+/**
+ * @class Array
+ * This class provides a multi-dimensional array interface to a vector type object.
+ */
 template< typename T, int NDIM, typename INDEX_TYPE >
 class Array : public ArrayView<T,NDIM,INDEX_TYPE>
 {
@@ -140,6 +147,9 @@ public:
   using ArrayView<T,NDIM,INDEX_TYPE>::setStridesPtr;
 
 
+  /**
+   * @brief default constructor
+   */
   inline Array():
     ArrayView<T,NDIM,INDEX_TYPE>(),
     m_singleParameterResizeIndex(0)
@@ -147,6 +157,10 @@ public:
     CalculateStrides();
   }
 
+  /**
+   * @brief constructor that takes in the dimensions as a variadic parameter list
+   * @param dims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
+   */
   template< typename... DIMS >
   inline explicit Array( DIMS... dims ):
     Array()
@@ -158,11 +172,42 @@ public:
     resize( dims... );
   }
 
+  /**
+   * @brief copy constructor
+   * @param source object to copy
+   *
+   * Performs a deep copy of @param source
+   */
   Array( Array const & source ):
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
     // This DOES NOT trigger Chai::ManagedArray CC
 
+    m_dataVector.reserve( source.capacity() );
+    m_dataVector.resize( source.size() );
+    for( INDEX_TYPE a=0 ; a<source.size() ; ++a )
+    {
+      m_dataVector[a] = source[a];
+    }
+
+    for( int a=0 ; a<NDIM ; ++a )
+    {
+      this->m_dimsMem[a]     = source.m_dims[a];
+      this->m_stridesMem[a]  = source.m_strides[a];
+    }
+    this->setDataPtr();
+    this->setStridesPtr();
+    this->setDimsPtr();
+  }
+
+  /**
+   * @brief move constructor
+   * @param source object to move
+   */
+  Array( Array&& source ):
+    ArrayView<T,NDIM,INDEX_TYPE>( std::move( source ) ),
+    m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
+  {
     for( int a=0 ; a<NDIM ; ++a )
     {
       this->m_dimsMem[a]     = source.m_dims[a];
@@ -170,47 +215,22 @@ public:
     }
     this->setStridesPtr();
     this->setDimsPtr();
+
   }
 
-  Array( Array&& source ):
-    ArrayView<T,NDIM,INDEX_TYPE>( std::move( source ) ),
-    m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
-  {}
-
-
-
-//  /**
-//   * User Defined Conversion operator to move from an ArrayView<T> to T *
-//   */
-//  template< int U = NDIM,
-//            typename std::enable_if<U==1, int>::type = 0>
-//  inline
-//  operator T *()
+//  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
 //  {
-//    return m_data;
+//    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+//                                               m_dims,
+//                                               m_strides );
 //  }
 //
-//  template< int U = NDIM,
-//            typename std::enable_if<U==1, int>::type = 0>
-//  inline
-//  operator T const *() const
+//  operator ArrayView<T,NDIM,INDEX_TYPE>()
 //  {
-//    return m_data;
+//    return ArrayView<T,NDIM,INDEX_TYPE>( m_data,
+//                                         m_dims,
+//                                         m_strides );
 //  }
-
-  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
-  {
-    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-                                               m_dims,
-                                               m_strides );
-  }
-
-  operator ArrayView<T,NDIM,INDEX_TYPE>()
-  {
-    return ArrayView<T,NDIM,INDEX_TYPE>( m_data,
-                                         m_dims,
-                                         m_strides );
-  }
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
@@ -228,19 +248,35 @@ public:
                                            m_strides );
   }
 
-  Array & operator=( Array const & source )
+  /**
+   * @brief copy assignment operator
+   * @param rhs rhs to be copied
+   * @return *this
+   */
+  Array & operator=( Array const & rhs )
   {
-    m_dataVector = source.m_dataVector;
+    m_dataVector = rhs.m_dataVector;
     setDataPtr();
 
     for( int a=0 ; a<NDIM ; ++a )
     {
-      m_dimsMem[a] = source.m_dims[a];
-      m_stridesMem[a] = source.m_strides[a];
+      m_dimsMem[a] = rhs.m_dims[a];
+      m_stridesMem[a] = rhs.m_strides[a];
     }
 
     return *this;
   }
+
+  Array & operator=( T const & rhs )
+  {
+    INDEX_TYPE const length = size();
+    for( INDEX_TYPE a=0 ; a<length ; ++a )
+    {
+      m_data[a] = rhs;
+    }
+    return *this;
+  }
+
 
   Array & operator=( Array&& source )
   {
@@ -257,15 +293,6 @@ public:
     return *this;
   }
 
-  Array & operator=( T const & rhs )
-  {
-    INDEX_TYPE const length = size();
-    for( INDEX_TYPE a=0 ; a<length ; ++a )
-    {
-      m_data[a] = rhs;
-    }
-    return *this;
-  }
 
 
   void CalculateStrides()
@@ -522,20 +549,6 @@ private:
 
   int m_singleParameterResizeIndex = 0;
 
-//  Array( ChaiVector<T>&& source, const INDEX_TYPE* dims, int resize_index ) :
-//    m_dataVector(std::move(source)),
-//    m_data(m_dataVector.data()),
-//    m_dims(),
-//    m_strides(),
-//    m_singleParameterResizeIndex(resize_index)
-//  {
-//    for( int a=0 ; a<NDIM ; ++a )
-//    {
-//      m_dims[a] = dims[a];
-//    }
-//
-//    CalculateStrides();
-//  }
 
   void resize()
   {
