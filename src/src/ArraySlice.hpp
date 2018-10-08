@@ -130,8 +130,6 @@ public:
   }
 
 
-  ArraySlice( ArraySlice const & ) = default;
-
   ArraySlice & operator=( ArraySlice const & rhs )
   {
     for( INDEX_TYPE a=0 ; a<size() ; ++a )

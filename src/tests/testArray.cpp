@@ -31,9 +31,9 @@ namespace internal
 {
 
 /**
- * @brief Check that the ManagedArray is equivalent to the std::vector. Checks equality using the
+ * @brief Check that the Array is equivalent to the std::vector. Checks equality using the
  * operator[], operator(), the iterator interface and the raw pointer.
- * @param [in] v the ManagedArray to check.
+ * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against. 
  */
 template < class T >
@@ -73,9 +73,9 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
 }
 
 /**
- * @brief Check that the ManagedArray is equivalent to the std::vector. Checks equality using the
+ * @brief Check that the Array is equivalent to the std::vector. Checks equality using the
  * operator[], operator(), the iterator interface and the raw pointer.
- * @param [in] v the ManagedArray to check.
+ * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against. 
  */
 template < class T >
@@ -97,8 +97,8 @@ void compare_to_reference( const array< array< T > >& v,
 }
 
 /**
- * @brief Test the push_back method of the ManagedArray.
- * @param [in/out] v the ManagedArray to check.
+ * @brief Test the push_back method of the Array.
+ * @param [in/out] v the Array to check.
  * @param [in] n the number of values to append.
  * @param [in] get_value a function to generate the values to append.
  * @return the std::vector compared against.
@@ -121,8 +121,8 @@ std::vector< T > push_back_test( array< T >& v, int n, LAMBDA get_value )
 }
 
 /**
- * @brief Test the push_back method of the ManagedArray.
- * @param [in/out] v the ManagedArray to check.
+ * @brief Test the push_back method of the Array.
+ * @param [in/out] v the Array to check.
  * @param [in] n the number of values to append.
  * @param [in] get_value a function to generate the values to append.
  * @return the std::vector compared against.
@@ -730,7 +730,7 @@ struct Tensor
   }
 };
 
-//TEST( ManagedArray, udc_dimreduce)
+//TEST( Array, udc_dimreduce)
 //{
 //  int junk[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 //  int dim[2] = {10, 1};
@@ -743,7 +743,7 @@ struct Tensor
 //  EXPECT_EQ( arrayC[9], array[9][0] );
 //}
 
-//TEST( ManagedArray, test_const )
+//TEST( Array, test_const )
 //{
 //  int junk[ 10 ];
 //  int dim[ 1 ] = { 10 };
@@ -757,7 +757,7 @@ struct Tensor
 //  EXPECT_TRUE( arrayC[ 9 ] == array[ 9 ] );
 //}
 
-TEST( ManagedArray, push_back )
+TEST( Array, push_back )
 {
   constexpr int N = 1000;     /* Number of values to push_back */
 
@@ -777,7 +777,7 @@ TEST( ManagedArray, push_back )
   }
 }
 
-TEST( ManagedArray, push_back_array )
+TEST( Array, push_back_array )
 {
   constexpr int N = 100;      /* Number of arrays to push_back */
   constexpr int M = 10;       /* Size of each array */
@@ -798,7 +798,7 @@ TEST( ManagedArray, push_back_array )
   }
 }
 
-TEST( ManagedArray, insert )
+TEST( Array, insert )
 {
   constexpr int N = 100;      /* Number of times to call insert */
   constexpr int M = 10;       /* Number of values inserted at each call */
@@ -819,7 +819,7 @@ TEST( ManagedArray, insert )
   }
 }
 
-TEST( ManagedArray, insert_array )
+TEST( Array, insert_array )
 {
   constexpr int N = 10;       /* Number of times to call insert */
   constexpr int M = 10;       /* Number of arrays inserted at each call */
@@ -841,7 +841,7 @@ TEST( ManagedArray, insert_array )
   }
 }
 
-TEST( ManagedArray, erase )
+TEST( Array, erase )
 {
   constexpr int N = 200;    /* Size of the array */
 
@@ -865,7 +865,7 @@ TEST( ManagedArray, erase )
 
 }
 
-TEST( ManagedArray, erase_array )
+TEST( Array, erase_array )
 {
   constexpr int N = 100;    /* Number of arrays to push_back */
   constexpr int M = 10;     /* Size of each array */
@@ -889,7 +889,7 @@ TEST( ManagedArray, erase_array )
   }
 }
 
-TEST( ManagedArray, pop_back )
+TEST( Array, pop_back )
 {
   constexpr int N = 300;    /* Size of the array */
 
@@ -912,7 +912,7 @@ TEST( ManagedArray, pop_back )
   }
 }
 
-TEST( ManagedArray, pop_back_array )
+TEST( Array, pop_back_array )
 {
   constexpr int N = 30;     /* Number of arrays to push_back */
   constexpr int M = 10;     /* Size of each array */
@@ -936,7 +936,7 @@ TEST( ManagedArray, pop_back_array )
   }
 }
 
-TEST( ManagedArray, resize )
+TEST( Array, resize )
 {
   constexpr int N = 1000;   /* Size of each array */
 
@@ -956,7 +956,7 @@ TEST( ManagedArray, resize )
   }
 }
 
-TEST( ManagedArray, resize_array )
+TEST( Array, resize_array )
 {
   constexpr int N = 100;    /* Size of each array */
   constexpr int M = 10;     /* Size of each array */
@@ -977,7 +977,7 @@ TEST( ManagedArray, resize_array )
   }
 }
 
-TEST( ManagedArray, reserve )
+TEST( Array, reserve )
 {
   constexpr int N = 1000;   /* Size of the array */
 
@@ -997,7 +997,7 @@ TEST( ManagedArray, reserve )
   }
 }
 
-TEST( ManagedArray, reserve_array )
+TEST( Array, reserve_array )
 {
   constexpr int N = 100;    /* Number of arrays */
   constexpr int M = 10;     /* Size of each array */
@@ -1018,7 +1018,7 @@ TEST( ManagedArray, reserve_array )
   }
 }
 
-TEST( ManagedArray, deep_copy )
+TEST( Array, deep_copy )
 {
   constexpr int N = 1000;   /* Size of the array */
 
@@ -1041,7 +1041,7 @@ TEST( ManagedArray, deep_copy )
   }
 }
 
-TEST( ManagedArray, deep_copy_array )
+TEST( Array, deep_copy_array )
 {
   constexpr int N = 100;    /* Number of arrays */
   constexpr int M = 10;     /* Size of each array */
@@ -1065,7 +1065,7 @@ TEST( ManagedArray, deep_copy_array )
   }
 }
 
-TEST( ManagedArray, shallow_copy )
+TEST( Array, shallow_copy )
 {
   constexpr int N = 1000;   /* Size of the array */
 
@@ -1088,7 +1088,7 @@ TEST( ManagedArray, shallow_copy )
   }
 }
 
-TEST( ManagedArray, shallow_copy_array )
+TEST( Array, shallow_copy_array )
 {
   constexpr int N = 100;    /* Number of arrays */
   constexpr int M = 10;     /* Size of each array */

@@ -42,48 +42,73 @@ public:
 
   ArrayView():
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
+    m_dimsMem{0},
+    m_stridesMem{0},
     m_dataVector()
   {}
 
   ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
-    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, dims, strides )
+    ArraySlice<T,NDIM,INDEX_TYPE>( data , dims, strides )
   {
 
   }
 
 
-  ArrayView( ArrayView const & source )
+  ArrayView( ArrayView const & source ):
+    m_dataVector(source.m_dataVector)
   {
     //This triggers Chai::ManagedArray CC
+
+    setDataPtr();
+    setDimsPtr();
+    setStridesPtr();
   }
 
-  ArrayView( ArrayView && source )
+  ArrayView( ArrayView && source ):
+    ArraySlice<T,NDIM,INDEX_TYPE>( std::move( source ) ),
+    m_dataVector( std::move( source.m_dataVector ) )
   {
 
   }
 
-  ArrayView & operator=( ArrayView const & source )
+  ArrayView & operator=( ArrayView const & rhs )
   {
+    INDEX_TYPE const rhsLength = rhs.size();
+    INDEX_TYPE const length = size();
 
+    GEOS_ERROR_IF( rhsLength != length,
+                   "rhs length of ("<<rhsLength<<") does not equal this->size() of ("<<length<<")");
+
+    for( INDEX_TYPE a=0 ; a<length ; ++a )
+    {
+      m_data[a] = rhs[a];
+    }
+    return *this;
   }
 
-  ArrayView & operator=( ArrayView && source )
+  ArrayView & operator=( T const & rhs )
   {
-
+    INDEX_TYPE const length = size();
+    for( INDEX_TYPE a=0 ; a<length ; ++a )
+    {
+      m_data[a] = rhs;
+    }
+    return *this;
   }
 
+  ArrayView & operator=( ArrayView && ) = delete;
 
 
   /**
    * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
-//  template< typename U = T >
-//  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
-//  {
-//    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-//                                               m_dims,
-//                                               m_strides );
-//  }
+  template< typename U = T >
+  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
+  {
+    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+                                               m_dims,
+                                               m_strides );
+  }
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
