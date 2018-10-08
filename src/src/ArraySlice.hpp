@@ -87,7 +87,7 @@ public:
    * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
   template< typename U = T >
-  inline
+  inline explicit
   operator typename std::enable_if< !std::is_const<U>::value ,
                                     ArraySlice<T const,NDIM,INDEX_TYPE> >::type ()
   {
@@ -101,14 +101,16 @@ public:
    */
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
-  inline operator T *()
+  inline explicit
+  operator T *()
   {
     return m_data;
   }
 
   template< int U = NDIM,
             typename std::enable_if<U==1, int>::type = 0>
-  inline operator T const *() const
+  inline explicit
+  operator T const *() const
   {
     return m_data;
   }
@@ -118,6 +120,7 @@ public:
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
   template< int U=NDIM >
+  inline explicit
   operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type ()
 
   {

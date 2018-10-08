@@ -730,18 +730,14 @@ struct Tensor
   }
 };
 
-//TEST( Array, udc_dimreduce)
-//{
-//  int junk[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-//  int dim[2] = {10, 1};
-//  int stride[2] = {1, 1};
-//
-//  ArrayView<int, 2, int> array(junk, dim, stride);
-//
-//  ArrayView<int, 1, int> arrayC = array;
-//
-//  EXPECT_EQ( arrayC[9], array[9][0] );
-//}
+TEST( Array, viewUpcast)
+{
+  Array<int,2,int> arr( 10, 1 );
+
+  ArrayView<int,2,int> & arrView = arr;
+
+  EXPECT_EQ( arrView[9][0], arr[9][0] );
+}
 
 //TEST( Array, test_const )
 //{
@@ -1065,51 +1061,51 @@ TEST( Array, deep_copy_array )
   }
 }
 
-TEST( Array, shallow_copy )
-{
-  constexpr int N = 1000;   /* Size of the array */
+//TEST( Array, shallow_copy )
+//{
+//  constexpr int N = 1000;   /* Size of the array */
+//
+//  {
+//    array< int > v;
+//    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+//    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+//  }
+//
+//  {
+//    array< Tensor > v;
+//    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+//    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+//  }
+//
+//  {
+//    array< std::string > v;
+//    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+//    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+//  }
+//}
 
-  {
-    array< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
-  }
-
-  {
-    array< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-  }
-
-  {
-    array< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-  }
-}
-
-TEST( Array, shallow_copy_array )
-{
-  constexpr int N = 100;    /* Number of arrays */
-  constexpr int M = 10;     /* Size of each array */
-
-  {
-    array< array< int > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
-  }
-
-  {
-    array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-  }
-
-  {
-    array< array< std::string > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-  }
-}
+//TEST( Array, shallow_copy_array )
+//{
+//  constexpr int N = 100;    /* Number of arrays */
+//  constexpr int M = 10;     /* Size of each array */
+//
+//  {
+//    array< array< int > > v;
+//    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+//    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
+//  }
+//
+//  {
+//    array< array< Tensor > > v;
+//    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+//    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+//  }
+//
+//  {
+//    array< array< std::string > > v;
+//    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+//    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+//  }
+//}
 
 /* FINISH DOCS! */

@@ -40,6 +40,7 @@ public:
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
   using ArraySlice<T,NDIM,INDEX_TYPE>::size;
 
+  explicit
   ArrayView():
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{0},
@@ -47,27 +48,31 @@ public:
     m_dataVector()
   {}
 
-  ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
-    ArraySlice<T,NDIM,INDEX_TYPE>( data , dims, strides )
-  {
+//  ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
+//    ArraySlice<T,NDIM,INDEX_TYPE>( data , dims, strides )
+//  {
+//
+//  }
 
-  }
 
-
+  explicit
   ArrayView( ArrayView const & source ):
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector(source.m_dataVector)
   {
     //This triggers Chai::ManagedArray CC
 
     setDataPtr();
-    setDimsPtr();
-    setStridesPtr();
   }
 
+  explicit
   ArrayView( ArrayView && source ):
-    ArraySlice<T,NDIM,INDEX_TYPE>( std::move( source ) ),
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector( std::move( source.m_dataVector ) )
   {
+    this->setDataPtr();
+    setDims(source.m_dimsMem);
+    setStrides(source.m_stridesMem);
 
   }
 
@@ -76,8 +81,16 @@ public:
     INDEX_TYPE const rhsLength = rhs.size();
     INDEX_TYPE const length = size();
 
-    GEOS_ERROR_IF( rhsLength != length,
-                   "rhs length of ("<<rhsLength<<") does not equal this->size() of ("<<length<<")");
+    for( int a=0 ; a<NDIM ; ++a )
+    {
+      GEOS_ERROR_IF( m_dimsMem[a] != rhs.m_dimsMem[a],
+                     "rhs.m_dims["<<a<<"] of ("<<rhs.m_dimsMem[a]<<") does not equal "
+                     "this->m_dims["<<a<<"] of ("<<m_dimsMem[a]<<")");
+      GEOS_ERROR_IF( m_stridesMem[a] != rhs.m_stridesMem[a],
+                     "rhs.m_stridesMem["<<a<<"] of ("<<rhs.m_stridesMem[a]<<") does not equal "
+                     "this->m_stridesMem["<<a<<"] of ("<<m_stridesMem[a]<<")");
+
+    }
 
     for( INDEX_TYPE a=0 ; a<length ; ++a )
     {
@@ -103,6 +116,7 @@ public:
    * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
   template< typename U = T >
+  explicit
   operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
   {
     return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
@@ -114,7 +128,9 @@ public:
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
+
   template< int U=NDIM >
+  explicit
   operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
   {
     GEOS_ERROR_IF( m_dims[NDIM-1]==1,
@@ -134,17 +150,22 @@ public:
     dataPtr = m_dataVector.data() ;
   }
 
-  void setDimsPtr()
+  void setDims( INDEX_TYPE const dims[NDIM] )
   {
-    INDEX_TYPE*& dimsPtr = const_cast<INDEX_TYPE*&>(this->m_dims);
-    dimsPtr = m_dimsMem;
+    for( int a=0 ; a<NDIM ; ++a )
+    {
+      this->m_dimsMem[a] = dims[a];
+    }
   }
 
-  void setStridesPtr()
+  void setStrides( INDEX_TYPE const strides[NDIM] )
   {
-    INDEX_TYPE*& stridesPtr = const_cast<INDEX_TYPE*&>(this->m_strides);
-    stridesPtr = m_stridesMem;
+    for( int a=0 ; a<NDIM ; ++a )
+    {
+      this->m_stridesMem[a] = strides[a];
+    }
   }
+
 
 protected:
   ArrayType m_dataVector;

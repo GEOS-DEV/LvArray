@@ -143,8 +143,8 @@ public:
   using ArrayView<T,NDIM,INDEX_TYPE>::m_stridesMem;
 
   using ArrayView<T,NDIM,INDEX_TYPE>::setDataPtr;
-  using ArrayView<T,NDIM,INDEX_TYPE>::setDimsPtr;
-  using ArrayView<T,NDIM,INDEX_TYPE>::setStridesPtr;
+//  using ArrayView<T,NDIM,INDEX_TYPE>::setDimsPtr;
+//  using ArrayView<T,NDIM,INDEX_TYPE>::setStridesPtr;
 
 
   /**
@@ -179,25 +179,21 @@ public:
    * Performs a deep copy of @param source
    */
   Array( Array const & source ):
+    ArrayView<T,NDIM,INDEX_TYPE>(),
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
     // This DOES NOT trigger Chai::ManagedArray CC
 
     m_dataVector.reserve( source.capacity() );
     m_dataVector.resize( source.size() );
+    this->setDataPtr();
     for( INDEX_TYPE a=0 ; a<source.size() ; ++a )
     {
       m_dataVector[a] = source[a];
     }
 
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      this->m_dimsMem[a]     = source.m_dims[a];
-      this->m_stridesMem[a]  = source.m_strides[a];
-    }
-    this->setDataPtr();
-    this->setStridesPtr();
-    this->setDimsPtr();
+    this->setDims(source.m_dims);
+    this->setStrides(source.m_strides);
   }
 
   /**
@@ -208,45 +204,25 @@ public:
     ArrayView<T,NDIM,INDEX_TYPE>( std::move( source ) ),
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      this->m_dimsMem[a]     = source.m_dims[a];
-      this->m_stridesMem[a]  = source.m_strides[a];
-    }
-    this->setStridesPtr();
-    this->setDimsPtr();
-
   }
 
-//  operator ArrayView<T const,NDIM,INDEX_TYPE>() const
+
+
+//  /**
+//   * User defined conversion to convert to a reduced dimension array. For example, converting from
+//   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+//   */
+//  template< int U=NDIM >
+//  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
 //  {
-//    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-//                                               m_dims,
-//                                               m_strides );
-//  }
+//    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
+//                   "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
+//                   "dimension is equal to 1." );
 //
-//  operator ArrayView<T,NDIM,INDEX_TYPE>()
-//  {
-//    return ArrayView<T,NDIM,INDEX_TYPE>( m_data,
-//                                         m_dims,
-//                                         m_strides );
+//    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
+//                                           m_dims,
+//                                           m_strides );
 //  }
-
-  /**
-   * User defined conversion to convert to a reduced dimension array. For example, converting from
-   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
-   */
-  template< int U=NDIM >
-  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
-  {
-    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
-                   "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
-                   "dimension is equal to 1." );
-
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
-                                           m_dims,
-                                           m_strides );
-  }
 
   /**
    * @brief copy assignment operator
@@ -258,11 +234,8 @@ public:
     m_dataVector = rhs.m_dataVector;
     setDataPtr();
 
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      m_dimsMem[a] = rhs.m_dims[a];
-      m_stridesMem[a] = rhs.m_strides[a];
-    }
+    this->setDims(rhs.m_dimsMem);
+    this->setStrides(rhs.m_stridesMem);
 
     return *this;
   }
@@ -371,7 +344,7 @@ public:
 
     INDEX_TYPE length = 1;
 
-    dim_unpack<0,DIMS...>::f( m_dims, newdims...);
+    dim_unpack<0,DIMS...>::f( m_dimsMem, newdims...);
     CalculateStrides();
     resize();
   }
