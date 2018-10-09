@@ -32,14 +32,19 @@ class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
 
-  using ArrayType = ChaiVector<T>;
-  using iterator = typename ArrayType::iterator;
-  using const_iterator = typename ArrayType::const_iterator;
-
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
+
   using ArraySlice<T,NDIM,INDEX_TYPE>::size;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::data;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::copy;
+
+  using typename ArraySlice<T,NDIM,INDEX_TYPE>::size_type;
+
+  using ArrayType = ChaiVector<T>;
+  using iterator = typename ArrayType::iterator;
+  using const_iterator = typename ArrayType::const_iterator;
 
   explicit ArrayView():
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
@@ -102,12 +107,64 @@ public:
   explicit
   operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
   {
-    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
+    GEOS_ERROR_IF( m_dims[NDIM-1]!=1,
                    "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
                    "dimension is equal to 1." );
 
     return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data, m_dims, m_strides );
   }
+
+  INDEX_TYPE size() const
+  {
+    return m_dataVector.size();
+  }
+
+  bool empty() const
+  {
+    return m_dataVector.empty();
+  }
+
+  T& front() 
+  { 
+    return m_dataVector.front();
+  }
+
+  T const& front() const 
+  { 
+    return m_dataVector.front();
+  }
+
+  T& back()
+  { 
+    return m_dataVector.back();
+  }
+
+  T const& back() const
+  { 
+    return m_dataVector.back();
+  }
+
+  iterator begin() 
+  {
+    return m_dataVector.begin();
+  }
+
+  const_iterator begin() const 
+  {
+    return m_dataVector.begin();
+  }
+
+  iterator end() 
+  {
+    return m_dataVector.end();
+  }
+
+  const_iterator end() const 
+  {
+    return m_dataVector.end();
+  }
+
+protected:
 
   void setDataPtr()
   {
@@ -131,7 +188,6 @@ public:
     }
   }
 
-protected:
   ArrayType m_dataVector;
 
   INDEX_TYPE m_dimsMem[NDIM];

@@ -30,10 +30,6 @@ public:
   using iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::iterator;
   using const_iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::const_iterator;
   using size_type = typename LvArray::Array<T, 1, INDEX_TYPE>::size_type;
-  using value_type = typename LvArray::Array<T, 1, INDEX_TYPE>::value_type;
-  using pointer = typename LvArray::Array<T, 1, INDEX_TYPE>::pointer;
-  using const_pointer = typename LvArray::Array<T, 1, INDEX_TYPE>::const_pointer;
-
 
   SortedArray():
     m_data()
