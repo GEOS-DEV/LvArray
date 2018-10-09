@@ -90,6 +90,7 @@
 #define GEOS_ASSERT(EXP) SLIC_ASSERT(EXP)
 #define GEOS_ASSERT_MSG(EXP, msg) SLIC_ASSERT_MSG(EXP, msg)
 #define GEOS_CHECK(EXP, msg) SLIC_CHECK_MSG(EXP, msg)
+
 #else
 
 #define GEOS_ERROR_IF(EXP, msg)                               \
@@ -128,13 +129,13 @@
 
 #ifdef GEOSX_DEBUG
 
-#define GEOS_ASSERT(EXP, msg) GEOS_ERROR_IF(!(EXP), msg)
+#define GEOS_ASSERT_MSG(EXP, msg) GEOS_ERROR_IF(!(EXP), msg)
 
 #define GEOS_CHECK(EXP, msg) GEOS_WARNING_IF(!(EXP), msg)
 
 #else /* #ifdef GEOSX_DEBUG */
 
-#define GEOS_ASSERT(EXP, msg) ((void) 0)
+#define GEOS_ASSERT_MSG(EXP, msg) ((void) 0)
 
 #define GEOS_CHECK(EXP, msg) ((void) 0)
 
@@ -146,9 +147,9 @@
 
 #define GEOS_INFO(msg) GEOS_INFO_IF(true, msg)
 
+#define GEOS_ASSERT(EXP) GEOS_ASSERT_MSG(EXP, "")
+
 #endif /* #ifdef GEOSX_USE_ATK */
-
-
 
 
 namespace geosx
@@ -157,7 +158,7 @@ namespace geosx
 namespace logger
 {
 
-void geos_abort();
+[[noreturn]] void geos_abort();
 
 
 namespace internal

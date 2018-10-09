@@ -67,8 +67,7 @@ public:
     m_array( nullptr ),
     m_capacity( 0 ),
 #endif
-    m_length( 0 ),
-    m_copied( false )
+    m_length( 0 )
   {}
 
   /**
@@ -82,8 +81,7 @@ public:
     m_array( nullptr ),
     m_capacity( 0 ),
 #endif
-    m_length( 0 ),
-    m_copied( false )
+    m_length( 0 )
   {
     resize( initial_length );
   }
@@ -100,8 +98,7 @@ public:
 #ifndef GEOSX_USE_CHAI
     m_capacity( source.capacity() ),
 #endif
-    m_length( source.m_length ),
-    m_copied( true )
+    m_length( source.m_length )
   {}
 
   /**
@@ -114,23 +111,21 @@ public:
 #ifndef GEOSX_USE_CHAI
     m_capacity( source.capacity() ),
 #endif
-    m_length( source.m_length ),
-    m_copied( source.m_copied )
+    m_length( source.m_length )
   {
 #ifndef GEOSX_USE_CHAI
     source.m_capacity = 0;
 #endif
     source.m_array = nullptr;
     source.m_length = 0;
-    source.m_copied = true;
   }
 
   /**
    * @brief Destructor, will destroy the objects and free the memory if it owns the data.
    */
-  ~ChaiVector()
+  void free()
   {
-    if ( capacity() > 0 && !m_copied )
+    if ( capacity() > 0 )
     {
       clear();
 #ifdef GEOSX_USE_CHAI
@@ -139,8 +134,12 @@ public:
       internal::chai_lock.unlock();
 #else
       std::free( m_array );
+      m_capacity = 0;
 #endif
     }
+
+    m_array = nullptr;
+    m_length = 0;
   }
 
   /**
@@ -150,17 +149,13 @@ public:
    */
   ChaiVector& operator=( ChaiVector const& source )
   {
-    if ( m_copied )
-    {
 #ifdef GEOSX_USE_CHAI
-      m_array = chai::ManagedArray<T>();
+    m_array = chai::ManagedArray<T>();
 #else
-      m_array = nullptr;
-      m_capacity = 0;
+    m_array = nullptr;
+    m_capacity = 0;
 #endif
-    }
 
-    m_copied = false;
     resize( source.size() );
 
     for ( size_type i = 0; i < size(); ++i )
@@ -178,21 +173,10 @@ public:
    */
   ChaiVector& operator=( ChaiVector&& source )
   {
-    if ( capacity() > 0 && !m_copied )
-    {
-      clear();
-#ifdef GEOSX_USE_CHAI
-      internal::chai_lock.lock();
-      m_array.free();
-      internal::chai_lock.unlock();
-#else
-      std::free( m_array );
-#endif
-    }
+    free();
 
     m_array = source.m_array;
     m_length = source.m_length;
-    m_copied = source.m_copied;
 
 #ifndef GEOSX_USE_CHAI
     m_capacity = source.m_capacity;
@@ -201,15 +185,8 @@ public:
 
     source.m_array = nullptr;
     source.m_length = 0;
-    source.m_copied = true;
     return *this;
   }
-
-  /**
-   * @brief Return if this ChaiVector is a copy and therefore does not own its data.
-   */
-  bool isCopy() const
-  { return m_copied; }
 
   /**
    * @brief Dereference operator for the underlying active pointer.
@@ -420,19 +397,16 @@ public:
       realloc( new_length );
     }
 
-    if ( new_length < size() )
+    /* Delete things between new_length and size() */
+    for ( size_type i = new_length; i < size(); ++i )
     {
-      for ( size_type i = new_length; i < size(); ++i )
-      {
-        m_array[ i ].~T();
-      }
+      m_array[ i ].~T();
     }
-    else
+
+    /* Initialize things size() and new_length */
+    for ( size_type i = size(); i < new_length; ++i )
     {
-      for ( size_type i = size(); i < new_length; ++i )
-      {
-        new ( &m_array[ i ] ) T();
-      }
+      new ( &m_array[ i ] ) T();
     }
 
     m_length = new_length;
@@ -528,7 +502,6 @@ private:
   size_type m_capacity;
 #endif
   size_type m_length;
-  bool m_copied;
 };
 
 #endif /* CHAI_VECTOR_HPP_ */
