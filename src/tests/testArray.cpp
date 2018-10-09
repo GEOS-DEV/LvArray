@@ -25,7 +25,10 @@
 using namespace LvArray;
 
 template < typename T >
-using array = Array< T, 1 >;
+using array = Array< T, 1, int >;
+
+template < typename T >
+using arrayView = ArrayView< T, 1, int >;
 
 namespace internal
 {
@@ -645,12 +648,8 @@ template < class T, class LAMBDA >
 void shallow_copy_test( const array< T >& v, LAMBDA get_value )
 {
   {
-    array< T > v_cpy(v);
-    
-    ASSERT_TRUE( v_cpy.isCopy() );
+    arrayView< T > v_cpy(v);
     ASSERT_EQ( v.size(), v_cpy.size() );
-    ASSERT_EQ( v.capacity(), v_cpy.capacity() );
-
     ASSERT_EQ( v.data(), v_cpy.data() );
 
     for ( int i = 0; i < v.size(); ++i )
@@ -676,12 +675,8 @@ template < class T, class LAMBDA >
 void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
   {
-    array< array< T > > v_cpy(v);
-    
-    ASSERT_TRUE( v_cpy.isCopy() );
+    arrayView< array< T > > v_cpy(v);
     ASSERT_EQ( v.size(), v_cpy.size() );
-    ASSERT_EQ( v.capacity(), v_cpy.capacity() );
-
     ASSERT_EQ( v.data(), v_cpy.data() );
 
     for ( int i = 0; i < v.size(); ++i )
@@ -730,14 +725,14 @@ struct Tensor
   }
 };
 
-TEST( Array, viewUpcast)
-{
-  Array<int,2,int> arr( 10, 1 );
+// TEST( Array, viewUpcast)
+// {
+//   Array<int, 2, int> arr( 10, 1 );
 
-  ArrayView<int,2,int> & arrView = arr;
+//   ArrayView<int, 2, int> & arrView = arr;
 
-  EXPECT_EQ( arrView[9][0], arr[9][0] );
-}
+//   EXPECT_EQ( arrView[9][0], arr[9][0] );
+// }
 
 //TEST( Array, test_const )
 //{
@@ -1061,51 +1056,51 @@ TEST( Array, deep_copy_array )
   }
 }
 
-//TEST( Array, shallow_copy )
-//{
-//  constexpr int N = 1000;   /* Size of the array */
-//
-//  {
-//    array< int > v;
-//    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-//    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
-//  }
-//
-//  {
-//    array< Tensor > v;
-//    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-//    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-//  }
-//
-//  {
-//    array< std::string > v;
-//    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-//    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-//  }
-//}
+TEST( Array, shallow_copy )
+{
+ constexpr int N = 1000;   /* Size of the array */
 
-//TEST( Array, shallow_copy_array )
-//{
-//  constexpr int N = 100;    /* Number of arrays */
-//  constexpr int M = 10;     /* Size of each array */
-//
-//  {
-//    array< array< int > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
-//  }
-//
-//  {
-//    array< array< Tensor > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-//  }
-//
-//  {
-//    array< array< std::string > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-//  }
-//}
+ {
+   array< int > v;
+   internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+   internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+ }
+
+ {
+   array< Tensor > v;
+   internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+   internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+ }
+
+ {
+   array< std::string > v;
+   internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+   internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+ }
+}
+
+TEST( Array, shallow_copy_array )
+{
+ constexpr int N = 100;    /* Number of arrays */
+ constexpr int M = 10;     /* Size of each array */
+
+ {
+   array< array< int > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+   internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
+ }
+
+ {
+   array< array< Tensor > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+   internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+ }
+
+ {
+   array< array< std::string > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+   internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+ }
+}
 
 /* FINISH DOCS! */

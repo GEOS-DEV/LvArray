@@ -160,7 +160,7 @@ void FinalizeLogger()
   slic::finalize();
 }
 
-void geos_abort()
+[[noreturn]] void geos_abort()
 {
   cxx_utilities::handler1(EXIT_FAILURE);
 #ifdef GEOSX_USE_MPI
@@ -176,8 +176,6 @@ void geos_abort()
     exit( EXIT_FAILURE );
   }
 }
-
-
 
 } /* namespace logger */
 
