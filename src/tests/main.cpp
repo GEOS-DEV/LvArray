@@ -32,21 +32,21 @@
 int main( int /*argc*/, char* argv[] )
 {
 //  int testLengths[] = {2,4,3};
-//  std::cout<<"stride<3>(testLengths) = "<<stride<3>(testLengths)<<std::endl;
-//  std::cout<<"stride<2>(testLengths) = "<<stride<2>(testLengths+1)<<std::endl;
-//  std::cout<<"stride<1>(testLengths) = "<<stride<1>(testLengths+2)<<std::endl;
+//  GEOS_LOG("stride<3>(testLengths) = "<<stride<3>(testLengths));
+//  GEOS_LOG("stride<2>(testLengths) = "<<stride<2>(testLengths+1));
+//  GEOS_LOG("stride<1>(testLengths) = "<<stride<1>(testLengths+2));
 //
 //
 //  dimensions<2,4,3> dims;
-//  std::cout<<"dims.ndim() = "<<dimensions<1,2,3> ::NDIMS()<<std::endl;
-////  std::cout<<"dims.ndim() = "<<dims.ndims()<<std::endl;
-//  std::cout<<"dims.dim0   = "<<dims.DIMENSION<0>()<<std::endl;
-//  std::cout<<"dims.dim1   = "<<dims.DIMENSION<1>()<<std::endl;
-//  std::cout<<"dims.dim2   = "<<dims.DIMENSION<2>()<<std::endl;
+//  GEOS_LOG("dims.ndim() = "<<dimensions<1,2,3> ::NDIMS());
+////  GEOS_LOG("dims.ndim() = "<<dims.ndims());
+//  GEOS_LOG("dims.dim0   = "<<dims.DIMENSION<0>());
+//  GEOS_LOG("dims.dim1   = "<<dims.DIMENSION<1>());
+//  GEOS_LOG("dims.dim2   = "<<dims.DIMENSION<2>());
 //
-//  std::cout<<"dims.STRIDE<0>   = "<<dims.STRIDE<0>()<<std::endl;
-//  std::cout<<"dims.STRIDE<1>   = "<<dims.STRIDE<1>()<<std::endl;
-//  std::cout<<"dims.STRIDE<2>   = "<<dims.STRIDE<2>()<<std::endl;
+//  GEOS_LOG("dims.STRIDE<0>   = "<<dims.STRIDE<0>());
+//  GEOS_LOG("dims.STRIDE<1>   = "<<dims.STRIDE<1>());
+//  GEOS_LOG("dims.STRIDE<2>   = "<<dims.STRIDE<2>());
 
   integer_t seed = time( NULL );
 
@@ -389,22 +389,22 @@ int main( int /*argc*/, char* argv[] )
 
       }
     }
-    std::cout<<"error_SquareNFC = "<<error_SquareNFC<<std::endl;
-    std::cout<<"error_SquarePBV = "<<error_SquarePBV<<std::endl;
-    std::cout<<"error_SquarePBR = "<<error_SquarePBR<<std::endl;
-    std::cout<<"error_SquarePBR = "<<error_SquarePBR<<std::endl;
+    GEOS_LOG("error_SquareNFC = "<<error_SquareNFC);
+    GEOS_LOG("error_SquarePBV = "<<error_SquarePBV);
+    GEOS_LOG("error_SquarePBR = "<<error_SquarePBR);
+    GEOS_LOG("error_SquarePBR = "<<error_SquarePBR);
 
-    std::cout<<"error_ParenNFC = "<<error_ParenNFC<<std::endl;
-    std::cout<<"error_ParenPBV = "<<error_ParenPBV<<std::endl;
-    std::cout<<"error_ParenPBR = "<<error_ParenPBR<<std::endl;
+    GEOS_LOG("error_ParenNFC = "<<error_ParenNFC);
+    GEOS_LOG("error_ParenPBV = "<<error_ParenPBV);
+    GEOS_LOG("error_ParenPBR = "<<error_ParenPBR);
 
-    std::cout<<"error_ManagedArraySquareNFC = "<<error_ManagedArraySquareNFC<<std::endl;
-    std::cout<<"error_ManagedArraySquarePBV = "<<error_ManagedArraySquarePBV<<std::endl;
-    std::cout<<"error_ManagedArraySquarePBR = "<<error_ManagedArraySquarePBR<<std::endl;
+    GEOS_LOG("error_ManagedArraySquareNFC = "<<error_ManagedArraySquareNFC);
+    GEOS_LOG("error_ManagedArraySquarePBV = "<<error_ManagedArraySquarePBV);
+    GEOS_LOG("error_ManagedArraySquarePBR = "<<error_ManagedArraySquarePBR);
 
-    std::cout<<"error_ManagedArrayParenNFC = "<<error_ManagedArrayParenNFC<<std::endl;
-    std::cout<<"error_ManagedArrayParenPBV = "<<error_ManagedArrayParenPBV<<std::endl;
-    std::cout<<"error_ManagedArrayParenPBR = "<<error_ManagedArrayParenPBR<<std::endl;
+    GEOS_LOG("error_ManagedArrayParenNFC = "<<error_ManagedArrayParenNFC);
+    GEOS_LOG("error_ManagedArrayParenPBV = "<<error_ManagedArrayParenPBV);
+    GEOS_LOG("error_ManagedArrayParenPBR = "<<error_ManagedArrayParenPBR);
 
 
   }

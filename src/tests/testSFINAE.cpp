@@ -93,7 +93,6 @@ struct Bar_EnumClass : Foo_EnumClass {};
 HAS_MEMBER_DATA(memberName)
 TEST(test_sfinae,test_has_datamember)
 {
-//  std::cout<<has_datamember_memberName<Foo_MemberData>::value<<std::endl;
 //  bool test = has_datamember_memberName<Foo_MemberData>::value;
 //  EXPECT_TRUE( test );
 //  EXPECT_TRUE( has_datamember_memberName<Foo_MemberData>::value );
