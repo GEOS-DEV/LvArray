@@ -25,7 +25,16 @@
 using namespace LvArray;
 
 template < typename T >
-using array = Array< T, 1 >;
+using array = Array< T, 1, int >;
+
+template < typename T >
+using array2D = Array< T, 2, int >;
+
+template < typename T >
+using arrayView = ArrayView< T, 1, int >;
+
+template < typename T >
+using arrayView2D = ArrayView< T, 2, int >;
 
 namespace internal
 {
@@ -94,6 +103,129 @@ void compare_to_reference( const array< array< T > >& v,
   {
     compare_to_reference( v[ i ], v_ref[ i ] );
   }
+}
+
+template < class T >
+void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
+{
+  ASSERT_EQ( v.size(), v_view.size() );
+  ASSERT_EQ( v.empty(), v_view.empty() );
+  if ( v.empty() )
+  {
+    ASSERT_EQ( v.size(), 0 );
+    return;
+  }
+
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v[ i ], v_view[ i ] );
+    ASSERT_EQ( v( i ), v_view( i ) );
+  }
+
+  ASSERT_EQ( v.front(), v_view.front() );
+  ASSERT_EQ( v.back(), v_view.back() );
+
+  typename array< T >::const_iterator it = v.begin();
+  typename arrayView< T >::const_iterator ref_it = v_view.begin();
+  for ( ; it != v.end(); ++it )
+  {
+    ASSERT_EQ( *it, *ref_it );
+    ++ref_it;
+  }
+
+  const T* v_ptr = v.data();
+  const T* ref_ptr = v_view.data();
+  for ( int i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
+  }
+}
+
+template < class T >
+void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
+{
+  ASSERT_EQ( v.size(), v_view.size() );
+  ASSERT_EQ( v.size(0), v_view.size(0) );
+  ASSERT_EQ( v.size(1), v_view.size(1) );
+  ASSERT_EQ( v.empty(), v_view.empty() );
+  if ( v.empty() )
+  {
+    ASSERT_EQ( v.size(), 0 );
+    return;
+  }
+
+  int pos = 0;
+  const T* v_ptr = v.data();
+  const T* ref_ptr = v_view.data();
+  for ( int i = 0; i < v.size(0); ++i )
+  {
+    const T* v_ptr_cur = v.data();
+    const T* ref_ptr_cur = v_view.data();
+    for ( int j = 0; j < v.size(1); ++j )
+    {
+      ASSERT_EQ( v[ i ][ j ], v_view[ i ][ j ] );
+      ASSERT_EQ( v( i, j ), v_view( i, j ) );
+      ASSERT_EQ( v_ptr[ pos ], ref_ptr[ pos ] );
+      ASSERT_EQ( v_ptr_cur[ j ], ref_ptr_cur[ j ] );
+      ++pos;
+    }
+  }
+
+  ASSERT_EQ( v.front(), v_view.front() );
+  ASSERT_EQ( v.back(), v_view.back() );
+
+  typename array< T >::const_iterator it = v.begin();
+  typename arrayView< T >::const_iterator ref_it = v_view.begin();
+  for ( ; it != v.end(); ++it )
+  {
+    ASSERT_EQ( *it, *ref_it );
+    ++ref_it;
+  }
+}
+
+
+template < class T, class LAMBDA >
+void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
+{
+  EXPECT_TRUE( v.empty() );
+
+  v.resize( N, M );
+  EXPECT_EQ( v.size(), N * M );
+  EXPECT_EQ( v.size(0), N );
+  EXPECT_EQ( v.size(1), M );
+
+  int pos = 0;
+  for ( int i = 0; i < N; ++i )
+  {
+    for ( int j = 0; j < M; ++j )
+    {
+      v[i][j] = get_value( pos );
+      pos++;
+    }
+  }
+
+  pos = 0;
+  typename array2D< T >::iterator it = v.begin();
+  EXPECT_EQ( *it, v.front() );
+  T const* data_ptr = v.data();
+  for ( int i = 0; i < N; ++i )
+  {
+    T const* cur_data_ptr = v.data(i);
+    for ( int j = 0; j < M; ++j )
+    {
+      const T value = get_value( pos );
+      EXPECT_EQ( v[i][j], value );
+      EXPECT_EQ( v( i, j ), value );
+      EXPECT_EQ( data_ptr[ pos ], value );
+      EXPECT_EQ( cur_data_ptr[ j ], value );
+      EXPECT_EQ( *it, value );
+      ++it;
+      ++pos;
+    }
+  }
+
+  EXPECT_EQ( it, v.end() );
+  EXPECT_EQ( *(it - 1), v.back() ); 
 }
 
 /**
@@ -645,12 +777,8 @@ template < class T, class LAMBDA >
 void shallow_copy_test( const array< T >& v, LAMBDA get_value )
 {
   {
-    array< T > v_cpy(v);
-    
-    ASSERT_TRUE( v_cpy.isCopy() );
+    arrayView< T > v_cpy(v);
     ASSERT_EQ( v.size(), v_cpy.size() );
-    ASSERT_EQ( v.capacity(), v_cpy.capacity() );
-
     ASSERT_EQ( v.data(), v_cpy.data() );
 
     for ( int i = 0; i < v.size(); ++i )
@@ -676,12 +804,8 @@ template < class T, class LAMBDA >
 void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
   {
-    array< array< T > > v_cpy(v);
-    
-    ASSERT_TRUE( v_cpy.isCopy() );
+    arrayView< array< T > > v_cpy(v);
     ASSERT_EQ( v.size(), v_cpy.size() );
-    ASSERT_EQ( v.capacity(), v_cpy.capacity() );
-
     ASSERT_EQ( v.data(), v_cpy.data() );
 
     for ( int i = 0; i < v.size(); ++i )
@@ -729,15 +853,6 @@ struct Tensor
 #pragma GCC diagnostic pop
   }
 };
-
-TEST( Array, viewUpcast)
-{
-  Array<int,2,int> arr( 10, 1 );
-
-  ArrayView<int,2,int> & arrView = arr;
-
-  EXPECT_EQ( arrView[9][0], arr[9][0] );
-}
 
 //TEST( Array, test_const )
 //{
@@ -1061,51 +1176,102 @@ TEST( Array, deep_copy_array )
   }
 }
 
-//TEST( Array, shallow_copy )
-//{
-//  constexpr int N = 1000;   /* Size of the array */
-//
-//  {
-//    array< int > v;
-//    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-//    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
-//  }
-//
-//  {
-//    array< Tensor > v;
-//    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-//    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-//  }
-//
-//  {
-//    array< std::string > v;
-//    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-//    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-//  }
-//}
+TEST( Array, shallow_copy )
+{
+ constexpr int N = 1000;   /* Size of the array */
 
-//TEST( Array, shallow_copy_array )
-//{
-//  constexpr int N = 100;    /* Number of arrays */
-//  constexpr int M = 10;     /* Size of each array */
-//
-//  {
-//    array< array< int > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
-//  }
-//
-//  {
-//    array< array< Tensor > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-//  }
-//
-//  {
-//    array< array< std::string > > v;
-//    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-//    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
-//  }
-//}
+ {
+   array< int > v;
+   internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+   internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+ }
 
-/* FINISH DOCS! */
+ {
+   array< Tensor > v;
+   internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+   internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+ }
+
+ {
+   array< std::string > v;
+   internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+   internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+ }
+}
+
+TEST( Array, shallow_copy_array )
+{
+ constexpr int N = 100;    /* Number of arrays */
+ constexpr int M = 10;     /* Size of each array */
+
+ {
+   array< array< int > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+   internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
+ }
+
+ {
+   array< array< Tensor > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+   internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+ }
+
+ {
+   array< array< std::string > > v;
+   internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+   internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+ }
+}
+
+TEST( Array, test_upcast )
+{
+  constexpr int N = 1000;     /* Number of values to push_back */
+
+  {
+    array< int > v;
+    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    arrayView< int >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+
+  {
+    array< Tensor > v;
+    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    arrayView< Tensor >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+
+  {
+    array< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    arrayView< std::string >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+}
+
+TEST( Array, test_array2D )
+{
+  constexpr int N = 53;
+  constexpr int M = 47;
+
+  {
+    array2D< int > v;
+    internal::create_2D_test( v, N, M, []( int i ) -> int { return i; } );
+    arrayView2D< int >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+
+  {
+    array2D< Tensor > v;
+    internal::create_2D_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    arrayView2D< Tensor >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+
+  {
+    array2D< std::string > v;
+    internal::create_2D_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    arrayView2D< std::string >& vView = v;
+    internal::compare_to_view(v, vView);
+  }
+}

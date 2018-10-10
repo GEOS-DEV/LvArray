@@ -115,23 +115,6 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class Array : public ArrayView<T,NDIM,INDEX_TYPE>
 {
 public:
-  using ArrayType = ChaiVector<T>;
-
-  using value_type = T;
-  using index_type = INDEX_TYPE;
-  using iterator = typename ArrayType::iterator;
-  using const_iterator = typename ArrayType::const_iterator;
-
-
-  using pointer = T*;
-  using const_pointer = T const *;
-  using reference = T&;
-  using const_reference = T const &;
-
-  using size_type = INDEX_TYPE;
-
-  using isArray = std::true_type;
-
 
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
   using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
@@ -142,10 +125,18 @@ public:
   using ArrayView<T,NDIM,INDEX_TYPE>::m_dimsMem;
   using ArrayView<T,NDIM,INDEX_TYPE>::m_stridesMem;
 
+  using typename ArrayView<T,NDIM,INDEX_TYPE>::size_type;
+  using typename ArrayView<T,NDIM,INDEX_TYPE>::iterator;
+  using typename ArrayView<T,NDIM,INDEX_TYPE>::const_iterator;
+  
   using ArrayView<T,NDIM,INDEX_TYPE>::setDataPtr;
-//  using ArrayView<T,NDIM,INDEX_TYPE>::setDimsPtr;
-//  using ArrayView<T,NDIM,INDEX_TYPE>::setStridesPtr;
-
+  using ArrayView<T,NDIM,INDEX_TYPE>::data;
+  using ArrayView<T,NDIM,INDEX_TYPE>::copy;
+  using ArrayView<T,NDIM,INDEX_TYPE>::empty;
+  using ArrayView<T,NDIM,INDEX_TYPE>::front;
+  using ArrayView<T,NDIM,INDEX_TYPE>::back;
+  using ArrayView<T,NDIM,INDEX_TYPE>::begin;
+  using ArrayView<T,NDIM,INDEX_TYPE>::end;
 
   /**
    * @brief default constructor
@@ -206,6 +197,11 @@ public:
   {
   }
 
+  ~Array()
+  {
+    m_dataVector.free();
+    setDataPtr();
+  }
 
 
 //  /**
@@ -277,33 +273,6 @@ public:
     }
   }
 
-  template< int U=NDIM >
-  inline  typename std::enable_if< U>=3, void >::type
-  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
-  {
-    assert(false);
-  }
-
-  template< int U=NDIM >
-  inline  typename std::enable_if< U==2, void >::type
-  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
-  {
-    for( INDEX_TYPE a=0 ; a<size(1) ; ++a )
-    {
-      m_data[destIndex*m_strides[0]+a] = m_data[sourceIndex*m_strides[0]+a];
-    }
-  }
-
-  template< int U=NDIM >
-  inline typename std::enable_if< U==1, void >::type
-  copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
-  {
-    m_data[ destIndex ] = m_data[ sourceIndex ];
-  }
-
-  bool isCopy() const
-  { return m_dataVector.isCopy(); }
-
   /**
    * \defgroup stl container interface
    * @{
@@ -333,8 +302,6 @@ public:
     resize( numDims, const_cast<INDEX_TYPE const *>(dims) );
   }
 
-
-
   template< typename... DIMS >
   void resize( DIMS... newdims )
   {
@@ -348,7 +315,6 @@ public:
     CalculateStrides();
     resize();
   }
-
 
   void resize(int n_dims, long long const * const dims)
   {
@@ -373,24 +339,14 @@ public:
     resize();
   }
 
-
   void reserve( INDEX_TYPE newLength )
   {
     m_dataVector.reserve(newLength);
     setDataPtr();
   }
 
-
-
   INDEX_TYPE capacity() const
   { return m_dataVector.capacity(); }
-  
-
-
-  bool empty() const
-  {
-    return size() == 0;
-  }
 
   void clear()
   {
@@ -405,36 +361,6 @@ public:
 
     CalculateStrides();
   }
-
-
-  reference       front()       { return m_dataVector.front(); }
-  const_reference front() const { return m_dataVector.front(); }
-
-  reference       back()       { return m_dataVector.back(); }
-  const_reference back() const { return m_dataVector.back(); }
-
-  T *       data()       {return m_data;}
-  T const * data() const {return m_data;}
-
-
-
-  inline T const *
-  data(INDEX_TYPE const index) const
-  {
-    return &(m_data[ index*m_strides[0] ]);
-  }
-
-  inline T *
-  data(INDEX_TYPE const index)
-  {
-    return &(m_data[ index*m_strides[0] ]);
-  }
-
-  iterator begin() {return m_dataVector.begin();}
-  const_iterator begin() const {return m_dataVector.begin();}
-
-  iterator end() {return m_dataVector.end();}
-  const_iterator end() const {return m_dataVector.end();}
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type 
@@ -516,12 +442,8 @@ public:
     return stream;
   }
 
-
-
 private:
-
   int m_singleParameterResizeIndex = 0;
-
 
   void resize()
   {
@@ -535,8 +457,6 @@ private:
     this->setDataPtr();
   }
 
-
-
   template< typename CANDIDATE_INDEX_TYPE >
   struct is_valid_indexType
   {
@@ -544,8 +464,6 @@ private:
                                   ( is_integer<CANDIDATE_INDEX_TYPE>::value &&
                                     ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
   };
-
-
   template< int INDEX, typename DIM0, typename... DIMS >
   struct check_dim_type
   {
@@ -557,8 +475,6 @@ private:
   {
     constexpr static bool value = is_valid_indexType<DIM0>::value;
   };
-
-
 
   template< int INDEX, typename DIM0, typename... DIMS >
   struct dim_unpack
@@ -584,6 +500,6 @@ private:
 
 };
 
-}
+} /* namespace LvArray */
 
 #endif /* ARRAY_HPP_ */

@@ -26,7 +26,7 @@ add_subdirectory(src)
 ################################
 # Add docs
 ################################
-#add_subdirectory(src/docs)
+add_subdirectory(src/docs)
 
 
 #add_code_check_targets(uncrustify.cfg)

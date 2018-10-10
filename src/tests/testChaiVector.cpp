@@ -366,6 +366,13 @@ void deep_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
     ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
+
+  v_cpy.free();
+
+  for ( size_type i = 0; i < v.size(); ++i )
+  {
+    ASSERT_EQ( v[ i ], get_value( i ) );
+  }
 }
 
 /**
@@ -379,7 +386,6 @@ void shallow_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
   {
     ChaiVector< T > v_cpy(v);
     
-    ASSERT_TRUE( v_cpy.isCopy() );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.capacity(), v_cpy.capacity() );
 
@@ -435,16 +441,19 @@ TEST( ChaiVector, push_back )
   {
     ChaiVector< int > v;
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -455,17 +464,19 @@ TEST( ChaiVector, insert )
   {
     ChaiVector< int > v;
     internal::insert_test( v, N, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::insert_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
-
 
   {
     ChaiVector< std::string > v;
     internal::insert_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -477,16 +488,19 @@ TEST( ChaiVector, insert_multiple )
   {
     ChaiVector< int > v;
     internal::insert_multiple_test( v, N, M, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::insert_multiple_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::insert_multiple_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -498,18 +512,21 @@ TEST( ChaiVector, erase )
     ChaiVector< int > v;
     std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     internal::erase_test( v, v_ref );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::erase_test( v, v_ref );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::erase_test( v, v_ref );
+    v.free();
   }
 }
 
@@ -521,18 +538,21 @@ TEST( ChaiVector, pop_back )
     ChaiVector< int > v;
     std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     internal::pop_back_test( v, v_ref );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::pop_back_test( v, v_ref );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::pop_back_test( v, v_ref );
+    v.free();
   }
 }
 
@@ -543,16 +563,19 @@ TEST( ChaiVector, resize )
   {
     ChaiVector< int > v;
     internal::resize_test( v, N, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::resize_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::resize_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -563,16 +586,19 @@ TEST( ChaiVector, reserve )
   {
     ChaiVector< int > v;
     internal::reserve_test( v, N, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::reserve_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -584,18 +610,21 @@ TEST( ChaiVector, deep_copy )
     ChaiVector< int > v;
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     internal::deep_copy_test( v, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
   }
 }
 
@@ -607,17 +636,41 @@ TEST( ChaiVector, shallow_copy )
     ChaiVector< int > v;
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+    v.free();
   }
 
   {
     ChaiVector< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    v.free();
   }
 
   {
     ChaiVector< std::string > v;
     internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    v.free();
+  }
+}
+
+TEST( ChaiVector, nullptr )
+{
+  {
+    ChaiVector< int > v;
+    EXPECT_EQ(v.data(), nullptr);
+    v.free();
+  }
+
+  {
+    ChaiVector< Tensor > v;
+    EXPECT_EQ(v.data(), nullptr);
+    v.free();
+  }
+
+  {
+    ChaiVector< std::string > v;
+    EXPECT_EQ(v.data(), nullptr);
+    v.free();
   }
 }

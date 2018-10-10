@@ -26,103 +26,77 @@
 
 namespace LvArray
 {
+
 template< typename T, int NDIM, typename INDEX_TYPE >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
 
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
+
+  using ArraySlice<T,NDIM,INDEX_TYPE>::size;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::data;
+  using ArraySlice<T,NDIM,INDEX_TYPE>::copy;
+
+  using typename ArraySlice<T,NDIM,INDEX_TYPE>::size_type;
+
   using ArrayType = ChaiVector<T>;
   using iterator = typename ArrayType::iterator;
   using const_iterator = typename ArrayType::const_iterator;
 
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::size;
-
-  explicit
-  ArrayView():
+  explicit ArrayView():
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{0},
     m_stridesMem{0},
     m_dataVector()
   {}
 
-//  ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
-//    ArraySlice<T,NDIM,INDEX_TYPE>( data , dims, strides )
-//  {
-//
-//  }
+ // ArrayView( T * const data, INDEX_TYPE const * const dims, INDEX_TYPE const * const strides ):
+ //   ArraySlice<T,NDIM,INDEX_TYPE>( data , dims, strides )
+ // {
 
+ // }
 
-  explicit
-  ArrayView( ArrayView const & source ):
+  //This triggers Chai::ManagedArray CC
+  explicit ArrayView( ArrayView const & source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector(source.m_dataVector)
   {
-    //This triggers Chai::ManagedArray CC
-
     setDataPtr();
+    setDims(source.m_dimsMem);
+    setStrides(source.m_stridesMem);
   }
 
-  explicit
-  ArrayView( ArrayView && source ):
+  explicit ArrayView( ArrayView && source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector( std::move( source.m_dataVector ) )
   {
-    this->setDataPtr();
+    setDataPtr();
     setDims(source.m_dimsMem);
     setStrides(source.m_stridesMem);
-
   }
 
   ArrayView & operator=( ArrayView const & rhs )
   {
-    INDEX_TYPE const rhsLength = rhs.size();
-    INDEX_TYPE const length = size();
-
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      GEOS_ERROR_IF( m_dimsMem[a] != rhs.m_dimsMem[a],
-                     "rhs.m_dims["<<a<<"] of ("<<rhs.m_dimsMem[a]<<") does not equal "
-                     "this->m_dims["<<a<<"] of ("<<m_dimsMem[a]<<")");
-      GEOS_ERROR_IF( m_stridesMem[a] != rhs.m_stridesMem[a],
-                     "rhs.m_stridesMem["<<a<<"] of ("<<rhs.m_stridesMem[a]<<") does not equal "
-                     "this->m_stridesMem["<<a<<"] of ("<<m_stridesMem[a]<<")");
-
-    }
-
-    for( INDEX_TYPE a=0 ; a<length ; ++a )
-    {
-      m_data[a] = rhs[a];
-    }
-    return *this;
-  }
-
-  ArrayView & operator=( T const & rhs )
-  {
-    INDEX_TYPE const length = size();
-    for( INDEX_TYPE a=0 ; a<length ; ++a )
-    {
-      m_data[a] = rhs;
-    }
+    ArraySlice<T,NDIM,INDEX_TYPE>::operator=(rhs);
     return *this;
   }
 
   ArrayView & operator=( ArrayView && ) = delete;
 
-
   /**
    * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
-  template< typename U = T >
-  explicit
-  operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
-  {
-    return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-                                               m_dims,
-                                               m_strides );
-  }
+  // template< typename U = T >
+  // explicit
+  // operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
+  // {
+  //   return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
+  //                                              m_dims,
+  //                                              m_strides );
+  // }
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
@@ -133,16 +107,64 @@ public:
   explicit
   operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
   {
-    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
+    GEOS_ERROR_IF( m_dims[NDIM-1]!=1,
                    "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
                    "dimension is equal to 1." );
 
-    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
-                                           m_dims,
-                                           m_strides );
+    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
+  INDEX_TYPE size() const
+  {
+    return m_dataVector.size();
+  }
 
+  bool empty() const
+  {
+    return m_dataVector.empty();
+  }
+
+  T& front() 
+  { 
+    return m_dataVector.front();
+  }
+
+  T const& front() const 
+  { 
+    return m_dataVector.front();
+  }
+
+  T& back()
+  { 
+    return m_dataVector.back();
+  }
+
+  T const& back() const
+  { 
+    return m_dataVector.back();
+  }
+
+  iterator begin() 
+  {
+    return m_dataVector.begin();
+  }
+
+  const_iterator begin() const 
+  {
+    return m_dataVector.begin();
+  }
+
+  iterator end() 
+  {
+    return m_dataVector.end();
+  }
+
+  const_iterator end() const 
+  {
+    return m_dataVector.end();
+  }
+
+protected:
 
   void setDataPtr()
   {
@@ -166,17 +188,14 @@ public:
     }
   }
 
-
-protected:
   ArrayType m_dataVector;
 
   INDEX_TYPE m_dimsMem[NDIM];
 
   INDEX_TYPE m_stridesMem[NDIM];
 
-
-
 };
-}
+
+} /* namespace LvArray */
 
 #endif /* ARRAYVIEW_HPP_ */

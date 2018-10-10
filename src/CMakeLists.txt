@@ -1,4 +1,3 @@
-
 set(cxx-utilities_headers
     src/Array.hpp
     src/ArraySlice.hpp

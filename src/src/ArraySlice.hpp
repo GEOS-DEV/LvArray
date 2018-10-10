@@ -47,6 +47,17 @@
 #endif
 
 
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+
+#define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
+GEOS_ERROR_IF( index < 0 || index > m_dims[0], "index=" << index, " m_dims[0]=" << m_dims[0] )
+
+#else
+#define ARRAY_SLICE_CHECK_BOUNDS(index)
+
+#endif
+
+
 namespace LvArray
 {
 
@@ -69,50 +80,20 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class ArraySlice
 {
 public:
-  using index_type = INDEX_TYPE;
-
-  using pointer = T*;
-  using const_pointer = T const *;
-  using reference = T&;
-  using const_reference = T const &;
 
   using size_type = INDEX_TYPE;
-
-
-
-
-
 
   /**
    * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
   template< typename U = T >
   inline explicit
-  operator typename std::enable_if< !std::is_const<U>::value ,
+  operator typename std::enable_if< !std::is_const<U>::value,
                                     ArraySlice<T const,NDIM,INDEX_TYPE> >::type ()
   {
     return ArraySlice<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
                                                m_dims,
                                                m_strides );
-  }
-
-  /**
-   * User Defined Conversion operator to move from an ArraySlice<T> to T *
-   */
-  template< int U = NDIM,
-            typename std::enable_if<U==1, int>::type = 0>
-  inline explicit
-  operator T *()
-  {
-    return m_data;
-  }
-
-  template< int U = NDIM,
-            typename std::enable_if<U==1, int>::type = 0>
-  inline explicit
-  operator T const *() const
-  {
-    return m_data;
   }
 
   /**
@@ -122,22 +103,35 @@ public:
   template< int U=NDIM >
   inline explicit
   operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type ()
-
   {
-    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
-                   "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE> is only valid if last "
-                   "dimension is equal to 1." );
-    return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data,
-                                            m_dims,
-                                            m_strides );
+    GEOS_ASSERT_MSG( m_dims[NDIM-1]==1, "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE>" <<
+                     " is only valid if last dimension is equal to 1." );
+    return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data, m_dims, m_strides );
   }
-
 
   ArraySlice & operator=( ArraySlice const & rhs )
   {
-    for( INDEX_TYPE a=0 ; a<size() ; ++a )
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+    for ( int dim = 0; dim < NDIM; ++dim )
+    {
+      GEOS_ERROR_IF( rhs.size( dim ) != size( dim ) );
+    }
+#endif
+
+    INDEX_TYPE const length = size();
+    for( INDEX_TYPE a = 0 ; a < length ; ++a )
     {
       m_data[a] = rhs.m_data[a];
+    }
+    return *this;
+  }
+
+  ArraySlice & operator=( T const & rhs )
+  {
+    INDEX_TYPE const length = size();
+    for( INDEX_TYPE a = 0 ; a < length ; ++a )
+    {
+      m_data[a] = rhs;
     }
     return *this;
   }
@@ -160,9 +154,7 @@ public:
 #endif
   operator[](INDEX_TYPE const index) const
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    assert( index >= 0 && index < m_dims[0] );
-#endif
+    ARRAY_SLICE_CHECK_BOUNDS(index);
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
@@ -176,24 +168,20 @@ public:
 #endif
   operator[](INDEX_TYPE const index)
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    assert( index >= 0 && index < m_dims[0] );
-#endif
+    ARRAY_SLICE_CHECK_BOUNDS(index);
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
 #ifndef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2 && std::is_scalar<T>::value,
-                                                T const * restrict >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2 && std::is_scalar<T>::value,
-                                                T * restrict >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index)
   {
     return &(m_data[ index*m_strides[0] ]);
@@ -204,9 +192,7 @@ public:
   inline CONSTEXPRFUNC typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    assert( index >= 0 && index < m_dims[0] );
-#endif
+    ARRAY_SLICE_CHECK_BOUNDS(index);
     return m_data[ index ];
   }
 
@@ -215,9 +201,7 @@ public:
   inline CONSTEXPRFUNC typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index)
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    assert( index >= 0 && index < m_dims[0] );
-#endif
+    ARRAY_SLICE_CHECK_BOUNDS(index);
     return m_data[ index ];
   }
 
@@ -234,11 +218,41 @@ public:
   template< typename... INDICES >
   inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
   {
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+    index_checker<NDIM, INDICES...>::f(m_dims, indices...);
+#endif
     return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
   }
 
-  T * data() {return m_data;}
-  T const * data() const {return m_data;}
+  T * data() 
+  {
+    return m_data;
+  }
+
+  T const * data() const 
+  {
+    return m_data;
+  }
+
+    inline T const * data(INDEX_TYPE const index) const
+  {
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+  inline T * data(INDEX_TYPE const index)
+  {
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return &(m_data[ index*m_strides[0] ]);
+  }
+
+  void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
+  {
+    ARRAY_SLICE_CHECK_BOUNDS( destIndex );
+    ARRAY_SLICE_CHECK_BOUNDS( sourceIndex );
+
+    operator[](destIndex) = operator[](sourceIndex);
+  }
 
   INDEX_TYPE size() const
   {
@@ -247,6 +261,7 @@ public:
 
   INDEX_TYPE size( int dim ) const
   {
+
     return m_dims[dim];
   }
 
@@ -268,11 +283,7 @@ public:
 
 protected:
   /// deleted default constructor
-  ArraySlice():
-    m_data(nullptr),
-    m_dims(nullptr),
-    m_strides(nullptr)
-  {}
+  ArraySlice() = delete;
 
   /**
    * @param data pointer to the beginning of the data
@@ -306,10 +317,8 @@ protected:
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_helper
   {
-    //inline constexpr static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
-    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
-                                          INDEX index,
-                                          REMAINING_INDICES... indices )
+    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
+                                INDEX index, REMAINING_INDICES... indices )
     {
       return index*strides[0] + index_helper<DIM-1,REMAINING_INDICES...>::f(strides+1,indices...);
     }
@@ -318,26 +327,52 @@ protected:
   template< typename INDEX, typename... REMAINING_INDICES >
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
-    //inline constexpr  static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-                                INDEX index,
-                                REMAINING_INDICES... indices )
+    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+                                INDEX index )
     {
       return index;
     }
   };
+
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+  template< int DIM, typename INDEX, typename... REMAINING_INDICES >
+  struct index_checker
+  {
+    inline CONSTEXPRFUNC static void f( INDEX_TYPE const * const restrict dims,
+                                        INDEX index, REMAINING_INDICES... indices )
+    {
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index, " m_dims[" <<
+                     (NDIMS - DIM) << "]=" << dims[0] );
+      index_checker<DIM-1,REMAINING_INDICES...>::f(dims + 1,indices...);
+    }
+  };
+
+  template< typename INDEX, typename... REMAINING_INDICES >
+  struct index_checker<1,INDEX,REMAINING_INDICES...>
+  {
+    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+                                              INDEX index )
+    {
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index, " m_dims[" <<
+                     (NDIMS - 1) << "]=" << dims[0] );
+    }
+  };
+#endif
 
 
   template< int DIM >
   struct size_helper
   {
     template< int INDEX=DIM >
-    constexpr static typename std::enable_if<INDEX!=NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    CONSTEXPRFUNC static typename std::enable_if<INDEX!=NDIM-1,INDEX_TYPE>::type
+    f( INDEX_TYPE const * const restrict dims )
     {
       return dims[INDEX] * size_helper<INDEX+1>::f(dims);
     }
+
     template< int INDEX=DIM >
-    constexpr static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    CONSTEXPRFUNC static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type
+    f( INDEX_TYPE const * const restrict dims )
     {
       return dims[INDEX];
     }
@@ -347,9 +382,8 @@ protected:
 };
 
 
-
-
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+
 template< typename T, typename INDEX_TYPE >
 using ArraySlice1d = ArraySlice<T,1,INDEX_TYPE>;
 

@@ -70,6 +70,7 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
   MPI_Comm_rank(mpi_comm, &internal::rank);
   MPI_Comm_size(mpi_comm, &internal::n_ranks);
 
+#ifdef GEOSX_USE_ATK
   axom::slic::initialize();
   axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
 
@@ -83,6 +84,7 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
   const int ranks_limit = 5;
   axom::slic::LumberjackStream * const stream = new axom::slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
   axom::slic::addStreamToAllMsgLevels( stream );
+#endif
 
   if ( rank_output_dir != "" )
   {
@@ -120,6 +122,7 @@ void InitializeLogger(const std::string& rank_output_dir)
 
   axom::slic::GenericOutputStream * const stream = new axom::slic::GenericOutputStream(&std::cout, format );
   axom::slic::addStreamToAllMsgLevels( stream );
+#endif
 
   if ( rank_output_dir != "" )
   {
@@ -131,7 +134,6 @@ void InitializeLogger(const std::string& rank_output_dir)
     std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
     internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
   }
-#endif
 }
 
 #endif
@@ -144,7 +146,7 @@ void FinalizeLogger()
 #endif
 }
 
-void geos_abort()
+[[noreturn]] void geos_abort()
 {
   cxx_utilities::handler1(EXIT_FAILURE);
 #ifdef GEOSX_USE_MPI
@@ -160,8 +162,6 @@ void geos_abort()
     exit( EXIT_FAILURE );
   }
 }
-
-
 
 } /* namespace logger */
 
