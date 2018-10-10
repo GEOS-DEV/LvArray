@@ -28,11 +28,11 @@
 
 #include <fstream>
 #ifdef GEOSX_USE_ATK
-#include "../../../common/GeosxConfig.hpp"
+#include "common/GeosxConfig.hpp"
 #endif
 
 #ifdef GEOSX_USE_ATK
-#include "slic/slic.hpp"
+#include "axom/slic/interface/slic.hpp"
 #endif
 
 #ifdef GEOSX_USE_MPI

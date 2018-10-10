@@ -16,9 +16,11 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
+#endif
 
 /*
  * Logger.cpp
@@ -36,10 +38,10 @@
 #ifdef GEOSX_USE_ATK
 
 #ifdef GEOSX_USE_MPI
-#include "slic/LumberjackStream.hpp"
+#include "axom/slic/streams/LumberjackStream.hpp"
 #endif
 
-#include "slic/GenericOutputStream.hpp"
+#include "axom/slic/streams/GenericOutputStream.hpp"
 
 #endif
 
@@ -167,4 +169,6 @@ void FinalizeLogger()
 
 } /* namespace geosx */
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
