@@ -31,15 +31,15 @@
 
 #include <chrono>
 #include <thread>
-#include "../src/ArrayView.hpp"
+#include "../src/Array.hpp"
 
-inline uint64_t GetTimeMs64()
+inline int64_t GetTimeMs64()
 {
   struct timeval tv;
 
   gettimeofday( &tv, NULL );
 
-  uint64_t ret = tv.tv_usec;
+  int64_t ret = tv.tv_usec;
   /* Convert from micro seconds (10^-6) to milliseconds (10^-3) */
   ret /= 1000;
 
@@ -50,9 +50,8 @@ inline uint64_t GetTimeMs64()
 
 }
 
+using integer_t = std::int_fast32_t;
 
-
-using namespace multidimensionalArray;
 
 double MatrixMultiply_1D( integer_t const num_i,
                           integer_t const num_j,
@@ -74,34 +73,34 @@ double MatrixMultiply_2D_accessor( integer_t const num_i,
                                    integer_t const num_j,
                                    integer_t const num_k,
                                    integer_t const ITERATIONS,
-                                   ArrayView<double,2> const A,
-                                   ArrayView<double,2> const B,
-                                   ArrayView<double,2> C );
+                                   LvArray::ArrayView<double,2> const A,
+                                   LvArray::ArrayView<double,2> const B,
+                                   LvArray::ArrayView<double,2> C );
 
 
 double MatrixMultiply_2D_accessorRef( integer_t const num_i,
                                       integer_t const num_j,
                                       integer_t const num_k,
                                       integer_t const ITERATIONS,
-                                      ArrayView<double,2> const & A,
-                                      ArrayView<double,2> const & B,
-                                      ArrayView<double,2>& C );
+                                      LvArray::ArrayView<double,2> const & A,
+                                      LvArray::ArrayView<double,2> const & B,
+                                      LvArray::ArrayView<double,2>& C );
 
 double MatrixMultiply_2D_accessorRef2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       ArrayView<double,2> const & A,
-                                       ArrayView<double,2> const & B,
-                                       ArrayView<double,2>& C );
+                                       LvArray::ArrayView<double,2> const & A,
+                                       LvArray::ArrayView<double,2> const & B,
+                                       LvArray::ArrayView<double,2>& C );
 
 double MatrixMultiply_2D_accessorPBV2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       ArrayView<double,2> const  A,
-                                       ArrayView<double,2> const  B,
-                                       ArrayView<double,2> C );
+                                       LvArray::ArrayView<double,2> const  A,
+                                       LvArray::ArrayView<double,2> const  B,
+                                       LvArray::ArrayView<double,2> C );
 
 double MatrixMultiply_2D_constructAccessorR( integer_t const num_i,
                                              integer_t const num_j,

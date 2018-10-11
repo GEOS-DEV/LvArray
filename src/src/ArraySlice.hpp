@@ -34,15 +34,15 @@
 
 #elif __GNUC__
 
-#define restrict __restrict__
-#define restrict_this __restrict__
-#define CONSTEXPRFUNC constexpr
-
-#elif __INTEL_COMPILER
-
+#if __INTEL_COMPILER
 #define restrict __restrict__
 #define restrict_this __restrict__
 #define CONSTEXPRFUNC
+#else
+#define restrict __restrict__
+#define restrict_this __restrict__
+#define CONSTEXPRFUNC constexpr
+#endif
 
 #endif
 
@@ -87,7 +87,7 @@ namespace LvArray
  * does not own the data itself, nor does
  * it own the array that defines the shape of the data.
  */
-template< typename T, int NDIM, typename INDEX_TYPE >
+template< typename T, int NDIM, typename INDEX_TYPE = std::int_fast32_t >
 class ArraySlice
 {
 public:
@@ -297,9 +297,9 @@ protected:
   ArraySlice() = delete;
 
   /**
-   * @param data pointer to the beginning of the data
-   * @param length pointer to the beginning of an array of lengths. This array
-   * has length NDIM
+   * @param inputData pointer to the beginning of the data
+   * @param inputDimensions pointer to the beginning of an array of dimsensions. This array
+   *                        has length NDIM
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
@@ -338,7 +338,7 @@ protected:
   template< typename INDEX, typename... REMAINING_INDICES >
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
-    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict,
                                 INDEX index )
     {
       return index;
@@ -352,7 +352,7 @@ protected:
     inline CONSTEXPRFUNC static void f( INDEX_TYPE const * const restrict dims,
                                         INDEX index, REMAINING_INDICES... indices )
     {
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index, " m_dims[" <<
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
                      (NDIMS - DIM) << "]=" << dims[0] );
       index_checker<DIM-1,REMAINING_INDICES...>::f(dims + 1,indices...);
     }
@@ -364,7 +364,7 @@ protected:
     inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
                                               INDEX index )
     {
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index, " m_dims[" <<
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
                      (NDIMS - 1) << "]=" << dims[0] );
     }
   };

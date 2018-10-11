@@ -28,6 +28,9 @@ namespace LvArray
 {
 
 template< typename T, int NDIM, typename INDEX_TYPE >
+class Array;
+
+template< typename T, int NDIM, typename INDEX_TYPE = std::int_fast32_t >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
@@ -46,7 +49,7 @@ public:
   using iterator = typename ArrayType::iterator;
   using const_iterator = typename ArrayType::const_iterator;
 
-  explicit ArrayView():
+  ArrayView():
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{0},
     m_stridesMem{0},
@@ -59,8 +62,9 @@ public:
 
  // }
 
+
   //This triggers Chai::ManagedArray CC
-  explicit ArrayView( ArrayView const & source ):
+  ArrayView( ArrayView const & source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector(source.m_dataVector)
   {
@@ -69,7 +73,17 @@ public:
     setStrides(source.m_stridesMem);
   }
 
-  explicit ArrayView( ArrayView && source ):
+  template< typename U=T  >
+  ArrayView( typename std::enable_if< std::is_same< Array<U,NDIM,INDEX_TYPE>,
+                                                    Array<T,NDIM,INDEX_TYPE> >::value,
+                                      Array<U,NDIM,INDEX_TYPE> >::type const & ):
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem )
+  {
+    static_assert( !std::is_same< Array<U,NDIM,INDEX_TYPE>, Array<T,NDIM,INDEX_TYPE> >::value, "construction of ArrayView from Array is not allowed");
+//    static_assert( false, "construction of ArrayView from Array is not allowed");
+  }
+
+  ArrayView( ArrayView && source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dataVector( std::move( source.m_dataVector ) )
   {
@@ -188,11 +202,12 @@ protected:
     }
   }
 
-  ArrayType m_dataVector;
-
   INDEX_TYPE m_dimsMem[NDIM];
 
   INDEX_TYPE m_stridesMem[NDIM];
+
+  ArrayType m_dataVector;
+
 
 };
 

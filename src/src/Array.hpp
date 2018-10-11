@@ -167,7 +167,7 @@ public:
    * @brief copy constructor
    * @param source object to copy
    *
-   * Performs a deep copy of @param source
+   * Performs a deep copy of source
    */
   Array( Array const & source ):
     ArrayView<T,NDIM,INDEX_TYPE>(),
@@ -192,7 +192,7 @@ public:
    * @param source object to move
    */
   Array( Array&& source ):
-    ArrayView<T,NDIM,INDEX_TYPE>( std::move( source ) ),
+    ArrayView<T,NDIM,INDEX_TYPE>( std::move( static_cast<ArrayView<T,NDIM,INDEX_TYPE>& >(source) ) ),
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
   }
@@ -309,8 +309,6 @@ public:
                    "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments.");
     static_assert( check_dim_type<0,DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
-    INDEX_TYPE length = 1;
-
     dim_unpack<0,DIMS...>::f( m_dimsMem, newdims...);
     CalculateStrides();
     resize();
@@ -318,7 +316,8 @@ public:
 
   void resize(int n_dims, long long const * const dims)
   {
-    assert( n_dims == NDIM );
+    GEOS_ERROR_IF( n_dims == NDIM,
+                   "n_dims provided ("<<n_dims<<") does not match template parameter NDIM="<<NDIM );
 
     for (int i = 0; i < NDIM; i++)
     {
@@ -453,7 +452,7 @@ private:
       length *= m_dims[a];
     }
 
-    m_dataVector.resize( length );
+    m_dataVector.resize( static_cast<size_t>(length) );
     this->setDataPtr();
   }
 
@@ -490,7 +489,7 @@ private:
   template< typename DIM0, typename... DIMS >
   struct dim_unpack<NDIM-1,DIM0,DIMS...>
   {
-    constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... dims )
+    constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
     {
       m_dims[NDIM-1] = dim0;
       return 0;

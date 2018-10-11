@@ -37,3 +37,10 @@ set_target_properties(${test_name} PROPERTIES COMPILE_FLAGS "-Wno-everything")
 endif()
                   
 endforeach()
+
+
+    blt_add_executable( NAME arrayAccessorPerf
+                        SOURCES arrayAccessorPerformance.cpp arrayAccessorPerformanceMain.cpp
+                        INCLUDES arrayAccessorPerformance.hpp
+                        OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
+                        DEPENDS_ON gtest cxx-utilities ${CXX_UTILITIES_DEP} )

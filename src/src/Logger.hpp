@@ -27,6 +27,8 @@
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
 #include <fstream>
+#include <sstream>
+
 #ifdef GEOSX_USE_ATK
 #include "common/GeosxConfig.hpp"
 #endif
