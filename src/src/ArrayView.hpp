@@ -394,7 +394,7 @@ private:
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
     //inline constexpr  static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
                                 INDEX index,
                                 REMAINING_INDICES... indices )
     {
