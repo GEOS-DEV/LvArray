@@ -28,6 +28,7 @@
 #include <vector>
 #include <iostream>
 #include <utility>
+#include <algorithm>
 
 #ifdef __clang__
 #define restrict __restrict__
@@ -123,6 +124,25 @@ public:
   operator T const *() const
   {
     return m_data;
+  }
+
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T,0> to T &
+   */
+  template< int U = NDIM,
+            typename std::enable_if<U==0, int>::type = 0>
+  inline
+  operator T &()
+  {
+    return *m_data;
+  }
+
+  template< int U = NDIM,
+    typename std::enable_if<U==0, int>::type = 0>
+  inline
+  operator T const &() const
+  {
+    return *m_data;
   }
 
   /**
@@ -286,6 +306,24 @@ public:
 
 #endif
 
+  // always return an ArrayView into the slice, even when range checking is off (sometimes useful to have the dimension)
+  template< typename... INDICES >
+  inline typename std::enable_if< sizeof...(INDICES) <= NDIM, ArrayView<T,NDIM-sizeof...(INDICES),INDEX_TYPE> const >::type
+  slice( INDICES... indices ) const
+  {
+    constexpr int N = sizeof...(indices);
+    return ArrayView<T,NDIM-N,INDEX_TYPE>( &(m_data[ linearIndex(indices...) ] ), m_dims+N, m_strides+N );
+  }
+
+  // always return an ArrayView into the slice, even when range checking is off (sometimes useful to have the dimension)
+  template< typename... INDICES >
+  inline typename std::enable_if< sizeof...(INDICES) <= NDIM, ArrayView<T,NDIM-sizeof...(INDICES),INDEX_TYPE> >::type
+  slice( INDICES... indices )
+  {
+    constexpr int N = sizeof...(indices);
+    return ArrayView<T,NDIM-N,INDEX_TYPE>( &(m_data[ linearIndex(indices...) ] ), m_dims+N, m_strides+N );
+  }
+
   template< typename... INDICES >
   //inline constexpr T & operator()( INDICES... indices ) const
   inline T & operator()( INDICES... indices ) const
@@ -297,11 +335,27 @@ public:
   //inline constexpr  INDEX_TYPE linearIndex( INDICES... indices ) const
   inline INDEX_TYPE linearIndex( INDICES... indices ) const
   {
-    return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
+    return index_helper<std::min(NDIM,int(sizeof...(indices))),INDICES...>::f(m_strides,indices...);
   }
 
   T * data() {return m_data;}
   T const * data() const {return m_data;}
+
+  // return a pointer to the "sliced" memory
+  template< typename... INDICES >
+  inline typename std::enable_if< (sizeof...(INDICES) > 0) && sizeof...(INDICES) <= NDIM, T * >::type
+  data( INDICES... indices )
+  {
+    return &(m_data[ linearIndex(indices...) ] );
+  }
+
+  // return a pointer to the "sliced" memory
+  template< typename... INDICES >
+  inline typename std::enable_if< (sizeof...(INDICES) > 0) && sizeof...(INDICES) <= NDIM, T const * >::type
+  data( INDICES... indices ) const
+  {
+    return &(m_data[ linearIndex(indices...) ] );
+  }
 
   INDEX_TYPE size() const
   {
@@ -344,7 +398,7 @@ private:
                                 INDEX index,
                                 REMAINING_INDICES... indices )
     {
-      return index;
+      return index*strides[0];
     }
   };
 
@@ -353,14 +407,19 @@ private:
   struct size_helper
   {
     template< int INDEX=DIM >
-    constexpr static typename std::enable_if<INDEX!=NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    constexpr static typename std::enable_if<INDEX<NDIM,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
     {
       return dims[INDEX] * size_helper<INDEX+1>::f(dims);
     }
+//    template< int INDEX=DIM >
+//    constexpr static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+//    {
+//      return dims[INDEX];
+//    }
     template< int INDEX=DIM >
-    constexpr static typename std::enable_if<INDEX==NDIM-1,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
+    constexpr static typename std::enable_if<INDEX==NDIM,INDEX_TYPE>::type f( INDEX_TYPE const * const restrict dims )
     {
-      return dims[INDEX];
+      return 1;
     }
 
   };
