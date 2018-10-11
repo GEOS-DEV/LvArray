@@ -27,6 +27,7 @@
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
 #include <fstream>
+#include <sstream>
 #include "common/GeosxConfig.hpp"
 #include "axom/slic/interface/slic.hpp"
 

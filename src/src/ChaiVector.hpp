@@ -357,7 +357,7 @@ public:
 
   /**
    * @brief Append a value to the end of the array.
-   * @param [in] val the value to append.
+   * @param [in] value the value to append.
    */
   void push_back( const_reference value )
   {

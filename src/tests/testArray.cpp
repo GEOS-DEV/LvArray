@@ -777,7 +777,7 @@ template < class T, class LAMBDA >
 void shallow_copy_test( const array< T >& v, LAMBDA get_value )
 {
   {
-    arrayView< T > v_cpy(v);
+    arrayView< T > v_cpy( static_cast<arrayView<T> const&>(v) );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
@@ -804,7 +804,7 @@ template < class T, class LAMBDA >
 void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
   {
-    arrayView< array< T > > v_cpy(v);
+    arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const &>(v) );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
@@ -1230,7 +1230,7 @@ TEST( Array, test_upcast )
   {
     array< int > v;
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-    arrayView< int >& vView = v;
+    arrayView< int > & vView = v;
     internal::compare_to_view(v, vView);
   }
 
