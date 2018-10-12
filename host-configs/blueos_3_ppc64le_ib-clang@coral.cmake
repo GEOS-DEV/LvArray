@@ -6,8 +6,6 @@ set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2018.08.08/bin/clang
 
 set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
 
-set(ENABLE_CUDA ON CACHE BOOL "" FORCE)
-set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE BOOL "" FORCE)
 
 
 # fortran compiler used by spack
@@ -26,3 +24,9 @@ set(MPI_Fortran_COMPILER     "${MPI_HOME}/bin/mpifort" CACHE PATH "")
 set(MPIEXEC                "${MPI_HOME}/bin/mpirun" CACHE PATH "")
 set(MPIEXEC_NUMPROC_FLAG   "-np" CACHE PATH "")
 set(BLT_MPI_COMMAND_APPEND "mpibind" CACHE PATH "")
+
+
+set(ENABLE_CUDA ON CACHE BOOL "" FORCE)
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE BOOL "" FORCE)
+
+set(CMAKE_CUDA_HOST_COMPILER ${MPI_CXX_COMPILER})
