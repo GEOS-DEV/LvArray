@@ -26,7 +26,7 @@
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
 #include <fenv.h>
-#include <xmmintrin.h>
+//#include <xmmintrin.h>
 
 namespace cxx_utilities
 {
