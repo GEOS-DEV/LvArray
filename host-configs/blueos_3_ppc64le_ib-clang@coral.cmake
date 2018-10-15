@@ -26,7 +26,10 @@ set(MPIEXEC_NUMPROC_FLAG   "-np" CACHE PATH "")
 set(BLT_MPI_COMMAND_APPEND "mpibind" CACHE PATH "")
 
 
-set(ENABLE_CUDA ON CACHE BOOL "" FORCE)
-set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE BOOL "" FORCE)
-
-set(CMAKE_CUDA_HOST_COMPILER ${MPI_CXX_COMPILER})
+set(ENABLE_CUDA ON CACHE BOOL "")
+set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE STRING "")
+set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc CACHE STRING "")
+set (CUDA_ARCH "sm_60" CACHE STRING "")
+#set (CMAKE_CUDA_LINK_FLAGS "-Xlinker -rpath -Xlinker /usr/tce/packages/spectrum-mpi/ibm/spectrum-mpi-2017.04.03/lib -Xlinker -rpath -Xlinker /usr/tce/packages/clang/clang-coral-2017.10.13/ibm/lib:/usr/tce/packages/gcc/gcc-4.9.3/lib64 -L/usr/tce/packages/spectrum-mpi/ibm/spectrum-mpi-2017.04.03/lib/ -lmpi_ibm" CACHE STRING "")
+set (CUDA_NVCC_FLAGS -restrict -arch ${CUDA_ARCH} --expt-extended-lambda CACHE LIST "" )
+#set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER} CACHE STRING "")
