@@ -41,6 +41,8 @@
 
 #include "axom/slic/streams/GenericOutputStream.hpp"
 
+using namespace axom;
+
 namespace geosx
 {
 
@@ -57,6 +59,17 @@ bool using_cout_for_rank_stream = true;
 
 std::ofstream rank_stream;
 
+slic::GenericOutputStream* createGenericStream()
+{
+  std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
+                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
+                        std::string( "MESSAGE=<MESSAGE>\n" ) +
+                        std::string( "<TIMESTAMP>\n" ) +
+                        std::string( 100, '*' ) + std::string("\n");
+
+  return new slic::GenericOutputStream(&std::cout, format );
+}
+
 } /* namespace internal */
 
 #ifdef GEOSX_USE_MPI
@@ -66,8 +79,8 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
   MPI_Comm_rank(mpi_comm, &internal::rank);
   MPI_Comm_size(mpi_comm, &internal::n_ranks);
 
-  axom::slic::initialize();
-  axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
+  slic::initialize();
+  slic::setLoggingMsgLevel( slic::message::Debug );
 
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
                         std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
@@ -77,8 +90,15 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
                         std::string( 100, '*' ) + std::string("\n");
 
   const int ranks_limit = 5;
-  axom::slic::LumberjackStream * const stream = new axom::slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
-  axom::slic::addStreamToAllMsgLevels( stream );
+  slic::LumberjackStream * const lj_stream = new slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
+
+  for ( int level = slic::message::Warning; level < slic::message::Num_Levels; ++level )
+  {
+    slic::addStreamToMsgLevel( lj_stream, static_cast< slic::message::Level >( level ) );
+  }
+
+  slic::GenericOutputStream* stream = internal::createGenericStream();
+  slic::addStreamToMsgLevel( stream, slic::message::Error );
 
   if ( rank_output_dir != "" )
   {
@@ -104,17 +124,11 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 
 void InitializeLogger(const std::string& rank_output_dir)
 {
-  axom::slic::initialize();
-  axom::slic::setLoggingMsgLevel( axom::slic::message::Debug );
+  slic::initialize();
+  slic::setLoggingMsgLevel( slic::message::Debug );
 
-  std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
-                        std::string( "MESSAGE=<MESSAGE>\n" ) +
-                        std::string( "<TIMESTAMP>\n" ) +
-                        std::string( 100, '*' ) + std::string("\n");
-
-  axom::slic::GenericOutputStream * const stream = new axom::slic::GenericOutputStream(&std::cout, format );
-  axom::slic::addStreamToAllMsgLevels( stream );
+  slic::GenericOutputStream* stream = internal::createGenericStream();
+  slic::addStreamToAllMsgLevels( stream );
 
   if ( rank_output_dir != "" )
   {
@@ -132,8 +146,8 @@ void InitializeLogger(const std::string& rank_output_dir)
 
 void FinalizeLogger()
 {
-  axom::slic::flushStreams();
-  axom::slic::finalize();
+  slic::flushStreams();
+  slic::finalize();
 }
 
 } /* namespace logger */
