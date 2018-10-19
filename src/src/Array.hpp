@@ -116,10 +116,10 @@ class Array : public ArrayView<T,NDIM,INDEX_TYPE>
 {
 public:
 
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_data;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_dims;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::m_strides;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::size;
+  using ArrayView<T,NDIM,INDEX_TYPE>::m_data;
+  using ArrayView<T,NDIM,INDEX_TYPE>::m_dims;
+  using ArrayView<T,NDIM,INDEX_TYPE>::m_strides;
+  using ArrayView<T,NDIM,INDEX_TYPE>::size;
 
   using ArrayView<T,NDIM,INDEX_TYPE>::m_dataVector;
   using ArrayView<T,NDIM,INDEX_TYPE>::m_dimsMem;

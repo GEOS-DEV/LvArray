@@ -37,7 +37,7 @@ inline int64_t GetTimeMs64()
 {
   struct timeval tv;
 
-  gettimeofday( &tv, NULL );
+  gettimeofday( &tv, nullptr );
 
   int64_t ret = tv.tv_usec;
   /* Convert from micro seconds (10^-6) to milliseconds (10^-3) */

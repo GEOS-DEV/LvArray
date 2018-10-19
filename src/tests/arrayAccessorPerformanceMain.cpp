@@ -34,7 +34,7 @@ using namespace LvArray;
 int main( int /*argc*/, char* argv[] )
 {
 
-  integer_t seed = time( NULL );
+  integer_t seed = time( nullptr );
 
   const integer_t num_i = std::stoi( argv[1] );
   const integer_t num_k = std::stoi( argv[2] );
