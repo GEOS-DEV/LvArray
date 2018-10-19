@@ -38,8 +38,8 @@ namespace cxx_utilities
 std::string demangle( const std::string& name );
 
 
-template< typename T_RHS, typename VECTORTYPE >
-void equateStlVector( T_RHS & lhs, std::vector<VECTORTYPE> const & rhs )
+template< typename T_LHS, typename VECTORTYPE >
+void equateStlVector( T_LHS & lhs, std::vector<VECTORTYPE> const & rhs )
 {
   for( unsigned int a=0 ; a<rhs.size() ; ++a )
   {

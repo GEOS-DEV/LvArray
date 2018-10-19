@@ -42,6 +42,8 @@ public:
   using typename ArraySlice<T,NDIM,INDEX_TYPE>::size_type;
 
   using ArrayType = ChaiVector<T>;
+  using pointer = T *;
+  using const_pointer = T const *;
   using iterator = typename ArrayType::iterator;
   using const_iterator = typename ArrayType::const_iterator;
 
@@ -78,31 +80,27 @@ public:
     setDataPtr();
     setDims(source.m_dimsMem);
     setStrides(source.m_stridesMem);
+
+    source.m_dataVector.reset();
+    source.setDataPtr();
   }
 
   ArrayView & operator=( ArrayView const & rhs )
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    for ( int dim = 0; dim < NDIM; ++dim )
-    {
-      GEOS_ERROR_IF( rhs.size( dim ) != size( dim ) );
-    }
-#endif
-
-    INDEX_TYPE const length = size();
-    for( INDEX_TYPE a = 0 ; a < length ; ++a )
-    {
-      m_data[a] = rhs.m_data[a];
-    }
+    m_dataVector = rhs.m_dataVector;
+    setStrides( rhs.m_strides );
+    setDims( rhs.m_dims );
+    setDataPtr();    
     return *this;
   }
 
   ArrayView & operator=( T const & rhs )
   {
     INDEX_TYPE const length = size();
+    T* const data_ptr = data();
     for( INDEX_TYPE a = 0 ; a < length ; ++a )
     {
-      m_data[a] = rhs;
+      data_ptr[a] = rhs;
     }
     return *this;
   }
@@ -129,7 +127,7 @@ public:
   explicit
   operator typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE>& >::type ()
   {
-    GEOS_ERROR_IF( m_dims[NDIM - 1] != 1,
+    GEOS_ERROR_IF( m_dimsMem[NDIM - 1] != 1,
                    "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
                    "dimension is equal to 1." );
 
@@ -139,7 +137,7 @@ public:
   INDEX_TYPE size() const
   {
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    GEOS_ERROR_IF( size_helper<0>::f(m_dims) == m_dataVector.size(), "Size mismatch" );
+    GEOS_ERROR_IF( size_helper<0>::f(m_dimsMem) != static_cast<INDEX_TYPE>(m_dataVector.size()), "Size mismatch" );
 #endif
     return m_dataVector.size();
   }
@@ -150,7 +148,7 @@ public:
   }
 
   T& front() 
-  { 
+  {
     return m_dataVector.front();
   }
 
@@ -199,31 +197,31 @@ public:
   inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
   {
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-    index_checker<NDIM, INDICES...>::f(m_dims, indices...);
+    index_checker<NDIM, INDICES...>::f(m_dimsMem, indices...);
 #endif
-    return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
+    return index_helper<NDIM,INDICES...>::f(m_stridesMem,indices...);
   }
 
   T * data() 
   {
-    return m_data;
+    return m_dataVector.data();
   }
 
   T const * data() const 
   {
-    return m_data;
+    return m_dataVector.data();
   }
 
-    inline T const * data(INDEX_TYPE const index) const
+  inline T const * data(INDEX_TYPE const index) const
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return &(m_data[ index*m_strides[0] ]);
+    return &(m_dataVector[ index*m_stridesMem[0] ]);
   }
 
   inline T * data(INDEX_TYPE const index)
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return &(m_data[ index*m_strides[0] ]);
+    return &(m_dataVector[ index*m_stridesMem[0] ]);
   }
 
   void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
@@ -237,17 +235,17 @@ public:
   INDEX_TYPE size( int dim ) const
   {
 
-    return m_dims[dim];
+    return m_dimsMem[dim];
   }
 
   inline INDEX_TYPE const * dims() const
   {
-    return m_dims;
+    return m_dimsMem;
   }
 
   inline INDEX_TYPE const * strides() const
   {
-    return m_strides;
+    return m_stridesMem;
   }
 
 protected:
@@ -298,11 +296,11 @@ protected:
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_checker
   {
-    inline CONSTEXPRFUNC static void f( INDEX_TYPE const * const restrict dims,
+    inline static void f( INDEX_TYPE const * const restrict dims,
                                         INDEX index, REMAINING_INDICES... indices )
     {
       GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIMS - DIM) << "]=" << dims[0] );
+                     (NDIM - DIM) << "]=" << dims[0] );
       index_checker<DIM-1,REMAINING_INDICES...>::f(dims + 1,indices...);
     }
   };
@@ -310,11 +308,11 @@ protected:
   template< typename INDEX, typename... REMAINING_INDICES >
   struct index_checker<1,INDEX,REMAINING_INDICES...>
   {
-    inline CONSTEXPRFUNC static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    inline static void f( INDEX_TYPE const * const restrict dims,
                                               INDEX index )
     {
       GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIMS - 1) << "]=" << dims[0] );
+                     (NDIM - 1) << "]=" << dims[0] );
     }
   };
 #endif

@@ -46,16 +46,9 @@ class ChaiVector
 {
 public:
 
-  using value_type = T;
   using size_type = size_t;
-  using reference = T&;
-  using const_reference = const T&;
-  using rvalue_reference = T&&;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using iterator = pointer;
-  using const_iterator = const_pointer;
-
+  using iterator = T *;
+  using const_iterator = T const *;
 
   /**
    * @brief Default constructor, creates a new empty vector.
@@ -143,6 +136,19 @@ public:
   }
 
   /**
+   * @brief Let go of any memory held. Should not be called lightly, does not free
+   *  said memory.
+   */
+  void reset()
+  {
+    m_array = nullptr;
+    m_length = 0;
+#ifndef GEOSX_USE_CHAI
+    m_capacity = 0;
+#endif
+  }
+
+  /**
    * @brief Move assignment operator, moves the given ChaiVector into *this.
    * @param [in] source the ChaiVector to move.
    * @return *this.
@@ -194,10 +200,10 @@ public:
    * @return a reference to the value at the given index.
    */
   /// @{
-  reference operator[]( size_type pos )
+  T& operator[]( size_type pos )
   { return m_array[ pos ]; }
 
-  const_reference operator[]( size_type pos ) const
+  T const & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
   /// @}
 
@@ -205,10 +211,10 @@ public:
    * @brief Return a reference to the first value in the array.
    */
   /// @{
-  reference front()
+  T& front()
   { return m_array[0]; }
 
-  const_reference front() const
+  T const & front() const
   { return m_array[0]; }
   /// @}
 
@@ -216,10 +222,10 @@ public:
    * @brief Return a reference to the last value in the array.
    */
   /// @{
-  reference back()
+  T& back()
   { return m_array[ size() - 1 ]; }
 
-  const_reference back() const
+  T const & back() const
   { return m_array[ size()  - 1 ]; }
   /// @}
 
@@ -227,10 +233,10 @@ public:
    * @brief Return a pointer to the data.
    */
   /// @{
-  pointer data()
+  T* data()
   { return &m_array[0]; }
 
-  const_pointer data() const
+  T const * data() const
   { return &m_array[0]; }
   /// @}
 
@@ -308,8 +314,44 @@ public:
   iterator insert( const_iterator pos, const T& value )
   {
     const size_type index = pos - begin();
-    emplace( 1, index );
-    m_array[ index ] = value;
+    return insert( index, value );
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( const_iterator pos, const T&& value )
+  {
+    const size_type index = pos - begin();
+    return insert( index, std::move( value ) );
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( size_type index, const T& value )
+  {
+    emplace( index, 1 );
+    new ( &m_array[ index ] ) T(value);
+    return begin() + index;
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( size_type index, const T&& value )
+  {
+    emplace( index, 1 );
+    new ( &m_array[ index ] ) T(std::move(value));
     return begin() + index;
   }
 
@@ -323,14 +365,14 @@ public:
   template < typename InputIt >
   iterator insert( const_iterator pos, InputIt first, InputIt last )
   {
-    const size_type index = pos - begin();
+    size_type index = pos - begin();
     const size_type n = std::distance( first, last );
-    emplace( n, index );
+    emplace( index, n );
 
-    for( size_type i = 0; i < n; ++i )
+    /* Initialize the newly vacant values moved out of to the default value. */
+    for ( ; first != last; ++first )
     {
-      m_array[ index + i ] = *first;
-      first++;
+      new ( &m_array[ index++ ] ) T(*first);
     }
 
     return begin() + index;
@@ -359,15 +401,29 @@ public:
    * @brief Append a value to the end of the array.
    * @param [in] value the value to append.
    */
-  void push_back( const_reference value )
+  void push_back( T const & value )
   {
     if ( size() + 1 > capacity() )
     {
       dynamicRealloc( size() + 1 );
     }
     
-    new ( &m_array[ size() ] ) T();
-    m_array[ size() ] = value;
+    new ( &m_array[ size() ] ) T(value);
+    ++m_length;
+  }
+
+  /**
+   * @brief Append a value to the end of the array.
+   * @param [in] value the value to append.
+   */
+  void push_back( T && value )
+  {
+    if ( size() + 1 > capacity() )
+    {
+      dynamicRealloc( size() + 1 );
+    }
+    
+    new ( &m_array[ size() ] ) T(std::move(value));
     ++m_length;
   }
 
@@ -419,7 +475,7 @@ private:
    * @param [in] n the number of values to insert.
    * @param [in] pos the position at which to insert.
    */
-  void emplace( size_type n, size_type pos )
+  void emplace( size_type pos, size_type n )
   {
     if ( n == 0 )
     {
@@ -437,13 +493,6 @@ private:
     {
       const size_type cur_pos = i - 1;
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
-    }
-
-    /* Initialize the newly vacant values moved out of to the default value. */
-    for ( size_type i = 0; i < n; ++i )
-    {
-      const size_type cur_pos = pos + i;
-      new ( &m_array[ cur_pos ] ) T();
     }
 
     m_length = new_length;

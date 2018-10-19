@@ -26,15 +26,15 @@
 #include <utility>
 #include "Logger.hpp"
 
-#ifdef __clang__
+#if defined(__clang__)
 
 #define restrict __restrict__
 #define restrict_this
 #define CONSTEXPRFUNC constexpr
 
-#elif __GNUC__
+#elif defined(__GNUC__)
 
-#if __INTEL_COMPILER
+#if defined(__INTEL_COMPILER)
 #define restrict __restrict__
 #define restrict_this __restrict__
 #define CONSTEXPRFUNC
@@ -43,11 +43,14 @@
 #define restrict_this __restrict__
 #define CONSTEXPRFUNC constexpr
 #endif
-
 #endif
 
+#define GEOSX_USE_ARRAY_BOUNDS_CHECK
 
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+
+#undef CONSTEXPRFUNC
+#define CONSTEXPRFUNC
 
 #ifdef USE_CUDA
 
@@ -58,7 +61,7 @@ assert( index < 0 || index > m_dims[0] )
 #else // USE_CUDA
 
 #define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
-GEOS_ERROR_IF( index < 0 || index > m_dims[0], "index=" << index, " m_dims[0]=" << m_dims[0] )
+GEOS_ERROR_IF( index < 0 || index > m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #endif // USE_CUDA
 
@@ -132,9 +135,9 @@ public:
    */
   template< int U=NDIM >
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  inline typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
-  inline typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #endif
   operator[](INDEX_TYPE const index) const restrict_this
   {
@@ -145,9 +148,9 @@ public:
 
   template< int U=NDIM >
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
-  inline typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
-  inline typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #endif
   operator[](INDEX_TYPE const index) restrict_this
   {
@@ -188,20 +191,18 @@ public:
     return m_data[ index ];
   }
 
-
-protected:
   /// deleted default constructor
   ArraySlice() = delete;
 
   /**
    * @param inputData pointer to the beginning of the data
-   * @param inputDimensions pointer to the beginning of an array of dimsensions. This array
+   * @param inputDimensions pointer to the beginning of an array of dimensions. This array
    *                        has length NDIM
    *
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
    */
-  inline explicit
+  inline explicit CONSTEXPRFUNC
   ArraySlice( T * const restrict inputData,
               INDEX_TYPE const * const restrict inputDimensions,
               INDEX_TYPE const * const restrict inputStrides ):

@@ -133,7 +133,7 @@ void handler(int sig, int exitFlag, int exitCode )
   else
 #endif
   {
-    exit(exitCode);
+    abort();
   }
 
   }

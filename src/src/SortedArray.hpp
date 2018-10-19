@@ -27,9 +27,13 @@ class SortedArray
 {
 
 public:
-  using iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::iterator;
-  using const_iterator = typename LvArray::Array<T, 1, INDEX_TYPE>::const_iterator;
-  using size_type = typename LvArray::Array<T, 1, INDEX_TYPE>::size_type;
+  using ArrayType = LvArray::Array<T, 1, INDEX_TYPE>;
+  using value_type = typename ArrayType::value_type;
+  using pointer = typename ArrayType::pointer;
+  using const_pointer = typename ArrayType::const_pointer;
+  using iterator = typename ArrayType::iterator;
+  using const_iterator = typename ArrayType::const_iterator;
+  using size_type = typename ArrayType::size_type;
 
   SortedArray():
     m_data()
@@ -142,7 +146,7 @@ public:
   { return std::is_sorted(begin(), end()); }
 
 private:
-  LvArray::Array<T, 1, INDEX_TYPE> m_data;
+  ArrayType m_data;
 };
 
 #endif /* SRC_COMMON_SORTEDARRAY */

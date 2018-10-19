@@ -49,9 +49,6 @@ using namespace axom;
 
 #include "stackTrace.hpp"
 
-namespace geosx
-{
-
 namespace logger
 {
 namespace internal
@@ -64,6 +61,10 @@ int n_ranks = 1;
 bool using_cout_for_rank_stream = true;
 
 std::ofstream rank_stream;
+
+#ifdef GEOSX_USE_MPI
+  MPI_Comm comm;
+#endif
 
 slic::GenericOutputStream* createGenericStream()
 {
@@ -82,6 +83,7 @@ slic::GenericOutputStream* createGenericStream()
 
 void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 {
+  internal::comm = mpi_comm;
   MPI_Comm_rank(mpi_comm, &internal::rank);
   MPI_Comm_size(mpi_comm, &internal::n_ranks);
 
@@ -160,26 +162,15 @@ void FinalizeLogger()
   slic::finalize();
 }
 
-[[noreturn]] void geos_abort()
+#ifndef GEOSX_USE_MPI
+[[noreturn]] 
+#endif
+void abort()
 {
   cxx_utilities::handler1(EXIT_FAILURE);
-#ifdef GEOSX_USE_MPI
-  int mpi = 0;
-  MPI_Initialized( &mpi );
-  if ( mpi )
-  {
-    MPI_Abort( MPI_COMM_GEOSX, EXIT_FAILURE );
-  }
-  else
-#endif
-  {
-    exit( EXIT_FAILURE );
-  }
 }
 
 } /* namespace logger */
-
-} /* namespace geosx */
 
 #ifdef __clang__
 #pragma clang diagnostic pop

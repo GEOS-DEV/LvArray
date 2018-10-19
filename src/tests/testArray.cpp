@@ -697,8 +697,7 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
 template < class T, class LAMBDA >
 void deep_copy_test( const array< T >& v, LAMBDA get_value )
 {
-  array< T > v_cpy;
-  v_cpy = v;
+  array< T > v_cpy(v);
   
   ASSERT_EQ( v.size(), v_cpy.size() );
 
@@ -730,8 +729,7 @@ void deep_copy_test( const array< T >& v, LAMBDA get_value )
 template < class T, class LAMBDA >
 void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
-  array< array< T > > v_cpy;
-  v_cpy = v;
+  array< array< T > > v_cpy(v);
   
   ASSERT_EQ( v.size(), v_cpy.size() );
 
@@ -1025,7 +1023,7 @@ TEST( Array, pop_back )
 
 TEST( Array, pop_back_array )
 {
-  constexpr int N = 30;     /* Number of arrays to push_back */
+  constexpr int N = 50;     /* Number of arrays to push_back */
   constexpr int M = 10;     /* Size of each array */
 
   {

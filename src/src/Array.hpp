@@ -116,27 +116,25 @@ class Array : public ArrayView<T,NDIM,INDEX_TYPE>
 {
 public:
 
-  using ArrayView<T,NDIM,INDEX_TYPE>::m_data;
-  using ArrayView<T,NDIM,INDEX_TYPE>::m_dims;
-  using ArrayView<T,NDIM,INDEX_TYPE>::m_strides;
-  using ArrayView<T,NDIM,INDEX_TYPE>::size;
-
   using ArrayView<T,NDIM,INDEX_TYPE>::m_dataVector;
   using ArrayView<T,NDIM,INDEX_TYPE>::m_dimsMem;
   using ArrayView<T,NDIM,INDEX_TYPE>::m_stridesMem;
 
+  using ArrayView<T,NDIM,INDEX_TYPE>::size;  
+  using ArrayView<T,NDIM,INDEX_TYPE>::setDataPtr;
+  using ArrayView<T,NDIM,INDEX_TYPE>::data;
+  using ArrayView<T,NDIM,INDEX_TYPE>::begin;
+  using ArrayView<T,NDIM,INDEX_TYPE>::end;
+  using ArrayView<T,NDIM,INDEX_TYPE>::operator[];
+  using ArrayView<T,NDIM,INDEX_TYPE>::operator();
+
+  using value_type = T;
+  using typename ArrayView<T,NDIM,INDEX_TYPE>::pointer;
+  using typename ArrayView<T,NDIM,INDEX_TYPE>::const_pointer;
   using typename ArrayView<T,NDIM,INDEX_TYPE>::size_type;
   using typename ArrayView<T,NDIM,INDEX_TYPE>::iterator;
   using typename ArrayView<T,NDIM,INDEX_TYPE>::const_iterator;
-  
-  using ArrayView<T,NDIM,INDEX_TYPE>::setDataPtr;
-  using ArrayView<T,NDIM,INDEX_TYPE>::data;
-  using ArrayView<T,NDIM,INDEX_TYPE>::copy;
-  using ArrayView<T,NDIM,INDEX_TYPE>::empty;
-  using ArrayView<T,NDIM,INDEX_TYPE>::front;
-  using ArrayView<T,NDIM,INDEX_TYPE>::back;
-  using ArrayView<T,NDIM,INDEX_TYPE>::begin;
-  using ArrayView<T,NDIM,INDEX_TYPE>::end;
+
 
   /**
    * @brief default constructor
@@ -174,17 +172,7 @@ public:
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
     // This DOES NOT trigger Chai::ManagedArray CC
-
-    m_dataVector.reserve( source.capacity() );
-    m_dataVector.resize( source.size() );
-    this->setDataPtr();
-    for( INDEX_TYPE a=0 ; a<source.size() ; ++a )
-    {
-      m_dataVector[a] = source[a];
-    }
-
-    this->setDims(source.m_dims);
-    this->setStrides(source.m_strides);
+    *this = source;
   }
 
   /**
@@ -195,6 +183,7 @@ public:
     ArrayView<T,NDIM,INDEX_TYPE>( std::move( static_cast<ArrayView<T,NDIM,INDEX_TYPE>& >(source) ) ),
     m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
+    source.clear();
   }
 
   ~Array()
@@ -220,43 +209,40 @@ public:
 //                                           m_strides );
 //  }
 
-  /**
-   * @brief copy assignment operator
-   * @param rhs rhs to be copied
-   * @return *this
-   */
-  Array & operator=( Array const & rhs )
+  Array & operator=( Array const& rhs )
   {
-    m_dataVector = rhs.m_dataVector;
-    setDataPtr();
-
+    resize( rhs.size() );
     this->setDims(rhs.m_dimsMem);
     this->setStrides(rhs.m_stridesMem);
 
-    return *this;
-  }
-
-  Array & operator=( T const & rhs )
-  {
     INDEX_TYPE const length = size();
-    for( INDEX_TYPE a=0 ; a<length ; ++a )
+    T * const data_ptr = data();
+    T const * const rhs_data_ptr = rhs.data();
+    for( INDEX_TYPE a = 0 ; a < length ; ++a )
     {
-      m_data[a] = rhs;
+      data_ptr[a] = rhs_data_ptr[a];
     }
+
+    setSingleParameterResizeIndex( rhs.getSingleParameterResizeIndex() );
     return *this;
   }
 
-
-  Array & operator=( Array&& source )
+  Array & operator=( T const& rhs )
   {
-    m_dataVector = std::move(source.m_dataVector);
+    ArrayView<T, NDIM, INDEX_TYPE>::operator=( rhs );
+    return *this;
+  }
+
+  Array & operator=( Array&& rhs )
+  {
+    m_dataVector = std::move(rhs.m_dataVector);
     setDataPtr();
-    m_singleParameterResizeIndex = source.m_singleParameterResizeIndex;
+    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
 
     for( int a=0 ; a<NDIM ; ++a )
     {
-      m_dimsMem[a]     = source.m_dims[a];
-      m_stridesMem[a]  = source.m_strides[a];
+      m_dimsMem[a]     = rhs.m_dimsMem[a];
+      m_stridesMem[a]  = rhs.m_stridesMem[a];
     }
 
     return *this;
@@ -269,7 +255,7 @@ public:
     m_stridesMem[NDIM-1] = 1;
     for( int a=NDIM-2 ; a>=0 ; --a )
     {
-      m_stridesMem[a] = m_dims[a+1] * m_stridesMem[a+1];
+      m_stridesMem[a] = m_dimsMem[a+1] * m_stridesMem[a+1];
     }
   }
 
@@ -290,7 +276,7 @@ public:
 
     for( int i=0 ; i<NDIM ; ++i )
     {
-      m_dims[i] = dims[i];
+      m_dimsMem[i] = dims[i];
     }
 
     CalculateStrides();
@@ -316,12 +302,12 @@ public:
 
   void resize(int n_dims, long long const * const dims)
   {
-    GEOS_ERROR_IF( n_dims == NDIM,
+    GEOS_ERROR_IF( n_dims != NDIM,
                    "n_dims provided ("<<n_dims<<") does not match template parameter NDIM="<<NDIM );
 
     for (int i = 0; i < NDIM; i++)
     {
-      m_dims[i] = integer_conversion<INDEX_TYPE>(dims[i]);
+      m_dimsMem[i] = integer_conversion<INDEX_TYPE>(dims[i]);
     }
 
     CalculateStrides();
@@ -371,7 +357,17 @@ public:
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type pop_back()
+  typename std::enable_if< N==1, void >::type 
+  push_back( T && newValue )
+  {
+    m_dataVector.push_back(std::move(newValue));
+    setDataPtr();
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type
+  pop_back()
   {
     m_dataVector.pop_back();
     m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
@@ -386,6 +382,33 @@ public:
     m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
+  insert(iterator pos, T && value)
+  {
+    m_dataVector.insert( pos, std::move(value) );
+    setDataPtr();
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
+  insert(INDEX_TYPE pos, T const& value)
+  {
+    m_dataVector.insert( pos, value );
+    setDataPtr();
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
+  template<int N=NDIM>
+  typename std::enable_if< N==1, void >::type 
+  insert(INDEX_TYPE pos, T && value)
+  {
+    m_dataVector.insert( pos, std::move(value) );
+    setDataPtr();
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+  }
+
   template<int N=NDIM, typename InputIt>
   typename std::enable_if< N==1, void >::type 
   insert(iterator pos, InputIt first, InputIt last)
@@ -396,29 +419,13 @@ public:
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type erase( iterator index )
+  typename std::enable_if< N==1, void >::type erase( iterator pos )
   {
-    m_dataVector.erase( index ) ;
+    m_dataVector.erase( pos ) ;
     m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
   }
 
   /**@}*/
-
-
-  inline ArrayView<T,NDIM,INDEX_TYPE> View() const
-  {
-    return ArrayView<T,NDIM,INDEX_TYPE>(this->m_data,
-                                        this->m_dims,
-                                        this->m_strides);
-  }
-
-  inline ArrayView<T,NDIM,INDEX_TYPE> View()
-  {
-    return ArrayView<T,NDIM,INDEX_TYPE>(this->m_data,
-                                        this->m_dims,
-                                        this->m_strides);
-  }
-
 
   inline int getSingleParameterResizeIndex() const
   {
@@ -432,10 +439,11 @@ public:
 
   friend std::ostream& operator<< (std::ostream& stream, Array const & array )
   {
-    stream<<"{ "<<array.m_data[0];
+    T const * const data_ptr = array.data();
+    stream<<"{ "<< data_ptr[0];
     for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
     {
-      stream<<", "<<array.m_data[a];
+      stream<<", "<< data_ptr[a];
     }
     stream<<" }";
     return stream;
@@ -449,7 +457,7 @@ private:
     INDEX_TYPE length = 1;
     for( int a=0 ; a<NDIM ; ++a )
     {
-      length *= m_dims[a];
+      length *= m_dimsMem[a];
     }
 
     m_dataVector.resize( static_cast<size_t>(length) );

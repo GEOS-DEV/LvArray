@@ -26,6 +26,9 @@
 #ifndef CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
+#define GEOSX_USE_MPI
+#define GEOSX_USE_ATK
+
 #include <fstream>
 #include <sstream>
 #include "common/GeosxConfig.hpp"
@@ -40,11 +43,11 @@
     std::ostringstream oss;                                                    \
     oss << msg;                                                                \
     std::cout << oss.str() << std::endl;                                       \
-  } while (false);
+  } while (false)
 
 #define GEOS_LOG_RANK_0(msg)                                                   \
   do {                                                                         \
-    if (geosx::logger::internal::rank == 0)                                    \
+    if (logger::internal::rank == 0)                                           \
     {                                                                          \
       std::ostringstream oss;                                                  \
       oss << msg;                                                              \
@@ -55,11 +58,11 @@
 #define GEOS_LOG_RANK(msg)                                                     \
   do {                                                                         \
     std::ostringstream oss;                                                    \
-    if (geosx::logger::internal::using_cout_for_rank_stream)                   \
+    if (logger::internal::using_cout_for_rank_stream)                          \
     {                                                                          \
-      if (geosx::logger::internal::n_ranks > 1)                                \
+      if (logger::internal::n_ranks > 1)                                       \
       {                                                                        \
-        oss << "Rank " << geosx::logger::internal::rank << ": ";               \
+        oss << "Rank " << logger::internal::rank << ": ";                      \
       }                                                                        \
                                                                                \
       oss << msg;                                                              \
@@ -68,7 +71,7 @@
     else                                                                       \
     {                                                                          \
       oss << msg;                                                              \
-      geosx::logger::internal::rank_stream << oss.str() << std::endl;          \
+      logger::internal::rank_stream << oss.str() << std::endl;                 \
     }                                                                          \
   } while (false)
 
@@ -97,7 +100,7 @@
       std::cout << "***** FILE: " << __FILE__ << std::endl;   \
       std::cout << "***** LINE: " << __LINE__ << std::endl;   \
       std::cout << msg << std::endl;                          \
-      geosx::logger::geos_abort();                            \
+      logger::abort();                                        \
     }                                                         \
   } while (false)
 
@@ -147,14 +150,13 @@
 
 #endif /* #ifdef GEOSX_USE_ATK */
 
-
-namespace geosx
-{
-
 namespace logger
 {
 
-[[noreturn]] void geos_abort();
+#ifndef GEOSX_USE_MPI
+[[noreturn]] 
+#endif
+void abort();
 
 
 namespace internal
@@ -168,6 +170,9 @@ extern bool using_cout_for_rank_stream;
 
 extern std::ofstream rank_stream;
 
+#ifdef GEOSX_USE_MPI
+extern MPI_Comm comm;
+#endif
 } /* namespace internal */
 
 #ifdef GEOSX_USE_MPI
@@ -179,7 +184,5 @@ void InitializeLogger(const std::string& rank_output_dir="");
 void FinalizeLogger();
 
 } /* namespace logger */
-
-} /* namespace geosx */
 
 #endif /* CXX_UTILITIES_SRC_SRC_LOGGER_HPP_ */

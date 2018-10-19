@@ -73,7 +73,7 @@ int main( int /*argc*/, char* argv[] )
 
 
 
-  srand( seed * seedmod );
+  srand( static_cast<unsigned int>(seed * seedmod) );
 
   for( integer_t i = 0 ; i < num_i ; ++i )
     for( integer_t k = 0 ; k < num_k ; ++k )

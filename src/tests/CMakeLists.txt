@@ -39,11 +39,11 @@ endif()
 endforeach()
 
 
-    blt_add_executable( NAME arrayAccessorPerf
-                        SOURCES arrayAccessorPerformance.cpp arrayAccessorPerformanceMain.cpp
-                        INCLUDES arrayAccessorPerformance.hpp
-                        OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON gtest cxx-utilities ${CXX_UTILITIES_DEP} )
+    # blt_add_executable( NAME arrayAccessorPerf
+    #                     SOURCES arrayAccessorPerformance.cpp arrayAccessorPerformanceMain.cpp
+    #                     INCLUDES arrayAccessorPerformance.hpp
+    #                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
+    #                     DEPENDS_ON gtest cxx-utilities ${CXX_UTILITIES_DEP} )
 
     # blt_add_executable( NAME add
     #                     SOURCES add.cu 
