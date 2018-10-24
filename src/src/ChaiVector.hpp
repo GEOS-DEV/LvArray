@@ -19,6 +19,8 @@
 #ifndef CHAI_VECTOR_HPP_
 #define CHAI_VECTOR_HPP_
 
+#define GEOSX_USE_CHAI
+
 #include <type_traits>
 #include <iterator>
 
@@ -149,26 +151,17 @@ public:
   }
 
   /**
-   * @brief Move assignment operator, moves the given ChaiVector into *this.
-   * @param [in] source the ChaiVector to move.
+   * @brief Copy assignment operator, creates a shallow copy of the given ChaiVector.
+   * @param [in] source the ChaiVector to copy.
    * @return *this.
    */
   ChaiVector& operator=( ChaiVector const& source )
   {
-#ifdef GEOSX_USE_CHAI
-    m_array = chai::ManagedArray<T>();
-#else
-    m_array = nullptr;
-    m_capacity = 0;
+    m_array = source.m_array;
+    m_length = source.size();
+#ifndef GEOSX_USE_CHAI
+    m_capacity = source.capacity();
 #endif
-
-    resize( source.size() );
-
-    for ( size_type i = 0; i < size(); ++i )
-    {
-      m_array[ i ] = source[ i ];
-    }
-
     return *this;
   }
 

@@ -426,6 +426,8 @@ public:
 };
 
 
+
+
 template<typename BASETYPE, typename TYPE>
 class CatalogEntryConstructor<BASETYPE,TYPE>
 {

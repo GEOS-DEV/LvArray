@@ -21,9 +21,6 @@
 #include <cxxabi.h>
 #include <cstring>
 #include <memory>
-#include <sstream>
-#include <algorithm>
-#include <map>
 
 namespace cxx_utilities
 {
@@ -40,14 +37,6 @@ std::string demangle( const std::string& name )
   };
 
   return ( status == 0 ) ? res.get() : name;
-}
-
-
-template<>
-void equateStlVector<std::string,std::string>( std::string & lhs, std::vector<std::string> const & rhs )
-{
-  // need error checking for size mismatch
-  lhs = rhs[0];
 }
 
 }

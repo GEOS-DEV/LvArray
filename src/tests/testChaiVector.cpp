@@ -336,46 +336,6 @@ void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
 }
 
 /**
- * @brief Test the deep_copy method of the ChaiVector.
- * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
- */
-template < class T, class LAMBDA >
-void deep_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
-{
-  ChaiVector< T > v_cpy;
-  v_cpy = v;
-  
-  ASSERT_EQ( v.size(), v_cpy.size() );
-
-  ASSERT_NE( v.data(), v_cpy.data() );
-
-  for ( size_type i = 0; i < v.size(); ++i )
-  {
-    ASSERT_EQ( v[ i ], v_cpy[ i ] );
-    ASSERT_EQ( v[ i ], get_value( i ) );
-  }
-
-  for ( size_type i = 0; i < v.size(); ++i )
-  {
-    v_cpy[ i ] = get_value( 2 * i );
-  }
-
-  for ( size_type i = 0; i < v.size(); ++i )
-  {
-    ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
-    ASSERT_EQ( v[ i ], get_value( i ) );
-  }
-
-  v_cpy.free();
-
-  for ( size_type i = 0; i < v.size(); ++i )
-  {
-    ASSERT_EQ( v[ i ], get_value( i ) );
-  }
-}
-
-/**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  * @param [in] get_value a function to generate the values. 
@@ -598,32 +558,6 @@ TEST( ChaiVector, reserve )
   {
     ChaiVector< std::string > v;
     internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    v.free();
-  }
-}
-
-TEST( ChaiVector, deep_copy )
-{
-  constexpr int N = 1000;
-
-  {
-    ChaiVector< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-    internal::deep_copy_test( v, []( int i ) -> int { return i; } );
-    v.free();
-  }
-
-  {
-    ChaiVector< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
-    v.free();
-  }
-
-  {
-    ChaiVector< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
     v.free();
   }
 }

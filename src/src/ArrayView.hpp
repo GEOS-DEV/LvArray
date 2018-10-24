@@ -342,7 +342,8 @@ protected:
 
   ArrayType m_dataVector;
 
-
+  int m_singleParameterResizeIndex = 0;
+  
 };
 
 } /* namespace LvArray */

@@ -1273,3 +1273,18 @@ TEST( Array, test_array2D )
     internal::compare_to_view(v, vView);
   }
 }
+
+
+int main(int argc, char* argv[]) 
+{
+  MPI_Init(&argc, &argv);
+  logger::InitializeLogger(MPI_COMM_WORLD);
+
+  int result = 0;
+  testing::InitGoogleTest(&argc, argv);
+  result = RUN_ALL_TESTS();
+
+  logger::FinalizeLogger();
+  MPI_Finalize();
+  return result;
+}

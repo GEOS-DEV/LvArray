@@ -27,6 +27,10 @@
 
 #include "stackTrace.hpp"
 
+#ifdef GEOSX_USE_MPI
+#include <mpi.h>
+#endif
+
 namespace cxx_utilities
 {
 
@@ -128,7 +132,7 @@ void handler(int sig, int exitFlag, int exitCode )
   MPI_Initialized( &mpi );
   if ( mpi )
   {
-    MPI_Abort( MPI_COMM_GEOSX, EXIT_FAILURE );
+    MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
   }
   else
 #endif

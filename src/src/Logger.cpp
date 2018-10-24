@@ -66,16 +66,18 @@ std::ofstream rank_stream;
   MPI_Comm comm;
 #endif
 
+#ifdef GEOSX_USE_ATK
 slic::GenericOutputStream* createGenericStream()
 {
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
+                        std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
                         std::string( "MESSAGE=<MESSAGE>\n" ) +
                         std::string( "<TIMESTAMP>\n" ) +
                         std::string( 100, '*' ) + std::string("\n");
 
   return new slic::GenericOutputStream(&std::cout, format );
 }
+#endif
 
 } /* namespace internal */
 
@@ -87,11 +89,12 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
   MPI_Comm_rank(mpi_comm, &internal::rank);
   MPI_Comm_size(mpi_comm, &internal::n_ranks);
 
+#ifdef GEOSX_USE_ATK
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
 
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                        std::string( "[LEVEL in line <LINE> of file <FILE>]\n" ) +
+                        std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
                         std::string( "RANKS=<RANK>\n") +
                         std::string( "MESSAGE=<MESSAGE>\n" ) +
                         std::string( "<TIMESTAMP>\n" ) +
@@ -107,6 +110,7 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 
   slic::GenericOutputStream* stream = internal::createGenericStream();
   slic::addStreamToMsgLevel( stream, slic::message::Error );
+#endif
 
   if ( rank_output_dir != "" )
   {
@@ -137,10 +141,12 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 
 void InitializeLogger(const std::string& rank_output_dir)
 {
+#ifdef GEOSX_USE_ATK
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
   slic::GenericOutputStream* stream = internal::createGenericStream();
   slic::addStreamToAllMsgLevels( stream );
+#endif
 
   if ( rank_output_dir != "" )
   {
@@ -158,8 +164,10 @@ void InitializeLogger(const std::string& rank_output_dir)
 
 void FinalizeLogger()
 {
+#ifdef GEOSX_USE_ATK
   slic::flushStreams();
   slic::finalize();
+#endif
 }
 
 #ifndef GEOSX_USE_MPI

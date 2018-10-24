@@ -31,7 +31,6 @@
 
 #include <fstream>
 #include <sstream>
-#include "common/GeosxConfig.hpp"
 #include "axom/slic/interface/slic.hpp"
 
 #ifdef GEOSX_USE_MPI

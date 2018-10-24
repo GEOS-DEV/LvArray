@@ -114,6 +114,26 @@ public:
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
+#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+  template< int U=NDIM >
+  inline explicit
+  operator typename std::enable_if< U == 1, T * const restrict >::type() restrict_this
+  {
+    return m_data;
+  }
+
+  template< int U=NDIM >
+  inline explicit
+  operator typename std::enable_if< U == 1, T const * const restrict >::type() const restrict_this
+  {
+    return m_data;
+  }
+#endif
+
+  /**
+   * User defined conversion to convert to a reduced dimension array. For example, converting from
+   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+   */
   template< int U=NDIM >
   inline explicit
   operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type () restrict_this
