@@ -111,7 +111,12 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
     else
     {
       std::string cmd = "mkdir -p " + rank_output_dir;
-      std::system(cmd.c_str());
+      int ret = std::system(cmd.c_str());
+      if (ret != 0)
+      {
+        GEOS_LOG("Failed to initialize Logger: command '" << cmd << "' exited with code " << std::to_string(ret));
+        abort();
+      }
       MPI_Barrier(mpi_comm);
     }
 
