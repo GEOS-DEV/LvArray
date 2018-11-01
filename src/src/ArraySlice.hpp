@@ -56,12 +56,12 @@
 
 #include <cassert>
 #define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
-assert( index < 0 || index > m_dims[0] )
+assert( index >= 0 && index < m_dims[0] )
 
 #else // USE_CUDA
 
 #define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
-GEOS_ERROR_IF( index < 0 || index > m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
+GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #endif // USE_CUDA
 
@@ -116,14 +116,14 @@ public:
    */
 #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
-  inline explicit
+  inline
   operator typename std::enable_if< U == 1, T * const restrict >::type() restrict_this
   {
     return m_data;
   }
 
   template< int U=NDIM >
-  inline explicit
+  inline
   operator typename std::enable_if< U == 1, T const * const restrict >::type() const restrict_this
   {
     return m_data;

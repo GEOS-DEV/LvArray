@@ -262,6 +262,11 @@ public:
     resize();
   }
 
+  void resize( int const numDims, INDEX_TYPE * const dims )
+  {
+    INDEX_TYPE const * const const_dims = dims;
+    resize( numDims, const_dims );
+  }
 
   template< typename... DIMS >
   void resize( DIMS... newdims )

@@ -145,6 +145,10 @@ public:
   bool isSorted() const
   { return std::is_sorted(begin(), end()); }
 
+
+  LvArray::ArrayView<T, 1, INDEX_TYPE> const & toView() const
+  { return m_data; }
+
 private:
   ArrayType m_data;
 };

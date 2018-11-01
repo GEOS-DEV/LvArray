@@ -57,7 +57,8 @@ public:
   //This triggers Chai::ManagedArray CC
   ArrayView( ArrayView const & source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
-    m_dataVector(source.m_dataVector)
+    m_dataVector(source.m_dataVector),
+    m_singleParameterResizeIndex(source.m_singleParameterResizeIndex)
   {
     setDataPtr();
     setDims(source.m_dimsMem);
@@ -75,7 +76,8 @@ public:
 
   ArrayView( ArrayView && source ):
     ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
-    m_dataVector( std::move( source.m_dataVector ) )
+    m_dataVector( std::move( source.m_dataVector ) ),
+    m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
     setDataPtr();
     setDims(source.m_dimsMem);
@@ -88,9 +90,10 @@ public:
   ArrayView & operator=( ArrayView const & rhs )
   {
     m_dataVector = rhs.m_dataVector;
+    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
     setStrides( rhs.m_strides );
     setDims( rhs.m_dims );
-    setDataPtr();    
+    setDataPtr();
     return *this;
   }
 
@@ -343,7 +346,6 @@ protected:
   ArrayType m_dataVector;
 
   int m_singleParameterResizeIndex = 0;
-  
 };
 
 } /* namespace LvArray */

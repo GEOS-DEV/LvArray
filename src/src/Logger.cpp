@@ -72,10 +72,11 @@ slic::GenericOutputStream* createGenericStream()
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
                         std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
                         std::string( "MESSAGE=<MESSAGE>\n" ) +
+                        std::string( "Rank " ) + std::to_string(internal::rank) + std::string("\n") + 
                         std::string( "<TIMESTAMP>\n" ) +
                         std::string( 100, '*' ) + std::string("\n");
 
-  return new slic::GenericOutputStream(&std::cout, format );
+  return new slic::GenericOutputStream(&std::cout, format);
 }
 #endif
 
@@ -92,24 +93,8 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
 #ifdef GEOSX_USE_ATK
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
-
-  std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                        std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
-                        std::string( "RANKS=<RANK>\n") +
-                        std::string( "MESSAGE=<MESSAGE>\n" ) +
-                        std::string( "<TIMESTAMP>\n" ) +
-                        std::string( 100, '*' ) + std::string("\n");
-
-  const int ranks_limit = 5;
-  slic::LumberjackStream * const lj_stream = new slic::LumberjackStream(&std::cout, mpi_comm, ranks_limit, format);
-
-  for ( int level = slic::message::Warning; level < slic::message::Num_Levels; ++level )
-  {
-    slic::addStreamToMsgLevel( lj_stream, static_cast< slic::message::Level >( level ) );
-  }
-
   slic::GenericOutputStream* stream = internal::createGenericStream();
-  slic::addStreamToMsgLevel( stream, slic::message::Error );
+  slic::addStreamToAllMsgLevels( stream );
 #endif
 
   if ( rank_output_dir != "" )
