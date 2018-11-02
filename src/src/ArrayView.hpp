@@ -126,6 +126,24 @@ public:
   }
 
   /**
+   * User Defined Conversion operator to move from an ArrayView<T,0> to T &
+   */
+  template< int U = NDIM,
+    typename std::enable_if<U==0, int>::type = 0>
+  inline
+  operator T &()
+  {
+    return *m_data;
+  }
+  template< int U = NDIM,
+    typename std::enable_if<U==0, int>::type = 0>
+  inline
+  operator T const &() const
+  {
+    return *m_data;
+  }
+
+  /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
@@ -286,6 +304,23 @@ public:
 
 #endif
 
+// always return an ArrayView into the slice, even when range checking is off (sometimes useful to have the dimension)
+  template< typename... INDICES >
+  inline typename std::enable_if< sizeof...(INDICES) <= NDIM, ArrayView<T,NDIM-sizeof...(INDICES),INDEX_TYPE> const >::type
+  slice( INDICES... indices ) const
+  {
+    constexpr int N = sizeof...(indices);
+    return ArrayView<T,NDIM-N,INDEX_TYPE>( &(m_data[ linearIndex(indices...) ] ), m_dims+N, m_strides+N );
+  }
+  // always return an ArrayView into the slice, even when range checking is off (sometimes useful to have the dimension)
+  template< typename... INDICES >
+  inline typename std::enable_if< sizeof...(INDICES) <= NDIM, ArrayView<T,NDIM-sizeof...(INDICES),INDEX_TYPE> >::type
+  slice( INDICES... indices )
+  {
+    constexpr int N = sizeof...(indices);
+    return ArrayView<T,NDIM-N,INDEX_TYPE>( &(m_data[ linearIndex(indices...) ] ), m_dims+N, m_strides+N );
+  }
+
   template< typename... INDICES >
   //inline constexpr T & operator()( INDICES... indices ) const
   inline T & operator()( INDICES... indices ) const
@@ -295,9 +330,10 @@ public:
 
   template< typename... INDICES >
   //inline constexpr  INDEX_TYPE linearIndex( INDICES... indices ) const
-  inline INDEX_TYPE linearIndex( INDICES... indices ) const
+  inline typename std::enable_if<sizeof...(INDICES) <= NDIM, INDEX_TYPE>::type
+  linearIndex( INDICES... indices ) const
   {
-    return index_helper<NDIM,INDICES...>::f(m_strides,indices...);
+    return index_helper<sizeof...(indices),INDICES...>::f(m_strides,indices...);
   }
 
   T * data() {return m_data;}
@@ -340,11 +376,11 @@ private:
   struct index_helper<1,INDEX,REMAINING_INDICES...>
   {
     //inline constexpr  static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
-    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict dims,
+    inline static INDEX_TYPE f( INDEX_TYPE const * const restrict strides,
                                 INDEX index,
                                 REMAINING_INDICES... indices )
     {
-      return index;
+      return index*strides[0];
     }
   };
 
