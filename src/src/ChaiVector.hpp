@@ -19,6 +19,12 @@
 #ifndef CHAI_VECTOR_HPP_
 #define CHAI_VECTOR_HPP_
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+#endif
+
 #include <type_traits>
 #include <iterator>
 
@@ -530,5 +536,9 @@ private:
   size_type m_length;
   bool m_copied;
 };
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif /* CHAI_VECTOR_HPP_ */
