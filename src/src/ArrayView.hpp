@@ -232,12 +232,18 @@ public:
     ARRAY_SLICE_CHECK_BOUNDS( destIndex );
     ARRAY_SLICE_CHECK_BOUNDS( sourceIndex );
 
-    operator[](destIndex) = operator[](sourceIndex);
+    INDEX_TYPE const stride0 = m_stridesMem[0];
+    T * const dest = data(destIndex);
+    T const * const source = data(sourceIndex);
+    
+    for ( INDEX_TYPE i = 0; i < stride0; ++i )
+    {
+      dest[i] = source[i];
+    }
   }
 
   INDEX_TYPE size( int dim ) const
   {
-
     return m_dimsMem[dim];
   }
 
@@ -249,6 +255,18 @@ public:
   inline INDEX_TYPE const * strides() const
   {
     return m_stridesMem;
+  }
+
+  friend std::ostream& operator<< (std::ostream& stream, ArrayView const & array )
+  {
+    T const * const data_ptr = array.data();
+    stream<<"{ "<< data_ptr[0];
+    for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
+    {
+      stream<<", "<< data_ptr[a];
+    }
+    stream<<" }";
+    return stream;
   }
 
 protected:

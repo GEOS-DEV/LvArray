@@ -115,7 +115,7 @@ template< typename T, int NDIM, typename INDEX_TYPE >
 class Array : public ArrayView<T, NDIM, INDEX_TYPE>
 {
 public:
-
+  using isArray = std::true_type;
   using ArrayView<T, NDIM, INDEX_TYPE>::m_dataVector;
   using ArrayView<T, NDIM, INDEX_TYPE>::m_dimsMem;
   using ArrayView<T, NDIM, INDEX_TYPE>::m_stridesMem;
@@ -415,18 +415,6 @@ public:
   inline void setSingleParameterResizeIndex( int const index )
   {
     m_singleParameterResizeIndex = index;
-  }
-
-  friend std::ostream& operator<< (std::ostream& stream, Array const & array )
-  {
-    T const * const data_ptr = array.data();
-    stream<<"{ "<< data_ptr[0];
-    for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
-    {
-      stream<<", "<< data_ptr[a];
-    }
-    stream<<" }";
-    return stream;
   }
 
 private:
