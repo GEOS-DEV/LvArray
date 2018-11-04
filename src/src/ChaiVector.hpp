@@ -19,12 +19,12 @@
 #ifndef CHAI_VECTOR_HPP_
 #define CHAI_VECTOR_HPP_
 
-#define GEOSX_USE_CHAI
+#include "CXX_UtilsConfig.hpp"
 
 #include <type_traits>
 #include <iterator>
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
 #include <mutex>
@@ -33,7 +33,7 @@
 #endif
 
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 namespace internal
 {
 static std::mutex chai_lock;
@@ -42,7 +42,7 @@ static std::mutex chai_lock;
 
 template < typename T >
 class ChaiVector 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 : public chai::CHAICopyable
 #endif
 {
@@ -56,7 +56,7 @@ public:
    * @brief Default constructor, creates a new empty vector.
    */
   ChaiVector() :
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
@@ -70,7 +70,7 @@ public:
    * @param [in] initial_length the initial length of the vector.
    */
   ChaiVector( size_type initial_length ) :
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
@@ -90,7 +90,7 @@ public:
    */
   ChaiVector( const ChaiVector& source ) :
     m_array( source.m_array ),
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
     m_length( source.m_length )
@@ -103,12 +103,12 @@ public:
    */
   ChaiVector( ChaiVector&& source ) :
     m_array( source.m_array ),
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
     m_length( source.m_length )
   {
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     source.m_capacity = 0;
 #endif
     source.m_array = nullptr;
@@ -123,7 +123,7 @@ public:
     if ( capacity() > 0 )
     {
       clear();
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
       internal::chai_lock.lock();
       m_array.free();
       internal::chai_lock.unlock();
@@ -145,7 +145,7 @@ public:
   {
     m_array = nullptr;
     m_length = 0;
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity = 0;
 #endif
   }
@@ -159,7 +159,7 @@ public:
   {
     m_array = source.m_array;
     m_length = source.size();
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity = source.capacity();
 #endif
     return *this;
@@ -177,7 +177,7 @@ public:
     m_array = source.m_array;
     m_length = source.m_length;
 
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity = source.m_capacity;
     source.m_capacity = 0;
 #endif
@@ -284,7 +284,7 @@ public:
    */
   size_type capacity() const
   { 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     return m_array.size();
 #else
     return m_capacity;
@@ -497,7 +497,7 @@ private:
    */
   void realloc( size_type new_capacity )
   {
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     internal::chai_lock.lock();
     chai::ManagedArray<T> new_array( new_capacity );
     internal::chai_lock.unlock();
@@ -516,7 +516,7 @@ private:
       m_array[ i ].~T();
     }
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     if ( capacity() != 0 )
     {
       internal::chai_lock.lock();
@@ -537,7 +537,7 @@ private:
   void dynamicRealloc( size_type new_length )
   { reserve( 2 * new_length ); }
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
   chai::ManagedArray<T> m_array;
 #else
   T* m_array;

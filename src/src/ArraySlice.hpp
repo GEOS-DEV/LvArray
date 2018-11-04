@@ -45,9 +45,8 @@
 #endif
 #endif
 
-#define GEOSX_USE_ARRAY_BOUNDS_CHECK
 
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
 
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
@@ -65,11 +64,11 @@ GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "index=" << index << " m_dims[0]
 
 #endif // USE_CUDA
 
-#else // GEOSX_USE_ARRAY_BOUNDS_CHECK
+#else // USE_ARRAY_BOUNDS_CHECK
 
 #define ARRAY_SLICE_CHECK_BOUNDS(index)
 
-#endif // GEOSX_USE_ARRAY_BOUNDS_CHECK
+#endif // USE_ARRAY_BOUNDS_CHECK
 
 
 namespace LvArray
@@ -114,7 +113,7 @@ public:
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   inline
   operator typename std::enable_if< U == 1, T * const restrict >::type() restrict_this
@@ -154,7 +153,7 @@ public:
    * sub-array.
    */
   template< int U=NDIM >
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
   inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
   inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
@@ -167,7 +166,7 @@ public:
 
 
   template< int U=NDIM >
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
   inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
   inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
@@ -178,7 +177,7 @@ public:
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
-#ifndef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const restrict_this
@@ -242,7 +241,7 @@ protected:
 
 };
 
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
 
 template< typename T, typename INDEX_TYPE >
 using ArraySlice1d = ArraySlice<T,1,INDEX_TYPE>;

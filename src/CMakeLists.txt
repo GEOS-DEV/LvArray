@@ -23,7 +23,7 @@ set(cxx-utilities_sources
 add_subdirectory(tests)
 
 set( cxx_dependencies "" )
-if( ATK_FOUND OR ENABLE_ATK )
+if( ATK_FOUND OR ENABLE_ATK OR ENABLE_AXOM )
 set( cxx_dependencies slic lumberjack )
 endif()
 

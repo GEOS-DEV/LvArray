@@ -1,40 +1,31 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.9)
 
-################################
-# CXX-utilities
-################################
-project(cxx-utilities LANGUAGES CXX)
 
-set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
-set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
 
-################################
-# Include blt
-################################
-include(src/cmake/blt/SetupBLT.cmake)
+# check if cxx-utilities is build as a submodule or a separate project
+get_directory_property(parent_dir PARENT_DIRECTORY)
+if(parent_dir)
+    set(is_submodule ON)
+else()
+    set(is_submodule OFF)
+endif()
 
-################################
-# Include standard build system logic and options
-################################
-include(src/cmake/CMakeBasics.cmake)
+if(NOT is_submodule)
 
-################################
-# Add components
-################################
+  project(cxx-utilities LANGUAGES CXX)
+
+  set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
+  set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
+
+  include(src/cmake/blt/SetupBLT.cmake)
+  include(src/cmake/CMakeBasics.cmake)
+  include(src/cmake/SetupTPL.cmake)
+
+endif() 
+
+include( src/cmake/Config.cmake )
 add_subdirectory(src)
-
-
-################################
-# Add docs
-################################
 add_subdirectory(src/docs)
 
-
-#add_code_check_targets(uncrustify.cfg)
-
-
-################################
-# install targets from build
-################################
-install(DIRECTORY ${PROJECT_BINARY_DIR}/bin DESTINATION . OPTIONAL)
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include DESTINATION . OPTIONAL)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/bin DESTINATION . OPTIONAL)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/include DESTINATION . OPTIONAL)

@@ -139,7 +139,7 @@ public:
 
   INDEX_TYPE size() const
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
     GEOS_ERROR_IF( size_helper<0>::f(m_dimsMem) != static_cast<INDEX_TYPE>(m_dataVector.size()), "Size mismatch" );
 #endif
     return m_dataVector.size();
@@ -199,7 +199,7 @@ public:
   template< typename... INDICES >
   inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
   {
-#ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
     index_checker<NDIM, INDICES...>::f(m_dimsMem, indices...);
 #endif
     return index_helper<NDIM,INDICES...>::f(m_stridesMem,indices...);
@@ -313,7 +313,7 @@ protected:
     }
   };
 
-  #ifdef GEOSX_USE_ARRAY_BOUNDS_CHECK
+  #ifdef USE_ARRAY_BOUNDS_CHECK
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_checker
   {

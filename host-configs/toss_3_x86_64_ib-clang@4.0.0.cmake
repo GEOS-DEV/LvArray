@@ -19,10 +19,11 @@ set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
 
 set( ENABLE_GTEST_DEATH_TESTS ON CACHE BOOL "" FORCE )
 
-#######################################
-# RAJA/CHAI SETUP
-#######################################
-#set(CHAI_DIR "/usr/gapps/GEOS/geosx/cab/gcc-4.9.3/chai/" CACHE PATH "" FORCE )
+set( ENABLE_AXOM ON CACHE BOOL "" FORCE )
+set( AXOM_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@4.0.0-release/axom" CACHE PATH "" FORCE )
+
+set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
+set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@4.0.0-release/chai" CACHE PATH "" FORCE )
 
 set(CUDA_ENABLED      "OFF"       CACHE PATH "" FORCE)
 set(CHAI_BUILD_TYPE   "cpu-no-rm" CACHE PATH "" FORCE)
