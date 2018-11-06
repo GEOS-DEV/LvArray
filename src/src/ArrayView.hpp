@@ -113,14 +113,11 @@ public:
   /**
    * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
-  // template< typename U = T >
-  // explicit
-  // operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
-  // {
-  //   return ArrayView<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-  //                                              m_dims,
-  //                                              m_strides );
-  // }
+   template< typename U = T >
+   operator typename std::enable_if< !std::is_const<U>::value ,ArrayView<T const,NDIM,INDEX_TYPE> >::type () const
+   {
+     return reinterpret_cast<ArrayView<T const,NDIM,INDEX_TYPE> const &>(*this);
+   }
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from

@@ -25,6 +25,7 @@
 #include <iostream>
 #include <utility>
 #include "Logger.hpp"
+#include "CXX_UtilsConfig.hpp"
 
 #if defined(__clang__)
 
@@ -100,9 +101,9 @@ public:
    * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
   template< typename U = T >
-  inline explicit
+  inline
   operator typename std::enable_if< !std::is_const<U>::value,
-                                    ArraySlice<T const,NDIM,INDEX_TYPE> >::type ()
+                                    ArraySlice<T const,NDIM,INDEX_TYPE> >::type () const
   {
     return ArraySlice<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
                                                m_dims,
@@ -113,7 +114,6 @@ public:
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
-#ifdef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   inline
   operator typename std::enable_if< U == 1, T * const restrict >::type() restrict_this
@@ -127,7 +127,6 @@ public:
   {
     return m_data;
   }
-#endif
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
