@@ -98,16 +98,12 @@ public:
   using size_type = INDEX_TYPE;
 
   /**
-   * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
+   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
    */
   template< typename U = T >
-  inline
-  operator typename std::enable_if< !std::is_const<U>::value,
-                                    ArraySlice<T const,NDIM,INDEX_TYPE> >::type () const
+  operator typename std::enable_if< !std::is_const<U>::value, ArraySlice<T const,NDIM,INDEX_TYPE> const & >::type () const
   {
-    return ArraySlice<T const,NDIM,INDEX_TYPE>( const_cast<T const *>(m_data),
-                                               m_dims,
-                                               m_strides );
+    return reinterpret_cast<ArraySlice<T const,NDIM,INDEX_TYPE> const &>(*this);
   }
 
   /**

@@ -191,6 +191,14 @@ public:
     setDataPtr();
   }
 
+  /**
+   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   */
+   template< typename U = T >
+   operator typename std::enable_if< !std::is_const<U>::value, Array<T const,NDIM,INDEX_TYPE> const & >::type () const
+   {
+     return reinterpret_cast<Array<T const,NDIM,INDEX_TYPE> const &>(*this);
+   }
 
 //  /**
 //   * User defined conversion to convert to a reduced dimension array. For example, converting from
