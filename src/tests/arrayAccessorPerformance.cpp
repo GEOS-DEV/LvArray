@@ -26,6 +26,8 @@
 
 #include "arrayAccessorPerformance.hpp"
 
+using namespace LvArray;
+
 
 double MatrixMultiply_1D( integer_t const num_i,
                           integer_t const num_j,
@@ -35,7 +37,7 @@ double MatrixMultiply_1D( integer_t const num_i,
                           double const * const  B,
                           double * const  C )
 {
-  uint64_t startTime = GetTimeMs64();
+  int64_t startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
   {
     for( integer_t i = 0 ; i < num_i ; ++i )
@@ -49,7 +51,7 @@ double MatrixMultiply_1D( integer_t const num_i,
       }
     }
   }
-  uint64_t endTime = GetTimeMs64();
+  int64_t endTime = GetTimeMs64();
   return ( endTime - startTime ) / 1000.0;
 }
 
@@ -61,7 +63,7 @@ double MatrixMultiply_1Dr( integer_t const num_i,
                            double const * const __restrict__ B,
                            double * const __restrict__ C )
 {
-  uint64_t startTime = GetTimeMs64();
+  int64_t startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
   {
     for( integer_t i = 0 ; i < num_i ; ++i )
@@ -75,14 +77,14 @@ double MatrixMultiply_1Dr( integer_t const num_i,
       }
     }
   }
-  uint64_t endTime = GetTimeMs64();
+  int64_t endTime = GetTimeMs64();
   return ( endTime - startTime ) / 1000.0;
 }
 
 
 
 #define MATMULT \
-  uint64_t startTime = GetTimeMs64(); \
+  int64_t startTime = GetTimeMs64(); \
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter ) \
   { \
     for( integer_t i = 0 ; i < num_i ; ++i ) \
@@ -96,11 +98,11 @@ double MatrixMultiply_1Dr( integer_t const num_i,
       } \
     } \
   } \
-  uint64_t endTime = GetTimeMs64(); \
+  int64_t endTime = GetTimeMs64(); \
   return ( endTime - startTime ) / 1000.0;
 
 #define MATMULT2 \
-  uint64_t startTime = GetTimeMs64(); \
+  int64_t startTime = GetTimeMs64(); \
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter ) \
   { \
     for( integer_t i = 0 ; i < num_i ; ++i ) \
@@ -114,7 +116,7 @@ double MatrixMultiply_1Dr( integer_t const num_i,
       } \
     } \
   } \
-  uint64_t endTime = GetTimeMs64(); \
+  int64_t endTime = GetTimeMs64(); \
   return ( endTime - startTime ) / 1000.0;
 
 

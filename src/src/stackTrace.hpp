@@ -26,6 +26,8 @@
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
 #define SRC_CODINGUTILITIES_STACKTRACE_HPP_
 
+#define GEOSX_USE_MPI
+
 #include <signal.h>
 
 namespace cxx_utilities

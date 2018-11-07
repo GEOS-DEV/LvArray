@@ -1,36 +1,37 @@
-
 set(cxx-utilities_headers
-    src/DocumentationNode.hpp
-    src/Macros.hpp
-    src/MultidimensionalArray.hpp
-    src/MultidimensionalArray2.hpp
-    src/ManagedArray.hpp
+    src/Array.hpp
+    src/ArraySlice.hpp
     src/ArrayView.hpp
+    src/ChaiVector.hpp
+    src/DocumentationNode.hpp
+    src/Logger.hpp
+    src/Macros.hpp
     src/ObjectCatalog.hpp 
     src/SetSignalHandling.hpp
     src/SFINAE_Macros.hpp
-    src/stackTrace.hpp
-    src/StringUtilities.hpp
-    src/ChaiVector.hpp
     src/SortedArray.hpp
-    src/Logger.hpp )
+    src/stackTrace.hpp
+    src/StringUtilities.hpp )
 
 set(cxx-utilities_sources
     src/DocumentationNode.cpp
+    src/Logger.cpp
     src/SetSignalHandling.cpp
     src/stackTrace.cpp
-    src/StringUtilities.cpp
-    src/Logger.cpp )
+    src/StringUtilities.cpp )
 
 add_subdirectory(tests)
 
+set( cxx_dependencies "" )
+if( ATK_FOUND OR ENABLE_ATK OR ENABLE_AXOM )
 set( cxx_dependencies slic lumberjack )
+endif()
 
 if( ${ENABLE_CHAI})
     set( cxx_dependencies ${cxx_dependencies} chai umpire )
 endif()
 
-message("adding cxxutilities library")
+message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
@@ -46,6 +47,3 @@ blt_add_library( NAME             cxx-utilities
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src )
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )
 
-if( ENABLE_UNCRUSTIFY )
-geosx_add_code_checks(PREFIX cxx-utilities)
-endif()

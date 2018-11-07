@@ -3,8 +3,7 @@
 #
 
 set(newComponentTests
-    testArrayAccesssor.cpp
-    testManagedArray.cpp
+    testArray.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
     testStringUtilities.cpp
@@ -38,3 +37,17 @@ set_target_properties(${test_name} PROPERTIES COMPILE_FLAGS "-Wno-everything")
 endif()
                   
 endforeach()
+
+
+    # blt_add_executable( NAME arrayAccessorPerf
+    #                     SOURCES arrayAccessorPerformance.cpp arrayAccessorPerformanceMain.cpp
+    #                     INCLUDES arrayAccessorPerformance.hpp
+    #                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
+    #                     DEPENDS_ON gtest cxx-utilities ${CXX_UTILITIES_DEP} )
+
+    # blt_add_executable( NAME add
+    #                     SOURCES add.cu 
+    #                     INCLUDES 
+    #                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
+    #                     DEPENDS_ON cxx-utilities ${CXX_UTILITIES_DEP} )
+                        
