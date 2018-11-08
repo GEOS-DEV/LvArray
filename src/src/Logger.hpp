@@ -26,14 +26,17 @@
 #ifndef CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
-#define GEOSX_USE_MPI
-#define GEOSX_USE_ATK
-
 #include <fstream>
 #include <sstream>
-#include "axom/slic/interface/slic.hpp"
+#include <iostream>
 
-#ifdef GEOSX_USE_MPI
+#include "CXX_UtilsConfig.hpp"
+
+#ifdef USE_AXOM
+#include "axom/slic/interface/slic.hpp"
+#endif
+
+#ifdef USE_MPI
 #include <mpi.h>
 #endif
 
@@ -74,7 +77,7 @@
     }                                                                          \
   } while (false)
 
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
 
 /* Always active */
 #define GEOS_ERROR(msg) SLIC_ERROR(msg)
@@ -152,7 +155,7 @@
 namespace logger
 {
 
-#ifndef GEOSX_USE_MPI
+#ifndef USE_MPI
 [[noreturn]] 
 #endif
 void abort();
@@ -169,12 +172,12 @@ extern bool using_cout_for_rank_stream;
 
 extern std::ofstream rank_stream;
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 extern MPI_Comm comm;
 #endif
 } /* namespace internal */
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 void InitializeLogger(MPI_Comm comm, const std::string& rank_output_dir="");
 #else
 void InitializeLogger(const std::string& rank_output_dir="");

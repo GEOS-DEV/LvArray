@@ -25,6 +25,8 @@ set(MPIEXEC                "${MPI_HOME}/bin/mpirun" CACHE PATH "")
 set(MPIEXEC_NUMPROC_FLAG   "-np" CACHE PATH "")
 set(BLT_MPI_COMMAND_APPEND "mpibind" CACHE PATH "")
 
+set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
+set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@4.0.0-release/chai" CACHE PATH "" FORCE )
 
 set(ENABLE_CUDA ON CACHE BOOL "")
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE STRING "")

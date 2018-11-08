@@ -37,11 +37,11 @@
 
 #if defined(__INTEL_COMPILER)
 #define restrict __restrict__
-#define restrict_this __restrict__
+#define restrict_this
 #define CONSTEXPRFUNC
 #else
 #define restrict __restrict__
-#define restrict_this __restrict__
+#define restrict_this
 #define CONSTEXPRFUNC constexpr
 #endif
 #endif
@@ -148,10 +148,11 @@ public:
    * sub-array.
    */
   template< int U=NDIM >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
-  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #endif
   operator[](INDEX_TYPE const index) const restrict_this
   {
@@ -161,10 +162,11 @@ public:
 
 
   template< int U=NDIM >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
-  inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #endif
   operator[](INDEX_TYPE const index) restrict_this
   {
@@ -174,14 +176,14 @@ public:
 
 #ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
   operator[](INDEX_TYPE const index) const restrict_this
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index) restrict_this
   {
     return &(m_data[ index*m_strides[0] ]);
@@ -189,7 +191,7 @@ public:
 #endif
 
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==1, T const & >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==1, T const & >::type
   operator[](INDEX_TYPE const index) const restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS(index);
@@ -198,7 +200,7 @@ public:
 
 
   template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< U==1, T & >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index) restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS(index);

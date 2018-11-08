@@ -3,7 +3,6 @@ set(cxx-utilities_headers
     src/ArraySlice.hpp
     src/ArrayView.hpp
     src/ChaiVector.hpp
-    src/DocumentationNode.hpp
     src/Logger.hpp
     src/Macros.hpp
     src/ObjectCatalog.hpp 
@@ -14,11 +13,17 @@ set(cxx-utilities_headers
     src/StringUtilities.hpp )
 
 set(cxx-utilities_sources
-    src/DocumentationNode.cpp
     src/Logger.cpp
     src/SetSignalHandling.cpp
     src/stackTrace.cpp
     src/StringUtilities.cpp )
+
+
+if( CMAKE_PROJECT_NAME EQUAL "geosx" )
+    list( APPEND cxx-utilities_headers src/DocumentationNode.hpp )
+    list( APPEND cxx-utilities_sources src/DocumentationNode.cpp )
+endif()
+
 
 add_subdirectory(tests)
 
@@ -29,6 +34,10 @@ endif()
 
 if( ${ENABLE_CHAI})
     set( cxx_dependencies ${cxx_dependencies} chai umpire )
+endif()
+
+if( ${ENABLE_MPI})
+    set( cxx_dependencies ${cxx_dependencies} mpi )
 endif()
 
 message("adding cxx-utilities library")

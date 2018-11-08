@@ -187,14 +187,14 @@ public:
     return m_dataVector.end();
   }
 
-    template< typename... INDICES >
-  inline CONSTEXPRFUNC T & operator()( INDICES... indices ) const
+  template< typename... INDICES >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC T & operator()( INDICES... indices ) const
   {
     return m_data[ linearIndex(indices...) ];
   }
 
   template< typename... INDICES >
-  inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC INDEX_TYPE linearIndex( INDICES... indices ) const
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK
     index_checker<NDIM, INDICES...>::f(m_dimsMem, indices...);
