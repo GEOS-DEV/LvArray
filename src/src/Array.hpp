@@ -192,7 +192,7 @@ public:
   }
 
   /**
-   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   * User Defined Conversion operator to move from an Array<T> to Array<T const>
    */
    template< typename U = T >
    operator typename std::enable_if< !std::is_const<U>::value, Array<T const,NDIM,INDEX_TYPE> const & >::type () const

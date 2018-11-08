@@ -40,6 +40,10 @@ if( ${ENABLE_MPI})
     set( cxx_dependencies ${cxx_dependencies} mpi )
 endif()
 
+if( ${ENABLE_CUDA})
+    set( cxx_dependencies ${cxx_dependencies} cuda )
+endif()
+
 message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}

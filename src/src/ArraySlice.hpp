@@ -98,39 +98,54 @@ public:
   using size_type = INDEX_TYPE;
 
   /**
-   * User Defined Conversion operator to move from an ArrayView<T> to ArrayView<T const>
+   * @param inputData pointer to the beginning of the data
+   * @param inputDimensions pointer to the beginning of an array of dimensions. This array
+   *                        has length NDIM
+   *
+   * Base constructor that takes in raw data pointers, sets member pointers, and
+   * calculates stride.
+   */
+  inline explicit CONSTEXPRFUNC
+  ArraySlice( T * const restrict inputData,
+              INDEX_TYPE const * const restrict inputDimensions,
+              INDEX_TYPE const * const restrict inputStrides ):
+    m_data(inputData),
+    m_dims(inputDimensions),
+    m_strides(inputStrides)
+  {}
+
+
+  /**
+   * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
   template< typename U = T >
-  operator typename std::enable_if< !std::is_const<U>::value, ArraySlice<T const,NDIM,INDEX_TYPE> const & >::type () const
+  CONSTEXPRFUNC inline operator
+  typename std::enable_if< !std::is_const<U>::value,
+                           ArraySlice<T const,NDIM,INDEX_TYPE> const & >::type
+  () const restrict_this
   {
     return reinterpret_cast<ArraySlice<T const,NDIM,INDEX_TYPE> const &>(*this);
   }
 
   /**
-   * User defined conversion to convert to a reduced dimension array. For example, converting from
-   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+   * User defined conversion to convert a ArraySlice<T,1,NDIM> to a raw pointer.
    */
   template< int U=NDIM >
-  inline
-  operator typename std::enable_if< U == 1, T * const restrict >::type() restrict_this
+  CONSTEXPRFUNC inline operator
+  typename std::enable_if< U == 1, T * const restrict >::type () const restrict_this
   {
     return m_data;
   }
 
-  template< int U=NDIM >
-  inline
-  operator typename std::enable_if< U == 1, T const * const restrict >::type() const restrict_this
-  {
-    return m_data;
-  }
 
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
   template< int U=NDIM >
-  inline explicit
-  operator typename std::enable_if< (U>1) ,ArraySlice<T,NDIM-1,INDEX_TYPE> >::type () restrict_this
+  CONSTEXPRFUNC inline explicit
+  operator typename std::enable_if< (U>1) ,
+                                    ArraySlice<T,NDIM-1,INDEX_TYPE> >::type () const restrict_this
   {
     GEOS_ASSERT_MSG( m_dims[NDIM-1]==1, "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE>" <<
                      " is only valid if last dimension is equal to 1." );
@@ -150,25 +165,11 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
-#else
-  std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
-#endif
-  operator[](INDEX_TYPE const index) const restrict_this
-  {
-    ARRAY_SLICE_CHECK_BOUNDS(index);
-    return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
-#ifdef USE_ARRAY_BOUNDS_CHECK
   std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
   std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #endif
-  operator[](INDEX_TYPE const index) restrict_this
+  operator[](INDEX_TYPE const index) const restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS(index);
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
@@ -176,32 +177,18 @@ public:
 
 #ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==2, T const * restrict >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  typename std::enable_if< U==2, T * restrict >::type
   operator[](INDEX_TYPE const index) const restrict_this
-  {
-    return &(m_data[ index*m_strides[0] ]);
-  }
-
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==2, T * restrict >::type
-  operator[](INDEX_TYPE const index) restrict_this
   {
     return &(m_data[ index*m_strides[0] ]);
   }
 #endif
 
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==1, T const & >::type
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  typename std::enable_if< U==1, T & >::type
   operator[](INDEX_TYPE const index) const restrict_this
-  {
-    ARRAY_SLICE_CHECK_BOUNDS(index);
-    return m_data[ index ];
-  }
-
-
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index) restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS(index);
     return m_data[ index ];
@@ -210,22 +197,7 @@ public:
   /// deleted default constructor
   ArraySlice() = delete;
 
-  /**
-   * @param inputData pointer to the beginning of the data
-   * @param inputDimensions pointer to the beginning of an array of dimensions. This array
-   *                        has length NDIM
-   *
-   * Base constructor that takes in raw data pointers, sets member pointers, and
-   * calculates stride.
-   */
-  inline explicit CONSTEXPRFUNC
-  ArraySlice( T * const restrict inputData,
-              INDEX_TYPE const * const restrict inputDimensions,
-              INDEX_TYPE const * const restrict inputStrides ):
-    m_data(inputData),
-    m_dims(inputDimensions),
-    m_strides(inputStrides)
-  {}
+
 
 protected:
   /// pointer to beginning of data for this array, or sub-array.
@@ -234,6 +206,7 @@ protected:
   /// pointer to array of length NDIM that contains the lengths of each array dimension
   INDEX_TYPE const * const restrict m_dims;
 
+  /// pointer to array of length NDIM that contains the strides of each array dimension
   INDEX_TYPE const * const restrict m_strides;
 
 };

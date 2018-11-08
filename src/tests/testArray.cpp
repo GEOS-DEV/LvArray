@@ -1230,6 +1230,11 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     arrayView< int > & vView = v;
     internal::compare_to_view(v, vView);
+
+    array< int const > const & vConst = v;
+    arrayView< int const > const & vViewConst = v;
+    internal::compare_to_view(vConst, vViewConst);
+
   }
 
   {
@@ -1237,6 +1242,11 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     arrayView< Tensor >& vView = v;
     internal::compare_to_view(v, vView);
+
+    array< Tensor const > const & vConst = v;
+    arrayView< Tensor const > const & vViewConst = v;
+    internal::compare_to_view(vConst, vViewConst);
+
   }
 
   {
@@ -1244,6 +1254,11 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     arrayView< std::string >& vView = v;
     internal::compare_to_view(v, vView);
+
+    array< std::string const > const & vConst = v;
+    arrayView< std::string const > const & vViewConst = v;
+    internal::compare_to_view(vConst, vViewConst);
+
   }
 }
 
