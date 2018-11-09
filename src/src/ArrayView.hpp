@@ -55,6 +55,23 @@ public:
     m_dataVector()
   {}
 
+  inline explicit CONSTEXPRFUNC
+  ArrayView( INDEX_TYPE const * const dimsMem,
+             INDEX_TYPE const * const stridesMem,
+             ArrayType const & dataVector,
+             INDEX_TYPE singleParameterResizeIndex ):
+    ArraySlice<T,NDIM,INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
+    m_dimsMem{0},
+    m_stridesMem{0},
+    m_dataVector()
+  {
+    m_dataVector = dataVector;
+    setDataPtr();
+    setDims(dimsMem);
+    setStrides(stridesMem);
+  }
+
+
   //This triggers Chai::ManagedArray CC
   inline CONSTEXPRFUNC
   ArrayView( ArrayView const & source ):
@@ -141,17 +158,21 @@ public:
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
+//  inline
+//  ArrayView<T, NDIM - 1, INDEX_TYPE> dimReduce() const
   template< int U=NDIM >
-  inline explicit CONSTEXPRFUNC
-  operator typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE>& >::type
-  () const
+  inline CONSTEXPRFUNC
+  typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE> >::type
+  dimReduce() const
   {
     GEOS_ASSERT_MSG( m_dimsMem[NDIM - 1] == 1,
                    "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
                    "dimension is equal to 1." );
 
-    // TODO this is incorrect
-    return static_cast<ArrayView<T, NDIM - 1, INDEX_TYPE>&>( *this );
+    return ArrayView<T, NDIM - 1, INDEX_TYPE>( this->m_dimsMem,
+                                               this->m_stridesMem,
+                                               this->m_dataVector,
+                                               this->m_singleParameterResizeIndex );
   }
 
   LVARRAY_HOST_DEVICE INDEX_TYPE size() const

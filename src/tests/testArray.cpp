@@ -1290,6 +1290,29 @@ TEST( Array, test_array2D )
 }
 
 
+TEST( ArrayView, test_dimReduction )
+{
+  array2D< int > v(10,1);
+  arrayView2D<int> const & vView = v;
+  ArrayView< int, 1, int > const vView1d = v.dimReduce();
+
+  for( int a=0 ; a<10 ; ++a )
+  {
+    v[a][0] = 2*a;
+  }
+
+  ASSERT_EQ( vView1d.data(), v.data() );
+
+  for( int a=0 ; a<10 ; ++a )
+  {
+    ASSERT_EQ( vView[a][0], v[a][0] );
+    ASSERT_EQ( vView1d[a], v[a][0] );
+  }
+
+
+}
+
+
 int main(int argc, char* argv[]) 
 {
   MPI_Init(&argc, &argv);
