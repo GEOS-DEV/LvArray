@@ -15,13 +15,13 @@ set(ENABLE_GTEST_DEATH_TESTS ON CACHE BOOL "")
 
 set(ENABLE_MPI ON CACHE BOOL "")
 
-set(MPI_HOME                 "/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-coral-2018.08.08" CACHE PATH "")
+set(MPI_ROOT                 "/usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-coral-2018.08.08" CACHE PATH "")
 
-set(MPI_C_COMPILER           "${MPI_HOME}/bin/mpicc"   CACHE PATH "")
-set(MPI_CXX_COMPILER         "${MPI_HOME}/bin/mpicxx"  CACHE PATH "")
-set(MPI_Fortran_COMPILER     "${MPI_HOME}/bin/mpifort" CACHE PATH "")
+set(MPI_C_COMPILER           "${MPI_ROOT}/bin/mpicc"   CACHE PATH "")
+set(MPI_CXX_COMPILER         "${MPI_ROOT}/bin/mpicxx"  CACHE PATH "")
+set(MPI_Fortran_COMPILER     "${MPI_ROOT}/bin/mpifort" CACHE PATH "")
 
-set(MPIEXEC                "${MPI_HOME}/bin/mpirun" CACHE PATH "")
+set(MPIEXEC                "${MPI_ROOT}/bin/mpirun" CACHE PATH "")
 set(MPIEXEC_NUMPROC_FLAG   "-np" CACHE PATH "")
 set(BLT_MPI_COMMAND_APPEND "mpibind" CACHE PATH "")
 

@@ -11,11 +11,8 @@ set(newComponentTests
     testSortedArray.cpp
    )
 
-set( CXX_UTILITIES_DEP  )
-
-
-if( ATK_FOUND OR ENABLE_ATK )
-  set( CXX_UTILITIES_DEP slic  )
+if( ${ENABLE_CUDA})
+    set( cxx_dependencies ${cxx_dependencies} cuda )
 endif()
 
 #
@@ -26,7 +23,7 @@ foreach(test ${newComponentTests})
     blt_add_executable( NAME ${test_name}
                         SOURCES ${test}
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON gtest cxx-utilities ${CXX_UTILITIES_DEP} cuda )
+                        DEPENDS_ON gtest cxx-utilities ${cxx_dependencies} )
 
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}

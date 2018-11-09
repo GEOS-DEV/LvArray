@@ -105,7 +105,7 @@ public:
    * Base constructor that takes in raw data pointers, sets member pointers, and
    * calculates stride.
    */
-  inline explicit CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
   ArraySlice( T * const restrict inputData,
               INDEX_TYPE const * const restrict inputDimensions,
               INDEX_TYPE const * const restrict inputStrides ):
@@ -119,7 +119,7 @@ public:
    * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
    */
   template< typename U = T >
-  CONSTEXPRFUNC inline operator
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC operator
   typename std::enable_if< !std::is_const<U>::value,
                            ArraySlice<T const,NDIM,INDEX_TYPE> const & >::type
   () const restrict_this
@@ -131,7 +131,7 @@ public:
    * User defined conversion to convert a ArraySlice<T,1,NDIM> to a raw pointer.
    */
   template< int U=NDIM >
-  CONSTEXPRFUNC inline operator
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline operator
   typename std::enable_if< U == 1, T * const restrict >::type () const restrict_this
   {
     return m_data;

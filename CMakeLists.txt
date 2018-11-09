@@ -14,6 +14,10 @@ if(NOT is_submodule)
 
   project(cxx-utilities LANGUAGES CXX)
 
+
+#  cmake_policy( SET CMP0042 NEW )
+#  cmake_policy( SET CMP0074 NEW )
+
   set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
   set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
 

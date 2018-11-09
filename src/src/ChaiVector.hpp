@@ -193,10 +193,10 @@ public:
    * @return a reference to the value at the given index.
    */
   /// @{
-  T& operator[]( size_type pos )
+  LVARRAY_HOST_DEVICE T& operator[]( size_type pos )
   { return m_array[ pos ]; }
 
-  T const & operator[]( size_type pos ) const
+  LVARRAY_HOST_DEVICE T const & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
   /// @}
 
@@ -264,7 +264,7 @@ public:
   /**
    * @brief Return the number of values held in the vector.
    */
-  size_type size() const
+  LVARRAY_HOST_DEVICE size_type size() const
   { return m_length; }
 
   /**

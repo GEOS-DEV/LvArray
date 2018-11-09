@@ -25,7 +25,6 @@ if( CMAKE_PROJECT_NAME EQUAL "geosx" )
 endif()
 
 
-add_subdirectory(tests)
 
 set( cxx_dependencies "" )
 if( ATK_FOUND OR ENABLE_ATK OR ENABLE_AXOM )
@@ -51,6 +50,8 @@ blt_add_library( NAME             cxx-utilities
                  HEADERS_OUTPUT_SUBDIR cxx-utilities
                  DEPENDS_ON       ${cxx_dependencies}
                  )
+
+add_subdirectory(tests)
 
 #set(cxx-utilities_headersdest ${HEADER_INCLUDES_DIRECTORY}/cxx-utilities)
 #blt_copy_headers_target(NAME        cxx-utilities

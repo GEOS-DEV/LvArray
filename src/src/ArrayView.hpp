@@ -154,7 +154,7 @@ public:
     return static_cast<ArrayView<T, NDIM - 1, INDEX_TYPE>&>( *this );
   }
 
-  INDEX_TYPE size() const
+  LVARRAY_HOST_DEVICE INDEX_TYPE size() const
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK
     GEOS_ERROR_IF( size_helper<0>::f(m_dimsMem) != static_cast<INDEX_TYPE>(m_dataVector.size()), "Size mismatch" );
@@ -261,7 +261,7 @@ public:
     }
   }
 
-  INDEX_TYPE size( int dim ) const
+  LVARRAY_HOST_DEVICE INDEX_TYPE size( int dim ) const
   {
     return m_dimsMem[dim];
   }
