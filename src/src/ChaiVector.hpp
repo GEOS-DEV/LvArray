@@ -19,10 +19,12 @@
 #ifndef CHAI_VECTOR_HPP_
 #define CHAI_VECTOR_HPP_
 
+#include "CXX_UtilsConfig.hpp"
+
 #include <type_traits>
 #include <iterator>
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 #include "chai/ManagedArray.hpp"
 #include "chai/ArrayManager.hpp"
 #include <mutex>
@@ -31,7 +33,7 @@
 #endif
 
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 namespace internal
 {
 static std::mutex chai_lock;
@@ -40,35 +42,27 @@ static std::mutex chai_lock;
 
 template < typename T >
 class ChaiVector 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
 : public chai::CHAICopyable
 #endif
 {
 public:
 
-  using value_type = T;
   using size_type = size_t;
-  using reference = T&;
-  using const_reference = const T&;
-  using rvalue_reference = T&&;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using iterator = pointer;
-  using const_iterator = const_pointer;
-
+  using iterator = T *;
+  using const_iterator = T const *;
 
   /**
    * @brief Default constructor, creates a new empty vector.
    */
   ChaiVector() :
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
     m_capacity( 0 ),
 #endif
-    m_length( 0 ),
-    m_copied( false )
+    m_length( 0 )
   {}
 
   /**
@@ -76,14 +70,13 @@ public:
    * @param [in] initial_length the initial length of the vector.
    */
   ChaiVector( size_type initial_length ) :
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     m_array(),
 #else
     m_array( nullptr ),
     m_capacity( 0 ),
 #endif
-    m_length( 0 ),
-    m_copied( false )
+    m_length( 0 )
   {
     resize( initial_length );
   }
@@ -97,11 +90,10 @@ public:
    */
   ChaiVector( const ChaiVector& source ) :
     m_array( source.m_array ),
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
-    m_length( source.m_length ),
-    m_copied( true )
+    m_length( source.m_length )
   {}
 
   /**
@@ -111,63 +103,65 @@ public:
    */
   ChaiVector( ChaiVector&& source ) :
     m_array( source.m_array ),
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
-    m_length( source.m_length ),
-    m_copied( source.m_copied )
+    m_length( source.m_length )
   {
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     source.m_capacity = 0;
 #endif
     source.m_array = nullptr;
     source.m_length = 0;
-    source.m_copied = true;
   }
 
   /**
    * @brief Destructor, will destroy the objects and free the memory if it owns the data.
    */
-  ~ChaiVector()
+  void free()
   {
-    if ( capacity() > 0 && !m_copied )
+    if ( capacity() > 0 )
     {
       clear();
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
       internal::chai_lock.lock();
       m_array.free();
       internal::chai_lock.unlock();
 #else
       std::free( m_array );
-#endif
-    }
-  }
-
-  /**
-   * @brief Move assignment operator, moves the given ChaiVector into *this.
-   * @param [in] source the ChaiVector to move.
-   * @return *this.
-   */
-  ChaiVector& operator=( ChaiVector const& source )
-  {
-    if ( m_copied )
-    {
-#ifdef GEOSX_USE_CHAI
-      m_array = chai::ManagedArray<T>();
-#else
-      m_array = nullptr;
       m_capacity = 0;
 #endif
     }
 
-    m_copied = false;
-    resize( source.size() );
+    m_array = nullptr;
+    m_length = 0;
+  }
 
-    for ( size_type i = 0; i < size(); ++i )
-    {
-      m_array[ i ] = source[ i ];
-    }
+  /**
+   * @brief Let go of any memory held. Should not be called lightly, does not free
+   *  said memory.
+   */
+  void reset()
+  {
+    m_array = nullptr;
+    m_length = 0;
+#ifndef USE_CHAI
+    m_capacity = 0;
+#endif
+  }
 
+  /**
+   * @brief Copy assignment operator, creates a shallow copy of the given ChaiVector.
+   * @param [in] source the ChaiVector to copy.
+   * @return *this.
+   */
+  ChaiVector& operator=( ChaiVector const& source )
+  {
+    m_array = source.m_array;
+    m_length = source.size();
+#ifndef USE_CHAI
+    m_capacity = source.capacity();
+#endif
     return *this;
   }
 
@@ -178,38 +172,20 @@ public:
    */
   ChaiVector& operator=( ChaiVector&& source )
   {
-    if ( capacity() > 0 && !m_copied )
-    {
-      clear();
-#ifdef GEOSX_USE_CHAI
-      internal::chai_lock.lock();
-      m_array.free();
-      internal::chai_lock.unlock();
-#else
-      std::free( m_array );
-#endif
-    }
+    free();
 
     m_array = source.m_array;
     m_length = source.m_length;
-    m_copied = source.m_copied;
 
-#ifndef GEOSX_USE_CHAI
+#ifndef USE_CHAI
     m_capacity = source.m_capacity;
     source.m_capacity = 0;
 #endif
 
     source.m_array = nullptr;
     source.m_length = 0;
-    source.m_copied = true;
     return *this;
   }
-
-  /**
-   * @brief Return if this ChaiVector is a copy and therefore does not own its data.
-   */
-  bool isCopy() const
-  { return m_copied; }
 
   /**
    * @brief Dereference operator for the underlying active pointer.
@@ -217,10 +193,10 @@ public:
    * @return a reference to the value at the given index.
    */
   /// @{
-  reference operator[]( size_type pos )
+  T& operator[]( size_type pos )
   { return m_array[ pos ]; }
 
-  const_reference operator[]( size_type pos ) const
+  T const & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
   /// @}
 
@@ -228,10 +204,10 @@ public:
    * @brief Return a reference to the first value in the array.
    */
   /// @{
-  reference front()
+  T& front()
   { return m_array[0]; }
 
-  const_reference front() const
+  T const & front() const
   { return m_array[0]; }
   /// @}
 
@@ -239,10 +215,10 @@ public:
    * @brief Return a reference to the last value in the array.
    */
   /// @{
-  reference back()
+  T& back()
   { return m_array[ size() - 1 ]; }
 
-  const_reference back() const
+  T const & back() const
   { return m_array[ size()  - 1 ]; }
   /// @}
 
@@ -250,10 +226,10 @@ public:
    * @brief Return a pointer to the data.
    */
   /// @{
-  pointer data()
+  T* data()
   { return &m_array[0]; }
 
-  const_pointer data() const
+  T const * data() const
   { return &m_array[0]; }
   /// @}
 
@@ -308,7 +284,7 @@ public:
    */
   size_type capacity() const
   { 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     return m_array.size();
 #else
     return m_capacity;
@@ -331,8 +307,44 @@ public:
   iterator insert( const_iterator pos, const T& value )
   {
     const size_type index = pos - begin();
-    emplace( 1, index );
-    m_array[ index ] = value;
+    return insert( index, value );
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( const_iterator pos, const T&& value )
+  {
+    const size_type index = pos - begin();
+    return insert( index, std::move( value ) );
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( size_type index, const T& value )
+  {
+    emplace( index, 1 );
+    new ( &m_array[ index ] ) T(value);
+    return begin() + index;
+  }
+
+  /**
+   * @brief Insert the given value at the given position.
+   * @param [in] pos the position at which to insert the value.
+   * @param [in] value the value to insert.
+   * @return An iterator to the position at which the insertion was done.
+   */
+  iterator insert( size_type index, const T&& value )
+  {
+    emplace( index, 1 );
+    new ( &m_array[ index ] ) T(std::move(value));
     return begin() + index;
   }
 
@@ -346,14 +358,14 @@ public:
   template < typename InputIt >
   iterator insert( const_iterator pos, InputIt first, InputIt last )
   {
-    const size_type index = pos - begin();
+    size_type index = pos - begin();
     const size_type n = std::distance( first, last );
-    emplace( n, index );
+    emplace( index, n );
 
-    for( size_type i = 0; i < n; ++i )
+    /* Initialize the newly vacant values moved out of to the default value. */
+    for ( ; first != last; ++first )
     {
-      m_array[ index + i ] = *first;
-      first++;
+      new ( &m_array[ index++ ] ) T(*first);
     }
 
     return begin() + index;
@@ -380,17 +392,31 @@ public:
 
   /**
    * @brief Append a value to the end of the array.
-   * @param [in] val the value to append.
+   * @param [in] value the value to append.
    */
-  void push_back( const_reference value )
+  void push_back( T const & value )
   {
     if ( size() + 1 > capacity() )
     {
       dynamicRealloc( size() + 1 );
     }
     
-    new ( &m_array[ size() ] ) T();
-    m_array[ size() ] = value;
+    new ( &m_array[ size() ] ) T(value);
+    ++m_length;
+  }
+
+  /**
+   * @brief Append a value to the end of the array.
+   * @param [in] value the value to append.
+   */
+  void push_back( T && value )
+  {
+    if ( size() + 1 > capacity() )
+    {
+      dynamicRealloc( size() + 1 );
+    }
+    
+    new ( &m_array[ size() ] ) T(std::move(value));
     ++m_length;
   }
 
@@ -420,19 +446,16 @@ public:
       realloc( new_length );
     }
 
-    if ( new_length < size() )
+    /* Delete things between new_length and size() */
+    for ( size_type i = new_length; i < size(); ++i )
     {
-      for ( size_type i = new_length; i < size(); ++i )
-      {
-        m_array[ i ].~T();
-      }
+      m_array[ i ].~T();
     }
-    else
+
+    /* Initialize things size() and new_length */
+    for ( size_type i = size(); i < new_length; ++i )
     {
-      for ( size_type i = size(); i < new_length; ++i )
-      {
-        new ( &m_array[ i ] ) T();
-      }
+      new ( &m_array[ i ] ) T();
     }
 
     m_length = new_length;
@@ -445,7 +468,7 @@ private:
    * @param [in] n the number of values to insert.
    * @param [in] pos the position at which to insert.
    */
-  void emplace( size_type n, size_type pos )
+  void emplace( size_type pos, size_type n )
   {
     if ( n == 0 )
     {
@@ -465,13 +488,6 @@ private:
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
     }
 
-    /* Initialize the newly vacant values moved out of to the default value. */
-    for ( size_type i = 0; i < n; ++i )
-    {
-      const size_type cur_pos = pos + i;
-      new ( &m_array[ cur_pos ] ) T();
-    }
-
     m_length = new_length;
   }
 
@@ -481,7 +497,7 @@ private:
    */
   void realloc( size_type new_capacity )
   {
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     internal::chai_lock.lock();
     chai::ManagedArray<T> new_array( new_capacity );
     internal::chai_lock.unlock();
@@ -500,7 +516,7 @@ private:
       m_array[ i ].~T();
     }
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
     if ( capacity() != 0 )
     {
       internal::chai_lock.lock();
@@ -521,14 +537,13 @@ private:
   void dynamicRealloc( size_type new_length )
   { reserve( 2 * new_length ); }
 
-#ifdef GEOSX_USE_CHAI
+#ifdef USE_CHAI
   chai::ManagedArray<T> m_array;
 #else
   T* m_array;
   size_type m_capacity;
 #endif
   size_type m_length;
-  bool m_copied;
 };
 
 #endif /* CHAI_VECTOR_HPP_ */

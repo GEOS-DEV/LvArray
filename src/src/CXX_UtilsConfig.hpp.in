@@ -1,0 +1,23 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
+
+#cmakedefine USE_ARRAY_BOUNDS_CHECK
+
+#ifndef USE_AXOM
+#cmakedefine USE_AXOM
+#endif
+
+
+#ifndef USE_CHAI
+#cmakedefine USE_CHAI
+#endif
+
+#ifndef USE_MPI
+#cmakedefine USE_MPI
+#endif
+
+
+
+#endif  /* GEOSX_CONFIG_HPP */
+

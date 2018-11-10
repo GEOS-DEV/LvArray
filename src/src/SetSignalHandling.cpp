@@ -26,7 +26,7 @@
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
 #include <fenv.h>
-#include <xmmintrin.h>
+//#include <xmmintrin.h>
 
 namespace cxx_utilities
 {
@@ -59,7 +59,7 @@ void setSignalHandling( void (*handler)( int ) )
   signal(SIGCONT, handler);
   signal(SIGCHLD, handler);
 
-#if __APPLE__
+#ifdef __APPLE__
 #if __clang__
 
 #elif __GNUC__

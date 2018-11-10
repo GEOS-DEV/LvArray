@@ -1,5 +1,5 @@
 #!/bin/csh
-#MSUB -N fracStudy
+#MSUB -N 1
 #MSUB -l walltime=04:00:00
 #MSUB -l nodes=1
 #MSUB -l partition=quartz
