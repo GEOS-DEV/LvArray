@@ -33,7 +33,7 @@ public:
   using const_pointer = typename ArrayType::const_pointer;
   using iterator = typename ArrayType::iterator;
   using const_iterator = typename ArrayType::const_iterator;
-  using size_type = typename ArrayType::size_type;
+  using size_type = INDEX_TYPE;
 
   SortedArray():
     m_data()

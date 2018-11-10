@@ -16,6 +16,9 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+/**
+ * @file ArraySlice.hpp
+ */
 
 #ifndef ARRAY_SLICE_HPP_
 #define ARRAY_SLICE_HPP_
@@ -77,33 +80,37 @@ namespace LvArray
 
 
 /**
+ * @class ArraySlice
+ * @brief This class serves to provide a sliced multidimensional interface to the family of LvArray
+ *        classes.
  * @tparam T    type of data that is contained by the array
- * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector,
- * NDIM=2->Matrix, etc. )
- * This class serves as a multidimensional array interface for a chunk of
- * memory. This is a lightweight
- * class that contains only pointers, on integer data member to hold the stride,
- * and another instantiation of type
- * ArrayAccesssor<T,NDIM-1> to represent the sub-array that is passed back upon
- * use of operator[]. Pointers to the
- * data and length of each dimension passed into the constructor, thus the class
- * does not own the data itself, nor does
- * it own the array that defines the shape of the data.
+ * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
+ * @tparam INDEX_TYPE the integer to use for indexing the components of the array
+ *
+ * This class serves as a sliced interface to an array. This is a lightweight class that contains
+ * only pointers, and provides operator[] for indexed array access. This class may be aliased to
+ * a pointer for NDIM=1 in cases where range checking is off.
+ *
+ * In general, instantiations of ArraySlice should only result from taking a slice of an an Array or
+ * an ArrayView via operator[] which it inherits from ArraySlice.
+ *
+ * Key features:
+ * 1) ArraySlice provides operator[] array accessesor
+ * 2) operator[] are all const and may be called in non-mutable lamdas
+ * 3) Conversion operator to go from ArraySlice<T> to ArraySlice<T const>
+ * 4) Conversion operator to go from ArraySlice<T,1> to T*
+ *
  */
 template< typename T, int NDIM, typename INDEX_TYPE = std::int_fast32_t >
 class ArraySlice
 {
 public:
-
-  using size_type = INDEX_TYPE;
-
   /**
-   * @param inputData pointer to the beginning of the data
-   * @param inputDimensions pointer to the beginning of an array of dimensions. This array
-   *                        has length NDIM
+   * @param inputData       pointer to the beginning of the data for this slice of the array
+   * @param inputDimensions pointer to the beginning of the dimensions[NDIM] c-array for this slice.
+   * @param inputStrides    pointer to the beginning of the strides[NDIM] c-array for this slice
    *
-   * Base constructor that takes in raw data pointers, sets member pointers, and
-   * calculates stride.
+   * Base constructor that takes in raw data pointers as initializers for its members.
    */
   LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
   ArraySlice( T * const restrict inputData,
@@ -116,7 +123,10 @@ public:
 
 
   /**
-   * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>
+   * User Defined Conversion operator to move from an ArraySlice<T> to ArraySlice<T const>&. This is
+   * achieved by applying a reinterpret_cast to the this pointer, which is a safe operation as the
+   * only difference between the types is a const specifier.
+   * @return a reference to an ArraySlice<T const>
    */
   template< typename U = T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC operator
@@ -129,6 +139,7 @@ public:
 
   /**
    * User defined conversion to convert a ArraySlice<T,1,NDIM> to a raw pointer.
+   * @return a copy of m_data.
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline operator
@@ -141,6 +152,7 @@ public:
   /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
+   * @return A new ArraySlice<T,NDIM-1>
    */
   template< int U=NDIM >
   CONSTEXPRFUNC inline explicit
@@ -153,14 +165,18 @@ public:
   }
 
   /**
+   * @brief This function provides a square bracket operator for array access.
    * @param index index of the element in array to access
-   * @return a reference to the member m_childInterface, which is of type
-   * ArraySlice<T,NDIM-1>.
-   * This function sets the data pointer for m_childInterface.m_data to the
-   * location corresponding to the input
-   * parameter "index". Thus, the returned object has m_data pointing to the
-   * beginning of the data associated with its
-   * sub-array.
+   * @return a reference to the member m_childInterface, which is of type ArraySlice<T,NDIM-1>.
+   *
+   * This function creates a new ArraySlice<T,NDIM-1,INDEX_TYPE> by passing the member pointer
+   * locations +1. Thus, the returned object has m_data pointing to the beginning of the data
+   * associated with its sub-array. If used as a set of nested operators (array[][][]) the compiler
+   * typically provides the pointer dereference directly and does not create the new ArraySlice
+   * objects.
+   *
+   * @note This declaration is for NDIM>=3 when bounds checking is off, and NDIM!=1 when bounds
+   * checking is on.
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
@@ -175,6 +191,16 @@ public:
     return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
+  /**
+   * @brief This function provides a square bracket operator for array access of a 2D array.
+   * @param index index of the element in array to access
+   * @return a pointer to the data location indicated by the index.
+   *
+   * This function returns a pointer to the data that represents the slice at the given index.
+   *
+   * @note This declaration is for NDIM==2 when bounds checking is OFF, as the result of that
+   * operation should be a raw array if bounds checking is on.
+   */
 #ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
@@ -185,6 +211,13 @@ public:
   }
 #endif
 
+  /**
+   * @brief This function provides a square bracket operator for array access for a 1D array.
+   * @param index index of the element in array to access
+   * @return a reference to the data location indicated by the index.
+   *
+   * @note This declaration is for NDIM==1 when bounds checking is ON.
+   */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   typename std::enable_if< U==1, T & >::type

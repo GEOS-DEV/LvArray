@@ -49,51 +49,6 @@ namespace LvArray
 {
 
 
-template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value, RTYPE >::type
-integer_conversion( T input )
-{
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
-
-  if( input > std::numeric_limits<RTYPE>::max()  )
-  {
-    abort();
-  }
-  return static_cast<RTYPE>(input);
-}
-
-template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_signed<T>::value && std::is_unsigned<RTYPE>::value, RTYPE >::type
-integer_conversion( T input )
-{
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
-
-  if( input > std::numeric_limits<RTYPE>::max() ||
-      input < 0 )
-  {
-    abort();
-  }
-  return static_cast<RTYPE>(input);
-}
-
-
-template< typename RTYPE, typename T >
-inline typename std::enable_if< ( std::is_signed<T>::value && std::is_signed<RTYPE>::value ) ||
-                         ( std::is_unsigned<T>::value && std::is_unsigned<RTYPE>::value ), RTYPE >::type
-integer_conversion( T input )
-{
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
-
-  if( input > std::numeric_limits<RTYPE>::max() ||
-      input < std::numeric_limits<RTYPE>::lowest() )
-  {
-    abort();
-  }
-  return static_cast<RTYPE>(input);
-}
 
 
 template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t > class Array;
@@ -109,7 +64,10 @@ struct is_array< Array<T,NDIM,INDEX_TYPE> > : std::true_type{};
 
 /**
  * @class Array
- * This class provides a multi-dimensional array interface to a vector type object.
+ * @brief This class provides a multi-dimensional array interface to a vector type object.
+ * @tparam T    type of data that is contained by the array
+ * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
+ * @tparam INDEX_TYPE the integer to use for indexing the components of the array
  */
 template< typename T, int NDIM, typename INDEX_TYPE >
 class Array : public ArrayView<T, NDIM, INDEX_TYPE>
@@ -132,7 +90,6 @@ public:
   using value_type = T;
   using typename ArrayView<T, NDIM, INDEX_TYPE>::pointer;
   using typename ArrayView<T, NDIM, INDEX_TYPE>::const_pointer;
-  using typename ArrayView<T, NDIM, INDEX_TYPE>::size_type;
   using typename ArrayView<T, NDIM, INDEX_TYPE>::iterator;
   using typename ArrayView<T, NDIM, INDEX_TYPE>::const_iterator;
 
@@ -185,6 +142,9 @@ public:
     source.clear();
   }
 
+  /**
+   * destructor
+   */
   ~Array()
   {
     m_dataVector.free();
@@ -194,28 +154,21 @@ public:
   /**
    * User Defined Conversion operator to move from an Array<T> to Array<T const>
    */
-   template< typename U = T >
-   operator typename std::enable_if< !std::is_const<U>::value, Array<T const,NDIM,INDEX_TYPE> const & >::type () const
-   {
-     return reinterpret_cast<Array<T const,NDIM,INDEX_TYPE> const &>(*this);
-   }
+  template< typename U = T >
+  operator
+  typename std::enable_if< !std::is_const<U>::value, Array<T const,NDIM,INDEX_TYPE> const & >::type
+  () const
+  {
+    return reinterpret_cast<Array<T const,NDIM,INDEX_TYPE> const &>(*this);
+  }
 
-//  /**
-//   * User defined conversion to convert to a reduced dimension array. For example, converting from
-//   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
-//   */
-//  template< int U=NDIM >
-//  operator typename std::enable_if< (U>1) ,ArrayView<T,NDIM-1,INDEX_TYPE> >::type ()
-//  {
-//    GEOS_ERROR_IF( m_dims[NDIM-1]==1,
-//                   "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
-//                   "dimension is equal to 1." );
-//
-//    return ArrayView<T,NDIM-1,INDEX_TYPE>( m_data,
-//                                           m_dims,
-//                                           m_strides );
-//  }
-
+  /**
+   * @brief assignment operator
+   * @param rhs source for the assignment
+   * @return *this
+   *
+   * The assignment operator performs a deep copy of the rhs.
+   */
   Array & operator=( Array const& rhs )
   {
     resize(NDIM, rhs.m_dimsMem);
@@ -232,12 +185,13 @@ public:
     return *this;
   }
 
-  Array & operator=( T const& rhs )
-  {
-    ArrayView<T, NDIM, INDEX_TYPE>::operator=( rhs );
-    return *this;
-  }
-
+  /**
+   * @brief move constructor
+   * @param rhs source for the construction
+   * @return *this
+   *
+   * Move constructor takes data from rhs without triggering a copy construction.
+   */
   Array & operator=( Array&& rhs )
   {
     m_dataVector = std::move(rhs.m_dataVector);
@@ -261,7 +215,11 @@ public:
    * @{
    */
 
-
+  /**
+   * @brief This function provides a resize or reallocation of the array
+   * @param numDims the number of dims in the dims parameter
+   * @param dims the new size of the dimensions
+   */
   void resize( int const numDims, INDEX_TYPE const * const dims )
   {
     GEOS_ERROR_IF( numDims != NDIM, "Dimension mismatch: " << numDims );
@@ -270,12 +228,11 @@ public:
     resize();
   }
 
-  void resize( int const numDims, INDEX_TYPE * const dims )
-  {
-    INDEX_TYPE const * const const_dims = dims;
-    resize( numDims, const_dims );
-  }
-
+  /**
+   * @brief function to resize/reallocate the array
+   * @tparam DIMS variadic pack containing the dimension types
+   * @param newdims the new dimensions
+   */
   template< typename... DIMS >
   void resize( DIMS... newdims )
   {
@@ -288,20 +245,13 @@ public:
     resize();
   }
 
-  void resize(int n_dims, long long const * const dims)
-  {
-    GEOS_ERROR_IF( n_dims != NDIM,
-                   "n_dims provided ("<<n_dims<<") does not match template parameter NDIM="<<NDIM );
-
-    for (int i = 0; i < NDIM; i++)
-    {
-      m_dimsMem[i] = integer_conversion<INDEX_TYPE>(dims[i]);
-    }
-
-    CalculateStrides();
-    resize();
-  }
-
+  /**
+   * @brief function to resize/reallocate the array using a single dimension
+   * @param newdim the new dimension
+   *
+   * This resize function will use set the dim[m_singleParameterResizeIndex]=newdim, and reallocate
+   * based on that new size.
+   */
   template< typename TYPE >
   void resize( TYPE newdim )
   {
@@ -312,6 +262,10 @@ public:
     resize();
   }
 
+  /**
+   *
+   * @param newLength
+   */
   void reserve( INDEX_TYPE newLength )
   {
     m_dataVector.reserve(newLength);
@@ -319,7 +273,7 @@ public:
   }
 
   INDEX_TYPE capacity() const
-  { return m_dataVector.capacity(); }
+  { return integer_conversion<INDEX_TYPE>(m_dataVector.capacity()); }
 
   void clear()
   {

@@ -21,6 +21,11 @@
 #include <vector>
 #include <string>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+
 using size_type = SortedArray< int >::size_type;
 
 namespace internal
