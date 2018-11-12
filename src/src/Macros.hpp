@@ -28,12 +28,12 @@
 
 
 
-#define STRINGIZE_(x) #x
-#define STRINGIZE(x) STRINGIZE_(x)
+#define STRINGIZE_( x ) #x
+#define STRINGIZE( x ) STRINGIZE_( x )
 
-#define LOCATION __FILE__ ":" STRINGIZE(__LINE__)
+#define LOCATION __FILE__ ":" STRINGIZE( __LINE__ )
 
-#define VA_LIST(...) __VA_ARGS__
+#define VA_LIST( ... ) __VA_ARGS__
 
 
 #endif /* MACROS_HPP_ */

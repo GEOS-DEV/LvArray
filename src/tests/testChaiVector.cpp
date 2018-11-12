@@ -35,20 +35,20 @@ namespace internal
  * @brief Check that the ChaiVector is equivalent to the std::vector. Checks equality using the
  * operator[], the iterator interface, and the raw pointer.
  * @param [in] v the ChaiVector to check.
- * @param [in] v_ref the std::vector to check against. 
+ * @param [in] v_ref the std::vector to check against.
  */
 template < class T >
 void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
   ASSERT_EQ( v.empty(), v_ref.empty() );
-  if ( v.empty() )
+  if( v.empty() )
   {
     ASSERT_EQ( v.size(), 0 );
     return;
   }
 
-  for ( size_type i = 0; i < v.size(); ++i )
+  for( size_type i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_ref[ i ] );
   }
@@ -58,7 +58,7 @@ void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_r
 
   typename ChaiVector< T >::const_iterator it = v.begin();
   typename std::vector< T >::const_iterator ref_it = v_ref.begin();
-  for ( ; it != v.end(); ++it )
+  for( ; it != v.end() ; ++it )
   {
     ASSERT_EQ( *it, *ref_it );
     ++ref_it;
@@ -66,7 +66,7 @@ void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_r
 
   const T* v_ptr = v.data();
   const T* ref_ptr = v_ref.data();
-  for ( size_type i = 0; i < v.size(); ++i )
+  for( size_type i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -85,7 +85,7 @@ std::vector< T > push_back_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     const T& val = get_value( i );
     v.push_back( val );
@@ -100,7 +100,7 @@ std::vector< T > push_back_test( ChaiVector< T >& v, int n, LAMBDA get_value )
  * @brief Test the insert method of the ChaiVector by inserting one value at a time.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of values to insert.
- * @param [in] get_value a function to generate the values to insert. 
+ * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
 template < class T, class LAMBDA >
@@ -109,15 +109,15 @@ std::vector< T > insert_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     const T& val = get_value( i );
-    if ( i % 3 == 0 )       /* Insert at the beginning. */
+    if( i % 3 == 0 )        /* Insert at the beginning. */
     {
       v.insert( v.begin(), val );
       v_ref.insert( v_ref.begin(), val );
     }
-    else if ( i % 3 == 1 )  /* Insert at the end. */
+    else if( i % 3 == 1 )   /* Insert at the end. */
     {
       v.insert( v.end(), val );
       v_ref.insert( v_ref.end(), val );
@@ -138,30 +138,30 @@ std::vector< T > insert_test( ChaiVector< T >& v, int n, LAMBDA get_value )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of insertions to do.
  * @param [in] m the number of values to insert per iteration.
- * @param [in] get_value a function to generate the values to insert. 
+ * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
 template < class T, class LAMBDA >
 std::vector< T > insert_multiple_test( ChaiVector< T >& v, int n, int m, LAMBDA get_value )
 {
   EXPECT_TRUE( v.empty() );
-  
+
   std::vector< T > v_insert;
   std::vector< T > v_ref;
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     v_insert.clear();
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       v_insert.push_back( get_value( m * i + j ) );
     }
 
-    if ( i % 3 == 0 )   /* Insert at the beginning. */
+    if( i % 3 == 0 )    /* Insert at the beginning. */
     {
       v.insert( v.begin(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.begin(), v_insert.begin(), v_insert.end() );
     }
-    else if ( i % 3 == 1 )  /* Insert at the end. */
+    else if( i % 3 == 1 )   /* Insert at the end. */
     {
       v.insert( v.end(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.end(), v_insert.begin(), v_insert.end() );
@@ -186,14 +186,14 @@ template < class T >
 void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
   const int n_elems = v.size();
-  for ( int i = 0; i < n_elems; ++i )
+  for( int i = 0 ; i < n_elems ; ++i )
   {
-    if ( i % 3 == 0 )   /* erase the beginning. */
+    if( i % 3 == 0 )    /* erase the beginning. */
     {
       v.erase( v.begin() );
       v_ref.erase( v_ref.begin() );
     }
-    else if ( i % 3 == 1 )  /* erase at the end. */
+    else if( i % 3 == 1 )   /* erase at the end. */
     {
       v.erase( v.end() - 1 );
       v_ref.erase( v_ref.end() - 1 );
@@ -204,7 +204,7 @@ void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
       v_ref.erase( v_ref.begin() + v_ref.size() / 2 );
     }
 
-    if ( i % 10 == 0 )
+    if( i % 10 == 0 )
     {
       compare_to_reference( v, v_ref );
     }
@@ -223,12 +223,12 @@ template < class T >
 void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
   const int n_elems = v.size();
-  for ( int i = 0; i < n_elems; ++i )
+  for( int i = 0 ; i < n_elems ; ++i )
   {
     v.pop_back();
     v_ref.pop_back();
 
-    if ( i % 10 == 0 )
+    if( i % 10 == 0 )
     {
       compare_to_reference( v, v_ref );
     }
@@ -242,20 +242,20 @@ void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
  * @brief Test the resize method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void resize_test( ChaiVector< T >& v, int n, LAMBDA get_value )
 {
   ASSERT_TRUE( v.empty() );
-  
+
   v.resize( n / 2 );
 
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( data_ptr[ i ], T() );
     data_ptr[ i ] = get_value( i );
@@ -269,7 +269,7 @@ void resize_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for ( int i = 0; i < n / 4; ++i )
+  for( int i = 0 ; i < n / 4 ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
@@ -279,12 +279,12 @@ void resize_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     v[ i ] = get_value( 2 * i );
   }
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( 2 * i ) );
   }
@@ -294,20 +294,20 @@ void resize_test( ChaiVector< T >& v, int n, LAMBDA get_value )
  * @brief Test the reserve method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
 {
   ASSERT_TRUE( v.empty() );
-  
+
   v.reserve( n / 2 );
 
   ASSERT_EQ( v.size(), 0 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     v.push_back( get_value( i ) );
   }
@@ -320,13 +320,13 @@ void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
 
   data_ptr = v.data();
-  for ( int i = n / 2; i < n; ++i )
+  for( int i = n / 2 ; i < n ; ++i )
   {
     v.push_back( get_value ( i ) );
   }
@@ -334,7 +334,7 @@ void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
@@ -343,32 +343,32 @@ void reserve_test( ChaiVector< T >& v, int n, LAMBDA get_value )
 /**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void shallow_copy_test( const ChaiVector< T >& v, LAMBDA get_value )
 {
   {
-    ChaiVector< T > v_cpy(v);
-    
+    ChaiVector< T > v_cpy( v );
+
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.capacity(), v_cpy.capacity() );
 
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for ( size_type i = 0; i < v.size(); ++i )
+    for( size_type i = 0 ; i < v.size() ; ++i )
     {
       ASSERT_EQ( v[ i ], v_cpy[ i ] );
       ASSERT_EQ( v[ i ], get_value( i ) );
     }
 
-    for ( size_type i = 0; i < v.size(); ++i )
+    for( size_type i = 0 ; i < v.size() ; ++i )
     {
       v_cpy[ i ] = get_value( 2 * i );
     }
   }
 
-  for ( size_type i = 0; i < v.size(); ++i )
+  for( size_type i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( 2 * i ) );
   }
@@ -389,11 +389,11 @@ struct Tensor
     x( val ), y( val ), z( val )
   {}
 
-  bool operator==(const Tensor& other) const
+  bool operator==( const Tensor& other ) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
-    return x == other.x && y == other.y && z == other.z; 
+    return x == other.x && y == other.y && z == other.z;
 #pragma GCC diagnostic pop
   }
 };
@@ -597,19 +597,19 @@ TEST( ChaiVector, nullptr )
 {
   {
     ChaiVector< int > v;
-    EXPECT_EQ(v.data(), nullptr);
+    EXPECT_EQ( v.data(), nullptr );
     v.free();
   }
 
   {
     ChaiVector< Tensor > v;
-    EXPECT_EQ(v.data(), nullptr);
+    EXPECT_EQ( v.data(), nullptr );
     v.free();
   }
 
   {
     ChaiVector< std::string > v;
-    EXPECT_EQ(v.data(), nullptr);
+    EXPECT_EQ( v.data(), nullptr );
     v.free();
   }
 }

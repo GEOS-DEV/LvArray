@@ -43,20 +43,20 @@ namespace internal
  * @brief Check that the Array is equivalent to the std::vector. Checks equality using the
  * operator[], operator(), the iterator interface and the raw pointer.
  * @param [in] v the Array to check.
- * @param [in] v_ref the std::vector to check against. 
+ * @param [in] v_ref the std::vector to check against.
  */
 template < class T >
 void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
   ASSERT_EQ( v.empty(), v_ref.empty() );
-  if ( v.empty() )
+  if( v.empty() )
   {
     ASSERT_EQ( v.size(), 0 );
     return;
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_ref[ i ] );
     ASSERT_EQ( v( i ), v_ref[ i ] );
@@ -67,7 +67,7 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
 
   typename array< T >::const_iterator it = v.begin();
   typename std::vector< T >::const_iterator ref_it = v_ref.begin();
-  for ( ; it != v.end(); ++it )
+  for( ; it != v.end() ; ++it )
   {
     ASSERT_EQ( *it, *ref_it );
     ++ref_it;
@@ -75,7 +75,7 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
 
   const T* v_ptr = v.data();
   const T* ref_ptr = v_ref.data();
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -85,21 +85,21 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
  * @brief Check that the Array is equivalent to the std::vector. Checks equality using the
  * operator[], operator(), the iterator interface and the raw pointer.
  * @param [in] v the Array to check.
- * @param [in] v_ref the std::vector to check against. 
+ * @param [in] v_ref the std::vector to check against.
  */
 template < class T >
-void compare_to_reference( const array< array< T > >& v, 
+void compare_to_reference( const array< array< T > >& v,
                            const std::vector< std::vector< T > >& v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
   ASSERT_EQ( v.empty(), v_ref.empty() );
-  if ( v.empty() )
+  if( v.empty() )
   {
     ASSERT_EQ( v.size(), 0 );
     return;
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     compare_to_reference( v[ i ], v_ref[ i ] );
   }
@@ -110,13 +110,13 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
   ASSERT_EQ( v.empty(), v_view.empty() );
-  if ( v.empty() )
+  if( v.empty() )
   {
     ASSERT_EQ( v.size(), 0 );
     return;
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_view[ i ] );
     ASSERT_EQ( v( i ), v_view( i ) );
@@ -127,7 +127,7 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
 
   typename array< T >::const_iterator it = v.begin();
   typename arrayView< T >::const_iterator ref_it = v_view.begin();
-  for ( ; it != v.end(); ++it )
+  for( ; it != v.end() ; ++it )
   {
     ASSERT_EQ( *it, *ref_it );
     ++ref_it;
@@ -135,7 +135,7 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
 
   const T* v_ptr = v.data();
   const T* ref_ptr = v_view.data();
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -145,10 +145,10 @@ template < class T >
 void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
-  ASSERT_EQ( v.size(0), v_view.size(0) );
-  ASSERT_EQ( v.size(1), v_view.size(1) );
+  ASSERT_EQ( v.size( 0 ), v_view.size( 0 ) );
+  ASSERT_EQ( v.size( 1 ), v_view.size( 1 ) );
   ASSERT_EQ( v.empty(), v_view.empty() );
-  if ( v.empty() )
+  if( v.empty() )
   {
     ASSERT_EQ( v.size(), 0 );
     return;
@@ -157,11 +157,11 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
   int pos = 0;
   const T* v_ptr = v.data();
   const T* ref_ptr = v_view.data();
-  for ( int i = 0; i < v.size(0); ++i )
+  for( int i = 0 ; i < v.size( 0 ) ; ++i )
   {
     const T* v_ptr_cur = v.data();
     const T* ref_ptr_cur = v_view.data();
-    for ( int j = 0; j < v.size(1); ++j )
+    for( int j = 0 ; j < v.size( 1 ) ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_view[ i ][ j ] );
       ASSERT_EQ( v( i, j ), v_view( i, j ) );
@@ -176,7 +176,7 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
 
   typename array< T >::const_iterator it = v.begin();
   typename arrayView< T >::const_iterator ref_it = v_view.begin();
-  for ( ; it != v.end(); ++it )
+  for( ; it != v.end() ; ++it )
   {
     ASSERT_EQ( *it, *ref_it );
     ++ref_it;
@@ -191,13 +191,13 @@ void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
 
   v.resize( N, M );
   EXPECT_EQ( v.size(), N * M );
-  EXPECT_EQ( v.size(0), N );
-  EXPECT_EQ( v.size(1), M );
+  EXPECT_EQ( v.size( 0 ), N );
+  EXPECT_EQ( v.size( 1 ), M );
 
   int pos = 0;
-  for ( int i = 0; i < N; ++i )
+  for( int i = 0 ; i < N ; ++i )
   {
-    for ( int j = 0; j < M; ++j )
+    for( int j = 0 ; j < M ; ++j )
     {
       v[i][j] = get_value( pos );
       pos++;
@@ -208,10 +208,10 @@ void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
   typename array2D< T >::iterator it = v.begin();
   EXPECT_EQ( *it, v.front() );
   T const* data_ptr = v.data();
-  for ( int i = 0; i < N; ++i )
+  for( int i = 0 ; i < N ; ++i )
   {
-    T const* cur_data_ptr = v.data(i);
-    for ( int j = 0; j < M; ++j )
+    T const* cur_data_ptr = v.data( i );
+    for( int j = 0 ; j < M ; ++j )
     {
       const T value = get_value( pos );
       EXPECT_EQ( v[i][j], value );
@@ -225,7 +225,7 @@ void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
   }
 
   EXPECT_EQ( it, v.end() );
-  EXPECT_EQ( *(it - 1), v.back() ); 
+  EXPECT_EQ( *(it - 1), v.back() );
 }
 
 /**
@@ -241,7 +241,7 @@ std::vector< T > push_back_test( array< T >& v, int n, LAMBDA get_value )
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     const T& val = get_value( i );
     v.push_back( val );
@@ -260,7 +260,7 @@ std::vector< T > push_back_test( array< T >& v, int n, LAMBDA get_value )
  * @return the std::vector compared against.
  */
 template < class T, class LAMBDA >
-std::vector< std::vector< T > > 
+std::vector< std::vector< T > >
 push_back_array_test( array< array < T > >& v, int n, int m, LAMBDA get_value )
 {
   EXPECT_TRUE( v.empty() );
@@ -268,17 +268,17 @@ push_back_array_test( array< array < T > >& v, int n, int m, LAMBDA get_value )
   std::vector< std::vector< T > > v_ref;
   array< T > v_append( m );
   std::vector< T > v_ref_append( m );
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       const T val = get_value( m * i + j );
       v_append[ j ] = val;
       v_ref_append[ j ] = val;
     }
-    
+
     v.push_back( v_append );
-    v_ref.push_back( v_ref_append );      
+    v_ref.push_back( v_ref_append );
   }
 
   compare_to_reference( v, v_ref );
@@ -290,29 +290,29 @@ push_back_array_test( array< array < T > >& v, int n, int m, LAMBDA get_value )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of insertions to do.
  * @param [in] m the number of values to insert per iteration.
- * @param [in] get_value a function to generate the values to insert. 
+ * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
 template < class T, class LAMBDA >
 std::vector< T > insert_test( array< T >& v, int n, int m, LAMBDA get_value )
 {
   EXPECT_TRUE( v.empty() );
-  
+
   std::vector< T > v_ref;
   std::vector< T > v_insert( m );
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       v_insert[ j ] = get_value( m * i + j );
     }
 
-    if ( i % 3 == 0 )   /* Insert at the beginning. */
+    if( i % 3 == 0 )    /* Insert at the beginning. */
     {
       v.insert( v.begin(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.begin(), v_insert.begin(), v_insert.end() );
     }
-    else if ( i % 3 == 1 )  /* Insert at the end. */
+    else if( i % 3 == 1 )   /* Insert at the end. */
     {
       v.insert( v.end(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.end(), v_insert.begin(), v_insert.end() );
@@ -333,7 +333,7 @@ std::vector< T > insert_test( array< T >& v, int n, int m, LAMBDA get_value )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of insertions to do.
  * @param [in] m the number of values to insert per iteration.
- * @param [in] get_value a function to generate the values to insert. 
+ * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
 template < class T, class LAMBDA >
@@ -341,20 +341,20 @@ std::vector< std::vector< T > >
 insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value )
 {
   EXPECT_TRUE( v.empty() );
-  
+
   std::vector< std::vector< T > > v_ref;
   array< array< T > > v_insert;
   std::vector< std::vector< T > > v_ref_insert;
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     v_insert.clear();
     v_ref_insert.clear();
 
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       array< T > temp( p );
       std::vector< T > temp_ref( p );
-      for ( int k = 0; k < p; ++k )
+      for( int k = 0 ; k < p ; ++k )
       {
         const T val = get_value( m * p * i + p * j + k );
         temp[ k ] = val;
@@ -364,12 +364,12 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
       v_ref_insert.push_back( temp_ref );
     }
 
-    if ( i % 3 == 0 )   /* Insert at the beginning. */
+    if( i % 3 == 0 )    /* Insert at the beginning. */
     {
       v.insert( v.begin(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.begin(), v_ref_insert.begin(), v_ref_insert.end() );
     }
-    else if ( i % 3 == 1 )  /* Insert at the end. */
+    else if( i % 3 == 1 )   /* Insert at the end. */
     {
       v.insert( v.end(), v_insert.begin(), v_insert.end() );
       v_ref.insert( v_ref.end(), v_ref_insert.begin(), v_ref_insert.end() );
@@ -383,7 +383,7 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
   compare_to_reference( v, v_ref );
   return v_ref;
 }
-  
+
 /**
  * @brief Test the erase method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
@@ -393,14 +393,14 @@ template < class T, class U >
 void erase_test( array< T >& v, std::vector< U >& v_ref )
 {
   const int n_elems = v.size();
-  for ( int i = 0; i < n_elems; ++i )
+  for( int i = 0 ; i < n_elems ; ++i )
   {
-    if ( i % 3 == 0 )   /* erase the beginning. */
+    if( i % 3 == 0 )    /* erase the beginning. */
     {
       v.erase( v.begin() );
       v_ref.erase( v_ref.begin() );
     }
-    else if ( i % 3 == 1 )  /* erase at the end. */
+    else if( i % 3 == 1 )   /* erase at the end. */
     {
       v.erase( v.end() - 1 );
       v_ref.erase( v_ref.end() - 1 );
@@ -411,7 +411,7 @@ void erase_test( array< T >& v, std::vector< U >& v_ref )
       v_ref.erase( v_ref.begin() + v_ref.size() / 2 );
     }
 
-    if ( i % 10 == 0 )
+    if( i % 10 == 0 )
     {
       compare_to_reference( v, v_ref );
     }
@@ -430,12 +430,12 @@ template < class T, class U >
 void pop_back_test( array< T >& v, std::vector< U >& v_ref )
 {
   const int n_elems = v.size();
-  for ( int i = 0; i < n_elems; ++i )
+  for( int i = 0 ; i < n_elems ; ++i )
   {
     v.pop_back();
     v_ref.pop_back();
 
-    if ( i % 10 == 0 )
+    if( i % 10 == 0 )
     {
       compare_to_reference( v, v_ref );
     }
@@ -449,20 +449,20 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
  * @brief Test the resize method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void resize_test( array< T >& v, int n, LAMBDA get_value )
 {
   ASSERT_TRUE( v.empty() );
-  
+
   v.resize( n / 2 );
 
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( data_ptr[ i ], T() );
     const T val = get_value( i );
@@ -477,7 +477,7 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for ( int i = 0; i < n / 4; ++i )
+  for( int i = 0 ; i < n / 4 ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
@@ -487,13 +487,13 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     const T val = get_value( 2 * i );
     v[ i ] = val;
   }
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( 2 * i ) );
   }
@@ -503,7 +503,7 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
  * @brief Test the resize method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
@@ -516,9 +516,9 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T >* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       data_ptr[ i ].push_back( get_value( m * i + j ) );
     }
@@ -532,9 +532,9 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for ( int i = 0; i < n / 4; ++i )
+  for( int i = 0 ; i < n / 4 ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
     }
@@ -545,26 +545,26 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n / 4; ++i )
+  for( int i = 0 ; i < n / 4 ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       v[ i ][ j ] = get_value( 2 * ( m * i + j ) );
     }
   }
 
-  for ( int i = n / 4; i < n; ++i )
+  for( int i = n / 4 ; i < n ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       v[ i ].push_back( get_value( 2 * ( m * i + j ) ) );
     }
   }
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), m );
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( 2 * ( m * i + j ) ) );
     }
@@ -575,20 +575,20 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
  * @brief Test the reserve method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void reserve_test( array< T >& v, int n, LAMBDA get_value )
 {
   ASSERT_TRUE( v.empty() );
-  
+
   v.reserve( n / 2 );
 
   ASSERT_EQ( v.size(), 0 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     v.push_back( get_value( i ) );
   }
@@ -601,13 +601,13 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
 
   data_ptr = v.data();
-  for ( int i = n / 2; i < n; ++i )
+  for( int i = n / 2 ; i < n ; ++i )
   {
     v.push_back( get_value ( i ) );
   }
@@ -615,7 +615,7 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
@@ -625,23 +625,23 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
  * @brief Test the reserve method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
 {
   ASSERT_TRUE( v.empty() );
-  
+
   v.reserve( n / 2 );
 
   ASSERT_EQ( v.size(), 0 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T >* data_ptr = v.data();
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
     array< T > temp( m );
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       temp[ j ] = get_value( m * i + j );
     }
@@ -657,19 +657,19 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for ( int i = 0; i < n / 2; ++i )
+  for( int i = 0 ; i < n / 2 ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
     }
   }
 
   data_ptr = v.data();
-  for ( int i = n / 2; i < n; ++i )
+  for( int i = n / 2 ; i < n ; ++i )
   {
     array< T > temp( m );
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       temp[ j ] = get_value( m * i + j );
     }
@@ -680,9 +680,9 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for ( int i = 0; i < n; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
-    for ( int j = 0; j < m; ++j )
+    for( int j = 0 ; j < m ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
     }
@@ -692,29 +692,29 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
 /**
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void deep_copy_test( const array< T >& v, LAMBDA get_value )
 {
-  array< T > v_cpy(v);
-  
+  array< T > v_cpy( v );
+
   ASSERT_EQ( v.size(), v_cpy.size() );
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_cpy[ i ] );
     ASSERT_EQ( v[ i ], get_value( i ) );
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     v_cpy[ i ] = get_value( 2 * i );
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
     ASSERT_EQ( v[ i ], get_value( i ) );
@@ -724,41 +724,41 @@ void deep_copy_test( const array< T >& v, LAMBDA get_value )
 /**
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 {
-  array< array< T > > v_cpy(v);
-  
+  array< array< T > > v_cpy( v );
+
   ASSERT_EQ( v.size(), v_cpy.size() );
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for ( int j = 0; j < v[ i ].size(); ++j )
+    for( int j = 0 ; j < v[ i ].size() ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
       ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
     }
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
-    for ( int j = 0; j < v[ i ].size(); ++j )
+    for( int j = 0 ; j < v[ i ].size() ; ++j )
     {
       v_cpy[ i ][ j ] = get_value( 2 * ( v[ i ].size() * i + j ) );
     }
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for ( int j = 0; j < v[ i ].size(); ++j )
+    for( int j = 0 ; j < v[ i ].size() ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
       ASSERT_EQ( v_cpy[ i ][ j ], get_value( 2 * ( v[ i ].size() * i + j ) ) );
@@ -769,7 +769,7 @@ void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 /**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void shallow_copy_test( const array< T >& v, LAMBDA get_value )
@@ -779,7 +779,7 @@ void shallow_copy_test( const array< T >& v, LAMBDA get_value )
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for ( int i = 0; i < v.size(); ++i )
+    for( int i = 0 ; i < v.size() ; ++i )
     {
       ASSERT_EQ( v[ i ], v_cpy[ i ] );
       ASSERT_EQ( v[ i ], get_value( i ) );
@@ -787,7 +787,7 @@ void shallow_copy_test( const array< T >& v, LAMBDA get_value )
     }
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], get_value( 2 * i ) );
   }
@@ -796,7 +796,7 @@ void shallow_copy_test( const array< T >& v, LAMBDA get_value )
 /**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values. 
+ * @param [in] get_value a function to generate the values.
  */
 template < class T, class LAMBDA >
 void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
@@ -806,11 +806,11 @@ void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for ( int i = 0; i < v.size(); ++i )
+    for( int i = 0 ; i < v.size() ; ++i )
     {
       ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-      for ( int j = 0; j < v[ i ].size(); ++j )
+      for( int j = 0 ; j < v[ i ].size() ; ++j )
       {
         ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
         ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
@@ -819,9 +819,9 @@ void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
     }
   }
 
-  for ( int i = 0; i < v.size(); ++i )
+  for( int i = 0 ; i < v.size() ; ++i )
   {
-    for ( int j = 0; j < v[ i ].size(); ++j )
+    for( int j = 0 ; j < v[ i ].size() ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], get_value( 2 * ( v[ i ].size() * i + j ) ) );
     }
@@ -843,11 +843,11 @@ struct Tensor
     x( val ), y( val ), z( val )
   {}
 
-  bool operator==(const Tensor& other) const
+  bool operator==( const Tensor& other ) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
-    return x == other.x && y == other.y && z == other.z; 
+    return x == other.x && y == other.y && z == other.z;
 #pragma GCC diagnostic pop
   }
 };
@@ -1167,7 +1167,7 @@ TEST( Array, deep_copy_array )
     internal::deep_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
   }
 
-{
+  {
     array< array< std::string > > v;
     internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
     internal::deep_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
@@ -1176,49 +1176,49 @@ TEST( Array, deep_copy_array )
 
 TEST( Array, shallow_copy )
 {
- constexpr int N = 1000;   /* Size of the array */
+  constexpr int N = 1000;  /* Size of the array */
 
- {
-   array< int > v;
-   internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-   internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
- }
+  {
+    array< int > v;
+    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+  }
 
- {
-   array< Tensor > v;
-   internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-   internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
- }
+  {
+    array< Tensor > v;
+    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
 
- {
-   array< std::string > v;
-   internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-   internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
- }
+  {
+    array< std::string > v;
+    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( Array, shallow_copy_array )
 {
- constexpr int N = 100;    /* Number of arrays */
- constexpr int M = 10;     /* Size of each array */
+  constexpr int N = 100;   /* Number of arrays */
+  constexpr int M = 10;    /* Size of each array */
 
- {
-   array< array< int > > v;
-   internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-   internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
- }
+  {
+    array< array< int > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
+  }
 
- {
-   array< array< Tensor > > v;
-   internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-   internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
- }
+  {
+    array< array< Tensor > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+  }
 
- {
-   array< array< std::string > > v;
-   internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-   internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
- }
+  {
+    array< array< std::string > > v;
+    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+  }
 }
 
 TEST( Array, test_upcast )
@@ -1229,11 +1229,11 @@ TEST( Array, test_upcast )
     array< int > v;
     internal::push_back_test( v, N, []( int i ) -> int { return i; } );
     arrayView< int > & vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
 
     array< int const > const & vConst = v;
     arrayView< int const > const & vViewConst = v;
-    internal::compare_to_view(vConst, vViewConst);
+    internal::compare_to_view( vConst, vViewConst );
 
   }
 
@@ -1241,11 +1241,11 @@ TEST( Array, test_upcast )
     array< Tensor > v;
     internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
     arrayView< Tensor >& vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
 
     array< Tensor const > const & vConst = v;
     arrayView< Tensor const > const & vViewConst = v;
-    internal::compare_to_view(vConst, vViewConst);
+    internal::compare_to_view( vConst, vViewConst );
 
   }
 
@@ -1253,11 +1253,11 @@ TEST( Array, test_upcast )
     array< std::string > v;
     internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
     arrayView< std::string >& vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
 
     array< std::string const > const & vConst = v;
     arrayView< std::string const > const & vViewConst = v;
-    internal::compare_to_view(vConst, vViewConst);
+    internal::compare_to_view( vConst, vViewConst );
 
   }
 }
@@ -1271,28 +1271,28 @@ TEST( Array, test_array2D )
     array2D< int > v;
     internal::create_2D_test( v, N, M, []( int i ) -> int { return i; } );
     arrayView2D< int >& vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
   }
 
   {
     array2D< Tensor > v;
     internal::create_2D_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
     arrayView2D< Tensor >& vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
   }
 
   {
     array2D< std::string > v;
     internal::create_2D_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
     arrayView2D< std::string >& vView = v;
-    internal::compare_to_view(v, vView);
+    internal::compare_to_view( v, vView );
   }
 }
 
 
 TEST( ArrayView, test_dimReduction )
 {
-  array2D< int > v(10,1);
+  array2D< int > v( 10, 1 );
   arrayView2D<int> const & vView = v;
   ArrayView< int, 1, int > const vView1d = v.dimReduce();
 
@@ -1313,13 +1313,13 @@ TEST( ArrayView, test_dimReduction )
 }
 
 
-int main(int argc, char* argv[]) 
+int main( int argc, char* argv[] )
 {
-  MPI_Init(&argc, &argv);
-  logger::InitializeLogger(MPI_COMM_WORLD);
+  MPI_Init( &argc, &argv );
+  logger::InitializeLogger( MPI_COMM_WORLD );
 
   int result = 0;
-  testing::InitGoogleTest(&argc, argv);
+  testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();

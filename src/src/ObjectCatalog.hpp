@@ -80,8 +80,8 @@ public:
   CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogInterface< " << demangle(typeid(BASETYPE).name())
-                    << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogInterface< " << demangle( typeid(BASETYPE).name())
+                                                                << " , ... >" );
 #endif
   }
 
@@ -89,15 +89,15 @@ public:
   virtual ~CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogInterface< "<< demangle(typeid(BASETYPE).name())
-                    <<" , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogInterface< "<< demangle( typeid(BASETYPE).name())
+                                                              <<" , ... >" );
 #endif
   }
 
-  explicit CatalogInterface(CatalogInterface const &) = default;
-  CatalogInterface(CatalogInterface &&) = default;
-  CatalogInterface& operator=(CatalogInterface const &) = default;
-  CatalogInterface& operator=(CatalogInterface &&) = default;
+  explicit CatalogInterface( CatalogInterface const & ) = default;
+  CatalogInterface( CatalogInterface && ) = default;
+  CatalogInterface& operator=( CatalogInterface const & ) = default;
+  CatalogInterface& operator=( CatalogInterface && ) = default;
 
   /**
    * get the catalog from that is stored in the target base class.
@@ -148,7 +148,7 @@ public:
     if( castedName != objectName )
     {
 #if OBJECTCATALOGVERBOSE > 1
-      GEOS_LOG_RANK("Invalid Cast of " << objectName << " to " << castedName);
+      GEOS_LOG_RANK( "Invalid Cast of " << objectName << " to " << castedName );
 #endif
     }
 
@@ -172,9 +172,9 @@ public:
     CatalogInterface<BASETYPE, ARGS...>()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogEntry< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogEntry< " << demangle( typeid(TYPE).name())
+                                                            << " , " << demangle( typeid(BASETYPE).name())
+                                                            << " , ... >" );
 #endif
   }
 
@@ -182,29 +182,29 @@ public:
   ~CatalogEntry() override final
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogEntry< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogEntry< " << demangle( typeid(TYPE).name())
+                                                           << " , " << demangle( typeid(BASETYPE).name())
+                                                           << " , ... >" );
 #endif
 
   }
 
-  CatalogEntry(CatalogEntry const & source ):
-    CatalogInterface<BASETYPE, ARGS...>(source)
+  CatalogEntry( CatalogEntry const & source ):
+    CatalogInterface<BASETYPE, ARGS...>( source )
   {}
 
-  CatalogEntry(CatalogEntry && source ):
-    CatalogInterface<BASETYPE, ARGS...>(std::move(source))
+  CatalogEntry( CatalogEntry && source ):
+    CatalogInterface<BASETYPE, ARGS...>( std::move( source ))
   {}
 
-  CatalogEntry& operator=(CatalogEntry const & source )
+  CatalogEntry& operator=( CatalogEntry const & source )
   {
-    CatalogInterface<BASETYPE, ARGS...>::operator=(source);
+    CatalogInterface<BASETYPE, ARGS...>::operator=( source );
   }
 
-  CatalogEntry& operator=(CatalogEntry && source )
+  CatalogEntry& operator=( CatalogEntry && source )
   {
-    CatalogInterface<BASETYPE, ARGS...>::operator=(std::move(source));
+    CatalogInterface<BASETYPE, ARGS...>::operator=( std::move(source));
   }
 
   /**
@@ -215,8 +215,8 @@ public:
   virtual std::unique_ptr<BASETYPE> Allocate( ARGS... args ) const override final
   {
 #if OBJECTCATALOGVERBOSE > 0
-    GEOS_LOG_RANK("Creating type " << demangle(typeid(TYPE).name())
-                   << " from catalog of " << demangle(typeid(BASETYPE).name()));
+    GEOS_LOG_RANK( "Creating type " << demangle( typeid(TYPE).name())
+                                    << " from catalog of " << demangle( typeid(BASETYPE).name()));
 #endif
 #if ( __cplusplus >= 201402L )
     return std::make_unique<TYPE>( args... );
@@ -243,9 +243,9 @@ public:
   CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogueEntryConstructor< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogueEntryConstructor< " << demangle( typeid(TYPE).name())
+                                                                         << " , " << demangle( typeid(BASETYPE).name())
+                                                                         << " , ... >" );
 #endif
 
     std::string name = TYPE::CatalogName();
@@ -255,14 +255,14 @@ public:
     std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS...> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE, ARGS...> >( new CatalogEntry<BASETYPE, TYPE,
                                                                                                                                                ARGS...>()  );
 #endif
-    ( CatalogInterface<BASETYPE, ARGS...>::GetCatalog() ).insert( std::move(std::make_pair( name, std::move(temp) ) ) );
+    ( CatalogInterface<BASETYPE, ARGS...>::GetCatalog() ).insert( std::move( std::make_pair( name, std::move( temp ) ) ) );
 
 #if OBJECTCATALOGVERBOSE > 0
-    GEOS_LOG_RANK("Registered " << demangle(typeid(BASETYPE).name()) 
-                   << " catalogue component of derived type "
-                   << demangle(typeid(TYPE).name())
-                   << " where " << demangle(typeid(TYPE).name())
-                   << "::CatalogueName() = " << TYPE::CatalogName());
+    GEOS_LOG_RANK( "Registered " << demangle( typeid(BASETYPE).name())
+                                 << " catalogue component of derived type "
+                                 << demangle( typeid(TYPE).name())
+                                 << " where " << demangle( typeid(TYPE).name())
+                                 << "::CatalogueName() = " << TYPE::CatalogName());
 #endif
   }
 
@@ -270,16 +270,16 @@ public:
   ~CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogueEntryConstructor< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogueEntryConstructor< " << demangle( typeid(TYPE).name())
+                                                                        << " , " << demangle( typeid(BASETYPE).name())
+                                                                        << " , ... >" );
 #endif
   }
 
-  CatalogEntryConstructor(CatalogEntryConstructor const &) = delete;
-  CatalogEntryConstructor(CatalogEntryConstructor &&) = delete;
-  CatalogEntryConstructor& operator=(CatalogEntryConstructor const &) = delete;
-  CatalogEntryConstructor& operator=(CatalogEntryConstructor &&) = delete;
+  CatalogEntryConstructor( CatalogEntryConstructor const & ) = delete;
+  CatalogEntryConstructor( CatalogEntryConstructor && ) = delete;
+  CatalogEntryConstructor& operator=( CatalogEntryConstructor const & ) = delete;
+  CatalogEntryConstructor& operator=( CatalogEntryConstructor && ) = delete;
 
 };
 
@@ -296,8 +296,8 @@ public:
   CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogInterface< " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogInterface< " << demangle( typeid(BASETYPE).name())
+                                                                << " , ... >" );
 #endif
   }
 
@@ -305,15 +305,15 @@ public:
   virtual ~CatalogInterface()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogInterface< " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogInterface< " << demangle( typeid(BASETYPE).name())
+                                                               << " , ... >" );
 #endif
   }
 
-  explicit CatalogInterface(CatalogInterface const &) = default;
-  CatalogInterface(CatalogInterface &&) = default;
-  CatalogInterface& operator=(CatalogInterface const &) = default;
-  CatalogInterface& operator=(CatalogInterface &&) = default;
+  explicit CatalogInterface( CatalogInterface const & ) = default;
+  CatalogInterface( CatalogInterface && ) = default;
+  CatalogInterface& operator=( CatalogInterface const & ) = default;
+  CatalogInterface& operator=( CatalogInterface && ) = default;
 
   /**
    * get the catalog from that is stored in the target base class.
@@ -358,7 +358,7 @@ public:
     if( castedName != objectName )
     {
 #if OBJECTCATALOGVERBOSE > 1
-      GEOS_LOG_RANK("Invalid Cast of " << objectName << " to " << castedName);
+      GEOS_LOG_RANK( "Invalid Cast of " << objectName << " to " << castedName );
 #endif
     }
 
@@ -368,7 +368,7 @@ public:
 };
 
 template<typename BASETYPE, typename TYPE>
-class CatalogEntry<BASETYPE,TYPE> : public CatalogInterface<BASETYPE>
+class CatalogEntry<BASETYPE, TYPE> : public CatalogInterface<BASETYPE>
 {
 public:
   /// default constructor
@@ -376,9 +376,9 @@ public:
     CatalogInterface<BASETYPE>()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogEntry< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogEntry< " << demangle( typeid(TYPE).name())
+                                                            << " , " << demangle( typeid(BASETYPE).name())
+                                                            << " , ... >" );
 #endif
   }
 
@@ -386,36 +386,36 @@ public:
   ~CatalogEntry() override final
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogEntry< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogEntry< " << demangle( typeid(TYPE).name())
+                                                           << " , " << demangle( typeid(BASETYPE).name())
+                                                           << " , ... >" );
 #endif
 
   }
 
-  CatalogEntry(CatalogEntry const & source ):
-    CatalogInterface<BASETYPE>(source)
+  CatalogEntry( CatalogEntry const & source ):
+    CatalogInterface<BASETYPE>( source )
   {}
 
-  CatalogEntry(CatalogEntry && source ):
-    CatalogInterface<BASETYPE>(std::move(source))
+  CatalogEntry( CatalogEntry && source ):
+    CatalogInterface<BASETYPE>( std::move( source ))
   {}
 
-  CatalogEntry& operator=(CatalogEntry const & source )
+  CatalogEntry& operator=( CatalogEntry const & source )
   {
-    CatalogInterface<BASETYPE>::operator=(source);
+    CatalogInterface<BASETYPE>::operator=( source );
   }
 
-  CatalogEntry& operator=(CatalogEntry && source )
+  CatalogEntry& operator=( CatalogEntry && source )
   {
-    CatalogInterface<BASETYPE>::operator=(std::move(source));
+    CatalogInterface<BASETYPE>::operator=( std::move(source));
   }
 
   virtual std::unique_ptr<BASETYPE> Allocate(  ) const override final
   {
 #if OBJECTCATALOGVERBOSE > 0
-    GEOS_LOG_RANK("Creating type " << demangle(typeid(TYPE).name())
-                   << " from catalog of " << demangle(typeid(BASETYPE).name()));
+    GEOS_LOG_RANK( "Creating type " << demangle( typeid(TYPE).name())
+                                    << " from catalog of " << demangle( typeid(BASETYPE).name()));
 #endif
 #if ( __cplusplus >= 201402L )
     return std::make_unique<TYPE>(  );
@@ -427,17 +427,16 @@ public:
 
 
 
-
 template<typename BASETYPE, typename TYPE>
-class CatalogEntryConstructor<BASETYPE,TYPE>
+class CatalogEntryConstructor<BASETYPE, TYPE>
 {
 public:
   CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling constructor for CatalogueEntryConstructor< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name())
-                   << " , ... >");
+    GEOS_LOG_RANK( "Calling constructor for CatalogueEntryConstructor< " << demangle( typeid(TYPE).name())
+                                                                         << " , " << demangle( typeid(BASETYPE).name())
+                                                                         << " , ... >" );
 #endif
 
     std::string name = TYPE::CatalogName();
@@ -446,14 +445,14 @@ public:
 #else
     std::unique_ptr< CatalogEntry<BASETYPE, TYPE> > temp = std::unique_ptr< CatalogEntry<BASETYPE, TYPE> >( new CatalogEntry<BASETYPE, TYPE>()  );
 #endif
-    ( CatalogInterface<BASETYPE>::GetCatalog() ).insert( std::move(std::make_pair( name, std::move(temp) ) ) );
+    ( CatalogInterface<BASETYPE>::GetCatalog() ).insert( std::move( std::make_pair( name, std::move( temp ) ) ) );
 
 #if OBJECTCATALOGVERBOSE > 0
-    GEOS_LOG_RANK("Registered " << demangle(typeid(BASETYPE).name())
-                   << " catalogue component of derived type "
-                   << demangle(typeid(TYPE).name())
-                   << " where " << demangle(typeid(TYPE).name()) 
-                   << "::CatalogueName() = " << TYPE::CatalogName());
+    GEOS_LOG_RANK( "Registered " << demangle( typeid(BASETYPE).name())
+                                 << " catalogue component of derived type "
+                                 << demangle( typeid(TYPE).name())
+                                 << " where " << demangle( typeid(TYPE).name())
+                                 << "::CatalogueName() = " << TYPE::CatalogName());
 #endif
   }
 
@@ -461,15 +460,15 @@ public:
   ~CatalogEntryConstructor()
   {
 #if OBJECTCATALOGVERBOSE > 1
-    GEOS_LOG_RANK("Calling destructor for CatalogueEntryConstructor< " << demangle(typeid(TYPE).name())
-                   << " , " << demangle(typeid(BASETYPE).name()) << " , ... >");
+    GEOS_LOG_RANK( "Calling destructor for CatalogueEntryConstructor< " << demangle( typeid(TYPE).name())
+                                                                        << " , " << demangle( typeid(BASETYPE).name()) << " , ... >" );
 #endif
   }
 
-  CatalogEntryConstructor(CatalogEntryConstructor const &) = delete;
-  CatalogEntryConstructor(CatalogEntryConstructor &&) = delete;
-  CatalogEntryConstructor& operator=(CatalogEntryConstructor const &) = delete;
-  CatalogEntryConstructor& operator=(CatalogEntryConstructor &&) = delete;
+  CatalogEntryConstructor( CatalogEntryConstructor const & ) = delete;
+  CatalogEntryConstructor( CatalogEntryConstructor && ) = delete;
+  CatalogEntryConstructor& operator=( CatalogEntryConstructor const & ) = delete;
+  CatalogEntryConstructor& operator=( CatalogEntryConstructor && ) = delete;
 
 };
 
@@ -495,11 +494,11 @@ public:
  * derived class, which will result in the
  * generation of a CatalogEntry<BaseType,ClassName,...> prior to main().
  */
-#define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ...) \
-  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType,__VA_ARGS__> catEntry_ ## DerivedType; }
+#define REGISTER_CATALOG_ENTRY( BaseType, DerivedType, ... ) \
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType, DerivedType, __VA_ARGS__> catEntry_ ## DerivedType; }
 
 #define REGISTER_CATALOG_ENTRY0( BaseType, DerivedType ) \
-  namespace { cxx_utilities::CatalogEntryConstructor<BaseType,DerivedType> catEntry_ ## DerivedType; }
+  namespace { cxx_utilities::CatalogEntryConstructor<BaseType, DerivedType> catEntry_ ## DerivedType; }
 
 #ifdef __clang__
 #pragma clang diagnostic push

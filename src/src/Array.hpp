@@ -36,18 +36,17 @@
 template< typename T >
 struct is_integer
 {
-  constexpr static bool value = std::is_same<T,int>::value ||
-                                std::is_same<T,unsigned int>::value ||
-                                std::is_same<T,long int>::value ||
-                                std::is_same<T,unsigned long int>::value ||
-                                std::is_same<T,long long int>::value ||
-                                std::is_same<T,unsigned long long int>::value;
+  constexpr static bool value = std::is_same<T, int>::value ||
+                                std::is_same<T, unsigned int>::value ||
+                                std::is_same<T, long int>::value ||
+                                std::is_same<T, unsigned long int>::value ||
+                                std::is_same<T, long long int>::value ||
+                                std::is_same<T, unsigned long long int>::value;
 };
 
 
 namespace LvArray
 {
-
 
 
 
@@ -59,7 +58,7 @@ template<typename>
 struct is_array : std::false_type {};
 
 template< typename T, int NDIM, typename INDEX_TYPE >
-struct is_array< Array<T,NDIM,INDEX_TYPE> > : std::true_type{};
+struct is_array< Array<T, NDIM, INDEX_TYPE> > : std::true_type {};
 }
 
 /**
@@ -79,7 +78,7 @@ public:
   using ArrayView<T, NDIM, INDEX_TYPE>::m_stridesMem;
   using ArrayView<T, NDIM, INDEX_TYPE>::m_singleParameterResizeIndex;
 
-  using ArrayView<T, NDIM, INDEX_TYPE>::size;  
+  using ArrayView<T, NDIM, INDEX_TYPE>::size;
   using ArrayView<T, NDIM, INDEX_TYPE>::setDataPtr;
   using ArrayView<T, NDIM, INDEX_TYPE>::data;
   using ArrayView<T, NDIM, INDEX_TYPE>::begin;
@@ -112,7 +111,7 @@ public:
     Array()
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
-    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
+    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments." );
     static_assert( check_dim_type<0, DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
     resize( dims... );
@@ -125,7 +124,7 @@ public:
    * Performs a deep copy of source
    */
   Array( Array const & source ):
-    ArrayView<T,NDIM,INDEX_TYPE>()
+    ArrayView<T, NDIM, INDEX_TYPE>()
   {
     // This DOES NOT trigger Chai::ManagedArray CC
     *this = source;
@@ -136,7 +135,7 @@ public:
    * @param source object to move
    */
   Array( Array&& source ):
-    ArrayView<T,NDIM,INDEX_TYPE>( std::move( static_cast<ArrayView<T,NDIM,INDEX_TYPE>& >(source) ) )
+    ArrayView<T, NDIM, INDEX_TYPE>( std::move( static_cast<ArrayView<T, NDIM, INDEX_TYPE>& >(source) ) )
   {
     setSingleParameterResizeIndex( source.getSingleParameterResizeIndex() );
     source.clear();
@@ -156,10 +155,10 @@ public:
    */
   template< typename U = T >
   operator
-  typename std::enable_if< !std::is_const<U>::value, Array<T const,NDIM,INDEX_TYPE> const & >::type
-  () const
+  typename std::enable_if< !std::is_const<U>::value, Array<T const, NDIM, INDEX_TYPE> const & >::type
+    () const
   {
-    return reinterpret_cast<Array<T const,NDIM,INDEX_TYPE> const &>(*this);
+    return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
 
   /**
@@ -171,7 +170,7 @@ public:
    */
   Array & operator=( Array const& rhs )
   {
-    resize(NDIM, rhs.m_dimsMem);
+    resize( NDIM, rhs.m_dimsMem );
 
     INDEX_TYPE const length = size();
     T * const data_ptr = data();
@@ -194,7 +193,7 @@ public:
    */
   Array & operator=( Array&& rhs )
   {
-    m_dataVector = std::move(rhs.m_dataVector);
+    m_dataVector = std::move( rhs.m_dataVector );
     setDataPtr();
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
 
@@ -223,7 +222,7 @@ public:
   void resize( int const numDims, INDEX_TYPE const * const dims )
   {
     GEOS_ERROR_IF( numDims != NDIM, "Dimension mismatch: " << numDims );
-    this->setDims(dims);
+    this->setDims( dims );
     CalculateStrides();
     resize();
   }
@@ -237,10 +236,10 @@ public:
   void resize( DIMS... newdims )
   {
     static_assert( sizeof ... (DIMS) == NDIM,
-                   "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments.");
-    static_assert( check_dim_type<0,DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+                   "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments." );
+    static_assert( check_dim_type<0, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
-    dim_unpack<0,DIMS...>::f( m_dimsMem, newdims...);
+    dim_unpack<0, DIMS...>::f( m_dimsMem, newdims... );
     CalculateStrides();
     resize();
   }
@@ -268,19 +267,19 @@ public:
    */
   void reserve( INDEX_TYPE newLength )
   {
-    m_dataVector.reserve(newLength);
+    m_dataVector.reserve( newLength );
     setDataPtr();
   }
 
   INDEX_TYPE capacity() const
-  { return integer_conversion<INDEX_TYPE>(m_dataVector.capacity()); }
+  { return integer_conversion<INDEX_TYPE>( m_dataVector.capacity()); }
 
   void clear()
   {
     m_dataVector.clear();
     setDataPtr();
 
-    for( int i = 0; i < NDIM; ++i )
+    for( int i = 0 ; i < NDIM ; ++i )
     {
       m_dimsMem[i] = 1;
     }
@@ -290,21 +289,21 @@ public:
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
+  typename std::enable_if< N==1, void >::type
   push_back( T const & newValue )
   {
-    m_dataVector.push_back(newValue);
+    m_dataVector.push_back( newValue );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
+  typename std::enable_if< N==1, void >::type
   push_back( T && newValue )
   {
-    m_dataVector.push_back(std::move(newValue));
+    m_dataVector.push_back( std::move( newValue ));
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -312,59 +311,59 @@ public:
   pop_back()
   {
     m_dataVector.pop_back();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
-  insert(iterator pos, T const& value)
+  typename std::enable_if< N==1, void >::type
+  insert( iterator pos, T const& value )
   {
     m_dataVector.insert( pos, value );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
-  insert(iterator pos, T && value)
+  typename std::enable_if< N==1, void >::type
+  insert( iterator pos, T && value )
   {
-    m_dataVector.insert( pos, std::move(value) );
+    m_dataVector.insert( pos, std::move( value ) );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
-  insert(INDEX_TYPE pos, T const& value)
+  typename std::enable_if< N==1, void >::type
+  insert( INDEX_TYPE pos, T const& value )
   {
     m_dataVector.insert( pos, value );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type 
-  insert(INDEX_TYPE pos, T && value)
+  typename std::enable_if< N==1, void >::type
+  insert( INDEX_TYPE pos, T && value )
   {
-    m_dataVector.insert( pos, std::move(value) );
+    m_dataVector.insert( pos, std::move( value ) );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM, typename InputIt>
-  typename std::enable_if< N==1, void >::type 
-  insert(iterator pos, InputIt first, InputIt last)
+  typename std::enable_if< N==1, void >::type
+  insert( iterator pos, InputIt first, InputIt last )
   {
     m_dataVector.insert( pos, first, last );
     setDataPtr();
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type erase( iterator pos )
   {
-    m_dataVector.erase( pos ) ;
-    m_dimsMem[0] = integer_conversion<INDEX_TYPE>(m_dataVector.size());
+    m_dataVector.erase( pos );
+    m_dimsMem[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   /**@}*/
@@ -405,7 +404,7 @@ private:
   template< typename CANDIDATE_INDEX_TYPE >
   struct is_valid_indexType
   {
-    constexpr static bool value = std::is_same<CANDIDATE_INDEX_TYPE,INDEX_TYPE>::value ||
+    constexpr static bool value = std::is_same<CANDIDATE_INDEX_TYPE, INDEX_TYPE>::value ||
                                   ( is_integer<CANDIDATE_INDEX_TYPE>::value &&
                                     ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
   };
@@ -416,7 +415,7 @@ private:
   };
 
   template< typename DIM0, typename... DIMS >
-  struct check_dim_type<NDIM-1,DIM0,DIMS...>
+  struct check_dim_type<NDIM-1, DIM0, DIMS...>
   {
     constexpr static bool value = is_valid_indexType<DIM0>::value;
   };
@@ -433,7 +432,7 @@ private:
   };
 
   template< typename DIM0, typename... DIMS >
-  struct dim_unpack<NDIM-1,DIM0,DIMS...>
+  struct dim_unpack<NDIM-1, DIM0, DIMS...>
   {
     constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
     {

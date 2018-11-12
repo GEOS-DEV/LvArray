@@ -63,20 +63,20 @@ bool using_cout_for_rank_stream = true;
 std::ofstream rank_stream;
 
 #ifdef GEOSX_USE_MPI
-  MPI_Comm comm;
+MPI_Comm comm;
 #endif
 
 #ifdef GEOSX_USE_ATK
 slic::GenericOutputStream* createGenericStream()
 {
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                        std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
-                        std::string( "MESSAGE=<MESSAGE>\n" ) +
-                        std::string( "Rank " ) + std::to_string(internal::rank) + std::string("\n") + 
-                        std::string( "<TIMESTAMP>\n" ) +
-                        std::string( 100, '*' ) + std::string("\n");
+                       std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
+                       std::string( "MESSAGE=<MESSAGE>\n" ) +
+                       std::string( "Rank " ) + std::to_string( internal::rank ) + std::string( "\n" ) +
+                       std::string( "<TIMESTAMP>\n" ) +
+                       std::string( 100, '*' ) + std::string( "\n" );
 
-  return new slic::GenericOutputStream(&std::cout, format);
+  return new slic::GenericOutputStream( &std::cout, format );
 }
 #endif
 
@@ -84,11 +84,11 @@ slic::GenericOutputStream* createGenericStream()
 
 #ifdef GEOSX_USE_MPI
 
-void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
+void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
 {
   internal::comm = mpi_comm;
-  MPI_Comm_rank(mpi_comm, &internal::rank);
-  MPI_Comm_size(mpi_comm, &internal::n_ranks);
+  MPI_Comm_rank( mpi_comm, &internal::rank );
+  MPI_Comm_size( mpi_comm, &internal::n_ranks );
 
 #ifdef GEOSX_USE_ATK
   slic::initialize();
@@ -97,34 +97,34 @@ void InitializeLogger(MPI_Comm mpi_comm, const std::string& rank_output_dir)
   slic::addStreamToAllMsgLevels( stream );
 #endif
 
-  if ( rank_output_dir != "" )
+  if( rank_output_dir != "" )
   {
     internal::using_cout_for_rank_stream = false;
 
-    if ( internal::rank != 0 )
+    if( internal::rank != 0 )
     {
-      MPI_Barrier(mpi_comm);
+      MPI_Barrier( mpi_comm );
     }
     else
     {
       std::string cmd = "mkdir -p " + rank_output_dir;
-      int ret = std::system(cmd.c_str());
-      if (ret != 0)
+      int ret = std::system( cmd.c_str());
+      if( ret != 0 )
       {
-        GEOS_LOG("Failed to initialize Logger: command '" << cmd << "' exited with code " << std::to_string(ret));
+        GEOS_LOG( "Failed to initialize Logger: command '" << cmd << "' exited with code " << std::to_string( ret ));
         abort();
       }
-      MPI_Barrier(mpi_comm);
+      MPI_Barrier( mpi_comm );
     }
 
-    std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
-    internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
+    std::string output_file_path = rank_output_dir + "/rank_" + std::to_string( internal::rank ) + ".out";
+    internal::rank_stream.rdbuf()->open( output_file_path, std::ios_base::out );
   }
 }
 
 #else
 
-void InitializeLogger(const std::string& rank_output_dir)
+void InitializeLogger( const std::string& rank_output_dir )
 {
 #ifdef GEOSX_USE_ATK
   slic::initialize();
@@ -133,15 +133,15 @@ void InitializeLogger(const std::string& rank_output_dir)
   slic::addStreamToAllMsgLevels( stream );
 #endif
 
-  if ( rank_output_dir != "" )
+  if( rank_output_dir != "" )
   {
     internal::using_cout_for_rank_stream = false;
 
     std::string cmd = "mkdir -p " + rank_output_dir;
-    std::system(cmd.c_str());
+    std::system( cmd.c_str());
 
-    std::string output_file_path = rank_output_dir + "/rank_" + std::to_string(internal::rank) + ".out";
-    internal::rank_stream.rdbuf()->open(output_file_path, std::ios_base::out);
+    std::string output_file_path = rank_output_dir + "/rank_" + std::to_string( internal::rank ) + ".out";
+    internal::rank_stream.rdbuf()->open( output_file_path, std::ios_base::out );
   }
 }
 
@@ -156,11 +156,11 @@ void FinalizeLogger()
 }
 
 #ifndef GEOSX_USE_MPI
-[[noreturn]] 
+[[noreturn]]
 #endif
 void abort()
 {
-  cxx_utilities::handler1(EXIT_FAILURE);
+  cxx_utilities::handler1( EXIT_FAILURE );
 }
 
 } /* namespace logger */

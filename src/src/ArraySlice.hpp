@@ -58,19 +58,19 @@
 #ifdef USE_CUDA
 
 #include <cassert>
-#define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
-assert( index >= 0 && index < m_dims[0] )
+#define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
+  assert( index >= 0 && index < m_dims[0] )
 
 #else // USE_CUDA
 
-#define ARRAY_SLICE_CHECK_BOUNDS(index)                                        \
-GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
+#define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
+  GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #endif // USE_CUDA
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
-#define ARRAY_SLICE_CHECK_BOUNDS(index)
+#define ARRAY_SLICE_CHECK_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
@@ -116,9 +116,9 @@ public:
   ArraySlice( T * const restrict inputData,
               INDEX_TYPE const * const restrict inputDimensions,
               INDEX_TYPE const * const restrict inputStrides ):
-    m_data(inputData),
-    m_dims(inputDimensions),
-    m_strides(inputStrides)
+    m_data( inputData ),
+    m_dims( inputDimensions ),
+    m_strides( inputStrides )
   {}
 
 
@@ -131,10 +131,10 @@ public:
   template< typename U = T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC operator
   typename std::enable_if< !std::is_const<U>::value,
-                           ArraySlice<T const,NDIM,INDEX_TYPE> const & >::type
-  () const restrict_this
+                           ArraySlice<T const, NDIM, INDEX_TYPE> const & >::type
+    () const restrict_this
   {
-    return reinterpret_cast<ArraySlice<T const,NDIM,INDEX_TYPE> const &>(*this);
+    return reinterpret_cast<ArraySlice<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
 
   /**
@@ -156,12 +156,12 @@ public:
    */
   template< int U=NDIM >
   CONSTEXPRFUNC inline explicit
-  operator typename std::enable_if< (U>1) ,
-                                    ArraySlice<T,NDIM-1,INDEX_TYPE> >::type () const restrict_this
+  operator typename std::enable_if< (U>1),
+                                    ArraySlice<T, NDIM-1, INDEX_TYPE> >::type () const restrict_this
   {
     GEOS_ASSERT_MSG( m_dims[NDIM-1]==1, "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE>" <<
                      " is only valid if last dimension is equal to 1." );
-    return ArraySlice<T,NDIM-1,INDEX_TYPE>( m_data, m_dims + 1, m_strides + 1 );
+    return ArraySlice<T, NDIM-1, INDEX_TYPE>( m_data, m_dims + 1, m_strides + 1 );
   }
 
   /**
@@ -181,14 +181,14 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  std::enable_if< U!=1, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
 #else
-  std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
 #endif
-  operator[](INDEX_TYPE const index) const restrict_this
+  operator[]( INDEX_TYPE const index ) const restrict_this
   {
-    ARRAY_SLICE_CHECK_BOUNDS(index);
-    return ArraySlice<T,NDIM-1,INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return ArraySlice<T, NDIM-1, INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   /**
@@ -205,7 +205,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   typename std::enable_if< U==2, T * restrict >::type
-  operator[](INDEX_TYPE const index) const restrict_this
+  operator[]( INDEX_TYPE const index ) const restrict_this
   {
     return &(m_data[ index*m_strides[0] ]);
   }
@@ -221,9 +221,9 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   typename std::enable_if< U==1, T & >::type
-  operator[](INDEX_TYPE const index) const restrict_this
+  operator[]( INDEX_TYPE const index ) const restrict_this
   {
-    ARRAY_SLICE_CHECK_BOUNDS(index);
+    ARRAY_SLICE_CHECK_BOUNDS( index );
     return m_data[ index ];
   }
 
@@ -247,7 +247,7 @@ protected:
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
 template< typename T, typename INDEX_TYPE >
-using ArraySlice1d = ArraySlice<T,1,INDEX_TYPE>;
+using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE>;
 
 #else
 

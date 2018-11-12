@@ -37,17 +37,17 @@ class Parameter
 public:
   Parameter(){}
   ~Parameter(){}
-  Parameter(Parameter const & source ):
-    member(source.member)
+  Parameter( Parameter const & source ):
+    member( source.member )
   {
-    GEOS_LOG("called copy constructor for Parameter");
+    GEOS_LOG( "called copy constructor for Parameter" );
   }
 
 #if ( __cplusplus >= 201103L )
-  Parameter(Parameter && source ):
-    member(std::move(source.member))
+  Parameter( Parameter && source ):
+    member( std::move( source.member ))
   {
-    GEOS_LOG("called move constructor for Parameter");
+    GEOS_LOG( "called move constructor for Parameter" );
   }
 #endif
 
@@ -61,12 +61,12 @@ class Base
 public:
   Base( int junk, double const & junk2, Parameter& pbv )
   {
-    GEOS_LOG("calling Base constructor with arguments (" << junk << " " << junk2 << ")");
+    GEOS_LOG( "calling Base constructor with arguments (" << junk << " " << junk2 << ")" );
   }
 
   ~Base()
   {
-    GEOS_LOG("calling Base destructor");
+    GEOS_LOG( "calling Base destructor" );
   }
 
   using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const &, Parameter& >;

@@ -29,15 +29,15 @@
 #include "Derived1.hpp"
 
 
-Derived1::Derived1( int junk, double const & junk2, Parameter& param):
-  Base(junk,junk2,param)
+Derived1::Derived1( int junk, double const & junk2, Parameter& param ):
+  Base( junk, junk2, param )
 {
-  GEOS_LOG("calling Derived1 constructor with arguments ("<<junk<<" "<<junk2<<")");
+  GEOS_LOG( "calling Derived1 constructor with arguments ("<<junk<<" "<<junk2<<")" );
 }
 
 Derived1::~Derived1()
 {
-  GEOS_LOG("calling Derived1 destructor");
+  GEOS_LOG( "calling Derived1 destructor" );
 }
 
 REGISTER_CATALOG_ENTRY( Base, Derived1, int, double const &, Parameter& )

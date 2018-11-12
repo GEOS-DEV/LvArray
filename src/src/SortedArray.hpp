@@ -41,9 +41,9 @@ public:
 
 
   template <typename InputIterator>
-  SortedArray(InputIterator first, InputIterator last):
+  SortedArray( InputIterator first, InputIterator last ):
     m_data()
-  { insert(first, last); }
+  { insert( first, last ); }
 
 
   T * data()
@@ -54,26 +54,26 @@ public:
   { return m_data.data(); }
 
 
-  T & operator[](size_type i)
+  T & operator[]( size_type i )
   { return m_data[i]; }
 
-  const T & operator[](size_type i) const
+  const T & operator[]( size_type i ) const
   { return m_data[i]; }
 
 
-  iterator begin() 
+  iterator begin()
   { return m_data.begin(); }
 
 
-  const_iterator begin() const 
+  const_iterator begin() const
   { return m_data.begin(); }
 
 
-  iterator end() 
+  iterator end()
   { return m_data.end(); }
 
 
-  const_iterator end() const 
+  const_iterator end() const
   { return m_data.end(); }
 
 
@@ -85,65 +85,65 @@ public:
   { return static_cast<size_type>(m_data.size()); }
 
 
-  void resize(size_type new_size)
-  { return m_data.resize(new_size); }
+  void resize( size_type new_size )
+  { return m_data.resize( new_size ); }
 
 
   void clear()
   { m_data.clear(); }
 
 
-  bool insert(const T& value)
+  bool insert( const T& value )
   {
-    iterator it = find(value);
-    if (it != end() && *it == value)
+    iterator it = find( value );
+    if( it != end() && *it == value )
     {
       return false;
     }
 
-    m_data.insert(it, value);
+    m_data.insert( it, value );
     return true;
   }
 
 
   template <class InputIterator>
-  void insert(InputIterator first, InputIterator last)
+  void insert( InputIterator first, InputIterator last )
   {
-    for (; first != last; ++first)
+    for( ; first != last ; ++first )
     {
-      insert(*first);
+      insert( *first );
     }
   }
 
 
   void erase( const T& value )
   {
-    iterator pos = find(value);
+    iterator pos = find( value );
     erase( pos );
   }
 
 
   void erase( iterator pos )
   {
-    if (pos == end()) return;
-    m_data.erase(pos);
+    if( pos == end()) return;
+    m_data.erase( pos );
   }
 
 
-  iterator find(const T& value)
-  { return std::lower_bound(begin(), end(), value); }
+  iterator find( const T& value )
+  { return std::lower_bound( begin(), end(), value ); }
 
 
-  const_iterator find(const T& value) const
-  { return std::lower_bound(begin(), end(), value); }
+  const_iterator find( const T& value ) const
+  { return std::lower_bound( begin(), end(), value ); }
 
 
-  size_type count(const T& value) const
-  { return std::binary_search(begin(), end(), value); }
+  size_type count( const T& value ) const
+  { return std::binary_search( begin(), end(), value ); }
 
 
   bool isSorted() const
-  { return std::is_sorted(begin(), end()); }
+  { return std::is_sorted( begin(), end()); }
 
 
   LvArray::ArrayView<T, 1, INDEX_TYPE> const & toView() const

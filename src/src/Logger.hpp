@@ -40,29 +40,29 @@
 #include <mpi.h>
 #endif
 
-#define GEOS_LOG(msg)                                                          \
+#define GEOS_LOG( msg )                                                          \
   do {                                                                         \
     std::ostringstream oss;                                                    \
     oss << msg;                                                                \
     std::cout << oss.str() << std::endl;                                       \
-  } while (false)
+  } while( false )
 
-#define GEOS_LOG_RANK_0(msg)                                                   \
+#define GEOS_LOG_RANK_0( msg )                                                   \
   do {                                                                         \
-    if (logger::internal::rank == 0)                                           \
+    if( logger::internal::rank == 0 )                                           \
     {                                                                          \
       std::ostringstream oss;                                                  \
       oss << msg;                                                              \
       std::cout << oss.str() << std::endl;                                     \
     }                                                                          \
-  } while (false)
+  } while( false )
 
-#define GEOS_LOG_RANK(msg)                                                     \
+#define GEOS_LOG_RANK( msg )                                                     \
   do {                                                                         \
     std::ostringstream oss;                                                    \
-    if (logger::internal::using_cout_for_rank_stream)                          \
+    if( logger::internal::using_cout_for_rank_stream )                          \
     {                                                                          \
-      if (logger::internal::n_ranks > 1)                                       \
+      if( logger::internal::n_ranks > 1 )                                       \
       {                                                                        \
         oss << "Rank " << logger::internal::rank << ": ";                      \
       }                                                                        \
@@ -75,28 +75,28 @@
       oss << msg;                                                              \
       logger::internal::rank_stream << oss.str() << std::endl;                 \
     }                                                                          \
-  } while (false)
+  } while( false )
 
 #ifdef USE_AXOM
 
 /* Always active */
-#define GEOS_ERROR(msg) SLIC_ERROR(msg)
-#define GEOS_ERROR_IF(EXP, msg) SLIC_ERROR_IF(EXP, msg)
-#define GEOS_WARNING(msg) SLIC_WARNING(msg)
-#define GEOS_WARNING_IF(EXP, msg) SLIC_WARNING_IF(EXP, msg)
-#define GEOS_INFO(EXP, msg) SLIC_INFO(EXP, msg)
-#define GEOS_INFO_IF(EXP, msg) SLIC_INFO_IF(EXP, msg)
+#define GEOS_ERROR( msg ) SLIC_ERROR( msg )
+#define GEOS_ERROR_IF( EXP, msg ) SLIC_ERROR_IF( EXP, msg )
+#define GEOS_WARNING( msg ) SLIC_WARNING( msg )
+#define GEOS_WARNING_IF( EXP, msg ) SLIC_WARNING_IF( EXP, msg )
+#define GEOS_INFO( EXP, msg ) SLIC_INFO( EXP, msg )
+#define GEOS_INFO_IF( EXP, msg ) SLIC_INFO_IF( EXP, msg )
 
 /* Active with AXOM_DEBUG */
-#define GEOS_ASSERT(EXP) SLIC_ASSERT(EXP)
-#define GEOS_ASSERT_MSG(EXP, msg) SLIC_ASSERT_MSG(EXP, msg)
-#define GEOS_CHECK(EXP, msg) SLIC_CHECK_MSG(EXP, msg)
+#define GEOS_ASSERT( EXP ) SLIC_ASSERT( EXP )
+#define GEOS_ASSERT_MSG( EXP, msg ) SLIC_ASSERT_MSG( EXP, msg )
+#define GEOS_CHECK( EXP, msg ) SLIC_CHECK_MSG( EXP, msg )
 
 #else
 
-#define GEOS_ERROR_IF(EXP, msg)                               \
+#define GEOS_ERROR_IF( EXP, msg )                               \
   do {                                                        \
-    if (EXP)                                                  \
+    if( EXP )                                                  \
     {                                                         \
       std::cout << "***** GEOS_ERROR "<<std::endl;            \
       std::cout << "***** FILE: " << __FILE__ << std::endl;   \
@@ -104,51 +104,51 @@
       std::cout << msg << std::endl;                          \
       logger::abort();                                        \
     }                                                         \
-  } while (false)
+  } while( false )
 
-#define GEOS_WARNING_IF(EXP, msg)                             \
+#define GEOS_WARNING_IF( EXP, msg )                             \
   do {                                                        \
-    if (EXP)                                                  \
+    if( EXP )                                                  \
     {                                                         \
       std::cout << "***** GEOS_WARNING "<<std::endl;          \
       std::cout << "***** FILE: " << __FILE__ << std::endl;   \
       std::cout << "***** LINE: " << __LINE__ << std::endl;   \
       std::cout << msg << std::endl;                          \
     }                                                         \
-  } while (false)
+  } while( false )
 
-#define GEOS_INFO_IF(EXP, msg)                                \
+#define GEOS_INFO_IF( EXP, msg )                                \
   do {                                                        \
-    if (EXP)                                                  \
+    if( EXP )                                                  \
     {                                                         \
       std::cout << "***** GEOS_INFO "<<std::endl;             \
       std::cout << "***** FILE: " << __FILE__ << std::endl;   \
       std::cout << "***** LINE: " << __LINE__ << std::endl;   \
       std::cout << msg << std::endl;                          \
     }                                                         \
-  } while (false)
+  } while( false )
 
 #ifdef GEOSX_DEBUG
 
-#define GEOS_ASSERT_MSG(EXP, msg) GEOS_ERROR_IF(!(EXP), msg)
+#define GEOS_ASSERT_MSG( EXP, msg ) GEOS_ERROR_IF( !(EXP), msg )
 
-#define GEOS_CHECK(EXP, msg) GEOS_WARNING_IF(!(EXP), msg)
+#define GEOS_CHECK( EXP, msg ) GEOS_WARNING_IF( !(EXP), msg )
 
 #else /* #ifdef GEOSX_DEBUG */
 
-#define GEOS_ASSERT_MSG(EXP, msg) ((void) 0)
+#define GEOS_ASSERT_MSG( EXP, msg ) ((void) 0)
 
-#define GEOS_CHECK(EXP, msg) ((void) 0)
+#define GEOS_CHECK( EXP, msg ) ((void) 0)
 
 #endif /* #ifdef GEOSX_DEBUG */
 
-#define GEOS_ERROR(msg) GEOS_ERROR_IF(true, msg)
+#define GEOS_ERROR( msg ) GEOS_ERROR_IF( true, msg )
 
-#define GEOS_WARNING(msg) GEOS_WARNING_IF(true, msg)
+#define GEOS_WARNING( msg ) GEOS_WARNING_IF( true, msg )
 
-#define GEOS_INFO(msg) GEOS_INFO_IF(true, msg)
+#define GEOS_INFO( msg ) GEOS_INFO_IF( true, msg )
 
-#define GEOS_ASSERT(EXP) GEOS_ASSERT_MSG(EXP, "")
+#define GEOS_ASSERT( EXP ) GEOS_ASSERT_MSG( EXP, "" )
 
 #endif /* #ifdef GEOSX_USE_ATK */
 
@@ -156,7 +156,7 @@ namespace logger
 {
 
 #ifndef USE_MPI
-[[noreturn]] 
+[[noreturn]]
 #endif
 void abort();
 
@@ -178,9 +178,9 @@ extern MPI_Comm comm;
 } /* namespace internal */
 
 #ifdef USE_MPI
-void InitializeLogger(MPI_Comm comm, const std::string& rank_output_dir="");
+void InitializeLogger( MPI_Comm comm, const std::string& rank_output_dir="" );
 #else
-void InitializeLogger(const std::string& rank_output_dir="");
+void InitializeLogger( const std::string& rank_output_dir="" );
 #endif
 
 void FinalizeLogger();
