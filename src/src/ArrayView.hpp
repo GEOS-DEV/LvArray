@@ -536,11 +536,12 @@ protected:
    *        new dimensions
    * @param dims a pointer/array containing the the new dimensions
    */
-  void setDims( INDEX_TYPE const dims[NDIM] )
+  template< typename DIMS_TYPE >
+  void setDims( DIMS_TYPE const dims[NDIM] )
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_dimsMem[a] = dims[a];
+      this->m_dimsMem[a] = integer_conversion<INDEX_TYPE>(dims[a]);
     }
   }
 

@@ -19,11 +19,10 @@ set(cxx-utilities_sources
     StringUtilities.cpp )
 
 
-if( CMAKE_PROJECT_NAME EQUAL "geosx" )
+if( CMAKE_PROJECT_NAME STREQUAL "geosx" )
     list( APPEND cxx-utilities_headers DocumentationNode.hpp )
     list( APPEND cxx-utilities_sources DocumentationNode.cpp )
 endif()
-
 
 
 set( cxx_dependencies "" )

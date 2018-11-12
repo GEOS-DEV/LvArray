@@ -185,6 +185,22 @@ public:
   }
 
   /**
+   * @brief Function to assign entire array to single value
+   * @param rhs value to set array
+   * @return *this
+   */
+  Array & operator=( T const & rhs )
+  {
+    INDEX_TYPE const length = size();
+    for( INDEX_TYPE a = 0 ; a < length ; ++a )
+    {
+      this->m_data[a] = rhs;
+    }
+    return *this;
+  }
+
+
+  /**
    * @brief move constructor
    * @param rhs source for the construction
    * @return *this
@@ -219,12 +235,27 @@ public:
    * @param numDims the number of dims in the dims parameter
    * @param dims the new size of the dimensions
    */
-  void resize( int const numDims, INDEX_TYPE const * const dims )
+  template< typename DIMS_TYPE >
+  void resize( int const numDims, DIMS_TYPE const * const dims )
   {
     GEOS_ERROR_IF( numDims != NDIM, "Dimension mismatch: " << numDims );
     this->setDims( dims );
     CalculateStrides();
     resize();
+  }
+
+  /**
+   * @brief This function provides a resize or reallocation of the array
+   * @param numDims the number of dims in the dims parameter
+   * @param dims the new size of the dimensions
+   *
+   * @note this is required due to an issue where some compilers may prefer the full variadic
+   *       parameter pack template<typename ... DIMS> resize( DIMS... newdims)
+   */
+  template< typename DIMS_TYPE >
+  void resize( int const numDims, DIMS_TYPE * const dims )
+  {
+    resize( numDims, const_cast<DIMS_TYPE const * const>(dims) );
   }
 
   /**

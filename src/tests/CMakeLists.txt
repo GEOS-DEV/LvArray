@@ -28,7 +28,11 @@ foreach(test ${newComponentTests})
     blt_add_test( NAME ${test_name} 
                   COMMAND ${test_name}
                   )
-                                    
+
+    if( ( NOT ${ENABLE_CUDA} ) AND ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" ) )    
+        set_target_properties(${test_name} PROPERTIES COMPILE_FLAGS "-Wno-everything")    
+    endif()
+
 endforeach()
 
 

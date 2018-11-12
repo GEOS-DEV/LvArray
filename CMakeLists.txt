@@ -27,6 +27,7 @@ if(NOT is_submodule)
 
 endif() 
 
+include( src/cmake/Macros.cmake )
 include( src/cmake/Config.cmake )
 add_subdirectory(src)
 add_subdirectory(src/docs)
