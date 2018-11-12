@@ -121,9 +121,7 @@ public:
   using ArrayView<T, NDIM, INDEX_TYPE>::m_stridesMem;
   using ArrayView<T, NDIM, INDEX_TYPE>::m_singleParameterResizeIndex;
 
-  using ArrayView<T, NDIM, INDEX_TYPE>::size;
-  using ArrayView<T, NDIM, INDEX_TYPE>::dims;
-  using ArrayView<T, NDIM, INDEX_TYPE>::strides;
+  using ArrayView<T, NDIM, INDEX_TYPE>::size;  
   using ArrayView<T, NDIM, INDEX_TYPE>::setDataPtr;
   using ArrayView<T, NDIM, INDEX_TYPE>::data;
   using ArrayView<T, NDIM, INDEX_TYPE>::begin;
@@ -150,17 +148,17 @@ public:
 
   /**
    * @brief constructor that takes in the dimensions as a variadic parameter list
-   * @param newdims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
+   * @param dims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
    */
   template< typename... DIMS >
-  inline explicit Array( DIMS... newdims ):
+  inline explicit Array( DIMS... dims ):
     Array()
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
     static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
     static_assert( check_dim_type<DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... newdims ) are incompatible with INDEX_TYPE" );
 
-    resize( newdims... );
+    resize( dims... );
   }
 
   /**
@@ -264,17 +262,17 @@ public:
    */
 
 
-  void resize( int const numDims, INDEX_TYPE const * const newdims )
+  void resize( int const numDims, INDEX_TYPE const * const dims )
   {
     GEOS_ERROR_IF( numDims != NDIM, "Dimension mismatch: " << numDims );
-    this->setDims(newdims);
+    this->setDims(dims);
     CalculateStrides();
     resize();
   }
 
-  void resize( int const numDims, INDEX_TYPE * const newdims )
+  void resize( int const numDims, INDEX_TYPE * const dims )
   {
-    INDEX_TYPE const * const const_dims = newdims;
+    INDEX_TYPE const * const const_dims = dims;
     resize( numDims, const_dims );
   }
 
@@ -290,14 +288,14 @@ public:
     resize();
   }
 
-  void resize(int n_dims, long long const * const newdims)
+  void resize(int n_dims, long long const * const dims)
   {
     GEOS_ERROR_IF( n_dims != NDIM,
                    "n_dims provided ("<<n_dims<<") does not match template parameter NDIM="<<NDIM );
 
     for (int i = 0; i < NDIM; i++)
     {
-      m_dimsMem[i] = integer_conversion<INDEX_TYPE>(newdims[i]);
+      m_dimsMem[i] = integer_conversion<INDEX_TYPE>(dims[i]);
     }
 
     CalculateStrides();

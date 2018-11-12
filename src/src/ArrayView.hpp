@@ -41,10 +41,6 @@ public:
 
   using typename ArraySlice<T,NDIM,INDEX_TYPE>::size_type;
 
-  using ArraySlice<T,NDIM,INDEX_TYPE>::size;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::dims;
-  using ArraySlice<T,NDIM,INDEX_TYPE>::strides;
-
   using ArrayType = ChaiVector<T>;
   using pointer = T *;
   using const_pointer = T const *;
@@ -243,6 +239,21 @@ public:
     }
   }
 
+  INDEX_TYPE size( int dim ) const
+  {
+    return m_dimsMem[dim];
+  }
+
+  inline INDEX_TYPE const * dims() const
+  {
+    return m_dimsMem;
+  }
+
+  inline INDEX_TYPE const * strides() const
+  {
+    return m_stridesMem;
+  }
+
   friend std::ostream& operator<< (std::ostream& stream, ArrayView const & array )
   {
     T const * const data_ptr = array.data();
@@ -263,19 +274,19 @@ protected:
     dataPtr = m_dataVector.data() ;
   }
 
-  void setDims( INDEX_TYPE const newdims[NDIM] )
+  void setDims( INDEX_TYPE const dims[NDIM] )
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_dimsMem[a] = newdims[a];
+      this->m_dimsMem[a] = dims[a];
     }
   }
 
-  void setStrides( INDEX_TYPE const newstrides[NDIM] )
+  void setStrides( INDEX_TYPE const strides[NDIM] )
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_stridesMem[a] = newstrides[a];
+      this->m_stridesMem[a] = strides[a];
     }
   }
 

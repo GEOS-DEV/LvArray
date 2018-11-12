@@ -125,23 +125,6 @@ public:
   }
 
   /**
-   * User defined conversion operator to convert from an ArraySlice<T,0> to T &
-   */
-  template< int U = NDIM, typename std::enable_if<U==0, int>::type = 0>
-  inline
-  operator typename std::enable_if< U==0, T & >::type () restrict_this
-  {
-    return *m_data;
-  }
-
-  template< int U = NDIM, typename std::enable_if<U==0, int>::type = 0>
-  inline
-  operator typename std::enable_if< U==0, T const & >::type () const restrict_this
-  {
-    return *m_data;
-  }
-
-  /**
    * User defined conversion to convert to a reduced dimension array. For example, converting from
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
@@ -166,7 +149,7 @@ public:
    */
   template< int U=NDIM >
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< (U>1), ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #else
   inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> const >::type
 #endif
@@ -179,7 +162,7 @@ public:
 
   template< int U=NDIM >
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  inline CONSTEXPRFUNC typename std::enable_if< (U>1), ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
+  inline CONSTEXPRFUNC typename std::enable_if< U!=1, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #else
   inline CONSTEXPRFUNC typename std::enable_if< U >= 3, ArraySlice<T,NDIM-1,INDEX_TYPE> >::type
 #endif
@@ -222,52 +205,6 @@ public:
     return m_data[ index ];
   }
 
-  /**
-   * @tparam INDICES the template type parameter pack
-   * @param indices the list of indices for the first few dimensions to slice
-   * @return an ArraySlice representing the reduced-dimension slice at given indices
-   *
-   * Unlike operator[] (which should be used for performance), this function always returns a full slice object.
-   * This can be convenient when writing generic code dealing with multidimensional arrays recursively, as slices
-   * obtained this way retain sizing information even when range checking is off (i.e. in release builds)
-   */
-  template< typename... INDICES >
-  inline typename std::enable_if< sizeof...(INDICES)<=NDIM, ArraySlice<T,NDIM-sizeof...(INDICES),INDEX_TYPE> const >::type
-  slice( INDICES... indices ) const
-  {
-    constexpr int N = sizeof...(indices);
-    return ArraySlice<T,NDIM-N,INDEX_TYPE>( &(m_data[ slice_index_helper(m_strides, indices...) ] ), m_dims+N, m_strides+N );
-  }
-
-  template< typename... INDICES >
-  inline typename std::enable_if< sizeof...(INDICES)<=NDIM, ArraySlice<T,NDIM-sizeof...(INDICES),INDEX_TYPE> >::type
-  slice( INDICES... indices )
-  {
-    constexpr int N = sizeof...(indices);
-    return ArraySlice<T,NDIM-N,INDEX_TYPE>( &(m_data[ slice_index_helper(m_strides, indices...) ] ), m_dims+N, m_strides+N );
-  }
-
-  template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< (U>0), INDEX_TYPE >::type
-  size( int dim ) const
-  {
-    return m_dims[dim];
-  }
-
-  template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< (U>0), INDEX_TYPE const * >::type
-  dims() const
-  {
-    return m_dims;
-  }
-
-  template< int U=NDIM >
-  inline CONSTEXPRFUNC typename std::enable_if< (U>0), INDEX_TYPE const * >::type
-  strides() const
-  {
-    return m_strides;
-  }
-
   /// deleted default constructor
   ArraySlice() = delete;
 
@@ -289,21 +226,6 @@ public:
   {}
 
 protected:
-
-  template< typename INDEX, typename... REMAINING_INDICES >
-  inline CONSTEXPRFUNC static INDEX_TYPE slice_index_helper( INDEX_TYPE const * const restrict strides,
-                                                             INDEX index, REMAINING_INDICES... indices )
-  {
-    return index*strides[0] + slice_index_helper(strides+1, indices...);
-  }
-
-  template< typename INDEX >
-  inline CONSTEXPRFUNC static INDEX_TYPE slice_index_helper( INDEX_TYPE const * const restrict strides,
-                                                             INDEX index )
-  {
-    return index*strides[0];
-  }
-
   /// pointer to beginning of data for this array, or sub-array.
   T * const restrict m_data;
 
