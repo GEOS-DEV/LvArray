@@ -3,8 +3,7 @@
 Documentation
 ---------------------
 
-https://github.com/cxx/GEOSX/blob/develop/src/docs/sphinx/getting_started.rst
-
+https://github.com/GEOSX/cxx-utilities/blob/develop/src/docs/sphinx/LvArray.rst
 
 Authors
 -------
