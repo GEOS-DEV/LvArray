@@ -51,14 +51,14 @@ using namespace cxx_utilities;
 class Base
 {
 public:
-  Base( int& junk, double const & junk2)
+  Base( int& junk, double const & junk2 )
   {
-    GEOS_LOG("calling Base constructor with arguments ("<<junk<<" "<<junk2<<")");
+    GEOS_LOG( "calling Base constructor with arguments ("<<junk<<" "<<junk2<<")" );
   }
 
   virtual ~Base()
   {
-    GEOS_LOG("calling Base destructor");
+    GEOS_LOG( "calling Base destructor" );
   }
 
   using CatalogInterface = cxx_utilities::CatalogInterface< Base, int&, double const &  >;
@@ -74,15 +74,15 @@ public:
 class Derived1 : public Base
 {
 public:
-  Derived1( int& junk, double const & junk2):
-    Base(junk,junk2)
+  Derived1( int& junk, double const & junk2 ):
+    Base( junk, junk2 )
   {
-    GEOS_LOG("calling Derived1 constructor with arguments ("<<junk<<" "<<junk2<<")");
+    GEOS_LOG( "calling Derived1 constructor with arguments ("<<junk<<" "<<junk2<<")" );
   }
 
   ~Derived1()
   {
-    GEOS_LOG("calling Derived1 destructor");
+    GEOS_LOG( "calling Derived1 destructor" );
   }
   static std::string CatalogName() { return "derived1"; }
   std::string getName() { return CatalogName(); }
@@ -93,15 +93,15 @@ REGISTER_CATALOG_ENTRY( Base, Derived1, int&, double const & )
 class Derived2 : public Base
 {
 public:
-  Derived2( int& junk, double const & junk2):
-    Base(junk,junk2)
+  Derived2( int& junk, double const & junk2 ):
+    Base( junk, junk2 )
   {
-    GEOS_LOG("calling Derived2 constructor with arguments ("<<junk<<" "<<junk2<<")");
+    GEOS_LOG( "calling Derived2 constructor with arguments ("<<junk<<" "<<junk2<<")" );
   }
 
   ~Derived2()
   {
-    GEOS_LOG("calling Derived2 destructor");
+    GEOS_LOG( "calling Derived2 destructor" );
   }
   static std::string CatalogName() { return "derived2"; }
   std::string getName() { return CatalogName(); }
@@ -110,15 +110,15 @@ public:
 REGISTER_CATALOG_ENTRY( Base, Derived2, int&, double const & )
 
 
-TEST(testObjectCatalog,testRegistration)
+TEST( testObjectCatalog, testRegistration )
 {
-  GEOS_LOG("EXECUTING MAIN");
+  GEOS_LOG( "EXECUTING MAIN" );
   int junk = 1;
   double junk2 = 3.14;
-  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory("derived1",junk,junk2);
-  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory("derived2",junk,junk2);
+  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2 );
+  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk2 );
 
   assert( derived1->getName() == Derived1::CatalogName() );
   assert( derived2->getName() == Derived2::CatalogName() );
-  GEOS_LOG("EXITING MAIN");
+  GEOS_LOG( "EXITING MAIN" );
 }

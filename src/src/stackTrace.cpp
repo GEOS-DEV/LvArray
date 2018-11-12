@@ -34,29 +34,29 @@
 namespace cxx_utilities
 {
 
-void handler(int sig, int exitFlag, int exitCode )
+void handler( int sig, int exitFlag, int exitCode )
 {
-  fprintf(stderr,"executing stackTrace.cpp::handler(%d,%d,%d)\n", sig, exitFlag, exitCode );
+  fprintf( stderr, "executing stackTrace.cpp::handler(%d,%d,%d)\n", sig, exitFlag, exitCode );
   void *array[100];
   int size;
 
   // get void*'s for all entries on the stack
-  size = backtrace(array, 100);
-  char ** messages    = backtrace_symbols(array, size);
-  fprintf(stderr,"attempting unmangled trace: \n");
-  fprintf(stderr,"0         1         2         3         4         5         6         7         8         9         : \n");
-  fprintf(stderr,"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n");
+  size = backtrace( array, 100 );
+  char ** messages    = backtrace_symbols( array, size );
+  fprintf( stderr, "attempting unmangled trace: \n" );
+  fprintf( stderr, "0         1         2         3         4         5         6         7         8         9         : \n" );
+  fprintf( stderr, "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n" );
 
   // skip first stack frame (points here)
-  for ( int i = 1 ; i < size && messages != nullptr ; ++i)
+  for( int i = 1 ; i < size && messages != nullptr ; ++i )
   {
     char *mangled_name = nullptr, *offset_begin = nullptr, *offset_end = nullptr;
 
 #ifdef __APPLE__
     mangled_name = &(messages[i][58]);
-    for (char *p = messages[i] ; *p ; ++p)
+    for( char *p = messages[i] ; *p ; ++p )
     {
-      if (*p == '+')
+      if( *p == '+' )
       {
         offset_begin = p;
       }
@@ -65,17 +65,17 @@ void handler(int sig, int exitFlag, int exitCode )
 
 #else
     // find parentheses and +address offset surrounding mangled name
-    for (char *p = messages[i] ; *p ; ++p)
+    for( char *p = messages[i] ; *p ; ++p )
     {
-      if (*p == '(')
+      if( *p == '(' )
       {
         mangled_name = p;
       }
-      else if (*p == '+')
+      else if( *p == '+' )
       {
         offset_begin = p;
       }
-      else if (*p == ')')
+      else if( *p == ')' )
       {
         offset_end = p;
         break;
@@ -84,8 +84,8 @@ void handler(int sig, int exitFlag, int exitCode )
 #endif
 
     // if the line could be processed, attempt to demangle the symbol
-    if (mangled_name && offset_begin && offset_end &&
-        mangled_name < offset_begin)
+    if( mangled_name && offset_begin && offset_end &&
+        mangled_name < offset_begin )
     {
       *mangled_name++ = '\0';
 #ifdef __APPLE__
@@ -97,10 +97,10 @@ void handler(int sig, int exitFlag, int exitCode )
       *offset_end++ = '\0';
 
       int status;
-      char * real_name = abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
+      char * real_name = abi::__cxa_demangle( mangled_name, nullptr, nullptr, &status );
 
       // if demangling is successful, output the demangled function name
-      if (status == 0)
+      if( status == 0 )
       {
         std::cerr <<messages[i]<<"("<<i<<") "<< " : "
                   << real_name << "+" << offset_begin << offset_end
@@ -114,7 +114,7 @@ void handler(int sig, int exitFlag, int exitCode )
                   << mangled_name << "+" << offset_begin << offset_end
                   << std::endl;
       }
-      free(real_name);
+      free( real_name );
     }
     // otherwise, print the whole line
     else
@@ -124,21 +124,21 @@ void handler(int sig, int exitFlag, int exitCode )
   }
   std::cerr << std::endl;
 
-  free(messages);
-  if( exitFlag == 1)
+  free( messages );
+  if( exitFlag == 1 )
   {
 #ifdef GEOSX_USE_MPI
-  int mpi = 0;
-  MPI_Initialized( &mpi );
-  if ( mpi )
-  {
-    MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
-  }
-  else
+    int mpi = 0;
+    MPI_Initialized( &mpi );
+    if( mpi )
+    {
+      MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
+    }
+    else
 #endif
-  {
-    abort();
-  }
+    {
+      abort();
+    }
 
   }
 

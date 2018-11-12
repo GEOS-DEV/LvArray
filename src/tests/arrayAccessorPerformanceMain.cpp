@@ -62,14 +62,14 @@ int main( int /*argc*/, char* argv[] )
 //  integer_t stridesC[] = { num_j, 1};
 
 
-  Array<double,2> ArrayA( num_i, num_k );
-  Array<double,2> ArrayB( num_k, num_j );
-  Array<double,2> ArrayC_SquareNFC( num_i, num_j );
-  Array<double,2> ArrayC_SquarePBV( num_i, num_j );
-  Array<double,2> ArrayC_SquarePBR( num_i, num_j );
-  Array<double,2> ArrayC_ParenNFC( num_i, num_j );
-  Array<double,2> ArrayC_ParenPBV( num_i, num_j );
-  Array<double,2> ArrayC_ParenPBR( num_i, num_j );
+  Array<double, 2> ArrayA( num_i, num_k );
+  Array<double, 2> ArrayB( num_k, num_j );
+  Array<double, 2> ArrayC_SquareNFC( num_i, num_j );
+  Array<double, 2> ArrayC_SquarePBV( num_i, num_j );
+  Array<double, 2> ArrayC_SquarePBR( num_i, num_j );
+  Array<double, 2> ArrayC_ParenNFC( num_i, num_j );
+  Array<double, 2> ArrayC_ParenPBV( num_i, num_j );
+  Array<double, 2> ArrayC_ParenPBR( num_i, num_j );
 
 
 
@@ -106,27 +106,26 @@ int main( int /*argc*/, char* argv[] )
     }
   }
 
-  ArrayView<double,2> & arrayViewA = ArrayA;
-  ArrayView<double,2> & arrayViewB = ArrayB;
-  ArrayView<double,2> & arrayViewC_SquareNFC = ArrayC_SquareNFC ;
-  ArrayView<double,2> & arrayViewC_SquarePBV = ArrayC_SquarePBV ;
-  ArrayView<double,2> & arrayViewC_SquarePBR = ArrayC_SquarePBR ;
-  ArrayView<double,2> & arrayViewC_ParenNFC = ArrayC_ParenNFC ;
-  ArrayView<double,2> & arrayViewC_ParenPBV = ArrayC_ParenPBV ;
-  ArrayView<double,2> & arrayViewC_ParenPBR = ArrayC_ParenPBR ;
+  ArrayView<double, 2> & arrayViewA = ArrayA;
+  ArrayView<double, 2> & arrayViewB = ArrayB;
+  ArrayView<double, 2> & arrayViewC_SquareNFC = ArrayC_SquareNFC;
+  ArrayView<double, 2> & arrayViewC_SquarePBV = ArrayC_SquarePBV;
+  ArrayView<double, 2> & arrayViewC_SquarePBR = ArrayC_SquarePBR;
+  ArrayView<double, 2> & arrayViewC_ParenNFC = ArrayC_ParenNFC;
+  ArrayView<double, 2> & arrayViewC_ParenPBV = ArrayC_ParenPBV;
+  ArrayView<double, 2> & arrayViewC_ParenPBR = ArrayC_ParenPBR;
 
 
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   double runTime_Direct1dAccess  = MatrixMultiply_1D ( num_i, num_j, num_k, ITERATIONS, A, B, C1D );
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   double runTime_Direct1dRestrict = MatrixMultiply_1Dr( num_i, num_j, num_k, ITERATIONS, A, B, C1D_restrict );
 
 
 
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   double startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
   {
@@ -145,15 +144,15 @@ int main( int /*argc*/, char* argv[] )
   double runTime_arrayViewSquareNFC = ( endTime - startTime ) / 1000.0;
 
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  double runTime_arrayViewSquarePBV = MatrixMultiply_2D_accessor(       num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_SquarePBV );
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
+  double runTime_arrayViewSquarePBV = MatrixMultiply_2D_accessor( num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_SquarePBV );
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  double runTime_arrayViewSquarePBR = MatrixMultiply_2D_accessorRef(       num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_SquarePBR );
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
+  double runTime_arrayViewSquarePBR = MatrixMultiply_2D_accessorRef( num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_SquarePBR );
 
 
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   startTime = GetTimeMs64();
   for( integer_t iter = 0 ; iter < ITERATIONS ; ++iter )
   {
@@ -163,7 +162,7 @@ int main( int /*argc*/, char* argv[] )
       {
         for( integer_t k = 0 ; k < num_k ; ++k )
         {
-          arrayViewC_ParenNFC(i,j) += ArrayA(i,k) * ArrayB(k,j) + 3.1415 * ArrayA(i,k) + 1.61803 * ArrayB(k,j);
+          arrayViewC_ParenNFC( i, j ) += ArrayA( i, k ) * ArrayB( k, j ) + 3.1415 * ArrayA( i, k ) + 1.61803 * ArrayB( k, j );
         }
       }
     }
@@ -171,17 +170,17 @@ int main( int /*argc*/, char* argv[] )
   endTime = GetTimeMs64();
   double runTime_arrayViewParenNFC =( endTime - startTime ) / 1000.0;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   double runTime_arrayViewParenPBV = MatrixMultiply_2D_accessorPBV2( num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_ParenPBV );
 
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ));
   double runTime_arrayViewParenPBR = MatrixMultiply_2D_accessorRef2( num_i, num_j, num_k, ITERATIONS, arrayViewA, arrayViewB, arrayViewC_ParenPBR );
 
 
 
   double minRunTime = 1.0e99;
-  minRunTime = std::min(runTime_Direct1dAccess,runTime_Direct1dRestrict);
+  minRunTime = std::min( runTime_Direct1dAccess, runTime_Direct1dRestrict );
   minRunTime = std::min( minRunTime, runTime_arrayViewSquareNFC );
   minRunTime = std::min( minRunTime, runTime_arrayViewSquarePBV );
   minRunTime = std::min( minRunTime, runTime_arrayViewSquarePBR );
@@ -216,29 +215,29 @@ int main( int /*argc*/, char* argv[] )
       }
     }
 
-    GEOS_LOG("error_ArraySquareNFC = "<<error_ArraySquareNFC);
-    GEOS_LOG("error_ArraySquarePBV = "<<error_ArraySquarePBV);
-    GEOS_LOG("error_ArraySquarePBR = "<<error_ArraySquarePBR);
+    GEOS_LOG( "error_ArraySquareNFC = "<<error_ArraySquareNFC );
+    GEOS_LOG( "error_ArraySquarePBV = "<<error_ArraySquarePBV );
+    GEOS_LOG( "error_ArraySquarePBR = "<<error_ArraySquarePBR );
 
-    GEOS_LOG("error_ArrayParenNFC = "<<error_ArrayParenNFC);
-    GEOS_LOG("error_ArrayParenPBV = "<<error_ArrayParenPBV);
-    GEOS_LOG("error_ArrayParenPBR = "<<error_ArrayParenPBR);
+    GEOS_LOG( "error_ArrayParenNFC = "<<error_ArrayParenNFC );
+    GEOS_LOG( "error_ArrayParenPBV = "<<error_ArrayParenPBV );
+    GEOS_LOG( "error_ArrayParenPBR = "<<error_ArrayParenPBR );
 
 
   }
 
   if( output > 1 )
   {
-    printf( "1d array                             : %8.3f, %8.2f\n", runTime_Direct1dAccess, runTime_Direct1dAccess/minRunTime);
-    printf( "1d array restrict                    : %8.3f, %8.2f\n", runTime_Direct1dRestrict, runTime_Direct1dRestrict / minRunTime);
+    printf( "1d array                             : %8.3f, %8.2f\n", runTime_Direct1dAccess, runTime_Direct1dAccess/minRunTime );
+    printf( "1d array restrict                    : %8.3f, %8.2f\n", runTime_Direct1dRestrict, runTime_Direct1dRestrict / minRunTime );
 
-    printf( "Array[] nfc                   : %8.3f, %8.2f\n", runTime_arrayViewSquareNFC, runTime_arrayViewSquareNFC / minRunTime);
-    printf( "Array[] pbv                   : %8.3f, %8.2f\n", runTime_arrayViewSquarePBV, runTime_arrayViewSquarePBV / minRunTime);
-    printf( "Array[] pbr                   : %8.3f, %8.2f\n", runTime_arrayViewSquarePBR, runTime_arrayViewSquarePBR / minRunTime);
+    printf( "Array[] nfc                   : %8.3f, %8.2f\n", runTime_arrayViewSquareNFC, runTime_arrayViewSquareNFC / minRunTime );
+    printf( "Array[] pbv                   : %8.3f, %8.2f\n", runTime_arrayViewSquarePBV, runTime_arrayViewSquarePBV / minRunTime );
+    printf( "Array[] pbr                   : %8.3f, %8.2f\n", runTime_arrayViewSquarePBR, runTime_arrayViewSquarePBR / minRunTime );
 
-    printf( "Array() nfc                   : %8.3f, %8.2f\n", runTime_arrayViewParenNFC, runTime_arrayViewParenNFC / minRunTime);
-    printf( "Array() pbv                   : %8.3f, %8.2f\n", runTime_arrayViewParenPBV, runTime_arrayViewParenPBV / minRunTime);
-    printf( "Array() pbr                   : %8.3f, %8.2f\n", runTime_arrayViewParenPBR, runTime_arrayViewParenPBR / minRunTime);
+    printf( "Array() nfc                   : %8.3f, %8.2f\n", runTime_arrayViewParenNFC, runTime_arrayViewParenNFC / minRunTime );
+    printf( "Array() pbv                   : %8.3f, %8.2f\n", runTime_arrayViewParenPBV, runTime_arrayViewParenPBV / minRunTime );
+    printf( "Array() pbr                   : %8.3f, %8.2f\n", runTime_arrayViewParenPBR, runTime_arrayViewParenPBR / minRunTime );
 
   }
 

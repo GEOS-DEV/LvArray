@@ -41,20 +41,20 @@ DocumentationNode::DocumentationNode( std::string const & name,
                                       unsigned int const & verbosity,
                                       DocumentationNode * parentNode,
                                       geosx::dataRepository::RestartFlags const & restart_flags ):
-  m_name(name),
-  m_stringKey(stringKey),
-  m_intKey(intKey),
-  m_dataType(dataType),
-  m_schemaType(schemaType),
-  m_shortDescription(shortDescription),
-  m_longDescription(longDescription),
-  m_default(default0),
-  m_groups(groups),
-  m_managedByParent(parentManaged),
-  m_level(level),
-  m_isInput(isInput),
-  m_verbosity(verbosity),
-  m_parentNode(parentNode),
+  m_name( name ),
+  m_stringKey( stringKey ),
+  m_intKey( intKey ),
+  m_dataType( dataType ),
+  m_schemaType( schemaType ),
+  m_shortDescription( shortDescription ),
+  m_longDescription( longDescription ),
+  m_default( default0 ),
+  m_groups( groups ),
+  m_managedByParent( parentManaged ),
+  m_level( level ),
+  m_isInput( isInput ),
+  m_verbosity( verbosity ),
+  m_parentNode( parentNode ),
   m_restart_flags( restart_flags ),
   m_child()
 {}
@@ -73,25 +73,25 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
                                                           unsigned int const & verbosity,
                                                           geosx::dataRepository::RestartFlags const & restart_flags )
 {
-  DocumentationNode newNode(name,
-                            stringKey,
-                            intKey,
-                            dataType,
-                            schemaType,
-                            shortDescription,
-                            longDescription,
-                            default0,
-                            groups,
-                            parentManaged,
-                            this->m_level + 1,
-                            isInput,
-                            verbosity,
-                            this,
-                            restart_flags );
+  DocumentationNode newNode( name,
+                             stringKey,
+                             intKey,
+                             dataType,
+                             schemaType,
+                             shortDescription,
+                             longDescription,
+                             default0,
+                             groups,
+                             parentManaged,
+                             this->m_level + 1,
+                             isInput,
+                             verbosity,
+                             this,
+                             restart_flags );
 
   // a check to see if nodeName exists. if it does, check to see that members
   // are identical
-  std::map<std::string,DocumentationNode>::iterator iter = m_child.find(name);
+  std::map<std::string, DocumentationNode>::iterator iter = m_child.find( name );
 
   // name exists
   if( iter != m_child.end() )
@@ -99,16 +99,16 @@ DocumentationNode * DocumentationNode::AllocateChildNode( std::string const & na
     if( newNode.m_dataType != "" &&
         newNode.m_dataType != iter->second.m_dataType )
     {
-      GEOS_LOG_RANK(iter->second.toString());
-      GEOS_LOG_RANK(newNode.toString());
-      GEOS_ERROR("documentation node already exists, but has different attributes than specified");
+      GEOS_LOG_RANK( iter->second.toString());
+      GEOS_LOG_RANK( newNode.toString());
+      GEOS_ERROR( "documentation node already exists, but has different attributes than specified" );
     }
   }
   else
   {
-    m_child.insert( {name,newNode} );
+    m_child.insert( {name, newNode} );
   }
-  return &(m_child.at(name));
+  return &(m_child.at( name ));
 }
 
 std::string DocumentationNode::toString() const
@@ -120,7 +120,7 @@ std::string DocumentationNode::toString() const
     oss << "ROOT NODE:"<<m_name<<std::endl;
   }
 
-  std::string indent( m_level*4, ' ');
+  std::string indent( m_level*4, ' ' );
   oss << indent << "m_name              = " << m_name << std::endl;
   oss << indent << "m_stringKey         = " << m_stringKey << std::endl;
   oss << indent << "m_intKey            = " << m_intKey << std::endl;

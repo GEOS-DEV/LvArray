@@ -45,7 +45,7 @@
 using namespace cxx_utilities;
 
 
-TEST(testStringUtilties,testDemangle)
+TEST( testStringUtilties, testDemangle )
 {
 //  assert( !( std::strcmp( demangle(typeid(double).name() ), "double" ) ) );
 }

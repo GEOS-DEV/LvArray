@@ -13,9 +13,6 @@ foreach( DEP in ${PREPROCESSOR_DEFINES})
     endif()
 endforeach()
 
-message( "Config.cmake: CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}" )
-message( "Config.cmake: CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}" )
-
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/src/src/CXX_UtilsConfig.hpp.in
     ${CMAKE_BINARY_DIR}/include/CXX_UtilsConfig.hpp

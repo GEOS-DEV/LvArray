@@ -33,31 +33,31 @@ namespace cxx_utilities
 
 void setSignalHandling( void (*handler)( int ) )
 {
-  signal(SIGHUP, handler);
-  signal(SIGINT, handler);
-  signal(SIGQUIT, handler);
-  signal(SIGILL, handler);
-  signal(SIGTRAP, handler);
-  signal(SIGABRT, handler);
+  signal( SIGHUP, handler );
+  signal( SIGINT, handler );
+  signal( SIGQUIT, handler );
+  signal( SIGILL, handler );
+  signal( SIGTRAP, handler );
+  signal( SIGABRT, handler );
 #if  (defined(_POSIX_C_SOURCE) && !defined(_DARWIN_C_SOURCE))
-  signal(SIGPOLL, handler);
+  signal( SIGPOLL, handler );
 #else
-  signal(SIGIOT, handler);
-  signal(SIGEMT, handler);
+  signal( SIGIOT, handler );
+  signal( SIGEMT, handler );
 #endif
-  signal(SIGFPE, handler);
-  signal(SIGKILL, handler);
-  signal(SIGBUS, handler);
-  signal(SIGSEGV, handler);
-  signal(SIGSYS, handler);
-  signal(SIGPIPE, handler);
-  signal(SIGALRM, handler);
-  signal(SIGTERM, handler);
-  signal(SIGURG, handler);
-  signal(SIGSTOP, handler);
-  signal(SIGTSTP, handler);
-  signal(SIGCONT, handler);
-  signal(SIGCHLD, handler);
+  signal( SIGFPE, handler );
+  signal( SIGKILL, handler );
+  signal( SIGBUS, handler );
+  signal( SIGSEGV, handler );
+  signal( SIGSYS, handler );
+  signal( SIGPIPE, handler );
+  signal( SIGALRM, handler );
+  signal( SIGTERM, handler );
+  signal( SIGURG, handler );
+  signal( SIGSTOP, handler );
+  signal( SIGTSTP, handler );
+  signal( SIGCONT, handler );
+  signal( SIGCHLD, handler );
 
 #ifdef __APPLE__
 #if __clang__
@@ -79,7 +79,7 @@ void setSignalHandling( void (*handler)( int ) )
 //  _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_EXCEPT_DIV_ZERO);
 #endif
 #else
-  feenableexcept(FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID);
+  feenableexcept( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 #endif
 
   return;

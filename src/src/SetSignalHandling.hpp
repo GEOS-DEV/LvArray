@@ -31,7 +31,7 @@
 namespace cxx_utilities
 {
 
-void setSignalHandling(  void (*handler)( int ) );
+void setSignalHandling( void (*handler)( int ) );
 
 
 } /* namespace geosx */
