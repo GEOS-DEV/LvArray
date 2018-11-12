@@ -25,6 +25,9 @@ set( AXOM_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-cla
 set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
 set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@4.0.0-release/chai" CACHE PATH "" FORCE )
 
+set(UNCRUSTIFY_EXECUTABLE "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@4.0.0-release/uncrustify/bin/uncrustify" CACHE PATH "" FORCE )
+
+
 set(CUDA_ENABLED      "OFF"       CACHE PATH "" FORCE)
 set(CHAI_BUILD_TYPE   "cpu-no-rm" CACHE PATH "" FORCE)
 set(CHAI_ARGS         ""          CACHE PATH "" FORCE)
