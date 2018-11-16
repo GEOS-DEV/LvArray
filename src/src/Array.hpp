@@ -31,7 +31,7 @@
 
 #include "ArrayView.hpp"
 #include "ChaiVector.hpp"
-
+#include "SFINAE_Macros.hpp"
 
 template< typename T >
 struct is_integer
@@ -434,7 +434,14 @@ public:
     m_singleParameterResizeIndex = index;
   }
 
+  void setDefaultValue( T const & defaultValue )
+  {
+    m_defaultValue = defaultValue;
+  }
+
 private:
+
+  T m_defaultValue;
 
   void CalculateStrides()
   {
@@ -445,9 +452,27 @@ private:
     }
   }
 
+  template< typename U=T >
+  typename std::enable_if< cxx_utilities::has_copy_assignement_operator<U>::value &&
+                           !detail::is_array<U>::value , void>::type
+  setDefaultValues( INDEX_TYPE const begin, INDEX_TYPE const end )
+  {
+    for( INDEX_TYPE a=begin ; a<end ; ++a )
+    {
+      m_dataVector[a] = m_defaultValue;
+    }
+  }
+
+  template< typename U=T >
+  typename std::enable_if< !(cxx_utilities::has_copy_assignement_operator<U>::value &&
+                             !detail::is_array<U>::value ) ,void>::type
+  setDefaultValues( INDEX_TYPE const begin, INDEX_TYPE const end )
+  {}
+
   void resize()
   {
     m_dataVector.resize( size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem ) );
+    setDefaultValues( oldLength, length );
     this->setDataPtr();
   }
 
