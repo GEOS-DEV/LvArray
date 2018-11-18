@@ -2,6 +2,7 @@ set(cxx-utilities_headers
     Array.hpp
     ArraySlice.hpp
     ArrayView.hpp
+    StaticArray.hpp
     ChaiVector.hpp
     Logger.hpp
     Macros.hpp
