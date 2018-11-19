@@ -101,7 +101,7 @@ integer_conversion( T input )
 template< typename T,
           int NDIM,
           typename INDEX_TYPE,
-          typename ArrayType >
+          typename DATA_VECTOR_TYPE >
 class Array;
 
 /**
@@ -134,7 +134,7 @@ class Array;
 template< typename T,
           int NDIM,
           typename INDEX_TYPE = std::int_fast32_t,
-          typename ArrayType = ChaiVector<T> >
+          typename DATA_VECTOR_TYPE = ChaiVector<T> >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
@@ -143,11 +143,10 @@ public:
   using ArraySlice<T, NDIM, INDEX_TYPE>::m_dims;
   using ArraySlice<T, NDIM, INDEX_TYPE>::m_strides;
 
-//  using ArrayType = ChaiVector<T>;
   using pointer = T *;
   using const_pointer = T const *;
-  using iterator = typename ArrayType::iterator;
-  using const_iterator = typename ArrayType::const_iterator;
+  using iterator = typename DATA_VECTOR_TYPE::iterator;
+  using const_iterator = typename DATA_VECTOR_TYPE::const_iterator;
 
   /**
    * The default constructor
@@ -173,7 +172,7 @@ public:
   inline explicit CONSTEXPRFUNC
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
-             ArrayType const & dataVector,
+             DATA_VECTOR_TYPE const & dataVector,
              INDEX_TYPE singleParameterResizeIndex ):
     ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{ 0 },
@@ -190,20 +189,20 @@ public:
    * @brief constructor to disallow copying an Array to an ArrayView.
    * @param
    */
-//  template< typename U=T  >
-//  inline CONSTEXPRFUNC
-//  ArrayView( typename std::enable_if< std::is_same< Array<U, NDIM, INDEX_TYPE>,
-//                                                    Array<T, NDIM, INDEX_TYPE> >::value,
-//                                      Array<U, NDIM, INDEX_TYPE> >::type const & ):
-//    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, nullptr, nullptr ),
-//    m_dimsMem{ 0 },
-//    m_stridesMem{ 0 },
-//    m_dataVector(),
-//    m_singleParameterResizeIndex()
-//  {
-//    static_assert( !std::is_same< Array<U, NDIM, INDEX_TYPE>, Array<T, NDIM, INDEX_TYPE> >::value,
-//                   "construction of ArrayView from Array is not allowed" );
-//  }
+  template< typename U=T  >
+  inline CONSTEXPRFUNC
+  ArrayView( typename std::enable_if< std::is_same< Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>,
+                                                    Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::value,
+                                      Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::type const & ):
+    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, nullptr, nullptr ),
+    m_dimsMem{ 0 },
+    m_stridesMem{ 0 },
+    m_dataVector(),
+    m_singleParameterResizeIndex()
+  {
+    static_assert( !std::is_same< Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>, Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::value,
+                   "construction of ArrayView from Array is not allowed" );
+  }
 
   /**
    * @brief Copy Constructor
@@ -663,7 +662,7 @@ protected:
   INDEX_TYPE m_stridesMem[NDIM];
 
   /// this data member contains the actual data for the array
-  ArrayType m_dataVector;
+  DATA_VECTOR_TYPE m_dataVector;
 
   /// this data member specifies the index that will be resized as a result of a call to the
   /// single argument version of the function resize(a)
