@@ -5,7 +5,7 @@ set( thirdPartyLibs "")
 ################################
 # AXOM
 ################################
-if( EXISTS ${AXOM_DIR})
+if( EXISTS ${AXOM_DIR} AND ${ENABLE_AXOM} )
 
     MESSAGE( "Using AXOM_DIR=${AXOM_DIR}")
     set(AXOM_CMAKE ${AXOM_DIR}/lib/cmake)

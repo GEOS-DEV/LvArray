@@ -35,9 +35,9 @@
 #include <fstream>
 #include <string>
 
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 #include "axom/slic/streams/LumberjackStream.hpp"
 #endif
 
@@ -62,11 +62,11 @@ bool using_cout_for_rank_stream = true;
 
 std::ofstream rank_stream;
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 MPI_Comm comm;
 #endif
 
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
 slic::GenericOutputStream* createGenericStream()
 {
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
@@ -82,7 +82,7 @@ slic::GenericOutputStream* createGenericStream()
 
 } /* namespace internal */
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 
 void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
 {
@@ -90,7 +90,7 @@ void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
   MPI_Comm_rank( mpi_comm, &internal::rank );
   MPI_Comm_size( mpi_comm, &internal::n_ranks );
 
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
   slic::GenericOutputStream* stream = internal::createGenericStream();
@@ -126,7 +126,7 @@ void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
 
 void InitializeLogger( const std::string& rank_output_dir )
 {
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
   slic::GenericOutputStream* stream = internal::createGenericStream();
@@ -149,13 +149,13 @@ void InitializeLogger( const std::string& rank_output_dir )
 
 void FinalizeLogger()
 {
-#ifdef GEOSX_USE_ATK
+#ifdef USE_AXOM
   slic::flushStreams();
   slic::finalize();
 #endif
 }
 
-#ifndef GEOSX_USE_MPI
+#ifndef USE_MPI
 [[noreturn]]
 #endif
 void abort()
