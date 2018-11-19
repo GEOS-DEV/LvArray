@@ -31,25 +31,6 @@
 namespace LvArray
 {
 
-template< typename T, int LENGTH >
-struct C_Array
-{
-  typedef T * iterator;
-  typedef T const * const_iterator;
-
-  void free() {}
-
-  void resize( ptrdiff_t length )
-  {
-    GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
-  }
-
-  T * data()             { return m_data; }
-  T const * data() const { return m_data; }
-
-  T m_data[LENGTH];
-};
-
 template< typename RTYPE, typename T >
 inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value, RTYPE >::type
 integer_conversion( T input )

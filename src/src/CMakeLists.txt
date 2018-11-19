@@ -9,6 +9,7 @@ set(cxx-utilities_headers
     SetSignalHandling.hpp
     SFINAE_Macros.hpp
     SortedArray.hpp
+    StackArrayWrapper.hpp
     stackTrace.hpp
     StringUtilities.hpp )
 
