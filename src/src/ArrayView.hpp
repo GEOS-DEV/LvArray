@@ -31,6 +31,25 @@
 namespace LvArray
 {
 
+template< typename T, int LENGTH >
+struct C_Array
+{
+  typedef T * iterator;
+  typedef T const * const_iterator;
+
+  void free() {}
+
+  void resize( ptrdiff_t length )
+  {
+    GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
+  }
+
+  T * data()             { return m_data; }
+  T const * data() const { return m_data; }
+
+  T m_data[LENGTH];
+};
+
 template< typename RTYPE, typename T >
 inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value, RTYPE >::type
 integer_conversion( T input )
@@ -79,7 +98,10 @@ integer_conversion( T input )
 
 
 
-template< typename T, int NDIM, typename INDEX_TYPE >
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename ArrayType >
 class Array;
 
 /**
@@ -109,7 +131,10 @@ class Array;
  * are only present in Array.
  *
  */
-template< typename T, int NDIM, typename INDEX_TYPE = std::int_fast32_t >
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE = std::int_fast32_t,
+          typename ArrayType = ChaiVector<T> >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {
 public:
@@ -118,7 +143,7 @@ public:
   using ArraySlice<T, NDIM, INDEX_TYPE>::m_dims;
   using ArraySlice<T, NDIM, INDEX_TYPE>::m_strides;
 
-  using ArrayType = ChaiVector<T>;
+//  using ArrayType = ChaiVector<T>;
   using pointer = T *;
   using const_pointer = T const *;
   using iterator = typename ArrayType::iterator;
@@ -165,20 +190,20 @@ public:
    * @brief constructor to disallow copying an Array to an ArrayView.
    * @param
    */
-  template< typename U=T  >
-  inline CONSTEXPRFUNC
-  ArrayView( typename std::enable_if< std::is_same< Array<U, NDIM, INDEX_TYPE>,
-                                                    Array<T, NDIM, INDEX_TYPE> >::value,
-                                      Array<U, NDIM, INDEX_TYPE> >::type const & ):
-    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, nullptr, nullptr ),
-    m_dimsMem{ 0 },
-    m_stridesMem{ 0 },
-    m_dataVector(),
-    m_singleParameterResizeIndex()
-  {
-    static_assert( !std::is_same< Array<U, NDIM, INDEX_TYPE>, Array<T, NDIM, INDEX_TYPE> >::value,
-                   "construction of ArrayView from Array is not allowed" );
-  }
+//  template< typename U=T  >
+//  inline CONSTEXPRFUNC
+//  ArrayView( typename std::enable_if< std::is_same< Array<U, NDIM, INDEX_TYPE>,
+//                                                    Array<T, NDIM, INDEX_TYPE> >::value,
+//                                      Array<U, NDIM, INDEX_TYPE> >::type const & ):
+//    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, nullptr, nullptr ),
+//    m_dimsMem{ 0 },
+//    m_stridesMem{ 0 },
+//    m_dataVector(),
+//    m_singleParameterResizeIndex()
+//  {
+//    static_assert( !std::is_same< Array<U, NDIM, INDEX_TYPE>, Array<T, NDIM, INDEX_TYPE> >::value,
+//                   "construction of ArrayView from Array is not allowed" );
+//  }
 
   /**
    * @brief Copy Constructor

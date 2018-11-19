@@ -9,6 +9,7 @@ set(newComponentTests
     testStringUtilities.cpp
     testChaiVector.cpp
     testSortedArray.cpp
+    testStackArray.cpp
    )
 
 if( ${ENABLE_CUDA})

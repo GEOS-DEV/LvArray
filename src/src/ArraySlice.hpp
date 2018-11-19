@@ -64,7 +64,7 @@
 #else // USE_CUDA
 
 #define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
-  GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "index=" << index << " m_dims[0]=" << m_dims[0] )
+  GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #endif // USE_CUDA
 

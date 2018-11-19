@@ -50,15 +50,22 @@ namespace LvArray
 
 
 
-template< typename T, int NDIM, typename INDEX_TYPE=std::int_fast32_t > class Array;
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename ArrayType >
+class Array;
 
 namespace detail
 {
 template<typename>
 struct is_array : std::false_type {};
 
-template< typename T, int NDIM, typename INDEX_TYPE >
-struct is_array< Array<T, NDIM, INDEX_TYPE> > : std::true_type {};
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename ArrayType >
+struct is_array< Array<T, NDIM, INDEX_TYPE, ArrayType > > : std::true_type {};
 }
 
 /**
@@ -68,36 +75,42 @@ struct is_array< Array<T, NDIM, INDEX_TYPE> > : std::true_type {};
  * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
  * @tparam INDEX_TYPE the integer to use for indexing the components of the array
  */
-template< typename T, int NDIM, typename INDEX_TYPE >
-class Array : public ArrayView<T, NDIM, INDEX_TYPE>
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE = std::int_fast32_t,
+          typename ArrayType = ChaiVector<T> >
+class Array : public ArrayView< T,
+                                NDIM,
+                                INDEX_TYPE,
+                                ArrayType >
 {
 public:
   using isArray = std::true_type;
-  using ArrayView<T, NDIM, INDEX_TYPE>::m_dataVector;
-  using ArrayView<T, NDIM, INDEX_TYPE>::m_dimsMem;
-  using ArrayView<T, NDIM, INDEX_TYPE>::m_stridesMem;
-  using ArrayView<T, NDIM, INDEX_TYPE>::m_singleParameterResizeIndex;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::m_dataVector;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::m_dimsMem;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::m_stridesMem;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::m_singleParameterResizeIndex;
 
-  using ArrayView<T, NDIM, INDEX_TYPE>::size;
-  using ArrayView<T, NDIM, INDEX_TYPE>::setDataPtr;
-  using ArrayView<T, NDIM, INDEX_TYPE>::data;
-  using ArrayView<T, NDIM, INDEX_TYPE>::begin;
-  using ArrayView<T, NDIM, INDEX_TYPE>::end;
-  using ArrayView<T, NDIM, INDEX_TYPE>::operator[];
-  using ArrayView<T, NDIM, INDEX_TYPE>::operator();
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::size;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::setDataPtr;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::data;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::begin;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::end;
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::operator[];
+  using ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::operator();
 
   using value_type = T;
-  using typename ArrayView<T, NDIM, INDEX_TYPE>::pointer;
-  using typename ArrayView<T, NDIM, INDEX_TYPE>::const_pointer;
-  using typename ArrayView<T, NDIM, INDEX_TYPE>::iterator;
-  using typename ArrayView<T, NDIM, INDEX_TYPE>::const_iterator;
+  using typename ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::pointer;
+  using typename ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::const_pointer;
+  using typename ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::iterator;
+  using typename ArrayView<T, NDIM, INDEX_TYPE, ArrayType>::const_iterator;
 
 
   /**
    * @brief default constructor
    */
   inline Array():
-    ArrayView<T, NDIM, INDEX_TYPE>()
+    ArrayView<T, NDIM, INDEX_TYPE, ArrayType>()
   {
     CalculateStrides();
   }
