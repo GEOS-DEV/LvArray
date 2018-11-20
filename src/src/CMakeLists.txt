@@ -1,6 +1,7 @@
 set(cxx-utilities_headers
     Array.hpp
     ArraySlice.hpp
+    ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
     IntegerConversion.hpp

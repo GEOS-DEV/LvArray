@@ -540,7 +540,7 @@ protected:
     }
   };
 
-  #ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef USE_ARRAY_BOUNDS_CHECK
   template< int DIM, typename INDEX, typename... REMAINING_INDICES >
   struct index_checker
   {
