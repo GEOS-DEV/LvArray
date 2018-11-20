@@ -26,7 +26,7 @@
 
 #include "ArraySlice.hpp"
 #include "ChaiVector.hpp"
-
+#include "SFINAE_Macros.hpp"
 
 namespace LvArray
 {
@@ -76,7 +76,6 @@ integer_conversion( T input )
   }
   return static_cast<RTYPE>(input);
 }
-
 
 
 template< typename T,
@@ -296,15 +295,26 @@ public:
                                                this->m_singleParameterResizeIndex );
   }
 
+  HAS_MEMBER_FUNCTION(size,void,,,)
+
   /**
    * @brief function to return the allocated size
    */
-  inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const
+  template< typename VECTOR = DATA_VECTOR_TYPE >
+  inline LVARRAY_HOST_DEVICE
+  typename std::enable_if<has_memberfunction_size<VECTOR>::value, INDEX_TYPE>::type size() const
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK
     GEOS_ERROR_IF( size_helper<0>::f( m_dimsMem ) != static_cast<INDEX_TYPE>(m_dataVector.size()), "Size mismatch" );
 #endif
     return integer_conversion<INDEX_TYPE>( m_dataVector.size());
+  }
+
+  template< typename VECTOR = DATA_VECTOR_TYPE >
+  inline LVARRAY_HOST_DEVICE
+  typename std::enable_if<!has_memberfunction_size<VECTOR>::value, INDEX_TYPE>::type size() const
+  {
+    return size_helper<0>::f( m_dimsMem );
   }
 
   /**
