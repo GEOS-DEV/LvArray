@@ -295,7 +295,10 @@ public:
                                                this->m_singleParameterResizeIndex );
   }
 
+private:
   HAS_MEMBER_FUNCTION(size,void,,,)
+
+public:
 
   /**
    * @brief function to return the allocated size
