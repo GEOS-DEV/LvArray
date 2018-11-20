@@ -295,27 +295,11 @@ public:
                                                this->m_singleParameterResizeIndex );
   }
 
-private:
-  HAS_MEMBER_FUNCTION(size,void,,,)
-
-public:
 
   /**
    * @brief function to return the allocated size
    */
-  template< typename VECTOR = DATA_VECTOR_TYPE >
-  inline LVARRAY_HOST_DEVICE
-  typename std::enable_if<has_memberfunction_size<VECTOR>::value, INDEX_TYPE>::type size() const
-  {
-#ifdef USE_ARRAY_BOUNDS_CHECK
-    GEOS_ERROR_IF( size_helper<0>::f( m_dimsMem ) != static_cast<INDEX_TYPE>(m_dataVector.size()), "Size mismatch" );
-#endif
-    return integer_conversion<INDEX_TYPE>( m_dataVector.size());
-  }
-
-  template< typename VECTOR = DATA_VECTOR_TYPE >
-  inline LVARRAY_HOST_DEVICE
-  typename std::enable_if<!has_memberfunction_size<VECTOR>::value, INDEX_TYPE>::type size() const
+  inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const
   {
     return size_helper<0>::f( m_dimsMem );
   }
