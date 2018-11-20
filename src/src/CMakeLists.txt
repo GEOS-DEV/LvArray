@@ -3,6 +3,7 @@ set(cxx-utilities_headers
     ArraySlice.hpp
     ArrayView.hpp
     ChaiVector.hpp
+    IntegerConversion.hpp
     Logger.hpp
     Macros.hpp
     ObjectCatalog.hpp 

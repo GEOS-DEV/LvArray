@@ -92,6 +92,7 @@
 #define GEOS_ASSERT_MSG( EXP, msg ) SLIC_ASSERT_MSG( EXP, msg )
 #define GEOS_CHECK( EXP, msg ) SLIC_CHECK_MSG( EXP, msg )
 
+
 #else
 
 #define GEOS_ERROR_IF( EXP, msg )                               \
@@ -151,6 +152,13 @@
 #define GEOS_ASSERT( EXP ) GEOS_ASSERT_MSG( EXP, "" )
 
 #endif /* #ifdef GEOSX_USE_ATK */
+
+#ifndef NDEBUG
+#define GEOS_ERROR_IF_DEBUG( EXP, msg ) GEOS_ERROR_IF( EXP, msg )
+#else
+#define GEOS_ERROR_IF_DEBUG( EXP, msg ) ((void) 0)
+#endif
+
 
 namespace logger
 {

@@ -4,6 +4,7 @@
 
 set(newComponentTests
     testArray.cpp
+    testIntegerConversion.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
     testStringUtilities.cpp
