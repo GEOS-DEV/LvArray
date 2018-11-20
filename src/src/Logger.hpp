@@ -84,7 +84,7 @@
 #define GEOS_ERROR_IF( EXP, msg ) SLIC_ERROR_IF( EXP, msg )
 #define GEOS_WARNING( msg ) SLIC_WARNING( msg )
 #define GEOS_WARNING_IF( EXP, msg ) SLIC_WARNING_IF( EXP, msg )
-#define GEOS_INFO( EXP, msg ) SLIC_INFO( EXP, msg )
+#define GEOS_INFO( msg ) SLIC_INFO_IF( true, msg )
 #define GEOS_INFO_IF( EXP, msg ) SLIC_INFO_IF( EXP, msg )
 
 /* Active with AXOM_DEBUG */
