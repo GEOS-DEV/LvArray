@@ -63,14 +63,6 @@ integer_conversion( T input )
   static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
   static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
 
-  GEOS_ERROR_IF_DEBUG( input > std::numeric_limits<RTYPE>::max(),
-                       "conversion of integer \"("
-                       <<cxx_utilities::demangle( typeid(T).name() )
-                       <<")"<<input<<"\" to type ("
-                       <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                       <<") loses information! ("<<input<<">"
-                       <<std::numeric_limits<RTYPE>::max()<<")" );
-
   GEOS_ERROR_IF_DEBUG( input < 0,
                        "conversion of integer \"("
                        <<cxx_utilities::demangle( typeid(T).name() )
@@ -78,6 +70,13 @@ integer_conversion( T input )
                        <<cxx_utilities::demangle( typeid(RTYPE).name() )
                        <<") loses information! ("<<input<<"<0)" );
 
+  GEOS_ERROR_IF_DEBUG( static_cast<typename std::make_unsigned<T>::type>(input) > std::numeric_limits<RTYPE>::max(),
+                       "conversion of integer \"("
+                       <<cxx_utilities::demangle( typeid(T).name() )
+                       <<")"<<input<<"\" to type ("
+                       <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                       <<") loses information! ("<<input<<">"
+                       <<std::numeric_limits<RTYPE>::max()<<")" );
 
   return static_cast<RTYPE>(input);
 }

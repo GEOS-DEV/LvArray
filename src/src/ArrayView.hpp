@@ -39,67 +39,70 @@ template< int NDIM, typename INDEX_TYPE, int DIM=0 >
 struct size_helper
 {
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
+  inline CONSTEXPRFUNC static
+  typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
     return dims[INDEX] * size_helper<NDIM,INDEX_TYPE,INDEX+1>::f( dims );
   }
 
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
+  inline CONSTEXPRFUNC static
+  typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
     return dims[INDEX];
   }
-
 };
 
 
 /**
  * @struct This is a functor to calculate the linear index of a multidimensional array.
  */
-template< int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-struct index_helper
+template< int NDIM,
+          int DIM,
+          typename INDEX_TYPE,
+          typename INDEX,
+          typename... REMAINING_INDICES >
+struct linearIndex_helper
 {
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-  f( INDEX_TYPE const * const restrict strides,
-     INDEX index, REMAINING_INDICES... indices )
+  evaluate( INDEX_TYPE const * const restrict strides,
+            INDEX index,
+            REMAINING_INDICES... indices )
   {
     return index*strides[0]
-         + index_helper<DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( strides+1, indices... );
+         + linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::evaluate( strides+1,
+                                                                                        indices... );
   }
-};
 
-template< typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-struct index_helper<1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
-{
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-  f( INDEX_TYPE const * const restrict,
-     INDEX index )
-  {
-    return index;
-  }
-};
-
-template< int NDIM, int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-struct index_checker
-{
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-  f( INDEX_TYPE const * const restrict dims,
-     INDEX index, REMAINING_INDICES... indices )
+  check( INDEX_TYPE const * const restrict dims,
+         INDEX index, REMAINING_INDICES... indices )
   {
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    (NDIM - DIM) << "]=" << dims[0] );
-    index_checker<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( dims + 1, indices... );
+    linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::check( dims + 1, indices... );
   }
+
 };
 
-template< int NDIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-struct index_checker<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
+template< int NDIM,
+          typename INDEX_TYPE,
+          typename INDEX,
+          typename... REMAINING_INDICES >
+struct linearIndex_helper<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
 {
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
+  evaluate( INDEX_TYPE const * const restrict,
+            INDEX index )
+  {
+    return index;
+  }
+
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-  f( INDEX_TYPE const * const restrict dims,
-     INDEX index )
+  check( INDEX_TYPE const * const restrict dims,
+         INDEX index )
   {
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    (NDIM - 1) << "]=" << dims[0] );
@@ -441,9 +444,9 @@ public:
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
-    index_checker<NDIM, NDIM, INDEX_TYPE, INDICES...>::f( m_dimsMem, indices... );
+    linearIndex_helper<NDIM, NDIM, INDEX_TYPE, INDICES...>::check( m_dimsMem, indices... );
 #endif
-    return index_helper<NDIM, INDEX_TYPE, INDICES...>::f( m_stridesMem, indices... );
+    return linearIndex_helper<NDIM, NDIM, INDEX_TYPE, INDICES...>::evaluate( m_stridesMem, indices... );
   }
 
   /**

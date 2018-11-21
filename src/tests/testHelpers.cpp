@@ -23,7 +23,7 @@ TEST( SizeHelper, SizeHelper )
 template< int NDIM, typename... INDICES >
 int indexCaller( int const * const strides, INDICES... indices )
 {
-  return index_helper< NDIM, int, INDICES...>::f(strides, indices...);
+  return linearIndex_helper< NDIM, NDIM, int, INDICES...>::evaluate(strides, indices...);
 }
 
 TEST( IndexHelper, IndexHelper )
@@ -54,7 +54,7 @@ TEST( IndexHelper, IndexHelper )
 template< int NDIM, typename... INDICES >
 void indexChecker( int const * const dims, INDICES... indices )
 {
-  index_checker< NDIM, NDIM, int, INDICES...>::f(dims, indices...);
+  linearIndex_helper< NDIM, NDIM, int, INDICES...>::check(dims, indices...);
 }
 
 TEST( IndexChecker, IndexChecker )
@@ -74,7 +74,6 @@ TEST( IndexChecker, IndexChecker )
               a2 < 0 || a2 == dims[2] ||
               a3 < 0 || a3 == dims[3] )
           {
-//            std::cout<<a0<<" "<<a1<<" "<<a2<<" "<<a3<<std::endl;
             EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, a0,a1,a2,a3 ), "" );
           }
           else
