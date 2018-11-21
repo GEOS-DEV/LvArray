@@ -32,7 +32,81 @@
 namespace LvArray
 {
 
+/**
+ * @struct this is a functor to calculate the total size of the array from the dimensions.
+ */
+template< int NDIM, typename INDEX_TYPE, int DIM=0 >
+struct size_helper
+{
+  template< int INDEX=DIM >
+  inline CONSTEXPRFUNC static typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
+  f( INDEX_TYPE const * const restrict dims )
+  {
+    return dims[INDEX] * size_helper<NDIM,INDEX_TYPE,INDEX+1>::f( dims );
+  }
 
+  template< int INDEX=DIM >
+  inline CONSTEXPRFUNC static typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
+  f( INDEX_TYPE const * const restrict dims )
+  {
+    return dims[INDEX];
+  }
+
+};
+
+
+/**
+ * @struct This is a functor to calculate the linear index of a multidimensional array.
+ */
+template< int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+struct index_helper
+{
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
+  f( INDEX_TYPE const * const restrict strides,
+     INDEX index, REMAINING_INDICES... indices )
+  {
+    return index*strides[0]
+         + index_helper<DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( strides+1, indices... );
+  }
+};
+
+template< typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+struct index_helper<1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
+{
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
+  f( INDEX_TYPE const * const restrict,
+     INDEX index )
+  {
+    return index;
+  }
+};
+
+  template< int NDIM, int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+  struct index_checker
+  {
+    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
+    f( INDEX_TYPE const * const restrict dims,
+       INDEX index, REMAINING_INDICES... indices )
+    {
+      std::cout<<index<<std::endl;
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
+                     (NDIM - DIM) << "]=" << dims[0] );
+      index_checker<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( dims + 1, indices... );
+    }
+  };
+
+  template< int NDIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+  struct index_checker<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
+  {
+    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
+    f( INDEX_TYPE const * const restrict dims,
+       INDEX index )
+    {
+      std::cout<<index<<std::endl;
+      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
+                     (NDIM - 1) << "]=" << dims[0] );
+    }
+  };
 
 template< typename T,
           int NDIM,
@@ -257,7 +331,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const
   {
-    return size_helper<0>::f( m_dimsMem );
+    return size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem );
   }
 
   /**
@@ -369,9 +443,9 @@ public:
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
-    index_checker<NDIM, INDICES...>::f( m_dimsMem, indices... );
+    index_checker<NDIM, NDIM, INDEX_TYPE, INDICES...>::f( m_dimsMem, indices... );
 #endif
-    return index_helper<NDIM, INDICES...>::f( m_stridesMem, indices... );
+    return index_helper<NDIM, INDEX_TYPE, INDICES...>::f( m_stridesMem, indices... );
   }
 
   /**
@@ -514,80 +588,6 @@ protected:
       this->m_stridesMem[a] = strides[a];
     }
   }
-
-  /**
-   * @struct This is a functor to calculate the linear index of a multidimensional array.
-   */
-  template< int DIM, typename INDEX, typename... REMAINING_INDICES >
-  struct index_helper
-  {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-    f( INDEX_TYPE const * const restrict strides,
-       INDEX index, REMAINING_INDICES... indices )
-    {
-      return index*strides[0] + index_helper<DIM-1, REMAINING_INDICES...>::f( strides+1, indices... );
-    }
-  };
-
-  template< typename INDEX, typename... REMAINING_INDICES >
-  struct index_helper<1, INDEX, REMAINING_INDICES...>
-  {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-    f( INDEX_TYPE const * const restrict,
-       INDEX index )
-    {
-      return index;
-    }
-  };
-
-#ifdef USE_ARRAY_BOUNDS_CHECK
-  template< int DIM, typename INDEX, typename... REMAINING_INDICES >
-  struct index_checker
-  {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-    f( INDEX_TYPE const * const restrict dims,
-       INDEX index, REMAINING_INDICES... indices )
-    {
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIM - DIM) << "]=" << dims[0] );
-      index_checker<DIM-1, REMAINING_INDICES...>::f( dims + 1, indices... );
-    }
-  };
-
-  template< typename INDEX, typename... REMAINING_INDICES >
-  struct index_checker<1, INDEX, REMAINING_INDICES...>
-  {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-    f( INDEX_TYPE const * const restrict dims,
-       INDEX index )
-    {
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIM - 1) << "]=" << dims[0] );
-    }
-  };
-#endif
-
-  /**
-   * @struct this is a functor to calculate the total size of the array from the dimensions.
-   */
-  template< int DIM >
-  struct size_helper
-  {
-    template< int INDEX=DIM >
-    inline CONSTEXPRFUNC static typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
-    f( INDEX_TYPE const * const restrict dims )
-    {
-      return dims[INDEX] * size_helper<INDEX+1>::f( dims );
-    }
-
-    template< int INDEX=DIM >
-    inline CONSTEXPRFUNC static typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
-    f( INDEX_TYPE const * const restrict dims )
-    {
-      return dims[INDEX];
-    }
-
-  };
 
   /// this data member contains the dimensions of the array
   INDEX_TYPE m_dimsMem[NDIM];
