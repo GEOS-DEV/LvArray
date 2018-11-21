@@ -124,8 +124,8 @@ public:
     Array()
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
-    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments." );
-    static_assert( check_dim_type<0, DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
+    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
+    static_assert( check_dim_type<DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
     resize( dims... );
   }
@@ -281,7 +281,7 @@ public:
   {
     static_assert( sizeof ... (DIMS) == NDIM,
                    "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments." );
-    static_assert( check_dim_type<0, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     dim_unpack<0, DIMS...>::f( m_dimsMem, newdims... );
     CalculateStrides();
@@ -301,6 +301,18 @@ public:
     static_assert( is_valid_indexType<TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
+    CalculateStrides();
+    resize();
+  }
+
+  template < INDEX_TYPE... INDICES, typename ... DIMS>
+  typename std::enable_if<sizeof...(INDICES) <= NDIM && sizeof...(INDICES) == sizeof...(DIMS), void>::type
+  resizeDimension( DIMS ... newdims )
+  {
+    static_assert( check_dim_type<DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_indices<INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
+
+    dim_index_unpack( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
     CalculateStrides();
     resize();
   }
@@ -452,16 +464,28 @@ private:
                                   ( is_integer<CANDIDATE_INDEX_TYPE>::value &&
                                     ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
   };
-  template< int INDEX, typename DIM0, typename... DIMS >
+  template< typename DIM0, typename... DIMS >
   struct check_dim_type
   {
-    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<INDEX+1, DIMS...>::value;
+    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<DIMS...>::value;
   };
 
-  template< typename DIM0, typename... DIMS >
-  struct check_dim_type<NDIM-1, DIM0, DIMS...>
+  template< typename DIM0 >
+  struct check_dim_type<DIM0>
   {
     constexpr static bool value = is_valid_indexType<DIM0>::value;
+  };
+
+  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
+  struct check_dim_indices
+  {
+    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDICES...>::value;
+  };
+
+  template< INDEX_TYPE INDEX0 >
+  struct check_dim_indices<INDEX0>
+  {
+    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
   };
 
   template< int INDEX, typename DIM0, typename... DIMS >
@@ -484,6 +508,22 @@ private:
       return 0;
     }
   };
+
+  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
+  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                          std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
+                                          DIM0 dim0, DIMS... dims )
+  {
+    m_dims[INDEX0] = dim0;
+    dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
+  }
+  template<typename... DIMS>
+  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                          std::integer_sequence<INDEX_TYPE> indices,
+                                          DIMS... dims )
+  {
+    // terminates recursion trivially
+  }
 
 };
 
