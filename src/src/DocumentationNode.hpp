@@ -55,8 +55,8 @@ public:
                      geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ );
 
 
-  bool operator==(DocumentationNode const & rhs);
-  bool operator!=(DocumentationNode const & rhs) { return !(*this==rhs); }
+  bool operator==( DocumentationNode const & rhs );
+  bool operator!=( DocumentationNode const & rhs ) { return !(*this==rhs); }
 //  friend bool operator==( cxx_utilities::DocumentationNode const & lhs,
 //                          cxx_utilities::DocumentationNode const & rhs );
 //  friend bool operator!=( DocumentationNode const & lhs, DocumentationNode
@@ -75,7 +75,7 @@ public:
                                          unsigned int const & parentManaged,
                                          unsigned int const & isInput,
                                          unsigned int const & verbosity,
-                                         geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ);
+                                         geosx::dataRepository::RestartFlags const & restart_flag=geosx::dataRepository::RestartFlags::WRITE_AND_READ );
 
 
   // TODO THIS ISN'T CORRECT. FIX IT.
@@ -114,7 +114,7 @@ public:
 
   std::string const & getName() const { return m_name; }
 
-  void setName(std::string className) { m_name = className; }
+  void setName( std::string className ) { m_name = className; }
 
   std::string const & getStringKey() const { return m_stringKey; }
 
@@ -146,17 +146,17 @@ public:
 
   int const & getVerbosity() const { return m_verbosity; }
 
-  void setVerbosity( unsigned int verbosity) { m_verbosity = verbosity; }
-  
+  void setVerbosity( unsigned int verbosity ) { m_verbosity = verbosity; }
+
   geosx::dataRepository::RestartFlags getRestartFlags() const { return m_restart_flags; }
 
-  void setRestartFlags( geosx::dataRepository::RestartFlags flags ) { m_restart_flags = flags; } 
+  void setRestartFlags( geosx::dataRepository::RestartFlags flags ) { m_restart_flags = flags; }
 
-  std::map<std::string,DocumentationNode>       & getChildNodes()       { return m_child; }
-  std::map<std::string,DocumentationNode> const & getChildNodes() const { return m_child; }
+  std::map<std::string, DocumentationNode>       & getChildNodes()       { return m_child; }
+  std::map<std::string, DocumentationNode> const & getChildNodes() const { return m_child; }
 
-  DocumentationNode       * getChildNode( std::string const & name )       { return &m_child.at(name); }
-  DocumentationNode const * getChildNode( std::string const & name ) const { return &m_child.at(name); }
+  DocumentationNode       * getChildNode( std::string const & name )       { return &m_child.at( name ); }
+  DocumentationNode const * getChildNode( std::string const & name ) const { return &m_child.at( name ); }
 
 
 public:
@@ -177,7 +177,7 @@ public:
   unsigned int m_isRegistered                         =  0;
   DocumentationNode * m_parentNode                    = nullptr;
   geosx::dataRepository::RestartFlags m_restart_flags = geosx::dataRepository::RestartFlags::WRITE_AND_READ;
-  std::map<std::string,DocumentationNode> m_child     = {};
+  std::map<std::string, DocumentationNode> m_child     = {};
 
 };
 

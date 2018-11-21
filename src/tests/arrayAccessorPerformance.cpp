@@ -111,7 +111,7 @@ double MatrixMultiply_1Dr( integer_t const num_i,
       { \
         for( integer_t k = 0 ; k < num_k ; ++k ) \
         { \
-          C(i,j) += A(i,k) * B(k,j) + 3.1415 * A(i,k) + 1.61803 * B(k,j); \
+          C( i, j ) += A( i, k ) * B( k, j ) + 3.1415 * A( i, k ) + 1.61803 * B( k, j ); \
         } \
       } \
     } \
@@ -125,9 +125,9 @@ double MatrixMultiply_2D_accessor( integer_t const num_i,
                                    integer_t const num_j,
                                    integer_t const num_k,
                                    integer_t const ITERATIONS,
-                                   ArrayView<double,2> const A,
-                                   ArrayView<double,2> const B,
-                                   ArrayView<double,2> C )
+                                   ArrayView<double, 2> const A,
+                                   ArrayView<double, 2> const B,
+                                   ArrayView<double, 2> C )
 {
   MATMULT
 }
@@ -138,9 +138,9 @@ double MatrixMultiply_2D_accessorRef( integer_t const num_i,
                                       integer_t const num_j,
                                       integer_t const num_k,
                                       integer_t const ITERATIONS,
-                                      ArrayView<double,2> const & A,
-                                      ArrayView<double,2> const & B,
-                                      ArrayView<double,2>& C )
+                                      ArrayView<double, 2> const & A,
+                                      ArrayView<double, 2> const & B,
+                                      ArrayView<double, 2>& C )
 {
   MATMULT
 }
@@ -151,9 +151,9 @@ double MatrixMultiply_2D_accessorPBV2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       ArrayView<double,2> const  A,
-                                       ArrayView<double,2> const  B,
-                                       ArrayView<double,2> C )
+                                       ArrayView<double, 2> const  A,
+                                       ArrayView<double, 2> const  B,
+                                       ArrayView<double, 2> C )
 {
   MATMULT2
 }
@@ -162,9 +162,9 @@ double MatrixMultiply_2D_accessorRef2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       ArrayView<double,2> const & A,
-                                       ArrayView<double,2> const & B,
-                                       ArrayView<double,2>& C )
+                                       ArrayView<double, 2> const & A,
+                                       ArrayView<double, 2> const & B,
+                                       ArrayView<double, 2>& C )
 {
   MATMULT2
 }

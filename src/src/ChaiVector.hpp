@@ -41,9 +41,9 @@ static std::mutex chai_lock;
 #endif
 
 template < typename T >
-class ChaiVector 
+class ChaiVector
 #ifdef USE_CHAI
-: public chai::CHAICopyable
+  : public chai::CHAICopyable
 #endif
 {
 public:
@@ -55,7 +55,7 @@ public:
   /**
    * @brief Default constructor, creates a new empty vector.
    */
-  ChaiVector() :
+  ChaiVector():
 #ifdef USE_CHAI
     m_array(),
 #else
@@ -69,7 +69,7 @@ public:
    * @brief Creates a new vector of the given length.
    * @param [in] initial_length the initial length of the vector.
    */
-  ChaiVector( size_type initial_length ) :
+  ChaiVector( size_type initial_length ):
 #ifdef USE_CHAI
     m_array(),
 #else
@@ -88,7 +88,7 @@ public:
    * as such using push_back or other methods that change the state of the array is dangerous.
    * @note When using multiple memory spaces using the copy constructor can trigger a move.
    */
-  ChaiVector( const ChaiVector& source ) :
+  ChaiVector( const ChaiVector& source ):
     m_array( source.m_array ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
@@ -101,7 +101,7 @@ public:
    * @param [in] source the ChaiVector to move.
    * @note Unlike the copy constructor this can not trigger a memory movement.
    */
-  ChaiVector( ChaiVector&& source ) :
+  ChaiVector( ChaiVector&& source ):
     m_array( source.m_array ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
@@ -120,7 +120,7 @@ public:
    */
   void free()
   {
-    if ( capacity() > 0 )
+    if( capacity() > 0 )
     {
       clear();
 #ifdef USE_CHAI
@@ -193,10 +193,10 @@ public:
    * @return a reference to the value at the given index.
    */
   /// @{
-  T& operator[]( size_type pos )
+  LVARRAY_HOST_DEVICE T& operator[]( size_type pos )
   { return m_array[ pos ]; }
 
-  T const & operator[]( size_type pos ) const
+  LVARRAY_HOST_DEVICE T const & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
   /// @}
 
@@ -264,7 +264,7 @@ public:
   /**
    * @brief Return the number of values held in the vector.
    */
-  size_type size() const
+  LVARRAY_HOST_DEVICE size_type size() const
   { return m_length; }
 
   /**
@@ -273,7 +273,7 @@ public:
    */
   void reserve( size_type new_cap )
   {
-    if ( new_cap > capacity() )
+    if( new_cap > capacity() )
     {
       realloc( new_cap );
     }
@@ -283,12 +283,12 @@ public:
    * @brief Return the capacity of the vector.
    */
   size_type capacity() const
-  { 
+  {
 #ifdef USE_CHAI
     return m_array.size();
 #else
     return m_capacity;
-#endif  
+#endif
   }
 
   /**
@@ -331,7 +331,7 @@ public:
   iterator insert( size_type index, const T& value )
   {
     emplace( index, 1 );
-    new ( &m_array[ index ] ) T(value);
+    new ( &m_array[ index ] ) T( value );
     return begin() + index;
   }
 
@@ -344,7 +344,7 @@ public:
   iterator insert( size_type index, const T&& value )
   {
     emplace( index, 1 );
-    new ( &m_array[ index ] ) T(std::move(value));
+    new ( &m_array[ index ] ) T( std::move( value ));
     return begin() + index;
   }
 
@@ -363,9 +363,9 @@ public:
     emplace( index, n );
 
     /* Initialize the newly vacant values moved out of to the default value. */
-    for ( ; first != last; ++first )
+    for( ; first != last ; ++first )
     {
-      new ( &m_array[ index++ ] ) T(*first);
+      new ( &m_array[ index++ ] ) T( *first );
     }
 
     return begin() + index;
@@ -379,7 +379,7 @@ public:
   iterator erase( const_iterator pos )
   {
     const size_type index = pos - begin();
-    for ( size_type i = index; i < size() - 1; ++i )
+    for( size_type i = index ; i < size() - 1 ; ++i )
     {
       m_array[ i ] = std::move( m_array[ i + 1 ] );
     }
@@ -396,12 +396,12 @@ public:
    */
   void push_back( T const & value )
   {
-    if ( size() + 1 > capacity() )
+    if( size() + 1 > capacity() )
     {
       dynamicRealloc( size() + 1 );
     }
-    
-    new ( &m_array[ size() ] ) T(value);
+
+    new ( &m_array[ size() ] ) T( value );
     ++m_length;
   }
 
@@ -411,12 +411,12 @@ public:
    */
   void push_back( T && value )
   {
-    if ( size() + 1 > capacity() )
+    if( size() + 1 > capacity() )
     {
       dynamicRealloc( size() + 1 );
     }
-    
-    new ( &m_array[ size() ] ) T(std::move(value));
+
+    new ( &m_array[ size() ] ) T( std::move( value ));
     ++m_length;
   }
 
@@ -425,7 +425,7 @@ public:
    */
   void pop_back()
   {
-    if ( size() > 0 )
+    if( size() > 0 )
     {
       --m_length;
       m_array[ size() ].~T();
@@ -441,19 +441,19 @@ public:
    */
   void resize( const size_type new_length )
   {
-    if ( new_length > capacity() )
+    if( new_length > capacity() )
     {
       realloc( new_length );
     }
 
     /* Delete things between new_length and size() */
-    for ( size_type i = new_length; i < size(); ++i )
+    for( size_type i = new_length ; i < size() ; ++i )
     {
       m_array[ i ].~T();
     }
 
     /* Initialize things size() and new_length */
-    for ( size_type i = size(); i < new_length; ++i )
+    for( size_type i = size() ; i < new_length ; ++i )
     {
       new ( &m_array[ i ] ) T();
     }
@@ -470,19 +470,19 @@ private:
    */
   void emplace( size_type pos, size_type n )
   {
-    if ( n == 0 )
+    if( n == 0 )
     {
       return;
     }
 
     size_type new_length = size() + n;
-    if ( new_length > capacity() )
+    if( new_length > capacity() )
     {
       dynamicRealloc( new_length );
     }
 
     /* Move the existing values down by n. */
-    for ( size_type i = size(); i > pos; --i )
+    for( size_type i = size() ; i > pos ; --i )
     {
       const size_type cur_pos = i - 1;
       new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
@@ -506,18 +506,18 @@ private:
 #endif
 
     const size_type new_size = new_capacity > size() ? size() : new_capacity;
-    for ( size_type i = 0; i < new_size; ++i )
+    for( size_type i = 0 ; i < new_size ; ++i )
     {
       new ( &new_array[ i ] ) T( std::move( m_array[ i ] ) );
     }
 
-    for ( size_type i = 0; i < size(); ++i )
+    for( size_type i = 0 ; i < size() ; ++i )
     {
       m_array[ i ].~T();
     }
 
 #ifdef USE_CHAI
-    if ( capacity() != 0 )
+    if( capacity() != 0 )
     {
       internal::chai_lock.lock();
       m_array.free();

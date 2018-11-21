@@ -17,7 +17,22 @@
 #cmakedefine USE_MPI
 #endif
 
+#ifndef USE_CUDA
+#cmakedefine USE_CUDA
+#endif
 
+
+#if defined(USE_CUDA) && defined(__CUDACC__)
+
+#define LVARRAY_HOST_DEVICE __host__ __device__
+#define LVARRY_DEVICE __device__
+
+#else
+
+#define LVARRAY_HOST_DEVICE
+#define LVARRY_DEVICE
+
+#endif
 
 #endif  /* GEOSX_CONFIG_HPP */
 
