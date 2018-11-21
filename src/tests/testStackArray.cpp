@@ -79,15 +79,19 @@ TEST( StackArray, BoundsCheck2d )
 
 int main( int argc, char* argv[] )
 {
+#ifdef USE_MPI  
   MPI_Init( &argc, &argv );
   logger::InitializeLogger( MPI_COMM_WORLD );
+#endif
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
+#ifdef USE_MPI
   logger::FinalizeLogger();
   MPI_Finalize();
+#endif
   return result;
 }
 

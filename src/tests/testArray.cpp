@@ -1315,14 +1315,17 @@ TEST( ArrayView, test_dimReduction )
 
 int main( int argc, char* argv[] )
 {
+#if USE_MPI
   MPI_Init( &argc, &argv );
   logger::InitializeLogger( MPI_COMM_WORLD );
+#endif
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
-
+#if USE_MPI
   logger::FinalizeLogger();
   MPI_Finalize();
+#endif
   return result;
 }
