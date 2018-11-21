@@ -61,22 +61,44 @@ TEST( IndexChecker, IndexChecker )
 {
   int dims[4] = { 3, 7, 11, 17 };
 
-  indexChecker<4>( dims, -1,-1,-1,-1 );
-//  for( int a0=0 ; a0<dims[0] ; ++a0 )
-//  {
-//    for( int a1=0 ; a1<dims[1] ; ++a1 )
-//    {
-//      for( int a2=0 ; a2<dims[2] ; ++a2 )
-//      {
-//        for( int a3=0 ; a3<dims[3] ; ++a3 )
-//        {
-//          ASSERT_NO_FATAL_FAILURE( indexChecker<4>( dims, a0,a1,a2,a3 ) );
-//        }
-////        EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, a0,a1,a2,-1 ), "" );
-////        EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, a0,a1,a2,dims[3] ), "" );
-//      }
-//    }
-//  }
+  for( int a0=-1 ; a0<=dims[0] ; ++a0 )
+  {
+    for( int a1=-1 ; a1<=dims[1] ; ++a1 )
+    {
+      for( int a2=-1 ; a2<=dims[2] ; ++a2 )
+      {
+        for( int a3=-1 ; a3<=dims[3] ; ++a3 )
+        {
+          if( a0 < 0 || a0 == dims[0] ||
+              a1 < 0 || a1 == dims[1] ||
+              a2 < 0 || a2 == dims[2] ||
+              a3 < 0 || a3 == dims[3] )
+          {
+//            std::cout<<a0<<" "<<a1<<" "<<a2<<" "<<a3<<std::endl;
+            EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, a0,a1,a2,a3 ), "" );
+          }
+          else
+          {
+            ASSERT_NO_FATAL_FAILURE( indexChecker<4>( dims, a0,a1,a2,a3 ) );
+          }
+        }
+      }
+    }
+  }
 
 //  ASSERT_DEATH_IF_SUPPORTED( array1d.resize( 101 ), "" );
+}
+
+int main( int argc, char* argv[] )
+{
+  MPI_Init( &argc, &argv );
+  logger::InitializeLogger( MPI_COMM_WORLD );
+
+  int result = 0;
+  testing::InitGoogleTest( &argc, argv );
+  result = RUN_ALL_TESTS();
+
+  logger::FinalizeLogger();
+  MPI_Finalize();
+  return result;
 }

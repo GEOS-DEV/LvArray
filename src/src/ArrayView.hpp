@@ -81,32 +81,30 @@ struct index_helper<1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
   }
 };
 
-  template< int NDIM, int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-  struct index_checker
+template< int NDIM, int DIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+struct index_checker
+{
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
+  f( INDEX_TYPE const * const restrict dims,
+     INDEX index, REMAINING_INDICES... indices )
   {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-    f( INDEX_TYPE const * const restrict dims,
-       INDEX index, REMAINING_INDICES... indices )
-    {
-      std::cout<<index<<std::endl;
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIM - DIM) << "]=" << dims[0] );
-      index_checker<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( dims + 1, indices... );
-    }
-  };
+    GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
+                   (NDIM - DIM) << "]=" << dims[0] );
+    index_checker<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::f( dims + 1, indices... );
+  }
+};
 
-  template< int NDIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
-  struct index_checker<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
+template< int NDIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
+struct index_checker<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
+{
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
+  f( INDEX_TYPE const * const restrict dims,
+     INDEX index )
   {
-    LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-    f( INDEX_TYPE const * const restrict dims,
-       INDEX index )
-    {
-      std::cout<<index<<std::endl;
-      GEOS_ERROR_IF( index < 0 || index > dims[0], "index=" << index << ", m_dims[" <<
-                     (NDIM - 1) << "]=" << dims[0] );
-    }
-  };
+    GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
+                   (NDIM - 1) << "]=" << dims[0] );
+  }
+};
 
 template< typename T,
           int NDIM,
