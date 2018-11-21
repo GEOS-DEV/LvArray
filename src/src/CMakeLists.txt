@@ -4,6 +4,7 @@ set(cxx-utilities_headers
     ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
+    helpers.hpp
     IntegerConversion.hpp
     Logger.hpp
     Macros.hpp

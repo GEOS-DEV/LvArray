@@ -23,16 +23,31 @@
 
 
 #if defined(USE_CUDA) && defined(__CUDACC__)
-
-#define LVARRAY_HOST_DEVICE __host__ __device__
-#define LVARRY_DEVICE __device__
-
+  #define LVARRAY_HOST_DEVICE __host__ __device__
+  #define LVARRY_DEVICE __device__
 #else
-
-#define LVARRAY_HOST_DEVICE
-#define LVARRY_DEVICE
-
+  #define LVARRAY_HOST_DEVICE
+  #define LVARRY_DEVICE
 #endif
+
+
+#if defined(__clang__)  
+  #define restrict __restrict__
+  #define restrict_this
+  #define CONSTEXPRFUNC constexpr  
+#elif defined(__GNUC__)  
+  #if defined(__INTEL_COMPILER)
+    #define restrict __restrict__
+    #define restrict_this
+    #define CONSTEXPRFUNC
+  #else
+    #define restrict __restrict__
+    #define restrict_this
+    #define CONSTEXPRFUNC constexpr
+  #endif
+#endif
+
+
 
 #endif  /* GEOSX_CONFIG_HPP */
 

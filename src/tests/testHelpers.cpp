@@ -23,7 +23,7 @@ TEST( SizeHelper, SizeHelper )
 template< int NDIM, typename... INDICES >
 int indexCaller( int const * const strides, INDICES... indices )
 {
-  return linearIndex_helper< NDIM, NDIM, int, INDICES...>::evaluate(strides, indices...);
+  return linearIndex_helper< NDIM, int, INDICES...>::evaluate(strides, indices...);
 }
 
 TEST( IndexHelper, IndexHelper )
@@ -54,7 +54,7 @@ TEST( IndexHelper, IndexHelper )
 template< int NDIM, typename... INDICES >
 void indexChecker( int const * const dims, INDICES... indices )
 {
-  linearIndex_helper< NDIM, NDIM, int, INDICES...>::check(dims, indices...);
+  linearIndex_helper< NDIM, int, INDICES...>::check(dims, indices...);
 }
 
 TEST( IndexChecker, IndexChecker )
@@ -84,10 +84,28 @@ TEST( IndexChecker, IndexChecker )
       }
     }
   }
-
-//  ASSERT_DEATH_IF_SUPPORTED( array1d.resize( 101 ), "" );
 }
 
+
+TEST( StrideHelper, StrideHelper )
+{
+  int dims[4] = { 3, 7, 11, 17 };
+
+  int const result0 = stride_helper<4,int>::evaluate(dims);
+  int const result1 = stride_helper<3,int>::evaluate(dims+1);
+  int const result2 = stride_helper<2,int>::evaluate(dims+2);
+  int const result3 = stride_helper<1,int>::evaluate(dims+3);
+
+  std::cout<<dims[1]*dims[2]*dims[3]<<", "<<
+                     dims[2]*dims[3]<<", "<<
+                             dims[3]<<std::endl;
+
+  ASSERT_TRUE( result0 == dims[1]*dims[2]*dims[3] );
+  ASSERT_TRUE( result1 ==         dims[2]*dims[3] );
+  ASSERT_TRUE( result2 ==                 dims[3] );
+  ASSERT_TRUE( result3 ==                       1 );
+
+}
 int main( int argc, char* argv[] )
 {
   MPI_Init( &argc, &argv );

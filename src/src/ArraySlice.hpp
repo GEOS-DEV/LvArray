@@ -30,25 +30,6 @@
 #include "Logger.hpp"
 #include "CXX_UtilsConfig.hpp"
 
-#if defined(__clang__)
-
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC constexpr
-
-#elif defined(__GNUC__)
-
-#if defined(__INTEL_COMPILER)
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC
-#else
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC constexpr
-#endif
-#endif
-
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
