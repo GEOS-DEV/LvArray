@@ -28,7 +28,7 @@ int indexCaller( int const * const strides, INDICES... indices )
 
 TEST( IndexHelper, IndexHelper )
 {
-  int dims[4] = { 3, 7, 11, 17 };
+  int dims[4] = { 3, 2, 5, 3 };
   int strides[4] = { dims[1]*dims[2]*dims[3],
                              dims[2]*dims[3],
                                      dims[3],
@@ -59,7 +59,7 @@ void indexChecker( int const * const dims, INDICES... indices )
 
 TEST( IndexChecker, IndexChecker )
 {
-  int dims[4] = { 3, 7, 11, 17 };
+  int dims[4] = { 3, 2, 5, 3 };
 
   for( int a0=-1 ; a0<=dims[0] ; ++a0 )
   {
@@ -89,7 +89,7 @@ TEST( IndexChecker, IndexChecker )
 
 TEST( StrideHelper, StrideHelper )
 {
-  int dims[4] = { 3, 7, 11, 17 };
+  int dims[4] = { 3, 2, 5, 7 };
 
   int const result0 = stride_helper<4,int>::evaluate(dims);
   int const result1 = stride_helper<3,int>::evaluate(dims+1);

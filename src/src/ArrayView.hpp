@@ -89,7 +89,7 @@ public:
    * The default constructor
    */
   inline explicit CONSTEXPRFUNC
-  ArrayView():
+  ArrayView() noexcept:
     ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{ 0 },
     m_stridesMem{ 0 },
@@ -110,7 +110,7 @@ public:
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
-             INDEX_TYPE singleParameterResizeIndex ):
+             INDEX_TYPE singleParameterResizeIndex ) noexcept:
     ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
     m_dimsMem{ 0 },
     m_stridesMem{ 0 },
@@ -151,15 +151,16 @@ public:
    * associated with the copy. I.e. if passed into a lambda which is used to execute a cuda kernel,
    * the data will be allocated and copied to the device (if it doesn't already exist).
    */
-  inline CONSTEXPRFUNC
-  ArrayView( ArrayView const & source ):
-    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  ArrayView( ArrayView const & source ) noexcept:
+    ArraySlice<T, NDIM, INDEX_TYPE>( const_cast<T*>(source.m_dataVector.data()),
+                                     m_dimsMem,
+                                     m_stridesMem ),
     m_dimsMem{ 0 },
     m_stridesMem{ 0 },
-    m_dataVector( source.m_dataVector ),
+    m_dataVector{ source.m_dataVector },
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    setDataPtr();
     setDims( source.m_dimsMem );
     setStrides( source.m_stridesMem );
   }
@@ -172,13 +173,14 @@ public:
    */
   inline CONSTEXPRFUNC
   ArrayView( ArrayView && source ):
-    ArraySlice<T, NDIM, INDEX_TYPE>( nullptr, m_dimsMem, m_stridesMem ),
+    ArraySlice<T, NDIM, INDEX_TYPE>( const_cast<T*>(source.m_dataVector.data()),
+                                     m_dimsMem,
+                                     m_stridesMem ),
     m_dimsMem{ 0 },
     m_stridesMem{ 0 },
     m_dataVector( std::move( source.m_dataVector ) ),
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    setDataPtr();
     setDims( source.m_dimsMem );
     setStrides( source.m_stridesMem );
 
@@ -191,7 +193,7 @@ public:
    * @param rhs object to copy
    */
   inline CONSTEXPRFUNC
-  ArrayView & operator=( ArrayView const & rhs )
+  ArrayView & operator=( ArrayView const & rhs ) noexcept
   {
     m_dataVector = rhs.m_dataVector;
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
@@ -205,8 +207,8 @@ public:
    * @brief set all values of array to rhs
    * @param rhs value that array will be set to.
    */
-  inline CONSTEXPRFUNC
-  ArrayView & operator=( T const & rhs )
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  ArrayView & operator=( T const & rhs ) noexcept
   {
     INDEX_TYPE const length = size();
     T* const data_ptr = data();
@@ -225,10 +227,10 @@ public:
    * only difference between the types is a const specifier.
    */
   template< typename U = T >
-  inline CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
                                     ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
-    () const
+  () const noexcept
   {
     return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -238,9 +240,9 @@ public:
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
   template< int U=NDIM >
-  inline CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE> >::type
-  dimReduce() const
+  dimReduce() const noexcept
   {
     GEOS_ASSERT_MSG( m_dimsMem[NDIM - 1] == 1,
                      "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
@@ -256,7 +258,7 @@ public:
   /**
    * @brief function to return the allocated size
    */
-  inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const
+  inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
   {
     return size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem );
   }
@@ -436,7 +438,7 @@ public:
    * @brief function to get the length of a dimension
    * @param dim the dimension for which to get the length of
    */
-  inline LVARRAY_HOST_DEVICE INDEX_TYPE size( int dim ) const
+  inline LVARRAY_HOST_DEVICE INDEX_TYPE size( int dim ) const noexcept
   {
     return m_dimsMem[dim];
   }
@@ -445,7 +447,7 @@ public:
    * @brief this function is an accessor for the dims array
    * @return a pointer to m_dimsMem
    */
-  inline INDEX_TYPE const * dims() const
+  inline INDEX_TYPE const * dims() const noexcept
   {
     return m_dimsMem;
   }
@@ -454,7 +456,7 @@ public:
    * @brief this function is an accessor for the strides array
    * @return a pointer to m_stridesMem
    */
-  inline INDEX_TYPE const * strides() const
+  inline INDEX_TYPE const * strides() const noexcept
   {
     return m_stridesMem;
   }
@@ -484,7 +486,7 @@ protected:
    * ArraySlice because we do not want the array slices data members to be immutable from within
    * the slice.
    */
-  void setDataPtr()
+  void setDataPtr() noexcept
   {
     T*& dataPtr = const_cast<T*&>(this->m_data);
     dataPtr = m_dataVector.data();
@@ -496,7 +498,7 @@ protected:
    * @param dims a pointer/array containing the the new dimensions
    */
   template< typename DIMS_TYPE >
-  void setDims( DIMS_TYPE const dims[NDIM] )
+  void setDims( DIMS_TYPE const dims[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
@@ -508,7 +510,7 @@ protected:
    * @brief this function sets the strides of the array.
    * @param strides a pointer/array containing the the new strides
    */
-  void setStrides( INDEX_TYPE const strides[NDIM] )
+  void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
