@@ -30,25 +30,6 @@
 #include "Logger.hpp"
 #include "CXX_UtilsConfig.hpp"
 
-#if defined(__clang__)
-
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC constexpr
-
-#elif defined(__GNUC__)
-
-#if defined(__INTEL_COMPILER)
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC
-#else
-#define restrict __restrict__
-#define restrict_this
-#define CONSTEXPRFUNC constexpr
-#endif
-#endif
-
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -115,7 +96,7 @@ public:
   LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
   ArraySlice( T * const restrict inputData,
               INDEX_TYPE const * const restrict inputDimensions,
-              INDEX_TYPE const * const restrict inputStrides ):
+              INDEX_TYPE const * const restrict inputStrides ) noexcept:
     m_data( inputData ),
     m_dims( inputDimensions ),
     m_strides( inputStrides )
@@ -132,7 +113,7 @@ public:
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC operator
   typename std::enable_if< !std::is_const<U>::value,
                            ArraySlice<T const, NDIM, INDEX_TYPE> const & >::type
-    () const restrict_this
+    () const restrict_this noexcept
   {
     return reinterpret_cast<ArraySlice<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -143,7 +124,7 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline operator
-  typename std::enable_if< U == 1, T * const restrict >::type () const restrict_this
+  typename std::enable_if< U == 1, T * const restrict >::type () const noexcept restrict_this
   {
     return m_data;
   }
@@ -155,7 +136,7 @@ public:
    * @return A new ArraySlice<T,NDIM-1>
    */
   template< int U=NDIM >
-  CONSTEXPRFUNC inline explicit
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline explicit
   operator typename std::enable_if< (U>1),
                                     ArraySlice<T, NDIM-1, INDEX_TYPE> >::type () const restrict_this
   {
@@ -185,7 +166,7 @@ public:
 #else
   std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
 #endif
-  operator[]( INDEX_TYPE const index ) const restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice<T, NDIM-1, INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
@@ -205,7 +186,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   typename std::enable_if< U==2, T * restrict >::type
-  operator[]( INDEX_TYPE const index ) const restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     return &(m_data[ index*m_strides[0] ]);
   }
@@ -221,7 +202,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   typename std::enable_if< U==1, T & >::type
-  operator[]( INDEX_TYPE const index ) const restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return m_data[ index ];

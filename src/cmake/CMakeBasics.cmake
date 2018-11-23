@@ -1,5 +1,6 @@
 
 
+set(CMAKE_ENABLE_EXPORTS ON)
 
 
 message( "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}" )

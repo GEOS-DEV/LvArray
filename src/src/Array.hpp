@@ -447,13 +447,7 @@ private:
 
   void resize()
   {
-    INDEX_TYPE length = 1;
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      length *= m_dimsMem[a];
-    }
-
-    m_dataVector.resize( length );
+    m_dataVector.resize( size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem ) );
     this->setDataPtr();
   }
 

@@ -1,8 +1,11 @@
 set(cxx-utilities_headers
     Array.hpp
     ArraySlice.hpp
+    ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
+    helpers.hpp
+    IntegerConversion.hpp
     Logger.hpp
     Macros.hpp
     ObjectCatalog.hpp 
