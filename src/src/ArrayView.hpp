@@ -106,7 +106,7 @@ public:
    * @param singleParameterResizeIndex
    * @return
    */
-  inline explicit CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
@@ -239,7 +239,7 @@ public:
    * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
    */
   template< int U=NDIM >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline CONSTEXPRFUNC
   typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE> >::type
   dimReduce() const noexcept
   {
@@ -513,7 +513,7 @@ protected:
    * ArraySlice because we do not want the array slices data members to be immutable from within
    * the slice.
    */
-  void setDataPtr() noexcept
+  LVARRAY_HOST_DEVICE void setDataPtr() noexcept
   {
     T*& dataPtr = const_cast<T*&>(this->m_data);
     dataPtr = m_dataVector.data();
@@ -525,11 +525,15 @@ protected:
    * @param dims a pointer/array containing the the new dimensions
    */
   template< typename DIMS_TYPE >
-  void setDims( DIMS_TYPE const dims[NDIM] ) noexcept
+  LVARRAY_HOST_DEVICE void setDims( DIMS_TYPE const dims[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_dimsMem[a] = integer_conversion<INDEX_TYPE>( dims[a] );
+#ifdef USE_CUDA
+      this->m_dimsMem[a] = dims[a];
+#else
+      this->m_dimsMem[a] = integer_conversion<INDEX_TYPE>(dims[a]);
+#endif
     }
   }
 
@@ -537,7 +541,7 @@ protected:
    * @brief this function sets the strides of the array.
    * @param strides a pointer/array containing the the new strides
    */
-  void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
+  LVARRAY_HOST_DEVICE void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {

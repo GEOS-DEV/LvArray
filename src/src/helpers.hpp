@@ -36,7 +36,7 @@ template< int NDIM, typename INDEX_TYPE, int DIM=0 >
 struct size_helper
 {
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
   typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
@@ -44,7 +44,7 @@ struct size_helper
   }
 
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
   typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
@@ -163,8 +163,11 @@ struct linearIndex_helper
   check( INDEX_TYPE const * const restrict dims,
          INDEX index, REMAINING_INDICES... indices )
   {
+#ifdef USE_CUDA
+#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
+#endif
     linearIndex_helper< NDIM,
                         INDEX_TYPE,
                         REMAINING_INDICES...>::template check<DIM+1>( dims + 1,
@@ -177,8 +180,11 @@ struct linearIndex_helper
   check( INDEX_TYPE const * const restrict dims,
          INDEX index )
   {
+#ifdef USE_CUDA
+#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
+#endif
   }
 
 };

@@ -73,7 +73,7 @@ public:
   /**
    * @brief Default constructor, creates a new empty vector.
    */
-  ChaiVector():
+  LVARRAY_HOST_DEVICE ChaiVector():
 #ifdef USE_CHAI
     m_array(),
 #else
@@ -106,7 +106,7 @@ public:
    * as such using push_back or other methods that change the state of the array is dangerous.
    * @note When using multiple memory spaces using the copy constructor can trigger a move.
    */
-  ChaiVector( const ChaiVector& source ):
+  LVARRAY_HOST_DEVICE ChaiVector( const ChaiVector& source ):
     m_array( source.m_array ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
@@ -173,7 +173,7 @@ public:
    * @param [in] source the ChaiVector to copy.
    * @return *this.
    */
-  ChaiVector& operator=( ChaiVector const& source )
+  LVARRAY_HOST_DEVICE ChaiVector& operator=( ChaiVector const& source )
   {
     m_array = source.m_array;
     m_length = source.size();
@@ -244,10 +244,10 @@ public:
    * @brief Return a pointer to the data.
    */
   /// @{
-  T* data()
+  LVARRAY_HOST_DEVICE T* data()
   { return &m_array[0]; }
 
-  T const * data() const
+  LVARRAY_HOST_DEVICE T const * data() const
   { return &m_array[0]; }
   /// @}
 

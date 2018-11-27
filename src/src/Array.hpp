@@ -243,7 +243,7 @@ public:
   template< typename DIMS_TYPE >
   void resize( int const numDims, DIMS_TYPE * const dims )
   {
-    resize( numDims, const_cast<DIMS_TYPE const * const>(dims) );
+    resize( numDims, const_cast<DIMS_TYPE const *>(dims) );
   }
 
   /**
