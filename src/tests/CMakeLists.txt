@@ -8,6 +8,7 @@
 set(testSources
     testArray.cpp
     testFloatingPointExceptions.cpp
+    testArrayView.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
     testObjectCatalog.cpp

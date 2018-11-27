@@ -1292,77 +1292,13 @@ TEST( Array, test_array2D )
 }
 
 
-TEST( ArrayView, test_dimReduction )
-{
-  array2D< int > v( 10, 1 );
-  arrayView2D<int> const & vView = v;
-  ArrayView< int, 1, int > const vView1d = v.dimReduce();
-
-  for( int a=0 ; a<10 ; ++a )
-  {
-    v[a][0] = 2*a;
-  }
-
-  ASSERT_EQ( vView1d.data(), v.data() );
-
-  for( int a=0 ; a<10 ; ++a )
-  {
-    ASSERT_EQ( vView[a][0], v[a][0] );
-    ASSERT_EQ( vView1d[a], v[a][0] );
-  }
-
-
-}
-
-#ifdef USE_CUDA
-
-#define CUDA_TEST(X, Y)              \
-  static void cuda_test_##X##Y();    \
-  TEST(X, Y) { cuda_test_##X##Y(); } \
-  static void cuda_test_##X##Y()
-
-
-#ifdef USE_CHAI
-#include "chai/util/forall.hpp"
-#endif
-
-CUDA_TEST(ArrayView, testViewOnCuda)
-{
-  array< int > array1(10);
-  array< int > array2(10);
-  arrayView< int > & arrayView1 = array1;
-  arrayView< int > & arrayView2 = array2;
-
-  std::cout<<"step1"<<std::endl;
-
-  forall(cuda(), 0, 10, [=] __device__(int i)
-  {
-    arrayView1[i] = i;
-  });
-
-  std::cout<<"step2"<<std::endl;
-  forall(cuda(), 0, 10, [=] __device__(int i)
-  {
-    arrayView2[i] = arrayView1[i];
-  });
-
-  std::cout<<"step3"<<std::endl;
-  forall(sequential(), 0, 10, [=](int i)
-  {
-    ASSERT_EQ(arrayView1[i], i);
-    ASSERT_EQ(arrayView2[i], i);
-  });
-  std::cout<<"done"<<std::endl;
-}
-
-#endif
 
 int main( int argc, char* argv[] )
 {
   MPI_Init( &argc, &argv );
   logger::InitializeLogger( MPI_COMM_WORLD );
 
-  cxx_utilities::setSignalHandling(cxx_utilities::handler1);
+//  cxx_utilities::setSignalHandling(cxx_utilities::handler1);
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
