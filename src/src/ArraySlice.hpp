@@ -228,7 +228,7 @@ protected:
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
 template< typename T, typename INDEX_TYPE >
-using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE>;
+using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE> const;
 
 #else
 
@@ -236,7 +236,6 @@ template< typename T, typename INDEX_TYPE = int>
 using ArraySlice1d = T * const restrict;
 
 #endif
-
 
 }
 

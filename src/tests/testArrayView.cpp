@@ -61,6 +61,11 @@ using arrayView2D = ArrayView< T, 2, int >;
 //}
 
 
+static_assert( std::is_trivially_copyable< ArraySlice<int,1,int> >::value,
+               "ArraySlice does not satisfy is_trivially_copyable");
+//static_assert( std::is_trivially_copyable< ArrayView<int,1,int> >::value,
+//               "ArrayView does not satisfy is_trivially_copyable");
+
 TEST( ArrayView, test_upcast )
 {
   constexpr int N = 10;     /* Number of values to push_back */
@@ -88,15 +93,17 @@ TEST( ArrayView, test_upcast )
     }
 
     arraySlice<int> arrSlice1 = arrView;
-    arraySlice<int> const & arg2 = arrView;
-    arraySlice<int const> arg3 = arrView;
-    arraySlice<int const> const & arg4 = arrView;
+    arraySlice<int> const & arrSlice2 = arrView;
+    arraySlice<int const> arrSlice3 = arrView;
+    arraySlice<int const> const & arrSlice4 = arrView;
 
-    arraySlice<int> arrSlice11 = arrViewConst;
-    arraySlice<int> const & arg12 = arrViewConst;
-    arraySlice<int const> arg13 = arrViewConst;
-    arraySlice<int const> const & arg14 = arrViewConst;
-
+    for( int a=0 ; a<N ; ++a )
+    {
+      ASSERT_EQ( arr[a], arrSlice1[a] );
+      ASSERT_EQ( arr[a], arrSlice2[a] );
+      ASSERT_EQ( arr[a], arrSlice3[a] );
+      ASSERT_EQ( arr[a], arrSlice4[a] );
+    }
   }
 
   // we want these to fail compilation
@@ -110,11 +117,20 @@ TEST( ArrayView, test_upcast )
     }
   }
 
-
+  {
   arraySlice<int> arrSlice1 = arr;
-  arraySlice<int> const & arg2 = arr;
-  arraySlice<int const> arg3 = arr;
-  arraySlice<int const> const & arg4 = arr;
+  arraySlice<int> const & arrSlice2 = arr;
+  arraySlice<int const> arrSlice3 = arr;
+  arraySlice<int const> const & arrSlice4 = arr;
+
+  for( int a=0 ; a<N ; ++a )
+  {
+    ASSERT_EQ( arr[a], arrSlice1[a] );
+    ASSERT_EQ( arr[a], arrSlice2[a] );
+    ASSERT_EQ( arr[a], arrSlice3[a] );
+    ASSERT_EQ( arr[a], arrSlice4[a] );
+  }
+  }
 }
 
 
