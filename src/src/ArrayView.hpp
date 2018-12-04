@@ -253,7 +253,7 @@ public:
    * achieved by applying a reinterpret_cast to the this pointer, which is a safe operation as the
    * only difference between the types is a const specifier.
    */
-  inline LVARRAY_HOST_DEVICE
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator ArraySlice<T, NDIM, INDEX_TYPE>() const noexcept
   {
     return ArraySlice<T, NDIM, INDEX_TYPE>(m_data,m_dims,m_strides);

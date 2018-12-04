@@ -31,10 +31,14 @@ template < typename T >
 using array = Array< T, 1, int >;
 
 template < typename T >
-using array2D = Array< T, 2, int >;
+using arrayView = ArrayView< T, 1, int >;
 
 template < typename T >
-using arrayView = ArrayView< T, 1, int >;
+using arraySlice = ArraySlice< T, 1, int >;
+
+
+template < typename T >
+using array2D = Array< T, 2, int >;
 
 template < typename T >
 using arrayView2D = ArrayView< T, 2, int >;
@@ -56,9 +60,10 @@ using arrayView2D = ArrayView< T, 2, int >;
 //    static_assert( std::is_trivially_copyable< junk >::value, "blah");
 //}
 
+
 TEST( ArrayView, test_upcast )
 {
-  constexpr int N = 1000;     /* Number of values to push_back */
+  constexpr int N = 10;     /* Number of values to push_back */
 
   array< int > arr(N);
   array< int > const & arrConst = arr;
@@ -81,6 +86,17 @@ TEST( ArrayView, test_upcast )
       ASSERT_EQ( arr[a], arrConstView[a] );
       ASSERT_EQ( arr[a], arrConstViewConst[a] );
     }
+
+    arraySlice<int> arrSlice1 = arrView;
+    arraySlice<int> const & arg2 = arrView;
+    arraySlice<int const> arg3 = arrView;
+    arraySlice<int const> const & arg4 = arrView;
+
+    arraySlice<int> arrSlice11 = arrViewConst;
+    arraySlice<int> const & arg12 = arrViewConst;
+    arraySlice<int const> arg13 = arrViewConst;
+    arraySlice<int const> const & arg14 = arrViewConst;
+
   }
 
   // we want these to fail compilation
@@ -94,7 +110,15 @@ TEST( ArrayView, test_upcast )
     }
   }
 
+
+  arraySlice<int> arrSlice1 = arr;
+  arraySlice<int> const & arg2 = arr;
+  arraySlice<int const> arg3 = arr;
+  arraySlice<int const> const & arg4 = arr;
 }
+
+
+
 
 
 TEST( ArrayView, test_dimReduction )
