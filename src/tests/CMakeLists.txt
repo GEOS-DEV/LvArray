@@ -4,6 +4,7 @@
 
 set(newComponentTests
     testArray.cpp
+    testFloatingPointExceptions.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
     testObjectCatalog.cpp
