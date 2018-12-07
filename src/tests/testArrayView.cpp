@@ -141,7 +141,7 @@ TEST( ArrayView, test_dimReduction )
 {
   array2D< int > v( 10, 1 );
   arrayView2D<int> const & vView = v;
-  ArrayView< int, 1, int > const vView1d = v.dimReduce();
+  ArrayView< int, 1, int > const & vView1d = v.dimReduce();
 
   for( int a=0 ; a<10 ; ++a )
   {

@@ -120,25 +120,6 @@ public:
   }
 
   /**
-   * @brief constructor to disallow copying an Array to an ArrayView.
-   * @param
-   */
-  template< typename U=T  >
-  inline CONSTEXPRFUNC
-  ArrayView( typename std::enable_if< std::is_same< Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>,
-                                                    Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::value,
-                                      Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::type const & ):
-     m_data{ nullptr },
-    m_dims{ 0 },
-    m_strides{ 0 },
-    m_dataVector(),
-    m_singleParameterResizeIndex()
-  {
-    static_assert( !std::is_same< Array<U, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>, Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE> >::value,
-                   "construction of ArrayView from Array is not allowed" );
-  }
-
-  /**
    * @brief Copy Constructor
    * @param source the object to copy
    * @return
@@ -648,9 +629,9 @@ public:
     for( int a=0 ; a<NDIM ; ++a )
     {
 #ifdef USE_CUDA
-      this->m_dims[a] = dims[a];
+      const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
 #else
-      this->m_dims[a] = integer_conversion<INDEX_TYPE>(dims[a]);
+      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>(dims[a]);
 #endif
     }
   }
@@ -663,17 +644,17 @@ public:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_strides[a] = strides[a];
+      const_cast<INDEX_TYPE *>(m_strides)[a] = strides[a];
     }
   }
 
   T * const restrict m_data;
 
   /// this data member contains the dimensions of the array
-  INDEX_TYPE m_dims[NDIM];
+  INDEX_TYPE const m_dims[NDIM];
 
   /// this data member contains the strides of the array
-  INDEX_TYPE m_strides[NDIM];
+  INDEX_TYPE const m_strides[NDIM];
 
   /// this data member contains the actual data for the array
   DATA_VECTOR_TYPE m_dataVector;

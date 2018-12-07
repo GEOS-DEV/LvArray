@@ -201,8 +201,8 @@ public:
 
     for( int a=0 ; a<NDIM ; ++a )
     {
-      m_dims[a]     = rhs.m_dims[a];
-      m_strides[a]  = rhs.m_strides[a];
+      const_cast<INDEX_TYPE *>(m_dims)[a]     = rhs.m_dims[a];
+      const_cast<INDEX_TYPE *>(m_strides)[a]  = rhs.m_strides[a];
     }
 
     return *this;
@@ -274,7 +274,7 @@ public:
   {
 //    static_assert( is_valid_indexType<INDEX_TYPE, TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
-    m_dims[m_singleParameterResizeIndex] = newdim;
+    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength );
   }
@@ -295,11 +295,7 @@ public:
     static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 
     INDEX_TYPE const oldLength = size();
-<<<<<<< HEAD
-    dim_index_unpack<INDEX_TYPE, NDIM>( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
-=======
     dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
->>>>>>> removed inheritance relationship between ArrayView and ArraySlice. Now rather than inheriting from ArraySlice, ArrayView has replicated operator[] functions in its definition.
     CalculateStrides();
     resizePrivate( oldLength );
   }
@@ -324,9 +320,9 @@ public:
 
     for( int i = 0 ; i < NDIM ; ++i )
     {
-      m_dims[i] = 1;
+      const_cast<INDEX_TYPE *>(m_dims)[i] = 1;
     }
-    m_dims[getSingleParameterResizeIndex()] = 0;
+    const_cast<INDEX_TYPE *>(m_dims)[getSingleParameterResizeIndex()] = 0;
 
     CalculateStrides();
   }
@@ -337,7 +333,7 @@ public:
   {
     m_dataVector.push_back( newValue );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -346,7 +342,7 @@ public:
   {
     m_dataVector.push_back( std::move( newValue ));
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -354,7 +350,7 @@ public:
   pop_back()
   {
     m_dataVector.pop_back();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -363,7 +359,7 @@ public:
   {
     m_dataVector.insert( pos, value );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -372,7 +368,7 @@ public:
   {
     m_dataVector.insert( pos, std::move( value ) );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -381,7 +377,7 @@ public:
   {
     m_dataVector.insert( pos, value );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
@@ -390,7 +386,7 @@ public:
   {
     m_dataVector.insert( pos, std::move( value ) );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM, typename InputIt>
@@ -399,14 +395,14 @@ public:
   {
     m_dataVector.insert( pos, first, last );
     setDataPtr();
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type erase( iterator pos )
   {
     m_dataVector.erase( pos );
-    m_dims[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
+    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   /**@}*/
@@ -425,22 +421,17 @@ private:
 
   void CalculateStrides()
   {
-    m_strides[NDIM-1] = 1;
+    const_cast<INDEX_TYPE *>(m_strides)[NDIM-1] = 1;
     for( int a=NDIM-2 ; a>=0 ; --a )
     {
-      m_strides[a] = m_dims[a+1] * m_strides[a+1];
+      const_cast<INDEX_TYPE *>(m_strides)[a] = m_dims[a+1] * m_strides[a+1];
     }
   }
 
   void resizePrivate( INDEX_TYPE const oldLength, T const & defaultValue = T() )
   {
-<<<<<<< HEAD
     INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dimsMem );
     m_dataVector.resize( newLength, defaultValue );
-=======
-    INDEX_TYPE const newLength = size_helper<NDIM,INDEX_TYPE>::f( m_dims );
-    m_dataVector.resize( newLength );
->>>>>>> removed inheritance relationship between ArrayView and ArraySlice. Now rather than inheriting from ArraySlice, ArrayView has replicated operator[] functions in its definition.
     this->setDataPtr();
   }
 

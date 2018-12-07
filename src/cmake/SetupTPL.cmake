@@ -61,7 +61,8 @@ if( ${ENABLE_CHAI})
       set(CHAI_FOUND TRUE)
   endif()
 
-  find_path( CHAI_INCLUDE_DIRS chai/ManagedArray.hpp
+#  find_path( CHAI_INCLUDE_DIRS chai/ManagedArray.hpp
+   find_path( CHAI_INCLUDE_DIRS ${CHAI_DIR}/include
              PATHS  ${CHAI_DIR}/include
              NO_DEFAULT_PATH
              NO_CMAKE_ENVIRONMENT_PATH
@@ -69,7 +70,7 @@ if( ${ENABLE_CHAI})
              NO_SYSTEM_ENVIRONMENT_PATH
              NO_CMAKE_SYSTEM_PATH)
 
-  find_library( CHAI_LIBRARY NAMES chai libchai
+  find_library( CHAI_LIBRARY NAMES chai libchai libumpire libumpire_op libumpire_resource libumpire_strategy libumpire_tpl_judy libumpire_util
                 PATHS ${CHAI_DIR}/lib
                 NO_DEFAULT_PATH
                 NO_CMAKE_ENVIRONMENT_PATH
