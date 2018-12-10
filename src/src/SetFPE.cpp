@@ -1,48 +1,32 @@
-
+/**
+ * @file SetFPE.cpp
+ */
 
 #include "SetFPE.hpp"
 #include <fenv.h>
 #include <xmmintrin.h>
 #include <pmmintrin.h>
+//#include <bitset>
+//#include <iostream>
 
 namespace cxx_utilities
 {
+
+/**
+ * function to set the floating point environment. We typically want to throw floating point exceptions on
+ * FE_DIVBYZERO, FE_OVERFLOW | FE_INVALID. We would also like to flush denormal numbers to zero. Flushing doesn't
+ * seem to work in conjunction with FPE on mac, so we turn it off.
+ */
 void SetFPE()
 {
 #ifdef __APPLE__
-#if __clang__
 
-#elif __GNUC__
-//  _MM_SET_EXCEPTION_MASK( ( _MM_EXCEPT_INVALID |
-//          _MM_EXCEPT_DENORM |
-//          _MM_EXCEPT_DIV_ZERO |
-//          _MM_EXCEPT_OVERFLOW |
-//          _MM_EXCEPT_UNDERFLOW |
-//          _MM_EXCEPT_INEXACT ) );
-//  _MM_SET_EXCEPTION_MASK( _MM_GET_EXCEPTION_MASK()
-//           & ~( _MM_EXCEPT_INVALID |
-//                _MM_EXCEPT_DENORM |
-//                _MM_EXCEPT_DIV_ZERO |
-//                _MM_EXCEPT_OVERFLOW |
-//                _MM_EXCEPT_UNDERFLOW |
-//                _MM_EXCEPT_INEXACT ) );
-//  _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_EXCEPT_DIV_ZERO);
-#endif
+  fenv_t fenv_local ;//= _FE_DFL_DISABLE_SSE_DENORMS_ENV;
+  fenv_local.__mxcsr =  FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID  ;
+  fesetenv( &fenv_local );
+
 #else
-
   feenableexcept( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID  );
-
-
-
-//  _MM_SET_EXCEPTION_MASK( ~( _MM_EXCEPT_INVALID |
-//                          _MM_EXCEPT_DENORM |
-//                          _MM_EXCEPT_DIV_ZERO |
-//                          _MM_EXCEPT_OVERFLOW |
-//                          _MM_EXCEPT_UNDERFLOW ));
-
-//  _MM_SET_EXCEPTION_MASK( 0x0000 );
-  //_MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & _MM_MASK_DIV_ZERO);
-
   SetUnderflowFlush();
 #endif
 

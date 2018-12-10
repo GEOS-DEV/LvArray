@@ -29,17 +29,16 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wglobal-constructors"
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wused-but-marked-unused"
+#define __null nullptr
 #endif
 
 #include "gtest/gtest.h"
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#define __null nullptr
-#endif
+//#ifdef __clang__
+//#pragma clang diagnostic push
+//#define __null nullptr
+//#endif
 
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
@@ -62,6 +61,7 @@ const char IGNORE_OUTPUT[] = ".*";
 TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
 {
   cxx_utilities::UnsetUnderflowFlush();
+#ifndef __APPLE__
   feenableexcept( FE_UNDERFLOW );
   EXPECT_DEATH_IF_SUPPORTED(  uf_test(DBL_MIN, 2) , "");
   fedisableexcept(FE_UNDERFLOW);
@@ -70,6 +70,7 @@ TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
   double fpnum = uf_test(DBL_MIN, 2);
   int fpclassification = std::fpclassify( fpnum );
   EXPECT_TRUE( fpclassification != FP_SUBNORMAL );
+#endif
 }
 
 TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
@@ -90,3 +91,6 @@ TEST( TestFloatingPointEnvironment, test_FE_INVALID )
   cxx_utilities::SetFPE();
   EXPECT_DEATH_IF_SUPPORTED( double junk0 = std::acos(2.0); , "");
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif

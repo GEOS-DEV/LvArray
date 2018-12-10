@@ -4,6 +4,11 @@
 
 using namespace LvArray;
 
+#if defined(__APPLE__) &&  defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wused-but-marked-unused"
+#endif
+
 TEST( SizeHelper, SizeHelper )
 {
   int dims[4] = { 3, 7, 11, 17 };
@@ -119,3 +124,7 @@ int main( int argc, char* argv[] )
   MPI_Finalize();
   return result;
 }
+
+#if defined(__APPLE__) &&  defined(__clang__)
+#pragma clang diagnostic pop
+#endif

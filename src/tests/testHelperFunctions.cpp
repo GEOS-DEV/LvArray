@@ -42,7 +42,7 @@ void testStackTrace(double divisor)
 
 
 
-#if defined(__clang__)  
+#if !defined(__APPLE__) && defined(__clang__)
 #pragma STDC FENV_ACCESS ON
 #endif
 void show_fe_exceptions(void)
