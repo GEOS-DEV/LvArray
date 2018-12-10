@@ -29,8 +29,19 @@ void SetFPE()
 //  _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_EXCEPT_DIV_ZERO);
 #endif
 #else
+
   feenableexcept( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID  );
-//  fesetenv(FE_DFL_DISABLE_SSE_DENORMS_ENV);
+
+
+
+//  _MM_SET_EXCEPTION_MASK( ~( _MM_EXCEPT_INVALID |
+//                          _MM_EXCEPT_DENORM |
+//                          _MM_EXCEPT_DIV_ZERO |
+//                          _MM_EXCEPT_OVERFLOW |
+//                          _MM_EXCEPT_UNDERFLOW ));
+
+//  _MM_SET_EXCEPTION_MASK( 0x0000 );
+  //_MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & _MM_MASK_DIV_ZERO);
 
   SetUnderflowFlush();
 #endif
