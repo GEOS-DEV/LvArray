@@ -42,8 +42,9 @@ void testStackTrace(double divisor)
 
 
 
-
+#if defined(__clang__)  
 #pragma STDC FENV_ACCESS ON
+#endif
 void show_fe_exceptions(void)
 {
     printf("exceptions raised:");
