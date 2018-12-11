@@ -66,4 +66,10 @@ double of_test( double x, double y )
 {
   return x*y;
 }
+
+double invalid_test( double x )
+{
+  return std::acos(2.0);
+}
+
 }

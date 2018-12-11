@@ -24,4 +24,7 @@ void show_fe_exceptions(void);
 double uf_test(double x, double denominator);
 
 double of_test( double x, double y );
+
+double invalid_test( double x );
 }
+

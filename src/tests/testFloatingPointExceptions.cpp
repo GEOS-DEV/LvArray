@@ -60,8 +60,6 @@ const char IGNORE_OUTPUT[] = ".*";
 
 TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
 {
-  cxx_utilities::UnsetUnderflowFlush();
-#ifndef __APPLE__
   feenableexcept( FE_UNDERFLOW );
   EXPECT_DEATH_IF_SUPPORTED(  uf_test(DBL_MIN, 2) , "");
   fedisableexcept(FE_UNDERFLOW);
@@ -70,7 +68,6 @@ TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
   double fpnum = uf_test(DBL_MIN, 2);
   int fpclassification = std::fpclassify( fpnum );
   EXPECT_TRUE( fpclassification != FP_SUBNORMAL );
-#endif
 }
 
 TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
@@ -89,7 +86,7 @@ TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
 TEST( TestFloatingPointEnvironment, test_FE_INVALID )
 {
   cxx_utilities::SetFPE();
-  EXPECT_DEATH_IF_SUPPORTED( double junk0 = std::acos(2.0); , "");
+  EXPECT_DEATH_IF_SUPPORTED( double junk0 = invalid_test(0.0); , "");
 }
 #ifdef __clang__
 #pragma clang diagnostic pop
