@@ -20,6 +20,10 @@
 #include "gtest/gtest.h"
 #include "Array.hpp"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wused-but-marked-unused"
+#endif
 
 using namespace LvArray;
 
@@ -90,4 +94,7 @@ int main( int argc, char* argv[] )
   MPI_Finalize();
   return result;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 

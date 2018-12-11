@@ -19,6 +19,10 @@
 #include "gtest/gtest.h"
 #include "IntegerConversion.hpp"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wused-but-marked-unused"
+#endif
 
 typedef  int32_t  int32;
 typedef uint32_t uint32;
@@ -91,4 +95,7 @@ int main( int argc, char* argv[] )
   MPI_Finalize();
   return result;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 

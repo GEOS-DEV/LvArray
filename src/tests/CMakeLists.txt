@@ -2,8 +2,12 @@
 # Specify list of tests
 #
 
-set(newComponentTests
+
+    
+
+set(testSources
     testArray.cpp
+    testFloatingPointExceptions.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
     testObjectCatalog.cpp
@@ -21,10 +25,10 @@ endif()
 #
 # Add gtest C++ based tests
 #
-foreach(test ${newComponentTests})
+foreach(test ${testSources})
     get_filename_component( test_name ${test} NAME_WE )
     blt_add_executable( NAME ${test_name}
-                        SOURCES ${test}
+                        SOURCES ${test} testHelperFunctions.cpp
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
                         DEPENDS_ON gtest cxx-utilities ${cxx_dependencies} )
 

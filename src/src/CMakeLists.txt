@@ -9,6 +9,7 @@ set(cxx-utilities_headers
     Logger.hpp
     Macros.hpp
     ObjectCatalog.hpp 
+    SetFPE.hpp
     SetSignalHandling.hpp
     SFINAE_Macros.hpp
     SortedArray.hpp
@@ -18,6 +19,7 @@ set(cxx-utilities_headers
 
 set(cxx-utilities_sources
     Logger.cpp
+    SetFPE.cpp
     SetSignalHandling.cpp
     stackTrace.cpp
     StringUtilities.cpp )
