@@ -158,7 +158,7 @@ struct linearIndex_helper
 
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline  static
   typename std::enable_if< DIM!=(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index, REMAINING_INDICES... indices )
@@ -175,7 +175,7 @@ struct linearIndex_helper
   }
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline  static
   typename std::enable_if< DIM==(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index )

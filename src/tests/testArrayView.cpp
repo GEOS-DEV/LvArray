@@ -61,8 +61,8 @@ using arrayView2D = ArrayView< T, 2, int >;
 //}
 
 
-static_assert( std::is_trivially_copyable< ArraySlice<int,1,int> >::value,
-               "ArraySlice does not satisfy is_trivially_copyable");
+//static_assert( std::is_trivially_copyable< ArraySlice<int,1,int> >::value,
+//               "ArraySlice does not satisfy is_trivially_copyable");
 //static_assert( std::is_trivially_copyable< ArrayView<int,1,int> >::value,
 //               "ArrayView does not satisfy is_trivially_copyable");
 
