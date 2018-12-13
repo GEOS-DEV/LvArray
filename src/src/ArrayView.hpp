@@ -434,6 +434,15 @@ public:
     }
   }
 
+  void copy( INDEX_TYPE const destIndex, ArrayView const & source )
+  {
+    INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
+    for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
+    {
+      m_data[offset+i] = source.data()[i];
+    }
+  }
+
   /**
    * @brief function to get the length of a dimension
    * @param dim the dimension for which to get the length of
