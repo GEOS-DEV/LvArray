@@ -419,6 +419,11 @@ public:
     return &(m_dataVector[ index*m_stridesMem[0] ]);
   }
 
+  /**
+   * @brief copy value from one location in this array to another
+   * @param destIndex index for which to copy data into
+   * @param sourceIndex index to copy data from
+   */
   void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
     ARRAY_SLICE_CHECK_BOUNDS( destIndex );
@@ -431,6 +436,29 @@ public:
     for( INDEX_TYPE i = 0 ; i < stride0 ; ++i )
     {
       dest[i] = source[i];
+    }
+  }
+
+  /**
+   * @brief function to copy values of another array to a location in this array
+   * @param destIndex the index where the source data is to be inserted
+   * @param source the source of the data
+   *
+   * This function will copy the data from source, to a location in *this. It is intended to allow
+   * for collection of multiple data arrays into a single array. All dims should be the same except
+   * for m_singleParameterResizeIndex;
+   */
+  void copy( INDEX_TYPE const destIndex, ArrayView const & source )
+  {
+    INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
+
+    GEOS_ERROR_IF( source.size() > this->size() - offset,
+                   "Insufficient storage space to copy source (size="<<source.size()<<
+                   ") into current array at specified offset ("<<offset<<"). Available space"
+                   " is equal to this->size() - offset = "<<this->size() - offset );
+    for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
+    {
+      m_data[offset+i] = source.data()[i];
     }
   }
 

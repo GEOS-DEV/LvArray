@@ -86,6 +86,9 @@ class Array : public ArrayView< T,
 {
 public:
   using isArray = std::true_type;
+  using value_type = T;
+  static constexpr int ndim = NDIM;
+
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dataVector;
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dimsMem;
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_stridesMem;
@@ -99,7 +102,6 @@ public:
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator[];
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator();
 
-  using value_type = T;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::pointer;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_pointer;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::iterator;
