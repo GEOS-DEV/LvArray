@@ -113,7 +113,7 @@ public:
    */
   inline Array():
     ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>(),
-    m_defaultValue( T() )
+    m_default()
   {
     CalculateStrides();
   }
@@ -440,14 +440,16 @@ public:
     m_singleParameterResizeIndex = index;
   }
 
-  void setDefaultValue( T const & defaultValue )
+  template< typename U=T >
+  typename std::enable_if<DefaultValue<U>::has_default_value,void>::type
+  setDefaultValue( T const & defaultValue )
   {
-    m_defaultValue = defaultValue;
+    m_default.value = defaultValue;
   }
 
 private:
 
-  T m_defaultValue;
+  DefaultValue<T> m_default;
 
   void CalculateStrides()
   {
@@ -467,21 +469,17 @@ private:
   }
 
   template< typename U=T >
-  typename std::enable_if< std::is_arithmetic<U>::value ||
-                           ( cxx_utilities::has_copy_assignement_operator<U>::value &&
-                           !detail::is_array<U>::value ) , void>::type
+  typename std::enable_if< DefaultValue<U>::has_default_value , void>::type
   applyDefaultValues( INDEX_TYPE const startingIndex, INDEX_TYPE const endingIndex )
   {
     for( INDEX_TYPE a=startingIndex ; a<endingIndex ; ++a )
     {
-      this->m_data[a] = m_defaultValue;
+      this->m_data[a] = m_default.value;
     }
   }
 
   template< typename U=T >
-  typename std::enable_if< !( std::is_arithmetic<U>::value ||
-                              ( cxx_utilities::has_copy_assignement_operator<U>::value &&
-                                !detail::is_array<U>::value ) ) ,void>::type
+  typename std::enable_if< !(DefaultValue<U>::has_default_value) ,void>::type
   applyDefaultValues( INDEX_TYPE const , INDEX_TYPE const  )
   {}
 

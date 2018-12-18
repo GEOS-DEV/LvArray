@@ -166,7 +166,30 @@ struct linearIndex_helper
 };
 #endif
 
+
+namespace DefaultValueHelper
+{
+template< typename T, typename ENABLE=void >
+struct Helper
+{
+  static constexpr bool has_default_value = false;
+};
+
+template< typename T >
+struct Helper< T, typename std::enable_if< std::is_arithmetic<T>::value >::type >
+{
+  static constexpr bool has_default_value = true;
+  using value_type = T;
+  value_type value = 0;
+};
 }
+
+template< typename T >
+using DefaultValue = DefaultValueHelper::Helper<T>;
+
+
+}
+
 
 
 #endif /* SRC_SRC_HELPERS_HPP_ */
