@@ -77,7 +77,7 @@ struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_typ
  */
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE = std::int_fast32_t,
+          typename INDEX_TYPE = std::ptrdiff_t,
           typename DATA_VECTOR_TYPE = ChaiVector<T> >
 class Array : public ArrayView< T,
                                 NDIM,
@@ -112,8 +112,7 @@ public:
    * @brief default constructor
    */
   inline Array():
-    ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>(),
-    m_default()
+    ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
   {
     CalculateStrides();
   }
@@ -281,10 +280,9 @@ public:
    * @param newdims the new dimensions
    */
   template< typename... DIMS >
-  void resize( DIMS... newdims )
+  typename std::enable_if<sizeof ... (DIMS) == NDIM,void>::type
+  resize( DIMS... newdims )
   {
-    static_assert( sizeof ... (DIMS) == NDIM,
-                   "Error: calling template< typename... DIMS > Array::resize(DIMS...newdims) with incorrect number of arguments." );
     static_assert( check_dim_type<DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldLength = size();
@@ -308,6 +306,16 @@ public:
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength );
+  }
+
+  template< typename TYPE >
+  void resizeDefault( TYPE newdim, T const & defaultValue = T() )
+  {
+    static_assert( is_valid_indexType<TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    INDEX_TYPE const oldLength = size();
+    m_dimsMem[m_singleParameterResizeIndex] = newdim;
+    CalculateStrides();
+    resizePrivate( oldLength, defaultValue );
   }
 
   template < INDEX_TYPE... INDICES, typename ... DIMS>
@@ -440,16 +448,7 @@ public:
     m_singleParameterResizeIndex = index;
   }
 
-  template< typename U=T >
-  typename std::enable_if<DefaultValue<U>::has_default_value,void>::type
-  setDefaultValue( T const & defaultValue )
-  {
-    m_default.value = defaultValue;
-  }
-
 private:
-
-  DefaultValue<T> m_default;
 
   void CalculateStrides()
   {
@@ -460,28 +459,12 @@ private:
     }
   }
 
-  void resizePrivate( INDEX_TYPE const oldLength )
+  void resizePrivate( INDEX_TYPE const oldLength, T const & defaultValue = T() )
   {
     INDEX_TYPE const newLength = size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem );
-    m_dataVector.resize( newLength );
+    m_dataVector.resize( newLength, defaultValue );
     this->setDataPtr();
-    applyDefaultValues( oldLength, newLength );
   }
-
-  template< typename U=T >
-  typename std::enable_if< DefaultValue<U>::has_default_value , void>::type
-  applyDefaultValues( INDEX_TYPE const startingIndex, INDEX_TYPE const endingIndex )
-  {
-    for( INDEX_TYPE a=startingIndex ; a<endingIndex ; ++a )
-    {
-      this->m_data[a] = m_default.value;
-    }
-  }
-
-  template< typename U=T >
-  typename std::enable_if< !(DefaultValue<U>::has_default_value) ,void>::type
-  applyDefaultValues( INDEX_TYPE const , INDEX_TYPE const  )
-  {}
 
   template< typename CANDIDATE_INDEX_TYPE >
   struct is_valid_indexType

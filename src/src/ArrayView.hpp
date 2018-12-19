@@ -70,7 +70,7 @@ class Array;
  */
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE = std::int_fast32_t,
+          typename INDEX_TYPE = std::ptrdiff_t,
           typename DATA_VECTOR_TYPE = ChaiVector<T> >
 class ArrayView : public ArraySlice<T, NDIM, INDEX_TYPE >
 {

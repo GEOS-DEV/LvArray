@@ -439,7 +439,7 @@ public:
    * if increasing the size the values past the current size are initialized with
    * the default constructor.
    */
-  void resize( const size_type new_length )
+  void resize( const size_type new_length, T const & defaultValue  = T())
   {
     if( new_length > capacity() )
     {
@@ -455,7 +455,7 @@ public:
     /* Initialize things size() and new_length */
     for( size_type i = size() ; i < new_length ; ++i )
     {
-      new ( &m_array[ i ] ) T();
+      new ( &m_array[ i ] ) T(defaultValue);
     }
 
     m_length = new_length;
