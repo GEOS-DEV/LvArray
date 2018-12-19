@@ -33,16 +33,6 @@
 #include "ChaiVector.hpp"
 #include "SFINAE_Macros.hpp"
 
-template< typename T >
-struct is_integer
-{
-  constexpr static bool value = std::is_same<T, int>::value ||
-                                std::is_same<T, unsigned int>::value ||
-                                std::is_same<T, long int>::value ||
-                                std::is_same<T, unsigned long int>::value ||
-                                std::is_same<T, long long int>::value ||
-                                std::is_same<T, unsigned long long int>::value;
-};
 
 
 namespace LvArray
@@ -50,23 +40,7 @@ namespace LvArray
 
 
 
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-class Array;
 
-namespace detail
-{
-template<typename>
-struct is_array : std::false_type {};
-
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
-}
 
 /**
  * @class Array
@@ -127,7 +101,7 @@ public:
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
     static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
-    static_assert( check_dim_type<DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
     resize( dims... );
   }
@@ -279,14 +253,15 @@ public:
    * @tparam DIMS variadic pack containing the dimension types
    * @param newdims the new dimensions
    */
-  template< typename... DIMS >
-  typename std::enable_if<sizeof ... (DIMS) == NDIM,void>::type
-  resize( DIMS... newdims )
+  template< typename... DIMS,
+            typename ENABLE = std::enable_if_t<sizeof ... (DIMS) == NDIM &&
+                                               conjunction<is_valid_indexType<INDEX_TYPE,DIMS>::value...>::value> >
+  void resize( DIMS... newdims )
   {
-    static_assert( check_dim_type<DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldLength = size();
-    dim_unpack<0, DIMS...>::f( m_dimsMem, newdims... );
+    dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( m_dimsMem, newdims... );
     CalculateStrides();
     resizePrivate(oldLength);
   }
@@ -301,17 +276,15 @@ public:
   template< typename TYPE >
   void resize( TYPE newdim )
   {
-    static_assert( is_valid_indexType<TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( is_valid_indexType<INDEX_TYPE,TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength );
   }
 
-  template< typename TYPE >
-  void resizeDefault( TYPE newdim, T const & defaultValue = T() )
+  void resizeDefault( INDEX_TYPE newdim, T const & defaultValue = T() )
   {
-    static_assert( is_valid_indexType<TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
@@ -322,11 +295,11 @@ public:
   typename std::enable_if<sizeof...(INDICES) <= NDIM && sizeof...(INDICES) == sizeof...(DIMS), void>::type
   resizeDimension( DIMS ... newdims )
   {
-    static_assert( check_dim_type<DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
-    static_assert( check_dim_indices<INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
+    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_indices<INDEX_TYPE,NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 
     INDEX_TYPE const oldLength = size();
-    dim_index_unpack( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
+    dim_index_unpack<INDEX_TYPE,NDIM>( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
     CalculateStrides();
     resizePrivate( oldLength );
   }
@@ -466,73 +439,7 @@ private:
     this->setDataPtr();
   }
 
-  template< typename CANDIDATE_INDEX_TYPE >
-  struct is_valid_indexType
-  {
-    constexpr static bool value = std::is_same<CANDIDATE_INDEX_TYPE, INDEX_TYPE>::value ||
-                                  ( is_integer<CANDIDATE_INDEX_TYPE>::value &&
-                                    ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
-  };
-  template< typename DIM0, typename... DIMS >
-  struct check_dim_type
-  {
-    constexpr static bool value =  is_valid_indexType<DIM0>::value && check_dim_type<DIMS...>::value;
-  };
 
-  template< typename DIM0 >
-  struct check_dim_type<DIM0>
-  {
-    constexpr static bool value = is_valid_indexType<DIM0>::value;
-  };
-
-  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
-  struct check_dim_indices
-  {
-    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDICES...>::value;
-  };
-
-  template< INDEX_TYPE INDEX0 >
-  struct check_dim_indices<INDEX0>
-  {
-    constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
-  };
-
-  template< int INDEX, typename DIM0, typename... DIMS >
-  struct dim_unpack
-  {
-    constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... dims )
-    {
-      m_dims[INDEX] = dim0;
-      dim_unpack< INDEX+1, DIMS...>::f( m_dims, dims... );
-      return 0;
-    }
-  };
-
-  template< typename DIM0, typename... DIMS >
-  struct dim_unpack<NDIM-1, DIM0, DIMS...>
-  {
-    constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
-    {
-      m_dims[NDIM-1] = dim0;
-      return 0;
-    }
-  };
-
-  template< INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
-  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                          std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
-                                          DIM0 dim0, DIMS... dims )
-  {
-    m_dims[INDEX0] = dim0;
-    dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
-  }
-  template<typename... DIMS>
-  constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                          std::integer_sequence<INDEX_TYPE> indices,
-                                          DIMS... dims )
-  {
-    // terminates recursion trivially
-  }
 
 };
 

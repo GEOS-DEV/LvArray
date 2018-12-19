@@ -166,8 +166,133 @@ struct linearIndex_helper
 };
 #endif
 
+
+template< typename T >
+struct is_integer
+{
+  constexpr static bool value = std::is_same<T, int>::value ||
+                                std::is_same<T, unsigned int>::value ||
+                                std::is_same<T, long int>::value ||
+                                std::is_same<T, unsigned long int>::value ||
+                                std::is_same<T, long long int>::value ||
+                                std::is_same<T, unsigned long long int>::value;
+};
+
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+class Array;
+
+namespace detail
+{
+template<typename>
+struct is_array : std::false_type {};
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
 }
 
 
+
+
+template <bool... B>
+struct conjunction {};
+
+template <bool Head, bool... Tail>
+struct conjunction<Head, Tail...>
+    : std::integral_constant<bool, Head && conjunction<Tail...>::value>{};
+
+template <bool B>
+struct conjunction<B> : std::integral_constant<bool, B> {};
+
+
+
+template< typename INDEX_TYPE, typename CANDIDATE_INDEX_TYPE >
+struct is_valid_indexType
+{
+  constexpr static bool value = std::is_same<CANDIDATE_INDEX_TYPE, INDEX_TYPE>::value ||
+                                ( is_integer<CANDIDATE_INDEX_TYPE>::value &&
+                                  ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
+};
+
+template< typename INDEX_TYPE, typename DIM0, typename... DIMS >
+struct check_dim_type
+{
+  constexpr static bool value =  is_valid_indexType<INDEX_TYPE,DIM0>::value && check_dim_type<INDEX_TYPE,DIMS...>::value;
+};
+
+template< typename INDEX_TYPE,typename DIM0 >
+struct check_dim_type<INDEX_TYPE,DIM0>
+{
+  constexpr static bool value = is_valid_indexType<INDEX_TYPE,DIM0>::value;
+};
+
+
+
+
+
+template<  typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
+struct check_dim_indices
+{
+  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDEX_TYPE,NDIM,INDICES...>::value;
+};
+
+template<  typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0 >
+struct check_dim_indices<INDEX_TYPE, NDIM, INDEX0>
+{
+  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
+};
+
+template<  typename INDEX_TYPE, int NDIM, int COUNTER, typename DIM0, typename... DIMS >
+struct dim_unpack
+{
+  constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... dims )
+  {
+    m_dims[NDIM-COUNTER] = dim0;
+    dim_unpack<  INDEX_TYPE, NDIM, COUNTER-1, DIMS...>::f( m_dims, dims... );
+    return 0;
+  }
+};
+
+template< typename INDEX_TYPE, int NDIM, typename DIM0, typename... DIMS >
+struct dim_unpack<INDEX_TYPE,NDIM, 1, DIM0, DIMS...>
+{
+  constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
+  {
+    m_dims[NDIM-1] = dim0;
+    return 0;
+  }
+};
+
+
+
+
+template< typename INDEX_TYPE, int NDIM, typename... DIMS>
+constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                        std::integer_sequence<INDEX_TYPE> indices,
+                                        DIMS... dims );
+
+template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
+constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                        std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
+                                        DIM0 dim0, DIMS... dims )
+{
+  m_dims[INDEX0] = dim0;
+  dim_index_unpack<INDEX_TYPE,NDIM>( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
+}
+template< typename INDEX_TYPE, int NDIM, typename... DIMS>
+constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
+                                        std::integer_sequence<INDEX_TYPE> indices,
+                                        DIMS... dims )
+{
+  // terminates recursion trivially
+}
+
+}
 
 #endif /* SRC_SRC_HELPERS_HPP_ */
