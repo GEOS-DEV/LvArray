@@ -23,6 +23,7 @@
 #include "Array.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
+#include "testUtils.hpp"
 
 using namespace LvArray;
 
@@ -831,42 +832,6 @@ void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 }
 
 } /* namespace internal */
-
-
-struct Tensor
-{
-  double x, y, z;
-
-  Tensor():
-    x(), y(), z()
-  {}
-
-  Tensor( double val ):
-    x( val ), y( val ), z( val )
-  {}
-
-  bool operator==( const Tensor& other ) const
-  {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-    return x == other.x && y == other.y && z == other.z;
-#pragma GCC diagnostic pop
-  }
-};
-
-//TEST( Array, test_const )
-//{
-//  int junk[ 10 ];
-//  int dim[ 1 ] = { 10 };
-//  int stride[ 1 ] = { 1 };
-//
-//
-//  ArrayView< int, 1, int > array( junk, dim, stride );
-//
-//  ArrayView< const int, 1, int > arrayC = array;
-//
-//  EXPECT_TRUE( arrayC[ 9 ] == array[ 9 ] );
-//}
 
 TEST( Array, push_back )
 {

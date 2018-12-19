@@ -72,8 +72,10 @@ template< typename T,
           int NDIM,
           typename INDEX_TYPE = std::ptrdiff_t,
           typename DATA_VECTOR_TYPE = ChaiVector<T> >
-//template<typename TT=T> class DATA_VECTOR_TYPE = ChaiVector >
 class ArrayView
+#ifdef USE_CHAI
+  : public chai::CHAICopyable
+#endif
 {
 public:
 
@@ -103,7 +105,7 @@ public:
    * @param singleParameterResizeIndex
    * @return
    */
-  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
+  inline explicit CONSTEXPRFUNC
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
@@ -140,14 +142,6 @@ public:
     setDataPtr();
     setDims( source.m_dims );
     setStrides( source.m_strides );
-//#if defined(__CUDA_ARCH__)
-//    printf( "Calling ArrayView CC on device\n");
-//#else
-//    printf( "Calling ArrayView CC on host\n");
-//#endif
-//    printf("ArrayView CC:    m_dims,    m_strides = %p, %p\n", m_dims, m_strides);
-//    printf("          CC: m_dims[0], m_strides[0] = %d, %d\n", m_dims[0], m_strides[0]);
-
   }
 
   /**
@@ -158,7 +152,7 @@ public:
    */
   inline CONSTEXPRFUNC
   ArrayView( ArrayView && source ):
-    m_data{ nullptr},
+    m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataVector( std::move( source.m_dataVector ) ),
@@ -203,7 +197,13 @@ public:
     return *this;
   }
 
-  ArrayView & operator=( ArrayView && ) = delete;
+  ArrayView & operator=( ArrayView && rhs )
+  {
+    *this = rhs;
+    rhs.m_dataVector.reset();
+    rhs.setDataPtr();
+    return *this;
+  }
 
   /**
    * User Defined Conversion operator to move from an "ArrayView<T> const" to
@@ -211,22 +211,13 @@ public:
    * pointer, which is a safe operation as the only difference between the types is a
    * const specifier.
    */
+  template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator ArrayView<T const, NDIM, INDEX_TYPE> const & () const noexcept
+  operator typename std::enable_if< !std::is_const<U>::value,
+                                    ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
+  () const noexcept
   {
     return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
-  }
-
-  /**
-   * User Defined Conversion operator to move from an "ArrayView<T>" to
-   * "ArrayView<T const> &".  This is achieved by applying a reinterpret_cast to the this
-   * pointer, which is a safe operation as the only difference between the types is a
-   * const specifier.
-   */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator ArrayView<T const, NDIM, INDEX_TYPE> & ()
-  {
-    return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> &>(*this);
   }
 
   /**
@@ -303,16 +294,7 @@ public:
    * @return a reference to the first element of the array
    */
   template< typename U = T >
-  inline T& front()
-  {
-    return m_dataVector.front();
-  }
-
-  /**
-   * @brief std::vector-like front method
-   * @return a reference to the first element of the array
-   */
-  inline T const& front() const
+  inline T& front() const
   {
     return m_dataVector.front();
   }
@@ -321,16 +303,7 @@ public:
    * @brief std::vector-like back method
    * @return a reference to the last element of the array
    */
-  inline T& back()
-  {
-    return m_dataVector.back();
-  }
-
-  /**
-   * @brief std::vector-like back method
-   * @return a reference to the last element of the array
-   */
-  inline T const& back() const
+  inline T& back() const
   {
     return m_dataVector.back();
   }
@@ -339,16 +312,7 @@ public:
    * @brief std::vector-like begin method
    * @return an iterator to the first element of the array
    */
-  inline iterator begin()
-  {
-    return m_dataVector.begin();
-  }
-
-  /**
-   * @brief std::vector-like begin method
-   * @return an iterator to the first element of the array
-   */
-  inline const_iterator begin() const
+  inline iterator begin() const
   {
     return m_dataVector.begin();
   }
@@ -357,16 +321,7 @@ public:
    * @brief std::vector-like end method
    * @return an iterator to the element of the array past the last element
    */
-  inline iterator end()
-  {
-    return m_dataVector.end();
-  }
-
-  /**
-   * @brief std::vector-like end method
-   * @return an iterator to the element of the array past the last element
-   */
-  inline const_iterator end() const
+  inline iterator end() const
   {
     return m_dataVector.end();
   }
@@ -605,8 +560,6 @@ public:
     return stream;
   }
 
-//protected:
-
   /**
    * Sets the ArraySlice::m_data pointer to the current contents of m_dataVector. This is not in
    * ArraySlice because we do not want the array slices data members to be immutable from within
@@ -647,6 +600,8 @@ public:
       const_cast<INDEX_TYPE *>(m_strides)[a] = strides[a];
     }
   }
+
+protected:
 
   T * const restrict m_data;
 

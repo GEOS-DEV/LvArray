@@ -23,7 +23,16 @@
 #include "Array.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
+#include "testUtils.hpp"
 #include <type_traits>
+
+#ifdef USE_CUDA
+
+#ifdef USE_CHAI
+#include "chai/util/forall.hpp"
+#endif
+
+#endif
 
 using namespace LvArray;
 
@@ -31,47 +40,576 @@ template < typename T >
 using array = Array< T, 1, int >;
 
 template < typename T >
-using arrayView = ArrayView< T, 1, int >;
+using arrayView = ArrayView< T, 1, int > const;
 
 template < typename T >
-using arraySlice = ArraySlice< T, 1, int >;
+using arrayView_nc = ArrayView< T, 1, int >;
+
+template < typename T >
+using arraySlice = ArraySlice< T, 1, int > const;
 
 
 template < typename T >
 using array2D = Array< T, 2, int >;
 
 template < typename T >
-using arrayView2D = ArrayView< T, 2, int >;
+using arrayView2D = ArrayView< T, 2, int > const;
 
-//class junk
-//{
-//public:
-//  junk( junk const & source ):
-//    m{ source.m[0], source.m[1] }
-//  {}
-//
-//  double m[2];
-//  chai::ManagedArray<double> m2;
-//};
+template < typename T >
+using array3D = Array< T, 3, int >;
 
-//TEST( ArrayView, triviallyCopyable )
-//{
-//  //  ASSERT_TRUE( std::is_trivially_copyable< junk >::value );
-//    static_assert( std::is_trivially_copyable< junk >::value, "blah");
-//}
+template < typename T >
+using arrayView3D = ArrayView< T, 3, int > const;
+
+namespace internal
+{
 
 
-//static_assert( std::is_trivially_copyable< ArraySlice<int,1,int> >::value,
-//               "ArraySlice does not satisfy is_trivially_copyable");
-//static_assert( std::is_trivially_copyable< ArrayView<int,1,int> >::value,
-//               "ArrayView does not satisfy is_trivially_copyable");
+template < typename T >
+void test2DAccessors( arrayView2D< T > & v )
+{
+  const int I = v.size(0);
+  const int J = v.size(1);
+  
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      v[ i ][ j ] = T( J * i + j );
+    }
+  }
+
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      v( i, j ) *= T( 2 );
+    }
+  }
+
+  for( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      T val( J * i + j  );
+      val *= T( 2 );
+      EXPECT_EQ( v[ i ][ j ], val );
+    }
+  }
+}
+
+
+template < typename T >
+void test3DAccessors( arrayView3D< T > & v )
+{
+  const int I = v.size(0);
+  const int J = v.size(1);
+  const int K = v.size(2);
+  
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      for ( int k = 0; k < K; ++k )
+      {
+        v[ i ][ j ][ k ] = T( J * K * i + K * j + k );
+      }
+    }
+  }
+
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      for ( int k = 0; k < K; ++k )
+      {
+        v( i, j, k ) *= T( 2 );
+      }
+    }
+  }
+
+  for( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      for ( int k = 0; k < K; ++k )
+      {
+        T val( J * K * i + K * j + k );
+        val *= T( 2 );
+        EXPECT_EQ( v[ i ][ j ][ k ], val );
+      }
+    }
+  }
+}
+
+
+#ifdef USE_CUDA
+
+
+template < typename T >
+void testMemoryMotion( arrayView< T > & v )
+{
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {
+    v[ i ] = T( i );
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= v[ i ];
+    }
+  );
+
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      T val( i );
+      val *= val;
+      EXPECT_EQ( v[ i ], val );
+    }
+  );
+}
+
+
+template < typename T >
+void testMemoryMotionMove( array< T > & a )
+{
+  arrayView< T > & v = a;
+
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {
+    v[ i ] = T( i );
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= v[ i ];
+    }
+  );
+
+  a.move( chai::CPU );
+  for ( int i = 0; i < N; ++i )
+  {
+    T val = T( i );
+    val *= val;
+    EXPECT_EQ( v[ i ], val );
+  }
+}
+
+
+template < typename T >
+void testMemoryMotionMultiple( arrayView< T > & v )
+{
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {
+    v[ i ] = T( i );
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      T val( i );
+      val *= T( 2 ) * T( 2 ) * T( 2 ) * T( 2 );
+      EXPECT_EQ( v[ i ], val );
+    }
+  );
+}
+
+template < typename T >
+void testMemoryMotionMultipleMove( array< T > & a )
+{
+  arrayView< T > & v = a;
+
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {
+    v[ i ] = T( i );
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  a.move( chai::CPU );
+  for ( int i = 0; i < N; ++i )
+  {
+    v[ i ] *= T( 2 );
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      v[ i ] *= T( 2 );
+    }
+  );
+
+  a.move( chai::CPU );
+  for ( int i = 0; i < N; ++i )
+  {
+    T val( i );
+    val *= T( 2 ) * T( 2 ) * T( 2 ) * T( 2 );
+    EXPECT_EQ( v[ i ], val );
+  }
+}
+
+
+template < typename T >
+void testMemoryMotionArray( array< array< T > > & a )
+{
+  arrayView< arrayView_nc< T > > & v = reinterpret_cast< arrayView< arrayView_nc< T > > & >( a );
+
+  const int N = v.size();
+
+  for ( int i = 0; i < N; ++i )
+  { 
+    for ( int j = 0; j < N; ++j )
+    {
+      v[ i ][ j ] = T( N * i + j );
+    }
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        v[ i ][ j ] *= v[ i ][ j ];
+      }
+    }
+  );
+
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        T val( N * i + j );
+        val *= val;
+        EXPECT_EQ( v[ i ][ j ], val );
+      }
+    }
+  );
+}
+
+
+template < typename T >
+void testMemoryMotionArrayMove( array< array< T > > & a )
+{
+  arrayView< arrayView_nc< T > > & v = reinterpret_cast< arrayView< arrayView_nc< T > > & >( a );
+
+  const int N = v.size();
+
+  for ( int i = 0; i < N; ++i )
+  { 
+    for ( int j = 0; j < N; ++j )
+    {
+      v[ i ][ j ] = T( N * i + j );
+    }
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        v[ i ][ j ] *= v[ i ][ j ];
+      }
+    }
+  );
+
+  a.move( chai::CPU );
+  for ( int i = 0; i < N; ++i )
+  {
+    for ( int j = 0; j < N; ++j )
+    {
+      T val( N * i + j );
+      val *= val;
+      EXPECT_EQ( v[ i ][ j ], val );
+    }
+  }
+}
+
+
+template < typename T >
+void testMemoryMotionArray2( array< array< array< T > > > & a )
+{
+  arrayView< arrayView_nc< arrayView_nc< T > > > & v = reinterpret_cast< arrayView< arrayView_nc< arrayView_nc< T > > > & >( a );
+
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {  
+    for ( int j = 0; j < N; ++j )
+    {
+      for ( int k = 0; k < N; ++k )
+      {
+        v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
+      }
+    }
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        for ( int k = 0; k < N; ++k )
+        {
+          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+        }
+      }
+    }
+  );
+
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        for ( int k = 0; k < N; ++k )
+        {
+          T val( N * N * i + N * j + k );
+          val *= val;
+          EXPECT_EQ( v[ i ][ j ][ k ], val );
+        }
+      }
+    }
+  );
+}
+
+
+template < typename T >
+void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
+{
+  arrayView< arrayView_nc< arrayView_nc< T > > > & v = reinterpret_cast< arrayView< arrayView_nc< arrayView_nc< T > > > & >( a );
+  
+  const int N = v.size();
+  
+  for ( int i = 0; i < N; ++i )
+  {  
+    for ( int j = 0; j < N; ++j )
+    {
+      for ( int k = 0; k < N; ++k )
+      {
+        v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
+      }
+    }
+  }
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        for ( int k = 0; k < N; ++k )
+        {
+          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+        }
+      }
+    }
+  );
+
+  a.move( chai::CPU );
+  for ( int i = 0; i < N; ++i )
+  {  
+    for ( int j = 0; j < N; ++j )
+    {
+      for ( int k = 0; k < N; ++k )
+      {
+        T val( N * N * i + N * j + k );
+        val *= val;
+        EXPECT_EQ( v[ i ][ j ][ k ], val );
+      }
+    }
+  }
+}
+
+
+template < typename T >
+void test2DAccessorsDevice( arrayView2D< T > & v )
+{
+  const int I = v.size(0);
+  const int J = v.size(1);
+  
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      v[ i ][ j ] = T( J * i + j );
+    }
+  }
+
+  forall( cuda(), 0, I,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < J; ++j )
+      {
+        v( i, j ) *= T( 2 );
+        v[ i ][ j ] *= T( 2 );
+      }
+    }
+  );
+
+  forall( sequential(), 0, I,
+    [=] ( int i )
+    {
+      for ( int j = 0; j < J; ++j )
+      {
+        T val( J * i + j  );
+        val *= T( 2 ) * T( 2 );
+        EXPECT_EQ( v[ i ][ j ], val );
+      }
+    }
+  );
+}
+
+
+template < typename T >
+void test3DAccessorsDevice( arrayView3D< T > & v )
+{
+  const int I = v.size(0);
+  const int J = v.size(1);
+  const int K = v.size(2);
+  
+  for ( int i = 0; i < I; ++i )
+  {
+    for ( int j = 0; j < J; ++j )
+    {
+      for ( int k = 0; k < K; ++k )
+      {
+        v[ i ][ j ][ k ] = T( J * K * i + K * j + k );
+      }
+    }
+  }
+
+  forall( cuda(), 0, I,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < J; ++j )
+      {
+        for ( int k = 0; k < K; ++k )
+        {
+          v( i, j, k ) *= T( 2 );
+          v[ i ][ j ][ k ] *= T( 2 );
+        }
+      }
+    }
+  );
+
+  forall( sequential(), 0, I,
+    [=] ( int i )
+    {
+      for ( int j = 0; j < J; ++j )
+      {
+        for ( int k = 0; k < K; ++k )
+        {
+          T val( J * K * i + K * j + k );
+          val *= T( 2 ) * T( 2 );
+          EXPECT_EQ( v[ i ][ j ][ k ], val );
+        }
+      }
+    }
+  );
+}
+
+template < typename T >
+void testSizeOnDevice( arrayView3D< T > & v )
+{
+
+  forall( cuda(), 0, v.size(0),
+    [=] __device__ ( int i )
+    {
+      const int I = v.size(0);
+      const int J = v.size(1);
+      const int K = v.size(2);
+      for ( int j = 0; j < J; ++j )
+      {
+        for ( int k = 0; k < K; ++k )
+        {
+          v( i, j, k ) = T( J * K * i + K * j + k );
+        }
+      }
+    }
+  );
+
+  const int I = v.size(0);
+  const int J = v.size(1);
+  const int K = v.size(2);
+
+  forall( sequential(), 0, I,
+    [=] ( int i )
+    {
+      for ( int j = 0; j < J; ++j )
+      {
+        for ( int k = 0; k < K; ++k )
+        {
+          T val( J * K * i + K * j + k );
+          EXPECT_EQ( v[ i ][ j ][ k ], val );
+        }
+      }
+    }
+  );
+}
+
+
+#endif
+
+} /* namespace internal */
+
 
 TEST( ArrayView, test_upcast )
 {
-  constexpr int N = 10;     /* Number of values to push_back */
+  constexpr int N = 10;
 
   array< int > arr(N);
-  array< int > const & arrConst = arr;
 
   for( int a=0 ; a<N ; ++a )
   {
@@ -80,170 +618,327 @@ TEST( ArrayView, test_upcast )
 
   {
     arrayView< int > & arrView = arr;
-    arrayView< int > const & arrViewConst = arr;
-    arrayView< int const > & arrConstView = arrView;
-    arrayView< int const > const & arrConstViewConst = arr;
+    arrayView< int const > & arrViewConst = arr;
 
     for( int a=0 ; a<N ; ++a )
     {
       ASSERT_EQ( arr[a], arrView[a] );
       ASSERT_EQ( arr[a], arrViewConst[a] );
-      ASSERT_EQ( arr[a], arrConstView[a] );
-      ASSERT_EQ( arr[a], arrConstViewConst[a] );
     }
 
     arraySlice<int> arrSlice1 = arrView;
-    arraySlice<int> const & arrSlice2 = arrView;
-    arraySlice<int const> arrSlice3 = arrView;
-    arraySlice<int const> const & arrSlice4 = arrView;
+    arraySlice<int const> & arrSlice4 = arrView;
 
     for( int a=0 ; a<N ; ++a )
     {
       ASSERT_EQ( arr[a], arrSlice1[a] );
-      ASSERT_EQ( arr[a], arrSlice2[a] );
-      ASSERT_EQ( arr[a], arrSlice3[a] );
       ASSERT_EQ( arr[a], arrSlice4[a] );
     }
   }
 
-  // we want these to fail compilation
   {
-//    arrayView< int > & arrView = arrConst;
-    arrayView< int > const & arrViewConst = arrConst;
+    arraySlice<int> arrSlice1 = arr;
+    arraySlice<int const> & arrSlice4 = arr;
+
     for( int a=0 ; a<N ; ++a )
     {
-      arrViewConst[a] = 2*a;
-      ASSERT_EQ( arr[a], arrViewConst[a] );
+      ASSERT_EQ( arr[a], arrSlice1[a] );
+      ASSERT_EQ( arr[a], arrSlice4[a] );
     }
-  }
-
-  {
-  arraySlice<int> arrSlice1 = arr;
-  arraySlice<int> const & arrSlice2 = arr;
-  arraySlice<int const> arrSlice3 = arr;
-  arraySlice<int const> const & arrSlice4 = arr;
-
-  for( int a=0 ; a<N ; ++a )
-  {
-    ASSERT_EQ( arr[a], arrSlice1[a] );
-    ASSERT_EQ( arr[a], arrSlice2[a] );
-    ASSERT_EQ( arr[a], arrSlice3[a] );
-    ASSERT_EQ( arr[a], arrSlice4[a] );
-  }
   }
 }
 
 
-
-
-
 TEST( ArrayView, test_dimReduction )
 {
-  array2D< int > v( 10, 1 );
-  arrayView2D<int> const & vView = v;
-  ArrayView< int, 1, int > const & vView1d = v.dimReduce();
+  const int N = 10;
+  array2D< int > v( N, 1 );
+  arrayView2D<int> & vView = v;
+  arrayView<int> & vView1d = v.dimReduce();
 
-  for( int a=0 ; a<10 ; ++a )
+  for( int a=0 ; a<N ; ++a )
   {
     v[a][0] = 2*a;
   }
 
   ASSERT_EQ( vView1d.data(), v.data() );
 
-  for( int a=0 ; a<10 ; ++a )
+  for( int a=0 ; a<N ; ++a )
   {
     ASSERT_EQ( vView[a][0], v[a][0] );
     ASSERT_EQ( vView1d[a], v[a][0] );
   }
-
-
 }
+
+
+TEST( ArrayView, 2DAccessors )
+{
+  constexpr int N = 20;
+  constexpr int M = 10;
+
+  {
+    array2D< int > a( N, M );
+    internal::test2DAccessors( a );
+  }
+
+  {
+    array2D< Tensor > a( N, M );
+    internal::test2DAccessors( a );
+  }
+}
+
+
+TEST( ArrayView, 3DAccessors )
+{
+  constexpr int N = 7;
+  constexpr int M = 8;
+  constexpr int P = 9;
+
+  {
+    array3D< int > a( N, M, P );
+    internal::test3DAccessors( a );
+  }
+
+  {
+    array3D< Tensor > a( N, M, P );
+    internal::test3DAccessors( a );
+  }
+}
+
 
 #ifdef USE_CUDA
 
-#define CUDA_TEST(X, Y)              \
-  static void cuda_test_##X##Y();    \
-  TEST(X, Y) { cuda_test_##X##Y(); } \
-  static void cuda_test_##X##Y()
-
-
-#ifdef USE_CHAI
-#include "chai/util/forall.hpp"
-#endif
-
-CUDA_TEST(ArrayView, testChaiManagedArray)
+CUDA_TEST( ArrayView, memoryMotion )
 {
-  chai::ManagedArray<int> array1(10);
-  chai::ManagedArray<int> array2(10);
+  constexpr int N = 100;
 
-  std::cout<<"step1"<<std::endl;
-
-  forall(cuda(), 0, 10, [=] __device__(int i)
   {
-    array1[i] = i;
-  });
+    array< int > a( N );
+    internal::testMemoryMotion( a );
+  }
 
-  std::cout<<"step2"<<std::endl;
-  forall(cuda(), 0, 10, [=] __device__(int i)
   {
-    array2[i] = array1[i];
-  });
+    array< Tensor > a( N );
+    internal::testMemoryMotion( a );
+  }
+}
 
-  std::cout<<"step3"<<std::endl;
-  forall(sequential(), 0, 10, [=](int i)
+CUDA_TEST( ArrayView, memoryMotionMove )
+{
+  constexpr int N = 100;
+
   {
-    ASSERT_EQ(array1[i], i);
-    ASSERT_EQ(array2[i], i);
-  });
-  std::cout<<"done"<<std::endl;
+    array< int > a( N );
+    internal::testMemoryMotionMove( a );
+  }
 
+  {
+    array< Tensor > a( N );
+    internal::testMemoryMotionMove( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionMultiple )
+{
+  constexpr int N = 100;
+
+  {
+    array< int > a( N );
+    internal::testMemoryMotionMultiple( a );
+  }
+
+  {
+    array< Tensor > a( N );
+    internal::testMemoryMotionMultiple( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionMultipleMove )
+{
+  constexpr int N = 100;
+
+  {
+    array< int > a( N );
+    internal::testMemoryMotionMultipleMove( a );
+  }
+
+  {
+    array< Tensor > a( N );
+    internal::testMemoryMotionMultipleMove( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionArray )
+{
+  constexpr int N = 10;
+
+  {
+    array< array< int > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArray( a );
+  }
+
+  {
+    array< array< Tensor > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArray( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionArrayMove )
+{
+  constexpr int N = 10;
+
+  {
+    array< array< int > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArrayMove( a );
+  }
+
+  {
+    array< array< Tensor > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArrayMove( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionArray2 )
+{
+  constexpr int N = 5;
+
+  {
+    array< array< array< int > > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+      for ( int j = 0; j < N; ++j )
+      {
+        a[ i ][ j ].resize( N );
+      }
+    }
+
+    internal::testMemoryMotionArray2( a );
+  }
+
+  {
+    array< array< array< Tensor > > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+      for ( int j = 0; j < N; ++j )
+      {
+        a[ i ][ j ].resize( N );
+      }
+    }
+
+    internal::testMemoryMotionArray2( a );
+  }
+}
+
+CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
+{
+  constexpr int N = 5;
+
+  {
+    array< array< array< int > > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+      for ( int j = 0; j < N; ++j )
+      {
+        a[ i ][ j ].resize( N );
+      }
+    }
+
+    internal::testMemoryMotionArrayMove2( a );
+  }
+
+  {
+    array< array< array< Tensor > > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+      for ( int j = 0; j < N; ++j )
+      {
+        a[ i ][ j ].resize( N );
+      }
+    }
+
+    internal::testMemoryMotionArrayMove2( a );
+  }
+}
+
+CUDA_TEST( ArrayView, 2DAccessorsDevice )
+{
+  constexpr int N = 20;
+  constexpr int M = 10;
+
+  {
+    array2D< int > a( N, M );
+    internal::test2DAccessorsDevice( a );
+  }
+
+  {
+    array2D< Tensor > a( N, M );
+    internal::test2DAccessorsDevice( a );
+  }
 }
 
 
-CUDA_TEST(ArrayView, testViewOnCuda)
+CUDA_TEST( ArrayView, 3DAccessorsDevice )
 {
-  constexpr int numElems = 2;
-  array< int > array1(numElems);
-  array< int > array2(numElems);
-  arrayView< int > & arrayView1 = array1;
-  arrayView< int > & arrayView2 = array2;
+  constexpr int N = 7;
+  constexpr int M = 8;
+  constexpr int P = 9;
 
-  arrayView< int > arrayView3(arrayView1);
-
-  printf("host calls: size(), dim()[0] = %d, %d\n", arrayView1.size(), arrayView1.dims()[0]);
-
-  forall(sequential(), 0, numElems, [=] (int i)
   {
-    printf("kernel calls: size(), dim()[0] = %d, %d\n", arrayView1.size(), arrayView1.dims()[0]);
-  });
+    array3D< int > a( N, M, P );
+    internal::test3DAccessorsDevice( a );
+  }
 
-
-  std::cout<<"step1"<<std::endl;
-
-  forall(cuda(), 0, numElems, [=] __device__(int i)
   {
-    printf("kernel calls:          size(), dim()[0]    = %d, %d\n", arrayView1.size(), arrayView1.dims()[0]);
-    printf("            :                 m_dims[0]    =     %d\n", arrayView1.m_dims[0]);
-
-    arrayView1[i] = i;
-  });
-
-  std::cout<<"step2"<<std::endl;
-  forall(cuda(), 0, numElems, [=] __device__(int i)
-  {
-    arrayView2[i] = arrayView1[i];
-  });
-
-  std::cout<<"step3"<<std::endl;
-  forall(sequential(), 0, numElems, [=](int i)
-  {
-    ASSERT_EQ(arrayView1[i], i);
-    ASSERT_EQ(arrayView2[i], i);
-  });
-  std::cout<<"done"<<std::endl;
+    array3D< Tensor > a( N, M, P );
+    internal::test3DAccessorsDevice( a );
+  }
 }
 
+CUDA_TEST( ArrayView, sizeOnDevice )
+{
+  constexpr int N = 7;
+  constexpr int M = 8;
+  constexpr int P = 9;
+
+  {
+    array3D< int > a( N, M, P );
+    internal::testSizeOnDevice( a );
+  }
+
+  {
+    array3D< Tensor > a( N, M, P );
+    internal::testSizeOnDevice( a );
+  }
+}
+
+
 #endif
+
+
 
 int main( int argc, char* argv[] )
 {

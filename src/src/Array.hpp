@@ -39,7 +39,6 @@ namespace LvArray
 {
 
 
-
 /**
  * @class Array
  * @brief This class provides a multi-dimensional array interface to a vector type object.
@@ -79,7 +78,8 @@ public:
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::iterator;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_iterator;
 
-
+  using asView = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  
   /**
    * @brief default constructor
    */
@@ -118,17 +118,6 @@ public:
   }
 
   /**
-   * @brief move constructor
-   * @param source object to move
-   */
-  Array( Array&& source ):
-    ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>( std::move( static_cast<ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>& >(source) ) )
-  {
-    setSingleParameterResizeIndex( source.getSingleParameterResizeIndex() );
-    source.clear();
-  }
-
-  /**
    * destructor
    */
   ~Array()
@@ -140,12 +129,13 @@ public:
   /**
    * User Defined Conversion operator to move from an Array<T> to Array<T const>
    */
-  operator Array<T const, NDIM, INDEX_TYPE> const & () const
+  template< typename U = T >
+  operator typename std::enable_if< !std::is_const<U>::value,
+                                    Array<T const, NDIM, INDEX_TYPE> const & >::type
+  ()
   {
     return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
-
-
 
   /**
    * @brief assignment operator
@@ -182,29 +172,6 @@ public:
     {
       this->m_data[a] = rhs;
     }
-    return *this;
-  }
-
-
-  /**
-   * @brief move constructor
-   * @param rhs source for the construction
-   * @return *this
-   *
-   * Move constructor takes data from rhs without triggering a copy construction.
-   */
-  Array & operator=( Array&& rhs )
-  {
-    m_dataVector = std::move( rhs.m_dataVector );
-    setDataPtr();
-    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      const_cast<INDEX_TYPE *>(m_dims)[a]     = rhs.m_dims[a];
-      const_cast<INDEX_TYPE *>(m_strides)[a]  = rhs.m_strides[a];
-    }
-
     return *this;
   }
 
@@ -419,6 +386,31 @@ public:
 
 private:
 
+  void setDefaultValue( T const & )
+  {}
+
+#ifdef USE_CHAI
+  template< typename U = T >
+  typename std::enable_if< !detail::is_array< U >::value, void >::type
+  move( chai::ExecutionSpace space )
+  {
+    m_dataVector.move( space );
+    setDataPtr();
+  }
+
+  template< typename U = T >
+  typename std::enable_if< detail::is_array< U >::value, void >::type
+  move( chai::ExecutionSpace space )
+  {
+    ChaiVector< typename T::asView > & dataVector =
+      reinterpret_cast< ChaiVector< typename T::asView > & >( m_dataVector );
+    dataVector.move( space );
+    setDataPtr();
+  }
+#endif
+
+private:
+
   void CalculateStrides()
   {
     const_cast<INDEX_TYPE *>(m_strides)[NDIM-1] = 1;
@@ -434,8 +426,6 @@ private:
     m_dataVector.resize( newLength, defaultValue );
     this->setDataPtr();
   }
-
-
 
 };
 

@@ -73,7 +73,7 @@ public:
   /**
    * @brief Default constructor, creates a new empty vector.
    */
-  LVARRAY_HOST_DEVICE ChaiVector():
+  ChaiVector():
 #ifdef USE_CHAI
     m_array(),
 #else
@@ -81,7 +81,9 @@ public:
     m_capacity( 0 ),
 #endif
     m_length( 0 )
-  {}
+  {
+    registerTouch(chai::CPU);
+  }
 
   /**
    * @brief Creates a new vector of the given length.
@@ -97,6 +99,7 @@ public:
     m_length( 0 )
   {
     resize( initial_length );
+    registerTouch(chai::CPU);
   }
 
   /**
@@ -134,7 +137,7 @@ public:
   }
 
   /**
-   * @brief Destructor, will destroy the objects and free the memory if it owns the data.
+   * @brief Free's the data.
    */
   void free()
   {
@@ -184,94 +187,42 @@ public:
   }
 
   /**
-   * @brief Move assignment operator, moves the given ChaiVector into *this.
-   * @param [in] source the ChaiVector to move.
-   * @return *this.
-   */
-  ChaiVector& operator=( ChaiVector&& source )
-  {
-    free();
-
-    m_array = source.m_array;
-    m_length = source.m_length;
-
-#ifndef USE_CHAI
-    m_capacity = source.m_capacity;
-    source.m_capacity = 0;
-#endif
-
-    source.m_array = nullptr;
-    source.m_length = 0;
-    return *this;
-  }
-
-  /**
    * @brief Dereference operator for the underlying active pointer.
    * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
    */
-  /// @{
-  LVARRAY_HOST_DEVICE T& operator[]( size_type pos )
+  LVARRAY_HOST_DEVICE T & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
-
-  LVARRAY_HOST_DEVICE T const & operator[]( size_type pos ) const
-  { return m_array[ pos ]; }
-  /// @}
 
   /**
    * @brief Return a reference to the first value in the array.
    */
-  /// @{
-  T& front()
+  T& front() const
   { return m_array[0]; }
-
-  T const & front() const
-  { return m_array[0]; }
-  /// @}
 
   /**
    * @brief Return a reference to the last value in the array.
    */
-  /// @{
-  T& back()
+  T& back() const
   { return m_array[ size() - 1 ]; }
-
-  T const & back() const
-  { return m_array[ size()  - 1 ]; }
-  /// @}
 
   /**
    * @brief Return a pointer to the data.
    */
-  /// @{
-  LVARRAY_HOST_DEVICE T* data()
+  LVARRAY_HOST_DEVICE T* data() const
   { return &m_array[0]; }
-
-  LVARRAY_HOST_DEVICE T const * data() const
-  { return &m_array[0]; }
-  /// @}
 
   /**
    * @brief Return a random access iterator to the beginning of the vector.
    */
-  /// @{
-  iterator begin()
+  iterator begin() const
   { return &front(); }
-
-  const_iterator begin() const
-  { return &front(); }
-  /// @}
 
   /**
    * @brief Return a random access iterator to one past the end of the vector.
    */
-  /// @{
-  iterator end()
+  iterator end() const
   { return &back() + 1; }
-
-  const_iterator end() const
-  { return &back() + 1; }
-  /// @}
 
   /**
    * @brief Return true iff the vector holds no data.
@@ -479,7 +430,24 @@ public:
     m_length = new_length;
   }
 
+#ifdef USE_CHAI
+  void move( chai::ExecutionSpace space )
+  {
+    m_array.move( space );
+    registerTouch( space );
+  }
+#endif
+
 private:
+
+  void registerTouch( chai::ExecutionSpace space )
+  {
+#ifdef USE_CHAI
+    m_array.registerTouch( space );
+#else
+    ((void) space);
+#endif
+  }
 
   /**
    * @brief Insert the given number of default values at the given position.
@@ -546,6 +514,7 @@ private:
     m_capacity = new_capacity;
 #endif
     m_array = new_array;
+    registerTouch(chai::CPU);
   }
 
   /**
