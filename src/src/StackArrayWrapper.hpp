@@ -15,7 +15,7 @@ struct StackArrayWrapper
 
   void free() {}
 
-  void resize( ptrdiff_t length )
+  void resize( ptrdiff_t length, T const & = T())
   {
     GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
   }

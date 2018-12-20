@@ -222,22 +222,22 @@ struct has_pointer_type
 };
 
 
-  template<typename TT >
-  struct has_copy_assignement_operator
-  {
+template<typename TT >
+struct has_copy_assignement_operator
+{
 private:
-    template<typename U> static constexpr auto test( int )->
-    decltype( static_cast<U& (U::*)( U const & )>(&U::operator=), bool() )
-    {
-      return true;
-    }
-    template<typename U> static constexpr auto test( ... )->bool
-    {
-      return false;
-    }
+  template<typename U> static constexpr auto test( int )->
+  decltype( static_cast<U& (U::*)( U const & )>(&U::operator=), bool () )
+  {
+    return true;
+  }
+  template<typename U> static constexpr auto test( ... )->bool
+  {
+    return false;
+  }
 public:
-    static constexpr bool value = test<TT>( 0 );
-  };
+  static constexpr bool value = test<TT>( 0 );
+};
 
 
 }
