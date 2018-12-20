@@ -271,17 +271,16 @@ public:
    * This resize function will use set the dim[m_singleParameterResizeIndex]=newdim, and reallocate
    * based on that new size.
    */
-  template< typename TYPE >
-  void resize( TYPE newdim )
+  void resize( INDEX_TYPE const newdim )
   {
-    static_assert( is_valid_indexType<INDEX_TYPE, TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+//    static_assert( is_valid_indexType<INDEX_TYPE, TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength );
   }
 
-  void resizeDefault( INDEX_TYPE newdim, T const & defaultValue = T() )
+  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   {
     INDEX_TYPE const oldLength = size();
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
