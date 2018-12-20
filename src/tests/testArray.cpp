@@ -25,7 +25,8 @@
 #include "stackTrace.hpp"
 #include "testUtils.hpp"
 
-using namespace LvArray;
+namespace LvArray
+{
 
 template < typename T >
 using array = Array< T, 1, int >;
@@ -1256,6 +1257,7 @@ TEST( Array, test_array2D )
   }
 }
 
+} /* namespace LvArray */
 
 
 int main( int argc, char* argv[] )

@@ -48,6 +48,9 @@
 
 #endif
 
+namespace LvArray
+{
+
 using size_type = ChaiVector< int >::size_type;
 
 #ifdef __clang__
@@ -1054,6 +1057,8 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove2 )
 }
 
 #endif
+
+} /* namespace LvArray */
 
 
 int main( int argc, char* argv[] )

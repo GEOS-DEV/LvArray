@@ -50,6 +50,8 @@
 #include <cstdlib>
 #endif
 
+namespace LvArray
+{
 
 #ifdef USE_CHAI
 namespace internal
@@ -532,5 +534,7 @@ private:
 #endif
   size_type m_length;
 };
+
+} /* namespace LvArray */
 
 #endif /* CHAI_VECTOR_HPP_ */

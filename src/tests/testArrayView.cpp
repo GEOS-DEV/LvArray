@@ -34,7 +34,8 @@
 
 #endif
 
-using namespace LvArray;
+namespace LvArray
+{
 
 template < typename T >
 using array = Array< T, 1, int >;
@@ -938,6 +939,8 @@ CUDA_TEST( ArrayView, sizeOnDevice )
 
 #endif
 
+
+} /* namespace LvArray */
 
 
 int main( int argc, char* argv[] )
