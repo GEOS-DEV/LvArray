@@ -40,8 +40,6 @@ namespace LvArray
 
 
 
-
-
 /**
  * @class Array
  * @brief This class provides a multi-dimensional array interface to a vector type object.
@@ -100,8 +98,8 @@ public:
     Array()
   {
     static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
-    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments.");
-    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
+    static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments." );
+    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
     resize( dims... );
   }
@@ -255,15 +253,15 @@ public:
    */
   template< typename... DIMS,
             typename ENABLE = std::enable_if_t<sizeof ... (DIMS) == NDIM &&
-                                               conjunction<is_valid_indexType<INDEX_TYPE,DIMS>::value...>::value> >
+                                               conjunction<is_valid_indexType<INDEX_TYPE, DIMS>::value...>::value> >
   void resize( DIMS... newdims )
   {
-    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldLength = size();
     dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( m_dimsMem, newdims... );
     CalculateStrides();
-    resizePrivate(oldLength);
+    resizePrivate( oldLength );
   }
 
   /**
@@ -276,7 +274,7 @@ public:
   template< typename TYPE >
   void resize( TYPE newdim )
   {
-    static_assert( is_valid_indexType<INDEX_TYPE,TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( is_valid_indexType<INDEX_TYPE, TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
     m_dimsMem[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
@@ -291,15 +289,15 @@ public:
     resizePrivate( oldLength, defaultValue );
   }
 
-  template < INDEX_TYPE... INDICES, typename ... DIMS>
-  typename std::enable_if<sizeof...(INDICES) <= NDIM && sizeof...(INDICES) == sizeof...(DIMS), void>::type
-  resizeDimension( DIMS ... newdims )
+  template < INDEX_TYPE... INDICES, typename... DIMS>
+  typename std::enable_if<sizeof ... (INDICES) <= NDIM && sizeof ... (INDICES) == sizeof ... (DIMS), void>::type
+  resizeDimension( DIMS... newdims )
   {
-    static_assert( check_dim_type<INDEX_TYPE,DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
-    static_assert( check_dim_indices<INDEX_TYPE,NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
+    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 
     INDEX_TYPE const oldLength = size();
-    dim_index_unpack<INDEX_TYPE,NDIM>( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
+    dim_index_unpack<INDEX_TYPE, NDIM>( m_dimsMem, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
     CalculateStrides();
     resizePrivate( oldLength );
   }
@@ -434,7 +432,7 @@ private:
 
   void resizePrivate( INDEX_TYPE const oldLength, T const & defaultValue = T() )
   {
-    INDEX_TYPE const newLength = size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem );
+    INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dimsMem );
     m_dataVector.resize( newLength, defaultValue );
     this->setDataPtr();
   }

@@ -22,7 +22,7 @@ struct size_helper
   typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
-    return dims[INDEX] * size_helper<NDIM,INDEX_TYPE,INDEX+1>::f( dims );
+    return dims[INDEX] * size_helper<NDIM, INDEX_TYPE, INDEX+1>::f( dims );
   }
 
   template< int INDEX=DIM >
@@ -72,8 +72,8 @@ struct linearIndex_helper
             REMAINING_INDICES... indices )
   {
     return index*strides[0]
-         + linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::evaluate( strides+1,
-                                                                                        indices... );
+           + linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::evaluate( strides+1,
+                                                                                          indices... );
   }
 
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
@@ -122,10 +122,10 @@ struct linearIndex_helper
             REMAINING_INDICES... indices )
   {
     return index*strides[0]
-         + linearIndex_helper< NDIM,
-                               INDEX_TYPE,
-                               REMAINING_INDICES...>::template evaluate<DIM+1>( strides+1,
-                                                                                indices... );
+           + linearIndex_helper< NDIM,
+                                 INDEX_TYPE,
+                                 REMAINING_INDICES...>::template evaluate<DIM+1>( strides+1,
+                                                                                  indices... );
   }
 
   template< int DIM=0 >
@@ -199,13 +199,12 @@ struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_typ
 
 
 
-
 template <bool... B>
 struct conjunction {};
 
 template <bool Head, bool... Tail>
 struct conjunction<Head, Tail...>
-    : std::integral_constant<bool, Head && conjunction<Tail...>::value>{};
+  : std::integral_constant<bool, Head && conjunction<Tail...>::value> {};
 
 template <bool B>
 struct conjunction<B> : std::integral_constant<bool, B> {};
@@ -223,23 +222,21 @@ struct is_valid_indexType
 template< typename INDEX_TYPE, typename DIM0, typename... DIMS >
 struct check_dim_type
 {
-  constexpr static bool value =  is_valid_indexType<INDEX_TYPE,DIM0>::value && check_dim_type<INDEX_TYPE,DIMS...>::value;
+  constexpr static bool value =  is_valid_indexType<INDEX_TYPE, DIM0>::value && check_dim_type<INDEX_TYPE, DIMS...>::value;
 };
 
-template< typename INDEX_TYPE,typename DIM0 >
-struct check_dim_type<INDEX_TYPE,DIM0>
+template< typename INDEX_TYPE, typename DIM0 >
+struct check_dim_type<INDEX_TYPE, DIM0>
 {
-  constexpr static bool value = is_valid_indexType<INDEX_TYPE,DIM0>::value;
+  constexpr static bool value = is_valid_indexType<INDEX_TYPE, DIM0>::value;
 };
-
-
 
 
 
 template<  typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
 struct check_dim_indices
 {
-  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDEX_TYPE,NDIM,INDICES...>::value;
+  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value;
 };
 
 template<  typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0 >
@@ -260,7 +257,7 @@ struct dim_unpack
 };
 
 template< typename INDEX_TYPE, int NDIM, typename DIM0, typename... DIMS >
-struct dim_unpack<INDEX_TYPE,NDIM, 1, DIM0, DIMS...>
+struct dim_unpack<INDEX_TYPE, NDIM, 1, DIM0, DIMS...>
 {
   constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
   {
@@ -268,7 +265,6 @@ struct dim_unpack<INDEX_TYPE,NDIM, 1, DIM0, DIMS...>
     return 0;
   }
 };
-
 
 
 
@@ -283,7 +279,7 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
                                         DIM0 dim0, DIMS... dims )
 {
   m_dims[INDEX0] = dim0;
-  dim_index_unpack<INDEX_TYPE,NDIM>( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
+  dim_index_unpack<INDEX_TYPE, NDIM>( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
 }
 template< typename INDEX_TYPE, int NDIM, typename... DIMS>
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],

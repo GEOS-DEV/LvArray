@@ -455,7 +455,7 @@ public:
     /* Initialize things size() and new_length */
     for( size_type i = size() ; i < new_length ; ++i )
     {
-      new ( &m_array[ i ] ) T(defaultValue);
+      new ( &m_array[ i ] ) T( defaultValue );
     }
 
     m_length = new_length;

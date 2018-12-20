@@ -229,8 +229,7 @@ public:
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
-                                    ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
-  () const noexcept
+                                    ArrayView<T const, NDIM, INDEX_TYPE> const & >::type () const noexcept
   {
     return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -260,7 +259,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
   {
-    return size_helper<NDIM,INDEX_TYPE>::f( m_dimsMem );
+    return size_helper<NDIM, INDEX_TYPE>::f( m_dimsMem );
   }
 
   /**
@@ -454,8 +453,8 @@ public:
 
     GEOS_ERROR_IF( source.size() > this->size() - offset,
                    "Insufficient storage space to copy source (size="<<source.size()<<
-                   ") into current array at specified offset ("<<offset<<"). Available space"
-                   " is equal to this->size() - offset = "<<this->size() - offset );
+                   ") into current array at specified offset ("<<offset<<")."<<
+                   " Available space is equal to this->size() - offset = "<<this->size() - offset );
     for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
     {
       m_data[offset+i] = source.data()[i];
@@ -530,7 +529,7 @@ protected:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      this->m_dimsMem[a] = integer_conversion<INDEX_TYPE>(dims[a]);
+      this->m_dimsMem[a] = integer_conversion<INDEX_TYPE>( dims[a] );
     }
   }
 
