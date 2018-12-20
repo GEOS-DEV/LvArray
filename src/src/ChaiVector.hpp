@@ -83,9 +83,7 @@ public:
     m_capacity( 0 ),
 #endif
     m_length( 0 )
-  {
-    registerTouch(chai::CPU);
-  }
+  {}
 
   /**
    * @brief Creates a new vector of the given length.
@@ -101,7 +99,6 @@ public:
     m_length( 0 )
   {
     resize( initial_length );
-    registerTouch(chai::CPU);
   }
 
   /**
@@ -430,6 +427,11 @@ public:
     }
 
     m_length = new_length;
+
+    if ( m_length > 0 )
+    {
+      registerTouch(chai::CPU);
+    }
   }
 
 #ifdef USE_CHAI
@@ -442,14 +444,13 @@ public:
 
 private:
 
+#ifdef USE_CHAI
   void registerTouch( chai::ExecutionSpace space )
   {
-#ifdef USE_CHAI
     m_array.registerTouch( space );
-#else
-    ((void) space);
-#endif
   }
+#endif
+
 
   /**
    * @brief Insert the given number of default values at the given position.

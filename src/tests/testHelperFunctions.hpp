@@ -19,7 +19,7 @@
 
 
 #include <fenv.h>
-#include <xmmintrin.h>
+// #include <xmmintrin.h>
 #include <cmath>
 #include <float.h>
 // API coverage tests

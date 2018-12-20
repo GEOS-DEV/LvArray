@@ -30,6 +30,7 @@
 #include <iterator>
 
 #include "ArrayView.hpp"
+#include "helpers.hpp"
 #include "ChaiVector.hpp"
 #include "SFINAE_Macros.hpp"
 
@@ -56,7 +57,6 @@ class Array : public ArrayView< T,
                                 DATA_VECTOR_TYPE >
 {
 public:
-  using isArray = std::true_type;
   using value_type = T;
   static constexpr int ndim = NDIM;
 
@@ -132,7 +132,7 @@ public:
   template< typename U = T >
   operator typename std::enable_if< !std::is_const<U>::value,
                                     Array<T const, NDIM, INDEX_TYPE> const & >::type
-  ()
+  () const
   {
     return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -218,14 +218,13 @@ public:
    * @param newdims the new dimensions
    */
   template< typename... DIMS,
-            typename ENABLE = std::enable_if_t<sizeof ... (DIMS) == NDIM &&
-                                               conjunction<is_valid_indexType<INDEX_TYPE, DIMS>::value...>::value> >
+            typename ENABLE = std::enable_if_t<sizeof ... (DIMS) == NDIM> >
   void resize( DIMS... newdims )
   {
     static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldLength = size();
-    dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( m_dimsMem, newdims... );
+    dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( const_cast<INDEX_TYPE *>(m_dims), newdims... );
     CalculateStrides();
     resizePrivate( oldLength );
   }
@@ -239,7 +238,6 @@ public:
    */
   void resize( INDEX_TYPE const newdim )
   {
-//    static_assert( is_valid_indexType<INDEX_TYPE, TYPE>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
     INDEX_TYPE const oldLength = size();
     const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
@@ -249,7 +247,7 @@ public:
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   {
     INDEX_TYPE const oldLength = size();
-    m_dimsMem[m_singleParameterResizeIndex] = newdim;
+    m_dims[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength, defaultValue );
   }
@@ -384,10 +382,6 @@ public:
     m_singleParameterResizeIndex = index;
   }
 
-private:
-
-  void setDefaultValue( T const & )
-  {}
 
 #ifdef USE_CHAI
   template< typename U = T >
@@ -422,7 +416,7 @@ private:
 
   void resizePrivate( INDEX_TYPE const oldLength, T const & defaultValue = T() )
   {
-    INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dimsMem );
+    INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dims );
     m_dataVector.resize( newLength, defaultValue );
     this->setDataPtr();
   }
