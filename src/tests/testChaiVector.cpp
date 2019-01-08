@@ -37,6 +37,7 @@
 #include "gtest/gtest.h"
 #include "ChaiVector.hpp"
 #include "testUtils.hpp"
+#include "Logger.hpp"
 #include <vector>
 #include <string>
 
@@ -1063,16 +1064,12 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove2 )
 
 int main( int argc, char* argv[] )
 {
-//  MPI_Init( &argc, &argv );
-//  logger::InitializeLogger( MPI_COMM_WORLD );
-
-//  cxx_utilities::setSignalHandling(cxx_utilities::handler1);
+  logger::InitializeLogger();
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
-//  logger::FinalizeLogger();
-//  MPI_Finalize();
+  logger::FinalizeLogger();
   return result;
 }

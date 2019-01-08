@@ -122,7 +122,7 @@ void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
   }
 }
 
-#else
+#endif
 
 void InitializeLogger( const std::string& rank_output_dir )
 {
@@ -145,7 +145,6 @@ void InitializeLogger( const std::string& rank_output_dir )
   }
 }
 
-#endif
 
 void FinalizeLogger()
 {
