@@ -60,20 +60,20 @@ void testStackTrace(double divisor)
 
 
 
-// #if !defined(__APPLE__) && defined(__clang__)
-// #pragma STDC FENV_ACCESS ON
-// #endif
-// void show_fe_exceptions(void)
-// {
-//     printf("exceptions raised:");
-//     if(fetestexcept(FE_DIVBYZERO)) printf(" FE_DIVBYZERO");
-//     if(fetestexcept(FE_INEXACT))   printf(" FE_INEXACT");
-//     if(fetestexcept(FE_INVALID))   printf(" FE_INVALID");
-//     if(fetestexcept(FE_OVERFLOW))  printf(" FE_OVERFLOW");
-//     if(fetestexcept(FE_UNDERFLOW)) printf(" FE_UNDERFLOW");
-//     feclearexcept(FE_ALL_EXCEPT);
-//     printf("\n");
-// }
+#if !defined(__APPLE__) && defined(__clang__) && !defined(USE_CUDA)
+#pragma STDC FENV_ACCESS ON
+#endif
+void show_fe_exceptions(void)
+{
+    printf("exceptions raised:");
+    if(fetestexcept(FE_DIVBYZERO)) printf(" FE_DIVBYZERO");
+    if(fetestexcept(FE_INEXACT))   printf(" FE_INEXACT");
+    if(fetestexcept(FE_INVALID))   printf(" FE_INVALID");
+    if(fetestexcept(FE_OVERFLOW))  printf(" FE_OVERFLOW");
+    if(fetestexcept(FE_UNDERFLOW)) printf(" FE_UNDERFLOW");
+    feclearexcept(FE_ALL_EXCEPT);
+    printf("\n");
+}
 
 double uf_test(double x, double denominator)
 {

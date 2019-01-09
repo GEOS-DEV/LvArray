@@ -19,11 +19,12 @@
 
 
 #include <fenv.h>
-// #include <xmmintrin.h>
 #include <cmath>
 #include <float.h>
-// API coverage tests
-// Each test should be documented with the interface functions being tested
+
+#if !defined(USE_CUDA)
+#include <xmmintrin.h>
+#endif
 
 namespace testFloatingPointExceptionsHelpers
 {

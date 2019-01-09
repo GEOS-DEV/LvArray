@@ -77,6 +77,7 @@ namespace cxx_utilities
 {
 
 void SetFPE();
+
 }
 
 #endif /* SRC_CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_SETFPE_HPP_ */

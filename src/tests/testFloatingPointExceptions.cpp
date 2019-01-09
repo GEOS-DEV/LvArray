@@ -35,16 +35,10 @@
 
 #include "gtest/gtest.h"
 
-//#ifdef __clang__
-//#pragma clang diagnostic push
-//#define __null nullptr
-//#endif
-
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
 #include <fenv.h>
-// #include <xmmintrin.h>
 #include <cmath>
 #include <float.h>
 
@@ -53,41 +47,38 @@
 
 using namespace testFloatingPointExceptionsHelpers;
 
-// API coverage tests
-// Each test should be documented with the interface functions being tested
+const char IGNORE_OUTPUT[] = ".*";
 
-// const char IGNORE_OUTPUT[] = ".*";
+TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
+{
+  feenableexcept( FE_UNDERFLOW );
+  EXPECT_DEATH_IF_SUPPORTED(  uf_test(DBL_MIN, 2), IGNORE_OUTPUT);
+  fedisableexcept(FE_UNDERFLOW);
 
-// TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
-// {
-//   feenableexcept( FE_UNDERFLOW );
-//   EXPECT_DEATH_IF_SUPPORTED(  uf_test(DBL_MIN, 2) , "");
-//   fedisableexcept(FE_UNDERFLOW);
+  cxx_utilities::SetFPE();
+  double fpnum = uf_test(DBL_MIN, 2);
+  int fpclassification = std::fpclassify( fpnum );
+  EXPECT_NE( fpclassification, FP_SUBNORMAL );
+}
 
-//   cxx_utilities::SetFPE();
-//   double fpnum = uf_test(DBL_MIN, 2);
-//   int fpclassification = std::fpclassify( fpnum );
-//   EXPECT_TRUE( fpclassification != FP_SUBNORMAL );
-// }
-
-// TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
-// {
-//   cxx_utilities::SetFPE();
-//   EXPECT_DEATH_IF_SUPPORTED( func3(0.0) , "");
-// }
+TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
+{
+  cxx_utilities::SetFPE();
+  EXPECT_DEATH_IF_SUPPORTED( func3(0.0), IGNORE_OUTPUT);
+}
 
 
-// TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
-// {
-//   cxx_utilities::SetFPE();
-//   EXPECT_DEATH_IF_SUPPORTED( double overflow = of_test(2,DBL_MAX) , "");
-// }
+TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
+{
+  cxx_utilities::SetFPE();
+  EXPECT_DEATH_IF_SUPPORTED( double overflow = of_test(2,DBL_MAX), IGNORE_OUTPUT);
+}
 
-// TEST( TestFloatingPointEnvironment, test_FE_INVALID )
-// {
-//   cxx_utilities::SetFPE();
-//   EXPECT_DEATH_IF_SUPPORTED( double junk0 = invalid_test(0.0); , "");
-// }
-// #ifdef __clang__
-// #pragma clang diagnostic pop
-// #endif
+TEST( TestFloatingPointEnvironment, test_FE_INVALID )
+{
+  cxx_utilities::SetFPE();
+  EXPECT_DEATH_IF_SUPPORTED( double junk0 = invalid_test(0.0);, IGNORE_OUTPUT);
+}
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
