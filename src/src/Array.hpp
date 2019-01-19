@@ -247,7 +247,7 @@ public:
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   {
     INDEX_TYPE const oldLength = size();
-    m_dims[m_singleParameterResizeIndex] = newdim;
+    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
     resizePrivate( oldLength, defaultValue );
   }
@@ -260,7 +260,10 @@ public:
     static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 
     INDEX_TYPE const oldLength = size();
-    dim_index_unpack( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), newdims... );
+    dim_index_unpack<INDEX_TYPE, NDIM>( const_cast<INDEX_TYPE *>(m_dims),
+                                                 std::integer_sequence<INDEX_TYPE, INDICES...>(),
+                                                 newdims... );
+
     CalculateStrides();
     resizePrivate( oldLength );
   }
