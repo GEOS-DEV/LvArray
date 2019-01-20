@@ -57,6 +57,7 @@ class Array : public ArrayView< T,
                                 DATA_VECTOR_TYPE >
 {
 public:
+  using isArray = std::true_type;
   using value_type = T;
   static constexpr int ndim = NDIM;
 
