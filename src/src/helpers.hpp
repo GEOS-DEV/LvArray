@@ -26,9 +26,15 @@
 #ifndef SRC_SRC_HELPERS_HPP_
 #define SRC_SRC_HELPERS_HPP_
 
+#ifdef USE_CUDA
+#include <cassert>
+#else
+#include "Logger.hpp"
+#endif
 
 namespace LvArray
 {
+
 /**
  * @struct this is a functor to calculate the total size of the array from the dimensions.
  */
@@ -36,7 +42,7 @@ template< int NDIM, typename INDEX_TYPE, int DIM=0 >
 struct size_helper
 {
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
   typename std::enable_if<INDEX!=NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
@@ -44,7 +50,7 @@ struct size_helper
   }
 
   template< int INDEX=DIM >
-  inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
   typename std::enable_if<INDEX==NDIM-1, INDEX_TYPE>::type
   f( INDEX_TYPE const * const restrict dims )
   {
@@ -72,62 +78,6 @@ struct stride_helper
     return 1;
   }
 };
-
-#if 0
-/**
- * @struct This is a functor to calculate the linear index of a multidimensional array.
- */
-template< int NDIM,
-          int DIM,
-          typename INDEX_TYPE,
-          typename INDEX,
-          typename... REMAINING_INDICES >
-struct linearIndex_helper
-{
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-  evaluate( INDEX_TYPE const * const restrict strides,
-            INDEX index,
-            REMAINING_INDICES... indices )
-  {
-    return index*strides[0]
-           + linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::evaluate( strides+1,
-                                                                                          indices... );
-  }
-
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-  check( INDEX_TYPE const * const restrict dims,
-         INDEX index, REMAINING_INDICES... indices )
-  {
-    GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
-                   (NDIM - DIM) << "]=" << dims[0] );
-    linearIndex_helper<NDIM, DIM-1, INDEX_TYPE, REMAINING_INDICES...>::check( dims + 1, indices... );
-  }
-
-};
-
-template< int NDIM,
-          typename INDEX_TYPE,
-          typename INDEX,
-          typename... REMAINING_INDICES >
-struct linearIndex_helper<NDIM, 1, INDEX_TYPE, INDEX, REMAINING_INDICES...>
-{
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static INDEX_TYPE
-  evaluate( INDEX_TYPE const * const restrict,
-            INDEX index )
-  {
-    return index;
-  }
-
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static void
-  check( INDEX_TYPE const * const restrict dims,
-         INDEX index )
-  {
-    GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
-                   (NDIM - 1) << "]=" << dims[0] );
-  }
-};
-
-#else
 
 template< int NDIM, typename INDEX_TYPE, typename INDEX, typename... REMAINING_INDICES >
 struct linearIndex_helper
@@ -158,13 +108,17 @@ struct linearIndex_helper
 
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline  static
   typename std::enable_if< DIM!=(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index, REMAINING_INDICES... indices )
   {
+#ifdef USE_CUDA
+    assert( index >= 0 && index < dims[0] );
+#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
+#endif
     linearIndex_helper< NDIM,
                         INDEX_TYPE,
                         REMAINING_INDICES...>::template check<DIM+1>( dims + 1,
@@ -172,18 +126,20 @@ struct linearIndex_helper
   }
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
+  LVARRAY_HOST_DEVICE inline  static
   typename std::enable_if< DIM==(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index )
   {
+#ifdef USE_CUDA
+    assert( index >= 0 && index < dims[0] );
+#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
+#endif
   }
 
 };
-#endif
-
 
 template< typename T >
 struct is_integer
@@ -195,26 +151,6 @@ struct is_integer
                                 std::is_same<T, long long int>::value ||
                                 std::is_same<T, unsigned long long int>::value;
 };
-
-
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-class Array;
-
-namespace detail
-{
-template<typename>
-struct is_array : std::false_type {};
-
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
-}
-
 
 
 template <bool... B>
@@ -307,6 +243,67 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
   // terminates recursion trivially
 }
 
-}
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+class Array;
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+class ArrayView;
+
+namespace detail
+{
+
+
+template<typename>
+struct is_array : std::false_type {};
+
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
+
+
+template<typename>
+struct to_arrayView {};
+
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
+struct to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
+{
+  using type = ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >;
+};
+
+/* Note this will only work when using ChaiVector as the DATA_VECTOR_TYPE. */
+template< typename T,
+          int NDIM1,
+          typename INDEX_TYPE1,
+          typename DATA_VECTOR_TYPE1,
+          int NDIM0,
+          typename INDEX_TYPE0 >
+struct to_arrayView< Array< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 >,
+                            NDIM0,
+                            INDEX_TYPE0,
+                            ChaiVector< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > > > > 
+{
+  using type = ArrayView< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > >::type,
+                          NDIM0,
+                          INDEX_TYPE0,
+                          ChaiVector< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > >::type > >;
+};
+
+} /* namespace detail */
+
+} /* namespace LvArray */
 
 #endif /* SRC_SRC_HELPERS_HPP_ */

@@ -2,12 +2,10 @@
 # Specify list of tests
 #
 
-
-    
-
 set(testSources
     testArray.cpp
     testFloatingPointExceptions.cpp
+    testArrayView.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
     testObjectCatalog.cpp
@@ -17,10 +15,6 @@ set(testSources
     testSortedArray.cpp
     testStackArray.cpp
    )
-
-if( ${ENABLE_CUDA})
-    set( cxx_dependencies ${cxx_dependencies} cuda )
-endif()
 
 #
 # Add gtest C++ based tests

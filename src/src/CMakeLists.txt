@@ -31,23 +31,6 @@ if( CMAKE_PROJECT_NAME STREQUAL "geosx" )
 endif()
 
 
-set( cxx_dependencies "" )
-if( ATK_FOUND OR ENABLE_ATK OR ENABLE_AXOM )
-set( cxx_dependencies slic lumberjack )
-endif()
-
-if( ${ENABLE_CHAI})
-    set( cxx_dependencies ${cxx_dependencies} chai umpire )
-endif()
-
-if( ${ENABLE_MPI})
-    set( cxx_dependencies ${cxx_dependencies} mpi )
-endif()
-
-if( ${ENABLE_CUDA})
-    set( cxx_dependencies ${cxx_dependencies} cuda )
-endif()
-
 message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}

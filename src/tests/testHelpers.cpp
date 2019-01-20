@@ -39,7 +39,6 @@ TEST( SizeHelper, SizeHelper )
   ASSERT_TRUE( result1 ==         dims[1]*dims[2]*dims[3] );
   ASSERT_TRUE( result2 ==                 dims[2]*dims[3] );
   ASSERT_TRUE( result3 ==                         dims[3] );
-
 }
 
 
@@ -123,19 +122,18 @@ TEST( StrideHelper, StrideHelper )
   ASSERT_TRUE( result1 ==         dims[2]*dims[3] );
   ASSERT_TRUE( result2 ==                 dims[3] );
   ASSERT_TRUE( result3 ==                       1 );
-
 }
+
+
 int main( int argc, char* argv[] )
 {
-  MPI_Init( &argc, &argv );
-  logger::InitializeLogger( MPI_COMM_WORLD );
+  logger::InitializeLogger();
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-  MPI_Finalize();
   return result;
 }
 

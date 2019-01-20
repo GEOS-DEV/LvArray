@@ -50,6 +50,8 @@
 #include <cstdlib>
 #endif
 
+namespace LvArray
+{
 
 #ifdef USE_CHAI
 namespace internal
@@ -106,7 +108,7 @@ public:
    * as such using push_back or other methods that change the state of the array is dangerous.
    * @note When using multiple memory spaces using the copy constructor can trigger a move.
    */
-  ChaiVector( const ChaiVector& source ):
+  LVARRAY_HOST_DEVICE ChaiVector( const ChaiVector& source ):
     m_array( source.m_array ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
@@ -134,7 +136,7 @@ public:
   }
 
   /**
-   * @brief Destructor, will destroy the objects and free the memory if it owns the data.
+   * @brief Free's the data.
    */
   void free()
   {
@@ -173,7 +175,7 @@ public:
    * @param [in] source the ChaiVector to copy.
    * @return *this.
    */
-  ChaiVector& operator=( ChaiVector const& source )
+  LVARRAY_HOST_DEVICE ChaiVector& operator=( ChaiVector const& source )
   {
     m_array = source.m_array;
     m_length = source.size();
@@ -184,94 +186,42 @@ public:
   }
 
   /**
-   * @brief Move assignment operator, moves the given ChaiVector into *this.
-   * @param [in] source the ChaiVector to move.
-   * @return *this.
-   */
-  ChaiVector& operator=( ChaiVector&& source )
-  {
-    free();
-
-    m_array = source.m_array;
-    m_length = source.m_length;
-
-#ifndef USE_CHAI
-    m_capacity = source.m_capacity;
-    source.m_capacity = 0;
-#endif
-
-    source.m_array = nullptr;
-    source.m_length = 0;
-    return *this;
-  }
-
-  /**
    * @brief Dereference operator for the underlying active pointer.
    * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
    */
-  /// @{
-  LVARRAY_HOST_DEVICE T& operator[]( size_type pos )
+  LVARRAY_HOST_DEVICE T & operator[]( size_type pos ) const
   { return m_array[ pos ]; }
-
-  LVARRAY_HOST_DEVICE T const & operator[]( size_type pos ) const
-  { return m_array[ pos ]; }
-  /// @}
 
   /**
    * @brief Return a reference to the first value in the array.
    */
-  /// @{
-  T& front()
+  T& front() const
   { return m_array[0]; }
-
-  T const & front() const
-  { return m_array[0]; }
-  /// @}
 
   /**
    * @brief Return a reference to the last value in the array.
    */
-  /// @{
-  T& back()
+  T& back() const
   { return m_array[ size() - 1 ]; }
-
-  T const & back() const
-  { return m_array[ size()  - 1 ]; }
-  /// @}
 
   /**
    * @brief Return a pointer to the data.
    */
-  /// @{
-  T* data()
+  LVARRAY_HOST_DEVICE T* data() const
   { return &m_array[0]; }
-
-  T const * data() const
-  { return &m_array[0]; }
-  /// @}
 
   /**
    * @brief Return a random access iterator to the beginning of the vector.
    */
-  /// @{
-  iterator begin()
+  iterator begin() const
   { return &front(); }
-
-  const_iterator begin() const
-  { return &front(); }
-  /// @}
 
   /**
    * @brief Return a random access iterator to one past the end of the vector.
    */
-  /// @{
-  iterator end()
+  iterator end() const
   { return &back() + 1; }
-
-  const_iterator end() const
-  { return &back() + 1; }
-  /// @}
 
   /**
    * @brief Return true iff the vector holds no data.
@@ -477,9 +427,30 @@ public:
     }
 
     m_length = new_length;
+
+    if ( m_length > 0 )
+    {
+      registerTouch(chai::CPU);
+    }
   }
 
+#ifdef USE_CHAI
+  void move( chai::ExecutionSpace space )
+  {
+    m_array.move( space );
+    registerTouch( space );
+  }
+#endif
+
 private:
+
+#ifdef USE_CHAI
+  void registerTouch( chai::ExecutionSpace space )
+  {
+    m_array.registerTouch( space );
+  }
+#endif
+
 
   /**
    * @brief Insert the given number of default values at the given position.
@@ -546,6 +517,7 @@ private:
     m_capacity = new_capacity;
 #endif
     m_array = new_array;
+    registerTouch(chai::CPU);
   }
 
   /**
@@ -563,5 +535,7 @@ private:
 #endif
   size_type m_length;
 };
+
+} /* namespace LvArray */
 
 #endif /* CHAI_VECTOR_HPP_ */

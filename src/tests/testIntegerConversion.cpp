@@ -47,6 +47,7 @@ typedef uint32_t uint32;
 typedef  int64_t  int64;
 typedef uint64_t uint64;
 
+
 TEST( IntegerConversion, unsignedToSigned )
 {
   uint32 source0 = std::numeric_limits<int32>::max();
@@ -65,7 +66,6 @@ TEST( IntegerConversion, unsignedToSigned )
 }
 
 
-
 TEST( IntegerConversion, signedToUnsigned )
 {
   int32 source0 = -1;
@@ -76,6 +76,7 @@ TEST( IntegerConversion, signedToUnsigned )
   ASSERT_DEATH_IF_SUPPORTED( integer_conversion<uint64>(source1), "" );
   ASSERT_DEATH_IF_SUPPORTED( integer_conversion<uint32>(source3), "" );
 }
+
 
 TEST( IntegerConversion, sameSign )
 {
@@ -100,19 +101,19 @@ TEST( IntegerConversion, sameSign )
   ASSERT_DEATH_IF_SUPPORTED( integer_conversion<uint32>(source5), "" );
 }
 
+
 int main( int argc, char* argv[] )
 {
-  MPI_Init( &argc, &argv );
-  logger::InitializeLogger( MPI_COMM_WORLD );
+  logger::InitializeLogger();
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-  MPI_Finalize();
   return result;
 }
+
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif

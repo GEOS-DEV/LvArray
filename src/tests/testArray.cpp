@@ -21,8 +21,12 @@
 #include <string>
 
 #include "Array.hpp"
+#include "SetSignalHandling.hpp"
+#include "stackTrace.hpp"
+#include "testUtils.hpp"
 
-using namespace LvArray;
+namespace LvArray
+{
 
 template < typename T >
 using array = Array< T, 1, int >;
@@ -830,42 +834,6 @@ void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 
 } /* namespace internal */
 
-
-struct Tensor
-{
-  double x, y, z;
-
-  Tensor():
-    x(), y(), z()
-  {}
-
-  Tensor( double val ):
-    x( val ), y( val ), z( val )
-  {}
-
-  bool operator==( const Tensor& other ) const
-  {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-    return x == other.x && y == other.y && z == other.z;
-#pragma GCC diagnostic pop
-  }
-};
-
-//TEST( Array, test_const )
-//{
-//  int junk[ 10 ];
-//  int dim[ 1 ] = { 10 };
-//  int stride[ 1 ] = { 1 };
-//
-//
-//  ArrayView< int, 1, int > array( junk, dim, stride );
-//
-//  ArrayView< const int, 1, int > arrayC = array;
-//
-//  EXPECT_TRUE( arrayC[ 9 ] == array[ 9 ] );
-//}
-
 TEST( Array, push_back )
 {
   constexpr int N = 1000;     /* Number of values to push_back */
@@ -1289,40 +1257,17 @@ TEST( Array, test_array2D )
   }
 }
 
-
-TEST( ArrayView, test_dimReduction )
-{
-  array2D< int > v( 10, 1 );
-  arrayView2D<int> const & vView = v;
-  ArrayView< int, 1, int > const vView1d = v.dimReduce();
-
-  for( int a=0 ; a<10 ; ++a )
-  {
-    v[a][0] = 2*a;
-  }
-
-  ASSERT_EQ( vView1d.data(), v.data() );
-
-  for( int a=0 ; a<10 ; ++a )
-  {
-    ASSERT_EQ( vView[a][0], v[a][0] );
-    ASSERT_EQ( vView1d[a], v[a][0] );
-  }
-
-
-}
+} /* namespace LvArray */
 
 
 int main( int argc, char* argv[] )
 {
-  MPI_Init( &argc, &argv );
-  logger::InitializeLogger( MPI_COMM_WORLD );
+  logger::InitializeLogger();
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-  MPI_Finalize();
   return result;
 }

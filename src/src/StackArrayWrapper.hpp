@@ -20,6 +20,8 @@
 #define STACKARRAYWRAPPER_HPP_
 
 #include <stddef.h>
+
+#include "CXX_UtilsConfig.hpp"
 #include "Logger.hpp"
 
 namespace LvArray
@@ -38,8 +40,8 @@ struct StackArrayWrapper
     GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
   }
 
-  T * data()             { return m_data; }
-  T const * data() const { return m_data; }
+  LVARRAY_HOST_DEVICE T * data()             { return m_data; }
+  LVARRAY_HOST_DEVICE T const * data() const { return m_data; }
 
   T m_data[LENGTH];
 };

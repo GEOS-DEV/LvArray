@@ -187,9 +187,9 @@ extern MPI_Comm comm;
 
 #ifdef USE_MPI
 void InitializeLogger( MPI_Comm comm, const std::string& rank_output_dir="" );
-#else
-void InitializeLogger( const std::string& rank_output_dir="" );
 #endif
+
+void InitializeLogger( const std::string& rank_output_dir="" );
 
 void FinalizeLogger();
 

@@ -99,17 +99,16 @@ TEST( StackArray, BoundsCheck2d )
 }
 #endif
 
+
 int main( int argc, char* argv[] )
 {
-  MPI_Init( &argc, &argv );
-  logger::InitializeLogger( MPI_COMM_WORLD );
+  logger::InitializeLogger();
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-  MPI_Finalize();
   return result;
 }
 #ifdef __clang__
