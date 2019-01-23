@@ -15,6 +15,9 @@ set(testSources
     testSortedArray.cpp
     testStackArray.cpp
     testCSArray2D.cpp
+    testSparsityPattern.cpp
+    testCRSMatrix.cpp
+    testCRSMatrixView.cpp
    )
 
 #

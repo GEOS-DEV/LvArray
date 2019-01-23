@@ -20,6 +20,8 @@ set(cxx-utilities_headers
     StringUtilities.hpp
     CSArray2DView.hpp
     CSArray2D.hpp
+    SparsityPatternView.hpp
+    SparsityPattern.hpp
    )
 
 set(cxx-utilities_sources

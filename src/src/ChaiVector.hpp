@@ -55,6 +55,9 @@ public:
   template <class U, class INDEX_TYPE>
   friend class SortedArray;
 
+  template <class COL_TYPE, class INDEX_TYPE>
+  friend class SparsityPattern;
+
   using size_type = size_t;
   using iterator = T *;
   using const_iterator = T const *;
@@ -444,7 +447,6 @@ private:
     ArrayManipulation::shiftUp(data(), m_length, pos, n);
     m_length = newLength;
   }
-
 
 #ifdef USE_CHAI
   void registerTouch( chai::ExecutionSpace space )
