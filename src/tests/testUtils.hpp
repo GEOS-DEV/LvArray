@@ -20,6 +20,12 @@ struct Tensor
     x( 3 * val ), y( 3 * val + 1 ), z( 3 * val + 2 )
   {}
 
+  LVARRAY_HOST_DEVICE Tensor( const Tensor & from) :
+    x(from.x),
+    y(from.y),
+    z(from.z)
+  {}
+
   LVARRAY_HOST_DEVICE Tensor& operator=( const Tensor& other )
   {
     x = other.x;
