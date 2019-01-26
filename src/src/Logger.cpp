@@ -138,8 +138,12 @@ void InitializeLogger( const std::string& rank_output_dir )
     internal::using_cout_for_rank_stream = false;
 
     std::string cmd = "mkdir -p " + rank_output_dir;
-    std::system( cmd.c_str());
-
+    int ret = std::system( cmd.c_str());
+    if( ret != 0 )
+      {
+        GEOS_LOG( "Failed to initialize Logger: command '" << cmd << "' exited with code " << std::to_string( ret ));
+        abort();
+      }
     std::string output_file_path = rank_output_dir + "/rank_" + std::to_string( internal::rank ) + ".out";
     internal::rank_stream.rdbuf()->open( output_file_path, std::ios_base::out );
   }
