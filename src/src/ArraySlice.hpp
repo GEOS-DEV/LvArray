@@ -59,6 +59,40 @@
 namespace LvArray
 {
 
+/* Pre-declaration to allow for ArraySlice1d alias */
+template< typename T, int NDIM, typename INDEX_TYPE = std::ptrdiff_t >
+class ArraySlice;
+
+#ifdef USE_ARRAY_BOUNDS_CHECK
+
+template< typename T, typename INDEX_TYPE >
+using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE> const;
+
+template< typename T, typename INDEX_TYPE >
+inline CONSTEXPRFUNC
+ArraySlice1d< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
+                                                 INDEX_TYPE const * const restrict dims,
+                                                 INDEX_TYPE const * const restrict strides)
+{
+  return ArraySlice1d<T, INDEX_TYPE>(data, dims, strides);
+}
+
+#else
+
+template< typename T, typename INDEX_TYPE = int>
+using ArraySlice1d = T * const restrict;
+
+template< typename T, typename INDEX_TYPE >
+inline CONSTEXPRFUNC
+ArraySlice1d< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
+                                                 INDEX_TYPE const * const restrict dims,
+                                                 INDEX_TYPE const * const restrict strides)
+{
+  return data;
+}
+
+#endif
+
 
 /**
  * @class ArraySlice
@@ -82,7 +116,7 @@ namespace LvArray
  * 4) Conversion operator to go from ArraySlice<T,1> to T*
  *
  */
-template< typename T, int NDIM, typename INDEX_TYPE = std::int_fast32_t >
+template< typename T, int NDIM, typename INDEX_TYPE >
 class ArraySlice
 {
 public:
@@ -155,17 +189,10 @@ public:
    * associated with its sub-array. If used as a set of nested operators (array[][][]) the compiler
    * typically provides the pointer dereference directly and does not create the new ArraySlice
    * objects.
-   *
-   * @note This declaration is for NDIM>=3 when bounds checking is off, and NDIM!=1 when bounds
-   * checking is on.
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
-#ifdef USE_ARRAY_BOUNDS_CHECK
-  std::enable_if< U!=1, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
-#else
   std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
-#endif
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
@@ -176,21 +203,15 @@ public:
    * @brief This function provides a square bracket operator for array access of a 2D array.
    * @param index index of the element in array to access
    * @return a pointer to the data location indicated by the index.
-   *
-   * This function returns a pointer to the data that represents the slice at the given index.
-   *
-   * @note This declaration is for NDIM==2 when bounds checking is OFF, as the result of that
-   * operation should be a raw array if bounds checking is on.
    */
-#ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  typename std::enable_if< U==2, T * restrict >::type
+  typename std::enable_if< U==2, ArraySlice1d< T, INDEX_TYPE > >::type
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
-    return &(m_data[ index*m_strides[0] ]);
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return createArraySlice1d(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1); 
   }
-#endif
 
   /**
    * @brief This function provides a square bracket operator for array access for a 1D array.
@@ -224,18 +245,6 @@ protected:
   INDEX_TYPE const * const restrict m_strides;
 
 };
-
-#ifdef USE_ARRAY_BOUNDS_CHECK
-
-template< typename T, typename INDEX_TYPE >
-using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE> const;
-
-#else
-
-template< typename T, typename INDEX_TYPE = int>
-using ArraySlice1d = T * const restrict;
-
-#endif
 
 }
 
