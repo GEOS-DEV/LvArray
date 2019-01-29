@@ -341,17 +341,10 @@ public:
    * associated with its sub-array. If used as a set of nested operators (array[][][]) the compiler
    * typically provides the pointer dereference directly and does not create the new ArraySlice
    * objects.
-   *
-   * @note This declaration is for NDIM>=3 when bounds checking is off, and NDIM!=1 when bounds
-   * checking is on.
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
-#ifdef USE_ARRAY_BOUNDS_CHECK
-  std::enable_if< U!=1, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
-#else
   std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
-#endif
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
@@ -362,21 +355,15 @@ public:
    * @brief This function provides a square bracket operator for array access of a 2D array.
    * @param index index of the element in array to access
    * @return a pointer to the data location indicated by the index.
-   *
-   * This function returns a pointer to the data that represents the slice at the given index.
-   *
-   * @note This declaration is for NDIM==2 when bounds checking is OFF, as the result of that
-   * operation should be a raw array if bounds checking is on.
    */
-#ifndef USE_ARRAY_BOUNDS_CHECK
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  typename std::enable_if< U==2, T * restrict >::type
+  typename std::enable_if< U==2, ArraySlice1d< T, INDEX_TYPE > >::type
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
-    return &(m_data[ index*m_strides[0] ]);
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return createArraySlice1d(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1); 
   }
-#endif
 
   /**
    * @brief This function provides a square bracket operator for array access for a 1D array.
