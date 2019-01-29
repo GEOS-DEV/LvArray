@@ -25,12 +25,6 @@ set(cxx-utilities_sources
     StringUtilities.cpp )
 
 
-if( CMAKE_PROJECT_NAME STREQUAL "geosx" )
-    list( APPEND cxx-utilities_headers DocumentationNode.hpp )
-    list( APPEND cxx-utilities_sources DocumentationNode.cpp )
-endif()
-
-
 message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
