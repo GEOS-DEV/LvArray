@@ -58,6 +58,9 @@ public:
   template <class COL_TYPE, class INDEX_TYPE>
   friend class SparsityPattern;
 
+  template <class U, class COL_TYPE, class INDEX_TYPE>
+  friend class CRSMatrix;
+
   using size_type = size_t;
   using iterator = T *;
   using const_iterator = T const *;

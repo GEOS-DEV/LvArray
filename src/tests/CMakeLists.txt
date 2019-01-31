@@ -17,7 +17,6 @@ set(testSources
     testCSArray2D.cpp
     testSparsityPattern.cpp
     testCRSMatrix.cpp
-    testCRSMatrixView.cpp
    )
 
 #

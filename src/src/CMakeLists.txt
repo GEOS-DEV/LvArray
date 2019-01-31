@@ -22,6 +22,8 @@ set(cxx-utilities_headers
     CSArray2D.hpp
     SparsityPatternView.hpp
     SparsityPattern.hpp
+    CRSMatrixView.hpp
+    CRSMatrix.hpp
    )
 
 set(cxx-utilities_sources
