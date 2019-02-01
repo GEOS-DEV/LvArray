@@ -358,7 +358,7 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  typename std::enable_if< U==2, ArraySlice1d< T, INDEX_TYPE > >::type
+  typename std::enable_if< U==2, ArraySlice1d_rval< T, INDEX_TYPE > >::type
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );

@@ -69,8 +69,11 @@ template< typename T, typename INDEX_TYPE >
 using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE> const;
 
 template< typename T, typename INDEX_TYPE >
+using ArraySlice1d_rval = ArraySlice<T, 1, INDEX_TYPE>;
+
+template< typename T, typename INDEX_TYPE >
 inline CONSTEXPRFUNC
-ArraySlice1d< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
+ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
                                                  INDEX_TYPE const * const restrict dims,
                                                  INDEX_TYPE const * const restrict strides)
 {
@@ -82,9 +85,12 @@ ArraySlice1d< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
 template< typename T, typename INDEX_TYPE = int>
 using ArraySlice1d = T * const restrict;
 
+template< typename T, typename INDEX_TYPE = int>
+using ArraySlice1d_rval = T *;
+
 template< typename T, typename INDEX_TYPE >
 inline CONSTEXPRFUNC
-ArraySlice1d< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
+ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
                                                  INDEX_TYPE const * const restrict dims,
                                                  INDEX_TYPE const * const restrict strides)
 {
