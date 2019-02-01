@@ -36,6 +36,10 @@
 #define VA_LIST( ... ) __VA_ARGS__
 
 
+#define TYPEOFPTR( x ) typename std::remove_pointer<decltype(x)>::type
+#define TYPEOFREF( x ) typename std::remove_reference<decltype(x)>::type
+
+
 #endif /* MACROS_HPP_ */
 
 
