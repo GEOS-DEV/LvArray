@@ -80,6 +80,8 @@ ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
   return ArraySlice1d<T, INDEX_TYPE>(data, dims, strides);
 }
 
+#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) ArraySlice<T, 1, INDEX_TYPE>(data, dims, strides)
+
 #else
 
 template< typename T, typename INDEX_TYPE = int>
@@ -96,6 +98,9 @@ ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
 {
   return data;
 }
+
+#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) data
+
 
 #endif
 
@@ -216,7 +221,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return createArraySlice1d(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1); 
+    return CREATE_ARRAY_SLICE_1D( &(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1 );
   }
 
   /**

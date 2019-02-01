@@ -362,7 +362,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return createArraySlice1d(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1); 
+    return CREATE_ARRAY_SLICE_1D(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1);
   }
 
   /**
