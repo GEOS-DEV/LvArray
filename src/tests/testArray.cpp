@@ -779,7 +779,7 @@ template < class T, class LAMBDA >
 void shallow_copy_test( const array< T >& v, LAMBDA get_value )
 {
   {
-    arrayView< T > v_cpy( static_cast<arrayView<T> const&>(v) );
+    arrayView< T > v_cpy( v.toView() );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 

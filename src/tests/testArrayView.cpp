@@ -176,16 +176,55 @@ void testMemoryMotion( arrayView< T > & v )
 
 
 template < typename T >
+void testMemoryMotionConst( array< T > & a )
+{
+  const int N = a.size();
+
+  for ( int i = 0; i < N; ++i )
+  {
+    a[ i ] = T( i );
+  }
+
+  arrayView< T const > & v = a.toViewConst();
+
+  // Capture the view on the device.
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      assert(v[i] == T( i ));
+    }
+  );
+
+  // Change the values that the array holds.
+  for ( int i = 0; i < N; ++i )
+  {
+    a[ i ] = T( 2 * i );
+  }
+
+  // Copy the array back to the host, should be a no-op since it was captured as T const
+  // and therefore the values should be those set above.
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      EXPECT_EQ( v[ i ], T( 2 * i ) );
+    }
+  );
+}
+
+
+template < typename T >
 void testMemoryMotionMove( array< T > & a )
 {
-  arrayView< T > & v = a;
-
-  const int N = v.size();
+  const int N = a.size();
   
   for ( int i = 0; i < N; ++i )
   {
-    v[ i ] = T( i );
+    a[ i ] = T( i );
   }
+
+  a.move( chai::GPU );
+  arrayView< T > & v = a;
+  T const * const v_device_ptr = v.data();
 
   forall( cuda(), 0, N,
     [=] __device__ ( int i )
@@ -193,6 +232,9 @@ void testMemoryMotionMove( array< T > & a )
       v[ i ] *= v[ i ];
     }
   );
+
+  /* The copy construction shouldn't have changed the pointer since we moved it. */
+  ASSERT_EQ(v_device_ptr, v.data());
 
   a.move( chai::CPU );
   for ( int i = 0; i < N; ++i )
@@ -202,7 +244,6 @@ void testMemoryMotionMove( array< T > & a )
     EXPECT_EQ( v[ i ], val );
   }
 }
-
 
 template < typename T >
 void testMemoryMotionMultiple( arrayView< T > & v )
@@ -305,7 +346,7 @@ void testMemoryMotionMultipleMove( array< T > & a )
 template < typename T >
 void testMemoryMotionArray( array< array< T > > & a )
 {
-  arrayView< arrayView_nc< T > > & v = reinterpret_cast< arrayView< arrayView_nc< T > > & >( a );
+  arrayView< arrayView< T > > & v = a.toView();
 
   const int N = v.size();
 
@@ -340,11 +381,62 @@ void testMemoryMotionArray( array< array< T > > & a )
   );
 }
 
+template < typename T >
+void testMemoryMotionArrayConst( array< array< T > > & a )
+{
+  const int N = a.size();
+
+  // Create a shallow copy of a that we can modify later.
+  array< arrayView_nc< T > > a_copy( N );
+
+  for ( int i = 0; i < N; ++i )
+  { 
+    a_copy[ i ] = a[ i ];
+    for ( int j = 0; j < N; ++j )
+    {
+      a[ i ][ j ] = T( N * i + j );
+    }
+  }
+
+  // Create a const view and capture it.  
+  arrayView< arrayView< T const > > & v = a.toViewConst();
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        assert(v[ i ][ j ] == T( N * i + j ));
+      }
+    }
+  );
+
+  // Modify a_copy. We can't use a directly since the inner arrays
+  // have device pointers.
+  for ( int i = 0; i < N; ++i )
+  { 
+    for ( int j = 0; j < N; ++j )
+    {
+      a_copy[ i ][ j ] = T( 2 * ( N * i + j ) );
+    }
+  }
+
+  // Check that the modifications weren't overwritten.
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        EXPECT_EQ( v[ i ][ j ], T( 2 * ( N * i + j ) ) );
+      }
+    }
+  );
+}
+
 
 template < typename T >
 void testMemoryMotionArrayMove( array< array< T > > & a )
 {
-  arrayView< arrayView_nc< T > > & v = reinterpret_cast< arrayView< arrayView_nc< T > > & >( a );
+  arrayView< arrayView< T > > & v = a.toView();
 
   const int N = v.size();
 
@@ -382,7 +474,7 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
 template < typename T >
 void testMemoryMotionArray2( array< array< array< T > > > & a )
 {
-  arrayView< arrayView_nc< arrayView_nc< T > > > & v = reinterpret_cast< arrayView< arrayView_nc< arrayView_nc< T > > > & >( a );
+  arrayView< arrayView< arrayView< T > > > & v = a.toView();
 
   const int N = v.size();
   
@@ -426,11 +518,75 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
   );
 }
 
+template < typename T >
+void testMemoryMotionArray2Const( array< array< array< T > > > & a )
+{
+  const int N = a.size();
+
+  // Create a shallow copy of a that we can modify later.
+  array< array< arrayView_nc< T > > > a_copy( N );
+  
+  for ( int i = 0; i < N; ++i )
+  { 
+    a_copy[ i ].resize(a[i].size());
+    for ( int j = 0; j < N; ++j )
+    {
+      a_copy[ i ][ j ] = a[ i ][ j ];
+      for ( int k = 0; k < N; ++k )
+      {
+        a[ i ][ j ][ k ] = T( N * N * i + N * j + k );
+      }
+    }
+  }
+
+  arrayView< arrayView< arrayView< T const > > > & v = a.toViewConst();
+
+  forall( cuda(), 0, N,
+    [=] __device__ ( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        for ( int k = 0; k < N; ++k )
+        {
+          assert(v[ i ][ j ][ k ] == T( N * N * i + N * j + k ));
+        }
+      }
+    }
+  );
+
+  // Modify a_copy. We can't use a directly since the inner arrays
+  // have device pointers.
+  for ( int i = 0; i < N; ++i )
+  {
+    for ( int j = 0; j < N; ++j )
+    {
+      for ( int k = 0; k < N; ++k )
+      {
+        a_copy[ i ][ j ][ k ] = T( 2 * ( N * N * i + N * j + k ) );
+      }
+    }
+  }
+
+  // Check that the modifications weren't overwritten.
+  forall( sequential(), 0, N,
+    [=]( int i )
+    {
+      for ( int j = 0; j < N; ++j )
+      {
+        for ( int k = 0; k < N; ++k )
+        {
+          EXPECT_EQ( v[ i ][ j ][ k ], T( 2 * ( N * N * i + N * j + k ) ) );
+        }
+      }
+    }
+  );
+}
+
 
 template < typename T >
 void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
 {
-  arrayView< arrayView_nc< arrayView_nc< T > > > & v = reinterpret_cast< arrayView< arrayView_nc< arrayView_nc< T > > > & >( a );
+  arrayView< arrayView< arrayView< T > > > & v = a.toView();
   
   const int N = v.size();
   
@@ -711,16 +867,31 @@ TEST( ArrayView, 3DAccessors )
 
 CUDA_TEST( ArrayView, memoryMotion )
 {
-  constexpr int N = 100;
+  constexpr int N = 10;
 
   {
     array< int > a( N );
     internal::testMemoryMotion( a );
   }
 
+  // {
+  //   array< Tensor > a( N );
+  //   internal::testMemoryMotion( a );
+  // }
+}
+
+CUDA_TEST( ArrayView, memoryMotionConst )
+{
+  constexpr int N = 100;
+
+  {
+    array< int > a( N );
+    internal::testMemoryMotionConst( a );
+  }
+
   {
     array< Tensor > a( N );
-    internal::testMemoryMotion( a );
+    internal::testMemoryMotionConst( a );
   }
 }
 
@@ -794,6 +965,31 @@ CUDA_TEST( ArrayView, memoryMotionArray )
   }
 }
 
+CUDA_TEST( ArrayView, memoryMotionArrayConst )
+{
+  constexpr int N = 10;
+
+  {
+    array< array< int > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArrayConst( a );
+  }
+
+  {
+    array< array< Tensor > > a( N );
+    for ( int i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
+
+    internal::testMemoryMotionArrayConst( a );
+  }
+}
+
 CUDA_TEST( ArrayView, memoryMotionArrayMove )
 {
   constexpr int N = 10;
@@ -852,7 +1048,7 @@ CUDA_TEST( ArrayView, memoryMotionArray2 )
   }
 }
 
-CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
+CUDA_TEST( ArrayView, memoryMotionArray2Const )
 {
   constexpr int N = 5;
 
@@ -867,7 +1063,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
       }
     }
 
-    internal::testMemoryMotionArrayMove2( a );
+    internal::testMemoryMotionArray2Const( a );
   }
 
   {
@@ -881,9 +1077,42 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
       }
     }
 
-    internal::testMemoryMotionArrayMove2( a );
+    internal::testMemoryMotionArray2Const( a );
   }
 }
+
+// CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
+// {
+//   constexpr int N = 5;
+
+//   {
+//     array< array< array< int > > > a( N );
+//     for ( int i = 0; i < N; ++i )
+//     {
+//       a[ i ].resize( N );
+//       for ( int j = 0; j < N; ++j )
+//       {
+//         a[ i ][ j ].resize( N );
+//       }
+//     }
+
+//     internal::testMemoryMotionArrayMove2( a );
+//   }
+
+//   {
+//     array< array< array< Tensor > > > a( N );
+//     for ( int i = 0; i < N; ++i )
+//     {
+//       a[ i ].resize( N );
+//       for ( int j = 0; j < N; ++j )
+//       {
+//         a[ i ][ j ].resize( N );
+//       }
+//     }
+
+//     internal::testMemoryMotionArrayMove2( a );
+//   }
+// }
 
 CUDA_TEST( ArrayView, 2DAccessorsDevice )
 {

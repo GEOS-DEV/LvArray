@@ -47,10 +47,7 @@ namespace LvArray
  * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
  * @tparam INDEX_TYPE the integer to use for indexing the components of the array
  */
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE = std::ptrdiff_t,
-          typename DATA_VECTOR_TYPE = ChaiVector<T> >
+template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
 class Array : public ArrayView< T,
                                 NDIM,
                                 INDEX_TYPE,
@@ -80,7 +77,8 @@ public:
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_iterator;
 
   using asView = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
-  
+  using asViewConst = typename detail::to_arrayViewConst< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+
   /**
    * @brief default constructor
    */
@@ -136,6 +134,25 @@ public:
   () const
   {
     return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
+  }
+
+  /**
+   * Convert this Array and any nested Array to ArrayView const.
+   */
+  asView & toView() const
+  {
+    return reinterpret_cast<asView &>(*this);
+  }
+
+  /**
+   * Convert this Array and any nested Array to ArrayView const.
+   * In addition the data held by the innermost array will be const.
+   */
+  template< typename U = T >
+  typename std::enable_if< !std::is_const<U>::value, asViewConst & >::type
+  toViewConst() const
+  {
+    return reinterpret_cast<asViewConst &>(*this);
   }
 
   /**

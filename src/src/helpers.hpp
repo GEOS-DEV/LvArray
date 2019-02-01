@@ -246,14 +246,14 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
 
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
+          typename INDEX_TYPE=std::ptrdiff_t,
+          typename DATA_VECTOR_TYPE=ChaiVector<T> >
 class Array;
 
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
+          typename INDEX_TYPE=std::ptrdiff_t,
+          typename DATA_VECTOR_TYPE=ChaiVector<T> >
 class ArrayView;
 
 namespace detail
@@ -271,35 +271,64 @@ template< typename T,
 struct is_array< Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
 
 
-template<typename>
-struct to_arrayView {};
+template<typename T>
+struct to_arrayView
+{
+  using type = T;
+};
 
 
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-struct to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
+          typename INDEX_TYPE >
+struct to_arrayView< Array< T, NDIM, INDEX_TYPE > >
 {
-  using type = ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >;
+  using type = ArrayView< T, NDIM, INDEX_TYPE > const;
 };
 
 /* Note this will only work when using ChaiVector as the DATA_VECTOR_TYPE. */
 template< typename T,
           int NDIM1,
           typename INDEX_TYPE1,
-          typename DATA_VECTOR_TYPE1,
           int NDIM0,
           typename INDEX_TYPE0 >
-struct to_arrayView< Array< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 >,
+struct to_arrayView< Array< Array< T, NDIM1, INDEX_TYPE1 >,
                             NDIM0,
-                            INDEX_TYPE0,
-                            ChaiVector< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > > > > 
+                            INDEX_TYPE0 > > 
 {
-  using type = ArrayView< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > >::type,
+  using type = ArrayView< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1 > >::type,
                           NDIM0,
-                          INDEX_TYPE0,
-                          ChaiVector< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1, DATA_VECTOR_TYPE1 > >::type > >;
+                          INDEX_TYPE0 > const;
+};
+
+template<typename T>
+struct to_arrayViewConst
+{
+  using type = T;
+};
+
+
+template< typename T,
+          int NDIM,
+          typename INDEX_TYPE >
+struct to_arrayViewConst< Array< T, NDIM, INDEX_TYPE > >
+{
+  using type = ArrayView< T const, NDIM, INDEX_TYPE > const;
+};
+
+/* Note this will only work when using ChaiVector as the DATA_VECTOR_TYPE. */
+template< typename T,
+          int NDIM1,
+          typename INDEX_TYPE1,
+          int NDIM0,
+          typename INDEX_TYPE0 >
+struct to_arrayViewConst< Array< Array< T, NDIM1, INDEX_TYPE1 >,
+                            NDIM0,
+                            INDEX_TYPE0 > > 
+{
+  using type = ArrayView< typename to_arrayViewConst< Array< T, NDIM1, INDEX_TYPE1 > >::type,
+                          NDIM0,
+                          INDEX_TYPE0 > const;
 };
 
 } /* namespace detail */

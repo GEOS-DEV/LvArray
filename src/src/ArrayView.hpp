@@ -70,8 +70,8 @@ class Array;
  */
 template< typename T,
           int NDIM,
-          typename INDEX_TYPE = std::ptrdiff_t,
-          typename DATA_VECTOR_TYPE = ChaiVector<T> >
+          typename INDEX_TYPE,
+          typename DATA_VECTOR_TYPE >
 class ArrayView
 #ifdef USE_CHAI
   : public chai::CHAICopyable
