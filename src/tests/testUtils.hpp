@@ -49,7 +49,7 @@ struct Tensor
     return result;
   }
 
-  bool operator==( const Tensor& other ) const
+  LVARRAY_HOST_DEVICE bool operator==( const Tensor& other ) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
