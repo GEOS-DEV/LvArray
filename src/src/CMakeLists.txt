@@ -18,6 +18,8 @@ set(cxx-utilities_headers
     StackArrayWrapper.hpp
     stackTrace.hpp
     StringUtilities.hpp
+    CSArray2DView.hpp
+    CSArray2D.hpp
    )
 
 set(cxx-utilities_sources
