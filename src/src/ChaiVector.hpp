@@ -16,28 +16,12 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * Copyright (c) 2018, Lawrence Livermore National Security, LLC.
- *
- * Produced at the Lawrence Livermore National Laboratory
- *
- * LLNL-CODE-746361
- *
- * All rights reserved. See COPYRIGHT for details.
- *
- * This file is part of the GEOSX Simulation Framework.
- *
- * GEOSX is a free software; you can redistrubute it and/or modify it under
- * the terms of the GNU Lesser General Public Liscense (as published by the
- * Free Software Foundation) version 2.1 dated February 1999.
- *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
 #ifndef CHAI_VECTOR_HPP_
 #define CHAI_VECTOR_HPP_
 
 #include "CXX_UtilsConfig.hpp"
+#include "Logger.hpp"
+#include "ArrayManipulation.hpp"
 
 #include <type_traits>
 #include <iterator>
@@ -68,6 +52,9 @@ class ChaiVector
 {
 public:
 
+  template <class U, class INDEX_TYPE>
+  friend class SortedArray;
+
   using size_type = size_t;
   using iterator = T *;
   using const_iterator = T const *;
@@ -87,9 +74,9 @@ public:
 
   /**
    * @brief Creates a new vector of the given length.
-   * @param [in] initial_length the initial length of the vector.
+   * @param [in] initialLength the initial length of the vector.
    */
-  ChaiVector( size_type initial_length ):
+  ChaiVector( size_type initialLength ):
 #ifdef USE_CHAI
     m_array(),
 #else
@@ -98,7 +85,7 @@ public:
 #endif
     m_length( 0 )
   {
-    resize( initial_length );
+    resize( initialLength );
   }
 
   /**
@@ -135,6 +122,16 @@ public:
     source.m_length = 0;
   }
 
+  template <class U>
+  void copy_into( ChaiVector<U>& dst ) const
+  {
+    dst.resize( size() );
+    for( size_type i = 0; i < size(); ++i )
+    {
+      dst[ i ] = m_array[ i ];
+    }
+  }
+
   /**
    * @brief Free's the data.
    */
@@ -143,14 +140,7 @@ public:
     if( capacity() > 0 )
     {
       clear();
-#ifdef USE_CHAI
-      internal::chai_lock.lock();
-      m_array.free();
-      internal::chai_lock.unlock();
-#else
-      std::free( m_array );
-      m_capacity = 0;
-#endif
+      releaseAllocation();
     }
 
     m_array = nullptr;
@@ -190,20 +180,9 @@ public:
    * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
    */
-  LVARRAY_HOST_DEVICE T & operator[]( size_type pos ) const
+  template <class INDEX_TYPE>
+  LVARRAY_HOST_DEVICE T & operator[]( INDEX_TYPE pos ) const
   { return m_array[ pos ]; }
-
-  /**
-   * @brief Return a reference to the first value in the array.
-   */
-  T& front() const
-  { return m_array[0]; }
-
-  /**
-   * @brief Return a reference to the last value in the array.
-   */
-  T& back() const
-  { return m_array[ size() - 1 ]; }
 
   /**
    * @brief Return a pointer to the data.
@@ -212,20 +191,9 @@ public:
   { return &m_array[0]; }
 
   /**
-   * @brief Return a random access iterator to the beginning of the vector.
-   */
-  iterator begin() const
-  { return &front(); }
-
-  /**
-   * @brief Return a random access iterator to one past the end of the vector.
-   */
-  iterator end() const
-  { return &back() + 1; }
-
-  /**
    * @brief Return true iff the vector holds no data.
    */
+  LVARRAY_HOST_DEVICE
   bool empty() const
   { return size() == 0; }
 
@@ -250,7 +218,7 @@ public:
   /**
    * @brief Return the capacity of the vector.
    */
-  size_type capacity() const
+  LVARRAY_HOST_DEVICE size_type capacity() const
   {
 #ifdef USE_CHAI
     return m_array.size();
@@ -272,10 +240,16 @@ public:
    * @param [in] value the value to insert.
    * @return An iterator to the position at which the insertion was done.
    */
-  iterator insert( const_iterator pos, const T& value )
+  void insert( size_type index, const T& value )
   {
-    const size_type index = pos - begin();
-    return insert( index, value );
+    size_type newLength = size() + 1;
+    if( newLength > capacity() )
+    {
+      dynamicRealloc( newLength );
+    }
+
+    ArrayManipulation::insert(data(), m_length, index, value);
+    m_length += 1;
   }
 
   /**
@@ -284,36 +258,16 @@ public:
    * @param [in] value the value to insert.
    * @return An iterator to the position at which the insertion was done.
    */
-  iterator insert( const_iterator pos, const T&& value )
+  void insert(size_type index, const T&& value )
   {
-    const size_type index = pos - begin();
-    return insert( index, std::move( value ) );
-  }
+    size_type newLength = size() + 1;
+    if( newLength > capacity() )
+    {
+      dynamicRealloc( newLength );
+    }
 
-  /**
-   * @brief Insert the given value at the given position.
-   * @param [in] pos the position at which to insert the value.
-   * @param [in] value the value to insert.
-   * @return An iterator to the position at which the insertion was done.
-   */
-  iterator insert( size_type index, const T& value )
-  {
-    emplace( index, 1 );
-    new ( &m_array[ index ] ) T( value );
-    return begin() + index;
-  }
-
-  /**
-   * @brief Insert the given value at the given position.
-   * @param [in] pos the position at which to insert the value.
-   * @param [in] value the value to insert.
-   * @return An iterator to the position at which the insertion was done.
-   */
-  iterator insert( size_type index, const T&& value )
-  {
-    emplace( index, 1 );
-    new ( &m_array[ index ] ) T( std::move( value ));
-    return begin() + index;
+    ArrayManipulation::insert(data(), m_length, index, std::move(value));
+    m_length += 1;
   }
 
   /**
@@ -323,39 +277,16 @@ public:
    * @param [in] last iterator to one past the last value to insert.
    * @return An iterator to the position at which the insertion was done.
    */
-  template < typename InputIt >
-  iterator insert( const_iterator pos, InputIt first, InputIt last )
+  void insert( size_type index, T const * const values, size_type n )
   {
-    size_type index = pos - begin();
-    const size_type n = std::distance( first, last );
-    emplace( index, n );
-
-    /* Initialize the newly vacant values moved out of to the default value. */
-    for( ; first != last ; ++first )
+    size_type newLength = size() + n;
+    if( newLength > capacity() )
     {
-      new ( &m_array[ index++ ] ) T( *first );
+      dynamicRealloc( newLength );
     }
 
-    return begin() + index;
-  }
-
-  /**
-   * @brief Remove the value at the given position and shift down all subsequent values.
-   * @param [in] pos the position to remove.
-   * @return An iterator to the position at which the erase was done.
-   */
-  iterator erase( const_iterator pos )
-  {
-    const size_type index = pos - begin();
-    for( size_type i = index ; i < size() - 1 ; ++i )
-    {
-      m_array[ i ] = std::move( m_array[ i + 1 ] );
-    }
-
-    m_array[ size() - 1 ].~T();
-    --m_length;
-
-    return begin() + index;
+    ArrayManipulation::insert(data(), m_length, index, values, n);
+    m_length = newLength;
   }
 
   /**
@@ -369,8 +300,8 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    new ( &m_array[ size() ] ) T( value );
-    ++m_length;
+    ArrayManipulation::append(data(), m_length, value);
+    m_length += 1;
   }
 
   /**
@@ -384,49 +315,52 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    new ( &m_array[ size() ] ) T( std::move( value ));
-    ++m_length;
+    ArrayManipulation::append(data(), m_length, std::move(value));
+    m_length += 1;
   }
+
+  /**
+   * @brief Append multiple values to the end of the array.
+   * @param [in] values the values to append.
+   * @param [in] n_values the number of values to append.
+   */
+  void push_back( T const * values, size_type n_values )
+  {
+    if( size() + n_values > capacity() )
+    {
+      dynamicRealloc( size() + n_values );
+    }
+
+    ArrayManipulation::append(data(), m_length, values, n_values);
+    m_length += n_values;
+  }
+
 
   /**
    * @brief Delete the last value.
    */
   void pop_back()
   {
-    if( size() > 0 )
-    {
-      --m_length;
-      m_array[ size() ].~T();
-    }
+    ArrayManipulation::popBack(data(), m_length);
+    m_length -= 1;
   }
 
   /**
    * @brief Resize the vector to the new length.
-   * @param [in] new_length the new length of the vector.
+   * @param [in] newLength the new length of the vector.
    * @note If reducing the size the values past the new size are destroyed,
    * if increasing the size the values past the current size are initialized with
    * the default constructor.
    */
-  void resize( const size_type new_length, T const & defaultValue  = T())
+  void resize( const size_type newLength, T const & defaultValue = T())
   {
-    if( new_length > capacity() )
+    if( newLength > capacity() )
     {
-      realloc( new_length );
+      realloc( newLength );
     }
 
-    /* Delete things between new_length and size() */
-    for( size_type i = new_length ; i < size() ; ++i )
-    {
-      m_array[ i ].~T();
-    }
-
-    /* Initialize things size() and new_length */
-    for( size_type i = size() ; i < new_length ; ++i )
-    {
-      new ( &m_array[ i ] ) T( defaultValue );
-    }
-
-    m_length = new_length;
+    ArrayManipulation::resize(data(), m_length, newLength, defaultValue);
+    m_length = newLength;
 
     if ( m_length > 0 )
     {
@@ -444,7 +378,73 @@ public:
   }
 #endif
 
+  /**
+   * @brief Insert the given number of default values at the given position.
+   * @param [in] pos the position at which to insert.
+   * @param [in] n the number of values to insert.
+   */
+  void emplace( size_type pos, size_type n, T const & defaultValue = T() )
+  {
+    if( n == 0 ) return;
+
+    size_type newLength = size() + n;
+    if( newLength > capacity() )
+    {
+      dynamicRealloc( newLength );
+    }
+
+    ArrayManipulation::emplace(data(), m_length, pos, n, defaultValue);
+    m_length = newLength;
+  }
+
+  /**
+   * @brief Remove the given number of values starting at the given position.
+   * @param [in] pos the position at which to remove.
+   * @param [in] n the number of values to remove.
+   */
+  void erase( size_type pos, size_type n=1 )
+  {
+    ArrayManipulation::erase(data(), m_length, pos, n);
+    m_length -= n;
+  }
+
 private:
+
+  void releaseAllocation()
+  {
+#ifdef USE_CHAI
+    internal::chai_lock.lock();
+    m_array.free();
+    internal::chai_lock.unlock();
+#else
+    std::free( m_array );
+    m_capacity = 0;
+#endif
+
+    m_array = nullptr;
+    m_length = 0;
+  }
+
+  void setSize( size_type newLength )
+  {
+    GEOS_ASSERT(ArrayManipulation::isPositive(newLength) && newLength <= capacity());
+    m_length = newLength;
+  }
+
+  void shiftUp( size_type pos, size_type n )
+  {
+    if( n == 0 ) return;
+
+    size_type newLength = size() + n;
+    if( newLength > capacity() )
+    {
+      dynamicRealloc( newLength );
+    }
+
+    ArrayManipulation::shiftUp(data(), m_length, pos, n);
+    m_length = newLength;
+  }
+
 
 #ifdef USE_CHAI
   void registerTouch( chai::ExecutionSpace space )
@@ -452,35 +452,6 @@ private:
     m_array.registerTouch( space );
   }
 #endif
-
-
-  /**
-   * @brief Insert the given number of default values at the given position.
-   * @param [in] n the number of values to insert.
-   * @param [in] pos the position at which to insert.
-   */
-  void emplace( size_type pos, size_type n )
-  {
-    if( n == 0 )
-    {
-      return;
-    }
-
-    size_type new_length = size() + n;
-    if( new_length > capacity() )
-    {
-      dynamicRealloc( new_length );
-    }
-
-    /* Move the existing values down by n. */
-    for( size_type i = size() ; i > pos ; --i )
-    {
-      const size_type cur_pos = i - 1;
-      new ( &m_array[ cur_pos + n ] ) T( std::move( m_array[ cur_pos ] ) );
-    }
-
-    m_length = new_length;
-  }
 
   /**
    * @brief Reallocate the underlying array to have the given capacity.
@@ -496,6 +467,7 @@ private:
     T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
 #endif
 
+    /* Move the values over into the new array. */
     const size_type new_size = new_capacity > size() ? size() : new_capacity;
     for( size_type i = 0 ; i < new_size ; ++i )
     {
@@ -526,10 +498,10 @@ private:
 
   /**
    * @brief Performs a dynamic reallocation, which makes the capacity twice the new length.
-   * @param [in] new_length the new length.
+   * @param [in] newLength the new length.
    */
-  void dynamicRealloc( size_type new_length )
-  { reserve( 2 * new_length ); }
+  void dynamicRealloc( size_type newLength )
+  { reserve( 2 * newLength ); }
 
 #ifdef USE_CHAI
   chai::ManagedArray<T> m_array;

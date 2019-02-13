@@ -36,16 +36,16 @@ namespace cxx_utilities
 
 void handler( int sig, int exitFlag, int exitCode )
 {
-  fprintf( stderr, "executing stackTrace.cpp::handler(%d,%d,%d)\n", sig, exitFlag, exitCode );
+  fprintf( stdout, "executing stackTrace.cpp::handler(%d,%d,%d)\n", sig, exitFlag, exitCode );
   void *array[100];
   int size;
 
   // get void*'s for all entries on the stack
   size = backtrace( array, 100 );
   char ** messages    = backtrace_symbols( array, size );
-  fprintf( stderr, "attempting unmangled trace: \n" );
-  fprintf( stderr, "0         1         2         3         4         5         6         7         8         9         : \n" );
-  fprintf( stderr, "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n" );
+  fprintf( stdout, "attempting unmangled trace: \n" );
+  fprintf( stdout, "0         1         2         3         4         5         6         7         8         9         : \n" );
+  fprintf( stdout, "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n" );
 
   // skip first stack frame (points here)
   for( int i = 1 ; i < size && messages != nullptr ; ++i )
@@ -102,7 +102,7 @@ void handler( int sig, int exitFlag, int exitCode )
       // if demangling is successful, output the demangled function name
       if( status == 0 )
       {
-        std::cerr <<messages[i]<<"("<<i<<") "<< " : "
+        std::cout <<messages[i]<<"("<<i<<") "<< " : "
                   << real_name << "+" << offset_begin << offset_end
                   << std::endl;
 
@@ -110,7 +110,7 @@ void handler( int sig, int exitFlag, int exitCode )
       // otherwise, output the mangled function name
       else
       {
-        std::cerr << messages[i]<<"("<<i<<") "<< " : "
+        std::cout << messages[i]<<"("<<i<<") "<< " : "
                   << mangled_name << "+" << offset_begin << offset_end
                   << std::endl;
       }
@@ -119,10 +119,10 @@ void handler( int sig, int exitFlag, int exitCode )
     // otherwise, print the whole line
     else
     {
-      std::cerr << messages[i] << std::endl;
+      std::cout << messages[i] << std::endl;
     }
   }
-  std::cerr << std::endl;
+  std::cout << std::endl;
 
   free( messages );
   if( exitFlag == 1 )

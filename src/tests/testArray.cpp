@@ -18,7 +18,6 @@
 
 
 #include "gtest/gtest.h"
-#include <string>
 
 #include "Array.hpp"
 #include "SetSignalHandling.hpp"
@@ -28,17 +27,19 @@
 namespace LvArray
 {
 
-template < typename T >
-using array = Array< T, 1, int >;
+using INDEX_TYPE = std::ptrdiff_t;
 
 template < typename T >
-using array2D = Array< T, 2, int >;
+using array = Array< T, 1 >;
 
 template < typename T >
-using arrayView = ArrayView< T, 1, int >;
+using array2D = Array< T, 2 >;
 
 template < typename T >
-using arrayView2D = ArrayView< T, 2, int >;
+using arrayView = ArrayView< T, 1 >;
+
+template < typename T >
+using arrayView2D = ArrayView< T, 2 >;
 
 namespace internal
 {
@@ -60,26 +61,15 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
     return;
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_ref[ i ] );
     ASSERT_EQ( v( i ), v_ref[ i ] );
   }
 
-  ASSERT_EQ( v.front(), v_ref.front() );
-  ASSERT_EQ( v.back(), v_ref.back() );
-
-  typename array< T >::const_iterator it = v.begin();
-  typename std::vector< T >::const_iterator ref_it = v_ref.begin();
-  for( ; it != v.end() ; ++it )
-  {
-    ASSERT_EQ( *it, *ref_it );
-    ++ref_it;
-  }
-
   const T* v_ptr = v.data();
   const T* ref_ptr = v_ref.data();
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -103,7 +93,7 @@ void compare_to_reference( const array< array< T > >& v,
     return;
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     compare_to_reference( v[ i ], v_ref[ i ] );
   }
@@ -120,26 +110,15 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
     return;
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_view[ i ] );
     ASSERT_EQ( v( i ), v_view( i ) );
   }
 
-  ASSERT_EQ( v.front(), v_view.front() );
-  ASSERT_EQ( v.back(), v_view.back() );
-
-  typename array< T >::const_iterator it = v.begin();
-  typename arrayView< T >::const_iterator ref_it = v_view.begin();
-  for( ; it != v.end() ; ++it )
-  {
-    ASSERT_EQ( *it, *ref_it );
-    ++ref_it;
-  }
-
   const T* v_ptr = v.data();
   const T* ref_ptr = v_view.data();
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -158,14 +137,14 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
     return;
   }
 
-  int pos = 0;
+  INDEX_TYPE pos = 0;
   const T* v_ptr = v.data();
   const T* ref_ptr = v_view.data();
-  for( int i = 0 ; i < v.size( 0 ) ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
   {
     const T* v_ptr_cur = v.data();
     const T* ref_ptr_cur = v_view.data();
-    for( int j = 0 ; j < v.size( 1 ) ; ++j )
+    for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_view[ i ][ j ] );
       ASSERT_EQ( v( i, j ), v_view( i, j ) );
@@ -174,22 +153,11 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
       ++pos;
     }
   }
-
-  ASSERT_EQ( v.front(), v_view.front() );
-  ASSERT_EQ( v.back(), v_view.back() );
-
-  typename array< T >::const_iterator it = v.begin();
-  typename arrayView< T >::const_iterator ref_it = v_view.begin();
-  for( ; it != v.end() ; ++it )
-  {
-    ASSERT_EQ( *it, *ref_it );
-    ++ref_it;
-  }
 }
 
 
-template < class T, class LAMBDA >
-void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
+template < class T >
+void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -198,56 +166,48 @@ void create_2D_test( array2D< T >& v, int N, int M, LAMBDA get_value )
   EXPECT_EQ( v.size( 0 ), N );
   EXPECT_EQ( v.size( 1 ), M );
 
-  int pos = 0;
-  for( int i = 0 ; i < N ; ++i )
+  INDEX_TYPE pos = 0;
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    for( int j = 0 ; j < M ; ++j )
+    for( INDEX_TYPE j = 0 ; j < M ; ++j )
     {
-      v[i][j] = get_value( pos );
+      v[i][j] = T( pos );
       pos++;
     }
   }
 
   pos = 0;
-  typename array2D< T >::iterator it = v.begin();
-  EXPECT_EQ( *it, v.front() );
   T const* data_ptr = v.data();
-  for( int i = 0 ; i < N ; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     T const* cur_data_ptr = v.data( i );
-    for( int j = 0 ; j < M ; ++j )
+    for( INDEX_TYPE j = 0 ; j < M ; ++j )
     {
-      const T value = get_value( pos );
+      const T value = T( pos );
       EXPECT_EQ( v[i][j], value );
       EXPECT_EQ( v( i, j ), value );
       EXPECT_EQ( data_ptr[ pos ], value );
       EXPECT_EQ( cur_data_ptr[ j ], value );
-      EXPECT_EQ( *it, value );
-      ++it;
       ++pos;
     }
   }
-
-  EXPECT_EQ( it, v.end() );
-  EXPECT_EQ( *(it - 1), v.back() );
 }
 
 /**
  * @brief Test the push_back method of the Array.
  * @param [in/out] v the Array to check.
  * @param [in] n the number of values to append.
- * @param [in] get_value a function to generate the values to append.
  * @return the std::vector compared against.
  */
-template < class T, class LAMBDA >
-std::vector< T > push_back_test( array< T >& v, int n, LAMBDA get_value )
+template < class T >
+std::vector< T > push_back_test( array< T >& v, INDEX_TYPE n )
 {
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    const T& val = get_value( i );
+    const T& val = T( i );
     v.push_back( val );
     v_ref.push_back( val );
   }
@@ -260,23 +220,22 @@ std::vector< T > push_back_test( array< T >& v, int n, LAMBDA get_value )
  * @brief Test the push_back method of the Array.
  * @param [in/out] v the Array to check.
  * @param [in] n the number of values to append.
- * @param [in] get_value a function to generate the values to append.
  * @return the std::vector compared against.
  */
-template < class T, class LAMBDA >
+template < class T >
 std::vector< std::vector< T > >
-push_back_array_test( array< array < T > >& v, int n, int m, LAMBDA get_value )
+push_back_array_test( array< array < T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
 
   std::vector< std::vector< T > > v_ref;
   array< T > v_append( m );
   std::vector< T > v_ref_append( m );
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      const T val = get_value( m * i + j );
+      const T val = T( m * i + j );
       v_append[ j ] = val;
       v_ref_append[ j ] = val;
     }
@@ -294,36 +253,35 @@ push_back_array_test( array< array < T > >& v, int n, int m, LAMBDA get_value )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of insertions to do.
  * @param [in] m the number of values to insert per iteration.
- * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
-template < class T, class LAMBDA >
-std::vector< T > insert_test( array< T >& v, int n, int m, LAMBDA get_value )
+template < class T >
+std::vector< T > insert_test( array< T >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
   std::vector< T > v_insert( m );
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      v_insert[ j ] = get_value( m * i + j );
+      v_insert[ j ] = T( m * i + j );
     }
 
     if( i % 3 == 0 )    /* Insert at the beginning. */
     {
-      v.insert( v.begin(), v_insert.begin(), v_insert.end() );
+      v.insert( 0, v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.begin(), v_insert.begin(), v_insert.end() );
     }
     else if( i % 3 == 1 )   /* Insert at the end. */
     {
-      v.insert( v.end(), v_insert.begin(), v_insert.end() );
+      v.insert( v.size(), v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.end(), v_insert.begin(), v_insert.end() );
     }
     else  /* Insert in the middle. */
     {
-      v.insert( v.begin() + v.size() / 2, v_insert.begin(), v_insert.end() );
+      v.insert( v.size() / 2, v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.begin() + v_ref.size() / 2, v_insert.begin(), v_insert.end() );
     }
   }
@@ -337,30 +295,29 @@ std::vector< T > insert_test( array< T >& v, int n, int m, LAMBDA get_value )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the number of insertions to do.
  * @param [in] m the number of values to insert per iteration.
- * @param [in] get_value a function to generate the values to insert.
  * @return the std::vector compared against.
  */
-template < class T, class LAMBDA >
+template < class T >
 std::vector< std::vector< T > >
-insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value )
+insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYPE p)
 {
   EXPECT_TRUE( v.empty() );
 
   std::vector< std::vector< T > > v_ref;
   array< array< T > > v_insert;
   std::vector< std::vector< T > > v_ref_insert;
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
     v_insert.clear();
     v_ref_insert.clear();
 
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
       array< T > temp( p );
       std::vector< T > temp_ref( p );
-      for( int k = 0 ; k < p ; ++k )
+      for( INDEX_TYPE k = 0 ; k < p ; ++k )
       {
-        const T val = get_value( m * p * i + p * j + k );
+        const T val = T( m * p * i + p * j + k );
         temp[ k ] = val;
         temp_ref[ k ] = val;
       }
@@ -370,17 +327,17 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
 
     if( i % 3 == 0 )    /* Insert at the beginning. */
     {
-      v.insert( v.begin(), v_insert.begin(), v_insert.end() );
+      v.insert( 0, v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.begin(), v_ref_insert.begin(), v_ref_insert.end() );
     }
     else if( i % 3 == 1 )   /* Insert at the end. */
     {
-      v.insert( v.end(), v_insert.begin(), v_insert.end() );
+      v.insert( v.size(), v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.end(), v_ref_insert.begin(), v_ref_insert.end() );
     }
     else  /* Insert in the middle. */
     {
-      v.insert( v.begin() + v.size() / 2, v_insert.begin(), v_insert.end() );
+      v.insert( v.size() / 2, v_insert.data(), v_insert.size() );
       v_ref.insert( v_ref.begin() + v_ref.size() / 2, v_ref_insert.begin(), v_ref_insert.end() );
     }
   }
@@ -396,22 +353,22 @@ insert_array_test( array< array< T > >& v, int n, int m, int p, LAMBDA get_value
 template < class T, class U >
 void erase_test( array< T >& v, std::vector< U >& v_ref )
 {
-  const int n_elems = v.size();
-  for( int i = 0 ; i < n_elems ; ++i )
+  const INDEX_TYPE n_elems = v.size();
+  for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
   {
     if( i % 3 == 0 )    /* erase the beginning. */
     {
-      v.erase( v.begin() );
+      v.erase( 0 );
       v_ref.erase( v_ref.begin() );
     }
     else if( i % 3 == 1 )   /* erase at the end. */
     {
-      v.erase( v.end() - 1 );
+      v.erase( v.size() - 1 );
       v_ref.erase( v_ref.end() - 1 );
     }
     else  /* erase the middle. */
     {
-      v.erase( v.begin() + v.size() / 2 );
+      v.erase( v.size() / 2 );
       v_ref.erase( v_ref.begin() + v_ref.size() / 2 );
     }
 
@@ -433,8 +390,8 @@ void erase_test( array< T >& v, std::vector< U >& v_ref )
 template < class T, class U >
 void pop_back_test( array< T >& v, std::vector< U >& v_ref )
 {
-  const int n_elems = v.size();
-  for( int i = 0 ; i < n_elems ; ++i )
+  const INDEX_TYPE n_elems = v.size();
+  for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
   {
     v.pop_back();
     v_ref.pop_back();
@@ -453,10 +410,9 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
  * @brief Test the resize method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void resize_test( array< T >& v, int n, LAMBDA get_value )
+template < class T >
+void resize_test( array< T >& v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -466,10 +422,10 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( data_ptr[ i ], T() );
-    const T val = get_value( i );
+    const T val = T( i );
     data_ptr[ i ] = val;
   }
 
@@ -481,9 +437,9 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for( int i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
   {
-    ASSERT_EQ( v[ i ], get_value( i ) );
+    ASSERT_EQ( v[ i ], T( i ) );
   }
 
   v.resize( n );
@@ -491,15 +447,15 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    const T val = get_value( 2 * i );
+    const T val = T( 2 * i );
     v[ i ] = val;
   }
 
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    ASSERT_EQ( v[ i ], get_value( 2 * i ) );
+    ASSERT_EQ( v[ i ], T( 2 * i ) );
   }
 }
 
@@ -507,10 +463,9 @@ void resize_test( array< T >& v, int n, LAMBDA get_value )
  * @brief Test the resize method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
+template < class T >
+void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -520,11 +475,11 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T >* data_ptr = v.data();
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      data_ptr[ i ].push_back( get_value( m * i + j ) );
+      data_ptr[ i ].push_back( T( m * i + j ) );
     }
   }
 
@@ -536,11 +491,11 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for( int i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
+      ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
   }
 
@@ -549,28 +504,28 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for( int i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      v[ i ][ j ] = get_value( 2 * ( m * i + j ) );
+      v[ i ][ j ] = T( 2 * ( m * i + j ) );
     }
   }
 
-  for( int i = n / 4 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 4 ; i < n ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      v[ i ].push_back( get_value( 2 * ( m * i + j ) ) );
+      v[ i ].push_back( T( 2 * ( m * i + j ) ) );
     }
   }
 
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), m );
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( 2 * ( m * i + j ) ) );
+      ASSERT_EQ( v[ i ][ j ], T( 2 * ( m * i + j ) ) );
     }
   }
 }
@@ -579,10 +534,9 @@ void resize_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
  * @brief Test the reserve method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void reserve_test( array< T >& v, int n, LAMBDA get_value )
+template < class T >
+void reserve_test( array< T >& v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -592,9 +546,9 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T* data_ptr = v.data();
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
-    v.push_back( get_value( i ) );
+    v.push_back( T( i ) );
   }
 
   /* No reallocation should have occured. */
@@ -605,23 +559,23 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
-    ASSERT_EQ( v[ i ], get_value( i ) );
+    ASSERT_EQ( v[ i ], T( i ) );
   }
 
   data_ptr = v.data();
-  for( int i = n / 2 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 2 ; i < n ; ++i )
   {
-    v.push_back( get_value ( i ) );
+    v.push_back( T ( i ) );
   }
 
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    ASSERT_EQ( v[ i ], get_value( i ) );
+    ASSERT_EQ( v[ i ], T( i ) );
   }
 }
 
@@ -629,10 +583,9 @@ void reserve_test( array< T >& v, int n, LAMBDA get_value )
  * @brief Test the reserve method of the ChaiVector.
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value )
+template < class T >
+void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -642,12 +595,12 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T >* data_ptr = v.data();
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     array< T > temp( m );
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      temp[ j ] = get_value( m * i + j );
+      temp[ j ] = T( m * i + j );
     }
 
     v.push_back( temp );
@@ -661,21 +614,21 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for( int i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
+      ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
   }
 
   data_ptr = v.data();
-  for( int i = n / 2 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 2 ; i < n ; ++i )
   {
     array< T > temp( m );
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      temp[ j ] = get_value( m * i + j );
+      temp[ j ] = T( m * i + j );
     }
 
     v.push_back( temp );
@@ -684,11 +637,11 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for( int i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    for( int j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0 ; j < m ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( m * i + j ) );
+      ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
   }
 }
@@ -696,10 +649,9 @@ void reserve_array_test( array< array< T > >& v, int n, int m, LAMBDA get_value 
 /**
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void deep_copy_test( const array< T >& v, LAMBDA get_value )
+template < class T >
+void deep_copy_test( const array< T >& v  )
 {
   array< T > v_cpy( v );
 
@@ -707,31 +659,30 @@ void deep_copy_test( const array< T >& v, LAMBDA get_value )
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ], v_cpy[ i ] );
-    ASSERT_EQ( v[ i ], get_value( i ) );
+    ASSERT_EQ( v[ i ], T( i ) );
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
-    v_cpy[ i ] = get_value( 2 * i );
+    v_cpy[ i ] = T( 2 * i );
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
-    ASSERT_EQ( v_cpy[ i ], get_value( 2 * i ) );
-    ASSERT_EQ( v[ i ], get_value( i ) );
+    ASSERT_EQ( v_cpy[ i ], T( 2 * i ) );
+    ASSERT_EQ( v[ i ], T( i ) );
   }
 }
 
 /**
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
+template < class T >
+void deep_copy_array_test( const array< array< T > >& v )
 {
   array< array< T > > v_cpy( v );
 
@@ -739,33 +690,33 @@ void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for( int j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
-      ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
+      ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
     }
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
-    for( int j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
     {
-      v_cpy[ i ][ j ] = get_value( 2 * ( v[ i ].size() * i + j ) );
+      v_cpy[ i ][ j ] = T( 2 * ( v[ i ].size() * i + j ) );
     }
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for( int j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
-      ASSERT_EQ( v_cpy[ i ][ j ], get_value( 2 * ( v[ i ].size() * i + j ) ) );
+      ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
+      ASSERT_EQ( v_cpy[ i ][ j ], T( 2 * ( v[ i ].size() * i + j ) ) );
     }
   }
 }
@@ -773,61 +724,59 @@ void deep_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 /**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void shallow_copy_test( const array< T >& v, LAMBDA get_value )
+template < class T >
+void shallow_copy_test( const array< T >& v )
 {
   {
     arrayView< T > v_cpy( v.toView() );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for( int i = 0 ; i < v.size() ; ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
     {
       ASSERT_EQ( v[ i ], v_cpy[ i ] );
-      ASSERT_EQ( v[ i ], get_value( i ) );
-      v_cpy[ i ] = get_value( 2 * i );
+      ASSERT_EQ( v[ i ], T( i ) );
+      v_cpy[ i ] = T( 2 * i );
     }
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
-    ASSERT_EQ( v[ i ], get_value( 2 * i ) );
+    ASSERT_EQ( v[ i ], T( 2 * i ) );
   }
 }
 
 /**
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
- * @param [in] get_value a function to generate the values.
  */
-template < class T, class LAMBDA >
-void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
+template < class T >
+void shallow_copy_array_test( const array< array< T > >& v )
 {
   {
     arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const &>(v) );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for( int i = 0 ; i < v.size() ; ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
     {
       ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-      for( int j = 0 ; j < v[ i ].size() ; ++j )
+      for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
       {
         ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
-        ASSERT_EQ( v[ i ][ j ], get_value( v[ i ].size() * i + j ) );
-        v_cpy[ i ][ j ] = get_value( 2 * ( v[ i ].size() * i + j ) );
+        ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
+        v_cpy[ i ][ j ] = T( 2 * ( v[ i ].size() * i + j ) );
       }
     }
   }
 
-  for( int i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
-    for( int j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
     {
-      ASSERT_EQ( v[ i ][ j ], get_value( 2 * ( v[ i ].size() * i + j ) ) );
+      ASSERT_EQ( v[ i ][ j ], T( 2 * ( v[ i ].size() * i + j ) ) );
     }
   }
 }
@@ -836,107 +785,107 @@ void shallow_copy_array_test( const array< array< T > >& v, LAMBDA get_value )
 
 TEST( Array, push_back )
 {
-  constexpr int N = 1000;     /* Number of values to push_back */
+  constexpr INDEX_TYPE N = 1000;     /* Number of values to push_back */
 
   {
     array< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::push_back_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_test( v, N );
   }
 
   {
-    array< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::push_back_test( v, N );
   }
 }
 
 TEST( Array, push_back_array )
 {
-  constexpr int N = 100;      /* Number of arrays to push_back */
-  constexpr int M = 10;       /* Size of each array */
+  constexpr INDEX_TYPE N = 100;      /* Number of arrays to push_back */
+  constexpr INDEX_TYPE M = 10;       /* Size of each array */
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::push_back_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_array_test( v, N, M );
   }
 
   {
-    array< array< std::string > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::push_back_array_test( v, N, M );
   }
 }
 
 TEST( Array, insert )
 {
-  constexpr int N = 100;      /* Number of times to call insert */
-  constexpr int M = 10;       /* Number of values inserted at each call */
+  constexpr INDEX_TYPE N = 100;      /* Number of times to call insert */
+  constexpr INDEX_TYPE M = 10;       /* Number of values inserted at each call */
 
   {
     array< int > v;
-    internal::insert_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::insert_test( v, N, M );
   }
 
   {
     array< Tensor > v;
-    internal::insert_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::insert_test( v, N, M );
   }
 
   {
-    array< std::string > v;
-    internal::insert_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::insert_test( v, N, M );
   }
 }
 
 TEST( Array, insert_array )
 {
-  constexpr int N = 10;       /* Number of times to call insert */
-  constexpr int M = 10;       /* Number of arrays inserted at each call */
-  constexpr int P = 10;       /* Size of each array inserted */
+  constexpr INDEX_TYPE N = 10;       /* Number of times to call insert */
+  constexpr INDEX_TYPE M = 10;       /* Number of arrays inserted at each call */
+  constexpr INDEX_TYPE P = 10;       /* Size of each array inserted */
 
   {
     array< array< int > > v;
-    internal::insert_array_test( v, N, M, P, []( int i ) -> int { return i; } );
+    internal::insert_array_test( v, N, M, P );
   }
 
   {
     array< array< Tensor > > v;
-    internal::insert_array_test( v, N, M, P, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::insert_array_test( v, N, M, P );
   }
 
   {
-    array< array< std::string > > v;
-    internal::insert_array_test( v, N, M, P, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::insert_array_test( v, N, M, P );
   }
 }
 
 TEST( Array, erase )
 {
-  constexpr int N = 200;    /* Size of the array */
+  constexpr INDEX_TYPE N = 200;    /* Size of the array */
 
   {
     array< int > v;
-    std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    std::vector< int > v_ref = internal::push_back_test( v, N );
     internal::erase_test( v, v_ref );
   }
 
   {
     array< Tensor > v;
-    std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    std::vector< Tensor > v_ref =  internal::push_back_test( v, N );
     internal::erase_test( v, v_ref );
   }
 
   {
-    array< std::string > v;
-    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    std::vector< TestString > v_ref =  internal::push_back_test( v, N );
     internal::erase_test( v, v_ref );
   }
 
@@ -944,258 +893,258 @@ TEST( Array, erase )
 
 TEST( Array, erase_array )
 {
-  constexpr int N = 100;    /* Number of arrays to push_back */
-  constexpr int M = 10;     /* Size of each array */
+  constexpr INDEX_TYPE N = 100;    /* Number of arrays to push_back */
+  constexpr INDEX_TYPE M = 10;     /* Size of each array */
 
   {
     array< array< int > > v;
-    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M );
     internal::erase_test( v, v_ref );
   }
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::erase_test( v, v_ref );
   }
 
   {
-    array< array< std::string > > v;
-    std::vector< std::vector < std::string > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::erase_test( v, v_ref );
   }
 }
 
 TEST( Array, pop_back )
 {
-  constexpr int N = 300;    /* Size of the array */
+  constexpr INDEX_TYPE N = 300;    /* Size of the array */
 
   {
     array< int > v;
-    std::vector< int > v_ref = internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    std::vector< int > v_ref = internal::push_back_test( v, N );
     internal::pop_back_test( v, v_ref );
   }
 
   {
     array< Tensor > v;
-    std::vector< Tensor > v_ref =  internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    std::vector< Tensor > v_ref =  internal::push_back_test( v, N );
     internal::pop_back_test( v, v_ref );
   }
 
   {
-    array< std::string > v;
-    std::vector< std::string > v_ref =  internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    std::vector< TestString > v_ref =  internal::push_back_test( v, N );
     internal::pop_back_test( v, v_ref );
   }
 }
 
 TEST( Array, pop_back_array )
 {
-  constexpr int N = 50;     /* Number of arrays to push_back */
-  constexpr int M = 10;     /* Size of each array */
+  constexpr INDEX_TYPE N = 50;     /* Number of arrays to push_back */
+  constexpr INDEX_TYPE M = 10;     /* Size of each array */
 
   {
     array< array< int > > v;
-    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
+    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M );
     internal::pop_back_test( v, v_ref );
   }
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::pop_back_test( v, v_ref );
   }
 
   {
-    array< array< std::string > > v;
-    std::vector< std::vector < std::string > > v_ref =  internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::pop_back_test( v, v_ref );
   }
 }
 
 TEST( Array, resize )
 {
-  constexpr int N = 1000;   /* Size of each array */
+  constexpr INDEX_TYPE N = 1000;   /* Size of each array */
 
   {
     array< int > v;
-    internal::resize_test( v, N, []( int i ) -> int { return i; } );
+    internal::resize_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::resize_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::resize_test( v, N );
   }
 
   {
-    array< std::string > v;
-    internal::resize_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::resize_test( v, N );
   }
 }
 
 TEST( Array, resize_array )
 {
-  constexpr int N = 100;    /* Size of each array */
-  constexpr int M = 10;     /* Size of each array */
+  constexpr INDEX_TYPE N = 100;    /* Size of each array */
+  constexpr INDEX_TYPE M = 10;     /* Size of each array */
 
   {
     array< array< int > > v;
-    internal::resize_array_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::resize_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::resize_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::resize_array_test( v, N, M );
   }
 
   {
-    array< array< std::string > > v;
-    internal::resize_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::resize_array_test( v, N, M );
   }
 }
 
 TEST( Array, reserve )
 {
-  constexpr int N = 1000;   /* Size of the array */
+  constexpr INDEX_TYPE N = 1000;   /* Size of the array */
 
   {
     array< int > v;
-    internal::reserve_test( v, N, []( int i ) -> int { return i; } );
+    internal::reserve_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::reserve_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::reserve_test( v, N );
   }
 
   {
-    array< std::string > v;
-    internal::reserve_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::reserve_test( v, N );
   }
 }
 
 TEST( Array, reserve_array )
 {
-  constexpr int N = 100;    /* Number of arrays */
-  constexpr int M = 10;     /* Size of each array */
+  constexpr INDEX_TYPE N = 100;    /* Number of arrays */
+  constexpr INDEX_TYPE M = 10;     /* Size of each array */
 
   {
     array< array< int > > v;
-    internal::reserve_array_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::reserve_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::reserve_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::reserve_array_test( v, N, M );
   }
 
   {
-    array< array< std::string > > v;
-    internal::reserve_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::reserve_array_test( v, N, M );
   }
 }
 
 TEST( Array, deep_copy )
 {
-  constexpr int N = 1000;   /* Size of the array */
+  constexpr INDEX_TYPE N = 1000;   /* Size of the array */
 
   {
     array< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-    internal::deep_copy_test( v, []( int i ) -> int { return i; } );
+    internal::push_back_test( v, N );
+    internal::deep_copy_test( v );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::deep_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_test( v, N );
+    internal::deep_copy_test( v );
   }
 
   {
-    array< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::deep_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::push_back_test( v, N );
+    internal::deep_copy_test( v );
   }
 }
 
 TEST( Array, deep_copy_array )
 {
-  constexpr int N = 100;    /* Number of arrays */
-  constexpr int M = 10;     /* Size of each array */
+  constexpr INDEX_TYPE N = 100;    /* Number of arrays */
+  constexpr INDEX_TYPE M = 10;     /* Size of each array */
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-    internal::deep_copy_array_test( v, []( int i ) -> int { return i; } );
+    internal::push_back_array_test( v, N, M );
+    internal::deep_copy_array_test( v );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::deep_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_array_test( v, N, M );
+    internal::deep_copy_array_test( v );
   }
 
   {
-    array< array< std::string > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::deep_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::push_back_array_test( v, N, M );
+    internal::deep_copy_array_test( v );
   }
 }
 
 TEST( Array, shallow_copy )
 {
-  constexpr int N = 1000;  /* Size of the array */
+  constexpr INDEX_TYPE N = 1000;  /* Size of the array */
 
   {
     array< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
-    internal::shallow_copy_test( v, []( int i ) -> int { return i; } );
+    internal::push_back_test( v, N );
+    internal::shallow_copy_test( v );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::shallow_copy_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_test( v, N );
+    internal::shallow_copy_test( v );
   }
 
   {
-    array< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::shallow_copy_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< TestString > v;
+    internal::push_back_test( v, N );
+    internal::shallow_copy_test( v );
   }
 }
 
 TEST( Array, shallow_copy_array )
 {
-  constexpr int N = 100;   /* Number of arrays */
-  constexpr int M = 10;    /* Size of each array */
+  constexpr INDEX_TYPE N = 100;   /* Number of arrays */
+  constexpr INDEX_TYPE M = 10;    /* Size of each array */
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> int { return i; } );
-    internal::shallow_copy_array_test( v, []( int i ) -> int { return i; } );
+    internal::push_back_array_test( v, N, M );
+    internal::shallow_copy_array_test( v );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
-    internal::shallow_copy_array_test( v, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_array_test( v, N, M );
+    internal::shallow_copy_array_test( v );
   }
 
   {
-    array< array< std::string > > v;
-    internal::push_back_array_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-    internal::shallow_copy_array_test( v, []( int i ) -> std::string { return std::to_string( i ); } );
+    array< array< TestString > > v;
+    internal::push_back_array_test( v, N, M );
+    internal::shallow_copy_array_test( v );
   }
 }
 
 TEST( Array, test_upcast )
 {
-  constexpr int N = 1000;     /* Number of values to push_back */
+  constexpr INDEX_TYPE N = 1000;     /* Number of values to push_back */
 
   {
     array< int > v;
-    internal::push_back_test( v, N, []( int i ) -> int { return i; } );
+    internal::push_back_test( v, N );
     arrayView< int > & vView = v;
     internal::compare_to_view( v, vView );
 
@@ -1207,7 +1156,7 @@ TEST( Array, test_upcast )
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::push_back_test( v, N );
     arrayView< Tensor >& vView = v;
     internal::compare_to_view( v, vView );
 
@@ -1218,13 +1167,13 @@ TEST( Array, test_upcast )
   }
 
   {
-    array< std::string > v;
-    internal::push_back_test( v, N, []( int i ) -> std::string { return std::to_string( i ); } );
-    arrayView< std::string >& vView = v;
+    array< TestString > v;
+    internal::push_back_test( v, N );
+    arrayView< TestString >& vView = v;
     internal::compare_to_view( v, vView );
 
-    array< std::string const > const & vConst = v;
-    arrayView< std::string const > const & vViewConst = v;
+    array< TestString const > const & vConst = v;
+    arrayView< TestString const > const & vViewConst = v;
     internal::compare_to_view( vConst, vViewConst );
 
   }
@@ -1232,27 +1181,27 @@ TEST( Array, test_upcast )
 
 TEST( Array, test_array2D )
 {
-  constexpr int N = 53;
-  constexpr int M = 47;
+  constexpr INDEX_TYPE N = 53;
+  constexpr INDEX_TYPE M = 47;
 
   {
     array2D< int > v;
-    internal::create_2D_test( v, N, M, []( int i ) -> int { return i; } );
+    internal::create_2D_test( v, N, M );
     arrayView2D< int >& vView = v;
     internal::compare_to_view( v, vView );
   }
 
   {
     array2D< Tensor > v;
-    internal::create_2D_test( v, N, M, []( int i ) -> Tensor { return Tensor( i ); } );
+    internal::create_2D_test( v, N, M );
     arrayView2D< Tensor >& vView = v;
     internal::compare_to_view( v, vView );
   }
 
   {
-    array2D< std::string > v;
-    internal::create_2D_test( v, N, M, []( int i ) -> std::string { return std::to_string( i ); } );
-    arrayView2D< std::string >& vView = v;
+    array2D< TestString > v;
+    internal::create_2D_test( v, N, M );
+    arrayView2D< TestString >& vView = v;
     internal::compare_to_view( v, vView );
   }
 }

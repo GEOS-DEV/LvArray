@@ -43,7 +43,6 @@
 #include "../src/Logger.hpp"
 #include <sys/time.h>
 #include <stdint.h>
-#include <string>
 
 using namespace multidimensionalArray;
 

@@ -26,11 +26,7 @@
 #ifndef SRC_SRC_HELPERS_HPP_
 #define SRC_SRC_HELPERS_HPP_
 
-#ifdef USE_CUDA
-#include <cassert>
-#else
 #include "Logger.hpp"
-#endif
 
 namespace LvArray
 {
@@ -113,12 +109,8 @@ struct linearIndex_helper
   check( INDEX_TYPE const * const restrict dims,
          INDEX index, REMAINING_INDICES... indices )
   {
-#ifdef USE_CUDA
-    assert( index >= 0 && index < dims[0] );
-#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
-#endif
     linearIndex_helper< NDIM,
                         INDEX_TYPE,
                         REMAINING_INDICES...>::template check<DIM+1>( dims + 1,
@@ -131,12 +123,8 @@ struct linearIndex_helper
   check( INDEX_TYPE const * const restrict dims,
          INDEX index )
   {
-#ifdef USE_CUDA
-    assert( index >= 0 && index < dims[0] );
-#else
     GEOS_ERROR_IF( index < 0 || index >= dims[0], "index=" << index << ", m_dims[" <<
                    DIM << "]=" << dims[0] );
-#endif
   }
 
 };

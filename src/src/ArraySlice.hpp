@@ -36,18 +36,8 @@
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
 
-#ifdef USE_CUDA
-
-#include <cassert>
-#define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
-  assert( index >= 0 && index < m_dims[0] )
-
-#else // USE_CUDA
-
 #define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
   GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
-
-#endif // USE_CUDA
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
