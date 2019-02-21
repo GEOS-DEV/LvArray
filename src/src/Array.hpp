@@ -271,9 +271,10 @@ public:
   }
 
   template < INDEX_TYPE... INDICES, typename... DIMS>
-  typename std::enable_if<sizeof ... (INDICES) <= NDIM && sizeof ... (INDICES) == sizeof ... (DIMS), void>::type
-  resizeDimension( DIMS... newdims )
+  void resizeDimension( DIMS... newdims )
   {
+    static_assert(sizeof ... (INDICES) <= NDIM, "Too many arguments provided.");
+    static_assert(sizeof ... (INDICES) == sizeof ... (DIMS), "The number of indices must match the number of dimensions.");
     static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
     static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 

@@ -430,7 +430,9 @@ public:
 
     if ( m_length > 0 )
     {
+#ifdef USE_CHAI
       registerTouch(chai::CPU);
+#endif
     }
   }
 
@@ -517,7 +519,9 @@ private:
     m_capacity = new_capacity;
 #endif
     m_array = new_array;
+#ifdef USE_CHAI
     registerTouch(chai::CPU);
+#endif
   }
 
   /**

@@ -14,8 +14,6 @@ set(MPI_Fortran_COMPILER "${MPI_HOME}/bin/mpifort" CACHE PATH "")
 set(MPIEXEC              "/usr/bin/srun" CACHE PATH "")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE PATH "")
 
-set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
-
 set( ENABLE_GTEST_DEATH_TESTS ON CACHE BOOL "" FORCE )
 
 set( ENABLE_AXOM ON CACHE BOOL "" FORCE )
