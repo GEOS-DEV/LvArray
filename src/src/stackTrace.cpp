@@ -24,6 +24,7 @@
 #include <iostream>
 #include <cxxabi.h>
 #include <sys/ucontext.h>
+#include <sstream>
 
 #include "stackTrace.hpp"
 
@@ -31,100 +32,122 @@
 #include <mpi.h>
 #endif
 
+constexpr int MAX_FRAMES = 25;
+
 namespace cxx_utilities
 {
 
-void handler( int sig, int exitFlag, int exitCode )
+namespace internal
 {
-  fprintf( stdout, "executing stackTrace.cpp::handler(%d,%d,%d)\n", sig, exitFlag, exitCode );
-  void *array[100];
-  int size;
 
-  // get void*'s for all entries on the stack
-  size = backtrace( array, 100 );
-  char ** messages    = backtrace_symbols( array, size );
-  fprintf( stdout, "attempting unmangled trace: \n" );
-  fprintf( stdout, "0         1         2         3         4         5         6         7         8         9         : \n" );
-  fprintf( stdout, "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789: \n" );
+std::string demangle( char* backtraceString, int frame )
+{
+  char* mangledName = nullptr;
+  char* functionOffset = nullptr;
+  char* returnOffset = nullptr;
 
-  // skip first stack frame (points here)
-  for( int i = 1 ; i < size && messages != nullptr ; ++i )
+#ifdef __APPLE__
+  /* On apple machines the mangled function name always starts at the 58th
+   * character */
+  constexpr int APPLE_OFFSET = 58;
+  mangledName = backtraceString + APPLE_OFFSET;
+  for( char* p = backtraceString ; *p ; ++p )
   {
-    char *mangled_name = nullptr, *offset_begin = nullptr, *offset_end = nullptr;
-
-#ifdef __APPLE__
-    mangled_name = &(messages[i][58]);
-    for( char *p = messages[i] ; *p ; ++p )
+    if( *p == '+' )
     {
-      if( *p == '+' )
-      {
-        offset_begin = p;
-      }
-      offset_end = p;
+      functionOffset = p;
     }
-
+    returnOffset = p;
+  }
 #else
-    // find parentheses and +address offset surrounding mangled name
-    for( char *p = messages[i] ; *p ; ++p )
+  for( char* p = backtraceString ; *p ; ++p )
+  {
+    if( *p == '(' )
     {
-      if( *p == '(' )
-      {
-        mangled_name = p;
-      }
-      else if( *p == '+' )
-      {
-        offset_begin = p;
-      }
-      else if( *p == ')' )
-      {
-        offset_end = p;
-        break;
-      }
+      mangledName = p;
     }
-#endif
-
-    // if the line could be processed, attempt to demangle the symbol
-    if( mangled_name && offset_begin && offset_end &&
-        mangled_name < offset_begin )
+    else if( *p == '+' )
     {
-      *mangled_name++ = '\0';
-#ifdef __APPLE__
-#ifdef __MACH__
-      *(offset_begin-1) = '\0';
-#endif
-#endif
-      *offset_begin++ = '\0';
-      *offset_end++ = '\0';
-
-      int status;
-      char * real_name = abi::__cxa_demangle( mangled_name, nullptr, nullptr, &status );
-
-      // if demangling is successful, output the demangled function name
-      if( status == 0 )
-      {
-        std::cout <<messages[i]<<"("<<i<<") "<< " : "
-                  << real_name << "+" << offset_begin << offset_end
-                  << std::endl;
-
-      }
-      // otherwise, output the mangled function name
-      else
-      {
-        std::cout << messages[i]<<"("<<i<<") "<< " : "
-                  << mangled_name << "+" << offset_begin << offset_end
-                  << std::endl;
-      }
-      free( real_name );
+      functionOffset = p;
     }
-    // otherwise, print the whole line
-    else
+    else if( *p == ')' )
     {
-      std::cout << messages[i] << std::endl;
+      returnOffset = p;
+      break;
     }
   }
-  std::cout << std::endl;
+#endif
 
-  free( messages );
+  std::ostringstream oss;
+
+  // if the line could be processed, attempt to demangle the symbol
+  if( mangledName && functionOffset && returnOffset &&
+      mangledName < functionOffset )
+  {
+    *mangledName = 0;
+    mangledName++;
+#ifdef __APPLE__
+    *(functionOffset - 1) = 0;
+#endif
+    *functionOffset = 0;
+    ++functionOffset;
+    *returnOffset = 0;
+    ++returnOffset;
+
+    int status;
+    char* realName = abi::__cxa_demangle( mangledName, nullptr, nullptr,
+                                          &status );
+
+    // if demangling is successful, output the demangled function name
+    if( status == 0 )
+    {
+      oss << "Frame " << frame << ": " << realName << std::endl;
+    }
+    // otherwise, output the mangled function name
+    else
+    {
+      oss << "Frame " << frame << ": " << mangledName << std::endl;
+    }
+
+    free( realName );
+  }
+  // otherwise, print the whole line
+  else
+  {
+    oss << "Frame " << frame << ": " << backtraceString << std::endl;
+  }
+
+  return ( oss.str() );
+}
+
+} // namespace internal
+
+std::string stackTrace( )
+{
+  void *array[ MAX_FRAMES ];
+
+  const int size = backtrace( array, MAX_FRAMES );
+  char** strings = backtrace_symbols( array, size );
+
+  // skip first stack frame (points here)
+  std::ostringstream oss;
+  oss << "\n** StackTrace of " << size - 1 << " frames **\n";
+  for( int i = 1 ; i < size && strings != nullptr ; ++i )
+  {
+    oss << internal::demangle( strings[ i ], i );
+  }
+
+  oss << "=====\n";
+
+  free( strings );
+
+  return ( oss.str() );
+}
+
+void handler( int sig, int exitFlag, int exitCode )
+{
+  std::cout << stackTrace() << std::endl;
+
   if( exitFlag == 1 )
   {
 #ifdef GEOSX_USE_MPI
@@ -141,7 +164,6 @@ void handler( int sig, int exitFlag, int exitCode )
     }
 
   }
-
-
 }
-}
+
+} // namespace cxx_utilities
