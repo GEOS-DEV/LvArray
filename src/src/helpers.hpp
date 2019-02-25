@@ -282,7 +282,7 @@ template< typename T,
           typename INDEX_TYPE0 >
 struct to_arrayView< Array< Array< T, NDIM1, INDEX_TYPE1 >,
                             NDIM0,
-                            INDEX_TYPE0 > > 
+                            INDEX_TYPE0 > >
 {
   using type = ArrayView< typename to_arrayView< Array< T, NDIM1, INDEX_TYPE1 > >::type,
                           NDIM0,
@@ -311,8 +311,8 @@ template< typename T,
           int NDIM0,
           typename INDEX_TYPE0 >
 struct to_arrayViewConst< Array< Array< T, NDIM1, INDEX_TYPE1 >,
-                            NDIM0,
-                            INDEX_TYPE0 > > 
+                                 NDIM0,
+                                 INDEX_TYPE0 > >
 {
   using type = ArrayView< typename to_arrayViewConst< Array< T, NDIM1, INDEX_TYPE1 > >::type,
                           NDIM0,

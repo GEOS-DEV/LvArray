@@ -67,7 +67,7 @@ public:
   using value_type = T;
   using pointer = T *;
   using const_pointer = T const *;
-  
+
   // The iterators are defined for compatibility with std::set.
   using iterator = const_pointer;
   using const_iterator = const_pointer;
@@ -94,7 +94,7 @@ public:
    * @param [in] src the SortedArray to copy.
    */
   inline
-  SortedArray(SortedArray const & src) :
+  SortedArray( SortedArray const & src ):
     SortedArrayView<T, INDEX_TYPE>()
   { *this = src; }
 
@@ -103,7 +103,7 @@ public:
    * @param [in/out] src the SortedArray to be moved from.
    */
   inline
-  SortedArray(SortedArray && src) = default;
+  SortedArray( SortedArray && src ) = default;
 
   /**
    * @brief Destructor, frees the values array.
@@ -131,11 +131,11 @@ public:
   /**
    * @brief Copy assignment operator, performs a deep copy.
    * @param [in] src the SortedArray to copy.
-   */ 
+   */
   inline
-  SortedArray & operator=(SortedArray const & src) restrict_this
+  SortedArray & operator=( SortedArray const & src ) restrict_this
   {
-    src.m_values.copy_into(m_values);
+    src.m_values.copy_into( m_values );
     return *this;
   }
 
@@ -144,11 +144,11 @@ public:
    * @param [in/out] src the SortedArray to be moved from.
    */
   inline
-  SortedArray & operator=(SortedArray && src) = default;
+  SortedArray & operator=( SortedArray && src ) = default;
 
   /**
    * @brief Remove all the values from the array.
-   */ 
+   */
   inline
   void clear() restrict_this
   { m_values.clear(); }
@@ -159,10 +159,10 @@ public:
    * @return True iff the value was actually inserted.
    */
   inline
-  bool insert(T const & value) restrict_this
-  { 
-    bool const success = ArrayManipulation::insertSorted(data(), size(), value, CallBacks(m_values));
-    m_values.setSize(size() + success);
+  bool insert( T const & value ) restrict_this
+  {
+    bool const success = ArrayManipulation::insertSorted( data(), size(), value, CallBacks( m_values ));
+    m_values.setSize( size() + success );
     return success;
   }
 
@@ -173,10 +173,10 @@ public:
    * @return The number of values actually inserted.
    */
   inline
-  INDEX_TYPE insert(T const * const vals, INDEX_TYPE const nVals) restrict_this
-  { 
-    INDEX_TYPE nInserted = ArrayManipulation::insertSorted(data(), size(), vals, nVals, CallBacks(m_values));
-    m_values.setSize(size() + nInserted);
+  INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
+  {
+    INDEX_TYPE nInserted = ArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() + nInserted );
     return nInserted;
   }
 
@@ -186,10 +186,10 @@ public:
    * @return True iff the value was actually removed.
    */
   inline
-  bool erase(T const & value) restrict_this
-  { 
-    bool const success = ArrayManipulation::removeSorted(data(), size(), value, CallBacks(m_values));
-    m_values.setSize(size() - success);
+  bool erase( T const & value ) restrict_this
+  {
+    bool const success = ArrayManipulation::removeSorted( data(), size(), value, CallBacks( m_values ));
+    m_values.setSize( size() - success );
     return success;
   }
 
@@ -200,10 +200,10 @@ public:
    * @return The number of values actually removed.
    */
   inline
-  INDEX_TYPE erase(T const * const vals, INDEX_TYPE nVals) restrict_this
-  { 
-    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted(data(), size(), vals, nVals, CallBacks(m_values));
-    m_values.setSize(size() - nRemoved);
+  INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
+  {
+    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() - nRemoved );
     return nRemoved;
   }
 
@@ -211,10 +211,10 @@ public:
   /**
    * @brief Moves the SortedArray to the given execution space.
    * @param [in] space the space to move to.
-   */ 
+   */
   inline
-  void move(chai::ExecutionSpace space) restrict_this
-  { m_values.move(space); }
+  void move( chai::ExecutionSpace space ) restrict_this
+  { m_values.move( space ); }
 #endif
 
 private:
@@ -236,7 +236,7 @@ private:
    * @note the friend class ViewWrapper calls this method.
    */
   inline
-  void resize(INDEX_TYPE newSize) restrict_this
+  void resize( INDEX_TYPE newSize ) restrict_this
   { return m_values.resize( newSize ); }
 
   /**
@@ -245,15 +245,15 @@ private:
    */
   class CallBacks
   {
-  public:
+public:
 
     /**
      * @brief Constructor.
      * @param [in/out] cv the ChaiVector associated with the SortedArray.
      */
     inline
-    CallBacks(ChaiVector<T> & cv) :
-      m_cv(cv)
+    CallBacks( ChaiVector<T> & cv ):
+      m_cv( cv )
     {}
 
     /**
@@ -262,14 +262,14 @@ private:
      * @note This method doesn't actually change the size but it can do reallocation.
      * @return a pointer to the new array.
      */
-    inline 
-    T * incrementSize(INDEX_TYPE const nToAdd) const restrict_this
+    inline
+    T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
     {
       INDEX_TYPE const newSize = m_cv.size() + nToAdd;
       INDEX_TYPE const capacity = m_cv.capacity();
-      if (newSize > capacity)
+      if( newSize > capacity )
       {
-        m_cv.dynamicRealloc(newSize);
+        m_cv.dynamicRealloc( newSize );
       }
 
       return m_cv.data();
@@ -280,27 +280,27 @@ private:
      */
     /// @{
     inline
-    void set(INDEX_TYPE, INDEX_TYPE) const restrict_this
+    void set( INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void insert(INDEX_TYPE) const restrict_this
+    void insert( INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE) const restrict_this
-    {}
-
-    inline 
-    void remove(INDEX_TYPE) const restrict_this
+    void insert( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE) const restrict_this
+    void remove( INDEX_TYPE ) const restrict_this
+    {}
+
+    inline
+    void remove( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
     /// @}
 
-  private:
+private:
     ChaiVector<T> & m_cv;
   };
 

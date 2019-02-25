@@ -70,14 +70,14 @@ public:
    * @param [in] src the CRSMatrixView to be copied.
    */
   inline
-  CRSMatrixView(CRSMatrixView const &) = default;
+  CRSMatrixView( CRSMatrixView const & ) = default;
 
   /**
    * @brief Default move constructor.
    * @param [in/out] src the CRSMatrixView to be moved from.
    */
   inline
-  CRSMatrixView(CRSMatrixView &&) = default;
+  CRSMatrixView( CRSMatrixView && ) = default;
 
   /**
    * @brief User defined conversion to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
@@ -87,7 +87,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if<!std::is_const<U>::value && !std::is_const<CTYPE>::value,
                                    CRSMatrixView<T, COL_TYPE const, INDEX_TYPE_NC const> const &>::type
-  () const restrict_this
+    () const restrict_this
   { return reinterpret_cast<CRSMatrixView<T, COL_TYPE const, INDEX_TYPE_NC const> const &>(*this); }
 
   /**
@@ -105,7 +105,7 @@ public:
   template<class U=T>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if<!std::is_const<U>::value, CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE_NC const> const &>::type
-  () const restrict_this
+    () const restrict_this
   { return reinterpret_cast<CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE_NC const> const &>(*this); }
 
   /**
@@ -128,7 +128,7 @@ public:
    * @param [in] src the CRSMatrixView to be copied from.
    */
   inline
-  CRSMatrixView & operator=(CRSMatrixView const & src) = default;
+  CRSMatrixView & operator=( CRSMatrixView const & src ) = default;
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the matrix values of the given row.
@@ -136,10 +136,10 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> getValues(INDEX_TYPE_NC const row) const restrict_this
+  ArraySlice1d_rval<T, INDEX_TYPE_NC> getValues( INDEX_TYPE_NC const row ) const restrict_this
   {
-    SPARSITYPATTERN_CHECK_BOUNDS(row);
-    return createArraySlice1d<T, INDEX_TYPE_NC>(m_values.data() + m_offsets[row], &m_sizes[row], nullptr);
+    SPARSITYPATTERN_CHECK_BOUNDS( row );
+    return createArraySlice1d<T, INDEX_TYPE_NC>( m_values.data() + m_offsets[row], &m_sizes[row], nullptr );
   }
 
   /**
@@ -155,12 +155,12 @@ public:
    * @return True iff the value was inserted (the entry was zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero(INDEX_TYPE_NC const row, COL_TYPE const col, T const & value) const restrict_this
+  bool insertNonZero( INDEX_TYPE_NC const row, COL_TYPE const col, T const & value ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros(row);
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity(row);
-    T * const values = getValues(row);
-    return insertNonZeroImpl(row, col, CallBacks(*this, row, rowNNZ, rowCapacity, values, &value));
+    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
+    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
+    T * const values = getValues( row );
+    return insertNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity, values, &value ));
   }
 
   /**
@@ -177,15 +177,15 @@ public:
    * @return The number of values inserted.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros(INDEX_TYPE_NC const row,
-                               COL_TYPE const * const cols,
-                               T const * const valuesToInsert,
-                               INDEX_TYPE_NC const ncols) const restrict_this
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE_NC const row,
+                                COL_TYPE const * const cols,
+                                T const * const valuesToInsert,
+                                INDEX_TYPE_NC const ncols ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros(row);
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity(row);
-    T * const values = getValues(row);
-    return insertNonZerosImpl(row, cols, ncols, CallBacks(*this, row, rowNNZ, rowCapacity, values, valuesToInsert));
+    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
+    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
+    T * const values = getValues( row );
+    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, valuesToInsert ));
   }
 
   /**
@@ -195,12 +195,12 @@ public:
    * @return True iff the entry was removed (the entry was non-zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero(INDEX_TYPE_NC const row, COL_TYPE const col) const restrict_this
+  bool removeNonZero( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros(row);
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity(row);
-    T * const values = getValues(row);
-    bool const success = removeNonZeroImpl(row, col, CallBacks(*this, row, rowNNZ, rowCapacity, values, nullptr));
+    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
+    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
+    T * const values = getValues( row );
+    bool const success = removeNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity, values, nullptr ));
 
     return success;
   }
@@ -214,16 +214,16 @@ public:
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros(INDEX_TYPE_NC const row,
-                               COL_TYPE const * const cols,
-                               INDEX_TYPE_NC const ncols) const restrict_this
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE_NC const row,
+                                COL_TYPE const * const cols,
+                                INDEX_TYPE_NC const ncols ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros(row);
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity(row);
-    T * const values = getValues(row);
-    INDEX_TYPE_NC const nRemoved = removeNonZerosImpl(row, cols, ncols, CallBacks(*this, row, rowNNZ, rowCapacity, values, nullptr));
+    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
+    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
+    T * const values = getValues( row );
+    INDEX_TYPE_NC const nRemoved = removeNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, nullptr ));
 
-    for (INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i)
+    for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
     {
       values[i].~T();
     }
@@ -263,7 +263,7 @@ private:
    */
   class CallBacks
   {
-  public:
+public:
 
     /**
      * @brief Constructor.
@@ -276,18 +276,18 @@ private:
      * @param [in] valuesToInsert pointer to the values to insert.
      */
     LVARRAY_HOST_DEVICE inline
-    CallBacks(CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & crsMV,
-              INDEX_TYPE_NC const row,
-              INDEX_TYPE_NC const rowNNZ,
-              INDEX_TYPE_NC const rowCapacity,
-              T * const values,
-              T const * const valuesToInsert) :
-      m_crsMV(crsMV),
-      m_row(row),
-      m_rowNNZ(rowNNZ),
-      m_rowCapacity(rowCapacity),
-      m_values(values),
-      m_valuesToInsert(valuesToInsert)
+    CallBacks( CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & crsMV,
+               INDEX_TYPE_NC const row,
+               INDEX_TYPE_NC const rowNNZ,
+               INDEX_TYPE_NC const rowCapacity,
+               T * const values,
+               T const * const valuesToInsert ):
+      m_crsMV( crsMV ),
+      m_row( row ),
+      m_rowNNZ( rowNNZ ),
+      m_rowCapacity( rowCapacity ),
+      m_values( values ),
+      m_valuesToInsert( valuesToInsert )
     {}
 
     /**
@@ -297,13 +297,13 @@ private:
      * size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
      */
-    LVARRAY_HOST_DEVICE inline 
-    COL_TYPE * incrementSize(INDEX_TYPE_NC const nToAdd) const
+    LVARRAY_HOST_DEVICE inline
+    COL_TYPE * incrementSize( INDEX_TYPE_NC const nToAdd ) const
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK
-      GEOS_ERROR_IF(m_rowNNZ + nToAdd > m_rowCapacity, "CRSMatrixView cannot do reallocation.");
+      GEOS_ERROR_IF( m_rowNNZ + nToAdd > m_rowCapacity, "CRSMatrixView cannot do reallocation." );
 #endif
-      return m_crsMV.getColumnsProtected(m_row);
+      return m_crsMV.getColumnsProtected( m_row );
     }
 
     /**
@@ -313,8 +313,8 @@ private:
      * @param [in] insertPos the position the column was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
-    void insert(INDEX_TYPE_NC const insertPos) const
-    { ArrayManipulation::insert(m_values, m_rowNNZ, insertPos, m_valuesToInsert[0]); }
+    void insert( INDEX_TYPE_NC const insertPos ) const
+    { ArrayManipulation::insert( m_values, m_rowNNZ, insertPos, m_valuesToInsert[0] ); }
 
     /**
      * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
@@ -324,8 +324,8 @@ private:
      * @param [in] colPos the position of the column.
      */
     LVARRAY_HOST_DEVICE inline
-    void set(INDEX_TYPE_NC const pos, INDEX_TYPE_NC const colPos) const
-    { new (&m_values[pos]) T(m_valuesToInsert[colPos]); }
+    void set( INDEX_TYPE_NC const pos, INDEX_TYPE_NC const colPos ) const
+    { new (&m_values[pos]) T( m_valuesToInsert[colPos] ); }
 
     /**
      * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
@@ -339,13 +339,13 @@ private:
      * if it is the first insertion.
      */
     LVARRAY_HOST_DEVICE inline
-    void insert(INDEX_TYPE_NC const nLeftToInsert,
-                INDEX_TYPE_NC const colPos,
-                INDEX_TYPE_NC const pos,
-                INDEX_TYPE_NC const prevPos) const
+    void insert( INDEX_TYPE_NC const nLeftToInsert,
+                 INDEX_TYPE_NC const colPos,
+                 INDEX_TYPE_NC const pos,
+                 INDEX_TYPE_NC const prevPos ) const
     {
-      ArrayManipulation::shiftUp(m_values, prevPos, pos, nLeftToInsert);
-      new (&m_values[pos + nLeftToInsert - 1]) T(m_valuesToInsert[colPos]);
+      ArrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
+      new (&m_values[pos + nLeftToInsert - 1]) T( m_valuesToInsert[colPos] );
     }
 
     /**
@@ -355,8 +355,8 @@ private:
      * @param [in] removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
-    void remove(INDEX_TYPE_NC removePos) const
-    { ArrayManipulation::erase(m_values, m_rowNNZ, removePos); }
+    void remove( INDEX_TYPE_NC removePos ) const
+    { ArrayManipulation::erase( m_values, m_rowNNZ, removePos ); }
 
     /**
      * @brief Used with the ArrayManipulation::removeSorted multiple routine this callback
@@ -369,12 +369,12 @@ private:
      * if this was the last column removed.
      */
     LVARRAY_HOST_DEVICE inline
-    void remove(INDEX_TYPE_NC const nRemoved,
-                INDEX_TYPE_NC const curPos,
-                INDEX_TYPE_NC const nextPos) const
-    { ArrayManipulation::shiftDown(m_values, nextPos, curPos + 1, nRemoved); }
+    void remove( INDEX_TYPE_NC const nRemoved,
+                 INDEX_TYPE_NC const curPos,
+                 INDEX_TYPE_NC const nextPos ) const
+    { ArrayManipulation::shiftDown( m_values, nextPos, curPos + 1, nRemoved ); }
 
-  private:
+private:
     CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & m_crsMV;
     INDEX_TYPE_NC const m_row;
     INDEX_TYPE_NC const m_rowNNZ;

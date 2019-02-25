@@ -31,18 +31,18 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
-#define ARRAYMANIPULATION_CHECK_BOUNDS(index) \
-  GEOS_ERROR_IF(!isPositive(index) || index >= size, \
-    "Array Bounds Check Failed: index=" << index << " size()=" << size)
+#define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
+  GEOS_ERROR_IF( !isPositive( index ) || index >= size, \
+                 "Array Bounds Check Failed: index=" << index << " size()=" << size )
 
-#define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index) \
-  GEOS_ERROR_IF(!isPositive(index) || index > size, \
-    "Array Bounds Insert Check Failed: index=" << index << " size()=" << size)
+#define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
+  GEOS_ERROR_IF( !isPositive( index ) || index > size, \
+                 "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
-#define ARRAYMANIPULATION_CHECK_BOUNDS(index)
-#define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index)
+#define ARRAYMANIPULATION_CHECK_BOUNDS( index )
+#define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
@@ -59,7 +59,7 @@ namespace ArrayManipulation
 template <class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
 typename std::enable_if<std::is_signed<INDEX_TYPE>::value, bool>::type
-isPositive(INDEX_TYPE const i)
+isPositive( INDEX_TYPE const i )
 { return i >= 0; }
 
 /**
@@ -69,7 +69,7 @@ isPositive(INDEX_TYPE const i)
 template <class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
 typename std::enable_if<!std::is_signed<INDEX_TYPE>::value, bool>::type
-isPositive(INDEX_TYPE const)
+isPositive( INDEX_TYPE const )
 { return true; }
 
 /**
@@ -82,22 +82,22 @@ isPositive(INDEX_TYPE const)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void resize(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T const & defaultValue=T())
+void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T const & defaultValue=T())
 {
-  GEOS_ASSERT(ptr != nullptr || (size == 0 && newSize == 0));
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(isPositive(newSize));
+  GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( isPositive( newSize ));
 
   // Delete things between newSize and size.
-  for (INDEX_TYPE i = newSize; i < size; ++i)
+  for( INDEX_TYPE i = newSize ; i < size ; ++i )
   {
     ptr[ i ].~T();
   }
 
   // Initialize things between size and newSize.
-  for (INDEX_TYPE i = size; i < newSize; ++i )
+  for( INDEX_TYPE i = size ; i < newSize ; ++i )
   {
-    new (&ptr[i]) T(defaultValue);
+    new (&ptr[i]) T( defaultValue );
   }
 }
 
@@ -113,25 +113,26 @@ void resize(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T co
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void shiftUp(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n)
-{ 
-  GEOS_ASSERT(ptr != nullptr || (size == 0 && n == 0));
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(isPositive(n));
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index);
+void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
+{
+  GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( isPositive( n ));
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
-  if (n == 0) return;
+  if( n == 0 )
+    return;
 
   // Move the existing values up by n.
-  for (INDEX_TYPE i = size; i > index; --i)
+  for( INDEX_TYPE i = size ; i > index ; --i )
   {
     INDEX_TYPE const curIndex = i - 1;
-    new (&ptr[curIndex + n]) T(std::move(ptr[curIndex]));
+    new (&ptr[curIndex + n]) T( std::move( ptr[curIndex] ));
   }
-  
+
   // Delete the values moved out of.
-  INDEX_TYPE const bounds = (index + n < size)? index + n : size;
-  for (INDEX_TYPE i = index; i < bounds; ++i)
+  INDEX_TYPE const bounds = (index + n < size) ? index + n : size;
+  for( INDEX_TYPE i = index ; i < bounds ; ++i )
   {
     ptr[i].~T();
   }
@@ -150,14 +151,14 @@ void shiftUp(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void emplace(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1, T const & defaultValue=T())
-{ 
-  shiftUp(ptr, size, index, n);
-  
+void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1, T const & defaultValue=T())
+{
+  shiftUp( ptr, size, index, n );
+
   // Initialize the empty values to the default value.
-  for (INDEX_TYPE i = index; i < index + n; ++i)
+  for( INDEX_TYPE i = index ; i < index + n ; ++i )
   {
-    new(&ptr[i]) T(defaultValue); 
+    new(&ptr[i]) T( defaultValue );
   }
 }
 
@@ -172,19 +173,20 @@ void emplace(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void shiftDown(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n)
+void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
 {
-  GEOS_ASSERT(ptr != nullptr || (size == 0 && n == 0));
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(isPositive(n)); 
-  GEOS_ASSERT(index >= n);
+  GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( isPositive( n ));
+  GEOS_ASSERT( index >= n );
 
-  if (n == 0) return;
+  if( n == 0 )
+    return;
 
   // Move the existing down by n.
-  for (INDEX_TYPE i = index; i < size; ++i)
+  for( INDEX_TYPE i = index ; i < size ; ++i )
   {
-    ptr[i - n] = std::move(ptr[i]);
+    ptr[i - n] = std::move( ptr[i] );
   }
 }
 
@@ -199,15 +201,15 @@ void shiftDown(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, IND
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void erase(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1)
+void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1 )
 {
-  ARRAYMANIPULATION_CHECK_BOUNDS(index);
-  ARRAYMANIPULATION_CHECK_BOUNDS(index + n - 1);
+  ARRAYMANIPULATION_CHECK_BOUNDS( index );
+  ARRAYMANIPULATION_CHECK_BOUNDS( index + n - 1 );
 
-  shiftDown(ptr, size, INDEX_TYPE(index + n), n);
+  shiftDown( ptr, size, INDEX_TYPE( index + n ), n );
 
   // Delete the values that were moved out of at the end of the array.
-  for (INDEX_TYPE i = size - n; i < size; ++i)
+  for( INDEX_TYPE i = size - n ; i < size ; ++i )
   {
     ptr[ i ].~T();
   }
@@ -222,11 +224,11 @@ void erase(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_T
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append(T * const ptr, INDEX_TYPE const size, T const & value)
+void append( T * const ptr, INDEX_TYPE const size, T const & value )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(isPositive(size));
-  new (&ptr[size]) T(value);
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( isPositive( size ));
+  new (&ptr[size]) T( value );
 }
 
 /**
@@ -238,11 +240,11 @@ void append(T * const ptr, INDEX_TYPE const size, T const & value)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append(T * const ptr, INDEX_TYPE const size, T && value)
+void append( T * const ptr, INDEX_TYPE const size, T && value )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(isPositive(size));
-  new (&ptr[size]) T(std::move(value));
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( isPositive( size ));
+  new (&ptr[size]) T( std::move( value ));
 }
 
 /**
@@ -255,16 +257,16 @@ void append(T * const ptr, INDEX_TYPE const size, T && value)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append(T * const ptr, INDEX_TYPE const size, T const * const values, INDEX_TYPE const n)
+void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX_TYPE const n )
 {
-  GEOS_ASSERT(ptr != nullptr || (size == 0 && n == 0));
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(values != nullptr);
-  GEOS_ASSERT(isPositive(n));
+  GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( values != nullptr );
+  GEOS_ASSERT( isPositive( n ));
 
-  for (INDEX_TYPE i = 0; i < n; ++i )
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    new (&ptr[size + i]) T(values[i]);
+    new (&ptr[size + i]) T( values[i] );
   }
 }
 
@@ -278,15 +280,15 @@ void append(T * const ptr, INDEX_TYPE const size, T const * const values, INDEX_
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const & value)
+void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const & value )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(isPositive(size));
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index);
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( isPositive( size ));
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
   // Create space for the new value.
-  shiftUp(ptr, size, index, INDEX_TYPE(1));
-  new (&ptr[index]) T(value);
+  shiftUp( ptr, size, index, INDEX_TYPE( 1 ));
+  new (&ptr[index]) T( value );
 }
 
 /**
@@ -299,14 +301,14 @@ void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T cons
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value)
+void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(isPositive(size));
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index);
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( isPositive( size ));
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
-  shiftUp(ptr, size, index, INDEX_TYPE(1));
-  new (&ptr[index]) T(std::move(value));
+  shiftUp( ptr, size, index, INDEX_TYPE( 1 ));
+  new (&ptr[index]) T( std::move( value ));
 }
 
 /**
@@ -320,17 +322,17 @@ void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && v
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const * const values, INDEX_TYPE const n)
+void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const * const values, INDEX_TYPE const n )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(isPositive(size));
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS(index);
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( isPositive( size ));
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
-  shiftUp(ptr, size, index, n);
+  shiftUp( ptr, size, index, n );
 
-  for(INDEX_TYPE i = 0; i < n; ++i)
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    new (&ptr[index + i]) T(values[i]);
+    new (&ptr[index + i]) T( values[i] );
   }
 }
 
@@ -342,10 +344,10 @@ void insert(T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T cons
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void popBack(T * const ptr, INDEX_TYPE const size)
+void popBack( T * const ptr, INDEX_TYPE const size )
 {
-  GEOS_ASSERT(ptr != nullptr);
-  GEOS_ASSERT(size > 0);
+  GEOS_ASSERT( ptr != nullptr );
+  GEOS_ASSERT( size > 0 );
   ptr[size - 1].~T();
 }
 
@@ -362,14 +364,15 @@ void popBack(T * const ptr, INDEX_TYPE const size)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE isSorted(T const * const ptr, INDEX_TYPE const size)
-{ 
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
+INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
 
-  for (INDEX_TYPE i = 0; i < size - 1; ++i)
+  for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
-    if (ptr[i] > ptr[i + 1]) return false;
+    if( ptr[i] > ptr[i + 1] )
+      return false;
   }
 
   return true;
@@ -386,18 +389,20 @@ INDEX_TYPE isSorted(T const * const ptr, INDEX_TYPE const size)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE findSorted(T const * const ptr, INDEX_TYPE const size, T const & value)
-{ 
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
+INDEX_TYPE findSorted( T const * const ptr, INDEX_TYPE const size, T const & value )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
 
   INDEX_TYPE lower = 0;
   INDEX_TYPE upper = size;
-  while (lower != upper)
+  while( lower != upper )
   {
     INDEX_TYPE const guess = (lower + upper) / 2;
-    if (value > ptr[guess]) lower = guess + 1;
-    else upper = guess;
+    if( value > ptr[guess] )
+      lower = guess + 1;
+    else
+      upper = guess;
   }
 
   return lower;
@@ -414,15 +419,15 @@ INDEX_TYPE findSorted(T const * const ptr, INDEX_TYPE const size, T const & valu
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-bool containsSorted(T const * const ptr, INDEX_TYPE const size, T const & value)
+bool containsSorted( T const * const ptr, INDEX_TYPE const size, T const & value )
 {
-  INDEX_TYPE const pos = findSorted(ptr, size, value);
+  INDEX_TYPE const pos = findSorted( ptr, size, value );
   return (pos != size) && (ptr[pos] == value);
 }
 
 /**
  * @brief Remove the given value from the array if it exists.
- * @param [in] ptr pointer to the array. 
+ * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] value the value to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE).
@@ -435,29 +440,29 @@ bool containsSorted(T const * const ptr, INDEX_TYPE const size, T const & value)
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-bool removeSorted(T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks)
+bool removeSorted( T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
 {
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
-  
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+
   // Find the position of value.
-  INDEX_TYPE const index = findSorted(ptr, size, value);
+  INDEX_TYPE const index = findSorted( ptr, size, value );
 
   // If it's not in the array we can return.
-  if (index == size || ptr[index] != value)
+  if( index == size || ptr[index] != value )
   {
     return false;
   }
 
   // Remove the value and call the callback.
-  erase(ptr, size, index);
-  callBacks.remove(index);
+  erase( ptr, size, index );
+  callBacks.remove( index );
   return true;
 }
 
 /**
  * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array. 
+ * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] values the values to remove.
  * @param [in] nVals the number of values to remove.
@@ -465,7 +470,7 @@ bool removeSorted(T * const ptr, INDEX_TYPE const size, T const & value, CALLBAC
  * If a value is found it is removed then this method is called with the number of values removed so far,
  * the position of the last value removed and the position of the next value to remove or size if there are no more
  * values to remove.
- * 
+ *
  * @pre isSorted(ptr, size) must be true.
  * @pre isSorted(values, nVals) must be true.
  * @return The number of values removed.
@@ -473,29 +478,31 @@ bool removeSorted(T * const ptr, INDEX_TYPE const size, T const & value, CALLBAC
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE removeSorted(T * const ptr, INDEX_TYPE const size, T const * const values,
-                        INDEX_TYPE const nVals, CALLBACKS && callBacks)
+INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const values,
+                         INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(values != nullptr || nVals == 0);
-  GEOS_ASSERT(isPositive(nVals));
-  GEOS_ASSERT(isSorted(values, nVals));
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( values != nullptr || nVals == 0 );
+  GEOS_ASSERT( isPositive( nVals ));
+  GEOS_ASSERT( isSorted( values, nVals ));
 
   // If there are no values to remove we can return.
-  if (nVals == 0) return 0;
+  if( nVals == 0 )
+    return 0;
 
   // Find the position of the first value to remove and the position it's at in the array.
   INDEX_TYPE firstValuePos = nVals;
   INDEX_TYPE curPos = size;
-  for (INDEX_TYPE i = 0; i < nVals; ++i)
+  for( INDEX_TYPE i = 0 ; i < nVals ; ++i )
   {
-    curPos = findSorted(ptr, size, values[i]);
+    curPos = findSorted( ptr, size, values[i] );
 
     // If the current value is larger than the largest value in the array we can return.
-    if (curPos == size) return 0;
+    if( curPos == size )
+      return 0;
 
-    if (ptr[curPos] == values[i])
+    if( ptr[curPos] == values[i] )
     {
       firstValuePos = i;
       break;
@@ -503,28 +510,31 @@ INDEX_TYPE removeSorted(T * const ptr, INDEX_TYPE const size, T const * const va
   }
 
   // If we didn't find a value to remove we can return.
-  if (firstValuePos == nVals) return 0;
+  if( firstValuePos == nVals )
+    return 0;
 
-  // Loop over the values  
+  // Loop over the values
   INDEX_TYPE nRemoved = 0;
-  for (INDEX_TYPE curValuePos = firstValuePos; curValuePos < nVals; )
+  for( INDEX_TYPE curValuePos = firstValuePos ; curValuePos < nVals ; )
   {
     // Find the next value to remove
     INDEX_TYPE nextValuePos = nVals;
     INDEX_TYPE nextPos = size;
-    for(INDEX_TYPE j = curValuePos + 1; j < nVals; ++j)
+    for( INDEX_TYPE j = curValuePos + 1 ; j < nVals ; ++j )
     {
       // Skip over duplicate values
-      if (values[j] == values[j - 1]) continue;
+      if( values[j] == values[j - 1] )
+        continue;
 
       // Find the position
-      INDEX_TYPE const pos = findSorted(ptr + curPos, size - curPos, values[j]) + curPos;
-      
+      INDEX_TYPE const pos = findSorted( ptr + curPos, size - curPos, values[j] ) + curPos;
+
       // If it's not in the array then neither are any of the rest of the values.
-      if (pos == size) break;
+      if( pos == size )
+        break;
 
       // If it's in the array then we can exit this loop.
-      if (ptr[pos] == values[j])
+      if( ptr[pos] == values[j] )
       {
         nextValuePos = j;
         nextPos = pos;
@@ -534,18 +544,19 @@ INDEX_TYPE removeSorted(T * const ptr, INDEX_TYPE const size, T const * const va
 
     // Shift the values down and call the callback.
     nRemoved += 1;
-    shiftDown(ptr, nextPos, curPos + 1, nRemoved);
-    callBacks.remove(nRemoved, curPos, nextPos);
+    shiftDown( ptr, nextPos, curPos + 1, nRemoved );
+    callBacks.remove( nRemoved, curPos, nextPos );
 
     curValuePos = nextValuePos;
     curPos = nextPos;
 
     // If we've reached the end of the array we can exit the loop.
-    if (curPos == size) break;
+    if( curPos == size )
+      break;
   }
 
   // Destroy the values moved out of at the end of the array.
-  for (INDEX_TYPE i = size - nRemoved; i < size; ++i)
+  for( INDEX_TYPE i = size - nRemoved ; i < size ; ++i )
   {
     ptr[i].~T();
   }
@@ -555,7 +566,7 @@ INDEX_TYPE removeSorted(T * const ptr, INDEX_TYPE const size, T const * const va
 
 /**
  * @brief Insert the given value into the array if it doesn't already exist.
- * @param [in] ptr pointer to the array. 
+ * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] value the value to insert.
  * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE)
@@ -569,32 +580,32 @@ INDEX_TYPE removeSorted(T * const ptr, INDEX_TYPE const size, T const * const va
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-bool insertSorted(T const * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks)
+bool insertSorted( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
 {
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
-  
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+
   // Find the position of the value.
-  INDEX_TYPE const index = ArrayManipulation::findSorted(ptr, size, value);
+  INDEX_TYPE const index = ArrayManipulation::findSorted( ptr, size, value );
 
   // If it's in the array we call the incrementSize callback and return false.
-  if (index != size && ptr[index] == value)
+  if( index != size && ptr[index] == value )
   {
-    callBacks.incrementSize(0);
+    callBacks.incrementSize( 0 );
     return false;
   }
 
-  // If it's in the array we call the incrementSize callback, get the new pointer, 
+  // If it's in the array we call the incrementSize callback, get the new pointer,
   // insert and call the insert callback.
-  T * const newPtr = callBacks.incrementSize(1);
-  insert(newPtr, size, index, value);
-  callBacks.insert(index);
+  T * const newPtr = callBacks.incrementSize( 1 );
+  insert( newPtr, size, index, value );
+  callBacks.insert( index );
   return true;
 }
 
 /**
  * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array. 
+ * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] values the values to insert.
  * @param [in] nVals the number of values to insert.
@@ -614,49 +625,50 @@ bool insertSorted(T const * const ptr, INDEX_TYPE const size, T const & value, C
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE insertSorted(T const * const ptr, INDEX_TYPE const size, T const * const values,
-                        INDEX_TYPE const nVals, CALLBACKS && callBacks)
+INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * const values,
+                         INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
-  GEOS_ASSERT(ptr != nullptr || size == 0);
-  GEOS_ASSERT(isPositive(size));
-  GEOS_ASSERT(values != nullptr || nVals == 0);
-  GEOS_ASSERT(nVals >= 0);
-  GEOS_ASSERT(isSorted(values, nVals));
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( values != nullptr || nVals == 0 );
+  GEOS_ASSERT( nVals >= 0 );
+  GEOS_ASSERT( isSorted( values, nVals ));
 
   // If there are no values to insert.
-  if (nVals == 0)
+  if( nVals == 0 )
   {
-    callBacks.incrementSize(0);
+    callBacks.incrementSize( 0 );
     return 0;
   }
 
   INDEX_TYPE nToInsert = 0; // The number of values that will actually be inserted.
 
   // Special case for inserting into an empty array.
-  if (size == 0)
+  if( size == 0 )
   {
     // Count up the number of unique values.
     nToInsert = 1;
-    for (INDEX_TYPE i = 1; i < nVals; ++i)
+    for( INDEX_TYPE i = 1 ; i < nVals ; ++i )
     {
-      if (values[i] != values[i - 1]) ++nToInsert;
+      if( values[i] != values[i - 1] )
+        ++nToInsert;
     }
 
     // Call callBack with the number to insert and get a new pointer back.
-    T * const newPtr = callBacks.incrementSize(nToInsert);
+    T * const newPtr = callBacks.incrementSize( nToInsert );
 
     // Insert the first value.
-    new (&newPtr[0]) T(values[0]);
-    callBacks.set(0, 0);
+    new (&newPtr[0]) T( values[0] );
+    callBacks.set( 0, 0 );
 
     // Insert the remaining values, checking for duplicates.
     INDEX_TYPE curInsertPos = 1;
-    for (INDEX_TYPE i = 1; i < nVals; ++i)
+    for( INDEX_TYPE i = 1 ; i < nVals ; ++i )
     {
-      if (values[i] != values[i - 1])
+      if( values[i] != values[i - 1] )
       {
-        new (&newPtr[curInsertPos]) T(values[i]);
-        callBacks.set(curInsertPos, i);
+        new (&newPtr[curInsertPos]) T( values[i] );
+        callBacks.set( curInsertPos, i );
         ++curInsertPos;
       }
     }
@@ -671,22 +683,23 @@ INDEX_TYPE insertSorted(T const * const ptr, INDEX_TYPE const size, T const * co
 
   constexpr int MAX_PRE_CALCULATED = 32;
   INDEX_TYPE valuePositions[MAX_PRE_CALCULATED];  // Positions of the first 32 values to insert.
-  INDEX_TYPE insertPositions[MAX_PRE_CALCULATED]; // Position at which to insert the first 32 values. 
+  INDEX_TYPE insertPositions[MAX_PRE_CALCULATED]; // Position at which to insert the first 32 values.
 
   // Loop over the values in reverse (from largest to smallest).
   INDEX_TYPE curPos = size;
-  for (INDEX_TYPE i = nVals - 1; i >= 0; --i)
+  for( INDEX_TYPE i = nVals - 1 ; i >= 0 ; --i )
   {
     // Skip duplicate values.
-    if (i != 0 && values[i] == values[i - 1]) continue;
+    if( i != 0 && values[i] == values[i - 1] )
+      continue;
 
-    curPos = findSorted(ptr, curPos, values[i]);
+    curPos = findSorted( ptr, curPos, values[i] );
 
     // If values[i] isn't in the array.
-    if (curPos == size || ptr[curPos] != values[i])
+    if( curPos == size || ptr[curPos] != values[i] )
     {
       // Store the value position and insert position if there is space left.
-      if (nToInsert < MAX_PRE_CALCULATED)
+      if( nToInsert < MAX_PRE_CALCULATED )
       {
         valuePositions[nToInsert] = i;
         insertPositions[nToInsert] = curPos;
@@ -697,59 +710,64 @@ INDEX_TYPE insertSorted(T const * const ptr, INDEX_TYPE const size, T const * co
   }
 
   // Call callBack with the number to insert and get a new pointer back.
-  T * const newPtr = callBacks.incrementSize(nToInsert);
+  T * const newPtr = callBacks.incrementSize( nToInsert );
 
   // If there are no values to insert we can return.
-  if (nToInsert == 0) return 0;
+  if( nToInsert == 0 )
+    return 0;
 
   //
-  INDEX_TYPE const nPreCalculated = (nToInsert < MAX_PRE_CALCULATED) ? 
-                                     nToInsert : MAX_PRE_CALCULATED;
+  INDEX_TYPE const nPreCalculated = (nToInsert < MAX_PRE_CALCULATED) ?
+                                    nToInsert : MAX_PRE_CALCULATED;
 
   // Insert pre-calculated values.
   INDEX_TYPE prevInsertPos = size;
-  for (INDEX_TYPE i = 0; i < nPreCalculated; ++i)
+  for( INDEX_TYPE i = 0 ; i < nPreCalculated ; ++i )
   {
     // Shift the values up...
-    shiftUp(newPtr, prevInsertPos, insertPositions[i], INDEX_TYPE(nToInsert - i));
-      
+    shiftUp( newPtr, prevInsertPos, insertPositions[i], INDEX_TYPE( nToInsert - i ));
+
     // and insert.
     INDEX_TYPE const curValuePos = valuePositions[i];
-    new (&newPtr[insertPositions[i] + nToInsert - i - 1]) T(values[curValuePos]);
-    callBacks.insert(nToInsert - i, curValuePos, insertPositions[i], prevInsertPos);
+    new (&newPtr[insertPositions[i] + nToInsert - i - 1]) T( values[curValuePos] );
+    callBacks.insert( nToInsert - i, curValuePos, insertPositions[i], prevInsertPos );
 
     prevInsertPos = insertPositions[i];
   }
 
   // If all the values to insert were pre-calculated we can return.
-  if (nToInsert <= MAX_PRE_CALCULATED) return nToInsert;
+  if( nToInsert <= MAX_PRE_CALCULATED )
+    return nToInsert;
 
   // Insert the rest of the values.
   INDEX_TYPE const prevValuePos = valuePositions[MAX_PRE_CALCULATED - 1];
   INDEX_TYPE nInserted = MAX_PRE_CALCULATED;
-  for (INDEX_TYPE i = prevValuePos - 1; i >= 0; --i)
+  for( INDEX_TYPE i = prevValuePos - 1 ; i >= 0 ; --i )
   {
     // Skip duplicates
-    if (values[i] == values[i + 1]) continue;
+    if( values[i] == values[i + 1] )
+      continue;
 
-    INDEX_TYPE const pos = findSorted(newPtr, prevInsertPos, values[i]);
+    INDEX_TYPE const pos = findSorted( newPtr, prevInsertPos, values[i] );
 
     // If values[i] is already in the array skip it.
-    if (pos != prevInsertPos && newPtr[pos] == values[i]) continue;
+    if( pos != prevInsertPos && newPtr[pos] == values[i] )
+      continue;
 
     // Else shift the values up and insert.
-    shiftUp(newPtr, prevInsertPos, pos, INDEX_TYPE(nToInsert - nInserted));
-    new (&newPtr[pos + nToInsert - nInserted - 1]) T(values[i]);
-    callBacks.insert(nToInsert - nInserted, i, pos, prevInsertPos);
+    shiftUp( newPtr, prevInsertPos, pos, INDEX_TYPE( nToInsert - nInserted ));
+    new (&newPtr[pos + nToInsert - nInserted - 1]) T( values[i] );
+    callBacks.insert( nToInsert - nInserted, i, pos, prevInsertPos );
 
     nInserted += 1;
     prevInsertPos = pos;
 
     // If all the values have been inserted then exit the loop.
-    if (nInserted == nToInsert) break;
+    if( nInserted == nToInsert )
+      break;
   }
 
-  GEOS_ASSERT_MSG(nInserted == nToInsert, nInserted << " " << nToInsert);
+  GEOS_ASSERT_MSG( nInserted == nToInsert, nInserted << " " << nToInsert );
 
   return nToInsert;
 }

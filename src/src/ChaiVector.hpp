@@ -132,7 +132,7 @@ public:
   void copy_into( ChaiVector<U>& dst ) const
   {
     dst.resize( size() );
-    for( size_type i = 0; i < size(); ++i )
+    for( size_type i = 0 ; i < size() ; ++i )
     {
       dst[ i ] = m_array[ i ];
     }
@@ -254,7 +254,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert(data(), m_length, index, value);
+    ArrayManipulation::insert( data(), m_length, index, value );
     m_length += 1;
   }
 
@@ -264,7 +264,7 @@ public:
    * @param [in] value the value to insert.
    * @return An iterator to the position at which the insertion was done.
    */
-  void insert(size_type index, const T&& value )
+  void insert( size_type index, const T&& value )
   {
     size_type newLength = size() + 1;
     if( newLength > capacity() )
@@ -272,7 +272,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert(data(), m_length, index, std::move(value));
+    ArrayManipulation::insert( data(), m_length, index, std::move( value ));
     m_length += 1;
   }
 
@@ -291,7 +291,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert(data(), m_length, index, values, n);
+    ArrayManipulation::insert( data(), m_length, index, values, n );
     m_length = newLength;
   }
 
@@ -306,7 +306,7 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    ArrayManipulation::append(data(), m_length, value);
+    ArrayManipulation::append( data(), m_length, value );
     m_length += 1;
   }
 
@@ -321,7 +321,7 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    ArrayManipulation::append(data(), m_length, std::move(value));
+    ArrayManipulation::append( data(), m_length, std::move( value ));
     m_length += 1;
   }
 
@@ -337,7 +337,7 @@ public:
       dynamicRealloc( size() + n_values );
     }
 
-    ArrayManipulation::append(data(), m_length, values, n_values);
+    ArrayManipulation::append( data(), m_length, values, n_values );
     m_length += n_values;
   }
 
@@ -347,7 +347,7 @@ public:
    */
   void pop_back()
   {
-    ArrayManipulation::popBack(data(), m_length);
+    ArrayManipulation::popBack( data(), m_length );
     m_length -= 1;
   }
 
@@ -365,13 +365,13 @@ public:
       realloc( newLength );
     }
 
-    ArrayManipulation::resize(data(), m_length, newLength, defaultValue);
+    ArrayManipulation::resize( data(), m_length, newLength, defaultValue );
     m_length = newLength;
 
-    if ( m_length > 0 )
+    if( m_length > 0 )
     {
 #ifdef USE_CHAI
-      registerTouch(chai::CPU);
+      registerTouch( chai::CPU );
 #endif
     }
   }
@@ -399,7 +399,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::emplace(data(), m_length, pos, n, defaultValue);
+    ArrayManipulation::emplace( data(), m_length, pos, n, defaultValue );
     m_length = newLength;
   }
 
@@ -410,7 +410,7 @@ public:
    */
   void erase( size_type pos, size_type n=1 )
   {
-    ArrayManipulation::erase(data(), m_length, pos, n);
+    ArrayManipulation::erase( data(), m_length, pos, n );
     m_length -= n;
   }
 
@@ -433,7 +433,7 @@ private:
 
   void setSize( size_type newLength )
   {
-    GEOS_ASSERT(ArrayManipulation::isPositive(newLength) && newLength <= capacity());
+    GEOS_ASSERT( ArrayManipulation::isPositive( newLength ) && newLength <= capacity());
     m_length = newLength;
   }
 
@@ -447,7 +447,7 @@ private:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::shiftUp(data(), m_length, pos, n);
+    ArrayManipulation::shiftUp( data(), m_length, pos, n );
     m_length = newLength;
   }
 
@@ -497,7 +497,7 @@ private:
 #endif
     m_array = new_array;
 #ifdef USE_CHAI
-    registerTouch(chai::CPU);
+    registerTouch( chai::CPU );
 #endif
   }
 

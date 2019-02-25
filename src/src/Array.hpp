@@ -125,7 +125,7 @@ public:
   template< typename U = T >
   operator typename std::enable_if< !std::is_const<U>::value,
                                     Array<T const, NDIM, INDEX_TYPE> const & >::type
-  () const
+    () const
   {
     return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -274,8 +274,8 @@ public:
 
     INDEX_TYPE const oldLength = size();
     dim_index_unpack<INDEX_TYPE, NDIM>( const_cast<INDEX_TYPE *>(m_dims),
-                                                 std::integer_sequence<INDEX_TYPE, INDICES...>(),
-                                                 newdims... );
+                                        std::integer_sequence<INDEX_TYPE, INDICES...>(),
+                                        newdims... );
 
     CalculateStrides();
     resizePrivate( oldLength );

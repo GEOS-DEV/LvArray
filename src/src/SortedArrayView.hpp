@@ -31,13 +31,13 @@
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
 
-#define SORTEDARRAY_CHECK_BOUNDS(index) \
-  GEOS_ERROR_IF(index < 0 || index >= size(), \
-    "Array Bounds Check Failed: index=" << index << " size()=" << size())
+#define SORTEDARRAY_CHECK_BOUNDS( index ) \
+  GEOS_ERROR_IF( index < 0 || index >= size(), \
+                 "Array Bounds Check Failed: index=" << index << " size()=" << size())
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
-#define SORTEDARRAY_CHECK_BOUNDS(index)
+#define SORTEDARRAY_CHECK_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
@@ -68,28 +68,28 @@ public:
    * @param [in] src the SortedArray to copy.
    */
   inline
-  SortedArrayView(SortedArrayView const & src) = default;
+  SortedArrayView( SortedArrayView const & src ) = default;
 
   /**
    * @brief Default move constructor, performs a shallow copy.
    * @param [in/out] src the SortedArray to be moved from.
    */
   inline
-  SortedArrayView(SortedArrayView && src) = default;
+  SortedArrayView( SortedArrayView && src ) = default;
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
    * @param [in] src the SortedArray to copy.
    */
   inline
-  SortedArrayView & operator=(SortedArrayView const & src) = default;
+  SortedArrayView & operator=( SortedArrayView const & src ) = default;
 
   /**
    * @brief Default move assignment operator, this does a shallow copy.
    * @param [in/out] src the SortedArray to be moved from.
    */
   inline
-  SortedArrayView & operator=(SortedArrayView && src) = default;
+  SortedArrayView & operator=( SortedArrayView && src ) = default;
 
   /**
    * @brief Return a pointer to the values.
@@ -105,9 +105,9 @@ public:
    * @param [in] i the index of the value to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T & operator[](INDEX_TYPE const i) const
-  { 
-    SORTEDARRAY_CHECK_BOUNDS(i);
+  T & operator[]( INDEX_TYPE const i ) const
+  {
+    SORTEDARRAY_CHECK_BOUNDS( i );
     return m_values[i];
   }
 
@@ -144,8 +144,8 @@ public:
    * @param [in] value the value to search for.
    */
   LVARRAY_HOST_DEVICE inline
-  bool contains(T const & value) const
-  { return ArrayManipulation::containsSorted(values(), size(), value); }
+  bool contains( T const & value ) const
+  { return ArrayManipulation::containsSorted( values(), size(), value ); }
 
   /**
    * @brief Return true if the given value is in the array.
@@ -154,7 +154,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool count( const T& value ) const
-  { return contains(value); }
+  { return contains( value ); }
 
   /**
    * @brief Return true if the array is sorted. This should always be true and
@@ -162,7 +162,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool isSorted() const
-  { return ArrayManipulation::isSorted(values(), size()); }
+  { return ArrayManipulation::isSorted( values(), size()); }
 
 protected:
 

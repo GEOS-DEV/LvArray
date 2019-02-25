@@ -63,28 +63,28 @@ public:
    * @param [in] initialRowCapacity the initial non zero capacity of each row.
    */
   inline
-  SparsityPattern(INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0) restrict_this :
+  SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
   {
-    GEOS_ERROR_IF(!ArrayManipulation::isPositive(nrows), "nrows must be positive.");
-    GEOS_ERROR_IF(!ArrayManipulation::isPositive(ncols), "ncols must be positive.");
-    GEOS_ERROR_IF(ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
-                  "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "].");
-    
-    if (initialRowCapacity > ncols)
+    GEOS_ERROR_IF( !ArrayManipulation::isPositive( nrows ), "nrows must be positive." );
+    GEOS_ERROR_IF( !ArrayManipulation::isPositive( ncols ), "ncols must be positive." );
+    GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
+                   "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
+
+    if( initialRowCapacity > ncols )
     {
-      GEOS_WARNING_IF(initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns.");
+      GEOS_WARNING_IF( initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns." );
       initialRowCapacity = ncols;
     }
 
     m_num_columns = ncols;
-    m_offsets.resize(nrows + 1, 0);
-    m_sizes.resize(nrows, 0);
-    
-    if (initialRowCapacity != 0)
+    m_offsets.resize( nrows + 1, 0 );
+    m_sizes.resize( nrows, 0 );
+
+    if( initialRowCapacity != 0 )
     {
-      m_columns.resize(nrows * initialRowCapacity, COL_TYPE(-1));
-      for (INDEX_TYPE row = 1; row < nrows + 1; ++row)
+      m_columns.resize( nrows * initialRowCapacity, COL_TYPE( -1 ));
+      for( INDEX_TYPE row = 1 ; row < nrows + 1 ; ++row )
       {
         m_offsets[row] = row * initialRowCapacity;
       }
@@ -96,7 +96,7 @@ public:
    * @param [in] src the SparsityPattern to copy.
    */
   inline
-  SparsityPattern(SparsityPattern const & src) restrict_this :
+  SparsityPattern( SparsityPattern const & src ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
   { *this = src; }
 
@@ -105,7 +105,7 @@ public:
    * @param [in/out] src the SparsityPattern to be moved from.
    */
   inline
-  SparsityPattern(SparsityPattern && src) = default;
+  SparsityPattern( SparsityPattern && src ) = default;
 
   /**
    * @brief Destructor, frees the columns, sizes and offsets ChaiVectors.
@@ -137,7 +137,7 @@ public:
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
    * Although SparsityPatternView defines this operator nvcc won't let us alias it so
-   * it is redefined here. 
+   * it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
@@ -149,12 +149,12 @@ public:
    * @param [in] src the SparsityPattern to copy.
    */
   inline
-  SparsityPattern & operator=(SparsityPattern const & src) restrict_this
+  SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
   {
     m_num_columns = src.m_num_columns;
-    src.m_offsets.copy_into(m_offsets);
-    src.m_sizes.copy_into(m_sizes);
-    src.m_columns.copy_into(m_columns);
+    src.m_offsets.copy_into( m_offsets );
+    src.m_sizes.copy_into( m_sizes );
+    src.m_columns.copy_into( m_columns );
 
     return *this;
   }
@@ -162,20 +162,20 @@ public:
   /**
    * @brief Default move assignment operator, performs a shallow copy.
    * @param [in] src the SparsityPattern to be moved from.
-   */ 
+   */
   inline
-  SparsityPattern & operator=(SparsityPattern && src) = default;
+  SparsityPattern & operator=( SparsityPattern && src ) = default;
 
 #ifdef USE_CHAI
   /**
    * @brief Moves the SparsityPattern to the given execution space.
    * @param [in] space the space to move to.
-   */ 
-  void move(chai::ExecutionSpace const space) restrict_this
+   */
+  void move( chai::ExecutionSpace const space ) restrict_this
   {
-    m_offsets.move(space);
-    m_sizes.move(space);
-    m_columns.move(space);
+    m_offsets.move( space );
+    m_sizes.move( space );
+    m_columns.move( space );
   }
 #endif
 
@@ -184,8 +184,8 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros(INDEX_TYPE const nnz) restrict_this
-  { m_columns.reserve(nnz); }
+  void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
+  { m_columns.reserve( nnz ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
@@ -194,10 +194,10 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros(INDEX_TYPE const row, INDEX_TYPE const nnz) restrict_this
-  { 
-    if (nonZeroCapacity(row) >= nnz) return;
-    setRowCapacity(row, nnz);
+  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) restrict_this
+  {
+    if( nonZeroCapacity( row ) >= nnz ) return;
+    setRowCapacity( row, nnz );
   }
 
   /**
@@ -210,40 +210,40 @@ public:
    * min(newCapacity, numColumns()).
    */
   inline
-  void setRowCapacity(INDEX_TYPE const row, INDEX_TYPE newCapacity) restrict_this
+  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
   {
-    SPARSITYPATTERN_CHECK_BOUNDS(row);
-    GEOS_ASSERT(newCapacity >= 0);
+    SPARSITYPATTERN_CHECK_BOUNDS( row );
+    GEOS_ASSERT( newCapacity >= 0 );
 
-    if (newCapacity > numColumns())
+    if( newCapacity > numColumns())
     {
       newCapacity = numColumns();
     }
 
     INDEX_TYPE const row_offset = m_offsets[row];
-    INDEX_TYPE const rowCapacity = nonZeroCapacity(row);
+    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
     INDEX_TYPE const capacity_difference = newCapacity - rowCapacity;
-    if (capacity_difference == 0) return;
+    if( capacity_difference == 0 ) return;
 
     INDEX_TYPE const nRows = numRows();
-    for (INDEX_TYPE i = row + 1; i < nRows + 1; ++i)
+    for( INDEX_TYPE i = row + 1 ; i < nRows + 1 ; ++i )
     {
       m_offsets[i] += capacity_difference;
     }
 
-    if (capacity_difference > 0)
+    if( capacity_difference > 0 )
     {
-      m_columns.shiftUp(row_offset + rowCapacity, capacity_difference);
+      m_columns.shiftUp( row_offset + rowCapacity, capacity_difference );
     }
     else
     {
-      INDEX_TYPE const prev_row_size = numNonZeros(row);
-      if (newCapacity < prev_row_size)
+      INDEX_TYPE const prev_row_size = numNonZeros( row );
+      if( newCapacity < prev_row_size )
       {
         m_sizes[row] = newCapacity;
       }
 
-      m_columns.erase(row_offset + rowCapacity + capacity_difference, -capacity_difference);
+      m_columns.erase( row_offset + rowCapacity + capacity_difference, -capacity_difference );
     }
   }
 
@@ -254,11 +254,11 @@ public:
    * @return True iff the entry was previously empty.
    */
   inline
-  bool insertNonZero(INDEX_TYPE const row, COL_TYPE const col) restrict_this
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) restrict_this
   {
-    INDEX_TYPE const rowNNZ = numNonZeros(row);
-    INDEX_TYPE const rowCapacity = nonZeroCapacity(row);
-    return insertNonZeroImpl(row, col, CallBacks(*this, row, rowNNZ, rowCapacity));
+    INDEX_TYPE const rowNNZ = numNonZeros( row );
+    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
+    return insertNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
   /**
@@ -269,11 +269,11 @@ public:
    * @return The number of columns actually inserted.
    */
   inline
-  INDEX_TYPE insertNonZeros(INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols) restrict_this
+  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
   {
-    INDEX_TYPE const rowNNZ = numNonZeros(row);
-    INDEX_TYPE const rowCapacity = nonZeroCapacity(row);
-    return insertNonZerosImpl(row, cols, ncols, CallBacks(*this, row, rowNNZ, rowCapacity));
+    INDEX_TYPE const rowNNZ = numNonZeros( row );
+    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
+    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
 private:
@@ -286,8 +286,8 @@ private:
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
   inline
-  void dynamicallyGrowRow(INDEX_TYPE const row, INDEX_TYPE const newNNZ) restrict_this
-  { setRowCapacity(row, newNNZ * 2); }
+  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ ) restrict_this
+  { setRowCapacity( row, newNNZ * 2 ); }
 
   /**
    * @class CallBacks
@@ -295,7 +295,7 @@ private:
    */
   class CallBacks
   {
-  public:
+public:
 
     /**
      * @brief Constructor.
@@ -305,14 +305,14 @@ private:
      * @param [in] the capacity of the given row.
      */
     inline
-    CallBacks(SparsityPattern<COL_TYPE, INDEX_TYPE> & sp,
-              INDEX_TYPE const row,
-              INDEX_TYPE const rowNNZ,
-              INDEX_TYPE const rowCapacity) :
-      m_sp(sp),
-      m_row(row),
-      m_rowNNZ(rowNNZ),
-      m_rowCapacity(rowCapacity)
+    CallBacks( SparsityPattern<COL_TYPE, INDEX_TYPE> & sp,
+               INDEX_TYPE const row,
+               INDEX_TYPE const rowNNZ,
+               INDEX_TYPE const rowCapacity ):
+      m_sp( sp ),
+      m_row( row ),
+      m_rowNNZ( rowNNZ ),
+      m_rowCapacity( rowCapacity )
     {}
 
     /**
@@ -321,16 +321,16 @@ private:
      * @note This method doesn't actually change the size but it can do reallocation.
      * @return a pointer to the columns of the associated row.
      */
-    inline 
-    COL_TYPE * incrementSize(INDEX_TYPE const nToAdd) const restrict_this
+    inline
+    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
     {
       INDEX_TYPE const newNNZ = m_rowNNZ + nToAdd;
-      if (newNNZ > m_rowCapacity)
+      if( newNNZ > m_rowCapacity )
       {
-        m_sp.dynamicallyGrowRow(m_row, newNNZ);
+        m_sp.dynamicallyGrowRow( m_row, newNNZ );
       }
 
-      return m_sp.getColumnsProtected(m_row);
+      return m_sp.getColumnsProtected( m_row );
     }
 
     /**
@@ -338,27 +338,27 @@ private:
      */
     /// @{
     inline
-    void set(INDEX_TYPE, INDEX_TYPE) const restrict_this
+    void set( INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void insert(INDEX_TYPE) const restrict_this
+    void insert( INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE) const restrict_this
-    {}
-
-    inline 
-    void remove(INDEX_TYPE) const restrict_this
+    void insert( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
 
     inline
-    void remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE) const restrict_this
+    void remove( INDEX_TYPE ) const restrict_this
+    {}
+
+    inline
+    void remove( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
     {}
     /// @}
 
-  private:
+private:
     SparsityPattern<COL_TYPE, INDEX_TYPE> & m_sp;
     INDEX_TYPE const m_row;
     INDEX_TYPE const m_rowNNZ;

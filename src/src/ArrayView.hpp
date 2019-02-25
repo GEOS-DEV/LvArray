@@ -214,7 +214,7 @@ public:
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
                                     ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
-  () const noexcept
+    () const noexcept
   {
     return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -227,16 +227,16 @@ public:
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator ArraySlice<T, NDIM, INDEX_TYPE>() const noexcept
   {
-    return ArraySlice<T, NDIM, INDEX_TYPE>(m_data,m_dims,m_strides);
+    return ArraySlice<T, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
                                     ArraySlice<T const, NDIM, INDEX_TYPE> const >::type
-  () const noexcept
+    () const noexcept
   {
-    return ArraySlice<T const, NDIM, INDEX_TYPE>(m_data,m_dims,m_strides);
+    return ArraySlice<T const, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
 
@@ -275,7 +275,7 @@ public:
    * @brief function to return the allocated size
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
-  { 
+  {
     return size_helper<NDIM, INDEX_TYPE>::f( m_dims );
   }
 
@@ -287,7 +287,7 @@ public:
   {
     return m_dataVector.empty();
   }
-  
+
   T * begin() const
   { return data(); }
 
@@ -335,7 +335,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return CREATE_ARRAY_SLICE_1D(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1);
+    return CREATE_ARRAY_SLICE_1D( &(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1 );
   }
 
   /**
@@ -523,7 +523,7 @@ public:
 #ifdef USE_CUDA
       const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
 #else
-      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>(dims[a]);
+      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>( dims[a] );
 #endif
     }
   }

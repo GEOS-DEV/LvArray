@@ -31,20 +31,20 @@
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
 
-#define CSARRAY2D_CHECK_BOUNDS(index0) \
-  GEOS_ERROR_IF(index0 < 0 || index0 >= size(), \
-    "Array Bounds Check Failed: index=" << index0 << " size()=" << size())
+#define CSARRAY2D_CHECK_BOUNDS( index0 ) \
+  GEOS_ERROR_IF( index0 < 0 || index0 >= size(), \
+                 "Array Bounds Check Failed: index=" << index0 << " size()=" << size())
 
-#define CSARRAY2D_CHECK_BOUNDS2(index0, index1) \
-  GEOS_ERROR_IF(index0 < 0 || index0 >= size() || \
-                index1 < 0 || index1 >= size(index0), \
-    "Array Bounds Check Failed: index0=" << index0 << " size()=" << size() \
-    << " index1=" << index1 << " size(index0)=" << size(index0))
+#define CSARRAY2D_CHECK_BOUNDS2( index0, index1 ) \
+  GEOS_ERROR_IF( index0 < 0 || index0 >= size() || \
+                 index1 < 0 || index1 >= size( index0 ), \
+                 "Array Bounds Check Failed: index0=" << index0 << " size()=" << size() \
+                                                      << " index1=" << index1 << " size(index0)=" << size( index0 ))
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
-#define CSARRAY2D_CHECK_BOUNDS(index)
-#define CSARRAY2D_CHECK_BOUNDS2(index0, index1)
+#define CSARRAY2D_CHECK_BOUNDS( index )
+#define CSARRAY2D_CHECK_BOUNDS2( index0, index1 )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
@@ -83,14 +83,14 @@ public:
    * @param [in] src the CSArray2DView to be copied.
    */
   inline
-  CSArray2DView(CSArray2DView const & src) = default;
+  CSArray2DView( CSArray2DView const & src ) = default;
 
   /**
    * @brief Default move constructor.
    * @param [in/out] src the CSArray2DView to be moved from.
    */
   inline
-  CSArray2DView(CSArray2DView && src) = default;
+  CSArray2DView( CSArray2DView && src ) = default;
 
   /**
    * @brief User defined conversion to move from T to T const.
@@ -98,7 +98,7 @@ public:
   template <class U=T>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if<!std::is_const<U>::value, CSArray2DView<T const, INDEX_TYPE_NC const> const &>::type
-  () const restrict_this
+    () const restrict_this
   { return reinterpret_cast<CSArray2DView<T const, INDEX_TYPE_NC const> const &>(*this); }
 
   /**
@@ -114,14 +114,14 @@ public:
    * @param [in] src the CSArray2DView to be copied from.
    */
   inline
-  CSArray2DView & operator=(CSArray2DView const & src) = default;
+  CSArray2DView & operator=( CSArray2DView const & src ) = default;
 
   /**
    * @brief Default move assignment operator, this does a shallow copy.
    * @param [in/out] src the CSArray2DView to be moved from.
    */
   inline
-  CSArray2DView & operator=(CSArray2DView && src) = default;
+  CSArray2DView & operator=( CSArray2DView && src ) = default;
 
   /**
    * @brief Return the number of arrays.
@@ -135,9 +135,9 @@ public:
    * @param [in] i the array to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC size(INDEX_TYPE_NC const i) const restrict_this
+  INDEX_TYPE_NC size( INDEX_TYPE_NC const i ) const restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS(i);
+    CSARRAY2D_CHECK_BOUNDS( i );
     return m_offsets[i + 1] - m_offsets[i];
   }
 
@@ -153,8 +153,8 @@ public:
    * @param [in] i the array to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  bool empty(INDEX_TYPE_NC const i) const restrict_this
-  { return size(i) == 0; }
+  bool empty( INDEX_TYPE_NC const i ) const restrict_this
+  { return size( i ) == 0; }
 
   /**
    * @brief Return a reference to the given value of the given array.
@@ -165,9 +165,9 @@ public:
    * USE_ARRAY_BOUNDS_CHECK is defined.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T & operator()(INDEX_TYPE_NC const i, INDEX_TYPE_NC const j) const restrict_this
+  T & operator()( INDEX_TYPE_NC const i, INDEX_TYPE_NC const j ) const restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS2(i, j);
+    CSARRAY2D_CHECK_BOUNDS2( i, j );
     return m_values[m_offsets[i] + j];
   }
 
@@ -180,9 +180,9 @@ public:
    * there is no bounds checking on subsequent dereferences.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T * operator[](INDEX_TYPE_NC const i) const restrict_this
+  T * operator[]( INDEX_TYPE_NC const i ) const restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS(i);
+    CSARRAY2D_CHECK_BOUNDS( i );
     return &m_values[m_offsets[i]];
   }
 
@@ -194,12 +194,12 @@ public:
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  void setArray(INDEX_TYPE_NC const i, T const * const values) const restrict_this
+  void setArray( INDEX_TYPE_NC const i, T const * const values ) const restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS(i);
+    CSARRAY2D_CHECK_BOUNDS( i );
     INDEX_TYPE_NC const offset = m_offsets[i];
-    INDEX_TYPE_NC const n_values = size(i);
-    for (INDEX_TYPE_NC j = 0; j < n_values; ++j)
+    INDEX_TYPE_NC const n_values = size( i );
+    for( INDEX_TYPE_NC j = 0 ; j < n_values ; ++j )
     {
       m_values[offset + j] = values[j];
     }

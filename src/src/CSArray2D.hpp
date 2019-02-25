@@ -64,11 +64,11 @@ public:
    * @param [in] valueCapacity the initial value capacity.
    */
   inline
-  CSArray2D(INDEX_TYPE const numArrays=0, INDEX_TYPE const valueCapacity=0) :
+  CSArray2D( INDEX_TYPE const numArrays=0, INDEX_TYPE const valueCapacity=0 ):
     CSArray2DView<T, INDEX_TYPE>()
   {
-    resizeNumArrays(numArrays);
-    reserveValues(valueCapacity);
+    resizeNumArrays( numArrays );
+    reserveValues( valueCapacity );
     m_offsets[0] = 0;
   }
 
@@ -77,7 +77,7 @@ public:
    * @param [in] src the CSArray2D to copy.
    */
   inline
-  CSArray2D(CSArray2D const & src) :
+  CSArray2D( CSArray2D const & src ):
     CSArray2DView<T, INDEX_TYPE>()
   { *this = src; }
 
@@ -86,7 +86,7 @@ public:
    * @param [in/out] src the CSArray2D to be moved from.
    */
   inline
-  CSArray2D(CSArray2D && src) = default;
+  CSArray2D( CSArray2D && src ) = default;
 
   /**
    * @brief Destructor, frees the offsets and values ChaiVectors.
@@ -129,42 +129,42 @@ public:
    * @param [in] src the CSArray2D to copy.
    */
   inline
-  CSArray2D & operator=(CSArray2D const & src) restrict_this
+  CSArray2D & operator=( CSArray2D const & src ) restrict_this
   {
-    src.m_offsets.copy_into(m_offsets);
-    src.m_values.copy_into(m_values);
+    src.m_offsets.copy_into( m_offsets );
+    src.m_values.copy_into( m_values );
     return *this;
   }
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
    * @param [in] src the CSArray2D to be moved from.
-   */ 
+   */
   inline
-  CSArray2D & operator=(CSArray2D && src) = default;
+  CSArray2D & operator=( CSArray2D && src ) = default;
 
 #ifdef USE_CHAI
   /**
    * @brief Moves the CSArray2D to the given execution space.
    * @param [in] space the space to move to.
-   */ 
+   */
   inline
   void move( chai::ExecutionSpace const space ) restrict_this
   {
-    m_offsets.move(space);
-    m_values.move(space);
+    m_offsets.move( space );
+    m_values.move( space );
   }
 #endif
 
   /**
    * @brief Resize the number of arrays.
    * @param [in] numArrays the new number of Arrays.
-   */ 
+   */
   inline
-  void resizeNumArrays(INDEX_TYPE const numArrays) restrict_this
+  void resizeNumArrays( INDEX_TYPE const numArrays ) restrict_this
   {
-    GEOS_ERROR_IF(numArrays < 0, "Invalid number of arrays.");
-    m_offsets.resize(numArrays + 1, 0);
+    GEOS_ERROR_IF( numArrays < 0, "Invalid number of arrays." );
+    m_offsets.resize( numArrays + 1, 0 );
   }
 
   /**
@@ -172,10 +172,10 @@ public:
    * @param [in] numArrays the number of arrays to reserve space for.
    */
   inline
-  void reserveNumArrays(INDEX_TYPE const numArrays) restrict_this
+  void reserveNumArrays( INDEX_TYPE const numArrays ) restrict_this
   {
-    GEOS_ERROR_IF(numArrays < 0, "Invalid arrays capacity.");
-    m_offsets.reserve(numArrays + 1);
+    GEOS_ERROR_IF( numArrays < 0, "Invalid arrays capacity." );
+    m_offsets.reserve( numArrays + 1 );
   }
 
   /**
@@ -183,10 +183,10 @@ public:
    * @param [in] numValues the number of values to reserve space for.
    */
   inline
-  void reserveValues(INDEX_TYPE const numValues) restrict_this
+  void reserveValues( INDEX_TYPE const numValues ) restrict_this
   {
-    GEOS_ERROR_IF(numValues < 0, "Invalid value capacity.");
-    m_values.reserve(numValues);
+    GEOS_ERROR_IF( numValues < 0, "Invalid value capacity." );
+    m_values.reserve( numValues );
   }
 
   /**
@@ -196,31 +196,31 @@ public:
    * @param [in] defaultValue the value to assign to any new entries.
    */
   inline
-  void resizeArray(INDEX_TYPE const i, INDEX_TYPE const arraySize, T const & defaultValue = T()) restrict_this
+  void resizeArray( INDEX_TYPE const i, INDEX_TYPE const arraySize, T const & defaultValue = T()) restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS(i);
-    GEOS_ASSERT(arraySize >= 0);
-    
+    CSARRAY2D_CHECK_BOUNDS( i );
+    GEOS_ASSERT( arraySize >= 0 );
+
     INDEX_TYPE const offset = m_offsets[i];
-    INDEX_TYPE const previousSize = size(i);
+    INDEX_TYPE const previousSize = size( i );
     INDEX_TYPE const sizeDifference = arraySize - previousSize;
-    if (sizeDifference == 0) return;
+    if( sizeDifference == 0 ) return;
 
     // Update the offsets of all subsequent arrays.
     INDEX_TYPE const nArrays = size();
-    for (INDEX_TYPE j = i + 1; j < nArrays + 1; ++j)
+    for( INDEX_TYPE j = i + 1 ; j < nArrays + 1 ; ++j )
     {
       m_offsets[j] += sizeDifference;
     }
 
     // Insert (or remove) the appropriate number of values at the end of the given array.
-    if ( sizeDifference > 0 )
+    if( sizeDifference > 0 )
     {
-      m_values.emplace(offset + previousSize, sizeDifference, defaultValue);
+      m_values.emplace( offset + previousSize, sizeDifference, defaultValue );
     }
     else
     {
-      m_values.erase(offset + previousSize + sizeDifference, -sizeDifference);
+      m_values.erase( offset + previousSize + sizeDifference, -sizeDifference );
     }
   }
 
@@ -230,13 +230,13 @@ public:
    * @param [in] numValues the number of values.
    */
   inline
-  void appendArray(T const * const values, INDEX_TYPE const numValues) restrict_this
+  void appendArray( T const * const values, INDEX_TYPE const numValues ) restrict_this
   {
-    GEOS_ASSERT(values != nullptr);
-    GEOS_ASSERT(numValues >= 0);
+    GEOS_ASSERT( values != nullptr );
+    GEOS_ASSERT( numValues >= 0 );
 
-    m_values.push_back(values, numValues);
-    m_offsets.push_back(m_values.size());
+    m_values.push_back( values, numValues );
+    m_offsets.push_back( m_values.size());
   }
 
   /**
@@ -246,24 +246,24 @@ public:
    * @param [in] numValues the number of values.
    */
   inline
-  void insertArray(INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) restrict_this
+  void insertArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) restrict_this
   {
-    GEOS_ASSERT(i >= 0 && i <= size());
-    GEOS_ASSERT(n == 0 || (n > 0 && values != nullptr));
+    GEOS_ASSERT( i >= 0 && i <= size());
+    GEOS_ASSERT( n == 0 || (n > 0 && values != nullptr));
 
     // Insert the new offset.
     INDEX_TYPE previous_offset = m_offsets[i];
-    m_offsets.insert(i + 1, previous_offset + n);
+    m_offsets.insert( i + 1, previous_offset + n );
 
     // Update the subsequent offsets.
     INDEX_TYPE const nArrays = size();
-    for (INDEX_TYPE j = i + 2; j < nArrays + 1; ++j)
+    for( INDEX_TYPE j = i + 2 ; j < nArrays + 1 ; ++j )
     {
       m_offsets[j] += n;
     }
 
     // Insert the new values.
-    m_values.insert(previous_offset, values, n);
+    m_values.insert( previous_offset, values, n );
   }
 
   /**
@@ -271,14 +271,14 @@ public:
    * @param [in] i the position of the array to remove.
    */
   inline
-  void removeArray(INDEX_TYPE const i) restrict_this
+  void removeArray( INDEX_TYPE const i ) restrict_this
   {
-    CSARRAY2D_CHECK_BOUNDS(i);
+    CSARRAY2D_CHECK_BOUNDS( i );
     INDEX_TYPE const arrayOffset = m_offsets[i];
-    INDEX_TYPE const arraySize = size(i);
+    INDEX_TYPE const arraySize = size( i );
 
     // Update the subsequent offsets.
-    for (INDEX_TYPE j = i + 1; j < size(); ++j)
+    for( INDEX_TYPE j = i + 1 ; j < size() ; ++j )
     {
       m_offsets[j] = m_offsets[j + 1] - arraySize;
     }
@@ -287,7 +287,7 @@ public:
     m_offsets.pop_back();
 
     // Erase the values.
-    if (arraySize != 0) m_values.erase(arrayOffset, arraySize);
+    if( arraySize != 0 ) m_values.erase( arrayOffset, arraySize );
   }
 
 private:
