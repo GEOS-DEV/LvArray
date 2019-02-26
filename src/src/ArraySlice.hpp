@@ -36,18 +36,8 @@
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
 
-#ifdef USE_CUDA
-
-#include <cassert>
-#define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
-  assert( index >= 0 && index < m_dims[0] )
-
-#else // USE_CUDA
-
 #define ARRAY_SLICE_CHECK_BOUNDS( index )                                        \
   GEOS_ERROR_IF( index < 0 || index >= m_dims[0], "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
-
-#endif // USE_CUDA
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
@@ -73,14 +63,14 @@ using ArraySlice1d_rval = ArraySlice<T, 1, INDEX_TYPE>;
 
 template< typename T, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
-                                                      INDEX_TYPE const * const restrict dims,
-                                                      INDEX_TYPE const * const restrict strides)
+ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d( T * const restrict data,
+                                                       INDEX_TYPE const * const restrict dims,
+                                                       INDEX_TYPE const * const restrict strides )
 {
-  return ArraySlice1d<T, INDEX_TYPE>(data, dims, strides);
+  return ArraySlice1d<T, INDEX_TYPE>( data, dims, strides );
 }
 
-#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) ArraySlice<T, 1, INDEX_TYPE>(data, dims, strides)
+#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) ArraySlice<T, 1, INDEX_TYPE>( data, dims, strides )
 
 #else
 
@@ -92,9 +82,9 @@ using ArraySlice1d_rval = T *;
 
 template< typename T, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d(T * const restrict data,
-                                                      INDEX_TYPE const * const restrict dims,
-                                                      INDEX_TYPE const * const restrict strides)
+ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d( T * const restrict data,
+                                                       INDEX_TYPE const * const restrict dims,
+                                                       INDEX_TYPE const * const restrict strides )
 {
   return data;
 }

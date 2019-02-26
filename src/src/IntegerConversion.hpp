@@ -133,12 +133,12 @@ integer_conversion( T input )
                  <<std::numeric_limits<RTYPE>::max()<<")" );
 
   GEOS_ERROR_IF( std::is_signed<T>::value && input < std::numeric_limits<RTYPE>::lowest(),
-                       "conversion of integer \"("
-                       <<cxx_utilities::demangle( typeid(T).name() )
-                       <<")"<<input<<"\" to type ("
-                       <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                       <<") loses information! ("<<input<<"<"
-                       <<std::numeric_limits<RTYPE>::lowest()<<")" );
+                 "conversion of integer \"("
+                 <<cxx_utilities::demangle( typeid(T).name() )
+                 <<")"<<input<<"\" to type ("
+                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                 <<") loses information! ("<<input<<"<"
+                 <<std::numeric_limits<RTYPE>::lowest()<<")" );
 
   return static_cast<RTYPE>(input);
 }

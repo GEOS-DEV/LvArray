@@ -4,6 +4,7 @@ set(cxx-utilities_headers
     ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
+    ArrayManipulation.hpp
     helpers.hpp
     IntegerConversion.hpp
     Logger.hpp
@@ -12,10 +13,18 @@ set(cxx-utilities_headers
     SetFPE.hpp
     SetSignalHandling.hpp
     SFINAE_Macros.hpp
+    SortedArrayView.hpp
     SortedArray.hpp
     StackArrayWrapper.hpp
     stackTrace.hpp
-    StringUtilities.hpp )
+    StringUtilities.hpp
+    CSArray2DView.hpp
+    CSArray2D.hpp
+    SparsityPatternView.hpp
+    SparsityPattern.hpp
+    CRSMatrixView.hpp
+    CRSMatrix.hpp
+   )
 
 set(cxx-utilities_sources
     Logger.cpp

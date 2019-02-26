@@ -1,3 +1,25 @@
+/*
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Copyright (c) 2019, Lawrence Livermore National Security, LLC.
+ *
+ * Produced at the Lawrence Livermore National Laboratory
+ *
+ * LLNL-CODE-746361
+ *
+ * All rights reserved. See COPYRIGHT for details.
+ *
+ * This file is part of the GEOSX Simulation Framework.
+ *
+ * GEOSX is a free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License (as published by the
+ * Free Software Foundation) version 2.1 dated February 1999.
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+#ifndef TEST_UTILS_HPP_
+#define TEST_UTILS_HPP_
+
+#include <string>
 
 #ifdef USE_CUDA
 
@@ -5,9 +27,27 @@
   static void cuda_test_##X##Y();    \
   TEST(X, Y) { cuda_test_##X##Y(); } \
   static void cuda_test_##X##Y()
-
 #endif
 
+/**
+ * @class TestString
+ * @brief A wrapper around std::string that adds a constructor that takes a number
+ * and converts it to a string. Used for testing purposes.
+ */
+class TestString : public std::string
+{
+public:
+  template <class T=int>
+  TestString(T val=0) :
+    std::string(std::to_string(val))
+  {}
+};
+
+/**
+ * @class Tensor
+ * @brief A simple struct containing three doubles used for testing purposes.
+ * Can be used on the device.
+ */
 struct Tensor
 {
   double x, y, z;
@@ -56,10 +96,24 @@ struct Tensor
     return x == other.x && y == other.y && z == other.z;
 #pragma GCC diagnostic pop
   }
+
+  LVARRAY_HOST_DEVICE bool operator<( const Tensor& other ) const
+  { return x < other.x; }
+
+  LVARRAY_HOST_DEVICE bool operator>( const Tensor& other ) const
+  { return x > other.x; }
+
+  LVARRAY_HOST_DEVICE bool operator !=( const Tensor & other ) const
+  { return !(*this == other); }
 };
 
+/**
+  * @brief Helper method used to print out the values of a Tensor.
+  */
 std::ostream& operator<<(std::ostream& stream, const Tensor & t )
 {
   stream << "(" << t.x << ", " << t.y << ", " << t.z << ")";
   return stream;
 }
+
+#endif // TEST_UTILS_HPP_

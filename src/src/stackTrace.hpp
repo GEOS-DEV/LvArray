@@ -29,9 +29,12 @@
 #define GEOSX_USE_MPI
 
 #include <signal.h>
+#include <string>
 
 namespace cxx_utilities
 {
+
+std::string stackTrace( );
 
 void handler( int sig, int exitFlag=1, int exitCode=1 );
 

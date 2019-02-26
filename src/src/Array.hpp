@@ -26,8 +26,6 @@
 
 #include <iostream>
 #include <limits>
-#include <vector>
-#include <iterator>
 
 #include "ArrayView.hpp"
 #include "helpers.hpp"
@@ -66,15 +64,11 @@ public:
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::size;
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::setDataPtr;
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::data;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::begin;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::end;
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator[];
   using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator();
 
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::pointer;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_pointer;
-  using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::iterator;
-  using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_iterator;
 
   using asView = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
   using asViewConst = typename detail::to_arrayViewConst< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
@@ -131,7 +125,7 @@ public:
   template< typename U = T >
   operator typename std::enable_if< !std::is_const<U>::value,
                                     Array<T const, NDIM, INDEX_TYPE> const & >::type
-  () const
+    () const
   {
     return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -280,8 +274,8 @@ public:
 
     INDEX_TYPE const oldLength = size();
     dim_index_unpack<INDEX_TYPE, NDIM>( const_cast<INDEX_TYPE *>(m_dims),
-                                                 std::integer_sequence<INDEX_TYPE, INDICES...>(),
-                                                 newdims... );
+                                        std::integer_sequence<INDEX_TYPE, INDICES...>(),
+                                        newdims... );
 
     CalculateStrides();
     resizePrivate( oldLength );
@@ -342,24 +336,6 @@ public:
 
   template<int N=NDIM>
   typename std::enable_if< N==1, void >::type
-  insert( iterator pos, T const& value )
-  {
-    m_dataVector.insert( pos, value );
-    setDataPtr();
-    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
-  }
-
-  template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type
-  insert( iterator pos, T && value )
-  {
-    m_dataVector.insert( pos, std::move( value ) );
-    setDataPtr();
-    const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
-  }
-
-  template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type
   insert( INDEX_TYPE pos, T const& value )
   {
     m_dataVector.insert( pos, value );
@@ -376,17 +352,17 @@ public:
     const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
-  template<int N=NDIM, typename InputIt>
+  template<int N=NDIM>
   typename std::enable_if< N==1, void >::type
-  insert( iterator pos, InputIt first, InputIt last )
+  insert( INDEX_TYPE pos, T const * const values, INDEX_TYPE n )
   {
-    m_dataVector.insert( pos, first, last );
+    m_dataVector.insert( pos, values, n );
     setDataPtr();
     const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());
   }
 
   template<int N=NDIM>
-  typename std::enable_if< N==1, void >::type erase( iterator pos )
+  typename std::enable_if< N==1, void >::type erase( INDEX_TYPE pos )
   {
     m_dataVector.erase( pos );
     const_cast<INDEX_TYPE *>(m_dims)[0] = integer_conversion<INDEX_TYPE>( m_dataVector.size());

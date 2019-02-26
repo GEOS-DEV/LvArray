@@ -25,6 +25,7 @@
 
 
 #include "ArraySlice.hpp"
+#include "Logger.hpp"
 #include "ChaiVector.hpp"
 #include "helpers.hpp"
 #include "IntegerConversion.hpp"
@@ -79,10 +80,10 @@ class ArrayView
 {
 public:
 
+  using iterator = T *;
+  using const_iterator = T const *;
   using pointer = T *;
   using const_pointer = T const *;
-  using iterator = typename DATA_VECTOR_TYPE::iterator;
-  using const_iterator = typename DATA_VECTOR_TYPE::const_iterator;
 
   /**
    * The default constructor
@@ -94,8 +95,6 @@ public:
     m_strides{ 0 },
     m_dataVector()
   {}
-
-
 
   /**
    * @brief constructor to make a shallow copy of the input data
@@ -215,7 +214,7 @@ public:
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
                                     ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
-  () const noexcept
+    () const noexcept
   {
     return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
@@ -228,16 +227,16 @@ public:
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator ArraySlice<T, NDIM, INDEX_TYPE>() const noexcept
   {
-    return ArraySlice<T, NDIM, INDEX_TYPE>(m_data,m_dims,m_strides);
+    return ArraySlice<T, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
                                     ArraySlice<T const, NDIM, INDEX_TYPE> const >::type
-  () const noexcept
+    () const noexcept
   {
-    return ArraySlice<T const, NDIM, INDEX_TYPE>(m_data,m_dims,m_strides);
+    return ArraySlice<T const, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
 
@@ -277,7 +276,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
   {
-    return size_helper<NDIM,INDEX_TYPE>::f( m_dims );
+    return size_helper<NDIM, INDEX_TYPE>::f( m_dims );
   }
 
   /**
@@ -289,43 +288,17 @@ public:
     return m_dataVector.empty();
   }
 
-  /**
-   * @brief std::vector-like front method
-   * @return a reference to the first element of the array
-   */
-  template< typename U = T >
-  inline T& front() const
-  {
-    return m_dataVector.front();
-  }
+  T * begin() const
+  { return data(); }
 
-  /**
-   * @brief std::vector-like back method
-   * @return a reference to the last element of the array
-   */
-  inline T& back() const
-  {
-    return m_dataVector.back();
-  }
+  T * end() const
+  { return data() + size(); }
 
-  /**
-   * @brief std::vector-like begin method
-   * @return an iterator to the first element of the array
-   */
-  inline iterator begin() const
-  {
-    return m_dataVector.begin();
-  }
+  T & front() const
+  { return m_data[0]; }
 
-  /**
-   * @brief std::vector-like end method
-   * @return an iterator to the element of the array past the last element
-   */
-  inline iterator end() const
-  {
-    return m_dataVector.end();
-  }
-
+  T & back() const
+  { return m_data[size() - 1]; }
 
   ///***********************************************************************************************
   ///**** DO NOT EDIT!!! THIS CODE IS COPIED FROM ArraySlice *****
@@ -362,7 +335,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return CREATE_ARRAY_SLICE_1D(&(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1);
+    return CREATE_ARRAY_SLICE_1D( &(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1 );
   }
 
   /**
@@ -421,16 +394,7 @@ public:
    * @brief accessor for data
    * @return pointer to the data
    */
-  inline T * data()
-  {
-    return m_dataVector.data();
-  }
-
-  /**
-   * @brief accessor for data
-   * @return pointer to const to the data
-   */
-  inline T const * data() const
+  inline T * data() const
   {
     return m_dataVector.data();
   }
@@ -441,19 +405,7 @@ public:
    * @return
    * @todo THIS FUNCION NEEDS TO BE GENERALIZED for all dims
    */
-  inline T const * data( INDEX_TYPE const index ) const
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return &(m_dataVector[ index*m_strides[0] ]);
-  }
-
-  /**
-   * @brief function to get a pointer to a slice of data
-   * @param index the index of the slice to get
-   * @return
-   * @todo THIS FUNCION NEEDS TO BE GENERALIZED for all dims
-   */
-  inline T * data( INDEX_TYPE const index )
+  inline T * data( INDEX_TYPE const index ) const
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return &(m_dataVector[ index*m_strides[0] ]);
@@ -571,7 +523,7 @@ public:
 #ifdef USE_CUDA
       const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
 #else
-      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>(dims[a]);
+      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>( dims[a] );
 #endif
     }
   }
