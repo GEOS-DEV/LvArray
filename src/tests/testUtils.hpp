@@ -19,7 +19,9 @@
 #ifndef TEST_UTILS_HPP_
 #define TEST_UTILS_HPP_
 
+#include "CXX_UtilsConfig.hpp"
 #include <string>
+#include <ostream>
 
 #ifdef USE_CUDA
 
@@ -27,6 +29,7 @@
   static void cuda_test_##X##Y();    \
   TEST(X, Y) { cuda_test_##X##Y(); } \
   static void cuda_test_##X##Y()
+
 #endif
 
 /**

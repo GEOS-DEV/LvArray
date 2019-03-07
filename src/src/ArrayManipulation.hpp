@@ -28,6 +28,8 @@
 #define ARRAYMANIPULATION_HPP_
 
 #include "Logger.hpp"
+#include "sorting.hpp"
+#include <cstdlib>      // for malloc / free.
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -565,6 +567,65 @@ INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const v
 }
 
 /**
+ * @brief Remove the given values from the array if they exist.
+ * @param [in] ptr pointer to the array.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to remove.
+ * @param [in] nVals the number of values to remove.
+ * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ * If a value is found it is removed then this method is called with the number of values removed so far,
+ * the position of the last value removed and the position of the next value to remove or size if there are no more
+ * values to remove.
+ *
+ * @pre isSorted(ptr, size) must be true.
+ * @return The number of values removed.
+ */
+DISABLE_HD_WARNING
+template <class T, class INDEX_TYPE, class CALLBACKS>
+LVARRAY_HOST_DEVICE inline
+INDEX_TYPE removeSorted2( T * const ptr, INDEX_TYPE const size, T const * const values,
+                          INDEX_TYPE const nVals, CALLBACKS && callBacks )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( values != nullptr || nVals == 0 );
+  GEOS_ASSERT( isPositive( nVals ));
+
+  constexpr INDEX_TYPE LOCAL_SIZE = 16;
+  if (nVals <= LOCAL_SIZE)
+  {
+    T localBuffer[LOCAL_SIZE];
+
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      localBuffer[i] = values[i];
+    }
+
+    sorting::makeSorted(localBuffer, localBuffer + nVals);
+    return removeSorted(ptr, size, localBuffer, nVals, std::move(callBacks));
+  }
+  else
+  {
+    T * const buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
+
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      new (buffer + i) T(values[i]);
+    }
+
+    sorting::makeSorted(buffer, buffer + nVals);
+    INDEX_TYPE nInserted = removeSorted(ptr, size, buffer, nVals, std::move(callBacks));
+    
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      values[i].~T();
+    }
+    std::free(buffer);
+    return nInserted;
+  }
+}
+
+/**
  * @brief Insert the given value into the array if it doesn't already exist.
  * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -770,6 +831,69 @@ INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * c
   GEOS_ASSERT_MSG( nInserted == nToInsert, nInserted << " " << nToInsert );
 
   return nToInsert;
+}
+
+/**
+ * @brief Insert the given values into the array if they don't already exist.
+ * @param [in] ptr pointer to the array.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to insert.
+ * @param [in] nVals the number of values to insert.
+ * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE),
+ * set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ * incrementSize is called with the number of values to insert and returns a new pointer to the array.
+ * After an insert has occurred insert is called with the number of values left to insert, the
+ * index of the value inserted, the index at which it was inserted and the index at
+ * which the the previous value was inserted or size if it is the first value inserted.
+ * set is called when the array is empty and it takes a position in the array and the position of the
+ * value that will occupy that position.
+ *
+ * @pre isSorted(ptr, size) must be true.
+ * @return The number of values inserted.
+ */
+DISABLE_HD_WARNING
+template <class T, class INDEX_TYPE, class CALLBACKS>
+LVARRAY_HOST_DEVICE inline
+INDEX_TYPE insertSorted2( T const * const ptr, INDEX_TYPE const size, T const * const values,
+                          INDEX_TYPE const nVals, CALLBACKS && callBacks )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( values != nullptr || nVals == 0 );
+  GEOS_ASSERT( nVals >= 0 );
+
+  constexpr INDEX_TYPE LOCAL_SIZE = 16;
+  if (nVals <= LOCAL_SIZE)
+  {
+    T localBuffer[LOCAL_SIZE];
+
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      localBuffer[i] = values[i];
+    }
+
+    sorting::makeSorted(localBuffer, localBuffer + nVals);
+    return insertSorted(ptr, size, localBuffer, nVals, std::move(callBacks));
+  }
+  else
+  {
+    T * const buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
+
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      new (buffer + i) T(values[i]);
+    }
+
+    sorting::makeSorted(buffer, buffer + nVals);
+    INDEX_TYPE nInserted = insertSorted(ptr, size, buffer, nVals, std::move(callBacks));
+    
+    for (INDEX_TYPE i = 0; i < nVals; ++i)
+    {
+      values[i].~T();
+    }
+    std::free(buffer);
+    return nInserted;
+  }
 }
 
 } // namespace ArrayManipulation

@@ -24,6 +24,7 @@ set(cxx-utilities_headers
     SparsityPattern.hpp
     CRSMatrixView.hpp
     CRSMatrix.hpp
+    sorting.hpp
    )
 
 set(cxx-utilities_sources

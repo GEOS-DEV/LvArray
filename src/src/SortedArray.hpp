@@ -168,6 +168,20 @@ public:
 
   /**
    * @brief Insert the given values into the array if they don't already exist.
+   * @param [in] vals the values to insert, must be sorted.
+   * @param [in] nVals the number of values to insert.
+   * @return The number of values actually inserted.
+   */
+  inline
+  INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) restrict_this
+  {
+    INDEX_TYPE const nInserted = ArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() + nInserted );
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert the given values into the array if they don't already exist.
    * @param [in] vals the values to insert.
    * @param [in] nVals the number of values to insert.
    * @return The number of values actually inserted.
@@ -175,7 +189,7 @@ public:
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
   {
-    INDEX_TYPE nInserted = ArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    INDEX_TYPE const nInserted = ArrayManipulation::insertSorted2( data(), size(), vals, nVals, CallBacks( m_values ));
     m_values.setSize( size() + nInserted );
     return nInserted;
   }
@@ -195,6 +209,20 @@ public:
 
   /**
    * @brief Remove the given values from the array if they exist.
+   * @param [in] vals the values to remove, must be sorted.
+   * @param [in] nVals the number of values to remove.
+   * @return The number of values actually removed.
+   */
+  inline
+  INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) restrict_this
+  {
+    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() - nRemoved );
+    return nRemoved;
+  }
+
+  /**
+   * @brief Remove the given values from the array if they exist.
    * @param [in] vals the values to remove.
    * @param [in] nVals the number of values to remove.
    * @return The number of values actually removed.
@@ -202,7 +230,7 @@ public:
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
   {
-    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted2( data(), size(), vals, nVals, CallBacks( m_values ));
     m_values.setSize( size() - nRemoved );
     return nRemoved;
   }
