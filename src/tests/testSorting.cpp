@@ -33,6 +33,7 @@
 #include <chrono>
 #include <random>
 #include <algorithm>
+#include <iomanip>
 
 using INDEX_TYPE = std::ptrdiff_t;
 
@@ -94,17 +95,18 @@ void correctnessTest()
 template <class T, class Compare>
 void performanceTest()
 {
-  constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024;
-  constexpr INDEX_TYPE NITER = 100;
+  constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024 * 8;
+
+  std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(5);
 
   Array1d<T> a(MAX_SIZE);
   Array1d<T> b(MAX_SIZE);
 
-  for (INDEX_TYPE size = 2; size <= MAX_SIZE; size *= 2)
+  for (INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
   {
-    std::chrono::duration<double> sortingTime;
-    std::chrono::duration<double> stdTime;
-    for (INDEX_TYPE iter = 0; iter < NITER; ++iter)
+    std::chrono::duration<double> sortingTime {};
+    std::chrono::duration<double> stdTime {};
+    for (INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter)
     {
       fillArrays<T>(size, a, b);
 
@@ -117,11 +119,30 @@ void performanceTest()
       std::sort(b.begin(), b.end(), Compare());
       end = std::chrono::high_resolution_clock::now();
       stdTime += end - start;
+
+      fillArrays<T>(size, a, b);
+
+      start = std::chrono::high_resolution_clock::now();
+      std::sort(b.begin(), b.end(), Compare());
+      end = std::chrono::high_resolution_clock::now();
+      stdTime += end - start;
+
+      start = std::chrono::high_resolution_clock::now();
+      sorting::makeSorted(a.begin(), a.end(), Compare());
+      end = std::chrono::high_resolution_clock::now();
+      sortingTime += end - start;
     }
 
-    std::cout << "size = " << size << std::endl;
-    std::cout << "    sorting::makeSorted : " << sortingTime.count() << std::endl;
-    std::cout << "    std::sort     : " << stdTime.count() << std::endl << std::endl;
+    if (sortingTime.count() > stdTime.count())
+    {
+      std::cout << "size = " << size << ",\tsorting::makeSorted : " << sortingTime.count() <<
+                   ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
+    }
+    else
+    {
+      std::cout << "size = " << size << ",\tsorting::makeSorted : " << sortingTime.count() <<
+                   ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
+    }
   }
 }
 

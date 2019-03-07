@@ -36,7 +36,7 @@ namespace sorting
 namespace internal
 {
 
-constexpr int S_threshold = 16;
+constexpr int S_threshold = 64;
 
 DISABLE_HD_WARNING
 template <class T>
@@ -55,118 +55,6 @@ LVARRAY_HOST_DEVICE inline void moveBackward(BidirIt1 first, BidirIt1 last, Bidi
   {
     *(--d_last) = std::move(*(--last));
   }
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Distance, typename Tp, typename Compare>
-LVARRAY_HOST_DEVICE inline void pushHeap(RandomAccessIterator first, Distance holeIndex, Distance topIndex, Tp value, Compare & comp)
-{
-  Distance parent = (holeIndex - 1) / 2;
-  while (holeIndex > topIndex && comp(*(first + parent), value))
-  {
-    *(first + holeIndex) = std::move(*(first + parent));
-    holeIndex = parent;
-    parent = (holeIndex - 1) / 2;
-  }
-
-  *(first + holeIndex) = std::move(value);
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Distance, typename Tp, typename Compare>
-LVARRAY_HOST_DEVICE inline void adjustHeap(RandomAccessIterator first, Distance holeIndex, Distance len, Tp value, Compare comp)
-{
-  const Distance topIndex = holeIndex;
-  Distance secondChild = holeIndex;
-  while (secondChild < (len - 1) / 2)
-  {
-    secondChild = 2 * (secondChild + 1);
-    if (comp(*(first + secondChild), *(first + (secondChild - 1))))
-    {
-      secondChild--;
-    }
-
-    *(first + holeIndex) = std::move(*(first + secondChild));
-    holeIndex = secondChild;
-  }
-  
-  if ((len & 1) == 0 && secondChild == (len - 2) / 2)
-  {
-    secondChild = 2 * (secondChild + 1);
-    *(first + holeIndex) = std::move(*(first + (secondChild - 1)));
-    holeIndex = secondChild - 1;
-  }
-  
-  pushHeap(first, holeIndex, topIndex, std::move(value), comp);
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void makeHeap(RandomAccessIterator first, RandomAccessIterator last, Compare& comp)
-{
-  typedef decltype(last - first) DistanceType;
-
-  if (last - first < 2)
-  {
-    return;
-  }
-
-  const DistanceType len = last - first;
-  DistanceType parent = (len - 2) / 2;
-  while (true)
-  {
-    auto value = std::move(*(first + parent));
-    adjustHeap(first, parent, len, std::move(value), comp);
-    if (parent == 0)
-    {
-      return;
-    }
-    --parent;
-  }
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void popHeap(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator result, Compare & comp)
-{
-  typedef decltype(last - first) DistanceType;
-
-  auto value = std::move(*result);
-  *result = std::move(*first);
-  adjustHeap(first, DistanceType(0), DistanceType(last - first), std::move(value), comp);
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void heapSelect(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp)
-{
-  makeHeap(first, middle, comp);
-  for (RandomAccessIterator i = middle; i < last; ++i)
-  {
-    if (comp(*i, *first))
-    {
-      popHeap(first, middle, i, comp);
-    }
-  }
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void sortHeap(RandomAccessIterator first, RandomAccessIterator last, Compare & comp)
-{
-  while (last - first > 1)
-  {
-    --last;
-    popHeap(first, last, last, comp);
-  }
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void partialSort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp)
-{
-  heapSelect(first, middle, last, comp);
-  sortHeap(first, middle, comp);
 }
 
 DISABLE_HD_WARNING
@@ -219,10 +107,10 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition(RandomAccessI
       --last;
     }
   
-   if (!(first < last))
-   {
-      return first;
-   }
+    if (!(first < last))
+    {
+       return first;
+    }
   
     exchange(*first, *last);
     ++first;
@@ -243,8 +131,7 @@ template<typename RandomAccessIterator, typename Compare>
 LVARRAY_HOST_DEVICE inline void unguardedLinearInsert(RandomAccessIterator last, Compare comp)
 {
   auto val = std::move(*last);
-  RandomAccessIterator next = last;
-  --next;
+  RandomAccessIterator next = last - 1;
   while (comp(val, *next))
   {
     *last = std::move(*next);
@@ -255,82 +142,50 @@ LVARRAY_HOST_DEVICE inline void unguardedLinearInsert(RandomAccessIterator last,
 }
 
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void insertionSort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+template <class RandomAccessIterator, class Compare>
+LVARRAY_HOST_DEVICE inline void insertionSort(RandomAccessIterator first, std::ptrdiff_t const n, Compare comp)
 {
-  if (first == last) return;
-
-  for (RandomAccessIterator i = first + 1; i != last; ++i)
+  for (std::ptrdiff_t i = 1; i < n; ++i)
   {
-    if (comp(*i, *first))
+    if (comp(*(first + i), *first))
     {
-      auto val = std::move(*i);
-      moveBackward(first, i, i + 1);
+      auto val = std::move(*(first + i));
+      moveBackward(first, first + i, first + i + 1);
       *first = std::move(val);
     }
     else
     {
-      unguardedLinearInsert(i, comp);
+      unguardedLinearInsert(first + i, comp);
     }
   }
 }
 
 DISABLE_HD_WARNING
 template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void unguardedInsertionSort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+LVARRAY_HOST_DEVICE inline void introsortLoop(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
 {
-  for (RandomAccessIterator i = first; i != last; ++i)
-  {
-    unguardedLinearInsert(i, comp);
-  }
-}
+  constexpr int MAX_RANGES = 31;
+  RandomAccessIterator ranges[MAX_RANGES + 1];
 
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename SIZE, typename Compare>
-LVARRAY_HOST_DEVICE inline void introsortLoop(RandomAccessIterator first, RandomAccessIterator last, SIZE depth_limit, Compare comp)
-{
-  while (last - first > S_threshold)
+  int nRanges = 1;
+  ranges[0] = first;
+  ranges[1] = last;
+  while (nRanges != 0)
   {
-    if (depth_limit == 0)
+    RandomAccessIterator const m_first = ranges[nRanges - 1];
+
+    if (ranges[nRanges] - m_first > S_threshold)
     {
-      partialSort(first, last, last, comp);
-      return;
+      GEOS_ASSERT(nRanges < MAX_RANGES);
+      ranges[nRanges + 1] = ranges[nRanges];
+      ranges[nRanges] = unguardedPartitionPivot(m_first, ranges[nRanges], comp);
+      ++nRanges;
     }
-    
-    --depth_limit;
-    RandomAccessIterator cut = unguardedPartitionPivot(first, last, comp);
-    introsortLoop(cut, last, depth_limit, comp);
-    last = cut;
+    else
+    {
+      --nRanges;
+    }
   }
-}
-
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void finalInsertionSort(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
-{
-  if (last - first > S_threshold)
-  {
-    insertionSort(first, first + S_threshold, comp);
-    unguardedInsertionSort(first + S_threshold, last, comp);
-  }
-  else
-  {
-    insertionSort(first, last, comp);
-  }
-}
-
-DISABLE_HD_WARNING
-template<typename SIZE>
-LVARRAY_HOST_DEVICE inline SIZE lg(SIZE n)
-{
-  GEOS_ASSERT(n > 0);
-  SIZE k = 0;
-  for (; n != 0; n >>= 1)
-  {
-    ++k;
-  }
- 
- return k - 1;
 }
 
 } // namespace internal
@@ -369,11 +224,12 @@ DISABLE_HD_WARNING
 template<typename RandomAccessIterator, typename Compare>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
 {
-  if (first != last)
+  if (last - first > internal::S_threshold)
   {
-    internal::introsortLoop(first, last, internal::lg(last - first) * 2, comp);
-    internal::finalInsertionSort(first, last, comp);
+    internal::introsortLoop(first, last, comp);
   }
+
+  internal::insertionSort(first, last - first, comp);
 }
 
 /**
