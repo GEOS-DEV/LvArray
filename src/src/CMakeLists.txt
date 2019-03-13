@@ -4,7 +4,9 @@ set(cxx-utilities_headers
     ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
-    ArrayManipulation.hpp
+    arrayManipulation.hpp
+    sortedArrayManipulation.hpp
+    sortedArrayManipulationHelpers.hpp
     helpers.hpp
     IntegerConversion.hpp
     Logger.hpp
@@ -24,7 +26,6 @@ set(cxx-utilities_headers
     SparsityPattern.hpp
     CRSMatrixView.hpp
     CRSMatrix.hpp
-    sorting.hpp
    )
 
 set(cxx-utilities_sources

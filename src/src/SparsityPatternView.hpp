@@ -24,7 +24,8 @@
 #define SPARSITYPATTERNVIEW_HPP_
 
 #include "ChaiVector.hpp"
-#include "ArrayManipulation.hpp"
+#include "arrayManipulation.hpp"
+#include "sortedArrayManipulation.hpp"
 #include "ArraySlice.hpp"
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
@@ -33,12 +34,12 @@
 #define CONSTEXPRFUNC
 
 #define SPARSITYPATTERN_CHECK_BOUNDS( row ) \
-  GEOS_ERROR_IF( !ArrayManipulation::isPositive( row ) || row >= numRows(), \
+  GEOS_ERROR_IF( !arrayManipulation::isPositive( row ) || row >= numRows(), \
                  "Bounds Check Failed: row=" << row << " numRows()=" << numRows())
 
 #define SPARSITYPATTERN_CHECK_BOUNDS2( row, col ) \
-  GEOS_ERROR_IF( !ArrayManipulation::isPositive( row ) || row >= numRows() || \
-                 !ArrayManipulation::isPositive( col ) || col >= numColumns(), \
+  GEOS_ERROR_IF( !arrayManipulation::isPositive( row ) || row >= numRows() || \
+                 !arrayManipulation::isPositive( col ) || col >= numColumns(), \
                  "Bounds Check Failed: row=" << row << " numRows()=" << numRows() \
                                              << " col=" << col << " numColumns=" << numColumns())
 
@@ -213,7 +214,7 @@ public:
     INDEX_TYPE_NC const nnz = numNonZeros( row );
     COL_TYPE const * columns = getColumns( row );
 
-    return !ArrayManipulation::containsSorted( columns, nnz, col );
+    return !sortedArrayManipulation::contains( columns, nnz, col );
   }
 
   /**
@@ -312,7 +313,7 @@ protected:
    * @param [in] row the row to insert in.
    * @param [in] col the column to insert.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the ArrayManipulation routines.
+   * the sortedArrayManipulation routines.
    * @return True iff the column was inserted (the entry was zero before).
    */
   template <class CALLBACKS>
@@ -324,7 +325,7 @@ protected:
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     COL_TYPE const * const columns = getColumns( row );
 
-    bool const success = ArrayManipulation::insertSorted( columns, rowNNZ, col, std::move( cbacks ));
+    bool const success = sortedArrayManipulation::insert( columns, rowNNZ, col, std::move( cbacks ));
     m_sizes[row] += success;
     return success;
   }
@@ -335,7 +336,7 @@ protected:
    * @param [in] cols the columns to insert.
    * @param [in] ncols the number of columns to insert.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the ArrayManipulation routines.
+   * the sortedArrayManipulation routines.
    * @return The number of columns inserted.
    */
   template <class CALLBACKS>
@@ -348,7 +349,7 @@ protected:
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     GEOS_ASSERT( cols != nullptr );
     GEOS_ASSERT( ncols >= 0 );
-    GEOS_ASSERT( ArrayManipulation::isSorted( cols, ncols ));
+    GEOS_ASSERT( sortedArrayManipulation::isSorted( cols, ncols ));
 
     if( ncols == 0 ) return true;
 
@@ -360,7 +361,7 @@ protected:
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     COL_TYPE const * const columns = getColumns( row );
 
-    INDEX_TYPE_NC const nInserted = ArrayManipulation::insertSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
+    INDEX_TYPE_NC const nInserted = sortedArrayManipulation::insertSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
     m_sizes[row] += nInserted;
     return nInserted;
   }
@@ -370,7 +371,7 @@ protected:
    * @param [in] row the row to remove from.
    * @param [in] col the column to remove.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the ArrayManipulation routines.
+   * the arrayManipulation routines.
    * @return True iff the column was removed (the entry was non zero before).
    */
   template <class CALLBACKS>
@@ -382,7 +383,7 @@ protected:
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     COL_TYPE * const columns = getColumnsProtected( row );
 
-    bool const success = ArrayManipulation::removeSorted( columns, rowNNZ, col, std::move( cbacks ));
+    bool const success = sortedArrayManipulation::remove( columns, rowNNZ, col, std::move( cbacks ));
     m_sizes[row] -= success;
     return success;
   }
@@ -393,7 +394,7 @@ protected:
    * @param [in] cols the columns to remove.
    * @param [in] ncols the number of columns to remove.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the ArrayManipulation routines.
+   * the arrayManipulation routines.
    * @return The number of columns removed.
    */
   template <class CALLBACKS>
@@ -406,7 +407,7 @@ protected:
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     GEOS_ASSERT( cols != nullptr );
     GEOS_ASSERT( ncols >= 0 );
-    GEOS_ASSERT( ArrayManipulation::isSorted( cols, ncols ));
+    GEOS_ASSERT( sortedArrayManipulation::isSorted( cols, ncols ));
 
     if( ncols == 0 ) return true;
 
@@ -418,7 +419,7 @@ protected:
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     COL_TYPE * const columns = getColumnsProtected( row );
 
-    INDEX_TYPE_NC const nRemoved = ArrayManipulation::removeSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
+    INDEX_TYPE_NC const nRemoved = sortedArrayManipulation::removeSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
     m_sizes[row] -= nRemoved;
     return nRemoved;
   }
@@ -441,7 +442,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the arrayManipulation sorted routines.
    */
   class CallBacks
   {

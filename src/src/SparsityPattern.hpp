@@ -24,6 +24,7 @@
 #define SPARSITYPATTERN_HPP_
 
 #include "SparsityPatternView.hpp"
+#include "arrayManipulation.hpp"
 
 namespace LvArray
 {
@@ -66,8 +67,8 @@ public:
   SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
   {
-    GEOS_ERROR_IF( !ArrayManipulation::isPositive( nrows ), "nrows must be positive." );
-    GEOS_ERROR_IF( !ArrayManipulation::isPositive( ncols ), "ncols must be positive." );
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
     GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
                    "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
@@ -291,7 +292,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
   class CallBacks
   {

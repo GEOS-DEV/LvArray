@@ -25,6 +25,7 @@
 
 #include "SparsityPatternView.hpp"
 #include "ChaiVector.hpp"
+#include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 
 namespace LvArray
@@ -259,7 +260,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
   class CallBacks
   {
@@ -307,17 +308,17 @@ public:
     }
 
     /**
-     * @brief Used with ArrayManipulation::insertSorted routine this callback signals
+     * @brief Used with sortedArrayManipulation::insert routine this callback signals
      * that the column was inserted at the given position. This means we also need to insert
      * the value at the same position.
      * @param [in] insertPos the position the column was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE_NC const insertPos ) const
-    { ArrayManipulation::insert( m_values, m_rowNNZ, insertPos, m_valuesToInsert[0] ); }
+    { arrayManipulation::insert( m_values, m_rowNNZ, insertPos, m_valuesToInsert[0] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      * signals that the given position was set to the column at the other position.
      * This means we need to perform the same operation on the values.
      * @param [in] pos the position that was set.
@@ -328,7 +329,7 @@ public:
     { new (&m_values[pos]) T( m_valuesToInsert[colPos] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      * signals that the given column was inserted at the given position. Further information
      * is provided in order to make the insertion efficient. This means that we need to perform
      * the same operation on the values.
@@ -344,22 +345,22 @@ public:
                  INDEX_TYPE_NC const pos,
                  INDEX_TYPE_NC const prevPos ) const
     {
-      ArrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
+      arrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
       new (&m_values[pos + nLeftToInsert - 1]) T( m_valuesToInsert[colPos] );
     }
 
     /**
-     * @brief Used with ArrayManipulation::removeSorted routine this callback signals
+     * @brief Used with sortedArrayManipulation::remove routine this callback signals
      * that the column was removed from the given position. This means we also need to remove
      * the value from the same position.
      * @param [in] removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE_NC removePos ) const
-    { ArrayManipulation::erase( m_values, m_rowNNZ, removePos ); }
+    { arrayManipulation::erase( m_values, m_rowNNZ, removePos ); }
 
     /**
-     * @brief Used with the ArrayManipulation::removeSorted multiple routine this callback
+     * @brief Used with the sortedArrayManipulation::removeSorted routine this callback
      * signals that the given column was removed from the given position. Further information
      * is provided in order to make the removal efficient. This means that we need to perform
      * the same operation on the values.
@@ -372,7 +373,7 @@ public:
     void remove( INDEX_TYPE_NC const nRemoved,
                  INDEX_TYPE_NC const curPos,
                  INDEX_TYPE_NC const nextPos ) const
-    { ArrayManipulation::shiftDown( m_values, nextPos, curPos + 1, nRemoved ); }
+    { arrayManipulation::shiftDown( m_values, nextPos, curPos + 1, nRemoved ); }
 
 private:
     CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & m_crsMV;

@@ -24,7 +24,7 @@
 #define CRSMATRIX_HPP_
 
 #include "CRSMatrixView.hpp"
-#include "ArrayManipulation.hpp"
+#include "arrayManipulation.hpp"
 
 namespace LvArray
 {
@@ -399,17 +399,17 @@ public:
     }
 
     /**
-     * @brief Used with ArrayManipulation::insertSorted routine this callback signals
+     * @brief Used with sortedArrayManipulation::insert routine this callback signals
      * that the column was inserted at the given position. This means we also need to insert
      * the value at the same position.
      * @param [in] pos the position the column was inserted at.
      */
     inline
     void insert( INDEX_TYPE const pos ) const
-    { ArrayManipulation::insert( m_values, m_rowNNZ, pos, m_valuesToInsert[0] ); }
+    { arrayManipulation::insert( m_values, m_rowNNZ, pos, m_valuesToInsert[0] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      * signals that the given position was set to the column at the other position.
      * This means we need to perform the same operation on the values.
      * @param [in] pos the position that was set.
@@ -420,7 +420,7 @@ public:
     { new (&m_values[pos]) T( m_valuesToInsert[colPos] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      * signals that the given column was inserted at the given position. Further information
      * is provided in order to make the insertion efficient. This means that we need to perform
      * the same operation on the values.
@@ -436,7 +436,7 @@ public:
                  INDEX_TYPE const pos,
                  INDEX_TYPE const prevPos ) const
     {
-      ArrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
+      arrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
       new (&m_values[pos + nLeftToInsert - 1]) T( m_valuesToInsert[colPos] );
     }
 

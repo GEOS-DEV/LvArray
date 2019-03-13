@@ -17,20 +17,20 @@
  */
 
 /**
- * @file sorting.hpp
+ * @file sortedArrayManipulationHelpers.hpp
  * These routines were ripped from the gcc standard library (https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/)
  * almost entirely from stl_heap.h and stl_algo.h.
  */
 
-#ifndef SORTING_HPP_
-#define SORTING_HPP_
+#ifndef SORTEDARRAYMANIPULATIONHELPERS_HPP_
+#define SORTEDARRAYMANIPULATIONHELPERS_HPP_
 
 #include "CXX_UtilsConfig.hpp"
 #include "Logger.hpp"
 
 #include <utility>
 
-namespace sorting
+namespace sortedArrayManipulation
 {
 
 namespace internal
@@ -190,58 +190,6 @@ LVARRAY_HOST_DEVICE inline void introsortLoop(RandomAccessIterator first, Random
 
 } // namespace internal
 
-/**
- * @class less
- * @brief This class operates as functor similar to std::less.
- */
-template <class T>
-struct less
-{
-  DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
-  { return lhs < rhs; }
-};
+} // namespace sortedArrayManipulation
 
-/**
- * @class less
- * @brief This class operates as functor similar to std::greater.
- */
-template <class T>
-struct greater
-{
-  DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
-  { return lhs > rhs; }
-};
-
-/**
- * @brief Sort the given values in place using the given comparator.
- * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] comp a function that does the comparison between two objects.
- */
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
-{
-  if (last - first > internal::S_threshold)
-  {
-    internal::introsortLoop(first, last, comp);
-  }
-
-  internal::insertionSort(first, last - first, comp);
-}
-
-/**
- * @brief Sort the given values in place from least to greatest.
- * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
- */
-DISABLE_HD_WARNING
-template<typename RandomAccessIterator>
-LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last)
-{ return makeSorted(first, last, less<typename std::remove_reference<decltype(*first)>::type>()); }
-
-} // namespace sorting
-
-#endif // SORTING_HPP_
+#endif // SORTEDARRAYMANIPULATIONHELPERS_HPP_

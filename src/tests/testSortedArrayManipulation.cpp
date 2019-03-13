@@ -16,7 +16,7 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#include "sorting.hpp"
+#include "sortedArrayManipulation.hpp"
 #include "testUtils.hpp"
 #include "Logger.hpp"
 #include "Array.hpp"
@@ -43,6 +43,9 @@ using Array1d = LvArray::Array<T, 1>;
 template <class T>
 using ArrayView1d = LvArray::ArrayView<T, 1> const;
 
+namespace sortedArrayManipulation
+{
+
 namespace internal
 {
 
@@ -56,7 +59,7 @@ template <class T, class Compare>
 void check(Array1d<T> & a, Array1d<T> & b, Compare comp)
 {
   std::sort(a.begin(), a.end(), comp);
-  sorting::makeSorted(b.begin(), b.end(), comp);
+  makeSorted(b.begin(), b.end(), comp);
 
   for (INDEX_TYPE i = 0; i < a.size(); ++i)
   {
@@ -111,7 +114,7 @@ void performanceTest()
       fillArrays<T>(size, a, b);
 
       auto start = std::chrono::high_resolution_clock::now();
-      sorting::makeSorted(a.begin(), a.end(), Compare());
+      makeSorted(a.begin(), a.end(), Compare());
       auto end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
 
@@ -128,19 +131,19 @@ void performanceTest()
       stdTime += end - start;
 
       start = std::chrono::high_resolution_clock::now();
-      sorting::makeSorted(a.begin(), a.end(), Compare());
+      makeSorted(a.begin(), a.end(), Compare());
       end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
     }
 
     if (sortingTime.count() > stdTime.count())
     {
-      std::cout << "size = " << size << ",\tsorting::makeSorted : " << sortingTime.count() <<
+      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
                    ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
     }
     else
     {
-      std::cout << "size = " << size << ",\tsorting::makeSorted : " << sortingTime.count() <<
+      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
                    ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
     }
   }
@@ -162,7 +165,7 @@ void correctnessDeviceTest()
     forall(cuda(), 0, 1,
       [=] __device__ (INDEX_TYPE i)
       {
-        sorting::makeSorted(aView.begin(), aView.end(), Compare());
+        makeSorted(aView.begin(), aView.end(), Compare());
       }
     );
 
@@ -183,19 +186,19 @@ void correctnessDeviceTest()
 
 TEST(sorting, correctness)
 {
-  internal::correctnessTest<int, sorting::less<int>>();
-  internal::correctnessTest<int, sorting::greater<int>>();
+  internal::correctnessTest<int, less<int>>();
+  internal::correctnessTest<int, greater<int>>();
 
-  internal::correctnessTest<Tensor, sorting::less<Tensor>>();
-  internal::correctnessTest<Tensor, sorting::greater<Tensor>>();
+  internal::correctnessTest<Tensor, less<Tensor>>();
+  internal::correctnessTest<Tensor, greater<Tensor>>();
 
-  internal::correctnessTest<TestString, sorting::less<TestString>>();
-  internal::correctnessTest<TestString, sorting::greater<TestString>>();
+  internal::correctnessTest<TestString, less<TestString>>();
+  internal::correctnessTest<TestString, greater<TestString>>();
 }
 
 TEST(sorting, performance)
 {
-  // internal::performanceTest<int, sorting::less<int>>();
+  // internal::performanceTest<int, less<int>>();
   SUCCEED();
 }
 
@@ -203,14 +206,16 @@ TEST(sorting, performance)
 
 CUDA_TEST(sorting, correctnessDevice)
 {
-  internal::correctnessDeviceTest<int, sorting::less<int>>();
-  internal::correctnessDeviceTest<int, sorting::greater<int>>();
+  internal::correctnessDeviceTest<int, less<int>>();
+  internal::correctnessDeviceTest<int, greater<int>>();
 
-  internal::correctnessDeviceTest<Tensor, sorting::less<Tensor>>();
-  internal::correctnessDeviceTest<Tensor, sorting::greater<Tensor>>();
+  internal::correctnessDeviceTest<Tensor, less<Tensor>>();
+  internal::correctnessDeviceTest<Tensor, greater<Tensor>>();
 }
 
 #endif
+
+} // namespace sortedArrayManipulation
 
 int main( int argc, char* argv[] )
 {

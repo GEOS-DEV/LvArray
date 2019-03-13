@@ -24,7 +24,7 @@
 #define SRC_COMMON_SORTEDARRAYVIEW
 
 #include "ChaiVector.hpp"
-#include "ArraySlice.hpp"
+#include "sortedArrayManipulation.hpp"
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -145,7 +145,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool contains( T const & value ) const
-  { return ArrayManipulation::containsSorted( values(), size(), value ); }
+  { return sortedArrayManipulation::contains( values(), size(), value ); }
 
   /**
    * @brief Return true if the given value is in the array.
@@ -155,14 +155,6 @@ public:
   LVARRAY_HOST_DEVICE inline
   bool count( const T& value ) const
   { return contains( value ); }
-
-  /**
-   * @brief Return true if the array is sorted. This should always be true and
-   * is only present for testing purposes.
-   */
-  LVARRAY_HOST_DEVICE inline
-  bool isSorted() const
-  { return ArrayManipulation::isSorted( values(), size()); }
 
 protected:
 

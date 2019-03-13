@@ -21,7 +21,7 @@
 
 #include "CXX_UtilsConfig.hpp"
 #include "Logger.hpp"
-#include "ArrayManipulation.hpp"
+#include "arrayManipulation.hpp"
 
 #include <type_traits>
 #include <iterator>
@@ -254,7 +254,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert( data(), m_length, index, value );
+    arrayManipulation::insert( data(), m_length, index, value );
     m_length += 1;
   }
 
@@ -272,7 +272,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert( data(), m_length, index, std::move( value ));
+    arrayManipulation::insert( data(), m_length, index, std::move( value ));
     m_length += 1;
   }
 
@@ -291,7 +291,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::insert( data(), m_length, index, values, n );
+    arrayManipulation::insert( data(), m_length, index, values, n );
     m_length = newLength;
   }
 
@@ -306,7 +306,7 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    ArrayManipulation::append( data(), m_length, value );
+    arrayManipulation::append( data(), m_length, value );
     m_length += 1;
   }
 
@@ -321,7 +321,7 @@ public:
       dynamicRealloc( size() + 1 );
     }
 
-    ArrayManipulation::append( data(), m_length, std::move( value ));
+    arrayManipulation::append( data(), m_length, std::move( value ));
     m_length += 1;
   }
 
@@ -337,7 +337,7 @@ public:
       dynamicRealloc( size() + n_values );
     }
 
-    ArrayManipulation::append( data(), m_length, values, n_values );
+    arrayManipulation::append( data(), m_length, values, n_values );
     m_length += n_values;
   }
 
@@ -347,7 +347,7 @@ public:
    */
   void pop_back()
   {
-    ArrayManipulation::popBack( data(), m_length );
+    arrayManipulation::popBack( data(), m_length );
     m_length -= 1;
   }
 
@@ -365,7 +365,7 @@ public:
       realloc( newLength );
     }
 
-    ArrayManipulation::resize( data(), m_length, newLength, defaultValue );
+    arrayManipulation::resize( data(), m_length, newLength, defaultValue );
     m_length = newLength;
 
     if( m_length > 0 )
@@ -399,7 +399,7 @@ public:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::emplace( data(), m_length, pos, n, defaultValue );
+    arrayManipulation::emplace( data(), m_length, pos, n, defaultValue );
     m_length = newLength;
   }
 
@@ -410,7 +410,7 @@ public:
    */
   void erase( size_type pos, size_type n=1 )
   {
-    ArrayManipulation::erase( data(), m_length, pos, n );
+    arrayManipulation::erase( data(), m_length, pos, n );
     m_length -= n;
   }
 
@@ -433,7 +433,7 @@ private:
 
   void setSize( size_type newLength )
   {
-    GEOS_ASSERT( ArrayManipulation::isPositive( newLength ) && newLength <= capacity());
+    GEOS_ASSERT( arrayManipulation::isPositive( newLength ) && newLength <= capacity());
     m_length = newLength;
   }
 
@@ -447,7 +447,7 @@ private:
       dynamicRealloc( newLength );
     }
 
-    ArrayManipulation::shiftUp( data(), m_length, pos, n );
+    arrayManipulation::shiftUp( data(), m_length, pos, n );
     m_length = newLength;
   }
 
