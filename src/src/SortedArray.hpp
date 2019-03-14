@@ -170,6 +170,8 @@ public:
    * @param [in] vals the values to insert.
    * @param [in] nVals the number of values to insert.
    * @return The number of values actually inserted.
+   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
+   * and then call insertSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
@@ -211,6 +213,8 @@ public:
    * @param [in] vals the values to remove.
    * @param [in] nVals the number of values to remove.
    * @return The number of values actually removed.
+   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
+   * and then call insertSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this

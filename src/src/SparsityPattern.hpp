@@ -268,13 +268,37 @@ public:
    * @param [in] cols the columns to insert.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns actually inserted.
+   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, ncols)
+   * and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+
+    INDEX_TYPE const nInserted = insertNonZerosSorted(row, columnBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert non zeros in the given columns of the given row.
+   * @param [in] row the row to insert into.
+   * @param [in] cols the columns to insert, must be sorted.
+   * @param [in] ncols the number of columns to insert.
+   * @return The number of columns actually inserted.
+   */
+  inline
+  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
+  {
     INDEX_TYPE const rowNNZ = numNonZeros( row );
     INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
 private:
@@ -369,9 +393,9 @@ private:
   // Aliasing protected methods of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumnsProtected;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosSortedImpl;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosSortedImpl;
 
   // Aliasing protected members of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;

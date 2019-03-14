@@ -173,8 +173,44 @@ void insertMultipleTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef
       columns[i] = columnDist(gen);
     }
 
-    std::sort(columns.begin(), columns.end());
     v.insertNonZeros(row, columns.data(), MAX_INSERTS);
+    refRow.insert(columns.begin(), columns.end());
+
+    ASSERT_EQ(v.numNonZeros(row), integer_conversion<COL_TYPE>(refRow.size()));
+  }
+
+  compareToReference(v.toViewC(), vRef);
+}
+
+/**
+ * @brief Test the insertSorted method of the SparsityPattern.
+ * @param [in/out] v the SparsityPattern to test.
+ * @param [in/out] vRef the reference to check against.
+ * @param [in] MAX_INSERTS the number of values to insert at a time.
+ */
+template <class COL_TYPE>
+void insertSortedTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef, INDEX_TYPE const MAX_INSERTS)
+{
+  INDEX_TYPE const numRows = v.numRows();
+  INDEX_TYPE const numCols = v.numColumns();
+  ASSERT_EQ(numRows, integer_conversion<INDEX_TYPE>(vRef.size()));
+
+  std::vector<COL_TYPE> columns(MAX_INSERTS);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    ROW_REF_TYPE<COL_TYPE> & refRow = vRef[row];
+    ASSERT_EQ(v.numNonZeros(row), integer_conversion<COL_TYPE>(refRow.size()));
+
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      columns[i] = columnDist(gen);
+    }
+
+    std::sort(columns.begin(), columns.end());
+    v.insertNonZerosSorted(row, columns.data(), MAX_INSERTS);
     refRow.insert(columns.begin(), columns.end());
 
     ASSERT_EQ(v.numNonZeros(row), integer_conversion<COL_TYPE>(refRow.size()));
@@ -242,9 +278,47 @@ void removeMultipleTest(ViewType<COL_TYPE> const & v, REF_TYPE<COL_TYPE> & vRef,
       columns[i] = columnDist(gen);
     }
 
+    v.removeNonZeros(row, columns.data(), MAX_REMOVES);
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      refRow.erase(columns[i]);
+    }
+
+    ASSERT_EQ(v.numNonZeros(row), integer_conversion<COL_TYPE>(integer_conversion<COL_TYPE>(refRow.size())));
+  }
+
+  compareToReference(v.toViewC(), vRef);
+}
+
+/**
+ * @brief Test the removeSorted method of the SparsityPatternView.
+ * @param [in/out] v the SparsityPatternView to test.
+ * @param [in/out] vRef the reference to check against.
+ * @param [in] MAX_REMOVES the number of values to remove at a time.
+ */
+template <class COL_TYPE>
+void removeSortedTest(ViewType<COL_TYPE> const & v, REF_TYPE<COL_TYPE> & vRef, INDEX_TYPE const MAX_REMOVES)
+{
+  INDEX_TYPE const numRows = v.numRows();
+  INDEX_TYPE const numCols = v.numColumns();
+  ASSERT_EQ(numRows, integer_conversion<INDEX_TYPE>(vRef.size()));
+
+  std::vector<COL_TYPE> columns(MAX_REMOVES);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    ROW_REF_TYPE<COL_TYPE> & refRow = vRef[row];
+    ASSERT_EQ(v.numNonZeros(row), integer_conversion<COL_TYPE>(integer_conversion<COL_TYPE>(refRow.size())));
+
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      columns[i] = columnDist(gen);
+    }
+
     std::sort(columns.begin(), columns.end());
     v.removeNonZeros(row, columns.data(), MAX_REMOVES);
-
     for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
     {
       refRow.erase(columns[i]);
@@ -564,7 +638,7 @@ void memoryMotionConstTest(SparsityPattern<COL_TYPE> v, REF_TYPE<COL_TYPE> & vRe
       COL_TYPE const * const columns = vConst.getColumns(row);
       for (INDEX_TYPE i = 0; i < vConst.numNonZeros(row); ++i)
       {
-        GEOS_ERROR_IF(!ArrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
+        GEOS_ERROR_IF(!arrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
       }
     }
   );
@@ -663,6 +737,54 @@ void insertMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
     {
       columnsToInsert(row, i) = columnDist(gen);
     }
+  }
+
+  compareToReference(v.toViewC(), vRef);
+
+  ViewType<COL_TYPE> const & vView = v;
+  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToInsert;
+  forall(cuda(), 0, numRows,
+    [=] __device__ (INDEX_TYPE row)
+    {
+      vView.insertNonZeros(row, insertView[row], MAX_INSERTS);
+    }
+  );
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    COL_TYPE const * const colPtr = columnsToInsert[row];
+    vRef[row].insert(colPtr, colPtr + MAX_INSERTS);
+  }
+
+  v.move(chai::CPU);
+  compareToReference(v.toViewC(), vRef);
+}
+
+/**
+ * @brief Test the SparsityPatternView insertSorted method on device.
+ * @param [in/out] v the SparsityPattern to test.
+ * @param [in/out] vRef the reference to compare to.
+ * @param [in] MAX_INSERTS the maximum number of inserts.
+ */
+template <class COL_TYPE>
+void insertSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
+                            INDEX_TYPE const MAX_INSERTS)
+{
+  INDEX_TYPE const numRows = v.numRows();
+  INDEX_TYPE const numCols = v.numColumns();
+
+  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    v.reserveNonZeros(row, v.numNonZeros(row) + MAX_INSERTS);
+
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      columnsToInsert(row, i) = columnDist(gen);
+    }
 
     // Sort the columns so they're ready to be inserted.
     COL_TYPE * const colPtr = columnsToInsert[row];
@@ -676,7 +798,7 @@ void insertMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
-      vView.insertNonZeros(row, insertView[row], MAX_INSERTS);
+      vView.insertNonZerosSorted(row, insertView[row], MAX_INSERTS);
     }
   );
 
@@ -767,6 +889,53 @@ void removeMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
     {
       columnsToRemove(row, i) = columnDist(gen);
     }
+  }
+
+  ViewType<COL_TYPE> const & vView = v;
+  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & removeView = columnsToRemove;
+
+  forall(cuda(), 0, numRows,
+    [=] __device__ (INDEX_TYPE row)
+    {
+      vView.removeNonZeros(row, removeView[row], MAX_REMOVES);
+    }
+  );
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      vRef[row].erase(columnsToRemove(row, i));
+    }
+  }
+
+  v.move(chai::CPU);
+  compareToReference(v.toViewC(), vRef);
+}
+
+/**
+ * @brief Test the SparsityPatternView removeSorted method on device.
+ * @param [in/out] v the SparsityPattern to test.
+ * @param [in/out] vRef the reference to compare to.
+ * @param [in] MAX_REMOVES the maximum number of removes.
+ */
+template <class COL_TYPE>
+void removeSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
+                            INDEX_TYPE MAX_REMOVES)
+{
+  INDEX_TYPE const numRows = v.numRows();
+  INDEX_TYPE const numCols = v.numColumns();
+
+  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      columnsToRemove(row, i) = columnDist(gen);
+    }
 
     // Sort the columns so they're ready to be removed.
     COL_TYPE * const colPtr = columnsToRemove[row];
@@ -779,7 +948,7 @@ void removeMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
-      vView.removeNonZeros(row, removeView[row], MAX_REMOVES);
+      vView.removeNonZerosSorted(row, removeView[row], MAX_REMOVES);
     }
   );
 
@@ -935,6 +1104,35 @@ TEST(SparsityPattern, insertMultiple)
   }
 }
 
+TEST(SparsityPattern, insertSorted)
+{
+  {
+    constexpr INDEX_TYPE NROWS = 100;
+    constexpr int NCOLS = 150;
+    constexpr int MAX_INSERTS = 75;
+
+    SparsityPattern<uint> sp(NROWS, NCOLS);
+    REF_TYPE<uint> ref(NROWS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+  }
+
+  {
+    constexpr INDEX_TYPE NROWS = SCHAR_MAX + 10;
+    constexpr schar NCOLS = SCHAR_MAX;
+    constexpr schar MAX_INSERTS = SCHAR_MAX;
+
+    SparsityPattern<schar> sp(NROWS, NCOLS);
+    REF_TYPE<schar> ref(NROWS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedTest(sp, ref, MAX_INSERTS);
+  }
+}
+
 TEST(SparsityPattern, remove)
 {
   {
@@ -997,6 +1195,37 @@ TEST(SparsityPattern, removeMultiple)
   }
 }
 
+TEST(SparsityPattern, removeSorted)
+{
+  {
+    constexpr INDEX_TYPE NROWS = 100;
+    constexpr int NCOLS = 150;
+    constexpr int MAX_INSERTS = 75;
+    constexpr int MAX_REMOVES = 75;
+
+    SparsityPattern<uint> sp(NROWS, NCOLS);
+    REF_TYPE<uint> ref(NROWS);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedTest(sp.toView(), ref, MAX_REMOVES);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedTest(sp.toView(), ref, MAX_REMOVES);
+  }
+
+  {
+    constexpr INDEX_TYPE NROWS = SCHAR_MAX + 10;
+    constexpr schar NCOLS = SCHAR_MAX;
+    constexpr schar MAX_INSERTS = SCHAR_MAX;
+    constexpr schar MAX_REMOVES = SCHAR_MAX;
+
+    SparsityPattern<schar> sp(NROWS, NCOLS);
+    REF_TYPE<schar> ref(NROWS);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedTest(sp.toView(), ref, MAX_REMOVES);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedTest(sp.toView(), ref, MAX_REMOVES);
+  }
+}
+
 TEST(SparsityPattern, empty)
 {
   {
@@ -1035,8 +1264,9 @@ TEST(SparsityPattern, capacity)
 
     ASSERT_EQ(sp.nonZeroCapacity(), 0);
 
-    sp.reserveNonZeros(NROWS * MAX_INSERTS);
-    ASSERT_EQ(sp.nonZeroCapacity(), NROWS * MAX_INSERTS);
+    // We reserve 2 * MAX_INSERTS per row because each row may grow to have 2 * MAX_INSERTS capacity.
+    sp.reserveNonZeros(2 * NROWS * MAX_INSERTS);
+    ASSERT_EQ(sp.nonZeroCapacity(), 2 * NROWS * MAX_INSERTS);
     ASSERT_EQ(sp.numNonZeros(), 0);
 
     for (INDEX_TYPE row = 0; row < NROWS; ++row)
@@ -1061,8 +1291,9 @@ TEST(SparsityPattern, capacity)
 
     ASSERT_EQ(sp.nonZeroCapacity(), 0);
 
-    sp.reserveNonZeros(NROWS * MAX_INSERTS);
-    ASSERT_EQ(sp.nonZeroCapacity(), NROWS * MAX_INSERTS);
+    // We reserve 2 * MAX_INSERTS per row because each row may grow to have 2 * MAX_INSERTS capacity.
+    sp.reserveNonZeros(2 * NROWS * MAX_INSERTS);
+    ASSERT_EQ(sp.nonZeroCapacity(), 2 * NROWS * MAX_INSERTS);
     ASSERT_EQ(sp.numNonZeros(), 0);
 
     for (INDEX_TYPE row = 0; row < NROWS; ++row)
@@ -1298,6 +1529,35 @@ TEST(SparsityPattern, insertMultipleDevice)
   }
 }
 
+TEST(SparsityPattern, insertSortedDevice)
+{
+  {
+    constexpr INDEX_TYPE NROWS = 100;
+    constexpr int NCOLS = 150;
+    constexpr int MAX_INSERTS = 75;
+  
+    SparsityPattern<uint> sp(NROWS, NCOLS);
+    REF_TYPE<uint> ref(NROWS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+  }
+
+  {
+    constexpr INDEX_TYPE NROWS = SCHAR_MAX + 10;
+    constexpr schar NCOLS = SCHAR_MAX;
+    constexpr schar MAX_INSERTS = SCHAR_MAX;
+  
+    SparsityPattern<schar> sp(NROWS, NCOLS);
+    REF_TYPE<schar> ref(NROWS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(sp, ref, MAX_INSERTS);
+  }
+}
+
 TEST(SparsityPattern, removeDevice)
 {
   {
@@ -1357,6 +1617,37 @@ TEST(SparsityPattern, removeMultipleDevice)
     internal::removeMultipleDeviceTest(sp, ref, MAX_REMOVES);
     internal::insertDeviceTest(sp, ref, MAX_INSERTS);
     internal::removeMultipleDeviceTest(sp, ref, MAX_REMOVES);
+  }
+}
+
+TEST(SparsityPattern, removeSortedDevice)
+{
+  {
+    constexpr INDEX_TYPE NROWS = 100;
+    constexpr int NCOLS = 150;
+    constexpr int MAX_INSERTS = 75;
+    constexpr int MAX_REMOVES = 75;
+  
+    SparsityPattern<uint> sp(NROWS, NCOLS);
+    REF_TYPE<uint> ref(NROWS);
+    internal::insertDeviceTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(sp, ref, MAX_REMOVES);
+    internal::insertDeviceTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(sp, ref, MAX_REMOVES);
+  }
+
+  {
+    constexpr INDEX_TYPE NROWS = SCHAR_MAX + 10;
+    constexpr schar NCOLS = SCHAR_MAX;
+    constexpr schar MAX_INSERTS = SCHAR_MAX;
+    constexpr schar MAX_REMOVES = SCHAR_MAX;
+  
+    SparsityPattern<schar> sp(NROWS, NCOLS);
+    REF_TYPE<schar> ref(NROWS);
+    internal::insertDeviceTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(sp, ref, MAX_REMOVES);
+    internal::insertDeviceTest(sp, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(sp, ref, MAX_REMOVES);
   }
 }
 

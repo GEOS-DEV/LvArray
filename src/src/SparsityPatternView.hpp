@@ -234,6 +234,10 @@ public:
    * @param [in] row the row to insert in.
    * @param [in] col the column to insert.
    * @return True iff the column was inserted (the entry was zero before).
+   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
+   * up to the user to ensure that the given row has enough space for the new entries.
+   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   * otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
@@ -249,13 +253,45 @@ public:
    * @param [in] cols the columns to insert, of length ncols.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns inserted.
+   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
+   * and then call insertNonZerosSorted, this will be substantially faster.
+   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   * up to the user to ensure that the given row has enough space for the new entries.
+   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   * otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+
+    INDEX_TYPE_NC const nInserted = insertNonZerosSorted(row, columnBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert non-zero entries into the given row.
+   * @param [in] row the row to insert in.
+   * @param [in] cols the columns to insert, of length ncols. Must be sorted.
+   * @param [in] ncols the number of columns to insert.
+   * @return The number of columns inserted.
+   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   * up to the user to ensure that the given row has enough space for the new entries.
+   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   * otherwise the values in the subsequent row will be overwritten.
+   */
+  LVARRAY_HOST_DEVICE inline
+  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  {
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
   /**
@@ -278,13 +314,37 @@ public:
    * @param [in] cols the columns to remove, of length ncols.
    * @param [in] ncols the number of columns to remove.
    * @return The number of columns removed.
+   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
+   * and then call removeNonZerosSorted, this will be substantially faster.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * const cols, INDEX_TYPE_NC const ncols ) const restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+
+    INDEX_TYPE_NC const nRemoved = removeNonZerosSorted(row, columnBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    return nRemoved;
+  }
+
+  /**
+   * @brief Remove non-zero entries from the given row.
+   * @param [in] row the row to remove from.
+   * @param [in] cols the columns to remove, of length ncols.
+   * @param [in] ncols the number of columns to remove.
+   * @return The number of columns removed.
+   */
+  LVARRAY_HOST_DEVICE inline
+  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE_NC const row, COL_TYPE const * const cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  {
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return removeNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    return removeNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
 protected:
@@ -333,7 +393,7 @@ protected:
   /**
    * @brief Insert non-zero entries into the given row.
    * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert.
+   * @param [in] cols the columns to insert, must be sorted.
    * @param [in] ncols the number of columns to insert.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
    * the sortedArrayManipulation routines.
@@ -341,10 +401,10 @@ protected:
    */
   template <class CALLBACKS>
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosImpl( INDEX_TYPE_NC const row,
-                                    COL_TYPE const * const cols,
-                                    INDEX_TYPE_NC const ncols,
-                                    CALLBACKS && cbacks ) const restrict_this
+  INDEX_TYPE_NC insertNonZerosSortedImpl( INDEX_TYPE_NC const row,
+                                          COL_TYPE const * const cols,
+                                          INDEX_TYPE_NC const ncols,
+                                          CALLBACKS && cbacks ) const restrict_this
   {
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     GEOS_ASSERT( cols != nullptr );
@@ -391,7 +451,7 @@ protected:
   /**
    * @brief Remove non-zero entries from the given row.
    * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove.
+   * @param [in] cols the columns to remove, must be sorted.
    * @param [in] ncols the number of columns to remove.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
    * the arrayManipulation routines.
@@ -399,10 +459,10 @@ protected:
    */
   template <class CALLBACKS>
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosImpl( INDEX_TYPE_NC const row,
-                                    COL_TYPE const * const cols,
-                                    INDEX_TYPE_NC const ncols,
-                                    CALLBACKS && cbacks ) const restrict_this
+  INDEX_TYPE_NC removeNonZerosSortedImpl( INDEX_TYPE_NC const row,
+                                          COL_TYPE const * const cols,
+                                          INDEX_TYPE_NC const ncols,
+                                          CALLBACKS && cbacks ) const restrict_this
   {
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     GEOS_ASSERT( cols != nullptr );

@@ -86,6 +86,63 @@ template<typename RandomAccessIterator>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last)
 { return makeSorted(first, last, less<typename std::remove_reference<decltype(*first)>::type>()); }
 
+DISABLE_HD_WARNING
+template<typename RandomAccessIteratorA, class RandomAccessIteratorB, typename Compare>
+LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA first, RandomAccessIteratorA last,
+                                         RandomAccessIteratorB dataFirst, Compare comp)
+{
+  std::ptrdiff_t const size = last - first;
+  internal::DualIterator<RandomAccessIteratorA, RandomAccessIteratorB> dualIter(first, dataFirst);
+  return makeSorted(dualIter, dualIter + size, dualIter.createComparator(comp));
+}
+
+DISABLE_HD_WARNING
+template<typename RandomAccessIteratorA, class RandomAccessIteratorB>
+LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA first, RandomAccessIteratorA last,
+                                         RandomAccessIteratorB dataFirst)
+{ return dualSort(first, last, dataFirst, less<typename std::remove_reference<decltype(*first)>::type>()); }
+
+DISABLE_HD_WARNING
+template <class T, int N>
+LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std::ptrdiff_t nVals, T (&localBuffer)[N])
+{
+  T * buffer = localBuffer;
+  if (nVals <= N)
+  {
+    for (std::ptrdiff_t i = 0; i < nVals; ++i)
+    {
+      localBuffer[i] = values[i];
+    }
+  }
+  else
+  {
+    buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
+
+    for (std::ptrdiff_t i = 0; i < nVals; ++i)
+    {
+      new (buffer + i) T(values[i]);
+    }
+  }
+
+  return buffer;
+}
+
+DISABLE_HD_WARNING
+template <class T, int N>
+LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdiff_t nVals, T (&localBuffer)[N])
+{
+  if (buffer == localBuffer)
+  {
+    return;
+  }
+
+  for (std::ptrdiff_t i = 0; i < nVals; ++i)
+  {
+    buffer[i].~T();
+  }
+  std::free(buffer);
+}
+
 /**
  * @brief Return true if the given array is sorted from least to greatest.
  * @param [in] ptr pointer to the array.
@@ -93,17 +150,19 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
  * @note Should be equivalent to std::is_sorted(ptr, ptr + size).
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size )
+INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
 
   for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
-    if( ptr[i] > ptr[i + 1] )
+    if( comp(ptr[i + 1], ptr[i]) ) 
+    {
       return false;
+    }
   }
 
   return true;
@@ -118,22 +177,27 @@ INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size )
  * @pre isSorted(ptr, size) must be true.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value )
+INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value, Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
+  GEOS_ASSERT(isSorted(ptr, size, comp));
 
   INDEX_TYPE lower = 0;
   INDEX_TYPE upper = size;
   while( lower != upper )
   {
     INDEX_TYPE const guess = (lower + upper) / 2;
-    if( value > ptr[guess] )
+    if (comp(ptr[guess], value))
+    {
       lower = guess + 1;
+    }
     else
+    {
       upper = guess;
+    }
   }
 
   return lower;
@@ -148,11 +212,11 @@ INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value )
  * @pre isSorted(ptr, size) must be true.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-bool contains( T const * const ptr, INDEX_TYPE const size, T const & value )
+bool contains( T const * const ptr, INDEX_TYPE const size, T const & value, Compare comp=Compare() )
 {
-  INDEX_TYPE const pos = find( ptr, size, value );
+  INDEX_TYPE const pos = find( ptr, size, value, comp );
   return (pos != size) && (ptr[pos] == value);
 }
 
@@ -174,7 +238,7 @@ LVARRAY_HOST_DEVICE inline
 bool remove( T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
 
   // Find the position of value.
   INDEX_TYPE const index = find( ptr, size, value );
@@ -213,9 +277,9 @@ INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const v
                          INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
   GEOS_ASSERT( values != nullptr || nVals == 0 );
-  GEOS_ASSERT( isPositive( nVals ));
+  GEOS_ASSERT( arrayManipulation::isPositive( nVals ));
   GEOS_ASSERT( isSorted( values, nVals ));
 
   // If there are no values to remove we can return.
@@ -316,42 +380,19 @@ INDEX_TYPE remove( T * const ptr, INDEX_TYPE const size, T const * const values,
                    INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
   GEOS_ASSERT( values != nullptr || nVals == 0 );
-  GEOS_ASSERT( isPositive( nVals ));
+  GEOS_ASSERT( arrayManipulation::isPositive( nVals ));
 
   constexpr INDEX_TYPE LOCAL_SIZE = 16;
-  if (nVals <= LOCAL_SIZE)
-  {
-    T localBuffer[LOCAL_SIZE];
+  T localBuffer[LOCAL_SIZE];
+  T * const buffer = createTemporaryBuffer(values, nVals, localBuffer);
+  makeSorted(buffer, buffer + nVals);
 
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      localBuffer[i] = values[i];
-    }
-
-    makeSorted(localBuffer, localBuffer + nVals);
-    return removeSorted(ptr, size, localBuffer, nVals, std::move(callBacks));
-  }
-  else
-  {
-    T * const buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
-
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      new (buffer + i) T(values[i]);
-    }
-
-    makeSorted(buffer, buffer + nVals);
-    INDEX_TYPE nInserted = removeSorted(ptr, size, buffer, nVals, std::move(callBacks));
+  INDEX_TYPE const nInserted = removeSorted(ptr, size, buffer, nVals, std::move(callBacks));
     
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      values[i].~T();
-    }
-    std::free(buffer);
-    return nInserted;
-  }
+  freeTemporaryBuffer(buffer, nVals, localBuffer);
+  return nInserted;
 }
 
 /**
@@ -373,7 +414,7 @@ LVARRAY_HOST_DEVICE inline
 bool insert( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
 
   // Find the position of the value.
   INDEX_TYPE const index = find( ptr, size, value );
@@ -419,7 +460,7 @@ INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * c
                          INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
   GEOS_ASSERT( values != nullptr || nVals == 0 );
   GEOS_ASSERT( nVals >= 0 );
   GEOS_ASSERT( isSorted( values, nVals ));
@@ -587,42 +628,19 @@ INDEX_TYPE insert( T const * const ptr, INDEX_TYPE const size, T const * const v
                    INDEX_TYPE const nVals, CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ));
   GEOS_ASSERT( values != nullptr || nVals == 0 );
   GEOS_ASSERT( nVals >= 0 );
 
   constexpr INDEX_TYPE LOCAL_SIZE = 16;
-  if (nVals <= LOCAL_SIZE)
-  {
-    T localBuffer[LOCAL_SIZE];
+  T localBuffer[LOCAL_SIZE];
+  T * const buffer = createTemporaryBuffer(values, nVals, localBuffer);
+  makeSorted(buffer, buffer + nVals);
 
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      localBuffer[i] = values[i];
-    }
+  INDEX_TYPE const nInserted = insertSorted(ptr, size, buffer, nVals, std::move(callBacks));
 
-    makeSorted(localBuffer, localBuffer + nVals);
-    return insertSorted(ptr, size, localBuffer, nVals, std::move(callBacks));
-  }
-  else
-  {
-    T * const buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
-
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      new (buffer + i) T(values[i]);
-    }
-
-    makeSorted(buffer, buffer + nVals);
-    INDEX_TYPE nInserted = insertSorted(ptr, size, buffer, nVals, std::move(callBacks));
-    
-    for (INDEX_TYPE i = 0; i < nVals; ++i)
-    {
-      values[i].~T();
-    }
-    std::free(buffer);
-    return nInserted;
-  }
+  freeTemporaryBuffer(buffer, nVals, localBuffer);
+  return nInserted;
 }
 
 } // namespace sortedArrayManipulation
