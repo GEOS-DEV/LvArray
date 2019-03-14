@@ -30,15 +30,15 @@ namespace LvArray
 {
 
 /**
- * @class CRSMatrix
- * @brief This class implements a compressed row storage matrix.
  * @tparam T the type of the entries in the matrix.
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
+ * @class CRSMatrix
+ * @brief This class implements a compressed row storage matrix.
  *
  * @note CRSMatrixView is a protected base class of CRSMatrix. This is to control the
- * conversion to CRSMatrixView so that when using a View the INDEX_TYPE is always const.
- * However the CRSMatrixView interface is reproduced here.
+ *        conversion to CRSMatrixView so that when using a View the INDEX_TYPE is always const.
+ *        However the CRSMatrixView interface is reproduced here.
  */
 template <class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
 class CRSMatrix : protected CRSMatrixView<T, COL_TYPE, INDEX_TYPE>
@@ -108,7 +108,7 @@ public:
    */
   ~CRSMatrix()
   {
-    clear();
+    destroyValues();
     m_values.releaseAllocation();
 
     m_columns.free();
@@ -126,7 +126,7 @@ public:
 
   /**
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
   CRSMatrixView<T, COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
@@ -134,8 +134,8 @@ public:
 
   /**
    * @brief Conversion operator to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const &
@@ -144,8 +144,8 @@ public:
 
   /**
    * @brief Conversion operator to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const &
@@ -154,8 +154,8 @@ public:
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
@@ -168,7 +168,7 @@ public:
    */
   CRSMatrix & operator=( CRSMatrix const & src )
   {
-    clear();
+    destroyValues();
 
     INDEX_TYPE const newNNZ = src.m_columns.size();
     m_values.reserve( newNNZ );
@@ -359,7 +359,10 @@ public:
 
 private:
 
-  void clear()
+  /**
+   * @brief Destroys all of the values, but does not free the values array. 
+   */
+  void destroyValues()
   {
     INDEX_TYPE const nRows = numRows();
     for( INDEX_TYPE row = 0 ; row < nRows ; ++row )

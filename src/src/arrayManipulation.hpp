@@ -49,6 +49,7 @@ namespace arrayManipulation
 {
 
 /**
+ * @tparam INDEX_TYPE a signed integer.
  * @brief Return true iff the given value is greater than or equal to zero.
  * @param [in] i the value to check.
  */
@@ -59,6 +60,7 @@ isPositive( INDEX_TYPE const i )
 { return i >= 0; }
 
 /**
+ * @tparam INDEX_TYPE an unsigned integer.
  * @brief Returns true.
  * This specialization for unsigned types avoids compiler warnings.
  */
@@ -69,6 +71,8 @@ isPositive( INDEX_TYPE const )
 { return true; }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Resize the give array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -98,9 +102,10 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T c
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
- * New uninitialized values take their place.
- *
+ *        New uninitialized values take their place.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] index the index at which to begin the shift.
@@ -135,9 +140,10 @@ void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
- * New values take their place.
- *
+ *        New values take their place.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] index the index at which to begin the shift.
@@ -159,8 +165,10 @@ void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
- * the existing values. The n entries at the end of the array are not destroyed.
+ *        the existing values. The n entries at the end of the array are not destroyed.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] index the index at which to begin the shift.
@@ -187,8 +195,10 @@ void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, IN
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
- * the existing values. The n entries at the end of the array are then destroyed.
+ *        the existing values. The n entries at the end of the array are then destroyed.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] index the index at which to begin the shift.
@@ -212,6 +222,8 @@ void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Append the given value to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -228,6 +240,8 @@ void append( T * const ptr, INDEX_TYPE const size, T const & value )
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Append the given value to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -244,7 +258,9 @@ void append( T * const ptr, INDEX_TYPE const size, T && value )
 }
 
 /**
- * @brief Append the given valuse to the array.
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @brief Append the given values to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] values the values to append.
@@ -267,6 +283,8 @@ void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given value into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -288,6 +306,8 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given value into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -308,6 +328,8 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && 
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given values into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -333,6 +355,8 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
 }
 
 /**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Destroy the value at the end of the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.

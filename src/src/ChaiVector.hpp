@@ -97,8 +97,9 @@ public:
   /**
    * @brief Copy constructor, creates a shallow copy of the given ChaiVector.
    * @param [in] source the ChaiVector to copy.
+   * 
    * @note The copy is a shallow copy and newly constructed ChaiVector doesn't own the data,
-   * as such using push_back or other methods that change the state of the array is dangerous.
+   *        as such using push_back or other methods that change the state of the array is dangerous.
    * @note When using multiple memory spaces using the copy constructor can trigger a move.
    */
   LVARRAY_HOST_DEVICE ChaiVector( const ChaiVector& source ):
@@ -112,6 +113,7 @@ public:
   /**
    * @brief Move constructor, moves the given ChaiVector into *this.
    * @param [in] source the ChaiVector to move.
+   *
    * @note Unlike the copy constructor this can not trigger a memory movement.
    */
   ChaiVector( ChaiVector&& source ):
@@ -128,6 +130,10 @@ public:
     source.m_length = 0;
   }
 
+  /**
+   * @brief Perform a deep copy front this in to dst.
+   * @param [in] dst the ChaiVector to copy into.
+   */
   template <class U>
   void copy_into( ChaiVector<U>& dst ) const
   {
@@ -155,7 +161,7 @@ public:
 
   /**
    * @brief Let go of any memory held. Should not be called lightly, does not free
-   *  said memory.
+   *        said memory.
    */
   void reset()
   {
@@ -169,7 +175,6 @@ public:
   /**
    * @brief Copy assignment operator, creates a shallow copy of the given ChaiVector.
    * @param [in] source the ChaiVector to copy.
-   * @return *this.
    */
   LVARRAY_HOST_DEVICE ChaiVector& operator=( ChaiVector const& source )
   {
@@ -182,6 +187,7 @@ public:
   }
 
   /**
+   * @tparam INDEX_TYPE the integer used to index into the array.
    * @brief Dereference operator for the underlying active pointer.
    * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
@@ -244,7 +250,6 @@ public:
    * @brief Insert the given value at the given position.
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
-   * @return An iterator to the position at which the insertion was done.
    */
   void insert( size_type index, const T& value )
   {
@@ -262,7 +267,6 @@ public:
    * @brief Insert the given value at the given position.
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
-   * @return An iterator to the position at which the insertion was done.
    */
   void insert( size_type index, const T&& value )
   {
@@ -281,7 +285,6 @@ public:
    * @param [in] pos the position at which to begin the insertion.
    * @param [in] first iterator to the first value to insert.
    * @param [in] last iterator to one past the last value to insert.
-   * @return An iterator to the position at which the insertion was done.
    */
   void insert( size_type index, T const * const values, size_type n )
   {
@@ -341,7 +344,6 @@ public:
     m_length += n_values;
   }
 
-
   /**
    * @brief Delete the last value.
    */
@@ -354,9 +356,10 @@ public:
   /**
    * @brief Resize the vector to the new length.
    * @param [in] newLength the new length of the vector.
+   *
    * @note If reducing the size the values past the new size are destroyed,
-   * if increasing the size the values past the current size are initialized with
-   * the default constructor.
+   *       if increasing the size the values past the current size are initialized with
+   *       the default constructor.
    */
   void resize( const size_type newLength, T const & defaultValue = T())
   {
@@ -377,6 +380,10 @@ public:
   }
 
 #ifdef USE_CHAI
+  /**
+   * @brief Move the array to the given memory space.
+   * @param [in] space the space to move to.
+   */
   void move( chai::ExecutionSpace space )
   {
     m_array.move( space );
@@ -416,6 +423,11 @@ public:
 
 private:
 
+  /**
+   * @brief Free the allocated memory without destroying the values.
+   *
+   * @note This is used by the CRSMatrix after it destroys the values manually.
+   */
   void releaseAllocation()
   {
 #ifdef USE_CHAI
@@ -431,12 +443,25 @@ private:
     m_length = 0;
   }
 
+  /**
+   * @brief Set the size of the array without doing any of the other machinery.
+   *
+   * @note This is used by the CRSMatrix and SortedArray.
+   */
   void setSize( size_type newLength )
   {
     GEOS_ASSERT( arrayManipulation::isPositive( newLength ) && newLength <= capacity());
     m_length = newLength;
   }
 
+  /**
+   * @brief Insert n uninitialized values at the given position.
+   * @param [in] pos the position at which to insert.
+   * @param [in] n the number of values to insert.
+   *
+   * @note The newly inserted values are uninitialized hence placement new must be used.
+   * @note This is used by the CRSMatrix and SparsityPattern classes.
+   */
   void shiftUp( size_type pos, size_type n )
   {
     if( n == 0 ) return;
@@ -452,6 +477,10 @@ private:
   }
 
 #ifdef USE_CHAI
+  /**
+   * @brief Register a touch of the chai::ManagedArray in the given space.
+   * @param [in] space the space to touch the array in.
+   */
   void registerTouch( chai::ExecutionSpace space )
   {
     m_array.registerTouch( space );

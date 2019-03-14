@@ -121,7 +121,7 @@ public:
 
   /**
    * @brief Method to convert to SortedArrayView<T const> const. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView<T const, INDEX_TYPE> const & toView() const restrict_this
@@ -170,8 +170,9 @@ public:
    * @param [in] vals the values to insert.
    * @param [in] nVals the number of values to insert.
    * @return The number of values actually inserted.
+   *
    * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
-   * and then call insertSorted, this will be substantially faster.
+   *       and then call insertSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
@@ -213,8 +214,9 @@ public:
    * @param [in] vals the values to remove.
    * @param [in] nVals the number of values to remove.
    * @return The number of values actually removed.
+   *
    * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
-   * and then call insertSorted, this will be substantially faster.
+   *       and then call eraseSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
@@ -254,6 +256,7 @@ private:
    * @brief Return a non const pointer to the values.
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
+   *
    * @note the friend class ViewWrapper calls this method.
    */
   CONSTEXPRFUNC inline
@@ -264,6 +267,7 @@ private:
    * @brief Return a non const pointer to the values.
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
+   *
    * @note the friend class ViewWrapper calls this method.
    */
   inline

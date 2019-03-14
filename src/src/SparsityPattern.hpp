@@ -35,7 +35,7 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
- * @note SparsityPatternView is a protected base class of SparsityPattern. This is to control
+ * SparsityPatternView is a protected base class of SparsityPattern. This is to control
  * the conversion to SparsityPatternView so that when using a View the INDEX_TYPE is always const.
  * However the SparsityPatternView interface is reproduced here.
  */
@@ -129,7 +129,7 @@ public:
 
   /**
    * @brief Method to convert to SparsityPatternView<COL_TYPE, INDEX_TYPE const>. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   inline
   SparsityPatternView<COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
@@ -137,8 +137,8 @@ public:
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   * Although SparsityPatternView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although SparsityPatternView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
@@ -190,7 +190,7 @@ public:
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
-   * either reallocation or shifting the row offsets.
+   *        either reallocation or shifting the row offsets.
    * @param [in] row the row to reserve space in.
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
@@ -205,10 +205,11 @@ public:
    * @brief Set the non zero capacity of the given row.
    * @param [in] row the row to modify.
    * @param [in] newCapacity the new capacity of the row.
+   *
    * @note If the given capacity is less than the current number of non zero entries
-   * the entries are truncated.
+   *       the entries are truncated.
    * @note Since a row can hold at most numColumns() entries the resulting capacity is
-   * min(newCapacity, numColumns()).
+   *       min(newCapacity, numColumns()).
    */
   inline
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
@@ -268,6 +269,7 @@ public:
    * @param [in] cols the columns to insert.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns actually inserted.
+   *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, ncols)
    * and then call insertNonZerosSorted, this will be substantially faster.
    */
@@ -305,7 +307,7 @@ private:
 
   /**
    * @brief Increase the capacity of a row to accommodate at least the given number of
-   * non zero entries.
+   *        non zero entries.
    * @param [in] row the row to increase the capacity of.
    * @param [in] newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.

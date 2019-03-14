@@ -17,7 +17,7 @@
  */
 
 /**
- * @file ArrayManipulator.hpp
+ * @file sortedArrayManipulator.hpp
  * This file contains common sorted array manipulation routines.
  * Aside from the functions that take a callback every function assumes that
  * the array has a capacity large enough for the given operation.
@@ -35,40 +35,52 @@ namespace sortedArrayManipulation
 {
 
 /**
+ * @tparam T the type of the values to compare.
  * @class less
  * @brief This class operates as functor similar to std::less.
  */
 template <class T>
 struct less
 {
+  /**
+   * @brief Return true iff lhs < rhs.
+   */
   DISABLE_HD_WARNING
   CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
   { return lhs < rhs; }
 };
 
 /**
+ * @tparam T the type of the values to compare.
  * @class less
  * @brief This class operates as functor similar to std::greater.
  */
 template <class T>
 struct greater
 {
+  /**
+   * @brief Return true iff lhs > rhs.
+   */
   DISABLE_HD_WARNING
   CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
   { return lhs > rhs; }
 };
 
 /**
+ * @tparam RandomAccessIterator an iterator type that provides random access.
+ * @tparam Compare the type of the comparison function.
  * @brief Sort the given values in place using the given comparator.
  * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
  * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
  * @param [in/out] comp a function that does the comparison between two objects.
+ *
+ * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
 template<typename RandomAccessIterator, typename Compare>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
 {
-  if (last - first > internal::S_threshold)
+  if (last - first > internal::INTROSORT_THRESHOLD)
   {
     internal::introsortLoop(first, last, comp);
   }
@@ -77,34 +89,71 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
 }
 
 /**
+ * @tparam RandomAccessIterator an iterator type that provides random access.
  * @brief Sort the given values in place from least to greatest.
  * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
  * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
+ *
+ * @note should be equivalent to std::sort(first, last).
  */
 DISABLE_HD_WARNING
 template<typename RandomAccessIterator>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last)
 { return makeSorted(first, last, less<typename std::remove_reference<decltype(*first)>::type>()); }
 
+/**
+ * @tparam RandomAccessIteratorA an iterator type that provides random access.
+ * @tparam RandomAccessIteratorB an iterator type that provides random access.
+ * @tparam Compare the type of the comparison function.
+ * @brief Sort the given values in place using the given comparator and perform the same operations
+ *        on the data array thus preserving the mapping between values[i] and data[i].
+ * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
+ * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
+ * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
+ * @param [in/out] comp a function that does the comparison between two objects.
+ */
 DISABLE_HD_WARNING
 template<typename RandomAccessIteratorA, class RandomAccessIteratorB, typename Compare>
-LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA first, RandomAccessIteratorA last,
+LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
                                          RandomAccessIteratorB dataFirst, Compare comp)
 {
-  std::ptrdiff_t const size = last - first;
-  internal::DualIterator<RandomAccessIteratorA, RandomAccessIteratorB> dualIter(first, dataFirst);
+  std::ptrdiff_t const size = valueLast - valueFirst;
+  internal::DualIterator<RandomAccessIteratorA, RandomAccessIteratorB> dualIter(valueFirst, dataFirst);
   return makeSorted(dualIter, dualIter + size, dualIter.createComparator(comp));
 }
 
+/**
+ * @tparam RandomAccessIteratorA an iterator type that provides random access.
+ * @tparam RandomAccessIteratorB an iterator type that provides random access.
+ * @brief Sort the given values in place from least to greatest and perform the same operations
+ *        on the data array thus preserving the mapping between values[i] and data[i].
+ * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
+ * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
+ * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
+ */
 DISABLE_HD_WARNING
 template<typename RandomAccessIteratorA, class RandomAccessIteratorB>
-LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA first, RandomAccessIteratorA last,
+LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
                                          RandomAccessIteratorB dataFirst)
-{ return dualSort(first, last, dataFirst, less<typename std::remove_reference<decltype(*first)>::type>()); }
+{ return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }
 
+/**
+ * @tparam T the type of the values stored in the buffer.
+ * @tparam N the size of the local buffer.
+ * @brief Create a copy of the values array in localBuffer if possible. If not an allocation is
+ *        made and the values are copied into that.
+ * @param [in] values pointer to the values to copy.
+ * @param [in] nVals the number of values to copy.
+ * @param [in/out] localBuffer a reference to an array T[N].
+ * @return A pointer to the buffer containing a copy of the values array.
+ *
+ * @note freeTemporaryBuffer must be called with the pointer returned from this method, nVals, and localBuffer to
+ *       deallocate the created buffer.
+ */
 DISABLE_HD_WARNING
 template <class T, int N>
-LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std::ptrdiff_t nVals, T (&localBuffer)[N])
+LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std::ptrdiff_t const nVals,
+                                                     T (&localBuffer)[N])
 {
   T * buffer = localBuffer;
   if (nVals <= N)
@@ -127,9 +176,18 @@ LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std
   return buffer;
 }
 
+/**
+ * @tparam T the type of the values stored in the buffer.
+ * @tparam N the size of the local buffer.
+ * @brief Deallocate a buffer created from createTemporaryBuffer.
+ * @param [in] buffer the buffer returned by createTemporaryBuffer.
+ * @param [in] nVals the number of values in the buffer.
+ * @param [in] localBuffer a reference to an array T[N].
+ */
 DISABLE_HD_WARNING
 template <class T, int N>
-LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdiff_t nVals, T (&localBuffer)[N])
+LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdiff_t const nVals,
+                                                    T const (&localBuffer)[N])
 {
   if (buffer == localBuffer)
   {
@@ -144,10 +202,15 @@ LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdi
 }
 
 /**
- * @brief Return true if the given array is sorted from least to greatest.
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam Compare the type of the comparison function, defaults to less<T>.
+ * @brief Return true if the given array is sorted using comp.
  * @param [in] ptr pointer to the array.
  * @param [in] size the size of the array.
- * @note Should be equivalent to std::is_sorted(ptr, ptr + size).
+ * @param [in/out] the comparison method to use.
+ *
+ * @note Should be equivalent to std::is_sorted(ptr, ptr + size, comp).
  */
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
@@ -169,12 +232,16 @@ INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Co
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam Compare the type of the comparison function, defaults to less<T>.
  * @brief Return the index of the first value in the array greater than or equal to value.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under comp.
  * @param [in] size the size of the array.
  * @param [in] value the value to find.
- * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value).
- * @pre isSorted(ptr, size) must be true.
+ * @param [in/out] comp the comparison method to use.
+ *
+ * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
@@ -204,12 +271,16 @@ INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value, Co
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam Compare the type of the comparison function, defaults to less<T>.
  * @brief Return true if the array contains value.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under comp.
  * @param [in] size the size of the array.
  * @param [in] value the value to find.
- * @note Should be equivalent to std::binary_search(ptr, ptr + size, value).
- * @pre isSorted(ptr, size) must be true.
+ * @param [in/out] comp the comparison method to use.
+ *
+ * @note Should be equivalent to std::binary_search(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
@@ -221,15 +292,16 @@ bool contains( T const * const ptr, INDEX_TYPE const size, T const & value, Comp
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given value from the array if it exists.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE).
- * If the value is found it is removed then this method is called with the index the value
- * was found at.
- *
- * @pre isSorted(ptr, size) must be true.
+ *                 If the value is found it is removed then this method is called with the index the value
+ *                 was found at.
  * @return True iff the value was removed.
  */
 DISABLE_HD_WARNING
@@ -256,18 +328,18 @@ bool remove( T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS &&
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
- * @param [in] values the values to remove.
+ * @param [in] values the values to remove, must be sorted under less<T>.
  * @param [in] nVals the number of values to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- * If a value is found it is removed then this method is called with the number of values removed so far,
- * the position of the last value removed and the position of the next value to remove or size if there are no more
- * values to remove.
- *
- * @pre isSorted(ptr, size) must be true.
- * @pre isSorted(values, nVals) must be true.
+ *                 If a value is found it is removed then this method is called with the number of values removed so far,
+ *                 the position of the last value removed and the position of the next value to remove or size if there are no more
+ *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
@@ -360,17 +432,18 @@ INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const v
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to remove.
  * @param [in] nVals the number of values to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- * If a value is found it is removed then this method is called with the number of values removed so far,
- * the position of the last value removed and the position of the next value to remove or size if there are no more
- * values to remove.
- *
- * @pre isSorted(ptr, size) must be true.
+ *                 If a value is found it is removed then this method is called with the number of values removed so far,
+ *                 the position of the last value removed and the position of the next value to remove or size if there are no more
+ *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
@@ -396,16 +469,17 @@ INDEX_TYPE remove( T * const ptr, INDEX_TYPE const size, T const * const values,
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given value into the array if it doesn't already exist.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to insert.
  * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE)
- * and insert(INDEX_TYPE). incrementSize is called with the number of values to insert and returns a new
- * pointer to the array. If an insert has occurred insert is called with the position in the array
- * at which the insert took place.
- *
- * @pre isSorted(ptr, size) must be true.
+ *                 and insert(INDEX_TYPE). incrementSize is called with the number of values to insert and returns a new
+ *                 pointer to the array. If an insert has occurred insert is called with the position in the array
+ *                 at which the insert took place.
  * @return True iff the value was inserted.
  */
 DISABLE_HD_WARNING
@@ -435,22 +509,22 @@ bool insert( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBA
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
- * @param [in] values the values to insert.
+ * @param [in] values the values to insert, must be sorted under less<T>.
  * @param [in] nVals the number of values to insert.
  * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE),
- * set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- * incrementSize is called with the number of values to insert and returns a new pointer to the array.
- * After an insert has occurred insert is called with the number of values left to insert, the
- * index of the value inserted, the index at which it was inserted and the index at
- * which the the previous value was inserted or size if it is the first value inserted.
- * set is called when the array is empty and it takes a position in the array and the position of the
- * value that will occupy that position.
- *
- * @pre isSorted(ptr, size) must be true.
- * @pre isSorted(values, nVals) must be true.
+ *                 set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
+ *                 After an insert has occurred insert is called with the number of values left to insert, the
+ *                 index of the value inserted, the index at which it was inserted and the index at
+ *                 which the the previous value was inserted or size if it is the first value inserted.
+ *                 set is called when the array is empty and it takes a position in the array and the position of the
+ *                 value that will occupy that position.
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
@@ -604,21 +678,22 @@ INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * c
 }
 
 /**
+ * @tparam T the type of values in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to insert.
  * @param [in] nVals the number of values to insert.
  * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE),
- * set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- * incrementSize is called with the number of values to insert and returns a new pointer to the array.
- * After an insert has occurred insert is called with the number of values left to insert, the
- * index of the value inserted, the index at which it was inserted and the index at
- * which the the previous value was inserted or size if it is the first value inserted.
- * set is called when the array is empty and it takes a position in the array and the position of the
- * value that will occupy that position.
- *
- * @pre isSorted(ptr, size) must be true.
+ *                 set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
+ *                 After an insert has occurred insert is called with the number of values left to insert, the
+ *                 index of the value inserted, the index at which it was inserted and the index at
+ *                 which the the previous value was inserted or size if it is the first value inserted.
+ *                 set is called when the array is empty and it takes a position in the array and the position of the
+ *                 value that will occupy that position.
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING

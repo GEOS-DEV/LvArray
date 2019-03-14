@@ -50,7 +50,7 @@ namespace LvArray
  * @tparam T type of data that is contained by the array.
  * @tparam INDEX_TYPE the integer to use for indexing the components of the array.
  *
- * @note When using a SortedArrayView directly the template parameter T should be const
+ * When using a SortedArrayView directly the template parameter T should be const
  * since the View has no way of modifying the values. This also prevents unnecessary
  * memory movement.
  */
@@ -64,7 +64,7 @@ public:
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   * chai::ManagedArray copy constructor.
+   *        chai::ManagedArray copy constructor.
    * @param [in] src the SortedArray to copy.
    */
   inline
@@ -93,8 +93,9 @@ public:
 
   /**
    * @brief Return a pointer to the values.
+   *
    * @note The pointer is of type T const * because it would be unsafe to modify
-   * the values of the set.
+   *        the values of the set.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   T * values() const
@@ -150,6 +151,7 @@ public:
   /**
    * @brief Return true if the given value is in the array.
    * @param [in] value the value to search for.
+   *
    * @note the is a alias for contains to conform to the std::set interface.
    */
   LVARRAY_HOST_DEVICE inline
@@ -160,7 +162,7 @@ protected:
 
   /**
    * @brief Default constructor. Made protected since every SortedArrayView should
-   * either be the base of a SortedArrayView or copied from another SortedArrayView.
+   *        either be the base of a SortedArrayView or copied from another SortedArrayView.
    */
   inline
   SortedArrayView() = default;

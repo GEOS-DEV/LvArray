@@ -59,9 +59,10 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
- * @note When INDEX_TYPE is const m_offsets is not copied back from the device. INDEX_TYPE should always be const
+ * When INDEX_TYPE is const m_offsets is not copied back from the device. INDEX_TYPE should always be const
  * since SparsityPatternView is not allowed to modify the offsets.
- * @note When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
+ * 
+ * When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or columns are copied back from the device.
  */
 template <class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
@@ -80,7 +81,7 @@ public:
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   * chai::ManagedArray copy constructor.
+   *        chai::ManagedArray copy constructor.
    * @param [in] src the SparsityPatternView to be copied.
    */
   inline
@@ -105,7 +106,7 @@ public:
 
   /**
    * @brief Method to convert T to T const. Use this method when the above UDC
-   * isn't invoked, this usually occurs with template argument deduction.
+   *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   SparsityPatternView<COL_TYPE const, INDEX_TYPE_NC const> const & toViewC() const restrict_this
@@ -174,7 +175,7 @@ public:
 
   /**
    * @brief Return the total number of non zero entries able to be stored in a given row without shifting
-   * subsequent rows and possibly reallocating.
+   *        subsequent rows and possibly reallocating.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE_NC const row ) const restrict_this
@@ -219,7 +220,7 @@ public:
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
-   * This array has length numNonZeros(row).
+   *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
@@ -234,10 +235,11 @@ public:
    * @param [in] row the row to insert in.
    * @param [in] col the column to insert.
    * @return True iff the column was inserted (the entry was zero before).
+   *
    * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
-   * up to the user to ensure that the given row has enough space for the new entries.
-   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   * otherwise the values in the subsequent row will be overwritten.
+   *       up to the user to ensure that the given row has enough space for the new entries.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
@@ -253,12 +255,13 @@ public:
    * @param [in] cols the columns to insert, of length ncols.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns inserted.
+   *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   * and then call insertNonZerosSorted, this will be substantially faster.
+   *       and then call insertNonZerosSorted, this will be substantially faster.
    * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   * up to the user to ensure that the given row has enough space for the new entries.
-   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   * otherwise the values in the subsequent row will be overwritten.
+   *       up to the user to ensure that the given row has enough space for the new entries.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
@@ -281,10 +284,11 @@ public:
    * @param [in] cols the columns to insert, of length ncols. Must be sorted.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns inserted.
+   *
    * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   * up to the user to ensure that the given row has enough space for the new entries.
-   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   * otherwise the values in the subsequent row will be overwritten.
+   *       up to the user to ensure that the given row has enough space for the new entries.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
@@ -314,8 +318,9 @@ public:
    * @param [in] cols the columns to remove, of length ncols.
    * @param [in] ncols the number of columns to remove.
    * @return The number of columns removed.
+   *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   * and then call removeNonZerosSorted, this will be substantially faster.
+   *       and then call removeNonZerosSorted, this will be substantially faster.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * const cols, INDEX_TYPE_NC const ncols ) const restrict_this
@@ -351,15 +356,16 @@ protected:
 
   /**
    * @brief Default constructor. Made protected since every SparsityPatternView should
-   * either be the base of a SparsityPattern or copied from another SparsityPatternView.
+   *        either be the base of a SparsityPattern or copied from another SparsityPatternView.
    */
   SparsityPatternView() = default;
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
-   * This array has length numNonZeros(row).
+   *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
-   * @note The returned array is mutable so this method is private.
+   *
+   * @note The returned array is mutable so this method is protected.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   ArraySlice1d_rval<COL_TYPE, INDEX_TYPE_NC> getColumnsProtected( INDEX_TYPE_NC const row ) const restrict_this
@@ -373,7 +379,7 @@ protected:
    * @param [in] row the row to insert in.
    * @param [in] col the column to insert.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the sortedArrayManipulation routines.
+   *                 the sortedArrayManipulation routines.
    * @return True iff the column was inserted (the entry was zero before).
    */
   template <class CALLBACKS>
@@ -396,7 +402,7 @@ protected:
    * @param [in] cols the columns to insert, must be sorted.
    * @param [in] ncols the number of columns to insert.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the sortedArrayManipulation routines.
+   *                 the sortedArrayManipulation routines.
    * @return The number of columns inserted.
    */
   template <class CALLBACKS>
@@ -431,7 +437,7 @@ protected:
    * @param [in] row the row to remove from.
    * @param [in] col the column to remove.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the arrayManipulation routines.
+   *                 the arrayManipulation routines.
    * @return True iff the column was removed (the entry was non zero before).
    */
   template <class CALLBACKS>
@@ -454,7 +460,7 @@ protected:
    * @param [in] cols the columns to remove, must be sorted.
    * @param [in] ncols the number of columns to remove.
    * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   * the arrayManipulation routines.
+   *                 the arrayManipulation routines.
    * @return The number of columns removed.
    */
   template <class CALLBACKS>
@@ -529,9 +535,10 @@ public:
     /**
      * @brief Callback signaling that the size of the row has increased.
      * @param [in] nToAdd the increase in the size.
-     * @note This method doesn't actually change the size, it just checks that the new
-     * size doesn't exceed the capacity since the SparsityPatternView can't do allocation.
      * @return a pointer to the rows columns.
+     *
+     * @note This method doesn't actually change the size, it just checks that the new
+     *       size doesn't exceed the capacity since the SparsityPatternView can't do allocation.
      */
     LVARRAY_HOST_DEVICE inline
     COL_TYPE * incrementSize( INDEX_TYPE_NC const nToAdd ) const restrict_this

@@ -300,7 +300,7 @@ protected:
 
   /**
    * @brief Default constructor. Made protected since every CRSMatrixView should
-   * either be the base of a CRSMatrix or copied from another CRSMatrixView.
+   *        either be the base of a CRSMatrix or copied from another CRSMatrixView.
    */
   CRSMatrixView() = default;
 
@@ -336,8 +336,7 @@ public:
      * @param [in] row the row this CallBacks is associated with.
      * @param [in] rowNNZ the number of non zeros in the row.
      * @param [in] rowCapacity the non zero capacity of the row.
-     * @param [in/out] values pointer to the values of row. Of length rownNNZ and capacity
-     * rowCapacity.
+     * @param [in/out] values pointer to the values of row. Of length rownNNZ and capacity rowCapacity.
      * @param [in] valuesToInsert pointer to the values to insert.
      */
     LVARRAY_HOST_DEVICE inline
@@ -359,7 +358,7 @@ public:
      * @brief Callback signaling that the size of the row has increased.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
-     * size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
+     *       size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
@@ -373,8 +372,8 @@ public:
 
     /**
      * @brief Used with sortedArrayManipulation::insert routine this callback signals
-     * that the column was inserted at the given position. This means we also need to insert
-     * the value at the same position.
+     *        that the column was inserted at the given position. This means we also need to insert
+     *        the value at the same position.
      * @param [in] insertPos the position the column was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
@@ -383,8 +382,8 @@ public:
 
     /**
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
-     * signals that the given position was set to the column at the other position.
-     * This means we need to perform the same operation on the values.
+     *        signals that the given position was set to the column at the other position.
+     *        This means we need to perform the same operation on the values.
      * @param [in] pos the position that was set.
      * @param [in] colPos the position of the column.
      */
@@ -394,14 +393,14 @@ public:
 
     /**
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
-     * signals that the given column was inserted at the given position. Further information
-     * is provided in order to make the insertion efficient. This means that we need to perform
-     * the same operation on the values.
+     *        signals that the given column was inserted at the given position. Further information
+     *        is provided in order to make the insertion efficient. This means that we need to perform
+     *        the same operation on the values.
      * @param [in] nLeftToInsert the number of insertions that occur after this one.
      * @param [in] colPos the position of the column that was inserted.
      * @param [in] insertPos the position the column was inserted at.
      * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ
-     * if it is the first insertion.
+     *             if it is the first insertion.
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE_NC const nLeftToInsert,
@@ -415,8 +414,8 @@ public:
 
     /**
      * @brief Used with sortedArrayManipulation::remove routine this callback signals
-     * that the column was removed from the given position. This means we also need to remove
-     * the value from the same position.
+     *        that the column was removed from the given position. This means we also need to remove
+     *        the value from the same position.
      * @param [in] removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
@@ -425,13 +424,13 @@ public:
 
     /**
      * @brief Used with the sortedArrayManipulation::removeSorted routine this callback
-     * signals that the given column was removed from the given position. Further information
-     * is provided in order to make the removal efficient. This means that we need to perform
-     * the same operation on the values.
+     *        signals that the given column was removed from the given position. Further information
+     *        is provided in order to make the removal efficient. This means that we need to perform
+     *        the same operation on the values.
      * @param [in] nRemoved the number of columns removed, starts at 1.
      * @param [in] curPos the position the column was removed at.
      * @param [in] nextPos the position the next column will be removed at or m_rowNNZ
-     * if this was the last column removed.
+     *             if this was the last column removed.
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE_NC const nRemoved,
