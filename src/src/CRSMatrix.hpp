@@ -24,21 +24,21 @@
 #define CRSMATRIX_HPP_
 
 #include "CRSMatrixView.hpp"
-#include "ArrayManipulation.hpp"
+#include "arrayManipulation.hpp"
 
 namespace LvArray
 {
 
 /**
- * @class CRSMatrix
- * @brief This class implements a compressed row storage matrix.
  * @tparam T the type of the entries in the matrix.
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
+ * @class CRSMatrix
+ * @brief This class implements a compressed row storage matrix.
  *
  * @note CRSMatrixView is a protected base class of CRSMatrix. This is to control the
- * conversion to CRSMatrixView so that when using a View the INDEX_TYPE is always const.
- * However the CRSMatrixView interface is reproduced here.
+ *        conversion to CRSMatrixView so that when using a View the INDEX_TYPE is always const.
+ *        However the CRSMatrixView interface is reproduced here.
  */
 template <class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
 class CRSMatrix : protected CRSMatrixView<T, COL_TYPE, INDEX_TYPE>
@@ -108,7 +108,7 @@ public:
    */
   ~CRSMatrix()
   {
-    clear();
+    destroyValues();
     m_values.releaseAllocation();
 
     m_columns.free();
@@ -126,7 +126,7 @@ public:
 
   /**
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
   CRSMatrixView<T, COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
@@ -134,8 +134,8 @@ public:
 
   /**
    * @brief Conversion operator to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const &
@@ -144,8 +144,8 @@ public:
 
   /**
    * @brief Conversion operator to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const &
@@ -154,8 +154,8 @@ public:
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   * Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
@@ -168,7 +168,7 @@ public:
    */
   CRSMatrix & operator=( CRSMatrix const & src )
   {
-    clear();
+    destroyValues();
 
     INDEX_TYPE const newNNZ = src.m_columns.size();
     m_values.reserve( newNNZ );
@@ -263,6 +263,9 @@ public:
    * @param [in] valuesToInsert the values to insert, of length ncols.
    * @param [in] ncols the number of columns/values to insert.
    * @return The number of values inserted.
+   *
+   * @note If possible sort cols and valuesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols + ncols, valuesToInsert)
+   *       and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
@@ -270,19 +273,49 @@ public:
                              T const * const valuesToInsert,
                              INDEX_TYPE const ncols ) restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+    T localValueBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer(valuesToInsert, ncols, localValueBuffer);
+    sortedArrayManipulation::dualSort(columnBuffer, columnBuffer + ncols, valueBuffer);
+
+    INDEX_TYPE const nInserted = insertNonZerosSorted(row, columnBuffer, valueBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    sortedArrayManipulation::freeTemporaryBuffer(valueBuffer, ncols, localValueBuffer);
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert a non-zero entries into the given row.
+   * @param [in] row the row to insert into.
+   * @param [in] cols the columns to insert at, of length ncols. Must be sorted.
+   * @param [in] valuesToInsert the values to insert, of length ncols.
+   * @param [in] ncols the number of columns/values to insert.
+   * @return The number of values inserted.
+   */
+  inline
+  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row,
+                                   COL_TYPE const * const cols,
+                                   T const * const valuesToInsert,
+                                   INDEX_TYPE const ncols ) restrict_this
+  {
     INDEX_TYPE const rowNNZ = numNonZeros( row );
     INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, valuesToInsert ));
+    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, valuesToInsert ));
   }
 
   /**
    * @brief Set the non zero capacity of the given row.
    * @param [in] row the row to modify.
    * @param [in] newCapacity the new capacity of the row.
+   *
    * @note If the given capacity is less than the current number of non zero entries
-   * the entries are truncated.
+   *       the entries are truncated.
    * @note Since a row can hold at most numColumns() entries the resulting capacity is
-   * min(newCapacity, numColumns()).
+   *       min(newCapacity, numColumns()).
    */
   inline
   void setRowCapacity( INDEX_TYPE row, INDEX_TYPE newCapacity )
@@ -326,7 +359,10 @@ public:
 
 private:
 
-  void clear()
+  /**
+   * @brief Destroys all of the values, but does not free the values array. 
+   */
+  void destroyValues()
   {
     INDEX_TYPE const nRows = numRows();
     for( INDEX_TYPE row = 0 ; row < nRows ; ++row )
@@ -342,7 +378,7 @@ private:
 
   /**
    * @brief Increase the capacity of a row to accommodate at least the given number of
-   * non zero entries.
+   *        non zero entries.
    * @param [in] row the row to increase the capacity of.
    * @param [in] newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
@@ -382,9 +418,9 @@ public:
     /**
      * @brief Callback signaling that the size of the row has increased.
      * @param [in] nToAdd the increase in the size.
-     * @note This method doesn't actually change the size, but it does potentially
-     * do an allocation.
      * @return a pointer to the rows columns.
+     * @note This method doesn't actually change the size, but it does potentially
+     *       do an allocation.
      */
     inline
     COL_TYPE * incrementSize( INDEX_TYPE const nToAdd )
@@ -399,19 +435,19 @@ public:
     }
 
     /**
-     * @brief Used with ArrayManipulation::insertSorted routine this callback signals
-     * that the column was inserted at the given position. This means we also need to insert
-     * the value at the same position.
+     * @brief Used with sortedArrayManipulation::insert routine this callback signals
+     *        that the column was inserted at the given position. This means we also
+     *        need to insert the value at the same position.
      * @param [in] pos the position the column was inserted at.
      */
     inline
     void insert( INDEX_TYPE const pos ) const
-    { ArrayManipulation::insert( m_values, m_rowNNZ, pos, m_valuesToInsert[0] ); }
+    { arrayManipulation::insert( m_values, m_rowNNZ, pos, m_valuesToInsert[0] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
-     * signals that the given position was set to the column at the other position.
-     * This means we need to perform the same operation on the values.
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
+     *        signals that the given position was set to the column at the other position.
+     *        This means we need to perform the same operation on the values.
      * @param [in] pos the position that was set.
      * @param [in] colPos the position of the column.
      */
@@ -420,15 +456,15 @@ public:
     { new (&m_values[pos]) T( m_valuesToInsert[colPos] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
-     * signals that the given column was inserted at the given position. Further information
-     * is provided in order to make the insertion efficient. This means that we need to perform
-     * the same operation on the values.
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
+     *        signals that the given column was inserted at the given position. Further information
+     *        is provided in order to make the insertion efficient. This means that we need to perform
+     *        the same operation on the values.
      * @param [in] nLeftToInsert the number of insertions that occur after this one.
      * @param [in] colPos the position of the column that was inserted.
      * @param [in] pos the position the column was inserted at.
-     * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ
-     * if it is the first insertion.
+     * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ if it is
+     *             the first insertion.
      */
     inline
     void insert( INDEX_TYPE const nLeftToInsert,
@@ -436,7 +472,7 @@ public:
                  INDEX_TYPE const pos,
                  INDEX_TYPE const prevPos ) const
     {
-      ArrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
+      arrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
       new (&m_values[pos + nLeftToInsert - 1]) T( m_valuesToInsert[colPos] );
     }
 
@@ -451,7 +487,7 @@ private:
 
   // Aliasing protected methods of SparsityPatternView.
   using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZeroImpl;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZerosImpl;
+  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZerosSortedImpl;
 
   // Aliasing protected methods of CRSMatrixView.
   using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::getColumnsProtected;

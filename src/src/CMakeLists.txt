@@ -4,7 +4,9 @@ set(cxx-utilities_headers
     ArrayUtilities.hpp
     ArrayView.hpp
     ChaiVector.hpp
-    ArrayManipulation.hpp
+    arrayManipulation.hpp
+    sortedArrayManipulation.hpp
+    sortedArrayManipulationHelpers.hpp
     helpers.hpp
     IntegerConversion.hpp
     Logger.hpp

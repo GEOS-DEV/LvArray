@@ -25,6 +25,7 @@
 
 #include "SparsityPatternView.hpp"
 #include "ChaiVector.hpp"
+#include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 
 namespace LvArray
@@ -33,20 +34,20 @@ namespace LvArray
 /**
  * @class CRSMatrixView
  * @brief This class provides a view into a compressed row storage matrix.
+ *
  * @tparam T the type of the entries of the matrix.
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
  * @note When INDEX_TYPE is const m_offsets is not copied back from the device. INDEX_TYPE should always be const
- * since CRSMatrixView is not allowed to modify the offsets.
+ *       since CRSMatrixView is not allowed to modify the offsets.
  * @note When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
- * and. You can however modify the values of the matrix which is copied back from the device.
+ *       and. You can however modify the values of the matrix which is copied back from the device.
  * @note When T, COL_TYPE and INDEX_TYPE are const you cannot modify the matrix in any way
- * and nothing is copied back from the device.
- *
+ *       and nothing is copied back from the device.
  * @note SparsityPatternView is a protected base class of CRSMatrixView. This is to control the
- * conversion to SparsityPatternView so as to only provide an immutable SparsityPatternView.
- * However the SparsityPatternView interface is reproduced here.
+ *       conversion to SparsityPatternView so as to only provide an immutable SparsityPatternView.
+ *       However the SparsityPatternView interface is reproduced here.
  */
 template <class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
 class CRSMatrixView : protected SparsityPatternView<COL_TYPE, INDEX_TYPE>
@@ -66,7 +67,7 @@ public:
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   * chai::ManagedArray copy constructor.
+   *        chai::ManagedArray copy constructor.
    * @param [in] src the CRSMatrixView to be copied.
    */
   inline
@@ -81,7 +82,7 @@ public:
 
   /**
    * @brief User defined conversion to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
-   * This prevents you from inserting or removing but still allows modification of the matrix values.
+   *        This prevents you from inserting or removing but still allows modification of the matrix values.
    */
   template <class U=T, class CTYPE=COL_TYPE>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
@@ -92,7 +93,7 @@ public:
 
   /**
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>. Use this method
-   * when the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   CRSMatrixView<T, COL_TYPE const, INDEX_TYPE_NC const> const & toViewC() const restrict_this
@@ -100,7 +101,7 @@ public:
 
   /**
    * @brief User defined conversion to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
-   * This prevents you from inserting, removing or modifying the matrix values.
+   *        This prevents you from inserting, removing or modifying the matrix values.
    */
   template<class U=T>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
@@ -110,7 +111,7 @@ public:
 
   /**
    * @brief Method to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>. Use this method
-   * when the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE_NC const> const & toViewCC() const restrict_this
@@ -132,7 +133,7 @@ public:
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the matrix values of the given row.
-   * This array has length numNonZeros(row).
+   *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE inline
@@ -147,12 +148,12 @@ public:
    * @param [in] row the row to insert in.
    * @param [in] col the column to insert at.
    * @param [in] value the value to insert.
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   * up to the user to ensure that the given row has enough space for the new entry.
-   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   * otherwise the values in the subsequent row will be overwritten.
-   *
    * @return True iff the value was inserted (the entry was zero before).
+   *
+   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   *       up to the user to ensure that the given row has enough space for the new entry.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE_NC const row, COL_TYPE const col, T const & value ) const restrict_this
@@ -169,12 +170,14 @@ public:
    * @param [in] cols the columns to insert at, of length ncols.
    * @param [in] valuesToInsert the values to insert, of length ncols.
    * @param [in] ncols the number of columns/values to insert.
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   * up to the user to ensure that the given row has enough space for the new entries.
-   * If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   * otherwise the values in the subsequent row will be overwritten.
-   *
    * @return The number of values inserted.
+   *
+   * @note If possible sort cols and valuesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols + ncols, valuesToInsert)
+   *       and then call insertNonZerosSorted, this will be substantially faster.
+   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   *       up to the user to ensure that the given row has enough space for the new entries.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE_NC const row,
@@ -182,10 +185,44 @@ public:
                                 T const * const valuesToInsert,
                                 INDEX_TYPE_NC const ncols ) const restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+    T localValueBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer(valuesToInsert, ncols, localValueBuffer);
+    sortedArrayManipulation::dualSort(columnBuffer, columnBuffer + ncols, valueBuffer);
+
+    INDEX_TYPE_NC const nInserted = insertNonZerosSorted(row, columnBuffer, valueBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    sortedArrayManipulation::freeTemporaryBuffer(valueBuffer, ncols, localValueBuffer);
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert a non-zero entries into the given row.
+   * @param [in] row the row to insert into.
+   * @param [in] cols the columns to insert at, of length ncols. Must be sorted.
+   * @param [in] valuesToInsert the values to insert, of length ncols.
+   * @param [in] ncols the number of columns/values to insert.
+   * @return The number of values inserted.
+   *
+   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   *       up to the user to ensure that the given row has enough space for the new entries.
+   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
+   *       otherwise the values in the subsequent row will be overwritten.
+   */
+  LVARRAY_HOST_DEVICE inline
+  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE_NC const row,
+                                      COL_TYPE const * const cols,
+                                      T const * const valuesToInsert,
+                                      INDEX_TYPE_NC const ncols ) const restrict_this
+  {
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
     T * const values = getValues( row );
-    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, valuesToInsert ));
+    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, valuesToInsert ));
   }
 
   /**
@@ -211,6 +248,9 @@ public:
    * @param [in] cols the columns to remove, of length ncols.
    * @param [in] ncols the number of columns to remove.
    * @return True iff the entry was removed (the entry was non-zero before).
+   *
+   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
+   *       and then call removeNonZerosSorted, this will be substantially faster.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
@@ -218,10 +258,35 @@ public:
                                 COL_TYPE const * const cols,
                                 INDEX_TYPE_NC const ncols ) const restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+
+    INDEX_TYPE_NC const nRemoved = removeNonZerosSorted(row, columnBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    return nRemoved;
+  }
+
+  /**
+   * @brief Remove non-zero entries from the given row.
+   * @param [in] row the row to remove from.
+   * @param [in] cols the columns to remove, of length ncols. Must be sorted.
+   * @param [in] ncols the number of columns to remove.
+   * @return True iff the entry was removed (the entry was non-zero before).
+   */
+  DISABLE_HD_WARNING
+  LVARRAY_HOST_DEVICE inline
+  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE_NC const row,
+                                      COL_TYPE const * const cols,
+                                      INDEX_TYPE_NC const ncols ) const restrict_this
+  {
     INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
     INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
     T * const values = getValues( row );
-    INDEX_TYPE_NC const nRemoved = removeNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, nullptr ));
+    INDEX_TYPE_NC const nRemoved = removeNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity, values, nullptr ));
 
     for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
     {
@@ -235,16 +300,16 @@ protected:
 
   /**
    * @brief Default constructor. Made protected since every CRSMatrixView should
-   * either be the base of a CRSMatrix or copied from another CRSMatrixView.
+   *        either be the base of a CRSMatrix or copied from another CRSMatrixView.
    */
   CRSMatrixView() = default;
 
   // Aliasing protected methods of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumnsProtected;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosSortedImpl;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosSortedImpl;
 
   // Aliasing protected members of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
@@ -259,7 +324,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
   class CallBacks
   {
@@ -271,8 +336,7 @@ public:
      * @param [in] row the row this CallBacks is associated with.
      * @param [in] rowNNZ the number of non zeros in the row.
      * @param [in] rowCapacity the non zero capacity of the row.
-     * @param [in/out] values pointer to the values of row. Of length rownNNZ and capacity
-     * rowCapacity.
+     * @param [in/out] values pointer to the values of row. Of length rownNNZ and capacity rowCapacity.
      * @param [in] valuesToInsert pointer to the values to insert.
      */
     LVARRAY_HOST_DEVICE inline
@@ -294,7 +358,7 @@ public:
      * @brief Callback signaling that the size of the row has increased.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
-     * size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
+     *       size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
@@ -307,19 +371,19 @@ public:
     }
 
     /**
-     * @brief Used with ArrayManipulation::insertSorted routine this callback signals
-     * that the column was inserted at the given position. This means we also need to insert
-     * the value at the same position.
+     * @brief Used with sortedArrayManipulation::insert routine this callback signals
+     *        that the column was inserted at the given position. This means we also need to insert
+     *        the value at the same position.
      * @param [in] insertPos the position the column was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE_NC const insertPos ) const
-    { ArrayManipulation::insert( m_values, m_rowNNZ, insertPos, m_valuesToInsert[0] ); }
+    { arrayManipulation::insert( m_values, m_rowNNZ, insertPos, m_valuesToInsert[0] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
-     * signals that the given position was set to the column at the other position.
-     * This means we need to perform the same operation on the values.
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
+     *        signals that the given position was set to the column at the other position.
+     *        This means we need to perform the same operation on the values.
      * @param [in] pos the position that was set.
      * @param [in] colPos the position of the column.
      */
@@ -328,15 +392,15 @@ public:
     { new (&m_values[pos]) T( m_valuesToInsert[colPos] ); }
 
     /**
-     * @brief Used with the ArrayManipulation::insertSorted multiple routine this callback
-     * signals that the given column was inserted at the given position. Further information
-     * is provided in order to make the insertion efficient. This means that we need to perform
-     * the same operation on the values.
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
+     *        signals that the given column was inserted at the given position. Further information
+     *        is provided in order to make the insertion efficient. This means that we need to perform
+     *        the same operation on the values.
      * @param [in] nLeftToInsert the number of insertions that occur after this one.
      * @param [in] colPos the position of the column that was inserted.
      * @param [in] insertPos the position the column was inserted at.
      * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ
-     * if it is the first insertion.
+     *             if it is the first insertion.
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE_NC const nLeftToInsert,
@@ -344,35 +408,35 @@ public:
                  INDEX_TYPE_NC const pos,
                  INDEX_TYPE_NC const prevPos ) const
     {
-      ArrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
+      arrayManipulation::shiftUp( m_values, prevPos, pos, nLeftToInsert );
       new (&m_values[pos + nLeftToInsert - 1]) T( m_valuesToInsert[colPos] );
     }
 
     /**
-     * @brief Used with ArrayManipulation::removeSorted routine this callback signals
-     * that the column was removed from the given position. This means we also need to remove
-     * the value from the same position.
+     * @brief Used with sortedArrayManipulation::remove routine this callback signals
+     *        that the column was removed from the given position. This means we also need to remove
+     *        the value from the same position.
      * @param [in] removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE_NC removePos ) const
-    { ArrayManipulation::erase( m_values, m_rowNNZ, removePos ); }
+    { arrayManipulation::erase( m_values, m_rowNNZ, removePos ); }
 
     /**
-     * @brief Used with the ArrayManipulation::removeSorted multiple routine this callback
-     * signals that the given column was removed from the given position. Further information
-     * is provided in order to make the removal efficient. This means that we need to perform
-     * the same operation on the values.
+     * @brief Used with the sortedArrayManipulation::removeSorted routine this callback
+     *        signals that the given column was removed from the given position. Further information
+     *        is provided in order to make the removal efficient. This means that we need to perform
+     *        the same operation on the values.
      * @param [in] nRemoved the number of columns removed, starts at 1.
      * @param [in] curPos the position the column was removed at.
      * @param [in] nextPos the position the next column will be removed at or m_rowNNZ
-     * if this was the last column removed.
+     *             if this was the last column removed.
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE_NC const nRemoved,
                  INDEX_TYPE_NC const curPos,
                  INDEX_TYPE_NC const nextPos ) const
-    { ArrayManipulation::shiftDown( m_values, nextPos, curPos + 1, nRemoved ); }
+    { arrayManipulation::shiftDown( m_values, nextPos, curPos + 1, nRemoved ); }
 
 private:
     CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & m_crsMV;

@@ -99,6 +99,36 @@ void insertTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_INS
 }
 
 /**
+ * @brief Test the insert multiple sorted method of the SortedArray.
+ * @param [in/out] v the SortedArray to test.
+ * @param [in/out] vRef the std::set to check against.
+ * @param [in] MAX_INSERTS the number of values to insert at a time.
+ * @param [in] MAX_VAL the largest value possibly generate.
+ */
+template <class T>
+void insertMultipleSortedTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_INSERTS,
+                              INDEX_TYPE const MAX_VAL)
+{
+  INDEX_TYPE const N = v.size();
+  ASSERT_EQ(N, vRef.size());
+
+  std::vector<T> values(MAX_INSERTS);
+
+  std::uniform_int_distribution<INDEX_TYPE> valueDist(0, MAX_VAL);
+
+  for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+  {
+    values[i] = T(valueDist(gen));
+  }
+
+  std::sort(values.begin(), values.end());
+  v.insertSorted(values.data(), MAX_INSERTS);
+  vRef.insert(values.begin(), values.end());
+
+  compareToReference(v.toView(), vRef);
+}
+
+/**
  * @brief Test the insert multiple method of the SortedArray.
  * @param [in/out] v the SortedArray to test.
  * @param [in/out] vRef the std::set to check against.
@@ -121,7 +151,6 @@ void insertMultipleTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const
     values[i] = T(valueDist(gen));
   }
 
-  std::sort(values.begin(), values.end());
   v.insert(values.data(), MAX_INSERTS);
   vRef.insert(values.begin(), values.end());
 
@@ -154,14 +183,14 @@ void eraseTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_REMO
 }
 
 /**
- * @brief Test the erase multiple method of the SortedArray.
+ * @brief Test the erase multiple sorted method of the SortedArray.
  * @param [in/out] v the SortedArray to test.
  * @param [in/out] vRef the std::set to check against.
  * @param [in] MAX_INSERTS the number of values to erase at a time.
  * @param [in] MAX_VAL the largest value possibly generate.
  */
 template <class T>
-void eraseMultipleTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_REMOVES,
+void eraseMultipleSortedTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_REMOVES,
                           INDEX_TYPE const MAX_VAL)
 {
   INDEX_TYPE const N = v.size();
@@ -177,6 +206,39 @@ void eraseMultipleTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const 
   }
 
   std::sort(values.begin(), values.end());
+  v.eraseSorted(values.data(), MAX_REMOVES);
+
+  for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+  {
+    vRef.erase(values[i]);
+  }
+
+  compareToReference(v.toView(), vRef);
+}
+
+/**
+ * @brief Test the erase multiple method of the SortedArray.
+ * @param [in/out] v the SortedArray to test.
+ * @param [in/out] vRef the std::set to check against.
+ * @param [in] MAX_INSERTS the number of values to erase at a time.
+ * @param [in] MAX_VAL the largest value possibly generate.
+ */
+template <class T>
+void eraseMultipleTest(SortedArray<T> & v, std::set<T> & vRef, INDEX_TYPE const MAX_REMOVES,
+                       INDEX_TYPE const MAX_VAL)
+{
+  INDEX_TYPE const N = v.size();
+  ASSERT_EQ(N, vRef.size());
+
+  std::vector<T> values(MAX_REMOVES);
+
+  std::uniform_int_distribution<INDEX_TYPE> valueDist(0, MAX_VAL);
+
+  for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+  {
+    values[i] = T(valueDist(gen));
+  }
+
   v.erase(values.data(), MAX_REMOVES);
 
   for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
@@ -397,6 +459,39 @@ TEST(SortedArray, insert)
   }
 }
 
+TEST(SortedArray, insertMultipleSorted)
+{
+  constexpr INDEX_TYPE MAX_VAL = 1000;
+  constexpr INDEX_TYPE MAX_INSERTS = 200;
+
+  {
+    SortedArray<int> v;
+    std::set<int> ref;
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+  }
+
+  {
+    SortedArray<Tensor> v;
+    std::set<Tensor> ref;
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+  }
+
+  {
+    SortedArray<TestString> v;
+    std::set<TestString> ref;
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertMultipleSortedTest(v, ref, MAX_INSERTS, MAX_VAL);
+  }
+}
+
 TEST(SortedArray, insertMultiple)
 {
   constexpr INDEX_TYPE MAX_VAL = 1000;
@@ -461,6 +556,40 @@ TEST(SortedArray, erase)
     internal::eraseTest(v, ref, MAX_REMOVES, MAX_VAL);
     internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
     internal::eraseTest(v, ref, MAX_REMOVES, MAX_VAL);
+  }
+}
+
+TEST(SortedArray, eraseMultipleSorted)
+{
+  constexpr INDEX_TYPE MAX_VAL = 1000;
+  constexpr INDEX_TYPE MAX_INSERTS = 200;
+  constexpr INDEX_TYPE MAX_REMOVES = 200;
+
+  {
+    SortedArray<int> v;
+    std::set<int> ref;
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
+  }
+
+  {
+    SortedArray<Tensor> v;
+    std::set<Tensor> ref;
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
+  }
+
+  {
+    SortedArray<TestString> v;
+    std::set<TestString> ref;
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::eraseMultipleSortedTest(v, ref, MAX_REMOVES, MAX_VAL);
   }
 }
 

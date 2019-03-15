@@ -45,18 +45,9 @@ using ViewType = CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>;
 using INDEX_TYPE = std::ptrdiff_t;
 using COL_TYPE = unsigned int;
 
-// Comparator used in ROW_REF_TYPE so that the std::set is sorted only by the columns.
-template <class T>
-struct PairComp {
-  constexpr bool operator()(const std::pair<T, COL_TYPE>& lhs, const std::pair<T, COL_TYPE>& rhs) const
-  { 
-      return lhs.second < rhs.second; 
-  }
-};
-
 // A row is a sorted collection of unique columns each paired with a value, which is a set pairs.
 template <class T>
-using ROW_REF_TYPE = std::set<std::pair<T, COL_TYPE>, PairComp<T>>;
+using ROW_REF_TYPE = std::set<std::pair<T, COL_TYPE>, PairComp<T, COL_TYPE>>;
 
 // A matrix is an array of rows.
 template <class T>
@@ -183,6 +174,48 @@ void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const M
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
       columns[i] = columnDist(gen);
+      values[i] = T(columns[i]);
+    }
+
+    m.insertNonZeros(row, columns.data(), values.data(), MAX_INSERTS);
+
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      refRow.insert(std::pair<T, COL_TYPE>(values[i], columns[i]));
+    }
+
+    ASSERT_EQ(m.numNonZeros(row), refRow.size());
+  }
+
+  compareToReference(m.toViewCC(), mRef);
+}
+
+/**
+ * @brief Test the insert sorted method of the CRSMatrix.
+ * @param [in/out] m the CRSMatrix to test.
+ * @param [in/out] mRef the reference to check against.
+ * @param [in] MAX_INSERTS the number of values to insert at a time.
+ */
+template <class T>
+void insertSortedTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_INSERTS)
+{
+  INDEX_TYPE const numRows = m.numRows();
+  INDEX_TYPE const numCols = m.numColumns();
+  ASSERT_EQ(numRows, mRef.size());
+
+  std::vector<COL_TYPE> columns(MAX_INSERTS);
+  std::vector<T> values(MAX_INSERTS);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    ROW_REF_TYPE<T> & refRow = mRef[row];
+    ASSERT_EQ(m.numNonZeros(row), refRow.size());
+
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      columns[i] = columnDist(gen);
     }
 
     std::sort(columns.begin(), columns.begin() + MAX_INSERTS);
@@ -192,7 +225,7 @@ void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const M
       values[i] = T(columns[i]);
     }
 
-    m.insertNonZeros(row, columns.data(), values.data(), MAX_INSERTS);
+    m.insertNonZerosSorted(row, columns.data(), values.data(), MAX_INSERTS);
 
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
@@ -264,9 +297,50 @@ void removeMultipleTest(ViewType<T> const & m, REF_TYPE<T> & mRef,
       columns[i] = columnDist(gen);
     }
 
+    m.removeNonZeros(row, columns.data(), MAX_REMOVES);
+
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      refRow.erase(std::pair<T, COL_TYPE>(T(columns[i]), columns[i]));
+    }
+
+    ASSERT_EQ(m.numNonZeros(row), refRow.size());
+  }
+
+  compareToReference(m.toViewCC(), mRef);
+}
+
+/**
+ * @brief Test the remove sorted method of the CRSMatrixView.
+ * @param [in/out] m the CRSMatrixView to test.
+ * @param [in/out] mRef the reference to check against.
+ * @param [in] MAX_REMOVES the number of values to remove at a time.
+ */
+template <class T>
+void removeSortedTest(ViewType<T> const & m, REF_TYPE<T> & mRef,
+                      INDEX_TYPE const MAX_REMOVES)
+{
+  INDEX_TYPE const numRows = m.numRows();
+  INDEX_TYPE const numCols = m.numColumns();
+  ASSERT_EQ(numRows, mRef.size());
+
+  std::vector<COL_TYPE> columns(MAX_REMOVES);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    ROW_REF_TYPE<T> & refRow = mRef[row];
+    ASSERT_EQ(m.numNonZeros(row), refRow.size());
+
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      columns[i] = columnDist(gen);
+    }
+
     std::sort(columns.begin(), columns.begin() + MAX_REMOVES);
 
-    m.removeNonZeros(row, columns.data(), MAX_REMOVES);
+    m.removeNonZerosSorted(row, columns.data(), MAX_REMOVES);
 
     for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
     {
@@ -624,7 +698,7 @@ void memoryMotionConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
       T * const values = mConst.getValues(row);
       for (INDEX_TYPE i = 0; i < mConst.numNonZeros(row); ++i)
       {
-        GEOS_ERROR_IF(!ArrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
+        GEOS_ERROR_IF(!arrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
         values[i] = T(2 * i + 7);
       }
     }
@@ -690,7 +764,7 @@ void memoryMotionConstConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE
       T const * const values = mConst.getValues(row);
       for (INDEX_TYPE i = 0; i < mConst.numNonZeros(row); ++i)
       {
-        GEOS_ERROR_IF(!ArrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
+        GEOS_ERROR_IF(!arrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
         GEOS_ERROR_IF(values[i] != T(columns[i]), "Incorrect value.");
       }
     }
@@ -791,6 +865,60 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
       columnsToInsert(row, i) = columnDist(gen);
+      valuesToInsert(row, i) = T(columnsToInsert(row, i));
+    }
+  }
+
+  compareToReference(m.toViewCC(), mRef);
+
+  ViewType<T> const & mView = m;
+  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colInsertView = columnsToInsert;
+  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = valuesToInsert;
+  forall(cuda(), 0, numRows,
+    [=] __device__ (INDEX_TYPE row)
+    {
+      mView.insertNonZeros(row, colInsertView[row], valInsertView[row], MAX_INSERTS);
+    }
+  );
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      COL_TYPE const col = colInsertView(row, i);
+      mRef[row].insert(std::pair<T, COL_TYPE>(T(col), col));
+    }
+  }
+
+  m.move(chai::CPU);
+  compareToReference(m.toViewCC(), mRef);
+}
+
+/**
+ * @brief Test the CRSMatrixView insert sorted method on device.
+ * @param [in/out] m the CRSMatrix to test.
+ * @param [in/out] mRef the reference to compare to.
+ * @param [in] MAX_INSERTS the maximum number of inserts.
+ */
+template <class T>
+void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
+                            INDEX_TYPE const MAX_INSERTS)
+{
+  INDEX_TYPE const numRows = m.numRows();
+  INDEX_TYPE const numCols = m.numColumns();
+
+  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+  Array<T, 2, INDEX_TYPE> valuesToInsert(numRows, MAX_INSERTS);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    m.reserveNonZeros(row, m.numNonZeros() + MAX_INSERTS);
+
+    for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
+    {
+      columnsToInsert(row, i) = columnDist(gen);
     }
 
     // Sort the columns so they're ready to be inserted.
@@ -813,7 +941,7 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
-      mView.insertNonZeros(row, colInsertView[row], valInsertView[row], MAX_INSERTS);
+      mView.insertNonZerosSorted(row, colInsertView[row], valInsertView[row], MAX_INSERTS);
     }
   );
 
@@ -908,6 +1036,53 @@ void removeMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
     {
       columnsToRemove(row, i) = columnDist(gen);
     }
+  }
+
+  ViewType<T> const & mView = m;
+  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colRemoveView = columnsToRemove;
+  forall(cuda(), 0, numRows,
+    [=] __device__ (INDEX_TYPE row)
+    {
+      mView.removeNonZeros(row, colRemoveView[row], MAX_REMOVES);
+    }
+  );
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      COL_TYPE const col = colRemoveView(row, i);
+      mRef[row].erase(std::pair<T, COL_TYPE>(T(col), col));
+    }
+  }
+
+  m.move(chai::CPU);
+  compareToReference(m.toViewCC(), mRef);
+}
+
+/**
+ * @brief Test the CRSMatrixView remove sorted method on device.
+ * @param [in/out] m the CRSMatrix to test.
+ * @param [in/out] mRef the reference to compare to.
+ * @param [in] MAX_REMOVES the maximum number of removes.
+ */
+template <class T>
+void removeSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
+                            INDEX_TYPE const MAX_REMOVES)
+{
+  INDEX_TYPE const numRows = m.numRows();
+  INDEX_TYPE const numCols = m.numColumns();
+
+  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+
+  std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
+
+  for (INDEX_TYPE row = 0; row < numRows; ++row)
+  {
+    for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
+    {
+      columnsToRemove(row, i) = columnDist(gen);
+    }
 
     // Sort the columns so they're ready to be removed.
     COL_TYPE * const colPtr = columnsToRemove[row];
@@ -919,7 +1094,7 @@ void removeMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
-      mView.removeNonZeros(row, colRemoveView[row], MAX_REMOVES);
+      mView.removeNonZerosSorted(row, colRemoveView[row], MAX_REMOVES);
     }
   );
 
@@ -1133,6 +1308,43 @@ TEST(CRSMatrix, insertMultiple)
   }
 }
 
+TEST(CRSMatrix, insertSorted)
+{
+  constexpr INDEX_TYPE NROWS = 100;
+  constexpr INDEX_TYPE NCOLS = 150;
+  constexpr INDEX_TYPE MAX_INSERTS = 75;
+
+  {
+    CRSMatrix<int> m(NROWS, NCOLS);
+    REF_TYPE<int> ref(NROWS);
+
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+  }
+
+  {
+    CRSMatrix<Tensor> m(NROWS, NCOLS);
+    REF_TYPE<Tensor> ref(NROWS);
+
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+  }
+
+  {
+    CRSMatrix<TestString> m(NROWS, NCOLS);
+    REF_TYPE<TestString> ref(NROWS);
+
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+    internal::insertSortedTest(m, ref, MAX_INSERTS);
+  }
+}
+
 TEST(CRSMatrix, remove)
 {
   constexpr INDEX_TYPE NROWS = 100;
@@ -1200,6 +1412,41 @@ TEST(CRSMatrix, removeMultiple)
     internal::removeMultipleTest(m.toView(), ref, MAX_REMOVES);
     internal::insertTest(m, ref, MAX_INSERTS);
     internal::removeMultipleTest(m.toView(), ref, MAX_REMOVES);
+  }
+}
+
+TEST(CRSMatrix, removeSorted)
+{
+  constexpr INDEX_TYPE NROWS = 100;
+  constexpr INDEX_TYPE NCOLS = 150;
+  constexpr INDEX_TYPE MAX_INSERTS = 75;
+  constexpr INDEX_TYPE MAX_REMOVES = 75;
+
+  {
+    CRSMatrix<int> m(NROWS, NCOLS);
+    REF_TYPE<int> ref(NROWS);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
+  }
+
+  {
+    CRSMatrix<Tensor> m(NROWS, NCOLS);
+    REF_TYPE<Tensor> ref(NROWS);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
+  }
+
+  {
+    CRSMatrix<TestString> m(NROWS, NCOLS);
+    REF_TYPE<TestString> ref(NROWS);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
+    internal::insertTest(m, ref, MAX_INSERTS);
+    internal::removeSortedTest(m.toView(), ref, MAX_REMOVES);
   }
 }
 
@@ -1582,6 +1829,31 @@ CUDA_TEST(CRSMatrix, insertMultipleDevice)
   }
 }
 
+CUDA_TEST(CRSMatrix, insertSortedDevice)
+{
+  constexpr INDEX_TYPE NROWS = 100;
+  constexpr INDEX_TYPE NCOLS = 150;
+  constexpr INDEX_TYPE MAX_INSERTS = 75;
+
+  {
+    CRSMatrix<int> m(NROWS, NCOLS);
+    REF_TYPE<int> ref(NROWS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+  }
+
+  {
+    CRSMatrix<Tensor> m(NROWS, NCOLS);
+    REF_TYPE<Tensor> ref(NROWS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+    internal::insertSortedDeviceTest(m, ref, MAX_INSERTS);
+  }
+}
+
 CUDA_TEST(CRSMatrix, removeDevice)
 {
   constexpr INDEX_TYPE NROWS = 100;
@@ -1631,6 +1903,32 @@ CUDA_TEST(CRSMatrix, removeMultipleDevice)
     internal::removeMultipleDeviceTest(m, ref, MAX_REMOVES);
     internal::insertDeviceTest(m, ref, MAX_INSERTS);
     internal::removeMultipleDeviceTest(m, ref, MAX_REMOVES);
+  }
+}
+
+CUDA_TEST(CRSMatrix, removeSortedDevice)
+{
+  constexpr INDEX_TYPE NROWS = 100;
+  constexpr INDEX_TYPE NCOLS = 150;
+  constexpr INDEX_TYPE MAX_INSERTS = 75;
+  constexpr INDEX_TYPE MAX_REMOVES = 75;
+
+  {
+    CRSMatrix<int> m(NROWS, NCOLS);
+    REF_TYPE<int> ref(NROWS);
+    internal::insertDeviceTest(m, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(m, ref, MAX_REMOVES);
+    internal::insertDeviceTest(m, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(m, ref, MAX_INSERTS);
+  }
+
+  {
+    CRSMatrix<Tensor> m(NROWS, NCOLS);
+    REF_TYPE<Tensor> ref(NROWS);
+    internal::insertDeviceTest(m, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(m, ref, MAX_REMOVES);
+    internal::insertDeviceTest(m, ref, MAX_INSERTS);
+    internal::removeSortedDeviceTest(m, ref, MAX_REMOVES);
   }
 }
 

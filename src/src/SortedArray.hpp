@@ -24,7 +24,7 @@
 #define SRC_COMMON_SORTEDARRAY
 
 #include "SortedArrayView.hpp"
-#include "ArrayManipulation.hpp"
+#include "sortedArrayManipulation.hpp"
 
 namespace geosx
 {
@@ -81,7 +81,6 @@ public:
   using SortedArrayView<T, INDEX_TYPE>::size;
   using SortedArrayView<T, INDEX_TYPE>::contains;
   using SortedArrayView<T, INDEX_TYPE>::count;
-  using SortedArrayView<T, INDEX_TYPE>::isSorted;
 
   /**
    * @brief Default constructor, the array is empty.
@@ -122,7 +121,7 @@ public:
 
   /**
    * @brief Method to convert to SortedArrayView<T const> const. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView<T const, INDEX_TYPE> const & toView() const restrict_this
@@ -161,7 +160,7 @@ public:
   inline
   bool insert( T const & value ) restrict_this
   {
-    bool const success = ArrayManipulation::insertSorted( data(), size(), value, CallBacks( m_values ));
+    bool const success = sortedArrayManipulation::insert( data(), size(), value, CallBacks( m_values ));
     m_values.setSize( size() + success );
     return success;
   }
@@ -171,11 +170,28 @@ public:
    * @param [in] vals the values to insert.
    * @param [in] nVals the number of values to insert.
    * @return The number of values actually inserted.
+   *
+   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
+   *       and then call insertSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
   {
-    INDEX_TYPE nInserted = ArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() + nInserted );
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert the given values into the array if they don't already exist.
+   * @param [in] vals the values to insert, must be sorted.
+   * @param [in] nVals the number of values to insert.
+   * @return The number of values actually inserted.
+   */
+  inline
+  INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) restrict_this
+  {
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
     m_values.setSize( size() + nInserted );
     return nInserted;
   }
@@ -188,7 +204,7 @@ public:
   inline
   bool erase( T const & value ) restrict_this
   {
-    bool const success = ArrayManipulation::removeSorted( data(), size(), value, CallBacks( m_values ));
+    bool const success = sortedArrayManipulation::remove( data(), size(), value, CallBacks( m_values ));
     m_values.setSize( size() - success );
     return success;
   }
@@ -198,11 +214,28 @@ public:
    * @param [in] vals the values to remove.
    * @param [in] nVals the number of values to remove.
    * @return The number of values actually removed.
+   *
+   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
+   *       and then call eraseSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
   {
-    INDEX_TYPE nRemoved = ArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
+    INDEX_TYPE nRemoved = sortedArrayManipulation::remove( data(), size(), vals, nVals, CallBacks( m_values ));
+    m_values.setSize( size() - nRemoved );
+    return nRemoved;
+  }
+
+  /**
+   * @brief Remove the given values from the array if they exist.
+   * @param [in] vals the values to remove, must be sorted.
+   * @param [in] nVals the number of values to remove.
+   * @return The number of values actually removed.
+   */
+  inline
+  INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) restrict_this
+  {
+    INDEX_TYPE nRemoved = sortedArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
     m_values.setSize( size() - nRemoved );
     return nRemoved;
   }
@@ -223,6 +256,7 @@ private:
    * @brief Return a non const pointer to the values.
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
+   *
    * @note the friend class ViewWrapper calls this method.
    */
   CONSTEXPRFUNC inline
@@ -233,6 +267,7 @@ private:
    * @brief Return a non const pointer to the values.
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
+   *
    * @note the friend class ViewWrapper calls this method.
    */
   inline
@@ -241,7 +276,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the sortedArrayManipulation sorted routines.
    */
   class CallBacks
   {

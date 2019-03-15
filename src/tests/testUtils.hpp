@@ -19,7 +19,9 @@
 #ifndef TEST_UTILS_HPP_
 #define TEST_UTILS_HPP_
 
+#include "CXX_UtilsConfig.hpp"
 #include <string>
+#include <ostream>
 
 #ifdef USE_CUDA
 
@@ -27,7 +29,19 @@
   static void cuda_test_##X##Y();    \
   TEST(X, Y) { cuda_test_##X##Y(); } \
   static void cuda_test_##X##Y()
+
 #endif
+
+// Comparator that compares a std::pair by it's first object.
+template <class A, class B, class COMP=std::less<B>>
+struct PairComp {
+  DISABLE_HD_WARNING
+  LVARRAY_HOST_DEVICE inline
+  constexpr bool operator()(const std::pair<A, B>& lhs, const std::pair<A, B>& rhs) const
+  {
+    return COMP()(lhs.second, rhs.second); 
+  }
+};
 
 /**
  * @class TestString

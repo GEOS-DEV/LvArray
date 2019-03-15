@@ -24,6 +24,7 @@
 #define SPARSITYPATTERN_HPP_
 
 #include "SparsityPatternView.hpp"
+#include "arrayManipulation.hpp"
 
 namespace LvArray
 {
@@ -34,7 +35,7 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
- * @note SparsityPatternView is a protected base class of SparsityPattern. This is to control
+ * SparsityPatternView is a protected base class of SparsityPattern. This is to control
  * the conversion to SparsityPatternView so that when using a View the INDEX_TYPE is always const.
  * However the SparsityPatternView interface is reproduced here.
  */
@@ -66,8 +67,8 @@ public:
   SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
   {
-    GEOS_ERROR_IF( !ArrayManipulation::isPositive( nrows ), "nrows must be positive." );
-    GEOS_ERROR_IF( !ArrayManipulation::isPositive( ncols ), "ncols must be positive." );
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
     GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
                    "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
@@ -128,7 +129,7 @@ public:
 
   /**
    * @brief Method to convert to SparsityPatternView<COL_TYPE, INDEX_TYPE const>. Use this method when
-   * the above UDC isn't invoked, this usually occurs with template argument deduction.
+   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   inline
   SparsityPatternView<COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
@@ -136,8 +137,8 @@ public:
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   * Although SparsityPatternView defines this operator nvcc won't let us alias it so
-   * it is redefined here.
+   *        Although SparsityPatternView defines this operator nvcc won't let us alias it so
+   *        it is redefined here.
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
@@ -189,7 +190,7 @@ public:
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
-   * either reallocation or shifting the row offsets.
+   *        either reallocation or shifting the row offsets.
    * @param [in] row the row to reserve space in.
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
@@ -204,10 +205,11 @@ public:
    * @brief Set the non zero capacity of the given row.
    * @param [in] row the row to modify.
    * @param [in] newCapacity the new capacity of the row.
+   *
    * @note If the given capacity is less than the current number of non zero entries
-   * the entries are truncated.
+   *       the entries are truncated.
    * @note Since a row can hold at most numColumns() entries the resulting capacity is
-   * min(newCapacity, numColumns()).
+   *       min(newCapacity, numColumns()).
    */
   inline
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
@@ -267,20 +269,45 @@ public:
    * @param [in] cols the columns to insert.
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns actually inserted.
+   *
+   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, ncols)
+   * and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
   {
+    constexpr int LOCAL_SIZE = 16;
+    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
+    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+
+    INDEX_TYPE const nInserted = insertNonZerosSorted(row, columnBuffer, ncols);
+
+    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
+    return nInserted;
+  }
+
+  /**
+   * @brief Insert non zeros in the given columns of the given row.
+   * @param [in] row the row to insert into.
+   * @param [in] cols the columns to insert, must be sorted.
+   * @param [in] ncols the number of columns to insert.
+   * @return The number of columns actually inserted.
+   */
+  inline
+  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
+  {
     INDEX_TYPE const rowNNZ = numNonZeros( row );
     INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
   }
 
 private:
 
   /**
    * @brief Increase the capacity of a row to accommodate at least the given number of
-   * non zero entries.
+   *        non zero entries.
    * @param [in] row the row to increase the capacity of.
    * @param [in] newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
@@ -291,7 +318,7 @@ private:
 
   /**
    * @class CallBacks
-   * @brief This class provides the callbacks for the ArrayManipulation sorted routines.
+   * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
   class CallBacks
   {
@@ -368,9 +395,9 @@ private:
   // Aliasing protected methods of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumnsProtected;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosSortedImpl;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosImpl;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosSortedImpl;
 
   // Aliasing protected members of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
