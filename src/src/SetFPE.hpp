@@ -25,6 +25,8 @@
 
 #ifndef SRC_CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_SETFPE_HPP_
 #define SRC_CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_SETFPE_HPP_
+
+#include "CXX_UtilsConfig.hpp"
 #include <fenv.h>
 
 #if defined(__APPLE__) && defined(__MACH__)

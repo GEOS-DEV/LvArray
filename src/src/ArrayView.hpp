@@ -96,6 +96,14 @@ public:
     m_dataVector()
   {}
 
+  inline explicit CONSTEXPRFUNC
+  ArrayView( std::nullptr_t ) noexcept:
+    m_data{ nullptr },
+    m_dims{ 0 },
+    m_strides{ 0 },
+    m_dataVector( nullptr )
+  {}
+
   /**
    * @brief constructor to make a shallow copy of the input data
    * @param dimsMem
@@ -112,7 +120,7 @@ public:
     m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
-    m_dataVector()
+    m_dataVector(nullptr)
   {
     m_dataVector = dataVector;
     setDims( dimsMem );

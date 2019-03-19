@@ -23,6 +23,7 @@
 #ifndef SPARSITYPATTERNVIEW_HPP_
 #define SPARSITYPATTERNVIEW_HPP_
 
+#include <limits>
 #include "ChaiVector.hpp"
 #include "arrayManipulation.hpp"
 #include "sortedArrayManipulation.hpp"

@@ -53,7 +53,9 @@ class TestString : public std::string
 public:
   template <class T=int>
   TestString(T val=0) :
-    std::string(std::to_string(val))
+    std::string(std::to_string(val) +
+                std::string(" The rest of this is to avoid any small string optimizations. ") +
+                std::to_string(2 * val))
   {}
 };
 
@@ -70,7 +72,8 @@ struct Tensor
     x(), y(), z()
   {}
 
-  LVARRAY_HOST_DEVICE explicit Tensor( double val ):
+  template <class T>
+  LVARRAY_HOST_DEVICE explicit Tensor( T val ):
     x( 3 * val ), y( 3 * val + 1 ), z( 3 * val + 2 )
   {}
 
