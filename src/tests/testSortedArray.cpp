@@ -742,6 +742,11 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
+
+#ifdef USE_CHAI
+  chai::ArrayManager::finalize();
+#endif
+
   MPI_Finalize();
   return result;
 }

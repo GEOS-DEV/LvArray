@@ -98,6 +98,19 @@ public:
   }
 
   /**
+   * @brief Use this to create an empty ChaiVector.
+   * @note You cannot call any methdods on the ChaiVector until it has been
+   *       initialized from another ChaiVector using either of the operator= methods.
+   */
+  ChaiVector( std::nullptr_t ):
+    m_array( nullptr ),
+  #ifndef USE_CHAI
+    m_capacity( 0 ),
+  #endif
+    m_length( 0 )
+  {}
+
+  /**
    * @brief Copy constructor, creates a shallow copy of the given ChaiVector.
    * @param [in] source the ChaiVector to copy.
    * 
@@ -120,7 +133,7 @@ public:
    * @note Unlike the copy constructor this can not trigger a memory movement.
    */
   ChaiVector( ChaiVector&& source ):
-    m_array( source.m_array ),
+    m_array( std::move(source.m_array) ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
@@ -152,11 +165,8 @@ public:
    */
   void free()
   {
-    if( capacity() > 0 )
-    {
-      clear();
-      releaseAllocation();
-    }
+    clear();
+    releaseAllocation();
 
     m_array = nullptr;
     m_length = 0;
@@ -186,6 +196,26 @@ public:
 #ifndef USE_CHAI
     m_capacity = source.capacity();
 #endif
+    return *this;
+  }
+
+  /**
+   * @brief Copy assignment operator, creates a shallow copy of the given ChaiVector.
+   * @param [in] source the ChaiVector to copy.
+   */
+  LVARRAY_HOST_DEVICE ChaiVector& operator=( ChaiVector && source )
+  {
+    m_array = std::move(source.m_array);
+    source.m_array = nullptr;
+
+    m_length = source.m_length;
+    source.m_length = 0;
+
+#ifndef USE_CHAI
+    m_capacity = source.m_capacity;
+    source.m_capacity = 0;
+#endif
+
     return *this;
   }
 
@@ -256,11 +286,7 @@ public:
    */
   void insert( size_type index, const T& value )
   {
-    size_type newLength = size() + 1;
-    if( newLength > capacity() )
-    {
-      dynamicRealloc( newLength );
-    }
+    dynamicResize( size() + 1 );
 
     arrayManipulation::insert( data(), m_length, index, value );
     m_length += 1;
@@ -273,11 +299,7 @@ public:
    */
   void insert( size_type index, const T&& value )
   {
-    size_type newLength = size() + 1;
-    if( newLength > capacity() )
-    {
-      dynamicRealloc( newLength );
-    }
+    dynamicResize( size() + 1 );
 
     arrayManipulation::insert( data(), m_length, index, std::move( value ));
     m_length += 1;
@@ -291,14 +313,10 @@ public:
    */
   void insert( size_type index, T const * const values, size_type n )
   {
-    size_type newLength = size() + n;
-    if( newLength > capacity() )
-    {
-      dynamicRealloc( newLength );
-    }
+    dynamicResize( size() + n );
 
     arrayManipulation::insert( data(), m_length, index, values, n );
-    m_length = newLength;
+    m_length += n;
   }
 
   /**
@@ -307,10 +325,7 @@ public:
    */
   void push_back( T const & value )
   {
-    if( size() + 1 > capacity() )
-    {
-      dynamicRealloc( size() + 1 );
-    }
+    dynamicResize( size() + 1 );
 
     arrayManipulation::append( data(), m_length, value );
     m_length += 1;
@@ -322,10 +337,7 @@ public:
    */
   void push_back( T && value )
   {
-    if( size() + 1 > capacity() )
-    {
-      dynamicRealloc( size() + 1 );
-    }
+    dynamicResize( size() + 1 );
 
     arrayManipulation::append( data(), m_length, std::move( value ));
     m_length += 1;
@@ -338,10 +350,7 @@ public:
    */
   void push_back( T const * values, size_type n_values )
   {
-    if( size() + n_values > capacity() )
-    {
-      dynamicRealloc( size() + n_values );
-    }
+    dynamicResize( size() + n_values );
 
     arrayManipulation::append( data(), m_length, values, n_values );
     m_length += n_values;
@@ -364,14 +373,15 @@ public:
    *       if increasing the size the values past the current size are initialized with
    *       the default constructor.
    */
-  void resize( const size_type newLength, T const & defaultValue = T())
+  template <class ...ARGS>
+  void resize( const size_type newLength, ARGS &&... args )
   {
     if( newLength > capacity() )
     {
       realloc( newLength );
     }
 
-    arrayManipulation::resize( data(), m_length, newLength, defaultValue );
+    arrayManipulation::resize( data(), m_length, newLength, std::forward<ARGS>(args)... );
     m_length = newLength;
 
     if( m_length > 0 )
@@ -403,14 +413,10 @@ public:
   {
     if( n == 0 ) return;
 
-    size_type newLength = size() + n;
-    if( newLength > capacity() )
-    {
-      dynamicRealloc( newLength );
-    }
+    dynamicResize( size() + n );
 
     arrayManipulation::emplace( data(), m_length, pos, n, defaultValue );
-    m_length = newLength;
+    m_length += n;
   }
 
   /**
@@ -469,14 +475,27 @@ private:
   {
     if( n == 0 ) return;
 
-    size_type newLength = size() + n;
-    if( newLength > capacity() )
-    {
-      dynamicRealloc( newLength );
-    }
+    dynamicResize( size() + n );
 
     arrayManipulation::shiftUp( data(), m_length, pos, n );
-    m_length = newLength;
+    m_length += n;
+  }
+
+  /**
+   * @brief Shift the values in the array at or above the given position down by the given amount overwriting
+ *        the existing values. The n entries at the end of the array are not destroyed.
+ * @param [in] pos the ps at which to begin the shift.
+ * @param [in] n the number of places to shift.
+   *
+   * @note The newly values at the end of the array are not destroyed.
+   * @note This is used by the CRSMatrix class.
+   */
+  void shiftDown( size_type pos, size_type n )
+  {
+    if( n == 0 ) return;
+
+    arrayManipulation::shiftDown( data(), m_length, pos, n );
+    m_length -= n;
   }
 
 #ifdef USE_CHAI
@@ -517,20 +536,31 @@ private:
     }
 
 #ifdef USE_CHAI
-    if( capacity() != 0 )
-    {
-      internal::chai_lock.lock();
-      m_array.free();
-      internal::chai_lock.unlock();
-    }
+    internal::chai_lock.lock();
+    m_array.free();
+    internal::chai_lock.unlock();
 #else
     std::free( m_array );
     m_capacity = new_capacity;
 #endif
     m_array = new_array;
+
 #ifdef USE_CHAI
     registerTouch( chai::CPU );
 #endif
+  }
+
+  /**
+   * @brief Performs a dynamic reallocation if the new length will exceed the capacity.
+   * @param [in] newLength the new length.
+   * @note this doesn't actually set m_length.
+   */
+  void dynamicResize( size_type newLength )
+  {
+    if( newLength > capacity() )
+    {
+      dynamicRealloc( newLength );
+    }
   }
 
   /**

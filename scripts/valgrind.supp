@@ -1,0 +1,201 @@
+################################################################################
+# This is a valgrind suppression file
+# See https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
+# Some of these are included in the default suppression file on LC. If you
+# believe they are hiding real errors you can disable the default suppressions
+# with --default-suppressions=no (not reccomended).
+################################################################################
+
+################################################################################
+# mpi suppressions
+################################################################################
+{
+   PMPI_Init leak
+   Memcheck:Leak
+   ...
+   fun:PMPI_Init
+   ...
+}
+
+{
+   PMPI_Init condition
+   Memcheck:Cond
+   ...
+   fun:PMPI_Init
+   ...
+}
+
+{
+   PMPI_Init uninitialized
+   Memcheck:Value8
+   ...
+   fun:PMPI_Init
+   ...
+}
+
+{
+   PMPI_Init uninitialized write syscall
+   Memcheck:Param
+   write(buf)
+   ...
+   fun:PMPI_Init
+   ...
+}
+
+{
+   PMPI_Init overlap
+   Memcheck:Overlap
+   ...
+   fun:PMPI_Init
+   ...
+}
+
+{
+   PMPI_Finalize free
+   Memcheck:Free
+   fun:free
+   ...
+   fun:PMPI_Finalize
+   ...
+}
+
+{
+   PMPI_Finalize condition
+   Memcheck:Cond
+   ...
+   fun:PMPI_Finalize
+   ...
+}
+
+{
+   PMPI_Finalize uninitialized
+   Memcheck:Value8
+   ...
+   fun:PMPI_Finalize
+   ...
+}
+
+{
+   PMPI_Finalize uninitialized write syscall
+   Memcheck:Param
+   write(buf)
+   ...
+   fun:PMPI_Finalize
+   ...
+}
+
+
+# For blueos
+
+
+################################################################################
+# OpenMP suppressions
+################################################################################
+{
+   libomp
+   Memcheck:Leak
+   ...
+   obj:/*/libomp.so*
+   ...
+}
+
+{
+   libomp syscall
+   Memcheck:Param
+   sched_setaffinity(mask)
+   fun:syscall
+   obj:/*/libomp.so*
+   ...
+}
+
+# For blueos
+{
+   libxlsmp
+   Memcheck:Leak
+   ...
+   obj:/*/libxlsmp.so*
+   ...
+}
+
+{
+   libcuda malloc
+   Memcheck:Leak
+   fun:malloc
+   obj:/*/valgrind/*
+   obj:/*/libcuda.so*
+   ...
+}
+
+################################################################################
+# CUDA suppressions
+################################################################################
+{
+   libcuda realloc
+   Memcheck:Leak
+   fun:realloc
+   obj:/*/valgrind/*
+   obj:/*/libcuda.so*
+   ...
+}
+
+{
+   libcuda calloc
+   Memcheck:Leak
+   fun:calloc
+   obj:/*/libcuda.so*
+   ...
+}
+
+{
+   libcuda strdup malloc
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   obj:/*/libcuda.so*
+   ...
+}
+
+{
+   cudaGetSymbolAddress
+   Memcheck:Leak
+   ...
+   fun:cudaGetSymbolAddress
+   ...
+}
+
+{
+   cudaGetDeviceCount
+   Memcheck:Leak
+   ...
+   fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   __cudaPushCallConfiguration malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:__cudaPushCallConfiguration
+   ...
+}
+
+################################################################################
+# libpsm2 suppressions
+################################################################################
+{
+   libpsm2 malloc
+   Memcheck:Leak
+   fun:malloc
+   obj:/*/libpsm2.so*
+   ...
+}
+
+{
+   libpsm2 strdup
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   obj:/*/libpsm2.so*
+   ...
+}

@@ -79,7 +79,10 @@ public:
     if( initialRowCapacity != 0 )
     {
       m_columns.resize( nrows * initialRowCapacity, COL_TYPE( -1 ));
-      m_values.resize( nrows * initialRowCapacity );
+      
+      m_values.reserve( nrows * initialRowCapacity );
+      m_values.setSize( nrows * initialRowCapacity );
+
       for( INDEX_TYPE row = 1 ; row < nrows + 1 ; ++row )
       {
         m_offsets[row] = row * initialRowCapacity;
@@ -318,7 +321,7 @@ public:
    *       min(newCapacity, numColumns()).
    */
   inline
-  void setRowCapacity( INDEX_TYPE row, INDEX_TYPE newCapacity )
+  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
   {
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     GEOS_ASSERT( newCapacity >= 0 );
@@ -328,36 +331,77 @@ public:
       newCapacity = numColumns();
     }
 
-    INDEX_TYPE const row_offset = m_offsets[row];
-    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    INDEX_TYPE const capacity_difference = newCapacity - rowCapacity;
-    if( capacity_difference == 0 ) return;
-
     INDEX_TYPE const nRows = numRows();
-    for( INDEX_TYPE i = row + 1 ; i < nRows + 1 ; ++i )
-    {
-      m_offsets[i] += capacity_difference;
-    }
+    INDEX_TYPE const rowOffset = m_offsets[row];
+    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
+    INDEX_TYPE const capacityIncrease = newCapacity - rowCapacity;
+    if( capacityIncrease == 0 ) return;
 
-    if( capacity_difference > 0 )
+    if( capacityIncrease > 0 )
     {
-      m_columns.shiftUp( row_offset + rowCapacity, capacity_difference );
-      m_values.shiftUp( row_offset + rowCapacity, capacity_difference );
+      m_columns.shiftUp( rowOffset + rowCapacity, capacityIncrease );
+
+      // Increase the size of m_values
+      m_values.dynamicResize( m_offsets[nRows] + capacityIncrease );
+      m_values.setSize( m_offsets[nRows] + capacityIncrease );
+
+      // Shift up the values of the rows
+      for (INDEX_TYPE curRow = nRows - 1; curRow > row; --curRow)
+      {
+        INDEX_TYPE const curRowNNZ = numNonZeros(curRow);
+        INDEX_TYPE const curRowOffset = m_offsets[curRow];
+
+        for (INDEX_TYPE i = curRowNNZ - 1; i >= 0; --i)
+        {
+          new (&m_values[curRowOffset + capacityIncrease + i]) T(std::move(m_values[curRowOffset + i]));
+          m_values[curRowOffset + i].~T();
+        }
+      }
     }
     else
     {
-      INDEX_TYPE const prev_row_size = numNonZeros( row );
-      if( newCapacity < prev_row_size )
+      INDEX_TYPE const capacityDecrease = -capacityIncrease;
+      m_columns.shiftDown( rowOffset + rowCapacity, capacityDecrease );
+      
+      INDEX_TYPE const prevRowNNZ = numNonZeros( row );
+      INDEX_TYPE const newRowNNZ = min(prevRowNNZ, newCapacity);
+
+      // Delete the values at the end of the row.
+      m_sizes[row] = newRowNNZ;
+      for (INDEX_TYPE i = newRowNNZ; i < prevRowNNZ; ++i)
       {
-        m_sizes[row] = newCapacity;
+        m_values[rowOffset + i].~T();
       }
 
-      m_columns.erase( row_offset + rowCapacity + capacity_difference, -capacity_difference );
-      m_values.erase( row_offset + rowCapacity + capacity_difference, -capacity_difference );
+      // Shift down the values of subsequent rows.
+      for (INDEX_TYPE curRow = row + 1; curRow < nRows; ++curRow)
+      {
+        INDEX_TYPE const curRowNNZ = numNonZeros(curRow);
+        INDEX_TYPE const curRowOffset = m_offsets[curRow];
+
+        for (INDEX_TYPE i = 0; i < curRowNNZ; ++i)
+        {
+          new (&m_values[curRowOffset - capacityDecrease + i]) T(std::move(m_values[curRowOffset + i]));
+          m_values[curRowOffset + i].~T();
+        }
+      }
+    }
+
+    for( INDEX_TYPE curRow = row + 1 ; curRow < nRows + 1 ; ++curRow )
+    {
+      m_offsets[curRow] += capacityIncrease;
     }
   }
 
 private:
+
+  template <class U>
+  constexpr  U const & max(const U& a, const U& b) const
+  { return (a > b) ? a : b; }
+
+  template <class U>
+  constexpr U const & min(const U& a, const U& b) const
+  { return (a < b) ? a : b; }
 
   /**
    * @brief Destroys all of the values, but does not free the values array. 
@@ -383,7 +427,7 @@ private:
    * @param [in] newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
-  void dynamicallyGrowRow( INDEX_TYPE row, INDEX_TYPE newNNZ )
+  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ )
   { setRowCapacity( row, 2 * newNNZ ); }
 
   /**

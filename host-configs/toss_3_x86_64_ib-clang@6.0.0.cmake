@@ -20,7 +20,7 @@ set( ENABLE_AXOM ON CACHE BOOL "" FORCE )
 set( AXOM_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@6.0.0-release/axom" CACHE PATH "" FORCE )
 
 set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
-set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@6.0.0-release/chai" CACHE PATH "" FORCE )
+set( CHAI_DIR "~/chai/install-quartz-clang6-release" CACHE PATH "" FORCE )
 
 set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
 set(UNCRUSTIFY_EXECUTABLE "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-clang@6.0.0-release/uncrustify/bin/uncrustify" CACHE PATH "" FORCE )

@@ -110,6 +110,8 @@ public:
     *this = source;
   }
 
+  Array( Array && source ) = default;
+
   /**
    * destructor
    */
@@ -264,6 +266,15 @@ public:
     resizePrivate( oldLength, defaultValue );
   }
 
+  template <class ...ARGS>
+  void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
+  {
+    INDEX_TYPE const oldLength = size();
+    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
+    CalculateStrides();
+    resizePrivate( oldLength, std::forward<ARGS>(args)... );
+  }
+
   template < INDEX_TYPE... INDICES, typename... DIMS>
   void resizeDimension( DIMS... newdims )
   {
@@ -412,10 +423,11 @@ private:
     }
   }
 
-  void resizePrivate( INDEX_TYPE const oldLength, T const & defaultValue = T() )
+  template <class ...ARGS>
+  void resizePrivate( INDEX_TYPE const oldLength, ARGS &&... args )
   {
     INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dims );
-    m_dataVector.resize( newLength, defaultValue );
+    m_dataVector.resize( newLength, std::forward<ARGS>(args)... );
     this->setDataPtr();
   }
 

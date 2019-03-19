@@ -73,16 +73,17 @@ isPositive( INDEX_TYPE const )
 /**
  * @tparam T the storage type of the array.
  * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @tparam ARGS the types of the arguments to forward to the constructor.
  * @brief Resize the give array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] newSize the new size.
- * @param [in] defaultValue the value to initialize any new values with.
+ * @param [in/out] args the arguments to forward to construct any new elements with.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T, class INDEX_TYPE, class ...ARGS>
 LVARRAY_HOST_DEVICE inline
-void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T const & defaultValue=T())
+void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS &&... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -97,7 +98,7 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, T c
   // Initialize things between size and newSize.
   for( INDEX_TYPE i = size ; i < newSize ; ++i )
   {
-    new (&ptr[i]) T( defaultValue );
+    new (&ptr[i]) T(std::forward<ARGS>(args)...);
   }
 }
 
@@ -155,6 +156,8 @@ template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
 void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1, T const & defaultValue=T())
 {
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
+
   shiftUp( ptr, size, index, n );
 
   // Initialize the empty values to the default value.
@@ -179,6 +182,7 @@ template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
 void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
 {
+  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
   GEOS_ASSERT( isPositive( n ));
