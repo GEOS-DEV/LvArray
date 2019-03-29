@@ -37,6 +37,9 @@
 namespace LvArray
 {
 
+template <class COL_TYPE, class INDEX_TYPE>
+class SparsityPattern;
+
 #ifdef USE_CHAI
 namespace internal
 {
