@@ -219,6 +219,16 @@ public:
   }
 
   /**
+   * @brief Return an ArraySlice1d (pointer) to the array of columns.
+   *        This array has length getOffsets()([numRows()].
+   */
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  ArraySlice1d_rval<COL_TYPE const, INDEX_TYPE_NC> getColumns() const restrict_this
+  {
+    return createArraySlice1d<COL_TYPE const, INDEX_TYPE_NC>( m_columns.data(), &m_offsets[numRows()], nullptr );
+  }
+
+  /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
    *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
@@ -228,6 +238,16 @@ public:
   {
     SPARSITYPATTERN_CHECK_BOUNDS( row );
     return createArraySlice1d<COL_TYPE const, INDEX_TYPE_NC>( m_columns.data() + m_offsets[row], &m_sizes[row], nullptr );
+  }
+
+  /**
+   * @brief Return a pointer to the array of offsets.
+   *        This array has length numRows() + 1.
+   */
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  INDEX_TYPE_NC const * getOffsets() const restrict_this
+  {
+    return m_offsets.data();
   }
 
   /**
