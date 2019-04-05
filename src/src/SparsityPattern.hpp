@@ -52,6 +52,7 @@ public:
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::nonZeroCapacity;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::empty;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumns;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getOffsets;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZero;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeros;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZero;
@@ -250,6 +251,30 @@ public:
   }
 
   /**
+   * @brief Compress the SparsityPattern so that the non-zeros of each row
+   *        are contiguous with no extra capacity in between.
+   * @note This method doesn't free any memory.
+   */
+  inline
+  void compress() restrict_this
+  {
+    INDEX_TYPE const nRows = numRows();
+    for (INDEX_TYPE row = 1; row < nRows; ++row)
+    {
+      INDEX_TYPE const prevRow = row - 1;
+      INDEX_TYPE const prevNNZ = numNonZeros(prevRow);
+      INDEX_TYPE const prevCapacity = nonZeroCapacity(prevRow);
+      INDEX_TYPE const numEmpty = prevCapacity - prevNNZ;
+      COL_TYPE * const prevColumns = getColumnsProtected(prevRow);
+
+      INDEX_TYPE const curNNZ = numNonZeros(row);
+
+      arrayManipulation::shiftDown(prevColumns + prevNNZ, numEmpty + curNNZ, numEmpty, numEmpty);
+      m_offsets[row] -= numEmpty;
+    }
+  }
+
+  /**
    * @brief Insert a non zero entry in the entry (row, col).
    * @param [in] row the row of the entry to insert.
    * @param [in] col the column of the entry to insert.
@@ -271,7 +296,7 @@ public:
    * @return The number of columns actually inserted.
    *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, ncols)
-   * and then call insertNonZerosSorted, this will be substantially faster.
+   *       and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this

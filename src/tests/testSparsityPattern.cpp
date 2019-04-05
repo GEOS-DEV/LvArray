@@ -440,6 +440,37 @@ void rowCapacityTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef)
 }
 
 /**
+ * @brief Test the compress method of SparsityPattern.
+ * @param [in/out] v the SparsityPattern to test.
+ * @param [in] vRef the reference to compare against.
+ */
+template <class COL_TYPE>
+void compressTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> const & vRef)
+{
+  v.compress();
+
+  COL_TYPE const * const columns = v.getColumns();
+  INDEX_TYPE const * const offsets = v.getOffsets();
+
+  INDEX_TYPE curOffset = 0;
+  for (INDEX_TYPE row = 0; row < v.numRows(); ++row)
+  {
+    // The last row will have all the extra capacity.
+    if (row != v.numRows() - 1)
+    {
+      ASSERT_EQ(v.numNonZeros(row), v.nonZeroCapacity(row));
+    }
+    
+    ASSERT_EQ(v.getColumns(row), columns + curOffset);
+    ASSERT_EQ(offsets[row], curOffset);
+
+    curOffset += v.numNonZeros(row);
+  }
+
+  compareToReference(v.toViewC(), vRef);
+}
+
+/**
  * @brief Test the copy constructor of the SparsityPattern.
  * @param [in] v the SparsityPattern to check.
  * @param [in] vRef the reference to check against.
@@ -1341,6 +1372,41 @@ TEST(SparsityPattern, rowCapacity)
     ASSERT_EQ(columns, newColumns);
 
     internal::rowCapacityTest(sp, ref);
+  }
+}
+
+TEST(SparsityPattern, compress)
+{
+  {
+    constexpr INDEX_TYPE NROWS = 100;
+    constexpr int NCOLS = 150;
+    constexpr int MAX_INSERTS = 75;
+
+    SparsityPattern<uint> sp(NROWS, NCOLS, MAX_INSERTS);
+    REF_TYPE<uint> ref(NROWS);
+
+    uint const * const columns = sp.getColumns(0);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    uint const * const newColumns = sp.getColumns(0);
+    ASSERT_EQ(columns, newColumns);
+
+    internal::compressTest(sp, ref);
+  }
+
+  {
+    constexpr INDEX_TYPE NROWS = SCHAR_MAX + 10;
+    constexpr schar NCOLS = SCHAR_MAX;
+    constexpr schar MAX_INSERTS = SCHAR_MAX;
+
+    SparsityPattern<schar> sp(NROWS, NCOLS, MAX_INSERTS);
+    REF_TYPE<schar> ref(NROWS);
+
+    schar const * const columns = sp.getColumns(0);
+    internal::insertTest(sp, ref, MAX_INSERTS);
+    schar const * const newColumns = sp.getColumns(0);
+    ASSERT_EQ(columns, newColumns);
+
+    internal::compressTest(sp, ref);
   }
 }
 
