@@ -461,7 +461,8 @@ void compressTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> const & vRef
       ASSERT_EQ(v.numNonZeros(row), v.nonZeroCapacity(row));
     }
     
-    ASSERT_EQ(v.getColumns(row), columns + curOffset);
+    COL_TYPE const * const rowColumns = v.getColumns(row);
+    ASSERT_EQ(rowColumns, columns + curOffset);
     ASSERT_EQ(offsets[row], curOffset);
 
     curOffset += v.numNonZeros(row);
