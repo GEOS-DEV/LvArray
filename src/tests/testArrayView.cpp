@@ -981,15 +981,15 @@ CUDA_TEST( ArrayView, memoryMotionArrayConst )
     internal::testMemoryMotionArrayConst( a );
   }
 
-  // {
-  //   array< array< Tensor > > a( N );
-  //   for ( INDEX_TYPE i = 0; i < N; ++i )
-  //   {
-  //     a[ i ].resize( N );
-  //   }
+  {
+    array< array< Tensor > > a( N );
+    for ( INDEX_TYPE i = 0; i < N; ++i )
+    {
+      a[ i ].resize( N );
+    }
 
-  //   internal::testMemoryMotionArrayConst( a );
-  // }
+    internal::testMemoryMotionArrayConst( a );
+  }
 }
 
 CUDA_TEST( ArrayView, memoryMotionArrayMove )
