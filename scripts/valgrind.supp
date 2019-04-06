@@ -108,6 +108,15 @@
    ...
 }
 
+{
+   gomp realloc
+   Memcheck:Leak
+   fun:realloc
+   fun:gomp_realloc
+   ...
+}
+
+
 # For blueos
 {
    libxlsmp
