@@ -96,6 +96,14 @@ public:
     m_dataVector()
   {}
 
+  inline explicit CONSTEXPRFUNC
+  ArrayView( std::nullptr_t ) noexcept:
+    m_data{ nullptr },
+    m_dims{ 0 },
+    m_strides{ 0 },
+    m_dataVector( nullptr )
+  {}
+
   /**
    * @brief constructor to make a shallow copy of the input data
    * @param dimsMem
@@ -104,7 +112,7 @@ public:
    * @param singleParameterResizeIndex
    * @return
    */
-  inline explicit CONSTEXPRFUNC
+  inline CONSTEXPRFUNC
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
@@ -112,7 +120,7 @@ public:
     m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
-    m_dataVector()
+    m_dataVector(nullptr)
   {
     m_dataVector = dataVector;
     setDims( dimsMem );
@@ -149,7 +157,7 @@ public:
    * @return
    * moves source into this without triggering any copy.
    */
-  inline CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   ArrayView( ArrayView && source ):
     m_data{ nullptr },
     m_dims{ 0 },
@@ -520,7 +528,7 @@ public:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-#ifdef USE_CUDA
+#ifdef __CUDA_ARCH__
       const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
 #else
       const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>( dims[a] );

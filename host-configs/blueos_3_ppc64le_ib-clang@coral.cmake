@@ -27,7 +27,7 @@ set(BLT_MPI_COMMAND_APPEND "mpibind" CACHE PATH "")
 
 set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
 
-set( CHAI_DIR "/g/g14/corbett5/geosx/chai/install" CACHE PATH "" FORCE )
+set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-blueos_3_ppc64le_ib-clang@coral-release/chai" CACHE PATH "" FORCE )
 
 set(ENABLE_CUDA ON CACHE BOOL "")
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-9.2.148" CACHE STRING "")

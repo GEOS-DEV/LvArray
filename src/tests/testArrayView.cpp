@@ -388,7 +388,8 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
   const INDEX_TYPE N = a.size();
 
   // Create a shallow copy of a that we can modify later.
-  array< arrayView_nc< T > > a_copy( N );
+  array< arrayView_nc< T > > a_copy;
+  a_copy.resizeWithArgs(N, nullptr);
 
   for ( INDEX_TYPE i = 0; i < N; ++i )
   { 
@@ -529,7 +530,7 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
   
   for ( INDEX_TYPE i = 0; i < N; ++i )
   { 
-    a_copy[ i ].resize(a[i].size());
+    a_copy[ i ].resizeWithArgs(a[i].size(), nullptr);
     for ( INDEX_TYPE j = 0; j < N; ++j )
     {
       a_copy[ i ][ j ] = a[ i ][ j ];
@@ -1182,5 +1183,10 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
+
+#ifdef USE_CHAI
+  chai::ArrayManager::finalize();
+#endif
+
   return result;
 }
