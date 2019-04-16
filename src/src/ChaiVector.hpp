@@ -132,13 +132,14 @@ public:
    *
    * @note Unlike the copy constructor this can not trigger a memory movement.
    */
-  ChaiVector( ChaiVector&& source ):
-    m_array( std::move(source.m_array) ),
+  LVARRAY_HOST_DEVICE ChaiVector( ChaiVector&& source ):
+    m_array( nullptr ),
 #ifndef USE_CHAI
     m_capacity( source.capacity() ),
 #endif
     m_length( source.m_length )
   {
+    m_array = source.m_array;
 #ifndef USE_CHAI
     source.m_capacity = 0;
 #endif
@@ -176,7 +177,7 @@ public:
    * @brief Let go of any memory held. Should not be called lightly, does not free
    *        said memory.
    */
-  void reset()
+  LVARRAY_HOST_DEVICE void reset()
   {
     m_array = nullptr;
     m_length = 0;

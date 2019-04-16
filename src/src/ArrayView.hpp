@@ -112,7 +112,7 @@ public:
    * @param singleParameterResizeIndex
    * @return
    */
-  inline explicit CONSTEXPRFUNC
+  inline CONSTEXPRFUNC
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
@@ -157,7 +157,7 @@ public:
    * @return
    * moves source into this without triggering any copy.
    */
-  inline CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   ArrayView( ArrayView && source ):
     m_data{ nullptr },
     m_dims{ 0 },
@@ -528,7 +528,7 @@ public:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-#ifdef USE_CUDA
+#ifdef __CUDA_ARCH__
       const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
 #else
       const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>( dims[a] );
