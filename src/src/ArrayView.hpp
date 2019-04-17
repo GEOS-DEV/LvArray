@@ -192,8 +192,10 @@ public:
    * @brief set all values of array to rhs
    * @param rhs value that array will be set to.
    */
+  template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  ArrayView & operator=( T const & rhs ) noexcept
+  typename std::enable_if< !(std::is_const<U>::value), ArrayView const & >::type
+  operator=( T const & rhs ) const noexcept
   {
     INDEX_TYPE const length = size();
     T* const data_ptr = data();
