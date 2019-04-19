@@ -43,7 +43,7 @@ class SparsityPattern;
 #ifdef USE_CHAI
 namespace internal
 {
-static std::mutex chai_lock;
+static ::std::mutex chai_lock;
 }
 #endif
 
@@ -63,6 +63,12 @@ public:
 
   template <class U, class COL_TYPE, class INDEX_TYPE>
   friend class CRSMatrix;
+
+  template <class U, class INDEX_TYPE, bool CONST_SIZES>
+  friend class ArrayOfArraysView;
+
+  template <class U, class INDEX_TYPE>
+  friend class ArrayOfArrays;
 
   using size_type = size_t;
   using iterator = T *;
@@ -146,6 +152,17 @@ public:
     source.m_array = nullptr;
     source.m_length = 0;
   }
+
+  template<class U=T>
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  operator typename std::enable_if<!std::is_const<U>::value,
+                                   ChaiVector<T const> const &>::type
+  () const restrict_this
+  { return reinterpret_cast<ChaiVector<T const> const &>(*this); }
+
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  ChaiVector<T const> const & toConst() const restrict_this
+  { return *this; }
 
   /**
    * @brief Perform a deep copy front this in to dst.
@@ -429,6 +446,14 @@ public:
   {
     arrayManipulation::erase( data(), m_length, pos, n );
     m_length -= n;
+  }
+
+  void fill( T const & value )
+  {
+    for(size_type i = 0; i < size(); ++i)
+    {
+      m_array[i] = value;
+    }
   }
 
 private:

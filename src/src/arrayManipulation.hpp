@@ -213,6 +213,9 @@ template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
 void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1 )
 {
+  GEOS_ASSERT( isPositive( n ) );
+  if( n == 0 ) return;
+
   ARRAYMANIPULATION_CHECK_BOUNDS( index );
   ARRAYMANIPULATION_CHECK_BOUNDS( index + n - 1 );
 
@@ -277,8 +280,8 @@ void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
-  GEOS_ASSERT( values != nullptr );
   GEOS_ASSERT( isPositive( n ));
+  GEOS_ASSERT( values != nullptr || n == 0 );
 
   for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {

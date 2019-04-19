@@ -278,7 +278,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation sorted routines.
    */
-  class CallBacks
+  class CallBacks : public sortedArrayManipulation::CallBacks<T, INDEX_TYPE>
   {
 public:
 
@@ -309,31 +309,6 @@ public:
 
       return m_cv.data();
     }
-
-    /**
-     * @brief These methods are placeholder and are no-ops.
-     */
-    /// @{
-    inline
-    void set( INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void insert( INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void insert( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void remove( INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void remove( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-    /// @}
 
 private:
     ChaiVector<T> & m_cv;

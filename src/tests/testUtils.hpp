@@ -91,19 +91,12 @@ struct Tensor
     return *this;
   }
 
-  LVARRAY_HOST_DEVICE Tensor& operator*=( const Tensor& other )
+  LVARRAY_HOST_DEVICE Tensor& operator+=( const Tensor& other )
   {
-    x *= other.x;
-    y *= other.y;
-    z *= other.z;
+    x += other.x;
+    y += other.y;
+    z += other.z;
     return *this;
-  }
-
-  LVARRAY_HOST_DEVICE Tensor operator*( const Tensor& other ) const
-  {
-    Tensor result = *this;
-    result *= other;
-    return result;
   }
 
   LVARRAY_HOST_DEVICE bool operator==( const Tensor& other ) const

@@ -16,12 +16,9 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-
 #include "gtest/gtest.h"
 
 #include "Array.hpp"
-#include "SetSignalHandling.hpp"
-#include "stackTrace.hpp"
 #include "testUtils.hpp"
 
 namespace LvArray

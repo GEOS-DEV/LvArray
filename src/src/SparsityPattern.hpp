@@ -17,14 +17,13 @@
  */
 
 /**
- * @file SparsityPatternView.hpp
+ * @file SparsityPattern.hpp
  */
 
 #ifndef SPARSITYPATTERN_HPP_
 #define SPARSITYPATTERN_HPP_
 
 #include "SparsityPatternView.hpp"
-#include "arrayManipulation.hpp"
 
 namespace LvArray
 {
@@ -34,10 +33,6 @@ namespace LvArray
  * @brief This class implements a compressed row storage sparsity pattern.
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
- *
- * SparsityPatternView is a protected base class of SparsityPattern. This is to control
- * the conversion to SparsityPatternView so that when using a View the INDEX_TYPE is always const.
- * However the SparsityPatternView interface is reproduced here.
  */
 template <class COL_TYPE=unsigned int, typename INDEX_TYPE=std::ptrdiff_t>
 class SparsityPattern : protected SparsityPatternView<COL_TYPE, INDEX_TYPE>
@@ -67,31 +62,7 @@ public:
   inline
   SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
-  {
-    GEOS_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
-    GEOS_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
-    GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
-                   "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
-
-    if( initialRowCapacity > ncols )
-    {
-      GEOS_WARNING_IF( initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns." );
-      initialRowCapacity = ncols;
-    }
-
-    m_num_columns = ncols;
-    m_offsets.resize( nrows + 1, 0 );
-    m_sizes.resize( nrows, 0 );
-
-    if( initialRowCapacity != 0 )
-    {
-      m_columns.resize( nrows * initialRowCapacity, COL_TYPE( -1 ));
-      for( INDEX_TYPE row = 1 ; row < nrows + 1 ; ++row )
-      {
-        m_offsets[row] = row * initialRowCapacity;
-      }
-    }
-  }
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity); }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -110,15 +81,11 @@ public:
   SparsityPattern( SparsityPattern && src ) = default;
 
   /**
-   * @brief Destructor, frees the columns, sizes and offsets ChaiVectors.
+   * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
    */
   inline
   ~SparsityPattern() restrict_this
-  {
-    m_columns.free();
-    m_sizes.free();
-    m_offsets.free();
-  }
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::free(); }
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE, INDEX_TYPE const>.
@@ -154,10 +121,7 @@ public:
   SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
   {
     m_num_columns = src.m_num_columns;
-    src.m_offsets.copy_into( m_offsets );
-    src.m_sizes.copy_into( m_sizes );
-    src.m_columns.copy_into( m_columns );
-
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
     return *this;
   }
 
@@ -173,12 +137,15 @@ public:
    * @brief Moves the SparsityPattern to the given execution space.
    * @param [in] space the space to move to.
    */
-  void move( chai::ExecutionSpace const space ) restrict_this
-  {
-    m_offsets.move( space );
-    m_sizes.move( space );
-    m_columns.move( space );
-  }
+  void move(chai::ExecutionSpace const space) restrict_this
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space); }
+
+  /**
+   * @brief Touch in the given memory space.
+   * @param [in] space the memory space to touch.
+   */
+  void registerTouch(chai::ExecutionSpace const space) restrict_this
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space); }
 #endif
 
   /**
@@ -187,7 +154,7 @@ public:
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
-  { m_columns.reserve( nnz ); }
+  { m_values.reserve( nnz ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
@@ -215,39 +182,8 @@ public:
   inline
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
   {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    GEOS_ASSERT( newCapacity >= 0 );
-
-    if( newCapacity > numColumns())
-    {
-      newCapacity = numColumns();
-    }
-
-    INDEX_TYPE const row_offset = m_offsets[row];
-    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    INDEX_TYPE const capacity_difference = newCapacity - rowCapacity;
-    if( capacity_difference == 0 ) return;
-
-    INDEX_TYPE const nRows = numRows();
-    for( INDEX_TYPE i = row + 1 ; i < nRows + 1 ; ++i )
-    {
-      m_offsets[i] += capacity_difference;
-    }
-
-    if( capacity_difference > 0 )
-    {
-      m_columns.shiftUp( row_offset + rowCapacity, capacity_difference );
-    }
-    else
-    {
-      INDEX_TYPE const prev_row_size = numNonZeros( row );
-      if( newCapacity < prev_row_size )
-      {
-        m_sizes[row] = newCapacity;
-      }
-
-      m_columns.erase( row_offset + rowCapacity + capacity_difference, -capacity_difference );
-    }
+    if( newCapacity > numColumns() ) newCapacity = numColumns();
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setCapacityOfArray(row, newCapacity);
   }
 
   /**
@@ -257,22 +193,7 @@ public:
    */
   inline
   void compress() restrict_this
-  {
-    INDEX_TYPE const nRows = numRows();
-    for (INDEX_TYPE row = 1; row < nRows; ++row)
-    {
-      INDEX_TYPE const prevRow = row - 1;
-      INDEX_TYPE const prevNNZ = numNonZeros(prevRow);
-      INDEX_TYPE const prevCapacity = nonZeroCapacity(prevRow);
-      INDEX_TYPE const numEmpty = prevCapacity - prevNNZ;
-      COL_TYPE * const prevColumns = getColumnsProtected(prevRow);
-
-      INDEX_TYPE const curNNZ = numNonZeros(row);
-
-      arrayManipulation::shiftDown(prevColumns + prevNNZ, numEmpty + curNNZ, numEmpty, numEmpty);
-      m_offsets[row] -= numEmpty;
-    }
-  }
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::compress(); }
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).
@@ -282,11 +203,7 @@ public:
    */
   inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) restrict_this
-  {
-    INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    return insertNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity ));
-  }
+  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -300,18 +217,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
-  {
-    constexpr int LOCAL_SIZE = 16;
-    COL_TYPE localColumnBuffer[LOCAL_SIZE];
-
-    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
-    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
-
-    INDEX_TYPE const nInserted = insertNonZerosSorted(row, columnBuffer, ncols);
-
-    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
-    return nInserted;
-  }
+  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -322,11 +228,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
-  {
-    INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
-  }
+  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
 private:
 
@@ -345,7 +247,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
-  class CallBacks
+  class CallBacks : public sortedArrayManipulation::CallBacks<COL_TYPE, INDEX_TYPE>
   {
 public:
 
@@ -353,18 +255,11 @@ public:
      * @brief Constructor.
      * @param [in/out] sp the SparsityPattern this CallBacks is associated with.
      * @param [in] row the row in the SparsityPattern this CallBacks is associated with.
-     * @param [in] rowNNZ the number of non zeros in the given row.
-     * @param [in] the capacity of the given row.
      */
     inline
-    CallBacks( SparsityPattern<COL_TYPE, INDEX_TYPE> & sp,
-               INDEX_TYPE const row,
-               INDEX_TYPE const rowNNZ,
-               INDEX_TYPE const rowCapacity ):
+    CallBacks( SparsityPattern<COL_TYPE, INDEX_TYPE> & sp, INDEX_TYPE const row ):
       m_sp( sp ),
-      m_row( row ),
-      m_rowNNZ( rowNNZ ),
-      m_rowCapacity( rowCapacity )
+      m_row( row )
     {}
 
     /**
@@ -376,59 +271,25 @@ public:
     inline
     COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
     {
-      INDEX_TYPE const newNNZ = m_rowNNZ + nToAdd;
-      if( newNNZ > m_rowCapacity )
+      INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;
+      if( newNNZ > m_sp.nonZeroCapacity( m_row ) )
       {
         m_sp.dynamicallyGrowRow( m_row, newNNZ );
       }
 
-      return m_sp.getColumnsProtected( m_row );
+      return m_sp.getSetValues( m_row );
     }
-
-    /**
-     * @brief These methods are placeholder and are no-ops.
-     */
-    /// @{
-    inline
-    void set( INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void insert( INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void insert( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void remove( INDEX_TYPE ) const restrict_this
-    {}
-
-    inline
-    void remove( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-    /// @}
 
 private:
     SparsityPattern<COL_TYPE, INDEX_TYPE> & m_sp;
     INDEX_TYPE const m_row;
-    INDEX_TYPE const m_rowNNZ;
-    INDEX_TYPE const m_rowCapacity;
   };
-
-  // Aliasing protected methods of SparsityPatternView.
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumnsProtected;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZerosSortedImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZeroImpl;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZerosSortedImpl;
 
   // Aliasing protected members of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_sizes;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_columns;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_values;
 };
 
 } /* namespace LvArray */

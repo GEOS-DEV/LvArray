@@ -85,7 +85,7 @@ void test2DAccessors( arrayView2D< T > & v )
   {
     for ( INDEX_TYPE j = 0; j < J; ++j )
     {
-      v( i, j ) *= T( 2 );
+      v( i, j ) += T( 2 );
     }
   }
 
@@ -94,7 +94,7 @@ void test2DAccessors( arrayView2D< T > & v )
     for ( INDEX_TYPE j = 0; j < J; ++j )
     {
       T val( J * i + j  );
-      val *= T( 2 );
+      val += T( 2 );
       EXPECT_EQ( v[ i ][ j ], val );
     }
   }
@@ -125,7 +125,7 @@ void test3DAccessors( arrayView3D< T > & v )
     {
       for ( INDEX_TYPE k = 0; k < K; ++k )
       {
-        v( i, j, k ) *= T( 2 );
+        v( i, j, k ) += T( 2 );
       }
     }
   }
@@ -137,7 +137,7 @@ void test3DAccessors( arrayView3D< T > & v )
       for ( INDEX_TYPE k = 0; k < K; ++k )
       {
         T val( J * K * i + K * j + k );
-        val *= T( 2 );
+        val += T( 2 );
         EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
     }
@@ -161,7 +161,7 @@ void testMemoryMotion( arrayView< T > & v )
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= v[ i ];
+      v[ i ] += v[ i ];
     }
   );
 
@@ -169,7 +169,7 @@ void testMemoryMotion( arrayView< T > & v )
     [=]( INDEX_TYPE i )
     {
       T val( i );
-      val *= val;
+      val += val;
       EXPECT_EQ( v[ i ], val );
     }
   );
@@ -230,7 +230,7 @@ void testMemoryMotionMove( array< T > & a )
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= v[ i ];
+      v[ i ] += v[ i ];
     }
   );
 
@@ -241,7 +241,7 @@ void testMemoryMotionMove( array< T > & a )
   for ( INDEX_TYPE i = 0; i < N; ++i )
   {
     T val = T( i );
-    val *= val;
+    val += val;
     EXPECT_EQ( v[ i ], val );
   }
 }
@@ -259,28 +259,28 @@ void testMemoryMotionMultiple( arrayView< T > & v )
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
   forall( sequential(), 0, N,
     [=]( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
@@ -289,7 +289,10 @@ void testMemoryMotionMultiple( arrayView< T > & v )
     [=]( INDEX_TYPE i )
     {
       T val( i );
-      val *= T( 2 ) * T( 2 ) * T( 2 ) * T( 2 );
+      val += T( 2 );
+      val += T( 2 );
+      val += T( 2 );
+      val += T( 2 );
       EXPECT_EQ( v[ i ], val );
     }
   );
@@ -310,27 +313,27 @@ void testMemoryMotionMultipleMove( array< T > & a )
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
   a.move( chai::CPU );
   for ( INDEX_TYPE i = 0; i < N; ++i )
   {
-    v[ i ] *= T( 2 );
+    v[ i ] += T( 2 );
   }
 
   forall( cuda(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
-      v[ i ] *= T( 2 );
+      v[ i ] += T( 2 );
     }
   );
 
@@ -338,7 +341,10 @@ void testMemoryMotionMultipleMove( array< T > & a )
   for ( INDEX_TYPE i = 0; i < N; ++i )
   {
     T val( i );
-    val *= T( 2 ) * T( 2 ) * T( 2 ) * T( 2 );
+    val += T( 2 );
+    val += T( 2 );
+    val += T( 2 );
+    val += T( 2 );
     EXPECT_EQ( v[ i ], val );
   }
 }
@@ -364,7 +370,7 @@ void testMemoryMotionArray( array< array< T > > & a )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
       {
-        v[ i ][ j ] *= v[ i ][ j ];
+        v[ i ][ j ] += v[ i ][ j ];
       }
     }
   );
@@ -375,7 +381,7 @@ void testMemoryMotionArray( array< array< T > > & a )
       for ( INDEX_TYPE j = 0; j < N; ++j )
       {
         T val( N * i + j );
-        val *= val;
+        val += val;
         EXPECT_EQ( v[ i ][ j ], val );
       }
     }
@@ -455,7 +461,7 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
       {
-        v[ i ][ j ] *= v[ i ][ j ];
+        v[ i ][ j ] += v[ i ][ j ];
       }
     }
   );
@@ -466,7 +472,7 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
     for ( INDEX_TYPE j = 0; j < N; ++j )
     {
       T val( N * i + j );
-      val *= val;
+      val += val;
       EXPECT_EQ( v[ i ][ j ], val );
     }
   }
@@ -498,7 +504,7 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
       {
         for ( INDEX_TYPE k = 0; k < N; ++k )
         {
-          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
         }
       }
     }
@@ -512,7 +518,7 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
         for ( INDEX_TYPE k = 0; k < N; ++k )
         {
           T val( N * N * i + N * j + k );
-          val *= val;
+          val += val;
           EXPECT_EQ( v[ i ][ j ][ k ], val );
         }
       }
@@ -610,7 +616,7 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
       {
         for ( INDEX_TYPE k = 0; k < N; ++k )
         {
-          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
         }
       }
     }
@@ -624,7 +630,7 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
       for ( INDEX_TYPE k = 0; k < N; ++k )
       {
         T val( N * N * i + N * j + k );
-        val *= val;
+        val += val;
         EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
     }
@@ -651,8 +657,8 @@ void test2DAccessorsDevice( arrayView2D< T > & v )
     {
       for ( INDEX_TYPE j = 0; j < J; ++j )
       {
-        v( i, j ) *= T( 2 );
-        v[ i ][ j ] *= T( 2 );
+        v( i, j ) += T( 2 );
+        v[ i ][ j ] += T( 2 );
       }
     }
   );
@@ -663,7 +669,8 @@ void test2DAccessorsDevice( arrayView2D< T > & v )
       for ( INDEX_TYPE j = 0; j < J; ++j )
       {
         T val( J * i + j  );
-        val *= T( 2 ) * T( 2 );
+        val += T( 2 );
+        val += T( 2 );
         EXPECT_EQ( v[ i ][ j ], val );
       }
     }
@@ -696,8 +703,8 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
       {
         for ( INDEX_TYPE k = 0; k < K; ++k )
         {
-          v( i, j, k ) *= T( 2 );
-          v[ i ][ j ][ k ] *= T( 2 );
+          v( i, j, k ) += T( 2 );
+          v[ i ][ j ][ k ] += T( 2 );
         }
       }
     }
@@ -711,7 +718,8 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
         for ( INDEX_TYPE k = 0; k < K; ++k )
         {
           T val( J * K * i + K * j + k );
-          val *= T( 2 ) * T( 2 );
+          val += T( 2 );
+          val += T( 2 );
           EXPECT_EQ( v[ i ][ j ][ k ], val );
         }
       }

@@ -1,4 +1,5 @@
 set(cxx-utilities_headers
+    templateHelpers.hpp
     Array.hpp
     ArraySlice.hpp
     ArrayUtilities.hpp
@@ -22,6 +23,9 @@ set(cxx-utilities_headers
     StringUtilities.hpp
     CSArray2DView.hpp
     CSArray2D.hpp
+    ArrayOfArraysView.hpp
+    ArrayOfArrays.hpp
+    ArrayOfSetsView.hpp
     SparsityPatternView.hpp
     SparsityPattern.hpp
     CRSMatrixView.hpp
