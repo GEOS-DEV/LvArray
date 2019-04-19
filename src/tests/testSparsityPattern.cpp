@@ -432,7 +432,7 @@ void rowCapacityTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef)
         EXPECT_EQ(v.nonZeroCapacity(row), new_capacity);
       }
       
-      fillRow(v.toView(), refRow, row);      
+      fillRow(v.toView(), refRow, row);
     }
   }
 
@@ -449,7 +449,7 @@ void compressTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> const & vRef
 {
   v.compress();
 
-  COL_TYPE const * const columns = v.getColumns();
+  COL_TYPE const * const columns = v.getColumns( 0 );
   INDEX_TYPE const * const offsets = v.getOffsets();
 
   INDEX_TYPE curOffset = 0;

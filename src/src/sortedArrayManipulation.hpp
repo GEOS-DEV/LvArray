@@ -35,6 +35,77 @@ namespace sortedArrayManipulation
 {
 
 /**
+ * @class CallBacks
+ * @brief This class provides a no-op callbacks interface for the ArrayManipulation sorted routines.
+ */
+template <class T, class INDEX_TYPE>
+class CallBacks
+{
+public:
+
+    /**
+     * @brief Callback signaling that the size of the array has increased.
+     * @param [in] nToAdd the increase in the size of the array.
+     * @return a pointer to the array.
+     */
+    LVARRAY_HOST_DEVICE inline
+    T * incrementSize( INDEX_TYPE const nToAdd ) restrict_this
+    { return nullptr; }
+
+    /**
+     * @brief Callback signaling that a value was inserted at the given position.
+     * @param [in] pos the position the value was inserted at.
+     */
+    LVARRAY_HOST_DEVICE inline
+    void insert( INDEX_TYPE const pos ) restrict_this
+    { (void) pos; }
+
+    /**
+     * @brief Callback signaling that the entry of the array at the first position was set to the value
+     *        at the second position.
+     * @param [in] pos the position in the array that was set.
+     * @param [in] valuePos the position of the value that the entry in the array was set to.
+     */
+    LVARRAY_HOST_DEVICE inline
+    void set( INDEX_TYPE const pos, INDEX_TYPE const valuePos ) restrict_this
+    { (void) pos, (void) valuePos; }
+
+    /**
+     * @brief Callback signaling that the that the given value was inserted at the given position.
+     *        Further information is provided in order to make the insertion efficient.
+     * @param [in] nLeftToInsert the number of insertions that occur after this one.
+     * @param [in] valuePos the position of the value that was inserted.
+     * @param [in] pos the position in the array the value was inserted at.
+     * @param [in] prevPos the position the previous value was inserted at or the size of the array
+     *             if it is the first insertion.
+     */
+    LVARRAY_HOST_DEVICE inline
+    void insert( INDEX_TYPE const nLeftToInsert, INDEX_TYPE const valuePos,
+                 INDEX_TYPE const pos, INDEX_TYPE const prevPos ) restrict_this
+    { (void) nLeftToInsert, (void) valuePos, (void) pos, void (prevPos); }
+
+    /**
+     * @brief Callback signaling that an entry was removed from the array at given position.
+     * @param [in] pos the position of the entry that was removed.
+     */
+    LVARRAY_HOST_DEVICE inline
+    void remove( INDEX_TYPE const pos ) restrict_this
+    { (void) pos; }
+
+    /**
+     * @brief Callback signaling that the given entry was removed from the given position. Further information
+     *        is provided in order to make the removal efficient.
+     * @param [in] nRemoved the number of entries removed, starts at 1.
+     * @param [in] curPos the position in the array the entry was removed at.
+     * @param [in] nextPos the position the next entry will be removed at or the original size of the array
+     *             if this was the last entry removed.
+     */
+    LVARRAY_HOST_DEVICE inline
+    void remove( INDEX_TYPE const nRemoved, INDEX_TYPE const curPos, INDEX_TYPE const nextPos ) restrict_this
+    { (void) nRemoved, (void) curPos, (void) nextPos; }
+};
+
+/**
  * @tparam T the type of the values to compare.
  * @class less
  * @brief This class operates as functor similar to std::less.
@@ -77,7 +148,7 @@ struct greater
  * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
+template<class RandomAccessIterator, class Compare>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
 {
   if (last - first > internal::INTROSORT_THRESHOLD)
@@ -97,7 +168,7 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
  * @note should be equivalent to std::sort(first, last).
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator>
+template<class RandomAccessIterator>
 LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last)
 { return makeSorted(first, last, less<typename std::remove_reference<decltype(*first)>::type>()); }
 
@@ -113,7 +184,7 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
  * @param [in/out] comp a function that does the comparison between two objects.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIteratorA, class RandomAccessIteratorB, typename Compare>
+template<class RandomAccessIteratorA, class RandomAccessIteratorB, class Compare>
 LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
                                          RandomAccessIteratorB dataFirst, Compare comp)
 {
@@ -132,7 +203,7 @@ LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, Rando
  * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIteratorA, class RandomAccessIteratorB>
+template<class RandomAccessIteratorA, class RandomAccessIteratorB>
 LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
                                          RandomAccessIteratorB dataFirst)
 { return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }

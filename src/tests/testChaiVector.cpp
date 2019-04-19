@@ -419,7 +419,7 @@ void testMemoryMotion( ChaiVector< T > & v )
   forall( cuda(), 0, N,
     [=] __device__ ( int i )
     {
-      v[ i ] *= v[ i ];
+      v[ i ] += v[ i ];
     }
   );
 
@@ -427,7 +427,7 @@ void testMemoryMotion( ChaiVector< T > & v )
     [=]( int i )
     {
       T val( i );
-      val *= val;
+      val += val;
       EXPECT_EQ( v[ i ], val );
     }
   );
@@ -446,7 +446,7 @@ void testMemoryMotionMove( ChaiVector< T > & v )
   forall( cuda(), 0, N,
     [=] __device__ ( int i )
     {
-      v[ i ] *= v[ i ];
+      v[ i ] += v[ i ];
     }
   );
 
@@ -454,7 +454,7 @@ void testMemoryMotionMove( ChaiVector< T > & v )
   for ( int i = 0; i < N; ++i )
   {
     T val = T( i );
-    val *= val;
+    val += val;
     EXPECT_EQ( v[ i ], val );
   }
 }
@@ -477,7 +477,7 @@ void testMemoryMotionArray( ChaiVector< ChaiVector< T > > & v )
     {
       for ( size_type j = 0; j < N; ++j )
       {
-        v[ i ][ j ] *= v[ i ][ j ];
+        v[ i ][ j ] += v[ i ][ j ];
       }
     }
   );
@@ -488,7 +488,7 @@ void testMemoryMotionArray( ChaiVector< ChaiVector< T > > & v )
       for ( size_type j = 0; j < N; ++j )
       {
         T val( N * i + j );
-        val *= val;
+        val += val;
         EXPECT_EQ( v[ i ][ j ], val );
       }
     }
@@ -513,7 +513,7 @@ void testMemoryMotionArrayMove( ChaiVector< ChaiVector< T > > & v )
     {
       for ( size_type j = 0; j < N; ++j )
       {
-        v[ i ][ j ] *= v[ i ][ j ];
+        v[ i ][ j ] += v[ i ][ j ];
       }
     }
   );
@@ -524,7 +524,7 @@ void testMemoryMotionArrayMove( ChaiVector< ChaiVector< T > > & v )
     for ( size_type j = 0; j < N; ++j )
     {
       T val( N * i + j );
-      val *= val;
+      val += val;
       EXPECT_EQ( v[ i ][ j ], val );
     }
   }
@@ -553,7 +553,7 @@ void testMemoryMotionArray2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
       {
         for ( size_type k = 0; k < N; ++k )
         {
-          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
         }
       }
     }
@@ -567,7 +567,7 @@ void testMemoryMotionArray2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
         for ( size_type k = 0; k < N; ++k )
         {
           T val( N * N * i + N * j + k );
-          val *= val;
+          val += val;
           EXPECT_EQ( v[ i ][ j ][ k ], val );
         }
       }
@@ -598,7 +598,7 @@ void testMemoryMotionArrayMove2( ChaiVector< ChaiVector< ChaiVector< T > > > & v
       {
         for ( size_type k = 0; k < N; ++k )
         {
-          v[ i ][ j ][ k ] *= v[ i ][ j ][ k ];
+          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
         }
       }
     }
@@ -612,7 +612,7 @@ void testMemoryMotionArrayMove2( ChaiVector< ChaiVector< ChaiVector< T > > > & v
       for ( size_type k = 0; k < N; ++k )
       {
         T val( N * N * i + N * j + k );
-        val *= val;
+        val += val;
         EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
     }

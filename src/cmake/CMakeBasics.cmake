@@ -35,7 +35,3 @@ blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
 if( ${CMAKE_MAKE_PROGRAM} STREQUAL "ninja" OR ${CMAKE_MAKE_PROGRAM} MATCHES ".*/ninja$" )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOSX_NINJA_FLAGS}")
 endif()
-
-
-
-                       

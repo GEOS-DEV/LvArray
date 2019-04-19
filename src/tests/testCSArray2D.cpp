@@ -375,8 +375,8 @@ void memoryMotionTest(ViewType<T> const & v)
     {
       for (INDEX_TYPE j = 0; j < v.size(i); ++j)
       {
-        v(i, j) *= v(i, j);
-        v[i][j] *= v[i][j];
+        v(i, j) += v(i, j);
+        v[i][j] += v[i][j];
       }
     }
   );
@@ -389,8 +389,8 @@ void memoryMotionTest(ViewType<T> const & v)
       for (INDEX_TYPE j = 0; j < v.size(i); ++j)
       {
         T val = T(curIndex++);
-        val *= val;
-        val *= val;
+        val += val;
+        val += val;
         EXPECT_EQ(val, v(i, j));
       }
     }
@@ -423,8 +423,8 @@ void memoryMotionMoveTest(CSArray2D<T> & v)
     {
       for (INDEX_TYPE j = 0; j < view.size(i); ++j)
       {
-        view(i, j) *= view(i, j);
-        view[i][j] *= view[i][j];
+        view(i, j) += view(i, j);
+        view[i][j] += view[i][j];
       }
     }
   );
@@ -437,8 +437,8 @@ void memoryMotionMoveTest(CSArray2D<T> & v)
     for (INDEX_TYPE j = 0; j < view.size(i); ++j)
     {
       T val = T(curIndex++);
-      val *= val;
-      val *= val;
+      val += val;
+      val += val;
       EXPECT_EQ(val, view(i, j));
     }
   }

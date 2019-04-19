@@ -95,15 +95,11 @@ void compareToReference(ViewType<T const, COL_TYPE const> const & m,
 
     typename ROW_REF_TYPE<T>::iterator it = mRef[row].begin();
     COL_TYPE const * const columns = m.getColumns(row);
-    T const * const values = m.getValues(row);
+    T const * const entries = m.getEntries(row);
     for (INDEX_TYPE i = 0; i < rowNNZ; ++i)
     {
       EXPECT_FALSE(m.empty(row, columns[i]));
-      if (values[i] != it->first)
-      {
-        EXPECT_EQ(values[i], it->first);
-      }
-      // EXPECT_EQ(values[i], it->first);
+      EXPECT_EQ(entries[i], it->first);
       EXPECT_EQ(columns[i], it->second);
       ++it;
     }
@@ -152,7 +148,7 @@ void insertTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_INSER
  * @brief Test the insert multiple method of the CRSMatrix.
  * @param [in/out] m the CRSMatrix to test.
  * @param [in/out] mRef the reference to check against.
- * @param [in] MAX_INSERTS the number of values to insert at a time.
+ * @param [in] MAX_INSERTS the number of entries to insert at a time.
  */
 template <class T>
 void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_INSERTS)
@@ -162,7 +158,7 @@ void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const M
   ASSERT_EQ(numRows, mRef.size());
 
   std::vector<COL_TYPE> columns(MAX_INSERTS);
-  std::vector<T> values(MAX_INSERTS);
+  std::vector<T> entries(MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -174,14 +170,14 @@ void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const M
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
       columns[i] = columnDist(gen);
-      values[i] = T(columns[i]);
+      entries[i] = T(columns[i]);
     }
 
-    m.insertNonZeros(row, columns.data(), values.data(), MAX_INSERTS);
+    m.insertNonZeros(row, columns.data(), entries.data(), MAX_INSERTS);
 
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
-      refRow.insert(std::pair<T, COL_TYPE>(values[i], columns[i]));
+      refRow.insert(std::pair<T, COL_TYPE>(entries[i], columns[i]));
     }
 
     ASSERT_EQ(m.numNonZeros(row), refRow.size());
@@ -194,7 +190,7 @@ void insertMultipleTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const M
  * @brief Test the insert sorted method of the CRSMatrix.
  * @param [in/out] m the CRSMatrix to test.
  * @param [in/out] mRef the reference to check against.
- * @param [in] MAX_INSERTS the number of values to insert at a time.
+ * @param [in] MAX_INSERTS the number of entries to insert at a time.
  */
 template <class T>
 void insertSortedTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_INSERTS)
@@ -204,7 +200,7 @@ void insertSortedTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX
   ASSERT_EQ(numRows, mRef.size());
 
   std::vector<COL_TYPE> columns(MAX_INSERTS);
-  std::vector<T> values(MAX_INSERTS);
+  std::vector<T> entries(MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -222,14 +218,14 @@ void insertSortedTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX
 
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
-      values[i] = T(columns[i]);
+      entries[i] = T(columns[i]);
     }
 
-    m.insertNonZerosSorted(row, columns.data(), values.data(), MAX_INSERTS);
+    m.insertNonZerosSorted(row, columns.data(), entries.data(), MAX_INSERTS);
 
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
-      refRow.insert(std::pair<T, COL_TYPE>(values[i], columns[i]));
+      refRow.insert(std::pair<T, COL_TYPE>(entries[i], columns[i]));
     }
 
     ASSERT_EQ(m.numNonZeros(row), refRow.size());
@@ -273,7 +269,7 @@ void removeTest(ViewType<T> const & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_
  * @brief Test the remove multiple method of the CRSMatrixView.
  * @param [in/out] m the CRSMatrixView to test.
  * @param [in/out] mRef the reference to check against.
- * @param [in] MAX_REMOVES the number of values to remove at a time.
+ * @param [in] MAX_REMOVES the number of entries to remove at a time.
  */
 template <class T>
 void removeMultipleTest(ViewType<T> const & m, REF_TYPE<T> & mRef,
@@ -314,7 +310,7 @@ void removeMultipleTest(ViewType<T> const & m, REF_TYPE<T> & mRef,
  * @brief Test the remove sorted method of the CRSMatrixView.
  * @param [in/out] m the CRSMatrixView to test.
  * @param [in/out] mRef the reference to check against.
- * @param [in] MAX_REMOVES the number of values to remove at a time.
+ * @param [in] MAX_REMOVES the number of entries to remove at a time.
  */
 template <class T>
 void removeSortedTest(ViewType<T> const & m, REF_TYPE<T> & mRef,
@@ -398,7 +394,7 @@ void fillRow(ViewType<T> const & m, ROW_REF_TYPE<T> & refRow, INDEX_TYPE const r
   INDEX_TYPE nToInsert = m.nonZeroCapacity(row) - m.numNonZeros(row);
   COL_TYPE testColumn = COL_TYPE(m.numColumns() - 1);
   COL_TYPE const * const columns = m.getColumns(row);
-  T const * const values = m.getValues(row);
+  T const * const entries = m.getEntries(row);
 
   ASSERT_GE(m.numColumns(), m.nonZeroCapacity(row));
 
@@ -415,9 +411,9 @@ void fillRow(ViewType<T> const & m, ROW_REF_TYPE<T> & refRow, INDEX_TYPE const r
   ASSERT_EQ(m.nonZeroCapacity(row), m.numNonZeros(row));
 
   COL_TYPE const * const newColumns = m.getColumns(row);
-  T const * const newValues = m.getValues(row);
+  T const * const newEntries = m.getEntries(row);
   ASSERT_EQ(columns, newColumns);
-  ASSERT_EQ(values, newValues);
+  ASSERT_EQ(entries, newEntries);
 }
 
 /**
@@ -442,19 +438,19 @@ void rowCapacityTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
     if (new_capacity < rowNNZ)
     {
       COL_TYPE const * const columns = m.getColumns(row);
-      T const * const values = m.getValues(row);
+      T const * const entries = m.getEntries(row);
       m.setRowCapacity(row, new_capacity);
 
       ASSERT_EQ(m.nonZeroCapacity(row), new_capacity);
       ASSERT_EQ(m.nonZeroCapacity(row), m.numNonZeros(row));
 
-      // Check that the pointers to the columns and values haven't changed.
+      // Check that the pointers to the columns and entries haven't changed.
       COL_TYPE const * const newColumns = m.getColumns(row);
-      T const * const newValues = m.getValues(row);
+      T const * const newEntries = m.getEntries(row);
       ASSERT_EQ(columns, newColumns);
-      ASSERT_EQ(values, newValues);
+      ASSERT_EQ(entries, newEntries);
 
-      // Erase the last values from the reference.
+      // Erase the last entries from the reference.
       INDEX_TYPE const difference = rowNNZ - new_capacity;
       typename ROW_REF_TYPE<T>::iterator erase_pos = refRow.end();
       std::advance(erase_pos, -difference);
@@ -500,15 +496,15 @@ void deepCopyTest(CRSMatrix<T> const & m, REF_TYPE<T> const & mRef)
     COL_TYPE const * const cols_cpy = copy.getColumns(row);
     ASSERT_NE(cols, cols_cpy);
 
-    T const * const values = m.getValues(row); 
-    T const * const values_cpy = copy.getValues(row); 
-    ASSERT_NE(values, values_cpy);
+    T const * const entries = m.getEntries(row); 
+    T const * const entries_cpy = copy.getEntries(row); 
+    ASSERT_NE(entries, entries_cpy);
 
     // Iterate backwards and remove entries from copy.
     for (INDEX_TYPE i = nnz - 1; i >= 0; --i)
     {
       EXPECT_EQ(cols[i], cols_cpy[i]);
-      EXPECT_EQ(values[i], values_cpy[i]);
+      EXPECT_EQ(entries[i], entries_cpy[i]);
 
       copy.removeNonZero(row, cols_cpy[i]);
     }
@@ -545,15 +541,15 @@ void shallowCopyTest(CRSMatrix<T> const & m)
     COL_TYPE const * const cols_cpy = copy.getColumns(row);
     ASSERT_EQ(cols, cols_cpy);
 
-    T const * const values = m.getValues(row); 
-    T const * const values_cpy = copy.getValues(row);
-    ASSERT_EQ(values, values_cpy);
+    T const * const entries = m.getEntries(row); 
+    T const * const entries_cpy = copy.getEntries(row);
+    ASSERT_EQ(entries, entries_cpy);
 
     // Iterate backwards and remove entries from copy.
     for (INDEX_TYPE i = nnz - 1; i >= 0; --i)
     {
       EXPECT_EQ(cols[i], cols_cpy[i]);
-      EXPECT_EQ(values[i], values_cpy[i]);
+      EXPECT_EQ(entries[i], entries_cpy[i]);
 
       copy.removeNonZero(row, cols_cpy[i]);
     }
@@ -579,48 +575,50 @@ void memoryMotionTest(ViewType<T> const & m)
 {
   INDEX_TYPE const numRows = m.numRows();
 
-  // Set the columns and values. The const casts here isn't necessary, we could remove and insert
+  // Set the columns and entries. The const casts here isn't necessary, we could remove and insert
   // into the view instead, but this is quicker.
   INDEX_TYPE curIndex = 0;
   for (INDEX_TYPE row = 0; row < numRows; ++row)
   {
     COL_TYPE const * const columns = m.getColumns(row);
     COL_TYPE * const columnsNC = const_cast<COL_TYPE *>(columns);
-    T * const values = m.getValues(row);
+    T * const entries = m.getEntries(row);
     for (INDEX_TYPE i = 0; i < m.numNonZeros(row); ++i)
     {
       columnsNC[i] = curIndex;
-      values[i] = T(curIndex++);
+      entries[i] = T(curIndex++);
     }
   }
 
-  // Capture the view on device and set the values. Here the const cast is necessary
+  // Capture the view on device and set the entries. Here the const cast is necessary
   // because we don't want to test the insert/remove methods on device yet.
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = m.getColumns(row);
       COL_TYPE * const columnsNC = const_cast<COL_TYPE *>(columns);
-      T * const values = m.getValues(row);
+      T * const entries = m.getEntries(row);
       for (INDEX_TYPE i = 0; i < m.numNonZeros(row); ++i)
       {
-        columnsNC[i] *= columns[i];
-        values[i] *= values[i];
+        columnsNC[i] += columns[i];
+        entries[i] += entries[i];
       }
     }
   );
 
-  // Check that the columns and values have been updated.
+  // Check that the columns and entries have been updated.
   curIndex = 0;
   forall(sequential(), 0, numRows,
     [=, &curIndex](INDEX_TYPE row)
     {
       for (INDEX_TYPE i = 0; i < m.numNonZeros(row); ++i)
       {
-        COL_TYPE const col = COL_TYPE(curIndex);
-        T const val = T(curIndex++);
-        EXPECT_EQ(col * col, m.getColumns(row)[i]);
-        EXPECT_EQ(val * val, m.getValues(row)[i]);
+        COL_TYPE col = COL_TYPE(curIndex);
+        col += col;
+        T val = T(curIndex++);
+        val += val;
+        EXPECT_EQ(col, m.getColumns(row)[i]);
+        EXPECT_EQ(val, m.getEntries(row)[i]);
       }
     }
   );
@@ -642,11 +640,11 @@ void memoryMotionMove(CRSMatrix<T> & m)
   {
     COL_TYPE const * const columns = view.getColumns(row);
     COL_TYPE * const columnsNC = const_cast<COL_TYPE *>(columns);
-    T * const values = view.getValues(row);
+    T * const entries = view.getEntries(row);
     for (INDEX_TYPE i = 0; i < view.numNonZeros(row); ++i)
     {
       columnsNC[i] = curIndex;
-      values[i] = T(curIndex++);
+      entries[i] = T(curIndex++);
     }
   }
 
@@ -655,11 +653,11 @@ void memoryMotionMove(CRSMatrix<T> & m)
     {
       COL_TYPE const * const columns = view.getColumns(row);
       COL_TYPE * const columnsNC = const_cast<COL_TYPE *>(columns);
-      T * const values = view.getValues(row);
+      T * const entries = view.getEntries(row);
       for (INDEX_TYPE i = 0; i < view.numNonZeros(row); ++i)
       {
-        columnsNC[i] *= columns[i];
-        values[i] *= values[i];
+        columnsNC[i] += columns[i];
+        entries[i] += entries[i];
       }
     }
   );
@@ -670,10 +668,12 @@ void memoryMotionMove(CRSMatrix<T> & m)
   {
     for (INDEX_TYPE i = 0; i < view.numNonZeros(row); ++i)
     {
-      COL_TYPE const col = COL_TYPE(curIndex);
-      T const val = T(curIndex++);
-      EXPECT_EQ(col * col, view.getColumns(row)[i]);
-      EXPECT_EQ(val * val, view.getValues(row)[i]);
+      COL_TYPE col = COL_TYPE(curIndex);
+      col += col;
+      T val = T(curIndex++);
+      val += val;
+      EXPECT_EQ(col, view.getColumns(row)[i]);
+      EXPECT_EQ(val, view.getEntries(row)[i]);
     }
   }
 }
@@ -689,17 +689,17 @@ void memoryMotionConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
   INDEX_TYPE const numRows = m.numRows();
   INDEX_TYPE const numCols = m.numColumns();
 
-  // Create a view capture it on device and update the values.
+  // Create a view capture it on device and update the entries.
   ViewType<T, COL_TYPE const> const & mConst = m;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = mConst.getColumns(row);
-      T * const values = mConst.getValues(row);
+      T * const entries = mConst.getEntries(row);
       for (INDEX_TYPE i = 0; i < mConst.numNonZeros(row); ++i)
       {
         GEOS_ERROR_IF(!arrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
-        values[i] = T(2 * i + 7);
+        entries[i] = T(2 * i + 7);
       }
     }
   );
@@ -714,7 +714,7 @@ void memoryMotionConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
 
   compareToReference(m.toViewCC(), mRef);
 
-  // This should copy back the values but not the columns.
+  // This should copy back the entries but not the columns.
   m.move(chai::CPU);
 
   for (INDEX_TYPE row = 0; row < numRows; ++row)
@@ -731,10 +731,10 @@ void memoryMotionConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
       COL_TYPE const col = m.getColumns(row)[i];
       EXPECT_EQ(col, it->second);
 
-      // And the values should be different.
+      // And the entries should be different.
       if (i < originalNNZ[row])
       {
-        EXPECT_EQ(m.getValues(row)[i], T(2 * i + 7));
+        EXPECT_EQ(m.getEntries(row)[i], T(2 * i + 7));
       }
 
       ++it;
@@ -761,16 +761,16 @@ void memoryMotionConstConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = mConst.getColumns(row);
-      T const * const values = mConst.getValues(row);
+      T const * const entries = mConst.getEntries(row);
       for (INDEX_TYPE i = 0; i < mConst.numNonZeros(row); ++i)
       {
         GEOS_ERROR_IF(!arrayManipulation::isPositive(columns[i]) || columns[i] >= numCols, "Invalid column.");
-        GEOS_ERROR_IF(values[i] != T(columns[i]), "Incorrect value.");
+        GEOS_ERROR_IF(entries[i] != T(columns[i]), "Incorrect value.");
       }
     }
   );
 
-  // Insert values, this will modify the offsets, sizes, columns and values.
+  // Insert entries, this will modify the offsets, sizes, columns and entries.
   insertTest(m, mRef, MAX_INSERTS);
 
   // Move the matrix back to the host, this should copy nothing.
@@ -825,7 +825,7 @@ void insertDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
     }
   );
 
-  // Insert the values into the reference.
+  // Insert the entries into the reference.
   for (INDEX_TYPE row = 0; row < numRows; ++row)
   {
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
@@ -854,7 +854,7 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numCols = m.numColumns();
 
   Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
-  Array<T, 2, INDEX_TYPE> valuesToInsert(numRows, MAX_INSERTS);
+  Array<T, 2, INDEX_TYPE> entriesToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -865,7 +865,7 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
       columnsToInsert(row, i) = columnDist(gen);
-      valuesToInsert(row, i) = T(columnsToInsert(row, i));
+      entriesToInsert(row, i) = T(columnsToInsert(row, i));
     }
   }
 
@@ -873,7 +873,7 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
 
   ViewType<T> const & mView = m;
   ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colInsertView = columnsToInsert;
-  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = valuesToInsert;
+  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = entriesToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -908,7 +908,7 @@ void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numCols = m.numColumns();
 
   Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
-  Array<T, 2, INDEX_TYPE> valuesToInsert(numRows, MAX_INSERTS);
+  Array<T, 2, INDEX_TYPE> entriesToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -925,10 +925,10 @@ void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
     COL_TYPE * const colPtr = columnsToInsert[row];
     std::sort(colPtr, colPtr + MAX_INSERTS);
 
-    // Populate the values to insert array.
+    // Populate the entries to insert array.
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
     {
-      valuesToInsert(row, i) = T(columnsToInsert(row, i));
+      entriesToInsert(row, i) = T(columnsToInsert(row, i));
     }
   }
 
@@ -937,7 +937,7 @@ void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
 
   ViewType<T> const & mView = m;
   ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colInsertView = columnsToInsert;
-  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = valuesToInsert;
+  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = entriesToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -1205,8 +1205,8 @@ TEST(CRSMatrix, construction)
       COL_TYPE const * const columns = m.getColumns(row);
       EXPECT_EQ(columns, nullptr);
 
-      double const * const values = m.getValues(row);
-      EXPECT_EQ(values, nullptr);
+      double const * const entries = m.getEntries(row);
+      EXPECT_EQ(entries, nullptr);
     }
   }
 
@@ -1228,8 +1228,8 @@ TEST(CRSMatrix, construction)
       COL_TYPE const * const columns = m.getColumns(row);
       ASSERT_NE(columns, nullptr);
 
-      double const * const values = m.getValues(row);
-      ASSERT_NE(values, nullptr);
+      double const * const entries = m.getEntries(row);
+      ASSERT_NE(entries, nullptr);
     }
   }
 }
@@ -1501,14 +1501,14 @@ TEST(CRSMatrix, capacity)
     }
 
     COL_TYPE const * const columns = m.getColumns(0);
-    int const * const values = m.getValues(0);
+    int const * const entries = m.getEntries(0);
 
     internal::insertTest(m, ref, MAX_INSERTS);
 
     COL_TYPE const * const newColumns = m.getColumns(0);
-    int const * const newValues = m.getValues(0);
+    int const * const newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
   }
 
   {
@@ -1528,14 +1528,14 @@ TEST(CRSMatrix, capacity)
     }
 
     COL_TYPE const * const columns = m.getColumns(0);
-    Tensor const * const values = m.getValues(0);
+    Tensor const * const entries = m.getEntries(0);
     
     internal::insertTest(m, ref, MAX_INSERTS);
 
     COL_TYPE const * const newColumns = m.getColumns(0);
-    Tensor const * const newValues = m.getValues(0);
+    Tensor const * const newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
   }
 
   {
@@ -1555,14 +1555,14 @@ TEST(CRSMatrix, capacity)
     }
 
     COL_TYPE const * const columns = m.getColumns(0);
-    TestString const * const values = m.getValues(0);
+    TestString const * const entries = m.getEntries(0);
     
     internal::insertTest(m, ref, MAX_INSERTS);
 
     COL_TYPE const * const newColumns = m.getColumns(0);
-    TestString const * const newValues = m.getValues(0);
+    TestString const * const newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
   }
 }
 
@@ -1577,21 +1577,21 @@ TEST(CRSMatrix, rowCapacity)
     REF_TYPE<int> ref(NROWS);
 
     COL_TYPE const * const columns = m.getColumns(0);
-    int const * const values = m.getValues(0);
+    int const * const entries = m.getEntries(0);
 
     internal::insertTest(m, ref, MAX_INSERTS);
 
     COL_TYPE const * newColumns = m.getColumns(0);
-    int const * newValues = m.getValues(0);
+    int const * newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
 
     internal::rowCapacityTest(m, ref);
 
     newColumns = m.getColumns(0);
-    newValues = m.getValues(0);
+    newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
   }
 
   {
@@ -1599,19 +1599,19 @@ TEST(CRSMatrix, rowCapacity)
     REF_TYPE<Tensor> ref(NROWS);
 
     COL_TYPE const * const columns = m.getColumns(0);
-    Tensor const * const values = m.getValues(0);
+    Tensor const * const entries = m.getEntries(0);
     
     internal::insertTest(m, ref, MAX_INSERTS);
     
     COL_TYPE const * newColumns = m.getColumns(0);
-    Tensor const * newValues = m.getValues(0);
+    Tensor const * newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
 
     internal::rowCapacityTest(m, ref);
 
     newColumns = m.getColumns(0);
-    newValues = m.getValues(0);
+    newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
   }
 
@@ -1620,19 +1620,19 @@ TEST(CRSMatrix, rowCapacity)
     REF_TYPE<TestString> ref(NROWS);
 
     COL_TYPE const * const columns = m.getColumns(0);
-    TestString const * const values = m.getValues(0);
+    TestString const * const entries = m.getEntries(0);
     
     internal::insertTest(m, ref, MAX_INSERTS);
     
     COL_TYPE const * newColumns = m.getColumns(0);
-    TestString const * newValues = m.getValues(0);
+    TestString const * newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
-    ASSERT_EQ(values, newValues);
+    ASSERT_EQ(entries, newEntries);
 
     internal::rowCapacityTest(m, ref);
 
     newColumns = m.getColumns(0);
-    newValues = m.getValues(0);
+    newEntries = m.getEntries(0);
     ASSERT_EQ(columns, newColumns);
   }
 }

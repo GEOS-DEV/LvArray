@@ -24,32 +24,19 @@
 #define SPARSITYPATTERNVIEW_HPP_
 
 #include <limits>
-#include "ChaiVector.hpp"
-#include "arrayManipulation.hpp"
-#include "sortedArrayManipulation.hpp"
-#include "ArraySlice.hpp"
+#include "ArrayOfSetsView.hpp"
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
-#undef CONSTEXPRFUNC
-#define CONSTEXPRFUNC
-
-#define SPARSITYPATTERN_CHECK_BOUNDS( row ) \
-  GEOS_ERROR_IF( !arrayManipulation::isPositive( row ) || row >= numRows(), \
-                 "Bounds Check Failed: row=" << row << " numRows()=" << numRows())
-
-#define SPARSITYPATTERN_CHECK_BOUNDS2( row, col ) \
-  GEOS_ERROR_IF( !arrayManipulation::isPositive( row ) || row >= numRows() || \
-                 !arrayManipulation::isPositive( col ) || col >= numColumns(), \
-                 "Bounds Check Failed: row=" << row << " numRows()=" << numRows() \
-                                             << " col=" << col << " numColumns=" << numColumns())
+#define SPARSITYPATTERN_COLUMN_CHECK( col ) \
+  GEOS_ERROR_IF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
+                 "Column Check Failed: col=" << col << " numColumns=" << this->numColumns() )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
-#define SPARSITYPATTERN_CHECK_BOUNDS( index )
-#define SPARSITYPATTERN_CHECK_BOUNDS2( index0, index1 )
+#define SPARSITYPATTERN_COLUMN_CHECK( col )
 
-#endif // USE_ARRAY_BOUNDS_CHECK
+#endif
 
 namespace LvArray
 {
@@ -60,17 +47,14 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
- * When INDEX_TYPE is const m_offsets is not copied back from the device. INDEX_TYPE should always be const
+ * When INDEX_TYPE is const m_offsets is not copied between memory spaces. INDEX_TYPE should always be const
  * since SparsityPatternView is not allowed to modify the offsets.
  * 
  * When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
- * and neither the offsets, sizes, or columns are copied back from the device.
+ * and neither the offsets, sizes, or columns are copied between memory spaces.
  */
 template <class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
-class SparsityPatternView
-#ifdef USE_CHAI
-  : public chai::CHAICopyable
-#endif
+class SparsityPatternView : protected ArrayOfSetsView<COL_TYPE, INDEX_TYPE>
 {
 public:
   static_assert( std::is_integral<COL_TYPE>::value, "COL_TYPE must be integral." );
@@ -96,21 +80,21 @@ public:
   SparsityPatternView( SparsityPatternView && src ) = default;
 
   /**
-   * @brief User defined conversion to move from T to T const.
+   * @brief User defined conversion to move from COL_TYPE to COL_TYPE const.
    */
   template<class CTYPE=COL_TYPE>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if<!std::is_const<CTYPE>::value,
-                                   SparsityPatternView<COL_TYPE const, INDEX_TYPE_NC const> const &>::type
+                                   SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &>::type
     () const restrict_this
-  { return reinterpret_cast<SparsityPatternView<COL_TYPE const, INDEX_TYPE_NC const> const &>(*this); }
+  { return reinterpret_cast<SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &>(*this); }
 
   /**
-   * @brief Method to convert T to T const. Use this method when the above UDC
+   * @brief Method to convert COL_TYPE to COL_TYPE const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  SparsityPatternView<COL_TYPE const, INDEX_TYPE_NC const> const & toViewC() const restrict_this
+  SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const & toViewC() const restrict_this
   { return *this; }
 
   /**
@@ -132,7 +116,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numRows() const restrict_this
-  { return m_sizes.size(); }
+  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::size(); }
 
   /**
    * @brief Return the number of columns in the matrix.
@@ -161,29 +145,24 @@ public:
    * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC numNonZeros( INDEX_TYPE_NC const row ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    return m_sizes[row];
-  }
+  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const restrict_this
+  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::sizeOfSet( row ); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC nonZeroCapacity() const restrict_this
-  { return m_columns.capacity(); }
+  { return m_values.capacity(); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored in a given row without shifting
    *        subsequent rows and possibly reallocating.
+   * @param [in] row the row to query. 
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE_NC const row ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    return m_offsets[row + 1] - m_offsets[row];
-  }
+  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const restrict_this
+  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::capacityOfSet( row ); }
 
   /**
    * @brief Return true iff the matrix is all zeros.
@@ -197,11 +176,8 @@ public:
    * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  bool empty( INDEX_TYPE_NC const row ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    return numNonZeros( row ) == 0;
-  }
+  bool empty( INDEX_TYPE const row ) const restrict_this
+  { return numNonZeros( row ) == 0; }
 
   /**
    * @brief Return true iff the given entry is zero.
@@ -209,50 +185,25 @@ public:
    * @param [in] col the col to query.
    */
   LVARRAY_HOST_DEVICE inline
-  bool empty( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS2( row, col );
-
-    INDEX_TYPE_NC const nnz = numNonZeros( row );
-    COL_TYPE const * columns = getColumns( row );
-
-    return !sortedArrayManipulation::contains( columns, nnz, col );
-  }
-
-  /**
-   * @brief Return an ArraySlice1d (pointer) to the array of columns.
-   *        This array has length getOffsets()([numRows()].
-   * @warning Returned pointer to the ArraySlice1d is no const
-   */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<COL_TYPE, INDEX_TYPE_NC> getColumns() const restrict_this
-  {
-    return createArraySlice1d<COL_TYPE, INDEX_TYPE_NC>( m_columns.data(), &m_offsets[numRows()], nullptr );
-  }
+  bool empty( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  { return !ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::contains( row, col ); }
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
    *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
-   * @warning Returned pointer to the ArraySlice1d is no const
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<COL_TYPE, INDEX_TYPE_NC> getColumns( INDEX_TYPE_NC const row ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    return createArraySlice1d<COL_TYPE, INDEX_TYPE_NC>( m_columns.data() + m_offsets[row], &m_sizes[row], nullptr );
-  }
+  ArraySlice1d_rval<COL_TYPE const, INDEX_TYPE_NC> getColumns( INDEX_TYPE const row ) const restrict_this
+  { return (*this)[row]; }
 
   /**
    * @brief Return a pointer to the array of offsets.
    *        This array has length numRows() + 1.
-   * @warning Returned pointer is no const
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC * getOffsets() const restrict_this
-  {
-    return m_offsets.data();
-  }
+  INDEX_TYPE const * getOffsets() const restrict_this
+  { return m_offsets.data(); }
 
   /**
    * @brief Insert a non-zero entry at the given position.
@@ -266,11 +217,11 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
-  {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return insertNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity ));
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  { 
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    SPARSITYPATTERN_COLUMN_CHECK( col );
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertIntoSet( row, col );
   }
 
   /**
@@ -282,24 +233,24 @@ public:
    *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
    *       and then call insertNonZerosSorted, this will be substantially faster.
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
    *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const restrict_this
   {
-    constexpr int LOCAL_SIZE = 16;
-    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    GEOS_ASSERT( cols != nullptr || ncols == 0 );
+    GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
-    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    {
+      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
+    }
 
-    INDEX_TYPE_NC const nInserted = insertNonZerosSorted(row, columnBuffer, ncols);
-
-    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
-    return nInserted;
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertIntoSet( row, cols, ncols );
   }
 
   /**
@@ -309,17 +260,24 @@ public:
    * @param [in] ncols the number of columns to insert.
    * @return The number of columns inserted.
    *
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
    *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE_NC const row, COL_TYPE const * cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return insertNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    GEOS_ASSERT( cols != nullptr || ncols == 0 );
+    GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
+
+    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    {
+      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
+    }
+
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSet( row, cols, ncols );
   }
 
   /**
@@ -329,11 +287,11 @@ public:
    * @return True iff the column was removed (the entry was non zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE_NC const row, COL_TYPE const col ) const restrict_this
+  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return removeNonZeroImpl( row, col, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    SPARSITYPATTERN_COLUMN_CHECK( col );
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeFromSet( row, col );
   }
 
   /**
@@ -347,18 +305,18 @@ public:
    *       and then call removeNonZerosSorted, this will be substantially faster.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE_NC const row, COL_TYPE const * const cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const restrict_this
   {
-    constexpr int LOCAL_SIZE = 16;
-    COL_TYPE localColumnBuffer[LOCAL_SIZE];
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    GEOS_ASSERT( cols != nullptr || ncols == 0 );
+    GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
-    sortedArrayManipulation::makeSorted(columnBuffer, columnBuffer + ncols);
+    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    {
+      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
+    }
 
-    INDEX_TYPE_NC const nRemoved = removeNonZerosSorted(row, columnBuffer, ncols);
-
-    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
-    return nRemoved;
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeFromSet( row, cols, ncols );
   }
 
   /**
@@ -369,11 +327,18 @@ public:
    * @return The number of columns removed.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE_NC const row, COL_TYPE const * const cols, INDEX_TYPE_NC const ncols ) const restrict_this
+  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const restrict_this
   {
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    INDEX_TYPE_NC const rowCapacity = nonZeroCapacity( row );
-    return removeNonZerosSortedImpl( row, cols, ncols, CallBacks( *this, row, rowNNZ, rowCapacity ));
+    ARRAYOFARRAYS_CHECK_BOUNDS( row );
+    GEOS_ASSERT( cols != nullptr || ncols == 0 );
+    GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
+
+    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    {
+      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
+    }
+
+    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeSortedFromSet( row, cols, ncols );
   }
 
 protected:
@@ -384,228 +349,31 @@ protected:
    */
   SparsityPatternView() = default;
 
-  /**
-   * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
-   *        This array has length numNonZeros(row).
-   * @param [in] row the row to access.
-   *
-   * @note The returned array is mutable so this method is protected.
-   */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<COL_TYPE, INDEX_TYPE_NC> getColumnsProtected( INDEX_TYPE_NC const row ) const restrict_this
+  template <class ...VECTORS>
+  void resize(INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, VECTORS & ...vectors)
   {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    return createArraySlice1d<COL_TYPE, INDEX_TYPE_NC>( m_columns.data() + m_offsets[row], &m_sizes[row], nullptr );
-  }
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
+    GEOS_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
+    GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
+                   "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
-  /**
-   * @brief Insert a non-zero entry at the given position.
-   * @param [in] row the row to insert in.
-   * @param [in] col the column to insert.
-   * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   *                 the sortedArrayManipulation routines.
-   * @return True iff the column was inserted (the entry was zero before).
-   */
-  template <class CALLBACKS>
-  LVARRAY_HOST_DEVICE inline
-  bool insertNonZeroImpl( INDEX_TYPE_NC const row, COL_TYPE const col, CALLBACKS && cbacks ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS2( row, col );
-
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    COL_TYPE const * const columns = getColumns( row );
-
-    bool const success = sortedArrayManipulation::insert( columns, rowNNZ, col, std::move( cbacks ));
-    m_sizes[row] += success;
-    return success;
-  }
-
-  /**
-   * @brief Insert non-zero entries into the given row.
-   * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert, must be sorted.
-   * @param [in] ncols the number of columns to insert.
-   * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   *                 the sortedArrayManipulation routines.
-   * @return The number of columns inserted.
-   */
-  template <class CALLBACKS>
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSortedImpl( INDEX_TYPE_NC const row,
-                                          COL_TYPE const * const cols,
-                                          INDEX_TYPE_NC const ncols,
-                                          CALLBACKS && cbacks ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    GEOS_ASSERT( cols != nullptr );
-    GEOS_ASSERT( ncols >= 0 );
-    GEOS_ASSERT( sortedArrayManipulation::isSorted( cols, ncols ));
-
-    if( ncols == 0 ) return true;
-
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
+    if( initialRowCapacity > ncols )
     {
-      SPARSITYPATTERN_CHECK_BOUNDS2( row, cols[i] );
+      GEOS_WARNING_IF( initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns." );
+      initialRowCapacity = ncols;
     }
 
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    COL_TYPE const * const columns = getColumns( row );
-
-    INDEX_TYPE_NC const nInserted = sortedArrayManipulation::insertSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
-    m_sizes[row] += nInserted;
-    return nInserted;
+    m_num_columns = ncols;
+    ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::resize(nrows, initialRowCapacity, vectors...);
   }
 
-  /**
-   * @brief Remove a non-zero entry at the given position.
-   * @param [in] row the row to remove from.
-   * @param [in] col the column to remove.
-   * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   *                 the arrayManipulation routines.
-   * @return True iff the column was removed (the entry was non zero before).
-   */
-  template <class CALLBACKS>
-  LVARRAY_HOST_DEVICE inline
-  bool removeNonZeroImpl( INDEX_TYPE_NC const row, COL_TYPE const col, CALLBACKS && cbacks ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS2( row, col );
-
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    COL_TYPE * const columns = getColumnsProtected( row );
-
-    bool const success = sortedArrayManipulation::remove( columns, rowNNZ, col, std::move( cbacks ));
-    m_sizes[row] -= success;
-    return success;
-  }
-
-  /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, must be sorted.
-   * @param [in] ncols the number of columns to remove.
-   * @param [in/out] cbacks class that defines a set of call-back methods to be used by
-   *                 the arrayManipulation routines.
-   * @return The number of columns removed.
-   */
-  template <class CALLBACKS>
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSortedImpl( INDEX_TYPE_NC const row,
-                                          COL_TYPE const * const cols,
-                                          INDEX_TYPE_NC const ncols,
-                                          CALLBACKS && cbacks ) const restrict_this
-  {
-    SPARSITYPATTERN_CHECK_BOUNDS( row );
-    GEOS_ASSERT( cols != nullptr );
-    GEOS_ASSERT( ncols >= 0 );
-    GEOS_ASSERT( sortedArrayManipulation::isSorted( cols, ncols ));
-
-    if( ncols == 0 ) return true;
-
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
-    {
-      SPARSITYPATTERN_CHECK_BOUNDS2( row, cols[i] );
-    }
-
-    INDEX_TYPE_NC const rowNNZ = numNonZeros( row );
-    COL_TYPE * const columns = getColumnsProtected( row );
-
-    INDEX_TYPE_NC const nRemoved = sortedArrayManipulation::removeSorted( columns, rowNNZ, cols, ncols, std::move( cbacks ));
-    m_sizes[row] -= nRemoved;
-    return nRemoved;
-  }
+  // Aliasing protected members in ArrayOfSetsView
+  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_offsets;
+  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_sizes;
+  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_values;
 
   // The number of columns in the matrix.
   INDEX_TYPE m_num_columns;
-
-  // Holds the offset of each row, of length numRows() + 1. Row i begins at
-  // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
-  ChaiVector<INDEX_TYPE> m_offsets;
-
-  // Holds the size of each row, of length numRows().
-  using SIZE_TYPE = std::conditional_t<std::is_const<COL_TYPE>::value, INDEX_TYPE_NC const, INDEX_TYPE_NC>;
-  ChaiVector<SIZE_TYPE> m_sizes;
-
-  // Holds the columns of each row, of length numNonZeros().
-  ChaiVector<COL_TYPE> m_columns;
-
-private:
-
-  /**
-   * @class CallBacks
-   * @brief This class provides the callbacks for the arrayManipulation sorted routines.
-   */
-  class CallBacks
-  {
-public:
-
-    /**
-     * @brief Constructor.
-     * @param [in/out] spv the SparsityPatternView this CallBacks is associated with.
-     * @param [in] row the row this CallBacks is associated with.
-     * @param [in] rowNNZ the number of non zeros in the row.
-     * @param [in] rowCapacity the non zero capacity of the row.
-     */
-    LVARRAY_HOST_DEVICE inline
-    CallBacks( SparsityPatternView<COL_TYPE, INDEX_TYPE> const & spv,
-               INDEX_TYPE_NC const row,
-               INDEX_TYPE_NC const rowNNZ,
-               INDEX_TYPE_NC const rowCapacity ):
-      m_spv( spv ),
-      m_row( row ),
-      m_rowNNZ( rowNNZ ),
-      m_rowCapacity( rowCapacity )
-    {}
-
-    /**
-     * @brief Callback signaling that the size of the row has increased.
-     * @param [in] nToAdd the increase in the size.
-     * @return a pointer to the rows columns.
-     *
-     * @note This method doesn't actually change the size, it just checks that the new
-     *       size doesn't exceed the capacity since the SparsityPatternView can't do allocation.
-     */
-    LVARRAY_HOST_DEVICE inline
-    COL_TYPE * incrementSize( INDEX_TYPE_NC const nToAdd ) const restrict_this
-    {
-#ifdef USE_ARRAY_BOUNDS_CHECK
-      GEOS_ERROR_IF( m_rowNNZ + nToAdd > m_rowCapacity,
-                     "SparsityPatternView cannot do reallocation." );
-#endif
-      return m_spv.getColumnsProtected( m_row );
-    }
-
-    /**
-     * @brief These methods are placeholder and are no-ops.
-     */
-    /// @{
-    LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE ) const restrict_this
-    {}
-
-    LVARRAY_HOST_DEVICE inline
-    void set( INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-
-    LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE ) const restrict_this
-    {}
-
-    LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE, INDEX_TYPE, INDEX_TYPE ) const restrict_this
-    {}
-    /// @}
-
-private:
-    SparsityPatternView<COL_TYPE, INDEX_TYPE> const & m_spv;
-    INDEX_TYPE_NC const m_row;
-    INDEX_TYPE_NC const m_rowNNZ;
-    INDEX_TYPE_NC const m_rowCapacity;
-  };
-
 };
 
 } /* namespace LvArray */
