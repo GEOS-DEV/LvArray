@@ -15,7 +15,6 @@ set(testSources
     testSortedArray.cpp
     testStackArray.cpp
     testArrayOfArrays.cpp
-    testCSArray2D.cpp
     testSparsityPattern.cpp
     testCRSMatrix.cpp
     testSortedArrayManipulation.cpp
