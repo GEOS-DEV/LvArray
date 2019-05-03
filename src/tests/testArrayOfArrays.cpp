@@ -16,6 +16,13 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+// This warning comes up with TYPED_TEST on osx.
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wunused-macros"
+#endif
+
 #include "gtest/gtest.h"
 
 #include "ArrayOfArrays.hpp"
@@ -1219,3 +1226,7 @@ int main( int argc, char* argv[] )
 
   return result;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#endif

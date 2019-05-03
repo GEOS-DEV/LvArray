@@ -46,20 +46,30 @@ void for_each_arg(F && f, ARGS && ...args)
 }
 
 /**
- * @class is_instace_of
+ * @class is_instantiation_of
  * @brief usage :  static_assert(is_instance_of_v<LvArray::Array, LvArray::Array<int, 1, int>>)
  * @note Taken from https://cukic.co/2019/03/15/template-meta-functions-for-detecting-template-instantiation/
  */
 template <template <class...> class Template,
           class Type>
-struct is_instance_of: std::false_type {};
+struct is_instantiation_of: std::false_type {};
 
 template <template <class...> class Template,
           class... Args>
-struct is_instance_of<Template, Template<Args...>>: std::true_type {};
+struct is_instantiation_of<Template, Template<Args...>>: std::true_type {};
 
 template <template <class...> class Template,
           class Type>
-constexpr bool is_instance_of_v = is_instance_of<Template, Type>::value;
+constexpr bool is_instantiation_of_v = is_instantiation_of<Template, Type>::value;
+
+/**
+ * @class is_instance_of of
+ * @brief usage :  static_assert(is_instance_of_v<LvArray::Array<int 1, int>, LvArray::Array<int, 1, int>>)
+ */
+template <class T, class U>
+struct is_instance_of: std::is_same<T, U> {};
+
+template <class T, class U>
+constexpr bool is_instance_of_v = is_instance_of<T, U>::value;
 
 #endif // TEMPLATEHELPERS_HPP_
