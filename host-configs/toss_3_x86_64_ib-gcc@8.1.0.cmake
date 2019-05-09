@@ -1,8 +1,8 @@
-
-set(CONFIG_NAME "quartz-toss_3_x86_64_ib-gcc@8.1.0" CACHE PATH "") 
+set(CONFIG_NAME "toss_3_x86_64_ib-gcc@8.1.0" CACHE PATH "") 
 
 set(CMAKE_C_COMPILER "/usr/tce/packages/gcc/gcc-8.1.0/bin/gcc" CACHE PATH "")
 set(CMAKE_CXX_COMPILER "/usr/tce/packages/gcc/gcc-8.1.0/bin/g++" CACHE PATH "")
+set(CMAKE_Fortran_COMPILER "/usr/tce/packages/gcc/gcc-8.1.0/bin/gfortran" CACHE PATH "")
 
 set(ENABLE_FORTRAN OFF CACHE BOOL "" FORCE)
 set(ENABLE_MPI ON CACHE BOOL "" FORCE)
@@ -19,18 +19,14 @@ set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
 
 set( ENABLE_GTEST_DEATH_TESTS ON CACHE BOOL "" FORCE )
 
-set( ENABLE_AXOM ON CACHE BOOL "" FORCE )
-set( AXOM_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-gcc@8.1.0-release/axom" CACHE PATH "" FORCE )
-
-set( ENABLE_CHAI ON CACHE BOOL "" FORCE )
-set( CHAI_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-gcc@8.1.0-release/chai" CACHE PATH "" FORCE )
-
-set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
-set(UNCRUSTIFY_EXECUTABLE "/usr/gapps/GEOS/geosx/thirdPartyLibs/install-toss_3_x86_64_ib-gcc@8.1.0-release/uncrustify/bin/uncrustify" CACHE PATH "" FORCE )
-
-
 set(CUDA_ENABLED      "OFF"       CACHE PATH "" FORCE)
 set(CHAI_BUILD_TYPE   "cpu-no-rm" CACHE PATH "" FORCE)
 set(CHAI_ARGS         ""          CACHE PATH "" FORCE)
 
 set(ENABLE_OPENMP     "ON"        CACHE PATH "" FORCE)
+
+set(GEOSX_TPL_ROOT_DIR "/usr/gapps/GEOS/geosx/thirdPartyLibs/" CACHE PATH "")
+set(GEOSX_TPL_DIR "${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release" CACHE PATH "")
+
+set(SPHINX_EXECUTABLE "/usr/bin/sphinx-build" CACHE PATH "" FORCE)
+set(UNCRUSTIFY_EXECUTABLE "${GEOSX_TPL_DIR}/uncrustify/bin/uncrustify" CACHE PATH "" FORCE )

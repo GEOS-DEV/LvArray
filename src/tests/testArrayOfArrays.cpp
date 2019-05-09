@@ -461,8 +461,7 @@ protected:
   std::mt19937_64 m_gen;
 };
 
-using TestTypes = ::testing::Types<TestString>;
-// using TestTypes = ::testing::Types<int, Tensor, TestString>;
+using TestTypes = ::testing::Types<int, Tensor, TestString>;
 TYPED_TEST_CASE(ArrayOfArraysTest, TestTypes);
 
 TYPED_TEST(ArrayOfArraysTest, construction)

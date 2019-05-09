@@ -4,8 +4,8 @@
 
 #cmakedefine USE_ARRAY_BOUNDS_CHECK
 
-#ifndef USE_AXOM
-#cmakedefine USE_AXOM
+#ifndef USE_ATK
+#cmakedefine USE_ATK
 #endif
 
 #ifndef USE_CHAI
