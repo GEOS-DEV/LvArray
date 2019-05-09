@@ -22,7 +22,7 @@
 #include <cmath>
 #include <float.h>
 
-#if !defined(USE_CUDA)
+#if defined(__x86_64__)
 #include <xmmintrin.h>
 #endif
 

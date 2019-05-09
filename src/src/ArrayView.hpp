@@ -388,8 +388,8 @@ public:
    * @brief calculation of offset or linear index from a multidimensional space to a linear space.
    * @tparam INDICES variadic template parameters to serve as index arguments.
    * @param indices the indices of access request (0,3,4)
-   *
-   */template< typename... INDICES >
+   */
+  template< typename... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
@@ -404,10 +404,9 @@ public:
    * @brief accessor for data
    * @return pointer to the data
    */
-  inline T * data() const
-  {
-    return m_dataVector.data();
-  }
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T * data() const
+  { return m_dataVector.data(); }
 
   /**
    * @brief function to get a pointer to a slice of data
@@ -415,7 +414,8 @@ public:
    * @return
    * @todo THIS FUNCION NEEDS TO BE GENERALIZED for all dims
    */
-  inline T * data( INDEX_TYPE const index ) const
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T * data( INDEX_TYPE const index ) const
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return &(m_dataVector[ index*m_strides[0] ]);

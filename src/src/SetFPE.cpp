@@ -22,7 +22,7 @@
 
 #include "SetFPE.hpp"
 
-#if !defined(USE_CUDA)
+#if defined(__x86_64__)
 #include <xmmintrin.h>
 #include <pmmintrin.h>
 #endif
@@ -39,7 +39,7 @@ void SetFPE()
 {
 #if defined(__APPLE__) && defined(__MACH__)
   fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
-#elif !defined(USE_CUDA)
+#elif defined(__x86_64__)
   _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
   _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
 #endif

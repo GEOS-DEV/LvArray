@@ -1,5 +1,5 @@
 set( cxx_dependencies "" )
-if( ATK_FOUND OR ENABLE_ATK OR ENABLE_AXOM )
+if( ATK_FOUND )
     set( cxx_dependencies slic lumberjack )
 endif()
 

@@ -104,7 +104,7 @@ struct linearIndex_helper
 
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline  static
+  LVARRAY_HOST_DEVICE inline static
   typename std::enable_if< DIM!=(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index, REMAINING_INDICES... indices )
@@ -118,7 +118,7 @@ struct linearIndex_helper
   }
 
   template< int DIM=0 >
-  LVARRAY_HOST_DEVICE inline  static
+  LVARRAY_HOST_DEVICE inline static
   typename std::enable_if< DIM==(NDIM-1), void>::type
   check( INDEX_TYPE const * const restrict dims,
          INDEX index )
@@ -190,6 +190,7 @@ struct check_dim_indices<INDEX_TYPE, NDIM, INDEX0>
 template<  typename INDEX_TYPE, int NDIM, int COUNTER, typename DIM0, typename... DIMS >
 struct dim_unpack
 {
+  LVARRAY_HOST_DEVICE
   constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... dims )
   {
     m_dims[NDIM-COUNTER] = dim0;
@@ -201,6 +202,7 @@ struct dim_unpack
 template< typename INDEX_TYPE, int NDIM, typename DIM0, typename... DIMS >
 struct dim_unpack<INDEX_TYPE, NDIM, 1, DIM0, DIMS...>
 {
+  LVARRAY_HOST_DEVICE
   constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
   {
     m_dims[NDIM-1] = dim0;
@@ -211,11 +213,13 @@ struct dim_unpack<INDEX_TYPE, NDIM, 1, DIM0, DIMS...>
 
 
 template< typename INDEX_TYPE, int NDIM, typename... DIMS>
+LVARRAY_HOST_DEVICE
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
                                         std::integer_sequence<INDEX_TYPE> indices,
                                         DIMS... dims );
 
 template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
+LVARRAY_HOST_DEVICE
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
                                         std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
                                         DIM0 dim0, DIMS... dims )
@@ -223,7 +227,9 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
   m_dims[INDEX0] = dim0;
   dim_index_unpack<INDEX_TYPE, NDIM>( m_dims, std::integer_sequence<INDEX_TYPE, INDICES...>(), dims... );
 }
+
 template< typename INDEX_TYPE, int NDIM, typename... DIMS>
+LVARRAY_HOST_DEVICE
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
                                         std::integer_sequence<INDEX_TYPE> indices,
                                         DIMS... dims )

@@ -1,7 +1,7 @@
 #
 set( PREPROCESSOR_DEFINES 
                           ARRAY_BOUNDS_CHECK
-                          AXOM
+                          ATK
                           CHAI
                           CUDA
                           MPI

@@ -20,7 +20,6 @@
  * Logger.hpp
  *
  *  Created on: Jul 17, 2017
- *      Author: settgast1
  */
 
 #ifndef CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
@@ -32,10 +31,12 @@
 
 #include "CXX_UtilsConfig.hpp"
 
-#ifdef USE_AXOM
+#ifdef USE_ATK
 
 #ifndef NDEBUG
+#ifndef AXOM_DEBUG
 #define AXOM_DEBUG
+#endif
 #endif
 
 #include "axom/slic/interface/slic.hpp"
@@ -88,7 +89,7 @@
 
 #if defined(__CUDA_ARCH__) && !defined(NDEBUG)
     #define GEOS_ERROR_IF( EXP, msg ) assert( !(EXP) )
-    #define GEOS_ERROR( EXP ) assert( !(EXP) )
+    #define GEOS_ERROR( msg ) assert( false )
     #define GEOS_ASSERT_MSG( EXP, msg ) assert( EXP )
     #define GEOS_ASSERT( EXP ) assert( EXP );
 #endif
@@ -100,7 +101,7 @@
   #define GEOS_ASSERT( EXP ) ((void) 0)
 #endif
 
-#if defined(USE_AXOM)
+#if defined(USE_ATK)
 
   #if !defined(__CUDA_ARCH__)
     #define GEOS_ERROR_IF( EXP, msg ) SLIC_ERROR_IF( EXP, msg )
@@ -115,14 +116,14 @@
   #define GEOS_INFO_IF( EXP, msg ) SLIC_INFO_IF( EXP, msg )
   #define GEOS_CHECK( EXP, msg ) SLIC_CHECK_MSG( EXP, msg )
 
-#else // #if defined(USE_AXOM)
+#else // #if defined(USE_ATK)
 
   #if !defined(__CUDA_ARCH__)
     #define GEOS_ERROR_IF( EXP, msg )                                          \
   do {                                                                     \
     if( EXP )                                                              \
     {                                                                      \
-      std::cout << "***** GEOS_ERROR "<<std::endl;                         \
+      std::cout << "***** GEOS_ERROR " <<std::endl;                        \
       std::cout << "***** FILE: " << __FILE__ << std::endl;                \
       std::cout << "***** LINE: " << __LINE__ << std::endl;                \
       std::cout << msg << std::endl;                                       \
@@ -174,7 +175,7 @@
     #define GEOS_CHECK( EXP, msg ) ((void) 0)
   #endif
 
-#endif // #if defined(USE_AXOM)
+#endif // #if defined(USE_ATK)
 
 namespace logger
 {

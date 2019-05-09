@@ -16,17 +16,10 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-#pragma clang diagnostic ignored "-Wglobal-constructors"
-#endif
-
 /*
  * Logger.cpp
  *
  *  Created on: Aug 31, 2017
- *      Author: settgast
  */
 
 #include "Logger.hpp"
@@ -35,7 +28,7 @@
 #include <fstream>
 #include <string>
 
-#ifdef USE_AXOM
+#ifdef USE_ATK
 
 #ifdef USE_MPI
 #include "axom/slic/streams/LumberjackStream.hpp"
@@ -66,12 +59,12 @@ std::ofstream rank_stream;
 MPI_Comm comm;
 #endif
 
-#ifdef USE_AXOM
+#ifdef USE_ATK
 slic::GenericOutputStream* createGenericStream()
 {
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
                        std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
-                       std::string( "MESSAGE=<MESSAGE>\n" ) +
+                       std::string( "<MESSAGE>\n" ) +
                        std::string( "Rank " ) + std::to_string( internal::rank ) + std::string( "\n" ) +
                        std::string( "<TIMESTAMP>\n" ) +
                        std::string( 100, '*' ) + std::string( "\n" );
@@ -90,7 +83,7 @@ void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
   MPI_Comm_rank( mpi_comm, &internal::rank );
   MPI_Comm_size( mpi_comm, &internal::n_ranks );
 
-#ifdef USE_AXOM
+#ifdef USE_ATK
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
   slic::GenericOutputStream* stream = internal::createGenericStream();
@@ -126,7 +119,7 @@ void InitializeLogger( MPI_Comm mpi_comm, const std::string& rank_output_dir )
 
 void InitializeLogger( const std::string& rank_output_dir )
 {
-#ifdef USE_AXOM
+#ifdef USE_ATK
   slic::initialize();
   slic::setLoggingMsgLevel( slic::message::Debug );
   slic::GenericOutputStream* stream = internal::createGenericStream();
@@ -152,7 +145,7 @@ void InitializeLogger( const std::string& rank_output_dir )
 
 void FinalizeLogger()
 {
-#ifdef USE_AXOM
+#ifdef USE_ATK
   slic::flushStreams();
   slic::finalize();
 #endif
@@ -167,7 +160,3 @@ void abort()
 }
 
 } /* namespace logger */
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
