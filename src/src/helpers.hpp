@@ -301,23 +301,17 @@ template< typename T,
           typename INDEX_TYPE >
 struct to_arrayViewConst< Array< T, NDIM, INDEX_TYPE > >
 {
-  using type = ArrayView< T const, NDIM, INDEX_TYPE > const;
+  using type = ArrayView< typename to_arrayViewConst<T>::type const, NDIM, INDEX_TYPE > const;
 };
 
-/* Note this will only work when using ChaiVector as the DATA_VECTOR_TYPE. */
 template< typename T,
-          int NDIM1,
-          typename INDEX_TYPE1,
-          int NDIM0,
-          typename INDEX_TYPE0 >
-struct to_arrayViewConst< Array< Array< T, NDIM1, INDEX_TYPE1 >,
-                                 NDIM0,
-                                 INDEX_TYPE0 > >
+  int NDIM,
+  typename INDEX_TYPE >
+struct to_arrayViewConst< ArrayView< T, NDIM, INDEX_TYPE > >
 {
-  using type = ArrayView< typename to_arrayViewConst< Array< T, NDIM1, INDEX_TYPE1 > >::type,
-                          NDIM0,
-                          INDEX_TYPE0 > const;
+  using type = ArrayView< typename to_arrayViewConst<T>::type const, NDIM, INDEX_TYPE > const;
 };
+
 
 } /* namespace detail */
 
