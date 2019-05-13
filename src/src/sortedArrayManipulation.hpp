@@ -289,7 +289,7 @@ LVARRAY_HOST_DEVICE inline
 INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( arrayManipulation::isPositive( size ));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ) );
 
   for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
@@ -320,8 +320,8 @@ LVARRAY_HOST_DEVICE inline
 INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value, Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
-  GEOS_ASSERT( arrayManipulation::isPositive( size ));
-  GEOS_ASSERT(isSorted(ptr, size, comp));
+  GEOS_ASSERT( arrayManipulation::isPositive( size ) );
+  GEOS_ASSERT( isSorted( ptr, size, comp ) );
 
   INDEX_TYPE lower = 0;
   INDEX_TYPE upper = size;
@@ -561,21 +561,32 @@ bool insert( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBA
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
 
-  // Find the position of the value.
-  INDEX_TYPE const index = find( ptr, size, value );
+  INDEX_TYPE insertPos = INDEX_TYPE(-1);
+  if (size == 0 || value < ptr[0]) // Take care of the case of an empty array or inserting at the beginning.
+  {
+    insertPos = 0;
+  }
+  else if (ptr[size - 1] < value) // The case of inserting at the end.
+  {
+    insertPos = size;
+  }
+  else // otherwise do a binary search
+  {
+    // We've already checked the first and last values.
+    insertPos = find( ptr, size, value );
+  }
 
   // If it's in the array we call the incrementSize callback and return false.
-  if( index != size && ptr[index] == value )
+  if( insertPos != size && ptr[insertPos] == value )
   {
     callBacks.incrementSize( 0 );
     return false;
   }
 
-  // If it's in the array we call the incrementSize callback, get the new pointer,
-  // insert and call the insert callback.
+  // Otherwise call the incrementSize callback, get the new pointer, insert and call the insert callback.
   T * const newPtr = callBacks.incrementSize( 1 );
-  arrayManipulation::insert( newPtr, size, index, value );
-  callBacks.insert( index );
+  arrayManipulation::insert( newPtr, size, insertPos, value );
+  callBacks.insert( insertPos );
   return true;
 }
 
