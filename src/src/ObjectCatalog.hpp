@@ -477,14 +477,6 @@ public:
 }
 
 
-/// Compiler directive to simplify registration
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wglobal-constructors"
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-#endif
-
 /**
  * Macro that takes in the base class of the catalog, the derived class, and the
  * argument types for the constructor of
@@ -499,10 +491,5 @@ public:
 
 #define REGISTER_CATALOG_ENTRY0( BaseType, DerivedType ) \
   namespace { cxx_utilities::CatalogEntryConstructor<BaseType, DerivedType> catEntry_ ## DerivedType; }
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#endif
-
 
 #endif /* OBJECTCATALOG_HPP_ */

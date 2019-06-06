@@ -35,11 +35,6 @@ namespace LvArray
 
 using size_type = ChaiVector< int >::size_type;
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#endif
-
 namespace internal
 {
 

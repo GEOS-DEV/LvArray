@@ -16,23 +16,6 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * Copyright (c) 2015, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- *
- * All rights reserved.
- *
- * This source code cannot be distributed without permission and
- * further review from Lawrence Livermore National Laboratory.
- */
-
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wused-but-marked-unused"
-#define __null nullptr
-#endif
-
 #include "gtest/gtest.h"
 
 #include "SetFPE.hpp"
@@ -79,6 +62,3 @@ TEST( TestFloatingPointEnvironment, test_FE_INVALID )
   cxx_utilities::SetFPE();
   EXPECT_DEATH_IF_SUPPORTED( double junk0 = invalid_test(0.0);, IGNORE_OUTPUT);
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif

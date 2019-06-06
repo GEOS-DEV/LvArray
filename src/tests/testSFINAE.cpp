@@ -16,19 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-
-//#ifdef __clang__
-//#pragma clang diagnostic push
-//#pragma clang diagnostic ignored "-Wglobal-constructors"
-//#pragma clang diagnostic ignored "-Wexit-time-destructors"
-//#endif
-
 #include <iostream>
 #include "gtest/gtest.h"
-
-//#ifdef __clang__
-//#pragma clang diagnostic push
-//#endif
 
 #include "SFINAE_Macros.hpp"
 
