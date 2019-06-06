@@ -6,6 +6,10 @@ set(GEOSX_TPL_DIR "${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release" CACHE P
 set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-upstream-2019.03.19/bin/clang" CACHE PATH "")
 set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-upstream-2019.03.19/bin/clang++" CACHE PATH "")
 
+# set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -march=native" CACHE STRING "")
+# set(CMAKE_CXX_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE} CACHE STRING "")
+# set(CMAKE_Fortran_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE} CACHE STRING "")
+
 set(ENABLE_OPENMP OFF CACHE BOOL "" FORCE)
 
 # MPI options
