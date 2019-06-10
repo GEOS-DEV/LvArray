@@ -80,6 +80,7 @@ class ArrayView
 {
 public:
 
+  using value_type = T;
   using iterator = T *;
   using const_iterator = T const *;
   using pointer = T *;
@@ -94,7 +95,11 @@ public:
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataVector()
-  {}
+  {
+#ifndef NDEBUG
+    ArrayView::TV_ttf_display_type( nullptr );
+#endif
+  }
 
   inline explicit CONSTEXPRFUNC
   ArrayView( std::nullptr_t ) noexcept:
@@ -549,6 +554,30 @@ public:
       const_cast<INDEX_TYPE *>(m_strides)[a] = strides[a];
     }
   }
+
+
+#ifndef NDEBUG
+  /**
+   * @brief Static function that will be used by Totalview to display the array contents.
+   * @param av A pointer to the array that is being displayed.
+   * @return 0 if everything went OK
+   */
+  static int TV_ttf_display_type( ArrayView const * av )
+  {
+    if( av!=nullptr )
+    {
+      int constexpr ndim = NDIM;
+      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
+      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(0, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
+      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
+      TV_ttf_add_row("m_dataVector", totalview::typeName<DATA_VECTOR_TYPE>().c_str() , &(av->m_dataVector) );
+      TV_ttf_add_row("m_singleParameterResizeIndex", "int" , &(av->m_singleParameterResizeIndex) );
+    }
+    return 0;
+  }
+#endif
 
 protected:
 
