@@ -29,7 +29,10 @@
 #include <utility>
 #include "Logger.hpp"
 #include "CXX_UtilsConfig.hpp"
-
+#ifndef NDEBUG
+#include "totalview/tv_data_display.h"
+#include "totalview/tv_helpers.hpp"
+#endif
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -233,7 +236,23 @@ public:
   /// deleted default constructor
   ArraySlice() = delete;
 
-
+#ifndef NDEBUG
+#ifdef USE_ARRAY_BOUNDS_CHECK
+  static int TV_ttf_display_type( ArraySlice const * av)
+  {
+    if( av!=nullptr )
+    {
+      int constexpr ndim = NDIM;
+      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
+      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(1, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
+      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
+    }
+    return 0;
+  }
+#endif
+#endif
 
 protected:
   /// pointer to beginning of data for this array, or sub-array.

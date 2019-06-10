@@ -318,7 +318,6 @@ struct to_arrayViewConst< ArrayView< T, NDIM, INDEX_TYPE > >
   using type = ArrayView< typename to_arrayViewConst<T>::type const, NDIM, INDEX_TYPE > const;
 };
 
-
 } /* namespace detail */
 
 } /* namespace LvArray */

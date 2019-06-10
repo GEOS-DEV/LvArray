@@ -28,6 +28,7 @@ set(cxx-utilities_headers
     SparsityPattern.hpp
     CRSMatrixView.hpp
     CRSMatrix.hpp
+    totalview/tv_data_display.h
    )
 
 set(cxx-utilities_sources
@@ -35,7 +36,9 @@ set(cxx-utilities_sources
     SetFPE.cpp
     SetSignalHandling.cpp
     stackTrace.cpp
-    StringUtilities.cpp )
+    StringUtilities.cpp
+    totalview/tv_data_display.c 
+    )
 
 
 message("adding cxx-utilities library")
