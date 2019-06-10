@@ -95,7 +95,11 @@ public:
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataVector()
-  {}
+  {
+#ifndef NDEBUG
+    ArrayView::TV_ttf_display_type( nullptr );
+#endif
+  }
 
   inline explicit CONSTEXPRFUNC
   ArrayView( std::nullptr_t ) noexcept:
@@ -127,13 +131,6 @@ public:
     setDims( dimsMem );
     setStrides( stridesMem );
     setDataPtr();
-  }
-
-  ~ArrayView()
-  {
-#ifndef NDEBUG
-    ArrayView::TV_ttf_display_type( nullptr );
-#endif
   }
 
   /**

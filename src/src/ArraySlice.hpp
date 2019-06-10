@@ -138,7 +138,11 @@ public:
     m_data( inputData ),
     m_dims( inputDimensions ),
     m_strides( inputStrides )
-  {}
+  {
+#ifndef NDEBUG
+    ArraySlice::TV_ttf_display_type( nullptr );
+#endif
+  }
 
 
   /**

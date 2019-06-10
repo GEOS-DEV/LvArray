@@ -80,6 +80,10 @@ public:
     ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
   {
     CalculateStrides();
+#ifndef NDEBUG
+    Array::TV_ttf_display_type( nullptr );
+#endif
+
   }
 
   /**
@@ -119,9 +123,6 @@ public:
   {
     m_dataVector.free();
     setDataPtr();
-#ifndef NDEBUG
-    Array::TV_ttf_display_type( nullptr );
-#endif
   }
 
   /**
