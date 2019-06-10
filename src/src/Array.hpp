@@ -414,6 +414,11 @@ public:
 #endif
 
 #ifndef NDEBUG
+  /**
+   * @brief Static function that will be used by Totalview to display the array contents.
+   * @param av A pointer to the array that is being displayed.
+   * @return 0 if everything went OK
+   */
   static int TV_ttf_display_type( Array const * av)
   {
     return ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >::TV_ttf_display_type( nullptr );

@@ -238,6 +238,11 @@ public:
 
 #ifndef NDEBUG
 #ifdef USE_ARRAY_BOUNDS_CHECK
+  /**
+   * @brief Static function that will be used by Totalview to display the array contents.
+   * @param av A pointer to the array that is being displayed.
+   * @return 0 if everything went OK
+   */
   static int TV_ttf_display_type( ArraySlice const * av)
   {
     if( av!=nullptr )
