@@ -131,7 +131,9 @@ public:
 
   ~ArrayView()
   {
+#ifndef NDEBUG
     ArrayView::TV_ttf_display_type( nullptr );
+#endif
   }
 
   /**

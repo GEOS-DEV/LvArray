@@ -119,7 +119,9 @@ public:
   {
     m_dataVector.free();
     setDataPtr();
+#ifndef NDEBUG
     Array::TV_ttf_display_type( nullptr );
+#endif
   }
 
   /**
