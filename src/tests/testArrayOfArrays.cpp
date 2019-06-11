@@ -461,7 +461,7 @@ protected:
   std::mt19937_64 m_gen;
 };
 
-using TestTypes = ::testing::Types<int, Tensor, TestString>;
+using TestTypes = ::testing::Types<INDEX_TYPE, Tensor, TestString>;
 TYPED_TEST_CASE(ArrayOfArraysTest, TestTypes);
 
 TYPED_TEST(ArrayOfArraysTest, construction)
@@ -1066,7 +1066,7 @@ protected:
   using ArrayOfArraysTest<T>::m_gen;
 };
 
-using CudaTestTypes = ::testing::Types<int, Tensor>;
+using CudaTestTypes = ::testing::Types<INDEX_TYPE, Tensor>;
 TYPED_TEST_CASE(ArrayOfArraysCudaTest, CudaTestTypes);
 
 TYPED_TEST(ArrayOfArraysCudaTest, memoryMotion)
