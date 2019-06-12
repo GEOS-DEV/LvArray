@@ -424,7 +424,7 @@ public:
    */
   static int TV_ttf_display_type( Array const * av)
   {
-    return ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >::TV_ttf_display_type( nullptr );
+    return ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >::TV_ttf_display_type( av );
   }
 #endif
 
