@@ -23,6 +23,22 @@
 #ifndef ARRAY_SLICE_HPP_
 #define ARRAY_SLICE_HPP_
 
+// Add GDB pretty printers
+#ifndef NDEBUG
+
+/* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
+#define DEFINE_GDB_PY_SCRIPT(script_name) \
+asm("\
+.pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n\
+.byte 1 /* Python */\n\
+.asciz \"" script_name "\"\n\
+.popsection \n\
+")
+
+DEFINE_GDB_PY_SCRIPT("scripts/gdb-printers.py");
+
+#endif
+
 #include <cstring>
 #include <vector>
 #include <iostream>
