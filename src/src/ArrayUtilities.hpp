@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * StringUtilities.hpp
- *
- *  Created on: Nov 12, 2014
- *      Author: rrsettgast
+/**
+ * @file ArrayUtilities.hpp
  */
 
 #ifndef ARRAYUTILITIES_HPP_
@@ -34,29 +31,24 @@
 
 namespace cxx_utilities
 {
-template< typename T, int NDIM, typename INDEX_TYPE >
-void equateStlVector( LvArray::Array<T, NDIM, INDEX_TYPE> & lhs, std::vector<T> const & rhs )
-{
-  static_assert( NDIM == 1, "Dimension must be 1" );
-  GEOS_ERROR_IF( lhs.size() != static_cast<INDEX_TYPE>(rhs.size()), "Size mismatch" );
-  for( unsigned int a=0 ; a<rhs.size() ; ++a )
-  {
-    lhs[a] = rhs[a];
-  }
-}
-
-template<typename T>
-void equateStlVector( T & lhs, std::vector<T> const & rhs )
-{
-  GEOS_ERROR_IF( rhs.size() > 1, "Size should not be greater than 1 but is: " << rhs.size());
-  if( rhs.size() == 1 )
-  {
-    lhs = rhs[0];
-  }
-}
-
-
-
+/**
+ * @brief This function reads the contents of a string into an LvArray::Array.
+ * @param array Reference to the array that will receive the contents of the input.
+ * @param valueString The string that contains the data to read into @p array.
+ *
+ * The contents of @p valueString are parsed and placed into @p array. @p array is resized to allow
+ * space for receiving the contents of @p valueString. The required notation for array values in
+ * @p valueString are similar to the requirements of initialization of a standard c-array:
+ *
+ *   Array<T,1> --> "{ val[0], val[1], val[2], ... }"
+ *   Array<T,2> --> "{ { val[0][0], val[0][1], val[0][2], ... },
+ *                     { val[1][0], val[1][1], val[1][2], ... }, ... } "
+ *
+ * @note
+ * A null initializer is allowed via "{}"
+ * All values must be delimited with a ','. All spaces are stripped prior to processing.
+ * Please don't use \t for anything...ever...thanks.
+ */
 template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
 static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
                             std::string valueString )
@@ -180,9 +172,23 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
   }
 }
 
+
+/**
+ * @struct arrayToStringHelper
+ * Helper struct/functor to output an array into a string.
+ */
 template< typename T, typename INDEX_TYPE >
 struct arrayToStringHelper
 {
+
+  /**
+   * @brief recursive function to loop over the contents of an array and output in a
+   *        format similar to the initializer of a standard c-array.
+   * @param[in] data pointer to the data
+   * @param[in] dims pointer to the dims array
+   * @param[in] strides pointer to the strides array
+   * @param[in/out] output the output string
+   */
   template< int NDIM >
   static
   typename std::enable_if< NDIM==0, void >::type
@@ -225,7 +231,11 @@ struct arrayToStringHelper
 };
 
 
-
+/**
+ * @brief This function converts an array to a string
+ * @param array The array to convert
+ * @return a string containing the contents of @p array
+ */
 template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
 static std::string arrayToString(  LvArray::ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
