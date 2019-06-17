@@ -4,20 +4,21 @@
 
 set(testSources
     testArray.cpp
-    testFloatingPointExceptions.cpp
+    testArrayOfArrays.cpp
+    testArrayUtilities.cpp
     testArrayView.cpp
+    testChaiVector.cpp
+    testCRSMatrix.cpp
+    testFloatingPointExceptions.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
     testObjectCatalog.cpp
     testSFINAE.cpp
-    testStringUtilities.cpp
-    testChaiVector.cpp
     testSortedArray.cpp
-    testStackArray.cpp
-    testArrayOfArrays.cpp
-    testSparsityPattern.cpp
-    testCRSMatrix.cpp
     testSortedArrayManipulation.cpp
+    testSparsityPattern.cpp
+    testStackArray.cpp
+    testStringUtilities.cpp
    )
 
 #
