@@ -155,7 +155,7 @@ public:
     m_dims( inputDimensions ),
     m_strides( inputStrides )
   {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(__CUDA_ARCH__)
     ArraySlice::TV_ttf_display_type( nullptr );
 #endif
   }

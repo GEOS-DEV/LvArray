@@ -56,9 +56,6 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
   // erase all spaces from input string
   valueString.erase(std::remove(valueString.begin(), valueString.end(), ' '), valueString.end());
 
-  size_t openPos = 0;
-  size_t closePos = 0;
-
   GEOS_ERROR_IF( valueString[0]!='{',
                  "First non-space character of input string for an array must be {" );
 

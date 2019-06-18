@@ -86,7 +86,9 @@ public:
    * @brief Default constructor, the array is empty.
    */
   inline
-  SortedArray() = default;
+  SortedArray():
+    SortedArrayView<T, INDEX_TYPE>()
+  {}
 
   /**
    * @brief The copy constructor, performs a deep copy.
