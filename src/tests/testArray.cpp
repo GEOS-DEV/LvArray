@@ -26,16 +26,16 @@ namespace LvArray
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-template < typename T >
+template< typename T >
 using array = Array< T, 1 >;
 
-template < typename T >
+template< typename T >
 using array2D = Array< T, 2 >;
 
-template < typename T >
+template< typename T >
 using arrayView = ArrayView< T, 1 >;
 
-template < typename T >
+template< typename T >
 using arrayView2D = ArrayView< T, 2 >;
 
 namespace internal
@@ -47,7 +47,7 @@ namespace internal
  * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against.
  */
-template < class T >
+template< class T >
 void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
@@ -78,7 +78,7 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
  * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against.
  */
-template < class T >
+template< class T >
 void compare_to_reference( const array< array< T > >& v,
                            const std::vector< std::vector< T > >& v_ref )
 {
@@ -96,7 +96,7 @@ void compare_to_reference( const array< array< T > >& v,
   }
 }
 
-template < class T >
+template< class T >
 void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
@@ -121,7 +121,7 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
   }
 }
 
-template < class T >
+template< class T >
 void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
@@ -153,7 +153,7 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
 }
 
 
-template < class T >
+template< class T >
 void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
 {
   EXPECT_TRUE( v.empty() );
@@ -196,7 +196,7 @@ void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
  * @param [in] n the number of values to append.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > push_back_test( array< T >& v, INDEX_TYPE n )
 {
   EXPECT_TRUE( v.empty() );
@@ -219,9 +219,9 @@ std::vector< T > push_back_test( array< T >& v, INDEX_TYPE n )
  * @param [in] n the number of values to append.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< std::vector< T > >
-push_back_array_test( array< array < T > >& v, INDEX_TYPE n, INDEX_TYPE m )
+push_back_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -252,7 +252,7 @@ push_back_array_test( array< array < T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in] m the number of values to insert per iteration.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > insert_test( array< T >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
@@ -294,9 +294,9 @@ std::vector< T > insert_test( array< T >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in] m the number of values to insert per iteration.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< std::vector< T > >
-insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYPE p)
+insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYPE p )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -347,7 +347,7 @@ insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYP
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T, class U >
+template< class T, class U >
 void erase_test( array< T >& v, std::vector< U >& v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
@@ -384,7 +384,7 @@ void erase_test( array< T >& v, std::vector< U >& v_ref )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T, class U >
+template< class T, class U >
 void pop_back_test( array< T >& v, std::vector< U >& v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
@@ -408,7 +408,7 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void resize_test( array< T >& v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
@@ -461,7 +461,7 @@ void resize_test( array< T >& v, INDEX_TYPE n )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
@@ -532,7 +532,7 @@ void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void reserve_test( array< T >& v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
@@ -581,7 +581,7 @@ void reserve_test( array< T >& v, INDEX_TYPE n )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
@@ -647,8 +647,8 @@ void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
-void deep_copy_test( const array< T >& v  )
+template< class T >
+void deep_copy_test( const array< T >& v )
 {
   array< T > v_cpy( v );
 
@@ -678,7 +678,7 @@ void deep_copy_test( const array< T >& v  )
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
+template< class T >
 void deep_copy_array_test( const array< array< T > >& v )
 {
   array< array< T > > v_cpy( v );
@@ -722,7 +722,7 @@ void deep_copy_array_test( const array< array< T > >& v )
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
+template< class T >
 void shallow_copy_test( const array< T >& v )
 {
   {
@@ -748,11 +748,11 @@ void shallow_copy_test( const array< T >& v )
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
+template< class T >
 void shallow_copy_array_test( const array< array< T > >& v )
 {
   {
-    arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const &>(v) );
+    arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const & >(v) );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
@@ -901,13 +901,13 @@ TEST( Array, erase_array )
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
+    std::vector< std::vector< Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::erase_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
+    std::vector< std::vector< TestString > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::erase_test( v, v_ref );
   }
 }
@@ -948,13 +948,13 @@ TEST( Array, pop_back_array )
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
+    std::vector< std::vector< Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::pop_back_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
+    std::vector< std::vector< TestString > > v_ref =  internal::push_back_array_test( v, N, M );
     internal::pop_back_test( v, v_ref );
   }
 }

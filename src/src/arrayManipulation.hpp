@@ -53,9 +53,9 @@ namespace arrayManipulation
  * @brief Return true iff the given value is greater than or equal to zero.
  * @param [in] i the value to check.
  */
-template <class INDEX_TYPE>
+template< class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-typename std::enable_if<std::is_signed<INDEX_TYPE>::value, bool>::type
+typename std::enable_if< std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const i )
 { return i >= 0; }
 
@@ -64,9 +64,9 @@ isPositive( INDEX_TYPE const i )
  * @brief Returns true.
  * This specialization for unsigned types avoids compiler warnings.
  */
-template <class INDEX_TYPE>
+template< class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-typename std::enable_if<!std::is_signed<INDEX_TYPE>::value, bool>::type
+typename std::enable_if< !std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const )
 { return true; }
 
@@ -81,9 +81,9 @@ isPositive( INDEX_TYPE const )
  * @param [in/out] args the arguments to forward to construct any new elements with.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class ...ARGS>
+template< class T, class INDEX_TYPE, class ... ARGS >
 LVARRAY_HOST_DEVICE inline
-void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS &&... args )
+void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS && ... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -98,7 +98,7 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARG
   // Initialize things between size and newSize.
   for( INDEX_TYPE i = size ; i < newSize ; ++i )
   {
-    new (&ptr[i]) T(std::forward<ARGS>(args)...);
+    new (&ptr[i]) T( std::forward< ARGS >( args )... );
   }
 }
 
@@ -113,7 +113,7 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARG
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
 {
@@ -152,7 +152,7 @@ void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
  * @param [in] defaultValue the value to initialize the new entries with.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1, T const & defaultValue=T())
 {
@@ -178,7 +178,7 @@ void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
 {
@@ -209,12 +209,13 @@ void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, IN
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1 )
 {
   GEOS_ASSERT( isPositive( n ) );
-  if( n == 0 ) return;
+  if( n == 0 )
+    return;
 
   ARRAYMANIPULATION_CHECK_BOUNDS( index );
   ARRAYMANIPULATION_CHECK_BOUNDS( index + n - 1 );
@@ -237,7 +238,7 @@ void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_
  * @param [in] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void append( T * const ptr, INDEX_TYPE const size, T const & value )
 {
@@ -255,7 +256,7 @@ void append( T * const ptr, INDEX_TYPE const size, T const & value )
  * @param [in/out] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void append( T * const ptr, INDEX_TYPE const size, T && value )
 {
@@ -274,7 +275,7 @@ void append( T * const ptr, INDEX_TYPE const size, T && value )
  * @param [in] n the number of values to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX_TYPE const n )
 {
@@ -299,7 +300,7 @@ void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX
  * @param [in] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const & value )
 {
@@ -322,7 +323,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
  * @param [in/out] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value )
 {
@@ -345,7 +346,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && 
  * @param [in] n the number of values to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const * const values, INDEX_TYPE const n )
 {
@@ -369,7 +370,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
  * @param [in] size the size of the array.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void popBack( T * const ptr, INDEX_TYPE const size )
 {

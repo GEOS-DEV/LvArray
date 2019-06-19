@@ -24,7 +24,7 @@
 #define CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_TOTALVIEW_TV_HELPERS_HPP_
 
 #include "StringUtilities.hpp"
-#include<typeinfo>
+#include <typeinfo>
 
 /**
  * @namespace This namespace is used to encapsulate functions that are used by the implementation
@@ -54,13 +54,13 @@ std::string typeName( )
  * @param dims  The dimensions of the array
  * @return A string for use as "type" in a TV_tff_add_row( name, type, data) call.
  */
-template< typename TYPE, typename INDEX_TYPE>
+template< typename TYPE, typename INDEX_TYPE >
 std::string format( int NDIM, INDEX_TYPE const * const dims )
 {
-  std::string rval = typeName<TYPE>();
-  for( int i=0 ; i<NDIM; ++i )
+  std::string rval = typeName< TYPE >();
+  for( int i=0 ; i<NDIM ; ++i )
   {
-    rval += "["+std::to_string(dims[i])+"]";
+    rval += "["+std::to_string( dims[i] )+"]";
   }
   return rval;
 }

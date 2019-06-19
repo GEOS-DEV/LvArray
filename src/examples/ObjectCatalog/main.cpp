@@ -45,10 +45,10 @@ int main( int argc, char *argv[] )
 
 
   GEOS_LOG( "Attempting to create a Derived1 object" );
-  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2, param );
+  std::unique_ptr< Base > derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2, param );
   GEOS_LOG( "Attempting to create a Derived2 object" );
-  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk3, param );
+  std::unique_ptr< Base > derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk3, param );
 
-  Base::CatalogInterface::catalog_cast<Derived1>( *(derived2.get()));
+  Base::CatalogInterface::catalog_cast< Derived1 >( *(derived2.get()));
   GEOS_LOG( "EXITING MAIN" );
 }

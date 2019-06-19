@@ -48,10 +48,10 @@ int main( int /*argc*/, char* argv[] )
   //***** Setup Arrays ********************************************************
   //***************************************************************************
 
-  double * const restrict A  = new double[ static_cast<std::size_t>(num_i*num_k)];
-  double * const restrict B  = new double[ static_cast<std::size_t>(num_k*num_j)];
-  double * const restrict C1D          = new double[ static_cast<std::size_t>(num_i*num_j)];
-  double * const restrict C1D_restrict = new double[ static_cast<std::size_t>(num_i*num_j)];
+  double * const restrict A  = new double[ static_cast< std::size_t >(num_i*num_k)];
+  double * const restrict B  = new double[ static_cast< std::size_t >(num_k*num_j)];
+  double * const restrict C1D          = new double[ static_cast< std::size_t >(num_i*num_j)];
+  double * const restrict C1D_restrict = new double[ static_cast< std::size_t >(num_i*num_j)];
 
 //  integer_t lengthsA[] = { num_i, num_k };
 //  integer_t lengthsB[] = { num_k, num_j };
@@ -62,18 +62,18 @@ int main( int /*argc*/, char* argv[] )
 //  integer_t stridesC[] = { num_j, 1};
 
 
-  Array<double, 2> ArrayA( num_i, num_k );
-  Array<double, 2> ArrayB( num_k, num_j );
-  Array<double, 2> ArrayC_SquareNFC( num_i, num_j );
-  Array<double, 2> ArrayC_SquarePBV( num_i, num_j );
-  Array<double, 2> ArrayC_SquarePBR( num_i, num_j );
-  Array<double, 2> ArrayC_ParenNFC( num_i, num_j );
-  Array<double, 2> ArrayC_ParenPBV( num_i, num_j );
-  Array<double, 2> ArrayC_ParenPBR( num_i, num_j );
+  Array< double, 2 > ArrayA( num_i, num_k );
+  Array< double, 2 > ArrayB( num_k, num_j );
+  Array< double, 2 > ArrayC_SquareNFC( num_i, num_j );
+  Array< double, 2 > ArrayC_SquarePBV( num_i, num_j );
+  Array< double, 2 > ArrayC_SquarePBR( num_i, num_j );
+  Array< double, 2 > ArrayC_ParenNFC( num_i, num_j );
+  Array< double, 2 > ArrayC_ParenPBV( num_i, num_j );
+  Array< double, 2 > ArrayC_ParenPBR( num_i, num_j );
 
 
 
-  srand( static_cast<unsigned int>(seed * seedmod) );
+  srand( static_cast< unsigned int >(seed * seedmod) );
 
   for( integer_t i = 0 ; i < num_i ; ++i )
     for( integer_t k = 0 ; k < num_k ; ++k )
@@ -106,14 +106,14 @@ int main( int /*argc*/, char* argv[] )
     }
   }
 
-  ArrayView<double, 2> & arrayViewA = ArrayA;
-  ArrayView<double, 2> & arrayViewB = ArrayB;
-  ArrayView<double, 2> & arrayViewC_SquareNFC = ArrayC_SquareNFC;
-  ArrayView<double, 2> & arrayViewC_SquarePBV = ArrayC_SquarePBV;
-  ArrayView<double, 2> & arrayViewC_SquarePBR = ArrayC_SquarePBR;
-  ArrayView<double, 2> & arrayViewC_ParenNFC = ArrayC_ParenNFC;
-  ArrayView<double, 2> & arrayViewC_ParenPBV = ArrayC_ParenPBV;
-  ArrayView<double, 2> & arrayViewC_ParenPBR = ArrayC_ParenPBR;
+  ArrayView< double, 2 > & arrayViewA = ArrayA;
+  ArrayView< double, 2 > & arrayViewB = ArrayB;
+  ArrayView< double, 2 > & arrayViewC_SquareNFC = ArrayC_SquareNFC;
+  ArrayView< double, 2 > & arrayViewC_SquarePBV = ArrayC_SquarePBV;
+  ArrayView< double, 2 > & arrayViewC_SquarePBR = ArrayC_SquarePBR;
+  ArrayView< double, 2 > & arrayViewC_ParenNFC = ArrayC_ParenNFC;
+  ArrayView< double, 2 > & arrayViewC_ParenPBV = ArrayC_ParenPBV;
+  ArrayView< double, 2 > & arrayViewC_ParenPBR = ArrayC_ParenPBR;
 
 
 

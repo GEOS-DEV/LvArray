@@ -38,11 +38,11 @@
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-template <class T>
-using Array1d = LvArray::Array<T, 1>;
+template< class T >
+using Array1d = LvArray::Array< T, 1 >;
 
-template <class T>
-using ArrayView1d = LvArray::ArrayView<T, 1> const;
+template< class T >
+using ArrayView1d = LvArray::ArrayView< T, 1 > const;
 
 namespace sortedArrayManipulation
 {
@@ -56,271 +56,271 @@ namespace internal
 // of the generator and hence on the calls before it.
 static std::mt19937_64 gen;
 
-template <class T>
-void checkEqual(Array1d<T> const & a, std::vector<T> const & b)
+template< class T >
+void checkEqual( Array1d< T > const & a, std::vector< T > const & b )
 {
-  for (INDEX_TYPE i = 0; i < a.size(); ++i)
+  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
   {
-    EXPECT_EQ(a[i], b[i]);
+    EXPECT_EQ( a[i], b[i] );
   }
 }
 
-template <class SORTINGTYPE, class T>
-void checkEqual(Array1d<SORTINGTYPE> const & a, Array1d<T> const & b, std::vector<std::pair<T, SORTINGTYPE>> const & c)
+template< class SORTINGTYPE, class T >
+void checkEqual( Array1d< SORTINGTYPE > const & a, Array1d< T > const & b, std::vector< std::pair< T, SORTINGTYPE > > const & c )
 {
-  for (INDEX_TYPE i = 0; i < a.size(); ++i)
+  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
   {
-    EXPECT_EQ(a[i], c[i].second);
-    EXPECT_EQ(b[i], c[i].first);
+    EXPECT_EQ( a[i], c[i].second );
+    EXPECT_EQ( b[i], c[i].first );
   }
 }
 
-template <class T, class Compare>
-void check(Array1d<T> & a, std::vector<T> & b, Compare comp)
+template< class T, class Compare >
+void check( Array1d< T > & a, std::vector< T > & b, Compare comp )
 {
-  makeSorted(a.begin(), a.end(), comp);
-  std::sort(b.begin(), b.end(), comp);
-  checkEqual(a, b);
+  makeSorted( a.begin(), a.end(), comp );
+  std::sort( b.begin(), b.end(), comp );
+  checkEqual( a, b );
 }
 
-template <class SORTINGTYPE, class T, class Compare>
-void check(Array1d<SORTINGTYPE> & a, Array1d<T> & b, std::vector<std::pair<T, SORTINGTYPE>> & c, Compare comp)
+template< class SORTINGTYPE, class T, class Compare >
+void check( Array1d< SORTINGTYPE > & a, Array1d< T > & b, std::vector< std::pair< T, SORTINGTYPE > > & c, Compare comp )
 {
-  dualSort(a.begin(), a.end(), b.begin(), comp);
-  std::sort(c.begin(), c.end(), PairComp<T, SORTINGTYPE, Compare>());
-  checkEqual(a, b, c);
+  dualSort( a.begin(), a.end(), b.begin(), comp );
+  std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
+  checkEqual( a, b, c );
 }
 
-template <class T>
-void fillArrays(INDEX_TYPE size, Array1d<T> & a, std::vector<T> & b)
+template< class T >
+void fillArrays( INDEX_TYPE size, Array1d< T > & a, std::vector< T > & b )
 {
-  std::uniform_int_distribution<INDEX_TYPE> valueDist(0, size);
+  std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size );
 
-  a.resize(size);
-  b.resize(size);
-  for (INDEX_TYPE i = 0; i < size; ++i)
+  a.resize( size );
+  b.resize( size );
+  for( INDEX_TYPE i = 0 ; i < size ; ++i )
   {
-    T const val = T(valueDist(gen));
+    T const val = T( valueDist( gen ));
     a[i] = val;
     b[i] = val;
   }
 }
 
-template <class SORTINGTYPE, class T>
-void fillArrays(INDEX_TYPE size, Array1d<SORTINGTYPE> & a, Array1d<T> & b, std::vector<std::pair<T, SORTINGTYPE>> & c)
+template< class SORTINGTYPE, class T >
+void fillArrays( INDEX_TYPE size, Array1d< SORTINGTYPE > & a, Array1d< T > & b, std::vector< std::pair< T, SORTINGTYPE > > & c )
 {
-  std::uniform_int_distribution<INDEX_TYPE> valueDist(0, size);
+  std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size );
 
-  a.resize(size);
-  b.resize(size);
-  c.resize(size);
-  for (INDEX_TYPE i = 0; i < size; ++i)
+  a.resize( size );
+  b.resize( size );
+  c.resize( size );
+  for( INDEX_TYPE i = 0 ; i < size ; ++i )
   {
-    INDEX_TYPE const seed = valueDist(gen);
-    SORTINGTYPE const sortingVal = SORTINGTYPE(seed);
-    T const val = T(seed * (seed + 1 - size));
+    INDEX_TYPE const seed = valueDist( gen );
+    SORTINGTYPE const sortingVal = SORTINGTYPE( seed );
+    T const val = T( seed * (seed + 1 - size));
     a[i] = sortingVal;
     b[i] = val;
-    c[i] = std::pair<T, SORTINGTYPE>(val, sortingVal);
+    c[i] = std::pair< T, SORTINGTYPE >( val, sortingVal );
   }
 }
 
 
-template <class T, class Compare>
+template< class T, class Compare >
 void correctnessTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 500;
-  Array1d<T> a(MAX_SIZE);
-  std::vector<T> b(MAX_SIZE);
+  Array1d< T > a( MAX_SIZE );
+  std::vector< T > b( MAX_SIZE );
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; ++size )
   {
-    fillArrays(size, a, b);
-    check(a, b, Compare());
+    fillArrays( size, a, b );
+    check( a, b, Compare());
   }
 }
 
-template <class SORTINGTYPE, class T, class Compare>
+template< class SORTINGTYPE, class T, class Compare >
 void dualCorrectnessTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 500;
-  Array1d<SORTINGTYPE> a(MAX_SIZE);
-  Array1d<T> b(MAX_SIZE);
-  std::vector<std::pair<T, SORTINGTYPE>> c(MAX_SIZE);
+  Array1d< SORTINGTYPE > a( MAX_SIZE );
+  Array1d< T > b( MAX_SIZE );
+  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; ++size )
   {
-    fillArrays(size, a, b, c);
-    check(a, b, c, Compare());
+    fillArrays( size, a, b, c );
+    check( a, b, c, Compare());
   }
 }
 
-template <class T, class Compare>
+template< class T, class Compare >
 void performanceTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024 * 8;
 
-  std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(5);
+  std::cout << std::setiosflags( std::ios::fixed ) << std::setprecision( 5 );
 
-  Array1d<T> a(MAX_SIZE);
-  std::vector<T> b(MAX_SIZE);
+  Array1d< T > a( MAX_SIZE );
+  std::vector< T > b( MAX_SIZE );
 
-  for (INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
+  for( INDEX_TYPE size = 0 ; size <= MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
-    std::chrono::duration<double> sortingTime {};
-    std::chrono::duration<double> stdTime {};
-    for (INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter)
+    std::chrono::duration< double > sortingTime {};
+    std::chrono::duration< double > stdTime {};
+    for( INDEX_TYPE iter = 0 ; iter < MAX_SIZE / (size + 1) + 1 ; ++iter )
     {
-      fillArrays(size, a, b);
+      fillArrays( size, a, b );
 
       auto start = std::chrono::high_resolution_clock::now();
-      makeSorted(a.begin(), a.end(), Compare());
+      makeSorted( a.begin(), a.end(), Compare());
       auto end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
 
       start = std::chrono::high_resolution_clock::now();
-      std::sort(b.begin(), b.end(), Compare());
+      std::sort( b.begin(), b.end(), Compare());
       end = std::chrono::high_resolution_clock::now();
       stdTime += end - start;
 
-      fillArrays(size, a, b);
+      fillArrays( size, a, b );
 
       start = std::chrono::high_resolution_clock::now();
-      std::sort(b.begin(), b.end(), Compare());
+      std::sort( b.begin(), b.end(), Compare());
       end = std::chrono::high_resolution_clock::now();
       stdTime += end - start;
 
       start = std::chrono::high_resolution_clock::now();
-      makeSorted(a.begin(), a.end(), Compare());
+      makeSorted( a.begin(), a.end(), Compare());
       end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
-      
-      checkEqual(a, b);
+
+      checkEqual( a, b );
     }
 
-    if (sortingTime.count() > stdTime.count())
+    if( sortingTime.count() > stdTime.count())
     {
       std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-                   ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
+        ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
     }
     else
     {
       std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-                   ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
+        ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
     }
   }
 }
 
-template <class SORTINGTYPE, class T, class Compare>
+template< class SORTINGTYPE, class T, class Compare >
 void dualPerformanceTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024 * 8;
 
-  std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(5);
+  std::cout << std::setiosflags( std::ios::fixed ) << std::setprecision( 5 );
 
-  Array1d<SORTINGTYPE> a(MAX_SIZE);
-  Array1d<T> b(MAX_SIZE);
-  std::vector<std::pair<T, SORTINGTYPE>> c(MAX_SIZE);
+  Array1d< SORTINGTYPE > a( MAX_SIZE );
+  Array1d< T > b( MAX_SIZE );
+  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for (INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
+  for( INDEX_TYPE size = 0 ; size <= MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
-    std::chrono::duration<double> sortingTime {};
-    std::chrono::duration<double> stdTime {};
-    for (INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter)
+    std::chrono::duration< double > sortingTime {};
+    std::chrono::duration< double > stdTime {};
+    for( INDEX_TYPE iter = 0 ; iter < MAX_SIZE / (size + 1) + 1 ; ++iter )
     {
-      fillArrays(size, a, b, c);
+      fillArrays( size, a, b, c );
 
       auto start = std::chrono::high_resolution_clock::now();
-      dualSort(a.begin(), a.end(), b.begin(), Compare());
+      dualSort( a.begin(), a.end(), b.begin(), Compare());
       auto end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
 
       start = std::chrono::high_resolution_clock::now();
-      std::sort(c.begin(), c.end(), PairComp<T, SORTINGTYPE, Compare>());
+      std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
       end = std::chrono::high_resolution_clock::now();
       stdTime += end - start;
 
-      fillArrays(size, a, b, c);
+      fillArrays( size, a, b, c );
 
       start = std::chrono::high_resolution_clock::now();
-      std::sort(c.begin(), c.end(), PairComp<T, SORTINGTYPE, Compare>());
+      std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
       end = std::chrono::high_resolution_clock::now();
       stdTime += end - start;
 
       start = std::chrono::high_resolution_clock::now();
-      dualSort(a.begin(), a.end(), b.begin(), Compare());
+      dualSort( a.begin(), a.end(), b.begin(), Compare());
       end = std::chrono::high_resolution_clock::now();
       sortingTime += end - start;
 
-      checkEqual(a, b, c);
+      checkEqual( a, b, c );
     }
 
-    if (sortingTime.count() > stdTime.count())
+    if( sortingTime.count() > stdTime.count())
     {
       std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-                   ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
+        ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
     }
     else
     {
       std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-                   ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
+        ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
     }
   }
 }
 
 #ifdef USE_CUDA
 
-template <class T, class Compare>
+template< class T, class Compare >
 void correctnessDeviceTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 500;
-  Array1d<T> a(MAX_SIZE);
-  std::vector<T> b(MAX_SIZE);
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  Array1d< T > a( MAX_SIZE );
+  std::vector< T > b( MAX_SIZE );
+  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; ++size )
   {
-    fillArrays(size, a, b);
+    fillArrays( size, a, b );
 
-    ArrayView1d<T> & aView = a;
-    forall(cuda(), 0, 1,
-      [=] __device__ (INDEX_TYPE i)
-      {
-        makeSorted(aView.begin(), aView.end(), Compare());
-      }
-    );
+    ArrayView1d< T > & aView = a;
+    forall( cuda(), 0, 1,
+            [=] __device__ ( INDEX_TYPE i )
+        {
+          makeSorted( aView.begin(), aView.end(), Compare());
+        }
+            );
 
-    a.move(chai::CPU);
+    a.move( chai::CPU );
 
-    std::sort(b.begin(), b.end(), Compare());
-    checkEqual(a, b);
+    std::sort( b.begin(), b.end(), Compare());
+    checkEqual( a, b );
   }
 }
 
-template <class SORTINGTYPE, class T, class Compare>
+template< class SORTINGTYPE, class T, class Compare >
 void dualCorrectnessDeviceTest()
 {
   constexpr INDEX_TYPE MAX_SIZE = 300;
-  Array1d<SORTINGTYPE> a(MAX_SIZE);
-  Array1d<T> b(MAX_SIZE);
-  std::vector<std::pair<T, SORTINGTYPE>> c(MAX_SIZE);
+  Array1d< SORTINGTYPE > a( MAX_SIZE );
+  Array1d< T > b( MAX_SIZE );
+  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; ++size )
   {
-    fillArrays(size, a, b, c);
+    fillArrays( size, a, b, c );
 
-    ArrayView1d<SORTINGTYPE> & aView = a;
-    ArrayView1d<T> & bView = b;
-    forall(cuda(), 0, 1,
-      [=] __device__ (INDEX_TYPE i)
-      {
-        dualSort(aView.begin(), aView.end(), bView.begin(), Compare());
-      }
-    );
+    ArrayView1d< SORTINGTYPE > & aView = a;
+    ArrayView1d< T > & bView = b;
+    forall( cuda(), 0, 1,
+            [=] __device__ ( INDEX_TYPE i )
+        {
+          dualSort( aView.begin(), aView.end(), bView.begin(), Compare());
+        }
+            );
 
-    a.move(chai::CPU);
-    b.move(chai::CPU);
+    a.move( chai::CPU );
+    b.move( chai::CPU );
 
-    std::sort(c.begin(), c.end(), PairComp<T, SORTINGTYPE, Compare>());
-    checkEqual(a, b, c);
+    std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
+    checkEqual( a, b, c );
   }
 }
 
@@ -328,37 +328,37 @@ void dualCorrectnessDeviceTest()
 
 } // namespace internal
 
-TEST(sort, correctness)
+TEST( sort, correctness )
 {
-  internal::correctnessTest<int, less<int>>();
-  internal::correctnessTest<int, greater<int>>();
+  internal::correctnessTest< int, less< int > >();
+  internal::correctnessTest< int, greater< int > >();
 
-  internal::correctnessTest<Tensor, less<Tensor>>();
-  internal::correctnessTest<Tensor, greater<Tensor>>();
+  internal::correctnessTest< Tensor, less< Tensor > >();
+  internal::correctnessTest< Tensor, greater< Tensor > >();
 
-  internal::correctnessTest<TestString, less<TestString>>();
-  internal::correctnessTest<TestString, greater<TestString>>();
+  internal::correctnessTest< TestString, less< TestString > >();
+  internal::correctnessTest< TestString, greater< TestString > >();
 }
 
-TEST(dualSort, correctness)
+TEST( dualSort, correctness )
 {
-  internal::dualCorrectnessTest<int, int, less<int>>();
-  internal::dualCorrectnessTest<int, Tensor, greater<int>>();
+  internal::dualCorrectnessTest< int, int, less< int > >();
+  internal::dualCorrectnessTest< int, Tensor, greater< int > >();
 
-  internal::dualCorrectnessTest<Tensor, int, less<Tensor>>();
-  internal::dualCorrectnessTest<Tensor, TestString, greater<Tensor>>();
+  internal::dualCorrectnessTest< Tensor, int, less< Tensor > >();
+  internal::dualCorrectnessTest< Tensor, TestString, greater< Tensor > >();
 
-  internal::dualCorrectnessTest<TestString, int, less<TestString>>();
-  internal::dualCorrectnessTest<TestString, Tensor, greater<TestString>>();
+  internal::dualCorrectnessTest< TestString, int, less< TestString > >();
+  internal::dualCorrectnessTest< TestString, Tensor, greater< TestString > >();
 }
 
-TEST(sort, performance)
+TEST( sort, performance )
 {
   // internal::performanceTest<int, less<int>>();
   SUCCEED();
 }
 
-TEST(dualSort, performance)
+TEST( dualSort, performance )
 {
   // internal::dualPerformanceTest<int, int, less<int>>();
   SUCCEED();
@@ -366,22 +366,22 @@ TEST(dualSort, performance)
 
 #ifdef USE_CUDA
 
-CUDA_TEST(sort, correctnessDevice)
+CUDA_TEST( sort, correctnessDevice )
 {
-  internal::correctnessDeviceTest<int, less<int>>();
-  internal::correctnessDeviceTest<int, greater<int>>();
+  internal::correctnessDeviceTest< int, less< int > >();
+  internal::correctnessDeviceTest< int, greater< int > >();
 
-  internal::correctnessDeviceTest<Tensor, less<Tensor>>();
-  internal::correctnessDeviceTest<Tensor, greater<Tensor>>();
+  internal::correctnessDeviceTest< Tensor, less< Tensor > >();
+  internal::correctnessDeviceTest< Tensor, greater< Tensor > >();
 }
 
-CUDA_TEST(dualSort, correctnessDevice)
+CUDA_TEST( dualSort, correctnessDevice )
 {
-  internal::dualCorrectnessDeviceTest<int, int, less<int>>();
-  internal::dualCorrectnessDeviceTest<int, Tensor, greater<int>>();
+  internal::dualCorrectnessDeviceTest< int, int, less< int > >();
+  internal::dualCorrectnessDeviceTest< int, Tensor, greater< int > >();
 
-  internal::dualCorrectnessDeviceTest<Tensor, int, less<Tensor>>();
-  internal::dualCorrectnessDeviceTest<Tensor, Tensor, greater<Tensor>>();
+  internal::dualCorrectnessDeviceTest< Tensor, int, less< Tensor > >();
+  internal::dualCorrectnessDeviceTest< Tensor, Tensor, greater< Tensor > >();
 }
 
 #endif

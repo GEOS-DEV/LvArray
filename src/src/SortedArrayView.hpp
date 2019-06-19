@@ -54,7 +54,7 @@ namespace LvArray
  * since the View has no way of modifying the values. This also prevents unnecessary
  * memory movement.
  */
-template <class T, class INDEX_TYPE=std::ptrdiff_t>
+template< class T, class INDEX_TYPE=std::ptrdiff_t >
 class SortedArrayView
 #ifdef USE_CHAI
   : public chai::CHAICopyable
@@ -138,7 +138,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE size() const
-  { return static_cast<INDEX_TYPE>(m_values.size()); }
+  { return static_cast< INDEX_TYPE >(m_values.size()); }
 
   /**
    * @brief Return true if the given value is in the array.
@@ -168,7 +168,7 @@ protected:
   SortedArrayView() = default;
 
   // Holds the array of values.
-  ChaiVector<T> m_values;
+  ChaiVector< T > m_values;
 };
 
 } // namespace LvArray

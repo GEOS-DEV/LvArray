@@ -50,11 +50,11 @@ namespace cxx_utilities
  * Please don't use \t for anything...ever...thanks.
  */
 template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
-                            std::string valueString )
+static void stringToArray( LvArray::Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
+                           std::string valueString )
 {
   // erase all spaces from input string
-  valueString.erase(std::remove(valueString.begin(), valueString.end(), ' '), valueString.end());
+  valueString.erase( std::remove( valueString.begin(), valueString.end(), ' ' ), valueString.end());
 
   size_t openPos = 0;
   size_t closePos = 0;
@@ -67,7 +67,7 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
 
   GEOS_ERROR_IF( numOpen != numClose,
                  "Number of opening { not equal to number of } in processing of string for filling"
-                 " an Array. Given string is: \n"<<valueString);
+                 " an Array. Given string is: \n"<<valueString );
 
   // allow for a null input
   if( valueString=="{}" )
@@ -77,12 +77,12 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
   }
 
   // aftre allowing for the null input, disallow a sub-array null input
-  GEOS_ERROR_IF( valueString.find("{}")!=std::string::npos,
+  GEOS_ERROR_IF( valueString.find( "{}" )!=std::string::npos,
                  "Cannot have an empty sub-dimension of an array, i.e. { { 0, 1}, {} }. "
                  "The input is"<<valueString );
 
   // get the number of dimensions from the number of { characters that begin the input string
-  int const ndims = integer_conversion<int>(valueString.find_first_not_of('{'));
+  int const ndims = integer_conversion< int >( valueString.find_first_not_of( '{' ));
   GEOS_ERROR_IF( ndims!=NDIM,
                  "number of dimensions in string ("<<ndims<<
                  ") does not match dimensions of array("<<NDIM<<
@@ -100,35 +100,35 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
 
   char lastChar = 0;
 
-  for( size_t charCount = 0; charCount<valueString.size() ; ++charCount )
+  for( size_t charCount = 0 ; charCount<valueString.size() ; ++charCount )
   {
     char const c = valueString[charCount];
-    if( c=='{')
+    if( c=='{' )
     {
       ++dimLevel;
     }
-    else if( c=='}')
+    else if( c=='}' )
     {
       dimSet[dimLevel] = true;
       GEOS_ERROR_IF( dims[dimLevel]!=currentDims[dimLevel],
                      "Dimension "<<dimLevel<<" is inconsistent across the expression. "
-                     "The first set value of the dimension is "<<dims[dimLevel]<<
+                                             "The first set value of the dimension is "<<dims[dimLevel]<<
                      " while the current value of the dimension is"<<currentDims[dimLevel]<<
                      ". The values that have been parsed prior to the error are:\n"<<
-                     valueString.substr(0,charCount+1) );
+                     valueString.substr( 0, charCount+1 ) );
       currentDims[dimLevel] = 1;
       --dimLevel;
       GEOS_ERROR_IF( dimLevel<0 && charCount<(valueString.size()-1),
                      "In parsing the input string, the current dimension of the array has dropped "
                      "below 0. This means that there are more '}' than '{' at some point in the"
                      " parsing. The values that have been parsed prior to the error are:\n"<<
-                     valueString.substr(0,charCount+1) );
+                     valueString.substr( 0, charCount+1 ) );
 
     }
     else if( c==',' )
     {
       GEOS_ERROR_IF( lastChar=='{' || lastChar==',',
-                     "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value.");
+                     "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value." );
       if( dimSet[dimLevel]==false )
       {
         ++(dims[dimLevel]);
@@ -153,7 +153,7 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
   std::replace( valueString.begin(), valueString.end(), '{', ' ' );
   std::replace( valueString.begin(), valueString.end(), '}', ' ' );
   std::replace( valueString.begin(), valueString.end(), ',', ' ' );
-  std::istringstream strstream(valueString);
+  std::istringstream strstream( valueString );
 
   // iterate through the stream and insert values into array in a linear fashion. This will be
   // incorrect if we ever have Array with a permuted index capability.
@@ -218,7 +218,7 @@ struct arrayToStringHelper
     for( INDEX_TYPE i=0 ; i<dims[0] ; ++i )
     {
       output += "{ ";
-      dimExpansion<NDIM-1>( &(data[ i*strides[0] ] ), dims+1, strides+1, output );
+      dimExpansion< NDIM-1 >( &(data[ i*strides[0] ] ), dims+1, strides+1, output );
       output += " }";
       if( i < dims[0] - 1 )
       {
@@ -237,16 +237,16 @@ struct arrayToStringHelper
  * @return a string containing the contents of @p array
  */
 template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static std::string arrayToString(  LvArray::ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
+static std::string arrayToString( LvArray::ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
   std::string output;
   output.clear();
 
   output += "{ ";
-  arrayToStringHelper<T, INDEX_TYPE>::template dimExpansion<NDIM-1>( array.data(),
-                                                                   array.dims(),
-                                                                   array.strides(),
-                                                                   output );
+  arrayToStringHelper< T, INDEX_TYPE >::template dimExpansion< NDIM-1 >( array.data(),
+                                                                         array.dims(),
+                                                                         array.strides(),
+                                                                         output );
 
   output += " }";
 

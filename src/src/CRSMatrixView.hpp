@@ -46,21 +46,21 @@ namespace LvArray
  * @note When T, COL_TYPE and INDEX_TYPE are const you cannot modify the matrix in any way
  *       and nothing is copied back from the device.
  */
-template <class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
-class CRSMatrixView : protected SparsityPatternView<COL_TYPE, INDEX_TYPE>
+template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
+class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
 public:
 
   // Aliasing public typedefs of SparsityPatternView.
-  using typename SparsityPatternView<COL_TYPE, INDEX_TYPE>::INDEX_TYPE_NC;
+  using typename SparsityPatternView< COL_TYPE, INDEX_TYPE >::INDEX_TYPE_NC;
 
   // Aliasing public methods of SparsityPatternView.
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numRows;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numColumns;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numNonZeros;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::nonZeroCapacity;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::empty;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numRows;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numColumns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numNonZeros;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::empty;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getColumns;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -81,45 +81,45 @@ public:
    * @brief User defined conversion to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
    *        This prevents you from inserting or removing but still allows modification of the matrix entries.
    */
-  template <class U=T, class CTYPE=COL_TYPE>
+  template< class U=T, class CTYPE=COL_TYPE >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator typename std::enable_if<!std::is_const<U>::value && !std::is_const<CTYPE>::value,
-                                   CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const &>::type
+  operator typename std::enable_if< !std::is_const< U >::value && !std::is_const< CTYPE >::value,
+                                    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >::type
     () const restrict_this
-  { return reinterpret_cast<CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>. Use this method
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const & toViewC() const restrict_this
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewC() const restrict_this
   { return *this; }
 
   /**
    * @brief User defined conversion to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
    *        This prevents you from inserting, removing or modifying the matrix entries.
    */
-  template<class U=T>
+  template< class U=T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator typename std::enable_if<!std::is_const<U>::value, CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const &>::type
+  operator typename std::enable_if< !std::is_const< U >::value, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >::type
     () const restrict_this
-  { return reinterpret_cast<CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>. Use this method
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const & toViewCC() const restrict_this
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewCC() const restrict_this
   { return *this; }
 
   /**
    * @brief Method to convert to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const & toSparsityPatternView() const
-  { return reinterpret_cast<SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &>(*this); }
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -134,10 +134,10 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> getEntries( INDEX_TYPE const row ) const restrict_this
+  ArraySlice1d_rval< T, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const restrict_this
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    return createArraySlice1d<T, INDEX_TYPE_NC>( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
+    return createArraySlice1d< T, INDEX_TYPE_NC >( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
   }
 
   /**
@@ -154,7 +154,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -164,7 +164,8 @@ public:
    * @param [in] ncols the number of columns/entries to insert.
    * @return The number of entries inserted.
    *
-   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols + ncols, entriesToInsert)
+   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols +
+   * ncols, entriesToInsert)
    *       and then call insertNonZerosSorted, this will be substantially faster.
    * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
@@ -196,7 +197,7 @@ public:
                                       COL_TYPE const * const cols,
                                       T const * const entriesToInsert,
                                       INDEX_TYPE const ncols ) const restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
    * @brief Remove a non-zero entry at the given position.
@@ -206,7 +207,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
 
   /**
    * @brief Remove non-zero entries from the given row.
@@ -226,8 +227,8 @@ public:
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
-    
+    INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
+
     for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
     {
       entries[i].~T();
@@ -251,8 +252,8 @@ public:
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
-    
+    INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
+
     for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
     {
       entries[i].~T();
@@ -280,7 +281,7 @@ protected:
    * @return The number of entries inserted.
    */
   DISABLE_HD_WARNING
-  template <class DERIVED>
+  template< class DERIVED >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZerosImpl( INDEX_TYPE const row,
                                     COL_TYPE const * const cols,
@@ -288,31 +289,31 @@ protected:
                                     INDEX_TYPE const ncols,
                                     DERIVED & obj ) const restrict_this
   {
-    static_assert(std::is_base_of<CRSMatrixView, DERIVED>::value, "DERIVED must be derived from CRSMatrixView!");
+    static_assert( std::is_base_of< CRSMatrixView, DERIVED >::value, "DERIVED must be derived from CRSMatrixView!" );
 
     constexpr int LOCAL_SIZE = 16;
     COL_TYPE localColumnBuffer[LOCAL_SIZE];
     T localEntryBuffer[LOCAL_SIZE];
 
-    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer(cols, ncols, localColumnBuffer);
-    T * const entryBuffer = sortedArrayManipulation::createTemporaryBuffer(entriesToInsert, ncols, localEntryBuffer);
-    sortedArrayManipulation::dualSort(columnBuffer, columnBuffer + ncols, entryBuffer);
+    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer( cols, ncols, localColumnBuffer );
+    T * const entryBuffer = sortedArrayManipulation::createTemporaryBuffer( entriesToInsert, ncols, localEntryBuffer );
+    sortedArrayManipulation::dualSort( columnBuffer, columnBuffer + ncols, entryBuffer );
 
     INDEX_TYPE const nInserted = obj.insertNonZerosSorted( row, columnBuffer, entryBuffer, ncols );
 
-    sortedArrayManipulation::freeTemporaryBuffer(columnBuffer, ncols, localColumnBuffer);
-    sortedArrayManipulation::freeTemporaryBuffer(entryBuffer, ncols, localEntryBuffer);
+    sortedArrayManipulation::freeTemporaryBuffer( columnBuffer, ncols, localColumnBuffer );
+    sortedArrayManipulation::freeTemporaryBuffer( entryBuffer, ncols, localEntryBuffer );
     return nInserted;
   }
 
   // Aliasing protected members of SparsityPatternView.
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_sizes;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_values;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
 
   // Holds the entries of the matrix, of length numNonZeros().
-  ChaiVector<T> m_entries;
+  ChaiVector< T > m_entries;
 
 private:
 
@@ -331,7 +332,7 @@ public:
      * @param [in] entriesToInsert pointer to the entries to insert.
      */
     LVARRAY_HOST_DEVICE inline
-    CallBacks( CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & crsMV,
+    CallBacks( CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & crsMV,
                INDEX_TYPE const row, T const * const entriesToInsert ):
       m_crsMV( crsMV ),
       m_row( row ),
@@ -426,7 +427,7 @@ public:
     { arrayManipulation::shiftDown( m_entries, nextPos, curPos + 1, nRemoved ); }
 
 private:
-    CRSMatrixView<T, COL_TYPE, INDEX_TYPE> const & m_crsMV;
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & m_crsMV;
     INDEX_TYPE const m_row;
     INDEX_TYPE const m_rowNNZ;
     INDEX_TYPE const m_rowCapacity;

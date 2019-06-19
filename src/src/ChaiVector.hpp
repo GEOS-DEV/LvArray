@@ -37,7 +37,7 @@
 namespace LvArray
 {
 
-template <class COL_TYPE, class INDEX_TYPE>
+template< class COL_TYPE, class INDEX_TYPE >
 class SparsityPattern;
 
 #ifdef USE_CHAI
@@ -47,7 +47,7 @@ static ::std::mutex chai_lock;
 }
 #endif
 
-template < typename T >
+template< typename T >
 class ChaiVector
 #ifdef USE_CHAI
   : public chai::CHAICopyable
@@ -55,19 +55,19 @@ class ChaiVector
 {
 public:
 
-  template <class U, class INDEX_TYPE>
+  template< class U, class INDEX_TYPE >
   friend class SortedArray;
 
-  template <class COL_TYPE, class INDEX_TYPE>
+  template< class COL_TYPE, class INDEX_TYPE >
   friend class SparsityPattern;
 
-  template <class U, class COL_TYPE, class INDEX_TYPE>
+  template< class U, class COL_TYPE, class INDEX_TYPE >
   friend class CRSMatrix;
 
-  template <class U, class INDEX_TYPE, bool CONST_SIZES>
+  template< class U, class INDEX_TYPE, bool CONST_SIZES >
   friend class ArrayOfArraysView;
 
-  template <class U, class INDEX_TYPE>
+  template< class U, class INDEX_TYPE >
   friend class ArrayOfArrays;
 
   using size_type = size_t;
@@ -119,7 +119,7 @@ public:
   /**
    * @brief Copy constructor, creates a shallow copy of the given ChaiVector.
    * @param [in] source the ChaiVector to copy.
-   * 
+   *
    * @note The copy is a shallow copy and newly constructed ChaiVector doesn't own the data,
    *        as such using push_back or other methods that change the state of the array is dangerous.
    * @note When using multiple memory spaces using the copy constructor can trigger a move.
@@ -153,23 +153,23 @@ public:
     source.m_length = 0;
   }
 
-  template<class U=T>
+  template< class U=T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator typename std::enable_if<!std::is_const<U>::value,
-                                   ChaiVector<T const> const &>::type
-  () const restrict_this
-  { return reinterpret_cast<ChaiVector<T const> const &>(*this); }
+  operator typename std::enable_if< !std::is_const< U >::value,
+                                    ChaiVector< T const > const & >::type
+    () const restrict_this
+  { return reinterpret_cast< ChaiVector< T const > const & >(*this); }
 
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ChaiVector<T const> const & toConst() const restrict_this
+  ChaiVector< T const > const & toConst() const restrict_this
   { return *this; }
 
   /**
    * @brief Perform a deep copy front this in to dst.
    * @param [in] dst the ChaiVector to copy into.
    */
-  template <class U>
-  void copy_into( ChaiVector<U>& dst ) const
+  template< class U >
+  void copy_into( ChaiVector< U >& dst ) const
   {
     dst.resize( size() );
     for( size_type i = 0 ; i < size() ; ++i )
@@ -223,7 +223,7 @@ public:
    */
   LVARRAY_HOST_DEVICE ChaiVector& operator=( ChaiVector && source )
   {
-    m_array = std::move(source.m_array);
+    m_array = std::move( source.m_array );
     source.m_array = nullptr;
 
     m_length = source.m_length;
@@ -243,7 +243,7 @@ public:
    * @param [in] pos the index to access.
    * @return a reference to the value at the given index.
    */
-  template <class INDEX_TYPE>
+  template< class INDEX_TYPE >
   LVARRAY_HOST_DEVICE T & operator[]( INDEX_TYPE pos ) const
   { return m_array[ pos ]; }
 
@@ -391,15 +391,15 @@ public:
    *       if increasing the size the values past the current size are initialized with
    *       the default constructor.
    */
-  template <class ...ARGS>
-  void resize( const size_type newLength, ARGS &&... args )
+  template< class ... ARGS >
+  void resize( const size_type newLength, ARGS && ... args )
   {
     if( newLength > capacity() )
     {
       realloc( newLength );
     }
 
-    arrayManipulation::resize( data(), m_length, newLength, std::forward<ARGS>(args)... );
+    arrayManipulation::resize( data(), m_length, newLength, std::forward< ARGS >( args )... );
     m_length = newLength;
 
     if( m_length > 0 )
@@ -450,7 +450,7 @@ public:
 
   void fill( T const & value )
   {
-    for(size_type i = 0; i < size(); ++i)
+    for( size_type i = 0 ; i < size() ; ++i )
     {
       m_array[i] = value;
     }
@@ -509,9 +509,9 @@ private:
 
   /**
    * @brief Shift the values in the array at or above the given position down by the given amount overwriting
- *        the existing values. The n entries at the end of the array are not destroyed.
- * @param [in] pos the ps at which to begin the shift.
- * @param [in] n the number of places to shift.
+   *        the existing values. The n entries at the end of the array are not destroyed.
+   * @param [in] pos the ps at which to begin the shift.
+   * @param [in] n the number of places to shift.
    *
    * @note The newly values at the end of the array are not destroyed.
    * @note This is used by the CRSMatrix class.
@@ -543,7 +543,7 @@ private:
   {
 #ifdef USE_CHAI
     internal::chai_lock.lock();
-    chai::ManagedArray<T> new_array( new_capacity );
+    chai::ManagedArray< T > new_array( new_capacity );
     internal::chai_lock.unlock();
 #else
     T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
@@ -597,7 +597,7 @@ private:
   { reserve( 2 * newLength ); }
 
 #ifdef USE_CHAI
-  chai::ManagedArray<T> m_array;
+  chai::ManagedArray< T > m_array;
 #else
   T* m_array;
   size_type m_capacity;

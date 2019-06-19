@@ -40,7 +40,7 @@ public:
     GEOS_LOG( "calling Base destructor" );
   }
 
-  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int&, double const &  >;
+  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int&, double const & >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;
@@ -94,8 +94,8 @@ TEST( testObjectCatalog, testRegistration )
   GEOS_LOG( "EXECUTING MAIN" );
   int junk = 1;
   double junk2 = 3.14;
-  std::unique_ptr<Base> derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2 );
-  std::unique_ptr<Base> derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk2 );
+  std::unique_ptr< Base > derived1 = Base::CatalogInterface::Factory( "derived1", junk, junk2 );
+  std::unique_ptr< Base > derived2 = Base::CatalogInterface::Factory( "derived2", junk, junk2 );
 
   assert( derived1->getName() == Derived1::CatalogName() );
   assert( derived2->getName() == Derived2::CatalogName() );

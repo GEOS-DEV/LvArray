@@ -34,24 +34,24 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template <class COL_TYPE=unsigned int, typename INDEX_TYPE=std::ptrdiff_t>
-class SparsityPattern : protected SparsityPatternView<COL_TYPE, INDEX_TYPE>
+template< class COL_TYPE=unsigned int, typename INDEX_TYPE=std::ptrdiff_t >
+class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
 public:
 
   // Aliasing public methods of SparsityPatternView.
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::toViewC;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numRows;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numColumns;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::numNonZeros;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::nonZeroCapacity;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::empty;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getColumns;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::getOffsets;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZero;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertNonZeros;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZero;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::removeNonZeros;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::toViewC;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numRows;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numColumns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numNonZeros;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::empty;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getColumns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getOffsets;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertNonZero;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertNonZeros;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeNonZero;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeNonZeros;
 
   /**
    * @brief Constructor.
@@ -61,8 +61,8 @@ public:
    */
   inline
   SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>()
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity); }
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >()
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::resize( nrows, ncols, initialRowCapacity ); }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -70,7 +70,7 @@ public:
    */
   inline
   SparsityPattern( SparsityPattern const & src ) restrict_this:
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>()
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >()
   { *this = src; }
 
   /**
@@ -85,22 +85,22 @@ public:
    */
   inline
   ~SparsityPattern() restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::free(); }
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::free(); }
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE, INDEX_TYPE const>.
    */
   CONSTEXPRFUNC inline
-  operator SparsityPatternView<COL_TYPE, INDEX_TYPE const> const &
+  operator SparsityPatternView< COL_TYPE, INDEX_TYPE const > const &
   () const restrict_this
-  { return reinterpret_cast<SparsityPatternView<COL_TYPE, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert to SparsityPatternView<COL_TYPE, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   inline
-  SparsityPatternView<COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const restrict_this
   { return *this; }
 
   /**
@@ -109,7 +109,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
+  operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
   () const restrict_this
   { return toViewC(); }
 
@@ -121,7 +121,7 @@ public:
   SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
   {
     m_num_columns = src.m_num_columns;
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
     return *this;
   }
 
@@ -137,15 +137,15 @@ public:
    * @brief Moves the SparsityPattern to the given execution space.
    * @param [in] space the space to move to.
    */
-  void move(chai::ExecutionSpace const space) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space); }
+  void move( chai::ExecutionSpace const space ) restrict_this
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::move( space ); }
 
   /**
    * @brief Touch in the given memory space.
    * @param [in] space the memory space to touch.
    */
-  void registerTouch(chai::ExecutionSpace const space) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space); }
+  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space ); }
 #endif
 
   /**
@@ -183,7 +183,7 @@ public:
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setCapacityOfArray(row, newCapacity);
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity );
   }
 
   /**
@@ -193,7 +193,7 @@ public:
    */
   inline
   void compress() restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::compress(); }
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::compress(); }
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).
@@ -203,7 +203,7 @@ public:
    */
   inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -217,7 +217,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -228,7 +228,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
-  { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
+  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
 private:
 
@@ -247,7 +247,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks<COL_TYPE, INDEX_TYPE>
+  class CallBacks : public sortedArrayManipulation::CallBacks< COL_TYPE, INDEX_TYPE >
   {
 public:
 
@@ -257,7 +257,7 @@ public:
      * @param [in] row the row in the SparsityPattern this CallBacks is associated with.
      */
     inline
-    CallBacks( SparsityPattern<COL_TYPE, INDEX_TYPE> & sp, INDEX_TYPE const row ):
+    CallBacks( SparsityPattern< COL_TYPE, INDEX_TYPE > & sp, INDEX_TYPE const row ):
       m_sp( sp ),
       m_row( row )
     {}
@@ -281,15 +281,15 @@ public:
     }
 
 private:
-    SparsityPattern<COL_TYPE, INDEX_TYPE> & m_sp;
+    SparsityPattern< COL_TYPE, INDEX_TYPE > & m_sp;
     INDEX_TYPE const m_row;
   };
 
   // Aliasing protected members of SparsityPatternView.
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_sizes;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_values;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
 };
 
 } /* namespace LvArray */

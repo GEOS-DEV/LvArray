@@ -95,7 +95,7 @@
 #endif
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
-  #define GEOS_ERROR_IF( EXP, msg ) if( EXP ) asm ("trap;")
+  #define GEOS_ERROR_IF( EXP, msg ) if( EXP ) asm( "trap;" )
   #define GEOS_ERROR( msg ) GEOS_ERROR_IF( true, msg )
   #define GEOS_ASSERT_MSG( EXP, msg ) ((void) 0)
   #define GEOS_ASSERT( EXP ) ((void) 0)

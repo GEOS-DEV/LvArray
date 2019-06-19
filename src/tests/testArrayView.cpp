@@ -38,62 +38,62 @@ namespace LvArray
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-template < typename T >
+template< typename T >
 using array = Array< T, 1 >;
 
-template < typename T >
+template< typename T >
 using arrayView = ArrayView< T, 1 > const;
 
-template < typename T >
+template< typename T >
 using arrayView_nc = ArrayView< T, 1 >;
 
-template < typename T >
+template< typename T >
 using arraySlice = ArraySlice< T, 1 > const;
 
 
-template < typename T >
+template< typename T >
 using array2D = Array< T, 2 >;
 
-template < typename T >
+template< typename T >
 using arrayView2D = ArrayView< T, 2 > const;
 
-template < typename T >
+template< typename T >
 using array3D = Array< T, 3 >;
 
-template < typename T >
+template< typename T >
 using arrayView3D = ArrayView< T, 3 > const;
 
 namespace internal
 {
 
 
-template < typename T >
+template< typename T >
 void test2DAccessors( arrayView2D< T > & v )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  const INDEX_TYPE I = v.size( 0 );
+  const INDEX_TYPE J = v.size( 1 );
+
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
       v[ i ][ j ] = T( J * i + j );
     }
   }
 
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
       v( i, j ) += T( 2 );
     }
   }
 
-  for( INDEX_TYPE i = 0; i < I; ++i )
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
-      T val( J * i + j  );
+      T val( J * i + j );
       val += T( 2 );
       EXPECT_EQ( v[ i ][ j ], val );
     }
@@ -101,40 +101,40 @@ void test2DAccessors( arrayView2D< T > & v )
 }
 
 
-template < typename T >
+template< typename T >
 void test3DAccessors( arrayView3D< T > & v )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  const INDEX_TYPE K = v.size(2);
-  
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  const INDEX_TYPE I = v.size( 0 );
+  const INDEX_TYPE J = v.size( 1 );
+  const INDEX_TYPE K = v.size( 2 );
+
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
         v[ i ][ j ][ k ] = T( J * K * i + K * j + k );
       }
     }
   }
 
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
         v( i, j, k ) += T( 2 );
       }
     }
   }
 
-  for( INDEX_TYPE i = 0; i < I; ++i )
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
         T val( J * K * i + K * j + k );
         val += T( 2 );
@@ -148,40 +148,40 @@ void test3DAccessors( arrayView3D< T > & v )
 #ifdef USE_CUDA
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotion( arrayView< T > & v )
 {
   const INDEX_TYPE N = v.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     v[ i ] = T( i );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += v[ i ];
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += v[ i ];
+      }
+          );
 
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      T val( i );
-      val += val;
-      EXPECT_EQ( v[ i ], val );
-    }
-  );
+          [=]( INDEX_TYPE i )
+      {
+        T val( i );
+        val += val;
+        EXPECT_EQ( v[ i ], val );
+      }
+          );
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionConst( array< T > & a )
 {
   const INDEX_TYPE N = a.size();
 
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     a[ i ] = T( i );
   }
@@ -190,14 +190,14 @@ void testMemoryMotionConst( array< T > & a )
 
   // Capture the view on the device.
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      assert(v[i] == T( i ));
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        assert( v[i] == T( i ));
+      }
+          );
 
   // Change the values that the array holds.
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     a[ i ] = T( 2 * i );
   }
@@ -205,20 +205,20 @@ void testMemoryMotionConst( array< T > & a )
   // Copy the array back to the host, should be a no-op since it was captured as T const
   // and therefore the values should be those set above.
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      EXPECT_EQ( v[ i ], T( 2 * i ) );
-    }
-  );
+          [=]( INDEX_TYPE i )
+      {
+        EXPECT_EQ( v[ i ], T( 2 * i ) );
+      }
+          );
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionMove( array< T > & a )
 {
   const INDEX_TYPE N = a.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     a[ i ] = T( i );
   }
@@ -228,17 +228,17 @@ void testMemoryMotionMove( array< T > & a )
   T const * const v_device_ptr = v.data();
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += v[ i ];
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += v[ i ];
+      }
+          );
 
   /* The copy construction shouldn't have changed the pointer since we moved it. */
-  ASSERT_EQ(v_device_ptr, v.data());
+  ASSERT_EQ( v_device_ptr, v.data());
 
   a.move( chai::CPU );
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     T val = T( i );
     val += val;
@@ -246,99 +246,99 @@ void testMemoryMotionMove( array< T > & a )
   }
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionMultiple( arrayView< T > & v )
 {
   const INDEX_TYPE N = v.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     v[ i ] = T( i );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=]( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
 
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      T val( i );
-      val += T( 2 );
-      val += T( 2 );
-      val += T( 2 );
-      val += T( 2 );
-      EXPECT_EQ( v[ i ], val );
-    }
-  );
+          [=]( INDEX_TYPE i )
+      {
+        T val( i );
+        val += T( 2 );
+        val += T( 2 );
+        val += T( 2 );
+        val += T( 2 );
+        EXPECT_EQ( v[ i ], val );
+      }
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionMultipleMove( array< T > & a )
 {
   arrayView< T > & v = a;
 
   const INDEX_TYPE N = v.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     v[ i ] = T( i );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   a.move( chai::CPU );
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     v[ i ] += T( 2 );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      v[ i ] += T( 2 );
-    }
-  );
+          [=] __device__ ( INDEX_TYPE i )
+      {
+        v[ i ] += T( 2 );
+      }
+          );
 
   a.move( chai::CPU );
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
     T val( i );
     val += T( 2 );
@@ -350,79 +350,79 @@ void testMemoryMotionMultipleMove( array< T > & a )
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArray( array< array< T > > & a )
 {
   arrayView< arrayView< T > > & v = a.toView();
 
   const INDEX_TYPE N = v.size();
 
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  { 
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       v[ i ][ j ] = T( N * i + j );
     }
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        v[ i ][ j ] += v[ i ][ j ];
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
+        {
+          v[ i ][ j ] += v[ i ][ j ];
+        }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=]( INDEX_TYPE i )
       {
-        T val( N * i + j );
-        val += val;
-        EXPECT_EQ( v[ i ][ j ], val );
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
+        {
+          T val( N * i + j );
+          val += val;
+          EXPECT_EQ( v[ i ][ j ], val );
+        }
       }
-    }
-  );
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArrayConst( array< array< T > > & a )
 {
   const INDEX_TYPE N = a.size();
 
   // Create a shallow copy of a that we can modify later.
   array< arrayView_nc< T > > a_copy;
-  a_copy.resizeWithArgs(N, nullptr);
+  a_copy.resizeWithArgs( N, nullptr );
 
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  { 
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
     a_copy[ i ] = a[ i ];
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       a[ i ][ j ] = T( N * i + j );
     }
   }
 
-  // Create a const view and capture it.  
+  // Create a const view and capture it.
   arrayView< arrayView< T const > > & v = a.toViewConst();
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        assert(v[ i ][ j ] == T( N * i + j ));
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
+        {
+          assert( v[ i ][ j ] == T( N * i + j ));
+        }
       }
-    }
-  );
+          );
 
   // Modify a_copy. We can't use a directly since the inner arrays
   // have device pointers.
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  { 
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       a_copy[ i ][ j ] = T( 2 * ( N * i + j ) );
     }
@@ -430,46 +430,46 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
 
   // Check that the modifications weren't overwritten.
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=]( INDEX_TYPE i )
       {
-        EXPECT_EQ( v[ i ][ j ], T( 2 * ( N * i + j ) ) );
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
+        {
+          EXPECT_EQ( v[ i ][ j ], T( 2 * ( N * i + j ) ) );
+        }
       }
-    }
-  );
+          );
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArrayMove( array< array< T > > & a )
 {
   arrayView< arrayView< T > > & v = a.toView();
 
   const INDEX_TYPE N = v.size();
 
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  { 
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       v[ i ][ j ] = T( N * i + j );
     }
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        v[ i ][ j ] += v[ i ][ j ];
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
+        {
+          v[ i ][ j ] += v[ i ][ j ];
+        }
       }
-    }
-  );
+          );
 
   a.move( chai::CPU );
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       T val( N * i + j );
       val += val;
@@ -479,18 +479,18 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArray2( array< array< array< T > > > & a )
 {
   arrayView< arrayView< arrayView< T > > > & v = a.toView();
 
   const INDEX_TYPE N = v.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  {  
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < N; ++k )
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
       }
@@ -498,49 +498,49 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < N; ++k )
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
-          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          for( INDEX_TYPE k = 0 ; k < N ; ++k )
+          {
+            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          }
         }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=]( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < N; ++k )
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
-          T val( N * N * i + N * j + k );
-          val += val;
-          EXPECT_EQ( v[ i ][ j ][ k ], val );
+          for( INDEX_TYPE k = 0 ; k < N ; ++k )
+          {
+            T val( N * N * i + N * j + k );
+            val += val;
+            EXPECT_EQ( v[ i ][ j ][ k ], val );
+          }
         }
       }
-    }
-  );
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArray2Const( array< array< array< T > > > & a )
 {
   const INDEX_TYPE N = a.size();
 
   // Create a shallow copy of a that we can modify later.
   array< array< arrayView_nc< T > > > a_copy( N );
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  { 
-    a_copy[ i ].resizeWithArgs(a[i].size(), nullptr);
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    a_copy[ i ].resizeWithArgs( a[i].size(), nullptr );
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
       a_copy[ i ][ j ] = a[ i ][ j ];
-      for ( INDEX_TYPE k = 0; k < N; ++k )
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         a[ i ][ j ][ k ] = T( N * N * i + N * j + k );
       }
@@ -550,25 +550,25 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
   arrayView< arrayView< arrayView< T const > > > & v = a.toViewConst();
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < N; ++k )
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
-          assert(v[ i ][ j ][ k ] == T( N * N * i + N * j + k ));
+          for( INDEX_TYPE k = 0 ; k < N ; ++k )
+          {
+            assert( v[ i ][ j ][ k ] == T( N * N * i + N * j + k ));
+          }
         }
       }
-    }
-  );
+          );
 
   // Modify a_copy. We can't use a directly since the inner arrays
   // have device pointers.
-  for ( INDEX_TYPE i = 0; i < N; ++i )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < N; ++k )
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         a_copy[ i ][ j ][ k ] = T( 2 * ( N * N * i + N * j + k ) );
       }
@@ -577,32 +577,32 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
 
   // Check that the modifications weren't overwritten.
   forall( sequential(), 0, N,
-    [=]( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=]( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < N; ++k )
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
-          EXPECT_EQ( v[ i ][ j ][ k ], T( 2 * ( N * N * i + N * j + k ) ) );
+          for( INDEX_TYPE k = 0 ; k < N ; ++k )
+          {
+            EXPECT_EQ( v[ i ][ j ][ k ], T( 2 * ( N * N * i + N * j + k ) ) );
+          }
         }
       }
-    }
-  );
+          );
 }
 
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
 {
   arrayView< arrayView< arrayView< T > > > & v = a.toView();
-  
+
   const INDEX_TYPE N = v.size();
-  
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  {  
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < N; ++k )
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
       }
@@ -610,24 +610,24 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < N; ++k )
+        for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
-          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          for( INDEX_TYPE k = 0 ; k < N ; ++k )
+          {
+            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          }
         }
       }
-    }
-  );
+          );
 
   a.move( chai::CPU );
-  for ( INDEX_TYPE i = 0; i < N; ++i )
-  {  
-    for ( INDEX_TYPE j = 0; j < N; ++j )
+  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < N; ++k )
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         T val( N * N * i + N * j + k );
         val += val;
@@ -638,58 +638,58 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
 }
 
 
-template < typename T >
+template< typename T >
 void test2DAccessorsDevice( arrayView2D< T > & v )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  const INDEX_TYPE I = v.size( 0 );
+  const INDEX_TYPE J = v.size( 1 );
+
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
       v[ i ][ j ] = T( J * i + j );
     }
   }
 
   forall( cuda(), 0, I,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        v( i, j ) += T( 2 );
-        v[ i ][ j ] += T( 2 );
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
+        {
+          v( i, j ) += T( 2 );
+          v[ i ][ j ] += T( 2 );
+        }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, I,
-    [=] ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+          [=] ( INDEX_TYPE i )
       {
-        T val( J * i + j  );
-        val += T( 2 );
-        val += T( 2 );
-        EXPECT_EQ( v[ i ][ j ], val );
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
+        {
+          T val( J * i + j );
+          val += T( 2 );
+          val += T( 2 );
+          EXPECT_EQ( v[ i ][ j ], val );
+        }
       }
-    }
-  );
+          );
 }
 
 
-template < typename T >
+template< typename T >
 void test3DAccessorsDevice( arrayView3D< T > & v )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  const INDEX_TYPE K = v.size(2);
-  
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  const INDEX_TYPE I = v.size( 0 );
+  const INDEX_TYPE J = v.size( 1 );
+  const INDEX_TYPE K = v.size( 2 );
+
+  for( INDEX_TYPE i = 0 ; i < I ; ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
     {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
         v[ i ][ j ][ k ] = T( J * K * i + K * j + k );
       }
@@ -697,73 +697,73 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
   }
 
   forall( cuda(), 0, I,
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+          [=] __device__ ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < K; ++k )
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
         {
-          v( i, j, k ) += T( 2 );
-          v[ i ][ j ][ k ] += T( 2 );
+          for( INDEX_TYPE k = 0 ; k < K ; ++k )
+          {
+            v( i, j, k ) += T( 2 );
+            v[ i ][ j ][ k ] += T( 2 );
+          }
         }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, I,
-    [=] ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+          [=] ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < K; ++k )
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
         {
-          T val( J * K * i + K * j + k );
-          val += T( 2 );
-          val += T( 2 );
-          EXPECT_EQ( v[ i ][ j ][ k ], val );
+          for( INDEX_TYPE k = 0 ; k < K ; ++k )
+          {
+            T val( J * K * i + K * j + k );
+            val += T( 2 );
+            val += T( 2 );
+            EXPECT_EQ( v[ i ][ j ][ k ], val );
+          }
         }
       }
-    }
-  );
+          );
 }
 
-template < typename T >
+template< typename T >
 void testSizeOnDevice( arrayView3D< T > & v )
 {
 
-  forall( cuda(), 0, v.size(0),
-    [=] __device__ ( INDEX_TYPE i )
-    {
-      const INDEX_TYPE I = v.size(0);
-      const INDEX_TYPE J = v.size(1);
-      const INDEX_TYPE K = v.size(2);
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+  forall( cuda(), 0, v.size( 0 ),
+          [=] __device__ ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < K; ++k )
+        const INDEX_TYPE I = v.size( 0 );
+        const INDEX_TYPE J = v.size( 1 );
+        const INDEX_TYPE K = v.size( 2 );
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
         {
-          v( i, j, k ) = T( J * K * i + K * j + k );
+          for( INDEX_TYPE k = 0 ; k < K ; ++k )
+          {
+            v( i, j, k ) = T( J * K * i + K * j + k );
+          }
         }
       }
-    }
-  );
+          );
 
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  const INDEX_TYPE K = v.size(2);
+  const INDEX_TYPE I = v.size( 0 );
+  const INDEX_TYPE J = v.size( 1 );
+  const INDEX_TYPE K = v.size( 2 );
 
   forall( sequential(), 0, I,
-    [=] ( INDEX_TYPE i )
-    {
-      for ( INDEX_TYPE j = 0; j < J; ++j )
+          [=] ( INDEX_TYPE i )
       {
-        for ( INDEX_TYPE k = 0; k < K; ++k )
+        for( INDEX_TYPE j = 0 ; j < J ; ++j )
         {
-          T val( J * K * i + K * j + k );
-          EXPECT_EQ( v[ i ][ j ][ k ], val );
+          for( INDEX_TYPE k = 0 ; k < K ; ++k )
+          {
+            T val( J * K * i + K * j + k );
+            EXPECT_EQ( v[ i ][ j ][ k ], val );
+          }
         }
       }
-    }
-  );
+          );
 }
 
 
@@ -776,7 +776,7 @@ TEST( ArrayView, test_upcast )
 {
   constexpr INDEX_TYPE N = 10;
 
-  array< INDEX_TYPE > arr(N);
+  array< INDEX_TYPE > arr( N );
 
   for( INDEX_TYPE a=0 ; a<N ; ++a )
   {
@@ -793,8 +793,8 @@ TEST( ArrayView, test_upcast )
       ASSERT_EQ( arr[a], arrViewConst[a] );
     }
 
-    arraySlice<INDEX_TYPE> arrSlice1 = arrView;
-    arraySlice<INDEX_TYPE const> & arrSlice4 = arrView;
+    arraySlice< INDEX_TYPE > arrSlice1 = arrView;
+    arraySlice< INDEX_TYPE const > & arrSlice4 = arrView;
 
     for( INDEX_TYPE a=0 ; a<N ; ++a )
     {
@@ -804,8 +804,8 @@ TEST( ArrayView, test_upcast )
   }
 
   {
-    arraySlice<INDEX_TYPE> arrSlice1 = arr;
-    arraySlice<INDEX_TYPE const> & arrSlice4 = arr;
+    arraySlice< INDEX_TYPE > arrSlice1 = arr;
+    arraySlice< INDEX_TYPE const > & arrSlice4 = arr;
 
     for( INDEX_TYPE a=0 ; a<N ; ++a )
     {
@@ -820,8 +820,8 @@ TEST( ArrayView, test_dimReduction )
 {
   const INDEX_TYPE N = 10;
   array2D< INDEX_TYPE > v( N, 1 );
-  arrayView2D<INDEX_TYPE> & vView = v;
-  arrayView<INDEX_TYPE> & vView1d = v.dimReduce();
+  arrayView2D< INDEX_TYPE > & vView = v;
+  arrayView< INDEX_TYPE > & vView1d = v.dimReduce();
 
   for( INDEX_TYPE a=0 ; a<N ; ++a )
   {
@@ -956,7 +956,7 @@ CUDA_TEST( ArrayView, memoryMotionArray )
 
   {
     array< array< INDEX_TYPE > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -966,7 +966,7 @@ CUDA_TEST( ArrayView, memoryMotionArray )
 
   {
     array< array< Tensor > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -981,7 +981,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayConst )
 
   {
     array< array< INDEX_TYPE > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -991,7 +991,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayConst )
 
   {
     array< array< Tensor > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -1006,7 +1006,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove )
 
   {
     array< array< INDEX_TYPE > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -1016,7 +1016,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove )
 
   {
     array< array< Tensor > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
     }
@@ -1031,10 +1031,10 @@ CUDA_TEST( ArrayView, memoryMotionArray2 )
 
   {
     array< array< array< INDEX_TYPE > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }
@@ -1045,10 +1045,10 @@ CUDA_TEST( ArrayView, memoryMotionArray2 )
 
   {
     array< array< array< Tensor > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }
@@ -1064,10 +1064,10 @@ CUDA_TEST( ArrayView, memoryMotionArray2Const )
 
   {
     array< array< array< INDEX_TYPE > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }
@@ -1078,10 +1078,10 @@ CUDA_TEST( ArrayView, memoryMotionArray2Const )
 
   {
     array< array< array< Tensor > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }
@@ -1097,10 +1097,10 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
 
   {
     array< array< array< INDEX_TYPE > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }
@@ -1111,10 +1111,10 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
 
   {
     array< array< array< Tensor > > > a( N );
-    for ( INDEX_TYPE i = 0; i < N; ++i )
+    for( INDEX_TYPE i = 0 ; i < N ; ++i )
     {
       a[ i ].resize( N );
-      for ( INDEX_TYPE j = 0; j < N; ++j )
+      for( INDEX_TYPE j = 0 ; j < N ; ++j )
       {
         a[ i ][ j ].resize( N );
       }

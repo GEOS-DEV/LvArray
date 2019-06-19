@@ -40,7 +40,7 @@ struct StackArrayWrapper
     GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
   }
 
-  LVARRAY_HOST_DEVICE T * data() const { return const_cast<T *>(m_data); }
+  LVARRAY_HOST_DEVICE T * data() const { return const_cast< T * >(m_data); }
 
   T m_data[LENGTH];
 };

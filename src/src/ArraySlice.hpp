@@ -27,15 +27,15 @@
 #ifndef NDEBUG
 
 /* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
-#define DEFINE_GDB_PY_SCRIPT(script_name) \
-asm("\
+#define DEFINE_GDB_PY_SCRIPT( script_name ) \
+  asm ("\
 .pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n\
 .byte 1 /* Python */\n\
 .asciz \"" script_name "\"\n\
 .popsection \n\
 ")
 
-DEFINE_GDB_PY_SCRIPT("scripts/gdb-printers.py");
+DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 
 #endif
 
@@ -75,10 +75,10 @@ class ArraySlice;
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
 template< typename T, typename INDEX_TYPE >
-using ArraySlice1d = ArraySlice<T, 1, INDEX_TYPE> const;
+using ArraySlice1d = ArraySlice< T, 1, INDEX_TYPE > const;
 
 template< typename T, typename INDEX_TYPE >
-using ArraySlice1d_rval = ArraySlice<T, 1, INDEX_TYPE>;
+using ArraySlice1d_rval = ArraySlice< T, 1, INDEX_TYPE >;
 
 template< typename T, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
@@ -86,17 +86,17 @@ ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d( T * const restrict data,
                                                        INDEX_TYPE const * const restrict dims,
                                                        INDEX_TYPE const * const restrict strides )
 {
-  return ArraySlice1d<T, INDEX_TYPE>( data, dims, strides );
+  return ArraySlice1d< T, INDEX_TYPE >( data, dims, strides );
 }
 
-#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) ArraySlice<T, 1, INDEX_TYPE>( data, dims, strides )
+#define CREATE_ARRAY_SLICE_1D( data, dims, strides ) ArraySlice< T, 1, INDEX_TYPE >( data, dims, strides )
 
 #else
 
-template< typename T, typename INDEX_TYPE = int>
+template< typename T, typename INDEX_TYPE = int >
 using ArraySlice1d = T * const restrict;
 
-template< typename T, typename INDEX_TYPE = int>
+template< typename T, typename INDEX_TYPE = int >
 using ArraySlice1d_rval = T *;
 
 template< typename T, typename INDEX_TYPE >
@@ -169,11 +169,11 @@ public:
    */
   template< typename U = T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC operator
-  typename std::enable_if< !std::is_const<U>::value,
-                           ArraySlice<T const, NDIM, INDEX_TYPE> const & >::type
+  typename std::enable_if< !std::is_const< U >::value,
+                           ArraySlice< T const, NDIM, INDEX_TYPE > const & >::type
     () const restrict_this noexcept
   {
-    return reinterpret_cast<ArraySlice<T const, NDIM, INDEX_TYPE> const &>(*this);
+    return reinterpret_cast< ArraySlice< T const, NDIM, INDEX_TYPE > const & >(*this);
   }
 
   /**
@@ -196,11 +196,11 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline explicit
   operator typename std::enable_if< (U>1),
-                                    ArraySlice<T, NDIM-1, INDEX_TYPE> >::type () const restrict_this
+                                    ArraySlice< T, NDIM-1, INDEX_TYPE > >::type () const restrict_this
   {
     GEOS_ASSERT_MSG( m_dims[NDIM-1]==1, "ManagedArray::operator ArraySlice<T,NDIM-1,INDEX_TYPE>" <<
                      " is only valid if last dimension is equal to 1." );
-    return ArraySlice<T, NDIM-1, INDEX_TYPE>( m_data, m_dims + 1, m_strides + 1 );
+    return ArraySlice< T, NDIM-1, INDEX_TYPE >( m_data, m_dims + 1, m_strides + 1 );
   }
 
   /**
@@ -216,11 +216,11 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
-  std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
+  std::enable_if< U >= 3, ArraySlice< T, NDIM-1, INDEX_TYPE > >::type
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice<T, NDIM-1, INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
+    return ArraySlice< T, NDIM-1, INDEX_TYPE >( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
   }
 
   /**
@@ -263,16 +263,17 @@ public:
    * @param av A pointer to the array that is being displayed.
    * @return 0 if everything went OK
    */
-  static int TV_ttf_display_type( ArraySlice const * av)
+  static int TV_ttf_display_type( ArraySlice const * av )
   {
     if( av!=nullptr )
     {
       int constexpr ndim = NDIM;
-      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
-      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(1, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
-      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
+      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of
+      // m_data;"<<std::endl;
+      TV_ttf_add_row( "tv(m_data)", totalview::format< T, INDEX_TYPE >( NDIM, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 1, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
+      TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
     }
     return 0;
   }

@@ -72,34 +72,34 @@ double MatrixMultiply_2D_accessor( integer_t const num_i,
                                    integer_t const num_j,
                                    integer_t const num_k,
                                    integer_t const ITERATIONS,
-                                   LvArray::ArrayView<double, 2> const A,
-                                   LvArray::ArrayView<double, 2> const B,
-                                   LvArray::ArrayView<double, 2> C );
+                                   LvArray::ArrayView< double, 2 > const A,
+                                   LvArray::ArrayView< double, 2 > const B,
+                                   LvArray::ArrayView< double, 2 > C );
 
 
 double MatrixMultiply_2D_accessorRef( integer_t const num_i,
                                       integer_t const num_j,
                                       integer_t const num_k,
                                       integer_t const ITERATIONS,
-                                      LvArray::ArrayView<double, 2> const & A,
-                                      LvArray::ArrayView<double, 2> const & B,
-                                      LvArray::ArrayView<double, 2>& C );
+                                      LvArray::ArrayView< double, 2 > const & A,
+                                      LvArray::ArrayView< double, 2 > const & B,
+                                      LvArray::ArrayView< double, 2 >& C );
 
 double MatrixMultiply_2D_accessorRef2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       LvArray::ArrayView<double, 2> const & A,
-                                       LvArray::ArrayView<double, 2> const & B,
-                                       LvArray::ArrayView<double, 2>& C );
+                                       LvArray::ArrayView< double, 2 > const & A,
+                                       LvArray::ArrayView< double, 2 > const & B,
+                                       LvArray::ArrayView< double, 2 >& C );
 
 double MatrixMultiply_2D_accessorPBV2( integer_t const num_i,
                                        integer_t const num_j,
                                        integer_t const num_k,
                                        integer_t const ITERATIONS,
-                                       LvArray::ArrayView<double, 2> const  A,
-                                       LvArray::ArrayView<double, 2> const  B,
-                                       LvArray::ArrayView<double, 2> C );
+                                       LvArray::ArrayView< double, 2 > const  A,
+                                       LvArray::ArrayView< double, 2 > const  B,
+                                       LvArray::ArrayView< double, 2 > C );
 
 double MatrixMultiply_2D_constructAccessorR( integer_t const num_i,
                                              integer_t const num_j,

@@ -25,21 +25,22 @@
 
 #ifdef USE_CUDA
 
-#define CUDA_TEST(X, Y)              \
-  static void cuda_test_##X##Y();    \
-  TEST(X, Y) { cuda_test_##X##Y(); } \
-  static void cuda_test_##X##Y()
+#define CUDA_TEST( X, Y )              \
+  static void cuda_test_ ## X ## Y();    \
+  TEST( X, Y ) { cuda_test_ ## X ## Y(); } \
+  static void cuda_test_ ## X ## Y()
 
 #endif
 
 // Comparator that compares a std::pair by it's first object.
-template <class A, class B, class COMP=std::less<B>>
-struct PairComp {
+template< class A, class B, class COMP=std::less< B > >
+struct PairComp
+{
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
-  constexpr bool operator()(const std::pair<A, B>& lhs, const std::pair<A, B>& rhs) const
+  constexpr bool operator()( const std::pair< A, B >& lhs, const std::pair< A, B >& rhs ) const
   {
-    return COMP()(lhs.second, rhs.second); 
+    return COMP()( lhs.second, rhs.second );
   }
 };
 
@@ -51,11 +52,11 @@ struct PairComp {
 class TestString : public std::string
 {
 public:
-  template <class T=int>
-  TestString(T val=0) :
-    std::string(std::to_string(val) +
-                std::string(" The rest of this is to avoid any small string optimizations. ") +
-                std::to_string(2 * val))
+  template< class T=int >
+  TestString( T val=0 ):
+    std::string( std::to_string( val ) +
+                 std::string( " The rest of this is to avoid any small string optimizations. " ) +
+                 std::to_string( 2 * val ))
   {}
 };
 
@@ -72,15 +73,15 @@ struct Tensor
     x(), y(), z()
   {}
 
-  template <class T>
+  template< class T >
   LVARRAY_HOST_DEVICE explicit Tensor( T val ):
     x( 3 * val ), y( 3 * val + 1 ), z( 3 * val + 2 )
   {}
 
-  LVARRAY_HOST_DEVICE Tensor( const Tensor & from) :
-    x(from.x),
-    y(from.y),
-    z(from.z)
+  LVARRAY_HOST_DEVICE Tensor( const Tensor & from ):
+    x( from.x ),
+    y( from.y ),
+    z( from.z )
   {}
 
   LVARRAY_HOST_DEVICE Tensor& operator=( const Tensor& other )
@@ -118,9 +119,9 @@ struct Tensor
 };
 
 /**
-  * @brief Helper method used to print out the values of a Tensor.
-  */
-std::ostream& operator<<(std::ostream& stream, const Tensor & t )
+ * @brief Helper method used to print out the values of a Tensor.
+ */
+std::ostream& operator<<( std::ostream& stream, const Tensor & t )
 {
   stream << "(" << t.x << ", " << t.y << ", " << t.z << ")";
   return stream;

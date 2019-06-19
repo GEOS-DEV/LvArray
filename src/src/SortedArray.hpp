@@ -32,7 +32,7 @@ namespace dataRepository
 {
 
 // Forward declaration for friend class purposes.
-template <class U>
+template< class U >
 class ViewWrapper;
 
 } // namespace dataRepository
@@ -53,14 +53,14 @@ namespace LvArray
  * The derivation from SortedArrayView is protected to control the conversion to
  * SortedArrayView. Specifically only conversion to SortedArrayView<T const> is allowed.
  */
-template <class T, class INDEX_TYPE=std::ptrdiff_t>
-class SortedArray : protected SortedArrayView<T, INDEX_TYPE>
+template< class T, class INDEX_TYPE=std::ptrdiff_t >
+class SortedArray : protected SortedArrayView< T, INDEX_TYPE >
 {
 public:
 
   // ViewWrapper needs access to the data and resize methods, however these methods
   // need to be private so ViewWrapper is a friend class.
-  template <class U>
+  template< class U >
   friend class geosx::dataRepository::ViewWrapper;
 
   // These are needed by ViewWrapper.
@@ -73,14 +73,14 @@ public:
   using const_iterator = const_pointer;
 
   // Alias public methods of SortedArrayView.
-  using SortedArrayView<T, INDEX_TYPE>::values;
-  using SortedArrayView<T, INDEX_TYPE>::operator[];
-  using SortedArrayView<T, INDEX_TYPE>::begin;
-  using SortedArrayView<T, INDEX_TYPE>::end;
-  using SortedArrayView<T, INDEX_TYPE>::empty;
-  using SortedArrayView<T, INDEX_TYPE>::size;
-  using SortedArrayView<T, INDEX_TYPE>::contains;
-  using SortedArrayView<T, INDEX_TYPE>::count;
+  using SortedArrayView< T, INDEX_TYPE >::values;
+  using SortedArrayView< T, INDEX_TYPE >::operator[];
+  using SortedArrayView< T, INDEX_TYPE >::begin;
+  using SortedArrayView< T, INDEX_TYPE >::end;
+  using SortedArrayView< T, INDEX_TYPE >::empty;
+  using SortedArrayView< T, INDEX_TYPE >::size;
+  using SortedArrayView< T, INDEX_TYPE >::contains;
+  using SortedArrayView< T, INDEX_TYPE >::count;
 
   /**
    * @brief Default constructor, the array is empty.
@@ -94,7 +94,7 @@ public:
    */
   inline
   SortedArray( SortedArray const & src ):
-    SortedArrayView<T, INDEX_TYPE>()
+    SortedArrayView< T, INDEX_TYPE >()
   { *this = src; }
 
   /**
@@ -114,17 +114,17 @@ public:
   /**
    * @brief User defined conversion to SortedArrayView<T const> const.
    */
-  template <class U = T>
+  template< class U = T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator SortedArrayView<T const, INDEX_TYPE> const & () const restrict_this
-  { return reinterpret_cast<SortedArrayView<T const, INDEX_TYPE> const &>(*this); }
+  operator SortedArrayView< T const, INDEX_TYPE > const & () const restrict_this
+  { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE > const & >(*this); }
 
   /**
    * @brief Method to convert to SortedArrayView<T const> const. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView<T const, INDEX_TYPE> const & toView() const restrict_this
+  SortedArrayView< T const, INDEX_TYPE > const & toView() const restrict_this
   { return *this; }
 
   /**
@@ -278,7 +278,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation sorted routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks<T, INDEX_TYPE>
+  class CallBacks : public sortedArrayManipulation::CallBacks< T, INDEX_TYPE >
   {
 public:
 
@@ -287,7 +287,7 @@ public:
      * @param [in/out] cv the ChaiVector associated with the SortedArray.
      */
     inline
-    CallBacks( ChaiVector<T> & cv ):
+    CallBacks( ChaiVector< T > & cv ):
       m_cv( cv )
     {}
 
@@ -311,11 +311,11 @@ public:
     }
 
 private:
-    ChaiVector<T> & m_cv;
+    ChaiVector< T > & m_cv;
   };
 
   // Alias the protected member of SortedArrayView.
-  using SortedArrayView<T, INDEX_TYPE>::m_values;
+  using SortedArrayView< T, INDEX_TYPE >::m_values;
 };
 
 } // namespace LvArray

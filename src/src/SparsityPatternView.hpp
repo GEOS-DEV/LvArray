@@ -49,20 +49,20 @@ namespace LvArray
  *
  * When INDEX_TYPE is const m_offsets is not copied between memory spaces. INDEX_TYPE should always be const
  * since SparsityPatternView is not allowed to modify the offsets.
- * 
+ *
  * When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or columns are copied between memory spaces.
  */
-template <class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
-class SparsityPatternView : protected ArrayOfSetsView<COL_TYPE, INDEX_TYPE>
+template< class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
+class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE >
 {
 public:
-  static_assert( std::is_integral<COL_TYPE>::value, "COL_TYPE must be integral." );
-  static_assert( std::is_integral<INDEX_TYPE>::value, "INDEX_TYPE must be integral." );
-  static_assert( std::numeric_limits<INDEX_TYPE>::max() >= std::numeric_limits<COL_TYPE>::max(),
+  static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
+  static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
+  static_assert( std::numeric_limits< INDEX_TYPE >::max() >= std::numeric_limits< COL_TYPE >::max(),
                  "INDEX_TYPE must be able to hold values at least as large as COL_TYPE." );
 
-  using INDEX_TYPE_NC = typename std::remove_const<INDEX_TYPE>::type;
+  using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -82,19 +82,19 @@ public:
   /**
    * @brief User defined conversion to move from COL_TYPE to COL_TYPE const.
    */
-  template<class CTYPE=COL_TYPE>
+  template< class CTYPE=COL_TYPE >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator typename std::enable_if<!std::is_const<CTYPE>::value,
-                                   SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &>::type
+  operator typename std::enable_if< !std::is_const< CTYPE >::value,
+                                    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >::type
     () const restrict_this
-  { return reinterpret_cast<SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert COL_TYPE to COL_TYPE const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const & toViewC() const restrict_this
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewC() const restrict_this
   { return *this; }
 
   /**
@@ -116,7 +116,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numRows() const restrict_this
-  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::size(); }
+  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::size(); }
 
   /**
    * @brief Return the number of columns in the matrix.
@@ -146,7 +146,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const restrict_this
-  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::sizeOfSet( row ); }
+  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::sizeOfSet( row ); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored without a reallocation.
@@ -158,11 +158,11 @@ public:
   /**
    * @brief Return the total number of non zero entries able to be stored in a given row without shifting
    *        subsequent rows and possibly reallocating.
-   * @param [in] row the row to query. 
+   * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const restrict_this
-  { return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::capacityOfSet( row ); }
+  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::capacityOfSet( row ); }
 
   /**
    * @brief Return true iff the matrix is all zeros.
@@ -186,7 +186,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool empty( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
-  { return !ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::contains( row, col ); }
+  { return !ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::contains( row, col ); }
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
@@ -194,7 +194,7 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<COL_TYPE const, INDEX_TYPE_NC> getColumns( INDEX_TYPE const row ) const restrict_this
+  ArraySlice1d_rval< COL_TYPE const, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const restrict_this
   { return (*this)[row]; }
 
   /**
@@ -218,10 +218,10 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
-  { 
+  {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertIntoSet( row, col );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertIntoSet( row, col );
   }
 
   /**
@@ -245,12 +245,12 @@ public:
     GEOS_ASSERT( cols != nullptr || ncols == 0 );
     GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertIntoSet( row, cols, ncols );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertIntoSet( row, cols, ncols );
   }
 
   /**
@@ -272,12 +272,12 @@ public:
     GEOS_ASSERT( cols != nullptr || ncols == 0 );
     GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSet( row, cols, ncols );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSet( row, cols, ncols );
   }
 
   /**
@@ -291,7 +291,7 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeFromSet( row, col );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeFromSet( row, col );
   }
 
   /**
@@ -311,12 +311,12 @@ public:
     GEOS_ASSERT( cols != nullptr || ncols == 0 );
     GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeFromSet( row, cols, ncols );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeFromSet( row, cols, ncols );
   }
 
   /**
@@ -333,12 +333,12 @@ public:
     GEOS_ASSERT( cols != nullptr || ncols == 0 );
     GEOS_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for (INDEX_TYPE_NC i = 0; i < ncols; ++i)
+    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::removeSortedFromSet( row, cols, ncols );
+    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeSortedFromSet( row, cols, ncols );
   }
 
 protected:
@@ -349,12 +349,12 @@ protected:
    */
   SparsityPatternView() = default;
 
-  template <class ...VECTORS>
-  void resize(INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, VECTORS & ...vectors)
+  template< class ... VECTORS >
+  void resize( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, VECTORS & ... vectors )
   {
     GEOS_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
     GEOS_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
-    GEOS_ERROR_IF( ncols - 1 > std::numeric_limits<COL_TYPE>::max(),
+    GEOS_ERROR_IF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
                    "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
     if( initialRowCapacity > ncols )
@@ -364,13 +364,13 @@ protected:
     }
 
     m_num_columns = ncols;
-    ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::resize(nrows, initialRowCapacity, vectors...);
+    ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::resize( nrows, initialRowCapacity, vectors ... );
   }
 
   // Aliasing protected members in ArrayOfSetsView
-  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_offsets;
-  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_sizes;
-  using ArrayOfSetsView<COL_TYPE, INDEX_TYPE>::m_values;
+  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_offsets;
+  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_sizes;
+  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_values;
 
   // The number of columns in the matrix.
   INDEX_TYPE m_num_columns;

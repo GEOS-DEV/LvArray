@@ -44,7 +44,7 @@ namespace internal
  * @param [in] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to check against.
  */
-template < class T >
+template< class T >
 void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
@@ -74,7 +74,7 @@ void compare_to_reference( const ChaiVector< T >& v, const std::vector< T >& v_r
  * @param [in] n the number of values to append.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > push_back_test( ChaiVector< T >& v, int n )
 {
   EXPECT_TRUE( v.empty() );
@@ -97,7 +97,7 @@ std::vector< T > push_back_test( ChaiVector< T >& v, int n )
  * @param [in] n the number iterations of appends.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > push_back_multiple_test( ChaiVector< T >& v, int n )
 {
   EXPECT_TRUE( v.empty() );
@@ -107,11 +107,11 @@ std::vector< T > push_back_multiple_test( ChaiVector< T >& v, int n )
 
   std::vector< T > v_ref;
   int total_values = 0;
-  for ( int i = 0 ; i < n ; ++i )
+  for( int i = 0 ; i < n ; ++i )
   {
-    for ( int n_vals = 1; n_vals < M; ++n_vals )
+    for( int n_vals = 1 ; n_vals < M ; ++n_vals )
     {
-      for ( int j = 0; j < n_vals; ++j )
+      for( int j = 0 ; j < n_vals ; ++j )
       {
         local_values[ j ] = T( total_values++ );
       }
@@ -131,7 +131,7 @@ std::vector< T > push_back_multiple_test( ChaiVector< T >& v, int n )
  * @param [in] n the number of values to insert.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > insert_test( ChaiVector< T >& v, int n )
 {
   EXPECT_TRUE( v.empty() );
@@ -168,7 +168,7 @@ std::vector< T > insert_test( ChaiVector< T >& v, int n )
  * @param [in] m the number of values to insert per iteration.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< T > insert_multiple_test( ChaiVector< T >& v, int n, int m )
 {
   EXPECT_TRUE( v.empty() );
@@ -209,7 +209,7 @@ std::vector< T > insert_multiple_test( ChaiVector< T >& v, int n, int m )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T >
+template< class T >
 void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
   const int n_elems = v.size();
@@ -246,7 +246,7 @@ void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T >
+template< class T >
 void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
   const int n_elems = v.size();
@@ -270,7 +270,7 @@ void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void resize_test( ChaiVector< T >& v, int n )
 {
   ASSERT_TRUE( v.empty() );
@@ -321,7 +321,7 @@ void resize_test( ChaiVector< T >& v, int n )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
+template< class T >
 void reserve_test( ChaiVector< T >& v, int n )
 {
   ASSERT_TRUE( v.empty() );
@@ -369,7 +369,7 @@ void reserve_test( ChaiVector< T >& v, int n )
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
+template< class T >
 void shallow_copy_test( const ChaiVector< T >& v )
 {
   {
@@ -401,52 +401,52 @@ void shallow_copy_test( const ChaiVector< T >& v )
 
 #ifdef USE_CUDA
 
-template < typename T >
+template< typename T >
 void testMemoryMotion( ChaiVector< T > & v )
 {
   const size_type N = v.size();
-  
-  for ( int i = 0; i < N; ++i )
+
+  for( int i = 0 ; i < N ; ++i )
   {
     v[ i ] = T( i );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      v[ i ] += v[ i ];
-    }
-  );
+          [=] __device__ ( int i )
+      {
+        v[ i ] += v[ i ];
+      }
+          );
 
   forall( sequential(), 0, N,
-    [=]( int i )
-    {
-      T val( i );
-      val += val;
-      EXPECT_EQ( v[ i ], val );
-    }
-  );
+          [=]( int i )
+      {
+        T val( i );
+        val += val;
+        EXPECT_EQ( v[ i ], val );
+      }
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionMove( ChaiVector< T > & v )
 {
   const size_type N = v.size();
-  
-  for ( int i = 0; i < N; ++i )
+
+  for( int i = 0 ; i < N ; ++i )
   {
     v[ i ] = T( i );
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      v[ i ] += v[ i ];
-    }
-  );
+          [=] __device__ ( int i )
+      {
+        v[ i ] += v[ i ];
+      }
+          );
 
-  v.move(chai::CPU);
-  for ( int i = 0; i < N; ++i )
+  v.move( chai::CPU );
+  for( int i = 0 ; i < N ; ++i )
   {
     T val = T( i );
     val += val;
@@ -454,69 +454,69 @@ void testMemoryMotionMove( ChaiVector< T > & v )
   }
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArray( ChaiVector< ChaiVector< T > > & v )
 {
   const size_type N = v.size();
 
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
       v[ i ][ j ] = T( N * i + j );
     }
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=] __device__ ( int i )
       {
-        v[ i ][ j ] += v[ i ][ j ];
+        for( size_type j = 0 ; j < N ; ++j )
+        {
+          v[ i ][ j ] += v[ i ][ j ];
+        }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, N,
-    [=]( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=]( int i )
       {
-        T val( N * i + j );
-        val += val;
-        EXPECT_EQ( v[ i ][ j ], val );
+        for( size_type j = 0 ; j < N ; ++j )
+        {
+          T val( N * i + j );
+          val += val;
+          EXPECT_EQ( v[ i ][ j ], val );
+        }
       }
-    }
-  );
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArrayMove( ChaiVector< ChaiVector< T > > & v )
 {
   const size_type N = v.size();
 
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
       v[ i ][ j ] = T( N * i + j );
     }
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=] __device__ ( int i )
       {
-        v[ i ][ j ] += v[ i ][ j ];
+        for( size_type j = 0 ; j < N ; ++j )
+        {
+          v[ i ][ j ] += v[ i ][ j ];
+        }
       }
-    }
-  );
+          );
 
-  v.move(chai::CPU);
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+  v.move( chai::CPU );
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
       T val( N * i + j );
       val += val;
@@ -525,16 +525,16 @@ void testMemoryMotionArrayMove( ChaiVector< ChaiVector< T > > & v )
   }
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArray2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
 {
   const size_type N = v.size();
-  
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
-      for ( size_type k = 0; k < N; ++k )
+      for( size_type k = 0 ; k < N ; ++k )
       {
         v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
       }
@@ -542,44 +542,44 @@ void testMemoryMotionArray2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=] __device__ ( int i )
       {
-        for ( size_type k = 0; k < N; ++k )
+        for( size_type j = 0 ; j < N ; ++j )
         {
-          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          for( size_type k = 0 ; k < N ; ++k )
+          {
+            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          }
         }
       }
-    }
-  );
+          );
 
   forall( sequential(), 0, N,
-    [=]( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=]( int i )
       {
-        for ( size_type k = 0; k < N; ++k )
+        for( size_type j = 0 ; j < N ; ++j )
         {
-          T val( N * N * i + N * j + k );
-          val += val;
-          EXPECT_EQ( v[ i ][ j ][ k ], val );
+          for( size_type k = 0 ; k < N ; ++k )
+          {
+            T val( N * N * i + N * j + k );
+            val += val;
+            EXPECT_EQ( v[ i ][ j ][ k ], val );
+          }
         }
       }
-    }
-  );
+          );
 }
 
-template < typename T >
+template< typename T >
 void testMemoryMotionArrayMove2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
 {
   const size_type N = v.size();
-  
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
-      for ( size_type k = 0; k < N; ++k )
+      for( size_type k = 0 ; k < N ; ++k )
       {
         v[ i ][ j ][ k ] = T( N * N * i + N * j + k );
       }
@@ -587,24 +587,24 @@ void testMemoryMotionArrayMove2( ChaiVector< ChaiVector< ChaiVector< T > > > & v
   }
 
   forall( cuda(), 0, N,
-    [=] __device__ ( int i )
-    {
-      for ( size_type j = 0; j < N; ++j )
+          [=] __device__ ( int i )
       {
-        for ( size_type k = 0; k < N; ++k )
+        for( size_type j = 0 ; j < N ; ++j )
         {
-          v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          for( size_type k = 0 ; k < N ; ++k )
+          {
+            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
+          }
         }
       }
-    }
-  );
+          );
 
-  v.move(chai::CPU);
-  for ( size_type i = 0; i < N; ++i )
-  {  
-    for ( size_type j = 0; j < N; ++j )
+  v.move( chai::CPU );
+  for( size_type i = 0 ; i < N ; ++i )
+  {
+    for( size_type j = 0 ; j < N ; ++j )
     {
-      for ( size_type k = 0; k < N; ++k )
+      for( size_type k = 0 ; k < N ; ++k )
       {
         T val( N * N * i + N * j + k );
         val += val;
@@ -899,14 +899,14 @@ CUDA_TEST( ChaiVector, memoryMotionArray )
 
   {
     ChaiVector< ChaiVector< int > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
     }
 
     internal::testMemoryMotionArray( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].free();
     }
@@ -915,14 +915,14 @@ CUDA_TEST( ChaiVector, memoryMotionArray )
 
   {
     ChaiVector< ChaiVector< Tensor > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
     }
 
     internal::testMemoryMotionArray( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].free();
     }
@@ -936,14 +936,14 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove )
 
   {
     ChaiVector< ChaiVector< int > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
     }
 
     internal::testMemoryMotionArrayMove( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].free();
     }
@@ -952,14 +952,14 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove )
 
   {
     ChaiVector< ChaiVector< Tensor > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
     }
 
     internal::testMemoryMotionArrayMove( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].free();
     }
@@ -973,20 +973,20 @@ CUDA_TEST( ChaiVector, memoryMotionArray2 )
 
   {
     ChaiVector< ChaiVector< ChaiVector< int > > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].resize( N );
       }
     }
 
     internal::testMemoryMotionArray2( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].free();
       }
@@ -997,20 +997,20 @@ CUDA_TEST( ChaiVector, memoryMotionArray2 )
 
   {
     ChaiVector< ChaiVector< ChaiVector< Tensor > > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].resize( N );
       }
     }
 
     internal::testMemoryMotionArray2( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].free();
       }
@@ -1026,20 +1026,20 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove2 )
 
   {
     ChaiVector< ChaiVector< ChaiVector< int > > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].resize( N );
       }
     }
 
     internal::testMemoryMotionArrayMove2( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].free();
       }
@@ -1050,20 +1050,20 @@ CUDA_TEST( ChaiVector, memoryMotionArrayMove2 )
 
   {
     ChaiVector< ChaiVector< ChaiVector< Tensor > > > v( N );
-    for ( int i = 0; i < N; ++i )
+    for( int i = 0 ; i < N ; ++i )
     {
       v[ i ].resize( N );
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].resize( N );
       }
     }
 
     internal::testMemoryMotionArrayMove2( v );
-    
-    for ( int i = 0; i < N; ++i )
+
+    for( int i = 0 ; i < N ; ++i )
     {
-      for ( int j = 0; j < N; ++j )
+      for( int j = 0 ; j < N ; ++j )
       {
         v[ i ][ j ].free();
       }

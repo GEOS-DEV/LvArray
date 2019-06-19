@@ -37,7 +37,7 @@ TEST( testArrayAccessor, ArrayInterface1 )
     memblock[a] = a;
   }
 
-  ArrayAccessor<double, 1> array( memblock, lengths );
+  ArrayAccessor< double, 1 > array( memblock, lengths );
 
   for( integer_t a=0 ; a<n ; ++a )
   {
@@ -59,7 +59,7 @@ TEST( testArrayAccessor, ArrayInterface2 )
     }
   }
 
-  ArrayAccessor<double, 2> array( memblock, lengths );
+  ArrayAccessor< double, 2 > array( memblock, lengths );
 
 
   for( integer_t a=0 ; a<lengths[0] ; ++a )
@@ -88,16 +88,16 @@ TEST( testArrayAccessor, ArrayInterface3 )
     }
   }
 
-  ArrayAccessor<double, 3> array3( &(memblock[0][0][0]), lengths );
+  ArrayAccessor< double, 3 > array3( &(memblock[0][0][0]), lengths );
 
 
   for( integer_t a=0 ; a<lengths[0] ; ++a )
   {
-    ArrayAccessor<double, 2> array2 = array3[a];
+    ArrayAccessor< double, 2 > array2 = array3[a];
 
     for( integer_t b=0 ; b<lengths[1] ; ++b )
     {
-      ArrayAccessor<double, 1> array1 = array2[b];
+      ArrayAccessor< double, 1 > array1 = array2[b];
 
       for( integer_t c=0 ; c<lengths[2] ; ++c )
       {

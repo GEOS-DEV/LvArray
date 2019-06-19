@@ -34,30 +34,30 @@ namespace LvArray
  * @tparam T the type stored in the arrays.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template <class T, typename INDEX_TYPE=::std::ptrdiff_t>
-class ArrayOfArrays : protected ArrayOfArraysView<T, INDEX_TYPE>
+template< class T, typename INDEX_TYPE=::std::ptrdiff_t >
+class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE >
 {
 public:
-  
+
   // Aliasing public methods of ArrayOfArraysView.
-  using ArrayOfArraysView<T, INDEX_TYPE>::toViewC;
-  using ArrayOfArraysView<T, INDEX_TYPE>::toViewCC;
-  using ArrayOfArraysView<T, INDEX_TYPE>::size;
-  using ArrayOfArraysView<T, INDEX_TYPE>::sizeOfArray;
-  using ArrayOfArraysView<T, INDEX_TYPE>::capacity;
-  using ArrayOfArraysView<T, INDEX_TYPE>::capacityOfArray;
-  using ArrayOfArraysView<T, INDEX_TYPE>::operator[];
-  using ArrayOfArraysView<T, INDEX_TYPE>::operator();
-  using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
+  using ArrayOfArraysView< T, INDEX_TYPE >::toViewC;
+  using ArrayOfArraysView< T, INDEX_TYPE >::toViewCC;
+  using ArrayOfArraysView< T, INDEX_TYPE >::size;
+  using ArrayOfArraysView< T, INDEX_TYPE >::sizeOfArray;
+  using ArrayOfArraysView< T, INDEX_TYPE >::capacity;
+  using ArrayOfArraysView< T, INDEX_TYPE >::capacityOfArray;
+  using ArrayOfArraysView< T, INDEX_TYPE >::operator[];
+  using ArrayOfArraysView< T, INDEX_TYPE >::operator();
+  using ArrayOfArraysView< T, INDEX_TYPE >::eraseFromArray;
 
   /**
    * @brief Constructor.
    * @param [in] numArrays the number of arrays.
    * @param [in] defaultArrayCapacity the initial capacity of each array.
    */
-  inline 
-  ArrayOfArrays(INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0) restrict_this:
-    ArrayOfArraysView<T, INDEX_TYPE>()
+  inline
+  ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) restrict_this:
+    ArrayOfArraysView< T, INDEX_TYPE >()
   { resize( numArrays, defaultArrayCapacity ); }
 
   /**
@@ -66,7 +66,7 @@ public:
    */
   inline
   ArrayOfArrays( ArrayOfArrays const & src ):
-    ArrayOfArraysView<T, INDEX_TYPE>()
+    ArrayOfArraysView< T, INDEX_TYPE >()
   { *this = src; }
 
   /**
@@ -80,22 +80,22 @@ public:
    * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
    */
   ~ArrayOfArrays()
-  { ArrayOfArraysView<T, INDEX_TYPE>::free(); }
+  { ArrayOfArraysView< T, INDEX_TYPE >::free(); }
 
   /**
    * @brief Conversion operator to ArrayOfArraysView<T, INDEX_TYPE const>.
    */
   CONSTEXPRFUNC inline
-  operator ArrayOfArraysView<T, INDEX_TYPE const> const &
+  operator ArrayOfArraysView< T, INDEX_TYPE const > const &
   () const restrict_this
-  { return reinterpret_cast<ArrayOfArraysView<T, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert to ArrayOfArraysView<T, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
-  ArrayOfArraysView<T, INDEX_TYPE const> const & toView() const restrict_this
+  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const restrict_this
   { return *this; }
 
   /**
@@ -104,7 +104,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator ArrayOfArraysView<T, INDEX_TYPE const, true> const &
+  operator ArrayOfArraysView< T, INDEX_TYPE const, true > const &
   () const restrict_this
   { return toViewC(); }
 
@@ -114,7 +114,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator ArrayOfArraysView<T const, INDEX_TYPE const, true> const &
+  operator ArrayOfArraysView< T const, INDEX_TYPE const, true > const &
   () const restrict_this
   { return toViewCC(); }
 
@@ -125,7 +125,7 @@ public:
   inline
   ArrayOfArrays & operator=( ArrayOfArrays const & src ) restrict_this
   {
-    ArrayOfArraysView<T, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
+    ArrayOfArraysView< T, INDEX_TYPE >::setEqualTo( src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
     return *this;
   }
 
@@ -141,15 +141,15 @@ public:
    * @brief Move to the given memory space.
    * @param [in] space the memory space to move to.
    */
-  void move(chai::ExecutionSpace const space) restrict_this
-  { ArrayOfArraysView<T, INDEX_TYPE>::move(space); }
+  void move( chai::ExecutionSpace const space ) restrict_this
+  { ArrayOfArraysView< T, INDEX_TYPE >::move( space ); }
 
   /**
    * @brief Touch in the given memory space.
    * @param [in] space the memory space to touch.
    */
-  void registerTouch(chai::ExecutionSpace const space) restrict_this
-  { ArrayOfArraysView<T, INDEX_TYPE>::registerTouch(space); }
+  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  { ArrayOfArraysView< T, INDEX_TYPE >::registerTouch( space ); }
 #endif
 
   /**
@@ -157,14 +157,14 @@ public:
    * @param [in] newCapacity the new minimum capacity for the number of arrays.
    */
   void reserve( INDEX_TYPE const newCapacity )
-  { ArrayOfArraysView<T, INDEX_TYPE>::reserve( newCapacity ); }
+  { ArrayOfArraysView< T, INDEX_TYPE >::reserve( newCapacity ); }
 
   /**
    * @brief Reserve space for the given number of values.
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
    */
   void reserveValues( INDEX_TYPE const newValueCapacity )
-  { ArrayOfArraysView<T, INDEX_TYPE>::reserveValues( newValueCapacity ); }
+  { ArrayOfArraysView< T, INDEX_TYPE >::reserveValues( newValueCapacity ); }
 
   /**
    * @brief Set the number of arrays.
@@ -172,7 +172,7 @@ public:
    * @param [in] defaultArrayCapacity the default capacity for each new array.
    */
   void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity=0 )
-  { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, defaultArrayCapacity ); }
+  { ArrayOfArraysView< T, INDEX_TYPE >::resize( numArrays, defaultArrayCapacity ); }
 
   /**
    * @brief Append an array.
@@ -182,12 +182,12 @@ public:
   void appendArray( T const * const values, INDEX_TYPE const n ) restrict_this
   {
     INDEX_TYPE const nArrays = size();
-    INDEX_TYPE const totalSize = m_offsets[nArrays]; 
+    INDEX_TYPE const totalSize = m_offsets[nArrays];
 
-    m_offsets.push_back(totalSize);
-    m_sizes.push_back(0);
-    
-    appendToArray(nArrays, values, n);
+    m_offsets.push_back( totalSize );
+    m_sizes.push_back( 0 );
+
+    appendToArray( nArrays, values, n );
   }
 
   /**
@@ -202,7 +202,7 @@ public:
     GEOS_ASSERT( arrayManipulation::isPositive( n ) );
     GEOS_ASSERT( n == 0 || values != nullptr );
 
-    // Insert an array of capacity zero at the given location 
+    // Insert an array of capacity zero at the given location
     INDEX_TYPE const offset = m_offsets[i];
     m_sizes.insert( i, 0 );
     m_offsets.insert( i + 1, offset );
@@ -226,10 +226,10 @@ public:
 
   /**
    * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @note This method doesn't free any memory. 
+   * @note This method doesn't free any memory.
    */
   void compress()
-  { ArrayOfArraysView<T, INDEX_TYPE>::compress(); }
+  { ArrayOfArraysView< T, INDEX_TYPE >::compress(); }
 
   /**
    * @brief Append a value to an array.
@@ -239,7 +239,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T const & value ) restrict_this
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView<T, INDEX_TYPE>::appendToArray( i, value );
+    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, value );
   }
 
   /**
@@ -250,7 +250,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T && value ) restrict_this
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView<T, INDEX_TYPE>::appendToArray( i, std::move(value) );
+    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, std::move( value ) );
   }
 
   /**
@@ -262,7 +262,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) restrict_this
   {
     dynamicallyGrowArray( i, n );
-    ArrayOfArraysView<T, INDEX_TYPE>::appendToArray( i, values, n );
+    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, values, n );
   }
 
   /**
@@ -274,7 +274,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value )
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView<T, INDEX_TYPE>::insertIntoArray( i, j, value );
+    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, value );
   }
 
   /**
@@ -286,7 +286,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value )
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView<T, INDEX_TYPE>::insertIntoArray( i, j, std::move(value) );
+    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, std::move( value ) );
   }
 
   /**
@@ -299,7 +299,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n )
   {
     dynamicallyGrowArray( i, n );
-    ArrayOfArraysView<T, INDEX_TYPE>::insertIntoArray( i, j, values, n );
+    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, values, n );
   }
 
   /**
@@ -309,20 +309,20 @@ public:
    * @param [in] newSize the value to set the size of the array to.
    * @param [in] args variadic parameter pack of the arguments used to initialize any new values with.
    */
-  template <class ...ARGS>
-  void resizeArray( INDEX_TYPE const i, INDEX_TYPE const newSize, ARGS && ...args)
+  template< class ... ARGS >
+  void resizeArray( INDEX_TYPE const i, INDEX_TYPE const newSize, ARGS && ... args )
   {
-    ARRAYOFARRAYS_CHECK_BOUNDS(i);
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
     GEOS_ASSERT( arrayManipulation::isPositive( newSize ) );
 
-    if ( newSize > capacityOfArray( i ) )
+    if( newSize > capacityOfArray( i ) )
     {
       setCapacityOfArray( i, newSize );
     }
 
     INDEX_TYPE const prevSize = sizeOfArray( i );
     T * const values = (*this)[i];
-    arrayManipulation::resize( values, prevSize, newSize, std::forward<ARGS>(args)... );
+    arrayManipulation::resize( values, prevSize, newSize, std::forward< ARGS >( args )... );
     m_sizes[ i ] = newSize;
   }
 
@@ -331,8 +331,8 @@ public:
    * @param [in] i the array to set the capacity of.
    * @param [in] newCapacity the value to set the capacity of the array to.
    */
-  void setCapacityOfArray(INDEX_TYPE const i, INDEX_TYPE const newCapacity)
-  { ArrayOfArraysView<T, INDEX_TYPE>::setCapacityOfArray(i, newCapacity); }
+  void setCapacityOfArray( INDEX_TYPE const i, INDEX_TYPE const newCapacity )
+  { ArrayOfArraysView< T, INDEX_TYPE >::setCapacityOfArray( i, newCapacity ); }
 
 private:
 
@@ -345,16 +345,16 @@ private:
   {
     GEOS_ASSERT( arrayManipulation::isPositive( increase ) );
 
-    INDEX_TYPE const newArraySize = sizeOfArray(i) + increase;
-    if (newArraySize > capacityOfArray(i))
+    INDEX_TYPE const newArraySize = sizeOfArray( i ) + increase;
+    if( newArraySize > capacityOfArray( i ))
     {
-      setCapacityOfArray(i, 2 * newArraySize);
+      setCapacityOfArray( i, 2 * newArraySize );
     }
   }
 
-  using ArrayOfArraysView<T, INDEX_TYPE>::m_offsets;
-  using ArrayOfArraysView<T, INDEX_TYPE>::m_sizes;
-  using ArrayOfArraysView<T, INDEX_TYPE>::m_values;
+  using ArrayOfArraysView< T, INDEX_TYPE >::m_offsets;
+  using ArrayOfArraysView< T, INDEX_TYPE >::m_sizes;
+  using ArrayOfArraysView< T, INDEX_TYPE >::m_values;
 };
 
 } /* namespace LvArray */

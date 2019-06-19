@@ -42,18 +42,18 @@ namespace LvArray
  *
  * When INDEX_TYPE is const m_offsets is not copied between memory spaces. INDEX_TYPE should always be const
  * since ArrayOfSetsview is not allowed to modify the offsets.
- * 
+ *
  * When T is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or columns are copied between memory spaces.
  */
-template <class T=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
-class ArrayOfSetsView : protected ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>
+template< class T=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
+class ArrayOfSetsView : protected ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >
 {
 public:
-  using INDEX_TYPE_NC = typename std::remove_const<INDEX_TYPE>::type;
+  using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
 
   // Aliasing public methods of ArrayOfArraysView.
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::size;
+  using ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::size;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -73,19 +73,19 @@ public:
   /**
    * @brief User defined conversion to move from T to T const.
    */
-  template<class U=T>
+  template< class U=T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator typename std::enable_if<!std::is_const<U>::value,
-                                   ArrayOfSetsView<T const, INDEX_TYPE const> const &>::type
-  () const restrict_this
-  { return reinterpret_cast<ArrayOfSetsView<T const, INDEX_TYPE const> const &>(*this); }
+  operator typename std::enable_if< !std::is_const< U >::value,
+                                    ArrayOfSetsView< T const, INDEX_TYPE const > const & >::type
+    () const restrict_this
+  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert T to T const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfSetsView<T const, INDEX_TYPE const> const & toViewC() const restrict_this
+  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewC() const restrict_this
   { return *this; }
 
   /**
@@ -108,7 +108,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::sizeOfArray( i ); }
+  { return ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::sizeOfArray( i ); }
 
   /**
    * @brief Return the capacity of the given set.
@@ -116,15 +116,15 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::capacityOfArray( i ); }
+  { return ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::capacityOfArray( i ); }
 
   /**
    * @brief Return an ArraySlice1d<T const> (pointer to const) to the values of the given array.
    * @param [in] i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<T const, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator[]( i ); }
+  ArraySlice1d_rval< T const, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const restrict_this
+  { return ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::operator[]( i ); }
 
   /**
    * @brief Return a const reference to the value at the given position in the given array.
@@ -133,7 +133,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator()( i, j ); }
+  { return ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::operator()( i, j ); }
 
   /**
    * @brief Return true iff the given set contains the given value.
@@ -225,12 +225,12 @@ public:
   { return removeFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
 /**
-   * @brief Remove values entries from the given set.
-   * @param [in] i the set to remove from.
-   * @param [in] values the values to remove. Must be sorted.
-   * @param [in] n the number of values to remove.
-   * @return The number of values removed.
-   */
+ * @brief Remove values entries from the given set.
+ * @param [in] i the set to remove from.
+ * @param [in] values the values to remove. Must be sorted.
+ * @param [in] n the number of values to remove.
+ * @return The number of values removed.
+ */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeSortedFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
   { return removeSortedFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
@@ -249,8 +249,8 @@ protected:
    * @note This method is protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> getSetValues( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator[]( i ); }
+  ArraySlice1d_rval< T, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const restrict_this
+  { return ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::operator[]( i ); }
 
   /**
    * @brief Helper function to insert a value into the given set.
@@ -260,7 +260,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return True iff the value was inserted (the set did not already contain the value).
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const restrict_this
   {
@@ -283,7 +283,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return The number of values inserted.
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertIntoSetImpl( INDEX_TYPE const i,
                                    T const * const valuesToInsert,
@@ -293,15 +293,15 @@ protected:
     constexpr int LOCAL_SIZE = 16;
     T localValueBuffer[LOCAL_SIZE];
 
-    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer(valuesToInsert, n, localValueBuffer);
-    sortedArrayManipulation::makeSorted(valueBuffer, valueBuffer + n);
+    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer( valuesToInsert, n, localValueBuffer );
+    sortedArrayManipulation::makeSorted( valueBuffer, valueBuffer + n );
 
-    INDEX_TYPE const nInserted = insertSortedIntoSetImpl(i, valueBuffer, n, std::move( cbacks ) );
+    INDEX_TYPE const nInserted = insertSortedIntoSetImpl( i, valueBuffer, n, std::move( cbacks ) );
 
-    sortedArrayManipulation::freeTemporaryBuffer(valueBuffer, n, localValueBuffer);
+    sortedArrayManipulation::freeTemporaryBuffer( valueBuffer, n, localValueBuffer );
     return nInserted;
   }
-  
+
   /**
    * @brief Helper function to insert values into the given set.
    * @tparam CALLBACKS type of the call-back helper class.
@@ -311,7 +311,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return The number of values inserted.
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertSortedIntoSetImpl( INDEX_TYPE const i,
                                          T const * const valuesToInsert,
@@ -339,7 +339,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return True iff the value was removed (the set contained the value).
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const restrict_this
   {
@@ -362,7 +362,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return The number of values removed.
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const restrict_this
   {
@@ -373,15 +373,15 @@ protected:
     constexpr int LOCAL_SIZE = 16;
     T localValueBuffer[LOCAL_SIZE];
 
-    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer(valuesToRemove, n, localValueBuffer);
-    sortedArrayManipulation::makeSorted(valueBuffer, valueBuffer + n);
+    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer( valuesToRemove, n, localValueBuffer );
+    sortedArrayManipulation::makeSorted( valueBuffer, valueBuffer + n );
 
     INDEX_TYPE const nRemoved = removeSortedFromSetImpl( i, valueBuffer, n, std::move( cbacks ) );
 
-    sortedArrayManipulation::freeTemporaryBuffer(valueBuffer, n, localValueBuffer);
+    sortedArrayManipulation::freeTemporaryBuffer( valueBuffer, n, localValueBuffer );
     return nRemoved;
   }
-  
+
   /**
    * @brief Helper function to remove values from the given set.
    * @tparam CALLBACKS type of the call-back helper class.
@@ -391,7 +391,7 @@ protected:
    * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return The number of values removed.
    */
-  template <class CALLBACKS>
+  template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const restrict_this
   {
@@ -409,9 +409,9 @@ protected:
   }
 
   // Aliasing protected members in ArrayOfArraysView
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_offsets;
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_sizes;
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_values;
+  using ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::m_offsets;
+  using ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::m_sizes;
+  using ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >::m_values;
 
 private:
 
@@ -419,9 +419,9 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks<T, INDEX_TYPE_NC>
+  class CallBacks : public sortedArrayManipulation::CallBacks< T, INDEX_TYPE_NC >
   {
-  public:
+public:
 
     /**
      * @brief Constructor.
@@ -429,7 +429,7 @@ private:
      * @param [in] i the set this CallBacks is associated with.
      */
     LVARRAY_HOST_DEVICE inline
-    CallBacks( ArrayOfSetsView<T, INDEX_TYPE> const & aos, INDEX_TYPE const i ):
+    CallBacks( ArrayOfSetsView< T, INDEX_TYPE > const & aos, INDEX_TYPE const i ):
       m_aos( aos ),
       m_indexOfSet( i )
     {}
@@ -451,8 +451,8 @@ private:
       return m_aos.getSetValues( m_indexOfSet );
     }
 
-  private:
-    ArrayOfSetsView<T, INDEX_TYPE> const & m_aos;
+private:
+    ArrayOfSetsView< T, INDEX_TYPE > const & m_aos;
     INDEX_TYPE const m_indexOfSet;
   };
 };

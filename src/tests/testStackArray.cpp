@@ -24,7 +24,7 @@
 using namespace LvArray;
 
 template< typename T, int NDIM, typename INDEX_TYPE >
-using stackArray = Array< T, NDIM, INDEX_TYPE, StackArrayWrapper<T,100> >;
+using stackArray = Array< T, NDIM, INDEX_TYPE, StackArrayWrapper< T, 100 > >;
 
 
 TEST( StackArray, allocate1d )
@@ -56,7 +56,7 @@ TEST( StackArray, allocate2d )
     }
   }
 
-  ASSERT_DEATH_IF_SUPPORTED( array2d.resize( 11,10 ), "" );
+  ASSERT_DEATH_IF_SUPPORTED( array2d.resize( 11, 10 ), "" );
 }
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
