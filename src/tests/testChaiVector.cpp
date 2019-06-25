@@ -212,7 +212,7 @@ std::vector< T > insert_multiple_test( ChaiVector< T >& v, int n, int m )
 template < class T >
 void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
-  const int n_elems = v.size();
+  const int n_elems = static_cast<int>(v.size());
   for( int i = 0 ; i < n_elems ; ++i )
   {
     if( i % 3 == 0 )    /* erase the beginning. */
@@ -249,7 +249,7 @@ void erase_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 template < class T >
 void pop_back_test( ChaiVector< T >& v, std::vector< T >& v_ref )
 {
-  const int n_elems = v.size();
+  const int n_elems = static_cast<int>(v.size());
   for( int i = 0 ; i < n_elems ; ++i )
   {
     v.pop_back();
