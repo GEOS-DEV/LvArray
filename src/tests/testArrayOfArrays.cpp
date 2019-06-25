@@ -16,6 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #include "gtest/gtest.h"
 
 #include "ArrayOfArrays.hpp"
@@ -1218,3 +1220,4 @@ int main( int argc, char* argv[] )
 
   return result;
 }
+#pragma clang diagnostic pop
