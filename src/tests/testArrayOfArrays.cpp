@@ -15,9 +15,10 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#endif
 #include "gtest/gtest.h"
 
 #include "ArrayOfArrays.hpp"
@@ -1220,4 +1221,6 @@ int main( int argc, char* argv[] )
 
   return result;
 }
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
