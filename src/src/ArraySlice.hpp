@@ -26,6 +26,7 @@
 // Add GDB pretty printers
 #ifndef NDEBUG
 
+#ifndef __APPLE__
 /* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
 #define DEFINE_GDB_PY_SCRIPT(script_name) \
 asm("\
@@ -34,7 +35,9 @@ asm("\
 .asciz \"" script_name "\"\n\
 .popsection \n\
 ")
-
+#else
+#define DEFINE_GDB_PY_SCRIPT(script_name)
+#endif
 DEFINE_GDB_PY_SCRIPT("scripts/gdb-printers.py");
 
 #endif
