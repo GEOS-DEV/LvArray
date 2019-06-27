@@ -570,6 +570,10 @@ protected:
       INDEX_TYPE const curOffset = m_offsets[ i ];
       INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
       INDEX_TYPE const sizeOfCurArray = sizeOfArray( i );
+
+      // If the current array is full then skip it.
+      if (curOffset + sizeOfCurArray == nextOffset) continue;
+
       INDEX_TYPE const sizeOfNextArray = sizeOfArray( i + 1 );
 
       // Shift the values in the next array down.
@@ -587,7 +591,7 @@ protected:
       }
 
       // And update the offsets.
-      m_offsets[ i + 1 ] = curOffset + sizeOfArray( i );
+      m_offsets[ i + 1 ] = curOffset + sizeOfCurArray;
     }
 
     // Update the last offset.
