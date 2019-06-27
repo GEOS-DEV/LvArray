@@ -65,6 +65,30 @@ void compareToReference(ViewType<T const, true> const & view, REF_TYPE<T> const 
   }
 }
 
+template <class T>
+void printArray(ViewType<T const, true> const & view)
+{
+  std::cout << "{" << std::endl;
+
+  for (INDEX_TYPE i = 0; i < view.size(); ++i)
+  {
+    std::cout << "\t{";
+    for (INDEX_TYPE j = 0; j < view.sizeOfArray(i); ++j)
+    {
+      std::cout << view[i][j] << ", ";
+    }
+
+    for (INDEX_TYPE j = view.sizeOfArray(i); j < view.capacityOfArray(i); ++j)
+    {
+      std::cout << "X" << ", ";
+    }
+
+    std::cout << "}" << std::endl;
+  }
+
+  std::cout << "}" << std::endl;
+}
+
 #define COMPARE_TO_REFERENCE(view, ref) { SCOPED_TRACE(""); compareToReference(view, ref); }
 
 template <class T>
