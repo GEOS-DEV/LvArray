@@ -197,7 +197,7 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                  "Sub arrays not separated by ',' delimiter: "<<valueString );
 
   GEOS_ERROR_IF( valueString[0]!='{',
-                 "First non-space character of input string for an array must be {" );
+                 "First non-space character of input string for an array must be {. Given string is: \n"<<valueString );
 
   size_t const numOpen = std::count( valueString.begin(), valueString.end(), '{' );
   size_t const numClose = std::count( valueString.begin(), valueString.end(), '}' );
