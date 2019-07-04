@@ -14,7 +14,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" 
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
 
 # Fortran options
-set(ENABLE_Fortran ON CACHE BOOL "")
 set(CMAKE_Fortran_COMPILER /usr/tce/packages/xl/xl-beta-2019.06.20/bin/xlf CACHE PATH "")
 set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -qarch=pwr9 -qtune=pwr9" CACHE STRING "")
 set(FORTRAN_MANGLE_NO_UNDERSCORE ON CACHE BOOL "")
