@@ -46,11 +46,32 @@ struct stringToArrayHelper
    */
   static void skipDelimters( std::istringstream & inputStream )
   {
-    while( inputStream.peek() == ',' )
+    while( inputStream.peek() == ' ' )
     {
       inputStream.ignore();
     }
 
+  }
+
+  /**
+   * @brief Reads a value of the array from the stream
+   * @param arrayValue A reference to the array value to read in
+   * @param
+   * @param inputStream the stream to read a value from
+   * @return
+   */
+  template< int NDIM >
+  static
+  typename std::enable_if< NDIM==0, void >::type
+  Read(  T & arrayValue,
+         INDEX_TYPE const * const,
+         std::istringstream & inputStream )
+  {
+    inputStream>>arrayValue;
+
+    GEOS_ERROR_IF( inputStream.fail(),
+                   "Invalid value of type " << typeid(T).name() << " in: " <<
+                   ( inputStream.eof()  ?  "" : inputStream.str().substr( inputStream.tellg() ) ) );
   }
 
   /**
@@ -60,79 +81,45 @@ struct stringToArrayHelper
    * @param inputStream the stream to read from
    * @return none
    */
-  /** @{ */
-  template< int NDIM >
-  static
-  typename std::enable_if< NDIM==1, void >::type
-  Read( LvArray::ArraySlice<T, NDIM, INDEX_TYPE > const & arraySlice,
-       INDEX_TYPE const * const dims,
-       std::istringstream & inputStream )
-  {
-    bool openingBrace=false;
-    bool closingBrace=false;
-
-    if( inputStream.peek() == '{' )
+    template< int NDIM >
+    static
+    typename std::enable_if< (NDIM>0), void >::type
+    Read( LvArray::ArraySlice<T, NDIM, INDEX_TYPE > const & arraySlice,
+          INDEX_TYPE const * const dims,
+          std::istringstream & inputStream )
     {
-      openingBrace = true;
-      inputStream.ignore();
-    }
+      bool openingBrace=false;
+      bool closingBrace=false;
 
-    GEOS_ERROR_IF( openingBrace==false, "opening { not found for input array: "<<inputStream.str() );
+      if( inputStream.peek() == '{' )
+      {
+        openingBrace = true;
+        inputStream.ignore();
+      }
+
+      GEOS_ERROR_IF( openingBrace==false, "opening { not found for input array: "<<inputStream.str() );
 
 
-    for( int i=0 ; i<(*dims) ; ++i )
-    {
+      for( int i=0 ; i<(*dims) ; ++i )
+      {
+        skipDelimters( inputStream );
+        Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
+      }
+
       skipDelimters( inputStream );
-      inputStream>>arraySlice[i];
+      if( inputStream.peek() == '}' )
+      {
+        closingBrace = true;
+        inputStream.ignore();
+      }
+
+      GEOS_ERROR_IF( closingBrace==false, "closing } not found for input array: "<<inputStream.str() );
     }
 
-    if( inputStream.peek() == '}' )
-    {
-      closingBrace = true;
-      inputStream.ignore();
-    }
-
-    GEOS_ERROR_IF( closingBrace==false, "closing } not found for input array: "<<inputStream.str() );
-
-
-  }
-
-  template< int NDIM >
-  static
-  typename std::enable_if< (NDIM>1), void >::type
-  Read( LvArray::ArraySlice<T, NDIM, INDEX_TYPE > const & arraySlice,
-       INDEX_TYPE const * const dims,
-       std::istringstream & inputStream )
-  {
-    bool openingBrace=false;
-    bool closingBrace=false;
-
-    if( inputStream.peek() == '{' )
-    {
-      openingBrace = true;
-      inputStream.ignore();
-    }
-
-    GEOS_ERROR_IF( openingBrace==false, "opening { not found for input array: "<<inputStream.str() );
-
-    for( INDEX_TYPE i=0 ; i<(*dims) ; ++i )
-    {
-      skipDelimters( inputStream );
-      Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
-    }
-
-    if( inputStream.peek() == '}' )
-    {
-      closingBrace = true;
-      inputStream.ignore();
-    }
-
-    GEOS_ERROR_IF( closingBrace==false, "closing } not found for input array: "<<inputStream.str() );
-
-  }
-  /** @} */
 
 };
+
+
 
 
 /**
@@ -284,34 +271,21 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
   array.resize( NDIM, dims );
 
 
+  // we need to replace our ',' with ' ' for reading in an array of strings.
+  std::replace( valueString.begin(), valueString.end(), ',', ' ' );
 
+  // we also need to add a ' ' in front of any '}' otherwise the string read will grab the }
+  for( std::string::size_type a=0 ; a<valueString.size() ; ++a )
+  {
+    if( valueString[a] == '}' )
+    {
+      valueString.insert( a, " " );
+      ++a;
+    }
+  }
 
-
-  // In order to use the stringstream facility to read in values of a Array<string>,
-  // we need to replace all {}, with spaces.
   std::istringstream strstream(valueString);
 
-
-//  std::replace( valueString.begin(), valueString.end(), '{', ' ' );
-//  std::replace( valueString.begin(), valueString.end(), '}', ' ' );
-//  std::replace( valueString.begin(), valueString.end(), ',', ' ' );
-//  T * arrayData = array.data();
-//
-//  // iterate through the stream and insert values into array in a linear fashion. This will be
-//  // incorrect if we ever have Array with a permuted index capability.
-//  while( strstream )
-//  {
-//    int c = strstream.peek();
-//
-//    if( c== ' ' )
-//    {
-//      strstream.ignore();
-//    }
-//    else
-//    {
-//      strstream>>*(arrayData++);
-//    }
-//  }
 
   stringToArrayHelper<T,INDEX_TYPE>::template Read<NDIM>( array, array.dims(), strstream );
 }

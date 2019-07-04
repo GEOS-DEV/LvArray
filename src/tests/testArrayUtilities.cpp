@@ -55,7 +55,7 @@ TEST( testArrayUtilities, stringToArrayErrors )
   {
     input = " { { 1, 2 }{ 3, 4 } } ";
     LvArray::Array<int,2,int> array;
-    stringToArray( array, input );
+    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   // This should fail the num('{')==num('}') test
