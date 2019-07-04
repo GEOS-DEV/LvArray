@@ -61,11 +61,9 @@ struct stringToArrayHelper
    * @return
    */
   template< int NDIM >
-  static
-  typename std::enable_if< NDIM==0, void >::type
-  Read(  T & arrayValue,
-         INDEX_TYPE const * const,
-         std::istringstream & inputStream )
+  static void Read( T & arrayValue,
+                    INDEX_TYPE const * const,
+                    std::istringstream & inputStream )
   {
     inputStream>>arrayValue;
 
@@ -75,30 +73,22 @@ struct stringToArrayHelper
   }
 
   /**
-   * @brief Functions to recursively read values from an istringstream into an array.
+   * @brief recursively read values from an istringstream into an array.
    * @param arraySlice The arraySlice that provides the interface to write data into the array
    * @param dims the dimensions of the array
    * @param inputStream the stream to read from
    * @return none
    */
     template< int NDIM >
-    static
-    typename std::enable_if< (NDIM>0), void >::type
-    Read( LvArray::ArraySlice<T, NDIM, INDEX_TYPE > const & arraySlice,
+    static void
+    Read( typename std::conditional< (NDIM>1),
+                                     LvArray::ArraySlice<T, NDIM, INDEX_TYPE >,
+                                     LvArray::ArraySlice1d<T, INDEX_TYPE > >::type const & arraySlice,
           INDEX_TYPE const * const dims,
           std::istringstream & inputStream )
     {
-      bool openingBrace=false;
-      bool closingBrace=false;
-
-      if( inputStream.peek() == '{' )
-      {
-        openingBrace = true;
-        inputStream.ignore();
-      }
-
-      GEOS_ERROR_IF( openingBrace==false, "opening { not found for input array: "<<inputStream.str() );
-
+      GEOS_ERROR_IF( inputStream.peek() != '{', "opening { not found for input array: "<<inputStream.str() );
+      inputStream.ignore();
 
       for( int i=0 ; i<(*dims) ; ++i )
       {
@@ -107,16 +97,9 @@ struct stringToArrayHelper
       }
 
       skipDelimters( inputStream );
-      if( inputStream.peek() == '}' )
-      {
-        closingBrace = true;
-        inputStream.ignore();
-      }
-
-      GEOS_ERROR_IF( closingBrace==false, "closing } not found for input array: "<<inputStream.str() );
+      GEOS_ERROR_IF( inputStream.peek() != '}', "closing } not found for input array: "<<inputStream.str() );
+      inputStream.ignore();
     }
-
-
 };
 
 
@@ -145,14 +128,18 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                             std::string valueString )
 {
 
+  // Check to make sure there are no space delimited values. The assumption is anything that is not
+  // a '{' or '}' or ',' or ' ' is part of a value. Loope over the string and keep track of whether
+  // or not there is a value on the left of the char. If there is a value to the left, with a space
+  // on the left, and we run into another value, then this means that there is a space delimited
+  // entry.
   {
     bool valueOnLeft = false;
-    bool valueOnRight = false;
     bool spaceOnLeft = false;
 
     for( char const & c : valueString )
     {
-      if( c != '{' && c != ',' && c != '}' )
+      if( c != '{' && c != ',' && c != '}' && c!=' ' )
       {
         if( valueOnLeft && spaceOnLeft )
         {
@@ -160,26 +147,40 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
         }
       }
 
+      // If a open/close brace or ',' delimiter, then there is neither a value or space
+      // to the left of subsequent characters.
       if( c == '{' || c == ',' || c == '}' )
       {
         valueOnLeft = false;
         spaceOnLeft = false;
       }
-      else if( c != ' ' )
+      else // if the first check fails, then either c is a space or value
       {
-        valueOnLeft = true;
-        spaceOnLeft = false;
-      }
-      else
-      {
-        spaceOnLeft = true;
+        // if it is a value, then set the valueOnLeft flag to true for subsequent c
+        if( c != ' ' )
+        {
+          valueOnLeft = true;
+          spaceOnLeft = false;
+        }
+        else // if it is a space, then set spaceOnLeft to true for subsequent c
+        {
+          spaceOnLeft = true;
+        }
       }
     }
   }
 
-  // erase all spaces from input string
+  // erase all spaces from input string to simplify parsing
   valueString.erase(std::remove(valueString.begin(), valueString.end(), ' '), valueString.end());
 
+  // allow for a null input
+  if( valueString=="{}" )
+  {
+    array.clear();
+    return;
+  }
+
+  // checking for various formatting errors
   GEOS_ERROR_IF( valueString.find("}{") != std::string::npos ,
                  "Sub arrays not separated by ',' delimiter: "<<valueString );
 
@@ -193,12 +194,6 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                  "Number of opening { not equal to number of } in processing of string for filling"
                  " an Array. Given string is: \n"<<valueString);
 
-  // allow for a null input
-  if( valueString=="{}" )
-  {
-    array.clear();
-    return;
-  }
 
   // after allowing for the null input, disallow a sub-array null input
   GEOS_ERROR_IF( valueString.find("{}")!=std::string::npos,
@@ -212,27 +207,40 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                  ") does not match dimensions of array("<<NDIM<<
                  "). String is:/n"<<valueString );
 
+
+  // now get the number of dimensions, and the size of each dimension.
+
+  // use dimLevel to track the current dimension we are parsing
   int dimLevel = -1;
+
+  // dims is the dimensions that get set the first diving down.
   INDEX_TYPE dims[NDIM] = {0};
+
+  // currentDims is used to track the dimensions for subsequent dives down the dimensions.
   INDEX_TYPE currentDims[NDIM] = {0};
+
+  // flag to see if the dims value has been set for a given dimension
+  bool dimSet[NDIM] = {false};
+
   for( int i=0 ; i<NDIM ; ++i )
   {
     dims[i]=1;
     currentDims[i] = 1;
   }
-  bool dimSet[NDIM] = {false};
 
   char lastChar = 0;
-
   for( size_t charCount = 0; charCount<valueString.size() ; ++charCount )
   {
     char const c = valueString[charCount];
+    // this had better be true for the first char...we had a check for this. This is why we can
+    // set dimLevel = -1 to start.
     if( c=='{')
     {
       ++dimLevel;
     }
     else if( c=='}')
     {
+      // } means that we are closing a dimension. That means we know the size of this dimLevel
       dimSet[dimLevel] = true;
       GEOS_ERROR_IF( dims[dimLevel]!=currentDims[dimLevel],
                      "Dimension "<<dimLevel<<" is inconsistent across the expression. "
@@ -240,6 +248,8 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                      " while the current value of the dimension is"<<currentDims[dimLevel]<<
                      ". The values that have been parsed prior to the error are:\n"<<
                      valueString.substr(0,charCount+1) );
+
+      // reset currentDims and drop dimLevel for post-closure parsing
       currentDims[dimLevel] = 1;
       --dimLevel;
       GEOS_ERROR_IF( dimLevel<0 && charCount<(valueString.size()-1),
@@ -249,7 +259,7 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
                      valueString.substr(0,charCount+1) );
 
     }
-    else if( c==',' )
+    else if( c==',' ) // we are counting the dimension sizes because there is a delimiter.
     {
       GEOS_ERROR_IF( lastChar=='{' || lastChar==',',
                      "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value.");
@@ -258,23 +268,22 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
         ++(dims[dimLevel]);
       }
       ++(currentDims[dimLevel]);
-
     }
-
     lastChar = c;
   }
   GEOS_ERROR_IF( dimLevel!=-1,
                  "Expression fails to close all '{' with a corresponding '}'. Check your input:"<<
                  valueString );
 
-
   array.resize( NDIM, dims );
 
 
-  // we need to replace our ',' with ' ' for reading in an array of strings.
+  // we need to replace our ',' with ' ' for reading in an array of strings, otherwise the
+  // stringstream::operator>> will grab the ','
   std::replace( valueString.begin(), valueString.end(), ',', ' ' );
 
-  // we also need to add a ' ' in front of any '}' otherwise the string read will grab the }
+  // we also need to add a ' ' in front of any '}' otherwise the
+  // stringstream::operator>> will grab the }
   for( std::string::size_type a=0 ; a<valueString.size() ; ++a )
   {
     if( valueString[a] == '}' )
@@ -283,10 +292,8 @@ static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE
       ++a;
     }
   }
-
   std::istringstream strstream(valueString);
-
-
+  // this recursively reads the values from the stringstream
   stringToArrayHelper<T,INDEX_TYPE>::template Read<NDIM>( array, array.dims(), strstream );
 }
 
