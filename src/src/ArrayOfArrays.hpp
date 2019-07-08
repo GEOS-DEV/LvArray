@@ -49,6 +49,10 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::operator[];
   using ArrayOfArraysView<T, INDEX_TYPE>::operator();
   using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getOffsets;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getSizes;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getValues;
+
 
   /**
    * @brief Constructor.
@@ -232,22 +236,6 @@ public:
   }
 
   /**
-   * @brief Erase an array.
-   * @param [in] i the position of the array that will lose the entry.
-   * @param [in] j the entry in the array that will be erased.
-   */
-  void eraseArrayValue( INDEX_TYPE const i, INDEX_TYPE const j )
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
-
-    for( INDEX_TYPE a=j ; a<(sizeOfArray(i)-1) ; ++a )
-    {
-      (*this)(i,a) = (*this)(i,a+1);
-    }
-    resizeArray(i, sizeOfArray(i)-1);
-  }
-
-  /**
    * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
    * @note This method doesn't free any memory. 
    */
@@ -347,6 +335,15 @@ public:
     T * const values = (*this)[i];
     arrayManipulation::resize( values, prevSize, newSize, std::forward<ARGS>(args)... );
     m_sizes[ i ] = newSize;
+  }
+
+  /**
+   * @brief clear a sub-array
+   * @param[in] i the sub-array index that will be cleared
+   */
+  void clearArray( INDEX_TYPE const i )
+  {
+    resizeArray( i, 0 );
   }
 
   /**
