@@ -169,9 +169,16 @@ public:
   /**
    * @brief Set the number of arrays.
    * @param [in] newSize the new number of arrays.
+   */
+  void resize( INDEX_TYPE const numArrays )
+  { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, 0 ); }
+
+  /**
+   * @brief Set the number of arrays.
+   * @param [in] newSize the new number of arrays.
    * @param [in] defaultArrayCapacity the default capacity for each new array.
    */
-  void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity=0 )
+  void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity )
   { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, defaultArrayCapacity ); }
 
   /**
@@ -222,6 +229,22 @@ public:
     setCapacityOfArray( i, 0 );
     m_sizes.erase( i );
     m_offsets.erase( i + 1 );
+  }
+
+  /**
+   * @brief Erase an array.
+   * @param [in] i the position of the array that will lose the entry.
+   * @param [in] j the entry in the array that will be erased.
+   */
+  void eraseArrayValue( INDEX_TYPE const i, INDEX_TYPE const j )
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
+
+    for( INDEX_TYPE a=j ; a<(sizeOfArray(i)-1) ; ++a )
+    {
+      (*this)(i,a) = (*this)(i,a+1);
+    }
+    resizeArray(i, sizeOfArray(i)-1);
   }
 
   /**
