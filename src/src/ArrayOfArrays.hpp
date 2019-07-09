@@ -49,6 +49,10 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::operator[];
   using ArrayOfArraysView<T, INDEX_TYPE>::operator();
   using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getOffsets;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getSizes;
+  using ArrayOfArraysView<T, INDEX_TYPE>::getValues;
+
 
   /**
    * @brief Constructor.
@@ -169,9 +173,16 @@ public:
   /**
    * @brief Set the number of arrays.
    * @param [in] newSize the new number of arrays.
+   */
+  void resize( INDEX_TYPE const numArrays )
+  { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, 0 ); }
+
+  /**
+   * @brief Set the number of arrays.
+   * @param [in] newSize the new number of arrays.
    * @param [in] defaultArrayCapacity the default capacity for each new array.
    */
-  void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity=0 )
+  void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity )
   { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, defaultArrayCapacity ); }
 
   /**
@@ -324,6 +335,15 @@ public:
     T * const values = (*this)[i];
     arrayManipulation::resize( values, prevSize, newSize, std::forward<ARGS>(args)... );
     m_sizes[ i ] = newSize;
+  }
+
+  /**
+   * @brief clear a sub-array
+   * @param[in] i the sub-array index that will be cleared
+   */
+  void clearArray( INDEX_TYPE const i )
+  {
+    resizeArray( i, 0 );
   }
 
   /**

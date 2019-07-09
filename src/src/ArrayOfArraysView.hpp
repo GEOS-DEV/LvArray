@@ -104,6 +104,9 @@ public:
 
   using INDEX_TYPE_NC = typename std::remove_const<INDEX_TYPE>::type;
 
+  // Holds the size of each row, of length size().
+  using SIZE_TYPE = std::conditional_t<CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC>;
+
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *        chai::ManagedArray copy constructor.
@@ -377,6 +380,24 @@ public:
     arrayManipulation::erase( ptr, sizeOfArray( i ), j, n );
     m_sizes[i] -= n;
   }
+
+  /**
+   * const accessor for m_offsets
+   * @return reference to m_offsets
+   */
+  ChaiVector<INDEX_TYPE const> const & getOffsets() const { return m_offsets; }
+
+  /**
+   * const accessor for m_sizes
+   * @return reference to m_sizes
+   */
+  ChaiVector<SIZE_TYPE const> const & getSizes() const    { return m_sizes; }
+
+  /**
+   * const accessor for m_values
+   * @return reference to m_values
+   */
+  ChaiVector<T const> const & getValues() const           { return m_values; }
 
 protected:
 
@@ -734,8 +755,6 @@ protected:
   // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
   ChaiVector<INDEX_TYPE> m_offsets;
 
-  // Holds the size of each row, of length size().
-  using SIZE_TYPE = std::conditional_t<CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC>;
   ChaiVector<SIZE_TYPE> m_sizes;
 
   // Holds the values of each array, of length numValues().
