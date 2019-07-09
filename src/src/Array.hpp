@@ -70,8 +70,8 @@ public:
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::pointer;
   using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_pointer;
 
-  using asView = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
-  using asViewConst = typename detail::to_arrayViewConst< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  using ViewType = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  using ViewTypeConst = typename detail::to_arrayViewConst< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
 
   /**
    * @brief default constructor
@@ -139,9 +139,9 @@ public:
   /**
    * Convert this Array and any nested Array to ArrayView const.
    */
-  asView & toView() const
+  ViewType & toView() const
   {
-    return reinterpret_cast<asView &>(*this);
+    return reinterpret_cast<ViewType &>(*this);
   }
 
   /**
@@ -149,10 +149,10 @@ public:
    * In addition the data held by the innermost array will be const.
    */
   template< typename U = T >
-  typename std::enable_if< !std::is_const<U>::value, asViewConst & >::type
+  typename std::enable_if< !std::is_const<U>::value, ViewTypeConst & >::type
   toViewConst() const
   {
-    return reinterpret_cast<asViewConst &>(*this);
+    return reinterpret_cast<ViewTypeConst &>(*this);
   }
 
   /**
@@ -397,21 +397,26 @@ public:
 
 
 #ifdef USE_CHAI
+  void setUserCallBack( std::string const & name )
+  {
+    m_dataVector.template setUserCallBack<decltype(*this)>( name );
+  }
+
   template< typename U = T >
   typename std::enable_if< !detail::is_array< U >::value, void >::type
-  move( chai::ExecutionSpace space )
+  move( chai::ExecutionSpace space, bool touch=true )
   {
-    m_dataVector.move( space );
+    m_dataVector.move( space, touch );
     setDataPtr();
   }
 
   template< typename U = T >
   typename std::enable_if< detail::is_array< U >::value, void >::type
-  move( chai::ExecutionSpace space )
+  move( chai::ExecutionSpace space, bool touch=true )
   {
-    ChaiVector< typename T::asView > & dataVector =
-      reinterpret_cast< ChaiVector< typename T::asView > & >( m_dataVector );
-    dataVector.move( space );
+    ChaiVector< typename T::ViewType > & dataVector =
+      reinterpret_cast< ChaiVector< typename T::ViewType > & >( m_dataVector );
+    dataVector.move( space, touch );
     setDataPtr();
   }
 #endif

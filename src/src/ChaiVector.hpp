@@ -22,6 +22,7 @@
 #include "CXX_UtilsConfig.hpp"
 #include "Logger.hpp"
 #include "arrayManipulation.hpp"
+#include "StringUtilities.hpp"
 
 #include <type_traits>
 #include <iterator>
@@ -85,7 +86,9 @@ public:
     m_capacity( 0 ),
 #endif
     m_length( 0 )
-  {}
+  {
+    setUserCallBack( "NoNameProvided" );
+  }
 
   /**
    * @brief Creates a new vector of the given length.
@@ -101,11 +104,13 @@ public:
     m_length( 0 )
   {
     resize( initialLength );
+
+    setUserCallBack( "NoNameProvided" );
   }
 
   /**
    * @brief Use this to create an empty ChaiVector.
-   * @note You cannot call any methdods on the ChaiVector until it has been
+   * @note You cannot call any methods on the ChaiVector until it has been
    *       initialized from another ChaiVector using either of the operator= methods.
    */
   ChaiVector( std::nullptr_t ):
@@ -411,14 +416,41 @@ public:
   }
 
 #ifdef USE_CHAI
+  template < class U = ChaiVector< T > >
+  void setUserCallBack( std::string const & name )
+  {
+#if !defined(NDEBUG) && defined(USE_CUDA)
+    std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
+    m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
+    {
+      if (act == chai::ACTION_MOVE)
+      {
+        if (s == chai::CPU)
+        {
+          GEOS_LOG_RANK("Moved to the CPU: " << typeString << " " << name );
+        }
+        else if (s == chai::GPU)
+        {
+          GEOS_LOG_RANK("Moved to the GPU: " << typeString << " " << name );
+        }
+      }
+    });
+#endif
+  }
+
   /**
    * @brief Move the array to the given memory space.
    * @param [in] space the space to move to.
    */
-  void move( chai::ExecutionSpace space )
+  void move( chai::ExecutionSpace space, bool touch=true )
   {
+    if (capacity() == 0) return;
+
+    void * ptr = const_cast< typename std::remove_const<T>::type * >( data() );
+    if ( space == chai::ArrayManager::getInstance()->getPointerRecord(ptr)->m_last_space ) return;
+
     m_array.move( space );
-    registerTouch( space );
+    if ( touch ) registerTouch( space );
   }
 #endif
 
@@ -544,6 +576,7 @@ private:
 #ifdef USE_CHAI
     internal::chai_lock.lock();
     chai::ManagedArray<T> new_array( new_capacity );
+    new_array.setUserCallback( m_array.getUserCallback() );
     internal::chai_lock.unlock();
 #else
     T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
