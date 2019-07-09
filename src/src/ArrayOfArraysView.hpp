@@ -413,7 +413,7 @@ protected:
    * @param [in] newSize the new number of arrays.
    * @param [in] defaultArrayCapacity the default capacity for each new array.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values. 
+   *        similarly to m_values. 
    * @note this is to be use by the non-view derived classes.
    */
   template <class ...VECTORS>

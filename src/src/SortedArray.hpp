@@ -82,6 +82,9 @@ public:
   using SortedArrayView<T, INDEX_TYPE>::contains;
   using SortedArrayView<T, INDEX_TYPE>::count;
 
+  using ViewType = SortedArrayView<T const, INDEX_TYPE>;
+  using ViewTypeConst = ViewType;
+
   /**
    * @brief Default constructor, the array is empty.
    */
@@ -118,15 +121,22 @@ public:
    */
   template <class U = T>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator SortedArrayView<T const, INDEX_TYPE> const & () const restrict_this
-  { return reinterpret_cast<SortedArrayView<T const, INDEX_TYPE> const &>(*this); }
+  operator ViewType const & () const restrict_this
+  { return reinterpret_cast<ViewType const &>(*this); }
 
   /**
    * @brief Method to convert to SortedArrayView<T const> const. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView<T const, INDEX_TYPE> const & toView() const restrict_this
+  ViewType const & toView() const restrict_this
+  { return *this; }
+
+  /**
+   * @brief Duplicate method to placate ViewWrapper's SFINAE.
+   */
+  LVARRAY_HOST_DEVICE inline
+  ViewType const & toViewConst() const restrict_this
   { return *this; }
 
   /**
@@ -243,13 +253,18 @@ public:
   }
 
 #ifdef USE_CHAI
+  void setUserCallBack( std::string const & name )
+  {
+    m_values.template setUserCallBack<decltype(*this)>( name );
+  }
+
   /**
    * @brief Moves the SortedArray to the given execution space.
    * @param [in] space the space to move to.
    */
   inline
-  void move( chai::ExecutionSpace space ) restrict_this
-  { m_values.move( space ); }
+  void move( chai::ExecutionSpace space, bool touch=true ) restrict_this
+  { m_values.move( space, touch ); }
 #endif
 
 private:
