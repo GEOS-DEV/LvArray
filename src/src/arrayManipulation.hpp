@@ -308,7 +308,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
   // Create space for the new value.
-  shiftUp( ptr, size, index, INDEX_TYPE( 1 ));
+  shiftUp( ptr, size, index, INDEX_TYPE( 1 ) );
   new (&ptr[index]) T( value );
 }
 
