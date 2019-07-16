@@ -576,7 +576,9 @@ private:
 #ifdef USE_CHAI
     internal::chai_lock.lock();
     chai::ManagedArray<T> new_array( new_capacity );
+#ifdef USE_CUDA
     new_array.setUserCallback( m_array.getUserCallback() );
+#endif
     internal::chai_lock.unlock();
 #else
     T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
