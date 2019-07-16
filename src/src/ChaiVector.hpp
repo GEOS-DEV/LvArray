@@ -45,6 +45,18 @@ class SparsityPattern;
 namespace internal
 {
 static ::std::mutex chai_lock;
+
+inline std::string calculateSize( size_t const bytes )
+{
+  if (bytes >> 20 != 0)
+  {
+    return std::to_string(bytes >> 20) + "MB";
+  }
+  else
+  {
+    return std::to_string(bytes >> 10) + "KB";
+  }
+}
 }
 #endif
 
@@ -419,19 +431,20 @@ public:
   template < class U = ChaiVector< T > >
   void setUserCallBack( std::string const & name )
   {
-#if !defined(NDEBUG) && defined(USE_CUDA)
+#if defined(USE_CUDA)
     std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
     m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
     {
       if (act == chai::ACTION_MOVE)
       {
+        std::string const & size = internal::calculateSize( bytes );
         if (s == chai::CPU)
         {
-          GEOS_LOG_RANK("Moved to the CPU: " << typeString << " " << name );
+          GEOS_LOG_RANK("Moved " << size << " to the CPU: " << typeString << " " << name );
         }
         else if (s == chai::GPU)
         {
-          GEOS_LOG_RANK("Moved to the GPU: " << typeString << " " << name );
+          GEOS_LOG_RANK("Moved " << size << " to the GPU: " << typeString << " " << name );
         }
       }
     });

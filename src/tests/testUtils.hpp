@@ -46,17 +46,49 @@ struct PairComp {
 /**
  * @class TestString
  * @brief A wrapper around std::string that adds a constructor that takes a number
- * and converts it to a string. Used for testing purposes.
+ *        and converts it to a string. Used for testing purposes.
+ * @note The default constructors, destructor, and operator are implemented here
+ *       because otherwise nvcc will complain about host-device errors.
  */
 class TestString : public std::string
 {
 public:
+
+  TestString() :
+    std::string()
+  {}
+
   template <class T=int>
   TestString(T val=0) :
     std::string(std::to_string(val) +
                 std::string(" The rest of this is to avoid any small string optimizations. ") +
                 std::to_string(2 * val))
   {}
+
+  TestString( TestString const & src ) :
+    std::string( src )
+  {}
+
+  TestString( TestString && src ) :
+    std::string( std::move( src ) )
+  {}
+
+  ~TestString()
+  {}
+
+  TestString & operator=( TestString const & src )
+  { 
+    std::string & sThis = *this;
+    sThis = src;
+    return *this;
+  }
+
+  TestString & operator=( TestString && src )
+  { 
+    std::string & sThis = *this;
+    sThis = std::move( src );
+    return *this;
+  }
 };
 
 /**

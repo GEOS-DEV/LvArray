@@ -130,7 +130,7 @@ void insertTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef, INDEX_TYPE const MAX_INSER
 
   for (INDEX_TYPE row = 0; row < numRows; ++row)
   {
-   ROW_REF_TYPE<T> & row_ref = mRef[row];
+    ROW_REF_TYPE<T> & row_ref = mRef[row];
     ASSERT_EQ(m.numNonZeros(row), row_ref.size());
 
     for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)

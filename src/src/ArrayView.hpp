@@ -290,22 +290,20 @@ public:
    * @brief function to return the allocated size
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
-  {
-    return size_helper<NDIM, INDEX_TYPE>::f( m_dims );
-  }
+  { return size_helper<NDIM, INDEX_TYPE>::f( m_dims ); }
 
   /**
    * @brief function check if the array is empty.
    * @return a boolean. True if the array is empty, False if it is not empty.
    */
   inline bool empty() const
-  {
-    return m_dataVector.empty();
-  }
+  { return m_dataVector.empty(); }
 
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * begin() const
   { return data(); }
 
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * end() const
   { return data() + size(); }
 
