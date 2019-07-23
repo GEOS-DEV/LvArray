@@ -70,7 +70,7 @@ public:
   {}
 
   TestString( TestString && src ) :
-    std::string( std::move( src ) )
+    std::string( static_cast< std::string && >( src ) )
   {}
 
   ~TestString()
