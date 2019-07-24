@@ -457,13 +457,15 @@ public:
    */
   void move( chai::ExecutionSpace space, bool touch=true )
   {
+#if defined(USE_CUDA)
     if (capacity() == 0) return;
 
     void * ptr = const_cast< typename std::remove_const<T>::type * >( data() );
     if ( space == chai::ArrayManager::getInstance()->getPointerRecord(ptr)->m_last_space ) return;
 
-    m_array.move( space );
-    if ( touch ) registerTouch( space );
+    if ( touch ) m_array.move( space );
+    else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
+#endif
   }
 #endif
 

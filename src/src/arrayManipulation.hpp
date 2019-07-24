@@ -82,7 +82,7 @@ isPositive( INDEX_TYPE const )
  */
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class ...ARGS>
-LVARRAY_HOST_DEVICE inline
+inline
 void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS &&... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
