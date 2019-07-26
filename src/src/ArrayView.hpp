@@ -96,7 +96,7 @@ public:
     m_strides{ 0 },
     m_dataVector()
   {
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -554,7 +554,7 @@ public:
   }
 
 
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.
