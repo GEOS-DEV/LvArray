@@ -158,7 +158,7 @@ public:
     m_dims( inputDimensions ),
     m_strides( inputStrides )
   {
-#if !defined(NDEBUG) && !defined(__CUDA_ARCH__)
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
     ArraySlice::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -259,8 +259,7 @@ public:
   /// deleted default constructor
   ArraySlice() = delete;
 
-#ifndef NDEBUG
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.
@@ -279,7 +278,6 @@ public:
     }
     return 0;
   }
-#endif
 #endif
 
 protected:

@@ -5,6 +5,7 @@ set( PREPROCESSOR_DEFINES
                           CHAI
                           CUDA
                           MPI
+                          TOTALVIEW_OUTPUT
    )
 
 set( USE_CONFIGFILE ON CACHE BOOL "" )
