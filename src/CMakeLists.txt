@@ -1,6 +1,6 @@
 set( cxx_dependencies "" )
 if( ATK_FOUND )
-    set( cxx_dependencies slic lumberjack )
+    set( cxx_dependencies axom )
 endif()
 
 if(ENABLE_CHAI)
@@ -16,4 +16,6 @@ if(ENABLE_CUDA)
 endif()
 
 add_subdirectory(src)
-add_subdirectory(tests)
+if(ENABLE_TESTS)
+    add_subdirectory(tests)
+endif()
