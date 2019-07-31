@@ -396,12 +396,14 @@ public:
   }
 
 
-#ifdef USE_CHAI
   void setUserCallBack( std::string const & name )
   {
+#ifdef USE_CHAI
     m_dataVector.template setUserCallBack<decltype(*this)>( name );
+#endif
   }
 
+#ifdef USE_CHAI
   template< typename U = T >
   typename std::enable_if< !detail::is_array< U >::value, void >::type
   move( chai::ExecutionSpace space, bool touch=true )

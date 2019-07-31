@@ -252,12 +252,14 @@ public:
     return nRemoved;
   }
 
-#ifdef USE_CHAI
   void setUserCallBack( std::string const & name )
   {
+#ifdef USE_CHAI
     m_values.template setUserCallBack<decltype(*this)>( name );
+#endif
   }
 
+#ifdef USE_CHAI
   /**
    * @brief Moves the SortedArray to the given execution space.
    * @param [in] space the space to move to.

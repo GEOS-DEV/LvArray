@@ -415,10 +415,10 @@ public:
     }
   }
 
-#ifdef USE_CHAI
   template < class U = ChaiVector< T > >
   void setUserCallBack( std::string const & name )
   {
+#ifdef USE_CHAI
 #if !defined(NDEBUG) && defined(USE_CUDA)
     std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
     m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
@@ -436,12 +436,14 @@ public:
       }
     });
 #endif
+#endif
   }
 
   /**
    * @brief Move the array to the given memory space.
    * @param [in] space the space to move to.
    */
+#ifdef USE_CHAI
   void move( chai::ExecutionSpace space, bool touch=true )
   {
     if (capacity() == 0) return;

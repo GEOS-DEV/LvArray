@@ -3,9 +3,9 @@ if( ATK_FOUND )
     set( cxx_dependencies axom )
 endif()
 
-if(ENABLE_CHAI)
+#if(ENABLE_CHAI)
     set( cxx_dependencies ${cxx_dependencies} chai umpire )
-endif()
+#endif()
 
 if(ENABLE_MPI)
     set( cxx_dependencies ${cxx_dependencies} mpi )
