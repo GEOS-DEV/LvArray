@@ -50,27 +50,27 @@ struct PairComp {
  * @note The default constructors, destructor, and operator are implemented here
  *       because otherwise nvcc will complain about host-device errors.
  */
-class TestString : public std::string
+class TestString
 {
 public:
 
   TestString() :
-    std::string()
+    TestString(0)
   {}
 
   template <class T=int>
   TestString(T val=0) :
-    std::string(std::to_string(val) +
-                std::string(" The rest of this is to avoid any small string optimizations. ") +
-                std::to_string(2 * val))
+    m_string( std::to_string( val ) +
+              std::string( " The rest of this is to avoid any small string optimizations. " ) +
+              std::to_string( 2 * val ) )
   {}
 
   TestString( TestString const & src ) :
-    std::string( src )
+    m_string( src.m_string )
   {}
 
   TestString( TestString && src ) :
-    std::string( static_cast< std::string && >( src ) )
+    m_string( std::move( src.m_string ) )
   {}
 
   ~TestString()
@@ -78,17 +78,43 @@ public:
 
   TestString & operator=( TestString const & src )
   { 
-    std::string & sThis = *this;
-    sThis = src;
+    m_string = src.m_string;
     return *this;
   }
 
   TestString & operator=( TestString && src )
   { 
-    std::string & sThis = *this;
-    sThis = std::move( src );
+    m_string = std::move( src.m_string );
     return *this;
   }
+
+  bool operator==( TestString const & rhs ) const
+  { return m_string == rhs.m_string; }
+
+  bool operator!=( TestString const & rhs ) const
+  { return m_string != rhs.m_string; }
+
+  bool operator<( TestString const & rhs ) const
+  { return getValue() < rhs.getValue(); }
+
+  bool operator<=( TestString const & rhs ) const
+  { return getValue() <= rhs.getValue(); }
+
+  bool operator>( TestString const & rhs ) const
+  { return getValue() > rhs.getValue(); }
+
+  bool operator>=( TestString const & rhs ) const
+  { return getValue() >= rhs.getValue(); }
+
+  friend std::ostream & operator<<( std::ostream & os, TestString const & testString )
+  { return os << testString.m_string; }
+
+private:
+
+  long getValue() const
+  { return std::stol( m_string ); }
+
+  std::string m_string;
 };
 
 /**
@@ -98,64 +124,64 @@ public:
  */
 struct Tensor
 {
-  double x, y, z;
-
-  LVARRAY_HOST_DEVICE Tensor():
-    x(), y(), z()
+  LVARRAY_HOST_DEVICE Tensor() :
+    Tensor( 0 )
   {}
 
   template <class T>
   LVARRAY_HOST_DEVICE explicit Tensor( T val ):
-    x( 3 * val ), y( 3 * val + 1 ), z( 3 * val + 2 )
+    m_x( 3 * val ), m_y( 3 * val + 1 ), m_z( 3 * val + 2 )
   {}
 
-  LVARRAY_HOST_DEVICE Tensor( const Tensor & from) :
-    x(from.x),
-    y(from.y),
-    z(from.z)
+  LVARRAY_HOST_DEVICE Tensor( Tensor const & src ) :
+    m_x(src.m_x),
+    m_y(src.m_y),
+    m_z(src.m_z)
   {}
 
-  LVARRAY_HOST_DEVICE Tensor& operator=( const Tensor& other )
+  LVARRAY_HOST_DEVICE Tensor& operator=( Tensor const& src )
   {
-    x = other.x;
-    y = other.y;
-    z = other.z;
+    m_x = src.m_x;
+    m_y = src.m_y;
+    m_z = src.m_z;
     return *this;
   }
 
-  LVARRAY_HOST_DEVICE Tensor& operator+=( const Tensor& other )
+  LVARRAY_HOST_DEVICE Tensor& operator+=( Tensor const& rhs )
   {
-    x += other.x;
-    y += other.y;
-    z += other.z;
+    m_x += rhs.m_x;
+    m_y += rhs.m_y;
+    m_z += rhs.m_z;
     return *this;
   }
 
-  LVARRAY_HOST_DEVICE bool operator==( const Tensor& other ) const
+  LVARRAY_HOST_DEVICE bool operator==( Tensor const& rhs ) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
-    return x == other.x && y == other.y && z == other.z;
+    return m_x == rhs.m_x && m_y == rhs.m_y && m_z == rhs.m_z;
 #pragma GCC diagnostic pop
   }
 
-  LVARRAY_HOST_DEVICE bool operator<( const Tensor& other ) const
-  { return x < other.x; }
+  LVARRAY_HOST_DEVICE bool operator<( Tensor const& rhs ) const
+  { return m_x < rhs.m_x; }
 
-  LVARRAY_HOST_DEVICE bool operator>( const Tensor& other ) const
-  { return x > other.x; }
+  LVARRAY_HOST_DEVICE bool operator>( Tensor const& rhs ) const
+  { return m_x > rhs.m_x; }
 
-  LVARRAY_HOST_DEVICE bool operator !=( const Tensor & other ) const
-  { return !(*this == other); }
+  LVARRAY_HOST_DEVICE bool operator !=( Tensor const & rhs ) const
+  { return !(*this == rhs); }
+
+  friend std::ostream& operator<<(std::ostream& stream, Tensor const & t )
+  {
+    stream << "(" << t.m_x << ", " << t.m_y << ", " << t.m_z << ")";
+    return stream;
+  }
+
+private:
+  double m_x, m_y, m_z;
 };
 
-/**
-  * @brief Helper method used to print out the values of a Tensor.
-  */
-std::ostream& operator<<(std::ostream& stream, const Tensor & t )
-{
-  stream << "(" << t.x << ", " << t.y << ", " << t.z << ")";
-  return stream;
-}
+
 
 #endif // TEST_UTILS_HPP_

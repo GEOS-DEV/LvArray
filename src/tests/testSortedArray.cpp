@@ -459,6 +459,58 @@ TEST(SortedArray, insert)
   }
 }
 
+TEST(SortedArray, reserve)
+{
+  constexpr INDEX_TYPE MAX_VAL = 100;
+  constexpr INDEX_TYPE MAX_INSERTS = 200;
+
+  {
+    SortedArray<int> v;
+    std::set<int> ref;
+
+    v.reserve( MAX_VAL + 1 );
+    int const * const ptr = v.values();
+
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+
+    EXPECT_EQ(ptr, v.values());
+  }
+
+  {
+    SortedArray<Tensor> v;
+    std::set<Tensor> ref;
+
+    v.reserve( MAX_VAL + 1 );
+    Tensor const * const ptr = v.values();
+
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+
+    EXPECT_EQ(ptr, v.values());
+  }
+
+  {
+    SortedArray<TestString> v;
+    v.reserve( MAX_VAL + 1 );
+
+    TestString const * const ptr = v.values();
+    std::set<TestString> ref;
+
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+    internal::insertTest(v, ref, MAX_INSERTS, MAX_VAL);
+
+    EXPECT_EQ(ptr, v.values());
+  }
+}
+
+
 TEST(SortedArray, insertMultipleSorted)
 {
   constexpr INDEX_TYPE MAX_VAL = 1000;
