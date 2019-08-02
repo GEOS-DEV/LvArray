@@ -27,6 +27,7 @@
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "templateHelpers.hpp"
+#include "RAJA/RAJA.hpp"
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -59,6 +60,12 @@
                  " sizeOfArray( i )=" << this->sizeOfArray( i ) << " capacityOfArray( i )=" << \
                  this->capacityOfArray( i ) )
 
+#define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase ) \
+  GEOS_ERROR_IF( previousSize + increase > this->capacityOfArray( i ), \
+                 "Capacity Check Failed: i=" << i << " increase=" << increase << \
+                 " sizeOfArray( i )=" << previousSize << " capacityOfArray( i )=" << \
+                 this->capacityOfArray( i ) )
+
 #else // USE_ARRAY_BOUNDS_CHECK
 
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i )
@@ -66,6 +73,7 @@
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i )
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j )
 #define ARRAYOFARRAYS_CAPACITY_CHECK( i, increase )
+#define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
@@ -252,7 +260,20 @@ public:
 
     T * const ptr = m_values.data() + m_offsets[ i ];
     arrayManipulation::append( ptr, sizeOfArray( i ), value );
-    m_sizes[i]++;
+    m_sizes[i] += 1;
+  }
+
+  template< class POLICY >
+  LVARRAY_HOST_DEVICE inline
+  void atomicAppendToArray( POLICY, INDEX_TYPE const i, T const & value ) const restrict_this
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+
+    T * const ptr = m_values.data() + m_offsets[ i ];
+    INDEX_TYPE const previousSize = RAJA::atomic::atomicInc< POLICY >( &m_sizes[ i ] );
+    ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, 1 );
+
+    arrayManipulation::append( ptr, previousSize, value );
   }
 
   /**
