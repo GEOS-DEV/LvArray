@@ -24,6 +24,11 @@
 #cmakedefine USE_TOTALVIEW_OUTPUT
 #endif
 
+#ifndef USE_OPENMP
+#cmakedefine USE_OPENMP
+#endif
+
+
 #if defined(USE_CUDA) && defined(__CUDACC__)
   #define LVARRAY_HOST_DEVICE __host__ __device__
   #define LVARRY_DEVICE __device__
