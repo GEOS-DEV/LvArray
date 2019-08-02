@@ -404,8 +404,8 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
 }
 
 /**
- * @brief Test the resize method of the ChaiVector.
- * @param [in/out] v the ChaiVector to check.
+ * @brief Test the resize method of the Array.
+ * @param [in/out] v the Array to check.
  * @param [in] n the end size of the vector.
  */
 template < class T >
@@ -456,9 +456,56 @@ void resize_test( array< T >& v, INDEX_TYPE n )
   }
 }
 
+template < class T >
+void resizeNoInitOrDestroy_test( array< T >& v, INDEX_TYPE n )
+{
+  ASSERT_TRUE( v.empty() );
+
+  v.resizeWithoutInitializationOrDestruction( n / 2 );
+
+  ASSERT_EQ( v.size(), n / 2 );
+  ASSERT_EQ( v.capacity(), n / 2 );
+
+  T* data_ptr = v.data();
+  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  {
+    const T val = T( i );
+    data_ptr[ i ] = val;
+  }
+
+  /* No reallocation should have occured. */
+  ASSERT_EQ( data_ptr, v.data() );
+
+  v.resizeWithoutInitializationOrDestruction( n / 4 );
+
+  ASSERT_EQ( v.size(), n / 4 );
+  ASSERT_EQ( v.capacity(), n / 2 );
+
+  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
+  {
+    ASSERT_EQ( v[ i ], T( i ) );
+  }
+
+  v.resizeWithoutInitializationOrDestruction( n );
+
+  ASSERT_EQ( v.size(), n );
+  ASSERT_EQ( v.capacity(), n );
+
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  {
+    const T val = T( 2 * i );
+    v[ i ] = val;
+  }
+
+  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  {
+    ASSERT_EQ( v[ i ], T( 2 * i ) );
+  }
+}
+
 /**
- * @brief Test the resize method of the ChaiVector.
- * @param [in/out] v the ChaiVector to check.
+ * @brief Test the resize method of the Array.
+ * @param [in/out] v the Array to check.
  * @param [in] n the end size of the vector.
  */
 template < class T >
@@ -976,6 +1023,21 @@ TEST( Array, resize )
   {
     array< TestString > v;
     internal::resize_test( v, N );
+  }
+}
+
+TEST( Array, resizeNoInitOrDestroy )
+{
+  constexpr INDEX_TYPE N = 1000;   /* Size of each array */
+
+  {
+    array< int > v;
+    internal::resizeNoInitOrDestroy_test( v, N );
+  }
+
+  {
+    array< Tensor > v;
+    internal::resizeNoInitOrDestroy_test( v, N );
   }
 }
 

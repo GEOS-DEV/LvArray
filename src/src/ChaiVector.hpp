@@ -68,6 +68,9 @@ class ChaiVector
 {
 public:
 
+  template <class U, int NDIM, class INDEX_TYPE, class DATA_VECTOR_TYPE>
+  friend class Array;
+
   template <class U, class INDEX_TYPE>
   friend class SortedArray;
 
@@ -319,7 +322,7 @@ public:
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
    */
-  void insert( size_type index, const T& value )
+  void insert( size_type index, T const & value )
   {
     dynamicResize( size() + 1 );
 
@@ -332,7 +335,7 @@ public:
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
    */
-  void insert( size_type index, const T&& value )
+  void insert( size_type index, T && value )
   {
     dynamicResize( size() + 1 );
 
