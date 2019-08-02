@@ -48,6 +48,7 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::capacityOfArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::operator[];
   using ArrayOfArraysView<T, INDEX_TYPE>::operator();
+  using ArrayOfArraysView<T, INDEX_TYPE>::atomicAppendToArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::getOffsets;
   using ArrayOfArraysView<T, INDEX_TYPE>::getSizes;
