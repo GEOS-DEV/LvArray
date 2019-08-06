@@ -15,6 +15,7 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
@@ -42,7 +43,7 @@
 namespace LvArray
 {
 
-using INDEX_TYPE = ::std::ptrdiff_t;
+using INDEX_TYPE = std::ptrdiff_t;
 
 template <class T, bool CONST_SIZES=false>
 using ViewType = ArrayOfArraysView<T, INDEX_TYPE const, CONST_SIZES>;
@@ -64,6 +65,15 @@ void compareToReference(ViewType<T const, true> const & view, REF_TYPE<T> const 
       EXPECT_EQ(view[i][j], ref[i][j]);
       EXPECT_EQ(view(i, j), view[i][j]);
     }
+
+    INDEX_TYPE j = 0;
+    for (T const & val : view.getIterableArray(i))
+    {
+      EXPECT_EQ(val, ref[i][j]);
+      ++j;
+    }
+
+    EXPECT_EQ(j, view.sizeOfArray(i));
   }
 }
 
@@ -99,7 +109,7 @@ class ArrayOfArraysTest : public ::testing::Test
 public:
 
   void appendArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
-                     INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
+                    INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
   {
     compareToReference(array.toViewCC(), ref);
 
@@ -116,6 +126,32 @@ public:
       }
 
       array.appendArray(arrayToAppend.data(), arrayToAppend.size());
+      ref.push_back(arrayToAppend);
+    }
+
+    compareToReference(array.toViewCC(), ref);
+  }
+
+  void appendArray2( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
+                     INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
+  {
+    compareToReference(array.toViewCC(), ref);
+
+    std::vector<T> arrayToAppend(maxAppendSize);
+
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      INDEX_TYPE const nValues = rand(0, maxAppendSize);
+      arrayToAppend.resize(nValues);
+      array.appendArray(nValues);
+
+      for (INDEX_TYPE j = 0; j < nValues; ++j)
+      {
+        T const value = T(i * LARGE_NUMBER + j);
+        arrayToAppend[j] = value;
+        array(array.size() - 1, j) = value;
+      }
+
       ref.push_back(arrayToAppend);
     }
 
@@ -616,6 +652,16 @@ TYPED_TEST(ArrayOfArraysTest, appendArray)
   this->appendArray(array, ref, NUM_ARRAYS, MAX_VALUES);
 }
 
+TYPED_TEST(ArrayOfArraysTest, appendArray2)
+{
+  constexpr INDEX_TYPE NUM_ARRAYS = 100;
+  constexpr INDEX_TYPE MAX_VALUES = 10;
+
+  ArrayOfArrays<TypeParam> array;
+  REF_TYPE<TypeParam> ref;
+  this->appendArray2(array, ref, NUM_ARRAYS, MAX_VALUES);
+}
+
 TYPED_TEST(ArrayOfArraysTest, insertArray)
 {
   constexpr INDEX_TYPE NUM_ARRAYS = 100;
@@ -691,6 +737,15 @@ TYPED_TEST(ArrayOfArraysTest, appendToArray)
   {
     this->appendToArray(array, ref, MAX_VALUES);
   }
+}
+
+TYPED_TEST(ArrayOfArraysTest, atomicAppendToArraySerial)
+{
+  constexpr INDEX_TYPE NUM_ARRAYS = 20;
+  INDEX_TYPE const APPENDS_PER_ARRAY = 10;
+
+  ArrayOfArrays<TypeParam> array(NUM_ARRAYS, APPENDS_PER_ARRAY);
+  this->atomicAppendToArraySerial(array, APPENDS_PER_ARRAY);
 }
 
 #ifdef USE_OPENMP
@@ -1400,6 +1455,3 @@ int main( int argc, char* argv[] )
 
   return result;
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif

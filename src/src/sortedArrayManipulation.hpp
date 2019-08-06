@@ -34,6 +34,22 @@
 namespace sortedArrayManipulation
 {
 
+enum Description
+{
+  SORTED_UNIQUE,
+  UNSORTED_NO_DUPLICATES,
+  SORTED_WITH_DUPLICATES,
+  UNSORTED_WITH_DUPLICATES
+};
+
+LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+bool isSorted(Description const desc)
+{ return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
+
+LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+bool isUnique(Description const desc)
+{ return desc == SORTED_UNIQUE || desc == UNSORTED_NO_DUPLICATES; }
+
 /**
  * @class CallBacks
  * @brief This class provides a no-op callbacks interface for the ArrayManipulation sorted routines.
@@ -194,21 +210,6 @@ LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, Rando
 }
 
 /**
- * @tparam RandomAccessIteratorA an iterator type that provides random access.
- * @tparam RandomAccessIteratorB an iterator type that provides random access.
- * @brief Sort the given values in place from least to greatest and perform the same operations
- *        on the data array thus preserving the mapping between values[i] and data[i].
- * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
- */
-DISABLE_HD_WARNING
-template<class RandomAccessIteratorA, class RandomAccessIteratorB>
-LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
-                                         RandomAccessIteratorB dataFirst)
-{ return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }
-
-/**
  * @tparam T the type of the values stored in the buffer.
  * @tparam N the size of the local buffer.
  * @brief Create a copy of the values array in localBuffer if possible. If not an allocation is
@@ -291,6 +292,9 @@ bool isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare(
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ) );
 
+  // This short circuit is necessary if INDEX_TYPE is unsigned.
+  if (size == 0) return true;
+
   for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
     if( comp(ptr[i + 1], ptr[i]) ) 
@@ -300,6 +304,82 @@ bool isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare(
   }
 
   return true;
+}
+
+/**
+ * @tparam RandomAccessIteratorA an iterator type that provides random access.
+ * @tparam RandomAccessIteratorB an iterator type that provides random access.
+ * @brief Sort the given values in place from least to greatest and perform the same operations
+ *        on the data array thus preserving the mapping between values[i] and data[i].
+ * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
+ * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
+ * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
+ */
+DISABLE_HD_WARNING
+template<class RandomAccessIteratorA, class RandomAccessIteratorB>
+LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
+                                         RandomAccessIteratorB dataFirst)
+{ return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }
+
+/**
+ * @tparam T the type of the values stored in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @brief Return true if the array contains no duplicates.
+ * @param [in/out] ptr a pointer to the values.
+ * @param [in] size the number of values.
+ * @note The array must be sorted such that values that compare equal are adjacent.
+ */
+DISABLE_HD_WARNING
+template<class T, class INDEX_TYPE>
+LVARRAY_HOST_DEVICE inline bool allUnique(T * const ptr, INDEX_TYPE const size)
+{
+  for (INDEX_TYPE i = 0; i < size - 1; ++i)
+  {
+    if (ptr[i] == ptr[i + 1]) return false;
+  }
+
+  return true;
+}
+
+/**
+ * @tparam T the type of the values stored in the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @brief Remove duplicates from the array, duplicates aren't destroyed but they're moved out of.
+ * @return The number of unique elements, such that ptr[0, returnValue) contains the unique elements.
+ * @param [in/out] ptr a pointer to the values.
+ * @param [in] size the number of values.
+ * @note The array must be sorted such that values that compare equal are adjacent.
+ * @note If you are using this and would like the duplicates to remain intact at the end of the array
+ *       change the std::move to a portable implementation of std::swap.
+ */
+DISABLE_HD_WARNING
+template<class T, class INDEX_TYPE>
+LVARRAY_HOST_DEVICE inline INDEX_TYPE removeDuplicates(T * const ptr, INDEX_TYPE const size)
+{
+  GEOS_ASSERT(ptr != nullptr || size == 0);
+  GEOS_ASSERT(arrayManipulation::isPositive(size));
+
+  // Note it doesn't have to be sorted under less<T>, so this assert is a bit too restrictive.
+  GEOS_ASSERT(isSorted(ptr, size));
+
+  if (size == 0) return 0;
+
+  INDEX_TYPE shiftAmount = 0;
+  INDEX_TYPE curPos = 0;
+  while (curPos + shiftAmount + 1 < size)
+  {
+    if (ptr[curPos] != ptr[curPos + shiftAmount + 1])
+    {
+      ++curPos;
+      if (shiftAmount != 0)
+      {
+        ptr[curPos] = std::move(ptr[curPos + shiftAmount]);
+      }
+    }
+    else ++shiftAmount;
+  }
+
+  return curPos + 1;
 }
 
 /**

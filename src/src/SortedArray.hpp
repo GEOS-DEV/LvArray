@@ -276,6 +276,12 @@ public:
   { m_values.move( space, touch ); }
 #endif
 
+  friend std::ostream& operator<< ( std::ostream& stream, SortedArray const & array )
+  {
+    stream << array.toView();
+    return stream;
+  }
+
 private:
 
   /**

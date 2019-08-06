@@ -46,14 +46,15 @@ namespace LvArray
  * When T is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or columns are copied between memory spaces.
  */
-template <class T=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
+template <class T, class INDEX_TYPE=std::ptrdiff_t>
 class ArrayOfSetsView : protected ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>
 {
+  using ParentClass = ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>;
 public:
   using INDEX_TYPE_NC = typename std::remove_const<INDEX_TYPE>::type;
 
   // Aliasing public methods of ArrayOfArraysView.
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::size;
+  using ParentClass::size;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -88,6 +89,10 @@ public:
   ArrayOfSetsView<T const, INDEX_TYPE const> const & toViewC() const restrict_this
   { return *this; }
 
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  ArrayOfArraysView<T const, INDEX_TYPE const, true> const & toArrayOfArraysView() const restrict_this
+  { return *this; }
+
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
    * @param [in] src the ArrayOfSetsView to be copied from.
@@ -102,13 +107,18 @@ public:
   inline
   ArrayOfSetsView & operator=( ArrayOfSetsView && src ) = default;
 
+
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const restrict_this
+  { return ParentClass::getIterableArray( i ); }
+
   /**
    * @brief Return the size of the given set.
    * @param [in] i the set to querry.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::sizeOfArray( i ); }
+  { return ParentClass::sizeOfArray( i ); }
 
   /**
    * @brief Return the capacity of the given set.
@@ -116,7 +126,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::capacityOfArray( i ); }
+  { return ParentClass::capacityOfArray( i ); }
 
   /**
    * @brief Return an ArraySlice1d<T const> (pointer to const) to the values of the given array.
@@ -124,7 +134,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   ArraySlice1d_rval<T const, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator[]( i ); }
+  { return ParentClass::operator[]( i ); }
 
   /**
    * @brief Return a const reference to the value at the given position in the given array.
@@ -133,7 +143,22 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator()( i, j ); }
+  { return ParentClass::operator()( i, j ); }
+
+  void consistencyCheck() const restrict_this
+  {
+    INDEX_TYPE const numSets = size();
+    for ( INDEX_TYPE_NC i = 0; i < numSets; ++i )
+    {
+      GEOS_ERROR_IF_GT(sizeOfSet( i ), capacityOfSet( i ));
+
+      T * const setValues = getSetValues( i );
+      INDEX_TYPE const numValues = sizeOfSet( i );
+      GEOS_ERROR_IF(!sortedArrayManipulation::isSorted(setValues, numValues), "Values should be sorted!");
+      GEOS_ERROR_IF(!sortedArrayManipulation::allUnique(setValues, numValues), "Values should be unique!");
+    }
+  }
+
 
   /**
    * @brief Return true iff the given set contains the given value.
@@ -250,7 +275,7 @@ protected:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   ArraySlice1d_rval<T, INDEX_TYPE_NC> getSetValues( INDEX_TYPE const i ) const restrict_this
-  { return ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::operator[]( i ); }
+  { return ParentClass::operator[]( i ); }
 
   /**
    * @brief Helper function to insert a value into the given set.
@@ -409,9 +434,9 @@ protected:
   }
 
   // Aliasing protected members in ArrayOfArraysView
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_offsets;
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_sizes;
-  using ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>::m_values;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
 
 private:
 

@@ -190,7 +190,7 @@
 #define GEOS_ERROR_IF_NE_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, !=, ==, rhs, msg )
 #define GEOS_ERROR_IF_NE( lhs, rhs ) GEOS_ERROR_IF_NE_MSG( lhs, rhs, "" )
 
-#define GEOS_ERROR_IF_GT_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, >, <=, rhs msg )
+#define GEOS_ERROR_IF_GT_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, >, <=, rhs, msg )
 #define GEOS_ERROR_IF_GT( lhs, rhs ) GEOS_ERROR_IF_GT_MSG( lhs, rhs, "" )
 
 #define GEOS_ERROR_IF_GE_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, >=, <, rhs, msg )
@@ -198,13 +198,12 @@
 
 
 #define GEOS_ASSERT_OP_MSG( lhs, OP, rhs, msg ) GEOS_ASSERT_MSG( lhs OP rhs,                                                 \
-                                                                 "Expected " << #lhs << " " << #OP << " " << #rhs << "\n" << \
                                                                  "  " << #lhs << " = " << lhs << "\n" <<                     \
                                                                  "  " << #rhs << " = " << rhs << "\n" <<                     \
                                                                  msg )
 
 #define GEOS_ASSERT_EQ_MSG( lhs, rhs, msg ) GEOS_ASSERT_OP_MSG( lhs, ==, rhs, msg )
-#define GEOS_ASSERT_NE( lhs, rhs ) GEOS_ASSERT_NE_MSG( lhs, rhs, "" )
+#define GEOS_ASSERT_EQ( lhs, rhs ) GEOS_ASSERT_EQ_MSG( lhs, rhs, "" )
 
 #define GEOS_ASSERT_GT_MSG( lhs, rhs, msg ) GEOS_ASSERT_OP_MSG( lhs, >, rhs, msg )
 #define GEOS_ASSERT_GT( lhs, rhs ) GEOS_ASSERT_GT_MSG( lhs, rhs, "" )

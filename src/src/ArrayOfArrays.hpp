@@ -20,13 +20,16 @@
  * @file ArrayOfArrays.hpp
  */
 
-#ifndef ARRAYOFARRAYS_HPP_
-#define ARRAYOFARRAYS_HPP_
+#pragma once
 
 #include "ArrayOfArraysView.hpp"
 
 namespace LvArray
 {
+
+// Forward declaration of the ArrayOfSets class so that we can define the stealFrom method.
+template <class T, class INDEX_TYPE>
+class ArrayOfSets;
 
 /**
  * @class ArrayOfArrays
@@ -34,11 +37,11 @@ namespace LvArray
  * @tparam T the type stored in the arrays.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template <class T, typename INDEX_TYPE=::std::ptrdiff_t>
+template <class T, typename INDEX_TYPE=std::ptrdiff_t>
 class ArrayOfArrays : protected ArrayOfArraysView<T, INDEX_TYPE>
 {
 public:
-  
+
   // Aliasing public methods of ArrayOfArraysView.
   using ArrayOfArraysView<T, INDEX_TYPE>::toViewC;
   using ArrayOfArraysView<T, INDEX_TYPE>::toViewCC;
@@ -48,11 +51,13 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::capacityOfArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::operator[];
   using ArrayOfArraysView<T, INDEX_TYPE>::operator();
+  using ArrayOfArraysView<T, INDEX_TYPE>::getIterableArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::atomicAppendToArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::getOffsets;
   using ArrayOfArraysView<T, INDEX_TYPE>::getSizes;
   using ArrayOfArraysView<T, INDEX_TYPE>::getValues;
+  using ArrayOfArraysView<T, INDEX_TYPE>::setUserCallBack;
 
 
   /**
@@ -141,6 +146,16 @@ public:
   inline
   ArrayOfArrays & operator=( ArrayOfArrays && src ) = default;
 
+  inline
+  void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
+  {
+    // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfSets.hpp.
+    ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
+    m_offsets = std::move( srcView.m_offsets );
+    m_sizes = std::move( srcView.m_sizes );
+    m_values = std::move( srcView.m_values );
+  }
+
 #ifdef USE_CHAI
   /**
    * @brief Move to the given memory space.
@@ -191,10 +206,26 @@ public:
    * @param [in] values the values of the array to append.
    * @param [in] n the number of values.
    */
+  void appendArray( INDEX_TYPE const n ) restrict_this
+  {
+    INDEX_TYPE const nArrays = size();
+    INDEX_TYPE const totalSize = m_offsets[nArrays];
+
+    m_offsets.push_back(totalSize);
+    m_sizes.push_back(0);
+
+    resizeArray( nArrays, n );
+  }
+
+  /**
+   * @brief Append an array.
+   * @param [in] values the values of the array to append.
+   * @param [in] n the number of values.
+   */
   void appendArray( T const * const values, INDEX_TYPE const n ) restrict_this
   {
     INDEX_TYPE const nArrays = size();
-    INDEX_TYPE const totalSize = m_offsets[nArrays]; 
+    INDEX_TYPE const totalSize = m_offsets[nArrays];
 
     m_offsets.push_back(totalSize);
     m_sizes.push_back(0);
@@ -379,5 +410,3 @@ private:
 };
 
 } /* namespace LvArray */
-
-#endif /* ARRAYOFARRAYS_HPP_ */
