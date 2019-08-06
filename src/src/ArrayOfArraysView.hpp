@@ -20,8 +20,7 @@
  * @file ArrayOfArraysView.hpp
  */
 
-#ifndef ARRAYOFARRAYSVIEW_HPP_
-#define ARRAYOFARRAYSVIEW_HPP_
+#pragma once
 
 #include "ChaiVector.hpp"
 #include "arrayManipulation.hpp"
@@ -105,6 +104,12 @@ class ArrayOfArraysView
   : public chai::CHAICopyable
 #endif
 {
+  template <class U, class INDEX>
+  friend class ArrayOfSets;
+
+  template <class U, class INDEX>
+  friend class ArrayOfArrays;
+
 public:
   static_assert(!std::is_const<T>::value || (std::is_const<INDEX_TYPE>::value && CONST_SIZES),
                 "When T is const INDEX_TYPE must also be const and CONST_SIZES must be true" );
@@ -240,6 +245,35 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
     return m_values[m_offsets[i] + j];
+  }
+
+  class IterableArray
+  {
+  public:
+    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    IterableArray( T * const data, INDEX_TYPE const size ) :
+      m_data( data ),
+      m_size( size )
+    {}
+
+    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    T * begin() const restrict_this
+    { return m_data; }
+
+    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    T * end() const restrict_this
+    { return m_data + m_size; }
+
+  private:
+    T * const m_data;
+    INDEX_TYPE const m_size;
+  };
+
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  IterableArray getIterableArray( INDEX_TYPE const i ) const restrict_this
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+    return IterableArray( m_values.data() + m_offsets[i], m_sizes[i] );
   }
 
   /**
@@ -420,6 +454,30 @@ public:
    */
   ChaiVector<T const> const & getValues() const           { return m_values; }
 
+  friend std::ostream& operator<< ( std::ostream& stream, ArrayOfArraysView const & array )
+  {
+    stream << "{" << std::endl;
+
+    for (INDEX_TYPE_NC i = 0; i < array.size(); ++i)
+    {
+      stream << i << "\t{";
+      for (INDEX_TYPE_NC j = 0; j < array.sizeOfArray(i); ++j)
+      {
+        stream << array(i, j) << ", ";
+      }
+
+      // for (INDEX_TYPE_NC j = array.sizeOfArray(i); j < array.capacityOfArray(i); ++j)
+      // {
+      //   stream << "X" << ", ";
+      // }
+
+      stream << "}" << std::endl;
+    }
+
+    stream << "}" << std::endl;
+    return stream;
+  }
+
 protected:
 
   /**
@@ -427,6 +485,15 @@ protected:
    *        either be the base of a ArrayOfArrays or copied from another ArrayOfArraysView.
    */
   ArrayOfArraysView() = default;
+
+  ArrayOfArraysView(ChaiVector<INDEX_TYPE> && offsets,
+                    ChaiVector<SIZE_TYPE> && sizes,
+                    ChaiVector<T> && values):
+    m_offsets( std::move( offsets ) ),
+    m_sizes( std::move( sizes ) ),
+    m_values( std::move( values ) )
+  {}
+
 
   /**
    * @brief Set the number of arrays.
@@ -772,6 +839,13 @@ protected:
     }
   }
 
+  void setUserCallBack(std::string const & name)
+  {
+    m_offsets.setUserCallBack(name + "/m_offsets");
+    m_sizes.setUserCallBack(name + "/m_sizes");
+    m_values.setUserCallBack(name + "/m_values");
+  }
+
   // Holds the offset of each array, of length size() + 1. Array i begins at
   // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
   ChaiVector<INDEX_TYPE> m_offsets;
@@ -819,5 +893,3 @@ private:
 };
 
 } /* namespace LvArray */
-
-#endif /* ARRAYOFARRAYSVIEW_HPP_ */

@@ -24,6 +24,7 @@ set(cxx-utilities_headers
     ArrayOfArraysView.hpp
     ArrayOfArrays.hpp
     ArrayOfSetsView.hpp
+    ArrayOfSets.hpp
     SparsityPatternView.hpp
     SparsityPattern.hpp
     CRSMatrixView.hpp

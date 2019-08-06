@@ -5,6 +5,7 @@
 set(testSources
     testArray.cpp
     testArrayOfArrays.cpp
+    testArrayOfSets.cpp
     testArrayUtilities.cpp
     testArrayView.cpp
     testChaiVector.cpp

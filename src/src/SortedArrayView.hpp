@@ -158,6 +158,24 @@ public:
   bool count( const T& value ) const
   { return contains( value ); }
 
+  friend std::ostream& operator<< ( std::ostream& stream, SortedArrayView const & array )
+  {
+    if ( array.size() == 0 )
+    {
+      stream << "{}";
+      return stream;
+    }
+
+    stream << "{ " << array[ 0 ];
+    for( INDEX_TYPE i = 1; i < array.size(); ++i )
+    {
+      stream << ", " << array[ i ];
+    }
+
+    stream << " }";
+    return stream;
+  }
+
 protected:
 
   /**

@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <vector>
+#include <set>
 
 using INDEX_TYPE = std::ptrdiff_t;
 
@@ -129,11 +130,11 @@ void fillArrays(INDEX_TYPE size, Array1d<SORTINGTYPE> & a, Array1d<T> & b, std::
 template <class T, class Compare>
 void correctnessTest()
 {
-  constexpr INDEX_TYPE MAX_SIZE = 500;
+  constexpr INDEX_TYPE MAX_SIZE = 2000;
   Array1d<T> a(MAX_SIZE);
   std::vector<T> b(MAX_SIZE);
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
   {
     fillArrays(size, a, b);
     check(a, b, Compare());
@@ -143,12 +144,12 @@ void correctnessTest()
 template <class SORTINGTYPE, class T, class Compare>
 void dualCorrectnessTest()
 {
-  constexpr INDEX_TYPE MAX_SIZE = 500;
+  constexpr INDEX_TYPE MAX_SIZE = 2000;
   Array1d<SORTINGTYPE> a(MAX_SIZE);
   Array1d<T> b(MAX_SIZE);
   std::vector<std::pair<T, SORTINGTYPE>> c(MAX_SIZE);
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
   {
     fillArrays(size, a, b, c);
     check(a, b, c, Compare());
@@ -268,15 +269,51 @@ void dualPerformanceTest()
   }
 }
 
+template <class T>
+void removeDuplicatesCorrectnessTest()
+{
+  constexpr INDEX_TYPE MAX_SIZE = 2000;
+  std::vector<T> values(MAX_SIZE);
+
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
+  {
+    values.resize(size);
+
+    std::uniform_int_distribution<INDEX_TYPE> valueDist(0, size * 2);
+
+    for (T & val : values)
+    {
+      val = T(valueDist(gen));
+    }
+
+    std::set<T> ref(values.begin(), values.end());
+
+    std::sort(values.begin(), values.end());
+    ASSERT_TRUE(sortedArrayManipulation::isSorted(values.data(), values.size()));
+    
+    INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates(values.data(), values.size());
+    EXPECT_EQ(numUniqueValues, ref.size());
+
+    EXPECT_TRUE(sortedArrayManipulation::allUnique(values.data(), numUniqueValues));
+
+    INDEX_TYPE i = 0;
+    for (T const & refVal : ref)
+    {
+      EXPECT_EQ(refVal, values[i]);
+      ++i;
+    }
+  }
+}
+
 #ifdef USE_CUDA
 
 template <class T, class Compare>
 void correctnessDeviceTest()
 {
-  constexpr INDEX_TYPE MAX_SIZE = 500;
+  constexpr INDEX_TYPE MAX_SIZE = 100;
   Array1d<T> a(MAX_SIZE);
   std::vector<T> b(MAX_SIZE);
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
   {
     fillArrays(size, a, b);
 
@@ -298,12 +335,12 @@ void correctnessDeviceTest()
 template <class SORTINGTYPE, class T, class Compare>
 void dualCorrectnessDeviceTest()
 {
-  constexpr INDEX_TYPE MAX_SIZE = 300;
+  constexpr INDEX_TYPE MAX_SIZE = 100;
   Array1d<SORTINGTYPE> a(MAX_SIZE);
   Array1d<T> b(MAX_SIZE);
   std::vector<std::pair<T, SORTINGTYPE>> c(MAX_SIZE);
 
-  for (INDEX_TYPE size = 0; size < MAX_SIZE; ++size)
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
   {
     fillArrays(size, a, b, c);
 
@@ -321,6 +358,50 @@ void dualCorrectnessDeviceTest()
 
     std::sort(c.begin(), c.end(), PairComp<T, SORTINGTYPE, Compare>());
     checkEqual(a, b, c);
+  }
+}
+
+template <class T>
+void removeDuplicatesCorrectnessDeviceTest()
+{
+  constexpr INDEX_TYPE MAX_SIZE = 2000;
+  Array1d<T> values(MAX_SIZE);
+  Array1d<INDEX_TYPE> numUniqueValues(1);
+
+  for (INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE(size * 1.5 + 1))
+  {
+    values.resize(size);
+
+    std::uniform_int_distribution<INDEX_TYPE> valueDist(0, size * 2);
+
+    for (T & val : values)
+    {
+      val = T(valueDist(gen));
+    }
+
+    std::set<T> ref(values.begin(), values.end());
+
+    std::sort(values.begin(), values.end());
+    ASSERT_TRUE(sortedArrayManipulation::isSorted(values.data(), values.size()));
+    
+    forall(cuda(), 0, 1,
+      [valuesView=values.toView(), numUniqueValuesView=numUniqueValues.toView()] __device__ (INDEX_TYPE i)
+      {
+        numUniqueValuesView[0] = sortedArrayManipulation::removeDuplicates(valuesView.data(), valuesView.size());
+        GEOS_ERROR_IF(!sortedArrayManipulation::allUnique(valuesView.data(), numUniqueValuesView[0]), "Values should be unique!");
+      }
+    );
+
+    values.move(chai::CPU);
+    numUniqueValues.move(chai::CPU);
+    EXPECT_EQ(numUniqueValues[0], ref.size());
+
+    INDEX_TYPE i = 0;
+    for (T const & refVal : ref)
+    {
+      EXPECT_EQ(refVal, values[i]);
+      ++i;
+    }
   }
 }
 
@@ -364,6 +445,13 @@ TEST(dualSort, performance)
   SUCCEED();
 }
 
+TEST(removeDuplicates, correctness)
+{
+  internal::removeDuplicatesCorrectnessTest<int>();
+  internal::removeDuplicatesCorrectnessTest<Tensor>();
+  internal::removeDuplicatesCorrectnessTest<TestString>();
+}
+
 #ifdef USE_CUDA
 
 CUDA_TEST(sort, correctnessDevice)
@@ -383,6 +471,13 @@ CUDA_TEST(dualSort, correctnessDevice)
   internal::dualCorrectnessDeviceTest<Tensor, int, less<Tensor>>();
   internal::dualCorrectnessDeviceTest<Tensor, Tensor, greater<Tensor>>();
 }
+
+CUDA_TEST(removeDuplicates, correctnessDevice)
+{
+  internal::removeDuplicatesCorrectnessDeviceTest<int>();
+  internal::removeDuplicatesCorrectnessDeviceTest<Tensor>();
+}
+
 
 #endif
 
