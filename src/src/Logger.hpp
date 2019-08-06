@@ -57,6 +57,8 @@
     std::cout << oss.str() << std::endl;                                       \
   } while( false )
 
+#define GEOS_LOG_VAR( var ) GEOS_LOG( #var << " = " << var )
+
 #define GEOS_LOG_RANK_0( msg )                                                 \
   do {                                                                         \
     if( logger::internal::rank == 0 )                                          \
@@ -86,6 +88,8 @@
       logger::internal::rank_stream << oss.str() << std::endl;                 \
     }                                                                          \
   } while( false )
+
+#define GEOS_LOG_RANK_VAR( var ) GEOS_LOG_RANK( #var " = " << var )
 
 #if defined(__CUDA_ARCH__) && !defined(NDEBUG)
     #define GEOS_ERROR_IF( EXP, msg ) assert( !(EXP) )
@@ -119,7 +123,7 @@
 #else // #if defined(USE_ATK)
 
   #if !defined(__CUDA_ARCH__)
-    #define GEOS_ERROR_IF( EXP, msg )                                          \
+    #define GEOS_ERROR_IF( EXP, msg )                                      \
   do {                                                                     \
     if( EXP )                                                              \
     {                                                                      \
@@ -143,7 +147,7 @@
 
   #endif
 
-  #define GEOS_WARNING_IF( EXP, msg )                                          \
+  #define GEOS_WARNING_IF( EXP, msg )                                        \
   do {                                                                       \
     if( EXP )                                                                \
     {                                                                        \
@@ -156,7 +160,7 @@
 
   #define GEOS_WARNING( msg ) GEOS_WARNING_IF( true, msg )
 
-  #define GEOS_INFO_IF( EXP, msg )                                             \
+  #define GEOS_INFO_IF( EXP, msg )                                           \
   do {                                                                       \
     if( EXP )                                                                \
     {                                                                        \
@@ -176,6 +180,38 @@
   #endif
 
 #endif // #if defined(USE_ATK)
+
+#define GEOS_ERROR_IF_OP_MSG( lhs, OP, NOP, rhs, msg ) GEOS_ERROR_IF( lhs OP rhs,                                                  \
+                                                                      "Expected " << #lhs << " " << #NOP << " " << #rhs << "\n" << \
+                                                                      "  " << #lhs << " = " << lhs << "\n" <<                      \
+                                                                      "  " << #rhs << " = " << rhs << "\n" <<                      \
+                                                                      msg )
+
+#define GEOS_ERROR_IF_NE_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, !=, ==, rhs, msg )
+#define GEOS_ERROR_IF_NE( lhs, rhs ) GEOS_ERROR_IF_NE_MSG( lhs, rhs, "" )
+
+#define GEOS_ERROR_IF_GT_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, >, <=, rhs msg )
+#define GEOS_ERROR_IF_GT( lhs, rhs ) GEOS_ERROR_IF_GT_MSG( lhs, rhs, "" )
+
+#define GEOS_ERROR_IF_GE_MSG( lhs, rhs, msg ) GEOS_ERROR_IF_OP_MSG( lhs, >=, <, rhs, msg )
+#define GEOS_ERROR_IF_GE( lhs, rhs ) GEOS_ERROR_IF_GE_MSG( lhs, rhs, "" )
+
+
+#define GEOS_ASSERT_OP_MSG( lhs, OP, rhs, msg ) GEOS_ASSERT_MSG( lhs OP rhs,                                                 \
+                                                                 "Expected " << #lhs << " " << #OP << " " << #rhs << "\n" << \
+                                                                 "  " << #lhs << " = " << lhs << "\n" <<                     \
+                                                                 "  " << #rhs << " = " << rhs << "\n" <<                     \
+                                                                 msg )
+
+#define GEOS_ASSERT_EQ_MSG( lhs, rhs, msg ) GEOS_ASSERT_OP_MSG( lhs, ==, rhs, msg )
+#define GEOS_ASSERT_NE( lhs, rhs ) GEOS_ASSERT_NE_MSG( lhs, rhs, "" )
+
+#define GEOS_ASSERT_GT_MSG( lhs, rhs, msg ) GEOS_ASSERT_OP_MSG( lhs, >, rhs, msg )
+#define GEOS_ASSERT_GT( lhs, rhs ) GEOS_ASSERT_GT_MSG( lhs, rhs, "" )
+
+#define GEOS_ASSERT_GE_MSG( lhs, rhs, msg ) GEOS_ASSERT_OP_MSG( lhs, >=, rhs, msg )
+#define GEOS_ASSERT_GE( lhs, rhs ) GEOS_ASSERT_GE_MSG( lhs, rhs, "" )
+
 
 namespace logger
 {
