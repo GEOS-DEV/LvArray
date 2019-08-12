@@ -26,6 +26,7 @@
 #include <sys/ucontext.h>
 #include <sstream>
 
+#include "Macros.hpp"
 #include "stackTrace.hpp"
 
 #ifdef GEOSX_USE_MPI
@@ -144,7 +145,7 @@ std::string stackTrace( )
   return ( oss.str() );
 }
 
-void handler( int sig, int exitFlag, int exitCode )
+void handler( int CXX_UTILS_UNUSED_ARG( sig ), int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
 {
   std::cout << stackTrace() << std::endl;
 

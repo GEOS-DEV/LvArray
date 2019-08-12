@@ -75,7 +75,6 @@ template <class COL_TYPE>
 void compareToReference(ViewType<COL_TYPE const> const & v, REF_TYPE<COL_TYPE> const & vRef)
 {
   INDEX_TYPE const numRows = v.numRows();
-  INDEX_TYPE const numCols = v.numColumns();
   ASSERT_EQ(numRows, integer_conversion<INDEX_TYPE>(vRef.size()));
 
   INDEX_TYPE ref_nnz = 0;

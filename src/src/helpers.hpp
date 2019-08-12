@@ -92,7 +92,7 @@ struct linearIndex_helper
   template< int DIM=0 >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC static
   typename std::enable_if< DIM==(NDIM-1), INDEX_TYPE>::type
-  evaluate( INDEX_TYPE const * const restrict strides,
+  evaluate( INDEX_TYPE const * const restrict CXX_UTILS_UNUSED_ARG( strides ),
             INDEX index )
   {
     return index;
@@ -218,7 +218,7 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
 template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename... DIMS >
 LVARRAY_HOST_DEVICE
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                        std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> indices,
+                                        std::integer_sequence<INDEX_TYPE, INDEX0, INDICES...> CXX_UTILS_UNUSED_ARG( indices ),
                                         DIM0 dim0, DIMS... dims )
 {
   m_dims[INDEX0] = dim0;
@@ -227,9 +227,9 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
 
 template< typename INDEX_TYPE, int NDIM, typename... DIMS>
 LVARRAY_HOST_DEVICE
-constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                        std::integer_sequence<INDEX_TYPE> indices,
-                                        DIMS... dims )
+constexpr static void dim_index_unpack( INDEX_TYPE CXX_UTILS_UNUSED_ARG( m_dims )[NDIM],
+                                        std::integer_sequence<INDEX_TYPE> CXX_UTILS_UNUSED_ARG( indices ),
+                                        DIMS... CXX_UTILS_UNUSED_ARG( dims ) )
 {
   // terminates recursion trivially
 }

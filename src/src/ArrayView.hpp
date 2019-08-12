@@ -126,7 +126,7 @@ public:
   ArrayView( INDEX_TYPE const * const dimsMem,
              INDEX_TYPE const * const stridesMem,
              DATA_VECTOR_TYPE const & dataVector,
-             INDEX_TYPE singleParameterResizeIndex ) noexcept:
+             INDEX_TYPE const CXX_UTILS_UNUSED_ARG( singleParameterResizeIndex ) ) noexcept:
     m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },

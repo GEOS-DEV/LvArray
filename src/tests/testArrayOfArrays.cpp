@@ -15,11 +15,6 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
-#endif
 #include "gtest/gtest.h"
 
 #include "ArrayOfArrays.hpp"
@@ -35,7 +30,7 @@
 
 #ifdef USE_OMP
 #include <omp.h>
-#endif 
+#endif
 
 #include <vector>
 #include <random>

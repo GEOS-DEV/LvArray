@@ -472,6 +472,8 @@ private:
 #ifdef USE_ARRAY_BOUNDS_CHECK
       GEOS_ERROR_IF( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd > m_aos.capacityOfSet( m_indexOfSet ),
                      "ArrayOfSetsView cannot do reallocation." );
+#else
+    CXX_UTILS_DEBUG_VAR( nToAdd );
 #endif
       return m_aos.getSetValues( m_indexOfSet );
     }

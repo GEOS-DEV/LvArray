@@ -20,6 +20,7 @@
 #define CHAI_VECTOR_HPP_
 
 #include "CXX_UtilsConfig.hpp"
+#include "Macros.hpp"
 #include "Logger.hpp"
 #include "arrayManipulation.hpp"
 #include "StringUtilities.hpp"
@@ -451,6 +452,8 @@ public:
         }
       }
     });
+#else
+    CXX_UTILS_UNUSED_VARIABLE( name );
 #endif
   }
 
@@ -468,6 +471,9 @@ public:
 
     if ( touch ) m_array.move( space );
     else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
+#else
+    CXX_UTILS_UNUSED_VARIABLE( space );
+    CXX_UTILS_UNUSED_VARIABLE( touch );
 #endif
   }
 #endif

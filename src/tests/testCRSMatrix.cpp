@@ -72,7 +72,6 @@ void compareToReference(ViewType<T const, COL_TYPE const> const & m,
                         REF_TYPE<T> const & mRef)
 {
   INDEX_TYPE const numRows = m.numRows();
-  INDEX_TYPE const numCols = m.numColumns();
   ASSERT_EQ(numRows, mRef.size());
 
   INDEX_TYPE ref_nnz = 0;
