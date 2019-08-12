@@ -22,6 +22,15 @@
 
 #pragma once
 
+// Use this to mark an unused argument and silence compiler warnings
+#define CXX_UTILS_UNUSED_ARG( X )
+
+// Use this to mark an unused variable and silence compiler warnings.
+#define CXX_UTILS_UNUSED_VARIABLE( X ) ( ( void ) X )
+
+// Use this to mark a debug variable and silence compiler warnings
+#define CXX_UTILS_DEBUG_VAR( X ) CXX_UTILS_UNUSED_VARIABLE( X )
+
 #define LOCATION __FILE__ ":" STRINGIZE( __LINE__ )
 
 #define VA_LIST( ... ) __VA_ARGS__

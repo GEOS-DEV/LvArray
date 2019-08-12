@@ -26,6 +26,7 @@
 #ifndef SORTEDARRAYMANIPULATION_HPP_
 #define SORTEDARRAYMANIPULATION_HPP_
 
+#include "Macros.hpp"
 #include "arrayManipulation.hpp"
 #include "sortedArrayManipulationHelpers.hpp"
 #include "Logger.hpp"
@@ -65,7 +66,7 @@ public:
      * @return a pointer to the array.
      */
     LVARRAY_HOST_DEVICE inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) restrict_this
+    T * incrementSize( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nToAdd ) ) restrict_this
     { return nullptr; }
 
     /**
@@ -73,8 +74,8 @@ public:
      * @param [in] pos the position the value was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE const pos ) restrict_this
-    { (void) pos; }
+    void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+    {}
 
     /**
      * @brief Callback signaling that the entry of the array at the first position was set to the value
@@ -83,8 +84,9 @@ public:
      * @param [in] valuePos the position of the value that the entry in the array was set to.
      */
     LVARRAY_HOST_DEVICE inline
-    void set( INDEX_TYPE const pos, INDEX_TYPE const valuePos ) restrict_this
-    { (void) pos, (void) valuePos; }
+    void set( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
+              INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ) ) restrict_this
+    {}
 
     /**
      * @brief Callback signaling that the that the given value was inserted at the given position.
@@ -96,17 +98,19 @@ public:
      *             if it is the first insertion.
      */
     LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE const nLeftToInsert, INDEX_TYPE const valuePos,
-                 INDEX_TYPE const pos, INDEX_TYPE const prevPos ) restrict_this
-    { (void) nLeftToInsert, (void) valuePos, (void) pos, void (prevPos); }
+    void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nLeftToInsert ),
+                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ),
+                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
+                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( prevPos ) ) restrict_this
+    {}
 
     /**
      * @brief Callback signaling that an entry was removed from the array at given position.
      * @param [in] pos the position of the entry that was removed.
      */
     LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE const pos ) restrict_this
-    { (void) pos; }
+    void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+    {}
 
     /**
      * @brief Callback signaling that the given entry was removed from the given position. Further information
@@ -117,8 +121,10 @@ public:
      *             if this was the last entry removed.
      */
     LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE const nRemoved, INDEX_TYPE const curPos, INDEX_TYPE const nextPos ) restrict_this
-    { (void) nRemoved, (void) curPos, (void) nextPos; }
+    void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nRemoved ),
+                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( curPos ),
+                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nextPos ) ) restrict_this
+    {}
 };
 
 /**

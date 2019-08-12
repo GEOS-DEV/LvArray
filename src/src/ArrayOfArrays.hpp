@@ -208,6 +208,8 @@ public:
    */
   void appendArray( INDEX_TYPE const n ) restrict_this
   {
+    GEOS_ASSERT( arrayManipulation::isPositive( n ) );
+
     INDEX_TYPE const nArrays = size();
     INDEX_TYPE const totalSize = m_offsets[nArrays];
 
@@ -374,9 +376,7 @@ public:
    * @param[in] i the sub-array index that will be cleared
    */
   void clearArray( INDEX_TYPE const i )
-  {
-    resizeArray( i, 0 );
-  }
+  { resizeArray( i, 0 ); }
 
   /**
    * @brief Set the capacity of an array.

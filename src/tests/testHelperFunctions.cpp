@@ -18,6 +18,7 @@
 
 
 #include <iostream>
+#include "Macros.hpp"
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
@@ -77,15 +78,15 @@ void show_fe_exceptions(void)
 
 double uf_test(double x, double denominator)
 {
-  return x/denominator;
+  return x / denominator;
 }
 
 double of_test( double x, double y )
 {
-  return x*y;
+  return x * y;
 }
 
-double invalid_test( double x )
+double invalid_test( double CXX_UTILS_UNUSED_ARG( x ) )
 {
   return std::acos(2.0);
 }

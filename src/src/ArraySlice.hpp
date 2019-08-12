@@ -46,6 +46,7 @@ DEFINE_GDB_PY_SCRIPT("scripts/gdb-printers.py");
 #include <vector>
 #include <iostream>
 #include <utility>
+#include "Macros.hpp"
 #include "Logger.hpp"
 #include "CXX_UtilsConfig.hpp"
 #ifndef NDEBUG
@@ -105,8 +106,8 @@ using ArraySlice1d_rval = T *;
 template< typename T, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
 ArraySlice1d_rval< T, INDEX_TYPE > createArraySlice1d( T * const restrict data,
-                                                       INDEX_TYPE const * const restrict dims,
-                                                       INDEX_TYPE const * const restrict strides )
+                                                       INDEX_TYPE const * const restrict CXX_UTILS_UNUSED_ARG( dims ),
+                                                       INDEX_TYPE const * const restrict CXX_UTILS_UNUSED_ARG( strides ) )
 {
   return data;
 }

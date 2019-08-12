@@ -54,11 +54,11 @@ TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
 TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
 {
   cxx_utilities::SetFPE();
-  EXPECT_DEATH_IF_SUPPORTED( double overflow = of_test(2,DBL_MAX), IGNORE_OUTPUT);
+  EXPECT_DEATH_IF_SUPPORTED( of_test(2,DBL_MAX), IGNORE_OUTPUT);
 }
 
 TEST( TestFloatingPointEnvironment, test_FE_INVALID )
 {
   cxx_utilities::SetFPE();
-  EXPECT_DEATH_IF_SUPPORTED( double junk0 = invalid_test(0.0);, IGNORE_OUTPUT);
+  EXPECT_DEATH_IF_SUPPORTED( invalid_test(0.0), IGNORE_OUTPUT);
 }
