@@ -80,7 +80,7 @@ public:
     ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
   {
     CalculateStrides();
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     Array::TV_ttf_display_type( nullptr );
 #endif
 
@@ -210,10 +210,9 @@ public:
   void resize( int const numDims, DIMS_TYPE const * const dims )
   {
     GEOS_ERROR_IF( numDims != NDIM, "Dimension mismatch: " << numDims );
-    INDEX_TYPE const oldLength = size();
     this->setDims( dims );
     CalculateStrides();
-    resizePrivate( oldLength );
+    resizePrivate();
   }
 
   /**
@@ -241,10 +240,32 @@ public:
   {
     static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
 
-    INDEX_TYPE const oldLength = size();
     dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( const_cast<INDEX_TYPE *>(m_dims), newdims... );
     CalculateStrides();
-    resizePrivate( oldLength );
+    resizePrivate();
+  }
+
+
+  /**
+   * @brief function to resize/reallocate the array without initializing any new values or destroying any old values.
+   *        Only safe on POD data, however it is much faster for large allocations.
+   * @tparam DIMS variadic pack containing the dimension types
+   * @param newdims the new dimensions
+   */
+  template< typename... DIMS,
+            typename ENABLE = std::enable_if_t<sizeof ... (DIMS) == NDIM> >
+  void resizeWithoutInitializationOrDestruction( DIMS... newdims )
+  {
+    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resize(DIMS...newdims) are incompatible with INDEX_TYPE" );
+
+    dim_unpack<INDEX_TYPE, NDIM, NDIM, DIMS...>::f( const_cast<INDEX_TYPE *>(m_dims), newdims... );
+    CalculateStrides();
+
+    INDEX_TYPE const newLength = size();
+
+    m_dataVector.reserve( newLength );
+    m_dataVector.setSize( newLength );
+    this->setDataPtr();
   }
 
   /**
@@ -256,27 +277,24 @@ public:
    */
   void resize( INDEX_TYPE const newdim )
   {
-    INDEX_TYPE const oldLength = size();
     const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
-    resizePrivate( oldLength );
+    resizePrivate();
   }
 
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   {
-    INDEX_TYPE const oldLength = size();
     const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
-    resizePrivate( oldLength, defaultValue );
+    resizePrivate( defaultValue );
   }
 
   template <class ...ARGS>
   void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
   {
-    INDEX_TYPE const oldLength = size();
     const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
     CalculateStrides();
-    resizePrivate( oldLength, std::forward<ARGS>(args)... );
+    resizePrivate( std::forward<ARGS>(args)... );
   }
 
   template < INDEX_TYPE... INDICES, typename... DIMS>
@@ -287,13 +305,12 @@ public:
     static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newdims) are incompatible with INDEX_TYPE" );
     static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newdims)" );
 
-    INDEX_TYPE const oldLength = size();
     dim_index_unpack<INDEX_TYPE, NDIM>( const_cast<INDEX_TYPE *>(m_dims),
                                         std::integer_sequence<INDEX_TYPE, INDICES...>(),
                                         newdims... );
 
     CalculateStrides();
-    resizePrivate( oldLength );
+    resizePrivate();
   }
 
   /**
@@ -423,7 +440,7 @@ public:
   }
 #endif
 
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.
@@ -447,9 +464,9 @@ private:
   }
 
   template <class ...ARGS>
-  void resizePrivate( INDEX_TYPE const oldLength, ARGS &&... args )
+  void resizePrivate( ARGS &&... args )
   {
-    INDEX_TYPE const newLength = size_helper<NDIM, INDEX_TYPE>::f( m_dims );
+    INDEX_TYPE const newLength = size();
     m_dataVector.resize( newLength, std::forward<ARGS>(args)... );
     this->setDataPtr();
   }

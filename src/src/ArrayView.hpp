@@ -96,7 +96,7 @@ public:
     m_strides{ 0 },
     m_dataVector()
   {
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -197,6 +197,7 @@ public:
    * @brief set all values of array to rhs
    * @param rhs value that array will be set to.
    */
+  DISABLE_HD_WARNING
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   typename std::enable_if< !(std::is_const<U>::value), ArrayView const & >::type
@@ -290,22 +291,20 @@ public:
    * @brief function to return the allocated size
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
-  {
-    return size_helper<NDIM, INDEX_TYPE>::f( m_dims );
-  }
+  { return size_helper<NDIM, INDEX_TYPE>::f( m_dims ); }
 
   /**
    * @brief function check if the array is empty.
    * @return a boolean. True if the array is empty, False if it is not empty.
    */
   inline bool empty() const
-  {
-    return m_dataVector.empty();
-  }
+  { return m_dataVector.empty(); }
 
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * begin() const
   { return data(); }
 
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * end() const
   { return data() + size(); }
 
@@ -556,7 +555,7 @@ public:
   }
 
 
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.

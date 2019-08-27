@@ -82,7 +82,7 @@ isPositive( INDEX_TYPE const )
  */
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class ...ARGS>
-LVARRAY_HOST_DEVICE inline
+inline
 void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS &&... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
@@ -308,7 +308,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
   // Create space for the new value.
-  shiftUp( ptr, size, index, INDEX_TYPE( 1 ));
+  shiftUp( ptr, size, index, INDEX_TYPE( 1 ) );
   new (&ptr[index]) T( value );
 }
 

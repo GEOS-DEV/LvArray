@@ -45,6 +45,18 @@ class SparsityPattern;
 namespace internal
 {
 static ::std::mutex chai_lock;
+
+inline std::string calculateSize( size_t const bytes )
+{
+  if (bytes >> 20 != 0)
+  {
+    return std::to_string(bytes >> 20) + "MB";
+  }
+  else
+  {
+    return std::to_string(bytes >> 10) + "KB";
+  }
+}
 }
 #endif
 
@@ -55,6 +67,9 @@ class ChaiVector
 #endif
 {
 public:
+
+  template <class U, int NDIM, class INDEX_TYPE, class DATA_VECTOR_TYPE>
+  friend class Array;
 
   template <class U, class INDEX_TYPE>
   friend class SortedArray;
@@ -307,7 +322,7 @@ public:
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
    */
-  void insert( size_type index, const T& value )
+  void insert( size_type index, T const & value )
   {
     dynamicResize( size() + 1 );
 
@@ -320,7 +335,7 @@ public:
    * @param [in] pos the position at which to insert the value.
    * @param [in] value the value to insert.
    */
-  void insert( size_type index, const T&& value )
+  void insert( size_type index, T && value )
   {
     dynamicResize( size() + 1 );
 
@@ -419,19 +434,20 @@ public:
   void setUserCallBack( std::string const & name )
   {
 #ifdef USE_CHAI
-#if !defined(NDEBUG) && defined(USE_CUDA)
+#if defined(USE_CUDA)
     std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
     m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
     {
       if (act == chai::ACTION_MOVE)
       {
+        std::string const & size = internal::calculateSize( bytes );
         if (s == chai::CPU)
         {
-          GEOS_LOG_RANK("Moved to the CPU: " << typeString << " " << name );
+          GEOS_LOG_RANK("Moved " << size << " to the CPU: " << typeString << " " << name );
         }
         else if (s == chai::GPU)
         {
-          GEOS_LOG_RANK("Moved to the GPU: " << typeString << " " << name );
+          GEOS_LOG_RANK("Moved " << size << " to the GPU: " << typeString << " " << name );
         }
       }
     });
@@ -446,13 +462,15 @@ public:
 #ifdef USE_CHAI
   void move( chai::ExecutionSpace space, bool touch=true )
   {
+#if defined(USE_CUDA)
     if (capacity() == 0) return;
 
     void * ptr = const_cast< typename std::remove_const<T>::type * >( data() );
     if ( space == chai::ArrayManager::getInstance()->getPointerRecord(ptr)->m_last_space ) return;
 
-    m_array.move( space );
-    if ( touch ) registerTouch( space );
+    if ( touch ) m_array.move( space );
+    else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
+#endif
   }
 #endif
 

@@ -165,6 +165,15 @@ public:
   { m_values.clear(); }
 
   /**
+   * @brief Reserve space to store the given number of values without resizing.
+   * @param [in] nVals the number of values to reserve space for.
+   */
+  inline
+  void reserve( INDEX_TYPE const nVals ) restrict_this
+  { m_values.reserve( nVals ); }
+
+
+  /**
    * @brief Insert the given value into the array if it doesn't already exist.
    * @param [in] value the value to insert.
    * @return True iff the value was actually inserted.

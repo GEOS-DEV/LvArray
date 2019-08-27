@@ -30,10 +30,17 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <typeinfo>
 
 namespace cxx_utilities
 {
+  
 std::string demangle( const std::string& name );
+
+template< class T >
+inline std::string demangle()
+{ return demangle( typeid( T ).name() ); }
+
 }
 
 #endif /* STRINGUTILITIES_HPP_ */

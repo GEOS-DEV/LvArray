@@ -286,7 +286,7 @@ LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdi
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare() )
+bool isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ) );

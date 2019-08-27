@@ -25,14 +25,16 @@
 #include "testUtils.hpp"
 
 #ifdef USE_CUDA
-
 #include "Array.hpp"
+#endif
 
 #ifdef USE_CHAI
 #include "chai/util/forall.hpp"
 #endif
 
-#endif
+#ifdef USE_OMP
+#include <omp.h>
+#endif 
 
 #include <vector>
 #include <random>
@@ -208,6 +210,90 @@ public:
 
     compareToReference(array.toViewCC(), ref);
   }
+
+  void atomicAppendToArraySerial( ArrayOfArrays<T> & array, INDEX_TYPE const numAppends )
+  {
+    INDEX_TYPE const nArrays = array.size();
+
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), 0);
+    }
+
+    // Append sequential values to each array.
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      for (INDEX_TYPE j = 0; j < numAppends; ++j)
+      {
+        T const value = T(i * LARGE_NUMBER + j);
+        array.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+      }
+    }
+
+    // Now check that the values are as expected.
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), numAppends);
+      ASSERT_LE(array.sizeOfArray(i), array.capacityOfArray(i));
+
+      for (INDEX_TYPE j = 0; j < numAppends; ++j)
+      {
+        T const value = T(i * LARGE_NUMBER + j);
+        EXPECT_EQ(value, array(i, j)) << i << ", " << j;
+      }
+    }
+  }
+
+#ifdef USE_OPENMP
+  void atomicAppendToArrayOMP( ArrayOfArrays<T> & array, INDEX_TYPE const appendsPerArrayPerThread )
+  {
+    INDEX_TYPE const nArrays = array.size();
+
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), 0);
+    }
+
+    INDEX_TYPE numThreads;
+    
+    #pragma omp parallel
+    {
+      #pragma omp master
+      numThreads = omp_get_num_threads();
+      
+      INDEX_TYPE const threadNum = omp_get_thread_num();
+
+      // In parallel append sequential values to each array.
+      for (INDEX_TYPE i = 0; i < nArrays; ++i)
+      {
+        for (INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j)
+        {
+          T const value = T(i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j);
+          array.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+        }
+      }
+    }
+
+    GEOS_LOG("Used " << numThreads << " threads." );
+
+    // Now sort each array and check that the values are as expected.
+    INDEX_TYPE const appendsPerArray = numThreads * appendsPerArrayPerThread;
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), appendsPerArray);
+      ASSERT_LE(array.sizeOfArray(i), array.capacityOfArray(i));
+
+      T * const subArrayPtr = array[i];
+      std::sort(subArrayPtr, subArrayPtr + appendsPerArray);
+
+      for (INDEX_TYPE j = 0; j < appendsPerArray; ++j)
+      {
+        T const value = T(i * LARGE_NUMBER + j);
+        EXPECT_EQ(value, array(i, j)) << i << ", " << j;
+      }
+    }
+  }
+#endif
 
   void appendMultipleToArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxAppendSize)
   {
@@ -607,6 +693,20 @@ TYPED_TEST(ArrayOfArraysTest, appendToArray)
   }
 }
 
+#ifdef USE_OPENMP
+
+TYPED_TEST(ArrayOfArraysTest, atomicAppendToArrayOMP)
+{
+  constexpr INDEX_TYPE NUM_ARRAYS = 20;
+  INDEX_TYPE const APPENDS_PER_THREAD = 10;
+  INDEX_TYPE const MAX_TOTAL_APPENDS = APPENDS_PER_THREAD * omp_get_max_threads();
+
+  ArrayOfArrays<TypeParam> array(NUM_ARRAYS, MAX_TOTAL_APPENDS);
+  this->atomicAppendToArrayOMP(array, APPENDS_PER_THREAD);
+}
+
+#endif
+
 TYPED_TEST(ArrayOfArraysTest, appendMultipleToArray)
 {
   constexpr INDEX_TYPE NUM_ARRAYS = 100;
@@ -882,6 +982,50 @@ public:
     COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
+  void atomicAppendDevice( ArrayOfArrays<T> & array,
+                           INDEX_TYPE const numThreads,
+                           INDEX_TYPE const appendsPerArrayPerThread )
+  {
+    INDEX_TYPE const nArrays = array.size();
+
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), 0);
+    }
+
+    forall(cuda(), 0, numThreads,
+      [view=array.toView(), nArrays, appendsPerArrayPerThread] __device__ (INDEX_TYPE const threadNum)
+      {
+        for (INDEX_TYPE i = 0; i < nArrays; ++i)
+        {
+          for (INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j)
+          {
+            T const value = T(i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j);
+            view.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+          }
+        }
+      }
+    );
+
+    // Now sort each array and check that the values are as expected.
+    array.move(chai::CPU);
+    INDEX_TYPE const appendsPerArray = numThreads * appendsPerArrayPerThread;
+    for (INDEX_TYPE i = 0; i < nArrays; ++i)
+    {
+      ASSERT_EQ(array.sizeOfArray(i), appendsPerArray);
+      ASSERT_LE(array.sizeOfArray(i), array.capacityOfArray(i));
+
+      T * const subArrayPtr = array[i];
+      std::sort(subArrayPtr, subArrayPtr + appendsPerArray);
+
+      for (INDEX_TYPE j = 0; j < appendsPerArray; ++j)
+      {
+        T const value = T(i * LARGE_NUMBER + j);
+        EXPECT_EQ(value, array(i, j)) << i << ", " << j;
+      }
+    }
+  }
+
   void appendMultipleDevice(ArrayOfArrays<T> & array, REF_TYPE<T> & ref)
   {
     COMPARE_TO_REFERENCE(array.toViewCC(), ref);
@@ -1138,6 +1282,17 @@ TYPED_TEST(ArrayOfArraysCudaTest, append)
     array.registerTouch(chai::CPU);
     this->appendDevice(array, ref);
   }
+}
+
+TYPED_TEST(ArrayOfArraysCudaTest, atomicAppend)
+{
+  constexpr INDEX_TYPE NUM_ARRAYS = 20;
+  INDEX_TYPE const NUM_THREADS = 10;
+  INDEX_TYPE const APPENDS_PER_THREAD = 10;
+  INDEX_TYPE const MAX_TOTAL_APPENDS = NUM_THREADS * APPENDS_PER_THREAD;
+
+  ArrayOfArrays<TypeParam> array(NUM_ARRAYS, MAX_TOTAL_APPENDS);
+  this->atomicAppendDevice(array, NUM_THREADS, APPENDS_PER_THREAD);
 }
 
 TYPED_TEST(ArrayOfArraysCudaTest, appendMultiple)
