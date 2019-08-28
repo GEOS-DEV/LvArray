@@ -31,6 +31,11 @@
 #include "IntegerConversion.hpp"
 #include "SFINAE_Macros.hpp"
 
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#include "totalview/tv_helpers.hpp"
+#include "totalview/tv_data_display.h"
+#endif
+
 namespace LvArray
 {
 
