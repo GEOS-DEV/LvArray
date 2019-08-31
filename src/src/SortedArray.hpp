@@ -58,12 +58,12 @@ class SortedArray : protected SortedArrayView<T, INDEX_TYPE>
 {
 public:
 
-  // ViewWrapper needs access to the data and resize methods, however these methods
-  // need to be private so ViewWrapper is a friend class.
+  // Wrapper needs access to the data and resize methods, however these methods
+  // need to be private so Wrapper is a friend class.
   template <class U>
   friend class geosx::dataRepository::Wrapper;
 
-  // These are needed by ViewWrapper.
+  // These are needed by Wrapper.
   using value_type = T;
   using pointer = T *;
   using const_pointer = T const *;
@@ -133,7 +133,7 @@ public:
   { return *this; }
 
   /**
-   * @brief Duplicate method to placate ViewWrapper's SFINAE.
+   * @brief Duplicate method to placate Wrapper's SFINAE.
    */
   LVARRAY_HOST_DEVICE inline
   ViewType const & toViewConst() const restrict_this
@@ -283,7 +283,7 @@ private:
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
    *
-   * @note the friend class ViewWrapper calls this method.
+   * @note the friend class Wrapper calls this method.
    */
   CONSTEXPRFUNC inline
   T * data() const restrict_this
@@ -294,7 +294,7 @@ private:
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
    *
-   * @note the friend class ViewWrapper calls this method.
+   * @note the friend class Wrapper calls this method.
    */
   inline
   void resize( INDEX_TYPE newSize ) restrict_this

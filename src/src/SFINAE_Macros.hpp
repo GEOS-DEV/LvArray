@@ -209,7 +209,7 @@ public: \
 //  HAS_MEMBER_FUNCTION0(resize)
 //  HAS_MEMBER_FUNCTION(resize, void, , VA_LIST(std::size_t),
 // VA_LIST(std::size_t(1)) )
-//  CONDITIONAL_VIRTUAL_FUNCTION( ViewWrapper<T>,resize, void,,
+//  CONDITIONAL_VIRTUAL_FUNCTION( Wrapper<T>,resize, void,,
 // VA_LIST(localIndex a), VA_LIST(static_cast<size_t>(a)) )
 
 
