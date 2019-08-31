@@ -33,7 +33,7 @@ namespace dataRepository
 
 // Forward declaration for friend class purposes.
 template <class U>
-class ViewWrapper;
+class Wrapper;
 
 } // namespace dataRepository
 } // namespace geosx
@@ -61,7 +61,7 @@ public:
   // ViewWrapper needs access to the data and resize methods, however these methods
   // need to be private so ViewWrapper is a friend class.
   template <class U>
-  friend class geosx::dataRepository::ViewWrapper;
+  friend class geosx::dataRepository::Wrapper;
 
   // These are needed by ViewWrapper.
   using value_type = T;

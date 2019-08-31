@@ -26,6 +26,7 @@
 #ifndef INTEGERCONVERSION_HPP_
 #define INTEGERCONVERSION_HPP_
 
+#include <limits>
 #include <typeinfo>
 #include "StringUtilities.hpp"
 #include "Logger.hpp"
