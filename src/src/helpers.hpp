@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * helpers.hpp
- *
- *  Created on: Nov 20, 2018
- *      Author: settgast
+/**
+ * @file helpers.hpp
  */
 
 #ifndef SRC_SRC_HELPERS_HPP_

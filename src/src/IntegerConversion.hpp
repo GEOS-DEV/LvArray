@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * IntegerConversion.hpp
- *
- *  Created on: Nov 20, 2018
- *      Author: settgast
+/**
+ * @file IntegerConversion.hpp
  */
 
 #ifndef INTEGERCONVERSION_HPP_

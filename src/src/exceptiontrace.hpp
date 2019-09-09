@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * exceptiontrace.cpp
- *
- *  Created on: Nov 22, 2014
- *      Author: rrsettgast
+/**
+ * @file exceptiontrace.cpp
  */
 
 

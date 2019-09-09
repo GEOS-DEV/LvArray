@@ -18,7 +18,6 @@
 
 /**
  * @file   ObjectCatalog.hpp
- * @author Randolph Settgast
  *
  * Copyright (c) 2016, Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
