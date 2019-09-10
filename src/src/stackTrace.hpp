@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * stackTrace.hpp
- *
- *  Created on: May 31, 2016
- *      Author: settgast
+/**
+ * @file stackTrace.hpp
  */
 
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_

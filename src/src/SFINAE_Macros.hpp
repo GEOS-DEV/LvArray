@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * sfinae.hpp
- *
- *  Created on: Dec 18, 2014
- *      Author: rrsettgast
+/**
+ * @file sfinae.hpp
  */
 
 #ifndef SRC_CODINGUTILITIES_SFINAE_HPP_

@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * main.cpp
- *
- *  Created on: Jul 30, 2016
- *      Author: rrsettgast
+/**
+ * @file arrayAccessorPerformanceMain.cpp
  */
 
 

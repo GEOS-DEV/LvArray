@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * FloatingPointExceptions.cpp
- *
- *  Created on: Jun 14, 2016
- *      Author: settgast1
+/**
+ * @file FloatingPointExceptions.cpp
  */
 
 #include "SetSignalHandling.hpp"

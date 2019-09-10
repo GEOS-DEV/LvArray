@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * FloatingPointEnvironment.h
- *
- *  Created on: Jun 14, 2016
- *      Author: settgast1
+/**
+ * @file FloatingPointEnvironment.h
  */
 
 #ifndef COMPONENTS_CORE_SRC_CODINGUTILITIES_SETSIGNALHANDLING_HPP_

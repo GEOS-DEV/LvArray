@@ -16,11 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * SetFPE.hpp
- *
- *  Created on: Dec 4, 2018
- *      Author: settgast
+/**
+ * @file SetFPE.hpp
  */
 
 #ifndef SRC_CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_SETFPE_HPP_
