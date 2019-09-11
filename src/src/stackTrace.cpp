@@ -25,6 +25,7 @@
 #include <cxxabi.h>
 #include <sys/ucontext.h>
 #include <sstream>
+#include <cfenv>
 
 #include "Macros.hpp"
 #include "stackTrace.hpp"
@@ -145,9 +146,53 @@ std::string stackTrace( )
   return ( oss.str() );
 }
 
-void handler( int CXX_UTILS_UNUSED_ARG( sig ), int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
+std::string getFpeDetails()
 {
-  std::cout << stackTrace() << std::endl;
+  std::ostringstream oss;
+  int const fpe = std::fetestexcept( FE_ALL_EXCEPT );
+
+  oss << "Floating point exception:";
+
+  if( fpe & FE_DIVBYZERO )
+  {
+    oss << " Division by zero;";
+  }
+  if( fpe & FE_INEXACT )
+  {
+    oss << " Inexact result;";
+  }
+  if( fpe & FE_INVALID )
+  {
+    oss << " Invalid argument;";
+  }
+  if( fpe & FE_OVERFLOW )
+  {
+    oss << " Overflow;";
+  }
+  if( fpe & FE_UNDERFLOW )
+  {
+    oss << " Underflow;";
+  }
+
+  return oss.str();
+}
+
+void handler( int sig, int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
+{
+  std::ostringstream oss;
+
+  if( sig >= 0 && sig < NSIG )
+  {
+    // sys_signame not available on linux, so just print the code; strsignal is POSIX
+    oss << "Received signal " << sig << ": " << strsignal( sig ) << std::endl;
+
+    if( sig == SIGFPE )
+    {
+      oss << getFpeDetails() << std::endl;
+    }
+  }
+  oss << stackTrace() << std::endl;
+  std::cout << oss.str();
 
   if( exitFlag == 1 )
   {
