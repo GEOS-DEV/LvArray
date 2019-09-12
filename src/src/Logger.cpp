@@ -151,9 +151,6 @@ void FinalizeLogger()
 #endif
 }
 
-#ifndef USE_MPI
-[[noreturn]]
-#endif
 void abort()
 {
   cxx_utilities::handler1( EXIT_FAILURE );

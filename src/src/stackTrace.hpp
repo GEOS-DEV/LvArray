@@ -23,7 +23,7 @@
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
 #define SRC_CODINGUTILITIES_STACKTRACE_HPP_
 
-#define GEOSX_USE_MPI
+#include "CXX_UtilsConfig.hpp"
 
 #include <signal.h>
 #include <string>

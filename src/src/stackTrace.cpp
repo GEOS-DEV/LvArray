@@ -197,7 +197,7 @@ void handler( int sig, int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
 
   if( exitFlag == 1 )
   {
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
     int mpi = 0;
     MPI_Initialized( &mpi );
     if( mpi )
