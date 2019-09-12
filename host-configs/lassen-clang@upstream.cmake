@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
 
 # Fortran options
-set(CMAKE_Fortran_COMPILER /usr/tce/packages/xl/xl-beta-2019.06.20/bin/xlf CACHE PATH "")
+set(CMAKE_Fortran_COMPILER /usr/tce/packages/xl/xl-beta-2019.06.20/bin/xlf_r CACHE PATH "")
 set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -qarch=pwr9 -qtune=pwr9" CACHE STRING "")
 set(FORTRAN_MANGLE_NO_UNDERSCORE ON CACHE BOOL "")
 
@@ -30,16 +30,16 @@ set(OpenMP_Fortran_LIB_NAMES "" CACHE STRING "")
 # MPI options
 set(ENABLE_MPI ON CACHE BOOL "")
 set(MPI_ROOT /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-upstream-2019.03.26 CACHE PATH "")
-set(MPI_C_COMPILER         ${MPI_ROOT}/bin/mpicc   CACHE PATH "")
-set(MPI_CXX_COMPILER       ${MPI_ROOT}/bin/mpicxx  CACHE PATH "")
-set(MPI_Fortran_COMPILER   ${MPI_ROOT}/bin/mpif90  CACHE PATH "")
+set(MPI_C_COMPILER         ${MPI_ROOT}/bin/mpicc  CACHE PATH "")
+set(MPI_CXX_COMPILER       ${MPI_ROOT}/bin/mpicxx CACHE PATH "")
+set(MPI_Fortran_COMPILER   /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-beta-2019.06.20/bin/mpifort CACHE PATH "")
 set(MPIEXEC                lrun CACHE STRING "")
 set(MPIEXEC_NUMPROC_FLAG   -n CACHE STRING "")
 set(ENABLE_WRAP_ALL_TESTS_WITH_MPIEXEC ON CACHE BOOL "")
 
 # Cuda options
 set(ENABLE_CUDA ON CACHE BOOL "")
-set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-10.1.168 CACHE STRING "")
+set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-10.1.243 CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER ${MPI_CXX_COMPILER} CACHE STRING "")
 set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc CACHE STRING "")
 set(CUDA_ARCH sm_70 CACHE STRING "")

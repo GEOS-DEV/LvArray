@@ -26,6 +26,7 @@
 #include <sys/ucontext.h>
 #include <sstream>
 #include <cfenv>
+#include <string.h>
 
 #include "Macros.hpp"
 #include "stackTrace.hpp"
