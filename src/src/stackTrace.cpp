@@ -20,6 +20,7 @@
 #include <execinfo.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <iostream>
 #include <cxxabi.h>
@@ -34,6 +35,7 @@
 #ifdef GEOSX_USE_MPI
 #include <mpi.h>
 #endif
+
 
 constexpr int MAX_FRAMES = 25;
 

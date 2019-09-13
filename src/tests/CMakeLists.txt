@@ -22,6 +22,8 @@ set(testSources
     testStringUtilities.cpp
    )
 
+message( "cxx_dependencies = ${cxx_dependencies}" )
+
 #
 # Add gtest C++ based tests
 #

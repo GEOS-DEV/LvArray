@@ -16,7 +16,6 @@ if (EXISTS ${ATK_DIR})
     set(ATK_CMAKE ${ATK_DIR}/lib/cmake)
 
     include(${ATK_CMAKE}/core-targets.cmake)
-    include(${ATK_CMAKE}/lumberjack-targets.cmake)
     include(${ATK_CMAKE}/slic-targets.cmake)
 
     blt_register_library( NAME slic
@@ -24,12 +23,17 @@ if (EXISTS ${ATK_DIR})
                           LIBRARIES  slic
                           TREAT_INCLUDES_AS_SYSTEM ON)
 
-    blt_register_library( NAME lumberjack
-                          INCLUDES ${ATK_INCLUDE_DIRS} 
-                          LIBRARIES  lumberjack
-                          TREAT_INCLUDES_AS_SYSTEM ON)
+    if( ENABLE_MPI )
+      include(${ATK_CMAKE}/lumberjack-targets.cmake)
+      blt_register_library( NAME lumberjack
+                            INCLUDES ${ATK_INCLUDE_DIRS} 
+                            LIBRARIES  lumberjack
+                            TREAT_INCLUDES_AS_SYSTEM ON)
 
-    set(thirdPartyLibs ${thirdPartyLibs} slic lumberjack )
+      set(thirdPartyLibs ${thirdPartyLibs} slic lumberjack )
+    else()
+      set(thirdPartyLibs ${thirdPartyLibs} slic )
+    endif()
 else()
     set(ATK_FOUND FALSE)
     message(INFO ": Not using axom")
