@@ -32,7 +32,7 @@
 #include "Macros.hpp"
 #include "stackTrace.hpp"
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 #include <mpi.h>
 #endif
 
