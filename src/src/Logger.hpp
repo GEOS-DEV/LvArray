@@ -39,7 +39,7 @@
 #endif
 #endif
 
-#include "axom/slic/interface/slic.hpp"
+#include "axom/slic.hpp"
 #endif
 
 #ifdef USE_CUDA

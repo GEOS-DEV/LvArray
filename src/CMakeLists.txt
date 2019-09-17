@@ -1,6 +1,6 @@
 set( cxx_dependencies "" )
 if( ATK_FOUND )
-    set( cxx_dependencies slic lumberjack )
+    set( cxx_dependencies axom )
 endif()
 
 if( ENABLE_CHAI )
