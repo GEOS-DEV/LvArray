@@ -7,7 +7,7 @@ if( ENABLE_CHAI )
     set( cxx_dependencies ${cxx_dependencies} chai umpire )
 endif()
 
-if( ENABLE_MPI )
+if( ${ENABLE_MPI} )
     set( cxx_dependencies ${cxx_dependencies} mpi )
 endif()
 

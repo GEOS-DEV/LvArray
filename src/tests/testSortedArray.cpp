@@ -786,8 +786,12 @@ TEST(SortedArray, containsDevice)
 
 int main( int argc, char* argv[] )
 {
+#if defined(USE_MPI)
   MPI_Init( &argc, &argv );
   logger::InitializeLogger( MPI_COMM_WORLD );
+#else
+  logger::InitializeLogger( );
+#endif
 
   int result = 0;
   testing::InitGoogleTest( &argc, argv );
@@ -799,6 +803,8 @@ int main( int argc, char* argv[] )
   chai::ArrayManager::finalize();
 #endif
 
+#if defined(USE_MPI)
   MPI_Finalize();
+#endif
   return result;
 }

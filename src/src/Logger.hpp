@@ -215,9 +215,6 @@
 namespace logger
 {
 
-#ifndef USE_MPI
-[[noreturn]]
-#endif
 void abort();
 
 

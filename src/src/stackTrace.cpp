@@ -20,6 +20,7 @@
 #include <execinfo.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <iostream>
 #include <cxxabi.h>
@@ -31,9 +32,10 @@
 #include "Macros.hpp"
 #include "stackTrace.hpp"
 
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
 #include <mpi.h>
 #endif
+
 
 constexpr int MAX_FRAMES = 25;
 
@@ -197,7 +199,7 @@ void handler( int sig, int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
 
   if( exitFlag == 1 )
   {
-#ifdef GEOSX_USE_MPI
+#ifdef USE_MPI
     int mpi = 0;
     MPI_Initialized( &mpi );
     if( mpi )
