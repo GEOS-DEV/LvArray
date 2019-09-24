@@ -45,7 +45,6 @@ public:
   // Aliasing public methods of ArrayOfArraysView.
   using ArrayOfArraysView<T, INDEX_TYPE>::toViewC;
   using ArrayOfArraysView<T, INDEX_TYPE>::toViewCC;
-  using ArrayOfArraysView<T, INDEX_TYPE>::size;
   using ArrayOfArraysView<T, INDEX_TYPE>::sizeOfArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::capacity;
   using ArrayOfArraysView<T, INDEX_TYPE>::capacityOfArray;
@@ -59,6 +58,13 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::getValues;
   using ArrayOfArraysView<T, INDEX_TYPE>::setUserCallBack;
 
+  /**
+   * @brief Return the number of arrays.
+   * @note This needs is duplicated here for the intel compiler on cori. 
+   */
+  inline
+  INDEX_TYPE size() const restrict_this
+  { return m_sizes.size(); }
 
   /**
    * @brief Constructor.
