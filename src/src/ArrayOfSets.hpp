@@ -40,7 +40,6 @@ public:
   // Aliasing public methods of ArrayOfSetsView.
   using ArrayOfSetsView<T, INDEX_TYPE>::toViewC;
   using ArrayOfSetsView<T, INDEX_TYPE>::toArrayOfArraysView;
-  using ArrayOfSetsView<T, INDEX_TYPE>::size;
   using ArrayOfSetsView<T, INDEX_TYPE>::capacity;
   using ArrayOfSetsView<T, INDEX_TYPE>::sizeOfSet;
   using ArrayOfSetsView<T, INDEX_TYPE>::capacityOfSet;
@@ -55,6 +54,13 @@ public:
   using ArrayOfSetsView<T, INDEX_TYPE>::setUserCallBack;
   using ArrayOfSetsView<T, INDEX_TYPE>::consistencyCheck;
 
+  /**
+   * @brief Return the number sets.
+   * @note This needs is duplicated here for the intel compiler on cori. 
+   */
+  inline
+  INDEX_TYPE size() const restrict_this
+  { return m_sizes.size(); }
 
   inline
   ArrayOfSets(INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0) restrict_this:
