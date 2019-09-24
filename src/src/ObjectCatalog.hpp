@@ -134,8 +134,7 @@ public:
    */
   static std::unique_ptr<BASETYPE> Factory( std::string const & objectTypeName, ARGS... args )
   {
-    CatalogInterface<BASETYPE, ARGS...> const * const entry = GetCatalog().at( objectTypeName ).get();
-    return entry->Allocate( args... );
+    return GetCatalog().at( objectTypeName ).get()->Allocate( args... );
   }
 
   template< typename TYPE >
