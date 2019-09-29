@@ -43,7 +43,9 @@ void SetFPE()
   _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
   _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
 #endif
+#if defined(__x86_64__)
   feenableexcept( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
+#endif
 }
 
 }

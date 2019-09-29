@@ -206,11 +206,9 @@ void handler( int sig, int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
     {
       MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
     }
-    else
 #endif
-    {
-      abort();
-    }
+    abort();
+//    exit(exitFlag);
 
   }
 }

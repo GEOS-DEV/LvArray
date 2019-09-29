@@ -47,13 +47,13 @@ void setSignalHandling( void (*handler)( int ) )
   signal( SIGSEGV, handler );
   signal( SIGSYS, handler );
   signal( SIGPIPE, handler );
-  signal( SIGALRM, handler );
+//  signal( SIGALRM, handler );
   signal( SIGTERM, handler );
-  signal( SIGURG, handler );
+//  signal( SIGURG, handler );
   signal( SIGSTOP, handler );
   signal( SIGTSTP, handler );
   signal( SIGCONT, handler );
-  signal( SIGCHLD, handler );
+//  signal( SIGCHLD, handler );
 
 
   return;
