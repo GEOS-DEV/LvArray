@@ -13,7 +13,6 @@ set(testSources
     testFloatingPointExceptions.cpp
     testHelpers.cpp
     testIntegerConversion.cpp
-    testObjectCatalog.cpp
     testSFINAE.cpp
     testSortedArray.cpp
     testSortedArrayManipulation.cpp

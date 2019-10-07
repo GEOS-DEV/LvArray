@@ -29,7 +29,7 @@
 #ifndef BASE_HPP
 #define BASE_HPP
 #define OBJECTCATALOGVERBOSE 2
-#include "ObjectCatalog.hpp"
+#include "dataRepository/ObjectCatalog.hpp"
 #include <string>
 
 class Parameter
@@ -69,7 +69,7 @@ public:
     GEOS_LOG( "calling Base destructor" );
   }
 
-  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int, double const &, Parameter& >;
+  using CatalogInterface = dataRepository::CatalogInterface< Base, int, double const &, Parameter& >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;
