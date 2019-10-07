@@ -12,7 +12,6 @@ set(cxx-utilities_headers
     IntegerConversion.hpp
     Logger.hpp
     Macros.hpp
-    ObjectCatalog.hpp 
     SetFPE.hpp
     SetSignalHandling.hpp
     SFINAE_Macros.hpp

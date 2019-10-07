@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #define OBJECTCATALOGVERBOSE 2
-#include "ObjectCatalog.hpp"
+#include "dataRepository/ObjectCatalog.hpp"
 #include "Logger.hpp"
 #include <sys/time.h>
 #include <stdint.h>
@@ -40,7 +40,7 @@ public:
     GEOS_LOG( "calling Base destructor" );
   }
 
-  using CatalogInterface = cxx_utilities::CatalogInterface< Base, int&, double const &  >;
+  using CatalogInterface = dataRepository::CatalogInterface< Base, int&, double const &  >;
   static CatalogInterface::CatalogType& GetCatalog()
   {
     static CatalogInterface::CatalogType catalog;
