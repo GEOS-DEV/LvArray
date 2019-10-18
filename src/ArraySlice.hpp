@@ -54,7 +54,7 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 #include <iostream>
 #include <utility>
 
-#ifndef NDEBUG
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(NDEBUG)
   #include "totalview/tv_data_display.h"
   #include "totalview/tv_helpers.hpp"
 #endif
