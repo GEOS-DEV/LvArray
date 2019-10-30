@@ -230,8 +230,10 @@ LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, Rando
  */
 DISABLE_HD_WARNING
 template <class T, int N>
-LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std::ptrdiff_t const nVals,
-                                                     T (&localBuffer)[N])
+LVARRAY_HOST_DEVICE inline
+T * createTemporaryBuffer( T const * const restrict values,
+                           std::ptrdiff_t const nVals,
+                           T (&localBuffer)[N] )
 {
   T * buffer = localBuffer;
   if (nVals <= N)
@@ -264,8 +266,10 @@ LVARRAY_HOST_DEVICE inline T * createTemporaryBuffer(T const * const values, std
  */
 DISABLE_HD_WARNING
 template <class T, int N>
-LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdiff_t const nVals,
-                                                    T const (&localBuffer)[N])
+LVARRAY_HOST_DEVICE inline
+void freeTemporaryBuffer( T * const restrict buffer,
+                          std::ptrdiff_t const nVals,
+                          T const (&localBuffer)[N] )
 {
   if (buffer == localBuffer)
   {
@@ -293,7 +297,9 @@ LVARRAY_HOST_DEVICE inline void freeTemporaryBuffer(T * const buffer, std::ptrdi
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-bool isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare() )
+bool isSorted( T const * const restrict ptr,
+               INDEX_TYPE const size,
+               Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ) );
@@ -323,8 +329,10 @@ bool isSorted( T const * const ptr, INDEX_TYPE const size, Compare comp=Compare(
  */
 DISABLE_HD_WARNING
 template<class RandomAccessIteratorA, class RandomAccessIteratorB>
-LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
-                                         RandomAccessIteratorB dataFirst)
+LVARRAY_HOST_DEVICE inline 
+void dualSort( RandomAccessIteratorA valueFirst,
+               RandomAccessIteratorA valueLast,
+               RandomAccessIteratorB dataFirst )
 { return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }
 
 /**
@@ -337,7 +345,8 @@ LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, Rando
  */
 DISABLE_HD_WARNING
 template<class T, class INDEX_TYPE>
-LVARRAY_HOST_DEVICE inline bool allUnique(T * const ptr, INDEX_TYPE const size)
+LVARRAY_HOST_DEVICE inline
+bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
 {
   for (INDEX_TYPE i = 0; i < size - 1; ++i)
   {
@@ -360,7 +369,8 @@ LVARRAY_HOST_DEVICE inline bool allUnique(T * const ptr, INDEX_TYPE const size)
  */
 DISABLE_HD_WARNING
 template<class T, class INDEX_TYPE>
-LVARRAY_HOST_DEVICE inline INDEX_TYPE removeDuplicates(T * const ptr, INDEX_TYPE const size)
+LVARRAY_HOST_DEVICE inline
+INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
 {
   GEOS_ASSERT(ptr != nullptr || size == 0);
   GEOS_ASSERT(arrayManipulation::isPositive(size));
@@ -403,7 +413,10 @@ LVARRAY_HOST_DEVICE inline INDEX_TYPE removeDuplicates(T * const ptr, INDEX_TYPE
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value, Compare comp=Compare() )
+INDEX_TYPE find( T const * const restrict ptr,
+                 INDEX_TYPE const size,
+                 T const & value,
+                 Compare comp=Compare() )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ) );
@@ -442,7 +455,10 @@ INDEX_TYPE find( T const * const ptr, INDEX_TYPE const size, T const & value, Co
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class Compare=less<T>>
 LVARRAY_HOST_DEVICE inline
-bool contains( T const * const ptr, INDEX_TYPE const size, T const & value, Compare comp=Compare() )
+bool contains( T const * const restrict ptr,
+               INDEX_TYPE const size,
+               T const & value,
+               Compare comp=Compare() )
 {
   INDEX_TYPE const pos = find( ptr, size, value, comp );
   return (pos != size) && (ptr[pos] == value);
@@ -464,7 +480,10 @@ bool contains( T const * const ptr, INDEX_TYPE const size, T const & value, Comp
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-bool remove( T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
+bool remove( T * const restrict ptr,
+             INDEX_TYPE const size,
+             T const & value,
+             CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
@@ -502,8 +521,11 @@ bool remove( T * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS &&
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const values,
-                         INDEX_TYPE const nVals, CALLBACKS && callBacks )
+INDEX_TYPE removeSorted( T * const restrict ptr,
+                         INDEX_TYPE const size,
+                         T const * const restrict values,
+                         INDEX_TYPE const nVals,
+                         CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
@@ -606,8 +628,11 @@ INDEX_TYPE removeSorted( T * const ptr, INDEX_TYPE const size, T const * const v
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE remove( T * const ptr, INDEX_TYPE const size, T const * const values,
-                   INDEX_TYPE const nVals, CALLBACKS && callBacks )
+INDEX_TYPE remove( T * const restrict ptr,
+                   INDEX_TYPE const size,
+                   T const * const values,
+                   INDEX_TYPE const nVals,
+                   CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
@@ -642,7 +667,10 @@ INDEX_TYPE remove( T * const ptr, INDEX_TYPE const size, T const * const values,
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-bool insert( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBACKS && callBacks )
+bool insert( T const * const restrict ptr,
+             INDEX_TYPE const size,
+             T const & value,
+             CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
@@ -698,8 +726,11 @@ bool insert( T const * const ptr, INDEX_TYPE const size, T const & value, CALLBA
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * const values,
-                         INDEX_TYPE const nVals, CALLBACKS && callBacks )
+INDEX_TYPE insertSorted( T const * const restrict ptr,
+                         INDEX_TYPE const size,
+                         T const * const restrict values,
+                         INDEX_TYPE const nVals,
+                         CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));
@@ -867,8 +898,11 @@ INDEX_TYPE insertSorted( T const * const ptr, INDEX_TYPE const size, T const * c
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class CALLBACKS>
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE insert( T const * const ptr, INDEX_TYPE const size, T const * const values,
-                   INDEX_TYPE const nVals, CALLBACKS && callBacks )
+INDEX_TYPE insert( T const * const restrict ptr,
+                   INDEX_TYPE const size,
+                   T const * const restrict values,
+                   INDEX_TYPE const nVals,
+                   CALLBACKS && callBacks )
 {
   GEOS_ASSERT( ptr != nullptr || size == 0 );
   GEOS_ASSERT( arrayManipulation::isPositive( size ));

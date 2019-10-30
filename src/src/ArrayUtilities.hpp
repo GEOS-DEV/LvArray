@@ -123,9 +123,13 @@ struct stringToArrayHelper
  * All values must be delimited with a ','. All spaces are stripped prior to processing.
  * Please don't use \t for anything...ever...thanks.
  */
-template< typename T, int NDIM, typename PERMUTATION, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static void stringToArray(  LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
-                            std::string valueString )
+template< typename T,
+          int NDIM,
+          typename PERMUTATION,
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
+                           std::string valueString )
 {
 
   // Check to make sure there are no space delimited values. The assumption is anything that is not
@@ -361,8 +365,12 @@ struct arrayToStringHelper
  * @param array The array to convert
  * @return a string containing the contents of @p array
  */
-template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static std::string arrayToString(  LvArray::ArrayView<T, NDIM, NDIM - 1, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
+template< typename T,
+          int NDIM,
+          int UNIT_STRIDE_DIM,
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+static std::string arrayToString( LvArray::ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
   std::string output;
   output.clear();

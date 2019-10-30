@@ -73,7 +73,6 @@ public:
   INDEX_TYPE size() const
   { return SortedArrayView<T, INDEX_TYPE>::size(); }
 
-
   using SortedArrayView<T, INDEX_TYPE>::contains;
   using SortedArrayView<T, INDEX_TYPE>::count;
 
@@ -109,15 +108,36 @@ public:
    */
   inline
   ~SortedArray() restrict_this
-  { m_values.free(); }
+  { 
+    bufferManipulation::free( m_values, size() );
+  }
+
+  /**
+   * @brief Copy assignment operator, performs a deep copy.
+   * @param [in] src the SortedArray to copy.
+   */
+  inline
+  SortedArray & operator=( SortedArray const & src ) restrict_this
+  {
+    bufferManipulation::copyInto( m_values, size(), src.m_values, src.size() );
+    m_size = src.size();
+    return *this;
+  }
+
+  /**
+   * @brief Default move assignment operator, performs a shallow copy.
+   * @param [in/out] src the SortedArray to be moved from.
+   */
+  inline
+  SortedArray & operator=( SortedArray && src ) = default;
 
   /**
    * @brief User defined conversion to SortedArrayView<T const> const.
    */
-  template <class U = T>
+  template< typename U = T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator ViewType const & () const restrict_this
-  { return reinterpret_cast<ViewType const &>(*this); }
+  { return reinterpret_cast< ViewType const & >( *this ); }
 
   /**
    * @brief Method to convert to SortedArrayView<T const> const. Use this method when
@@ -135,29 +155,14 @@ public:
   { return *this; }
 
   /**
-   * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the SortedArray to copy.
-   */
-  inline
-  SortedArray & operator=( SortedArray const & src ) restrict_this
-  {
-    src.m_values.copy_into( m_values );
-    return *this;
-  }
-
-  /**
-   * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in/out] src the SortedArray to be moved from.
-   */
-  inline
-  SortedArray & operator=( SortedArray && src ) = default;
-
-  /**
    * @brief Remove all the values from the array.
    */
   inline
   void clear() restrict_this
-  { m_values.clear(); }
+  {
+    bufferManipulation::resize( m_values, size(), 0 );
+    m_size = 0;
+  }
 
   /**
    * @brief Reserve space to store the given number of values without resizing.
@@ -165,8 +170,9 @@ public:
    */
   inline
   void reserve( INDEX_TYPE const nVals ) restrict_this
-  { m_values.reserve( nVals ); }
-
+  {
+    bufferManipulation::reserve( m_values, size(), nVals );
+  }
 
   /**
    * @brief Insert the given value into the array if it doesn't already exist.
@@ -176,8 +182,8 @@ public:
   inline
   bool insert( T const & value ) restrict_this
   {
-    bool const success = sortedArrayManipulation::insert( data(), size(), value, CallBacks( m_values ));
-    m_values.setSize( size() + success );
+    bool const success = sortedArrayManipulation::insert( data(), size(), value, CallBacks( m_values, size() ) );
+    m_size += success;
     return success;
   }
 
@@ -193,8 +199,8 @@ public:
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( data(), size(), vals, nVals, CallBacks( m_values ));
-    m_values.setSize( size() + nInserted );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    m_size += nInserted;
     return nInserted;
   }
 
@@ -207,8 +213,8 @@ public:
   inline
   INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) restrict_this
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values ));
-    m_values.setSize( size() + nInserted );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    m_size += nInserted;
     return nInserted;
   }
 
@@ -220,8 +226,8 @@ public:
   inline
   bool erase( T const & value ) restrict_this
   {
-    bool const success = sortedArrayManipulation::remove( data(), size(), value, CallBacks( m_values ));
-    m_values.setSize( size() - success );
+    bool const success = sortedArrayManipulation::remove( data(), size(), value, CallBacks( m_values, size() ) );
+    m_size -= success;
     return success;
   }
 
@@ -237,8 +243,8 @@ public:
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
   {
-    INDEX_TYPE nRemoved = sortedArrayManipulation::remove( data(), size(), vals, nVals, CallBacks( m_values ));
-    m_values.setSize( size() - nRemoved );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    m_size -= nRemoved;
     return nRemoved;
   }
 
@@ -251,15 +257,14 @@ public:
   inline
   INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) restrict_this
   {
-    INDEX_TYPE nRemoved = sortedArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values ));
-    m_values.setSize( size() - nRemoved );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    m_size -= nRemoved;
     return nRemoved;
   }
 
-#ifdef USE_CHAI
   void setUserCallBack( std::string const & name )
   {
-    m_values.template setUserCallBack<decltype(*this)>( name );
+    m_values.template setUserCallBack< decltype( *this ) >( name );
   }
 
   /**
@@ -267,9 +272,8 @@ public:
    * @param [in] space the space to move to.
    */
   inline
-  void move( chai::ExecutionSpace space, bool touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
   { m_values.move( space, touch ); }
-#endif
 
   friend std::ostream& operator<< ( std::ostream& stream, SortedArray const & array )
   {
@@ -298,11 +302,12 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] cv the ChaiVector associated with the SortedArray.
+     * @param [in/out] cv the ChaiBuffer associated with the SortedArray.
      */
     inline
-    CallBacks( ChaiVector<T> & cv ):
-      m_cv( cv )
+    CallBacks( ChaiBuffer< T > & cb, INDEX_TYPE const size ):
+      m_cb( cb ),
+      m_size( size )
     {}
 
     /**
@@ -314,22 +319,18 @@ public:
     inline
     T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
     {
-      INDEX_TYPE const newSize = m_cv.size() + nToAdd;
-      INDEX_TYPE const capacity = m_cv.capacity();
-      if( newSize > capacity )
-      {
-        m_cv.dynamicRealloc( newSize );
-      }
-
-      return m_cv.data();
+      bufferManipulation::dynamicReserve( m_cb, m_size, m_size + nToAdd );
+      return m_cb.data();
     }
 
 private:
-    ChaiVector<T> & m_cv;
+    ChaiBuffer< T > & m_cb;
+    INDEX_TYPE const m_size;
   };
 
-  // Alias the protected member of SortedArrayView.
+  // Alias the protected members of SortedArrayView.
   using SortedArrayView<T, INDEX_TYPE>::m_values;
+  using SortedArrayView<T, INDEX_TYPE>::m_size;
 };
 
 } // namespace LvArray

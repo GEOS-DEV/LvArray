@@ -23,7 +23,8 @@
 #ifndef SRC_COMMON_SORTEDARRAYVIEW
 #define SRC_COMMON_SORTEDARRAYVIEW
 
-#include "ChaiVector.hpp"
+#include "ChaiBuffer.hpp"
+#include "bufferManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
@@ -74,8 +75,11 @@ public:
    * @brief Default move constructor, performs a shallow copy.
    * @param [in/out] src the SortedArray to be moved from.
    */
-  inline
-  SortedArrayView( SortedArrayView && src ) = default;
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView( SortedArrayView && src )
+  {
+    *this = std::move( src );
+  }
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -88,8 +92,14 @@ public:
    * @brief Default move assignment operator, this does a shallow copy.
    * @param [in/out] src the SortedArray to be moved from.
    */
-  inline
-  SortedArrayView & operator=( SortedArrayView && src ) = default;
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView & operator=( SortedArrayView && src )
+  {
+    m_values = std::move( src.m_values );
+    m_size = src.m_size;
+    src.m_size = 0;
+    return *this;
+  }
 
   /**
    * @brief Return a pointer to the values.
@@ -109,7 +119,7 @@ public:
   T & operator[]( INDEX_TYPE const i ) const
   {
     SORTEDARRAY_CHECK_BOUNDS( i );
-    return m_values[i];
+    return values()[ i ];
   }
 
   /**
@@ -131,14 +141,14 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   bool empty() const
-  { return m_values.empty(); }
+  { return size() == 0; }
 
   /**
    * @brief Return the number of values in the array.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE size() const
-  { return static_cast<INDEX_TYPE>(m_values.size()); }
+  { return m_size; }
 
   /**
    * @brief Return true if the given value is in the array.
@@ -182,11 +192,13 @@ protected:
    * @brief Default constructor. Made protected since every SortedArrayView should
    *        either be the base of a SortedArrayView or copied from another SortedArrayView.
    */
-  inline
   SortedArrayView() = default;
 
   // Holds the array of values.
-  ChaiVector<T> m_values;
+  ChaiBuffer< T > m_values;
+
+  // The number of values
+  INDEX_TYPE m_size = 0;
 };
 
 } // namespace LvArray

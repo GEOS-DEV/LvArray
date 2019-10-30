@@ -169,8 +169,7 @@ TEST( testArrayUtilities, stringToArray3d )
 
 TEST( testArrayUtilities, arrayToString )
 {
-  LvArray::Array<int,3> array;
-  array.resize( 2, 4, 3 );
+  LvArray::Array<int,3> array( 2, 4, 3 );
 
   for( int i=0 ; i<2; ++i )
   {

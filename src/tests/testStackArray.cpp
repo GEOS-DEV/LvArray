@@ -16,20 +16,20 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#include "../src/StackArrayWrapper.hpp"
+#include "../src/StackBuffer.hpp"
 #include "gtest/gtest.h"
 #include "Array.hpp"
 
 
 using namespace LvArray;
 
-template< typename T, int NDIM, typename INDEX_TYPE >
-using stackArray = Array< T, NDIM, camp::make_idx_seq_t<NDIM>, INDEX_TYPE, StackArrayWrapper<T,100> >;
+template< typename T, int NDIM, int MAX_SIZE >
+using stackArray = StackArray< T, NDIM, camp::make_idx_seq_t< NDIM >, int, MAX_SIZE >;
 
 
 TEST( StackArray, allocate1d )
 {
-  stackArray< int, 1, int > array1d;
+  stackArray< int, 1, 100 > array1d;
   array1d.resize( 10 );
 
   for( int i=0 ; i<10 ; ++i )
@@ -43,8 +43,7 @@ TEST( StackArray, allocate1d )
 
 TEST( StackArray, allocate2d )
 {
-  stackArray< int, 2, int > array2d;
-  array2d.resize( 10, 10 );
+  stackArray< int, 2, 100 > array2d( 10, 10 );
 
   for( int i=0 ; i<10 ; ++i )
   {
@@ -56,14 +55,13 @@ TEST( StackArray, allocate2d )
     }
   }
 
-  ASSERT_DEATH_IF_SUPPORTED( array2d.resize( 11,10 ), "" );
+  ASSERT_DEATH_IF_SUPPORTED( array2d.resize( 11, 10 ), "" );
 }
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 TEST( StackArray, BoundsCheck2d )
 {
-  stackArray< int, 2, int > array2d;
-  array2d.resize( 10, 10 );
+  stackArray< int, 2, 100 > array2d( 10, 10 );
 
   for( int i=0 ; i<10 ; ++i )
   {

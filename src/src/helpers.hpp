@@ -25,7 +25,8 @@
 
 #include "Permutation.hpp"
 #include "Logger.hpp"
-#include "ChaiVector.hpp"
+#include "ChaiBuffer.hpp"
+#include "templateHelpers.hpp"
 
 #include <camp/camp.hpp>
 
@@ -168,29 +169,16 @@ struct check_dim_indices<INDEX_TYPE, NDIM, INDEX0>
   constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
 };
 
-template<  typename INDEX_TYPE, int NDIM, int COUNTER, typename DIM0, typename... DIMS >
-struct dim_unpack
+template< typename INDEX_TYPE, typename... DIMS >
+void dimUnpack( INDEX_TYPE * const dims, DIMS... newDims )
 {
-  LVARRAY_HOST_DEVICE
-  constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... dims )
+  int curDim = 0;
+  for_each_arg( [&]( INDEX_TYPE const size )
   {
-    m_dims[NDIM-COUNTER] = dim0;
-    dim_unpack<  INDEX_TYPE, NDIM, COUNTER-1, DIMS...>::f( m_dims, dims... );
-    return 0;
-  }
-};
-
-template< typename INDEX_TYPE, int NDIM, typename DIM0, typename... DIMS >
-struct dim_unpack<INDEX_TYPE, NDIM, 1, DIM0, DIMS...>
-{
-  LVARRAY_HOST_DEVICE
-  constexpr static int f( INDEX_TYPE m_dims[NDIM], DIM0 dim0, DIMS... )
-  {
-    m_dims[NDIM-1] = dim0;
-    return 0;
-  }
-};
-
+    dims[ curDim ] = size;
+    curDim += 1;
+  }, newDims... );
+}
 
 
 template< typename INDEX_TYPE, int NDIM, typename... DIMS>
@@ -218,104 +206,100 @@ constexpr static void dim_index_unpack( INDEX_TYPE CXX_UTILS_UNUSED_ARG( m_dims 
   // terminates recursion trivially
 }
 
-
 template< typename T,
           int NDIM,
           typename PERMUTATION=camp::make_idx_seq_t<NDIM>,
           typename INDEX_TYPE=std::ptrdiff_t,
-          typename DATA_VECTOR_TYPE=ChaiVector<T> >
+          template< typename... > class DATA_VECTOR_TYPE=ChaiBuffer >
 class Array;
 
 template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM=NDIM-1,
           typename INDEX_TYPE=std::ptrdiff_t,
-          typename DATA_VECTOR_TYPE=ChaiVector<T> >
+          template< typename... > class DATA_VECTOR_TYPE=ChaiBuffer >
 class ArrayView;
-
-namespace detail
-{
 
 
 template<typename>
-struct is_array : std::false_type {};
+constexpr bool isArray = false;
 
 
 template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-struct is_array< Array<T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > : std::true_type {};
+          template< typename... > class DATA_VECTOR_TYPE >
+constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
 
 
-template<typename T>
-struct to_arrayView
+template< typename T >
+struct AsView
 {
   using type = T;
-};
-
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE >
-struct to_arrayView< Array< T, NDIM, PERMUTATION, INDEX_TYPE > >
-{
-  using type = ArrayView< T, NDIM, getStrideOneDimension( PERMUTATION {} ), INDEX_TYPE > const;
-};
-
-/* Note this will only work when using ChaiVector as the DATA_VECTOR_TYPE. */
-template< typename T,
-          int NDIM1,
-          typename PERMUTATION1,
-          typename INDEX_TYPE1,
-          int NDIM0,
-          typename PERMUTATION0,
-          typename INDEX_TYPE0 >
-struct to_arrayView< Array< Array< T, NDIM1, PERMUTATION1, INDEX_TYPE1 >,
-                            NDIM0,
-                            PERMUTATION0,
-                            INDEX_TYPE0 > >
-{
-  using type = ArrayView< typename to_arrayView< Array< T, NDIM1, PERMUTATION1, INDEX_TYPE1 > >::type,
-                          NDIM0,
-                          getStrideOneDimension( PERMUTATION0 {} ),
-                          INDEX_TYPE0 > const;
-};
-
-template<typename T>
-struct to_arrayViewConst
-{
-  using type = T;
-};
-
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE >
-struct to_arrayViewConst< Array< T, NDIM, PERMUTATION, INDEX_TYPE > >
-{
-  using type = ArrayView< typename to_arrayViewConst<T>::type const,
-                          NDIM,
-                          getStrideOneDimension( PERMUTATION {} ),
-                          INDEX_TYPE > const;
 };
 
 template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
-          typename INDEX_TYPE >
-struct to_arrayViewConst< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > >
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+struct AsView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
-  using type = ArrayView< typename to_arrayViewConst<T>::type const,
+  using type = ArrayView< typename AsView< T >::type,
                           NDIM,
                           UNIT_STRIDE_DIM,
-                          INDEX_TYPE > const;
+                          INDEX_TYPE,
+                          DATA_VECTOR_TYPE > const;
 };
 
-} /* namespace detail */
+template< typename T,
+          int NDIM,
+          typename PERMUTATION,
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+struct AsView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
+{
+  using type = ArrayView< typename AsView< T >::type,
+                          NDIM,
+                          getStrideOneDimension( PERMUTATION {} ),
+                          INDEX_TYPE,
+                          DATA_VECTOR_TYPE > const;
+};
+
+template< typename T >
+struct AsConstView
+{
+  using type = T const;
+};
+
+template< typename T,
+          int NDIM,
+          int UNIT_STRIDE_DIM,
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+struct AsConstView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
+{
+  using type = ArrayView< typename AsConstView< T >::type const,
+                          NDIM,
+                          UNIT_STRIDE_DIM,
+                          INDEX_TYPE,
+                          DATA_VECTOR_TYPE > const;
+};
+
+template< typename T,
+          int NDIM,
+          typename PERMUTATION,
+          typename INDEX_TYPE,
+          template< typename... > class DATA_VECTOR_TYPE >
+struct AsConstView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
+{
+  using type = ArrayView< typename AsConstView< T >::type const,
+                          NDIM,
+                          getStrideOneDimension( PERMUTATION {} ),
+                          INDEX_TYPE,
+                          DATA_VECTOR_TYPE > const;
+};
 
 } /* namespace LvArray */
 
