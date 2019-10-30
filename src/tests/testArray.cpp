@@ -1430,7 +1430,6 @@ private:
   std::mt19937_64 m_gen;
 };
 
-// using TestTypes = ::testing::Types< INDEX_TYPE >;
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
 TYPED_TEST_CASE( ArrayResizeTest, TestTypes );
 

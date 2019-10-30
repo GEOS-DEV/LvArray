@@ -24,6 +24,7 @@
 #include "Logger.hpp"
 #include "arrayManipulation.hpp"
 #include "StringUtilities.hpp"
+#include "ChaiBuffer.hpp"
 
 #include <type_traits>
 #include <iterator>
@@ -42,25 +43,6 @@ namespace LvArray
 template <class COL_TYPE, class INDEX_TYPE>
 class SparsityPattern;
 
-#ifdef USE_CHAI
-namespace internal
-{
-static ::std::mutex chai_lock;
-
-inline std::string calculateSize( size_t const bytes )
-{
-  if (bytes >> 20 != 0)
-  {
-    return std::to_string(bytes >> 20) + "MB";
-  }
-  else
-  {
-    return std::to_string(bytes >> 10) + "KB";
-  }
-}
-}
-#endif
-
 template < typename T >
 class ChaiVector
 #ifdef USE_CHAI
@@ -68,12 +50,6 @@ class ChaiVector
 #endif
 {
 public:
-
-  template <class U, int NDIM, typename UNIT_STRIDE_DIM, class INDEX_TYPE, class DATA_VECTOR_TYPE>
-  friend class Array;
-
-  template <class U, class INDEX_TYPE>
-  friend class SortedArray;
 
   template <class COL_TYPE, class INDEX_TYPE>
   friend class SparsityPattern;
@@ -522,9 +498,9 @@ private:
   void releaseAllocation()
   {
 #ifdef USE_CHAI
-    internal::chai_lock.lock();
+    internal::chaiLock.lock();
     m_array.free();
-    internal::chai_lock.unlock();
+    internal::chaiLock.unlock();
 #else
     std::free( m_array );
     m_capacity = 0;
@@ -598,12 +574,12 @@ private:
   void realloc( size_type new_capacity )
   {
 #ifdef USE_CHAI
-    internal::chai_lock.lock();
+    internal::chaiLock.lock();
     chai::ManagedArray<T> new_array( new_capacity );
 #ifdef USE_CUDA
     new_array.setUserCallback( m_array.getUserCallback() );
 #endif
-    internal::chai_lock.unlock();
+    internal::chaiLock.unlock();
 #else
     T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
 #endif
@@ -621,9 +597,9 @@ private:
     }
 
 #ifdef USE_CHAI
-    internal::chai_lock.lock();
+    internal::chaiLock.lock();
     m_array.free();
-    internal::chai_lock.unlock();
+    internal::chaiLock.unlock();
 #else
     std::free( m_array );
     m_capacity = new_capacity;

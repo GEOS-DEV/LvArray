@@ -26,7 +26,6 @@
 #include "Permutation.hpp"
 #include "ArraySlice.hpp"
 #include "Logger.hpp"
-#include "ChaiVector.hpp"
 #include "helpers.hpp"
 #include "IntegerConversion.hpp"
 #include "SFINAE_Macros.hpp"
@@ -56,7 +55,7 @@ namespace LvArray
  * 1) ArrayView copy construction triggers a CHAI copy constructor
  * 2) Inherits operator[] array accessor from ArraySlice
  * 3) Defines operator() array accessor
- * 3) operator[] and operator() are all const and may be called in non-mutable lamdas
+ * 3) operator[] and operator() are all const and may be called in non-mutable lambdas
  * 4) Conversion operators to go from ArrayView<T> to ArrayView<T const>
  * 5) Since the Array is derived from ArrayView, it may be upcasted:
  *      Array<T,NDIM> array;
@@ -70,7 +69,7 @@ template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
+          template< typename... > class DATA_VECTOR_TYPE >
 class ArrayView
 #ifdef USE_CHAI
   : public chai::CHAICopyable
@@ -81,8 +80,7 @@ public:
   static_assert( UNIT_STRIDE_DIM >= 0, "UNIT_STRIDE_DIM must be positive." );
   static_assert( UNIT_STRIDE_DIM < NDIM, "UNIT_STRIDE_DIM must be less than NDIM." );
 
-  using ViewTypeConst = typename detail::to_arrayViewConst< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
-
+  using ViewTypeConst = typename AsConstView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
 
   using value_type = T;
   using iterator = T *;
@@ -154,7 +152,12 @@ public:
     setDims( source.m_dims );
     setStrides( source.m_strides );
 
-    source.m_dataVector.reset();
+    for ( int i = 0; i < NDIM; ++i )
+    {
+      const_cast< INDEX_TYPE * >( source.m_dims )[ i ] = 0;
+      const_cast< INDEX_TYPE * >( source.m_strides )[ i ] = 0;
+    }
+
     source.setDataPtr();
   }
 
@@ -173,11 +176,14 @@ public:
     return *this;
   }
 
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   ArrayView & operator=( ArrayView && rhs )
   {
-    *this = rhs;
-    rhs.m_dataVector.reset();
-    rhs.setDataPtr();
+    m_dataVector = std::move( rhs.m_dataVector );
+    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
+    setStrides( rhs.m_strides );
+    setDims( rhs.m_dims );
+    setDataPtr();
     return *this;
   }
 
@@ -205,10 +211,10 @@ public:
    * In addition the data held by the innermost array will be const.
    */
   template< typename U = T >
-  typename std::enable_if< !std::is_const<U>::value, ViewTypeConst & >::type
+  std::enable_if_t< !std::is_const<U>::value, ViewTypeConst & >
   toViewConst() const
   {
-    return reinterpret_cast<ViewTypeConst &>(*this);
+    return reinterpret_cast< ViewTypeConst & >( *this );
   }
 
   /**
@@ -380,7 +386,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * data() const
-  { return m_dataVector.data(); }
+  { return m_data; }
 
   /**
    * @brief function to get a pointer to a slice of data
@@ -392,7 +398,7 @@ public:
   T * data( INDEX_TYPE const index ) const
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return &(m_dataVector[ index*m_strides[0] ]);
+    return data() + index * m_strides[ 0 ];
   }
 
   /**
@@ -489,7 +495,8 @@ public:
    * ArraySlice because we do not want the array slices data members to be immutable from within
    * the slice.
    */
-  LVARRAY_HOST_DEVICE void setDataPtr() noexcept
+  LVARRAY_HOST_DEVICE
+  void setDataPtr() noexcept
   {
     T*& dataPtr = const_cast<T*&>(this->m_data);
     dataPtr = m_dataVector.data();
@@ -500,16 +507,12 @@ public:
    *        new dimensions
    * @param dims a pointer/array containing the the new dimensions
    */
-  template< typename DIMS_TYPE >
-  LVARRAY_HOST_DEVICE void setDims( DIMS_TYPE const dims[NDIM] ) noexcept
+  LVARRAY_HOST_DEVICE
+  void setDims( INDEX_TYPE const dims[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-#ifdef __CUDA_ARCH__
       const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
-#else
-      const_cast<INDEX_TYPE *>(m_dims)[a] = integer_conversion<INDEX_TYPE>( dims[a] );
-#endif
     }
   }
 
@@ -517,7 +520,8 @@ public:
    * @brief this function sets the strides of the array.
    * @param strides a pointer/array containing the the new strides
    */
-  LVARRAY_HOST_DEVICE void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
+  LVARRAY_HOST_DEVICE
+  void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
@@ -542,7 +546,7 @@ public:
       TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(0, av->m_dims ).c_str(), (av->m_data) );
       TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
       TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
-      TV_ttf_add_row("m_dataVector", totalview::typeName<DATA_VECTOR_TYPE>().c_str() , &(av->m_dataVector) );
+      TV_ttf_add_row("m_dataVector", totalview::typeName<DATA_VECTOR_TYPE<T>>().c_str() , &(av->m_dataVector) );
       TV_ttf_add_row("m_singleParameterResizeIndex", "int" , &(av->m_singleParameterResizeIndex) );
     }
     return 0;
@@ -560,10 +564,10 @@ protected:
   INDEX_TYPE const m_strides[NDIM];
 
   /// this data member contains the actual data for the array
-  DATA_VECTOR_TYPE m_dataVector;
+  DATA_VECTOR_TYPE< T > m_dataVector;
 
-  /// this data member specifies the index that will be resized as a result of a call to the
-  /// single argument version of the function resize(a)
+  /// this data member specifies the dimension that will be resized as a result of a call to the
+  /// single dimension resize method.
   int m_singleParameterResizeIndex = 0;
 };
 

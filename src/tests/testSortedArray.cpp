@@ -48,7 +48,7 @@ static std::mt19937_64 gen;
 
 /**
  * @brief Check that the SortedArrayView is equivalent to the std::set. Checks equality using the
- * operator[] and the raw pointer.
+ *        operator[] and the raw pointer.
  * @param [in] v the SortedArrayView to check.
  * @param [in] vRef the std::set to check against.
  */

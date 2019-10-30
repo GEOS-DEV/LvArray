@@ -17,7 +17,7 @@ set(cxx-utilities_headers
     SFINAE_Macros.hpp
     SortedArrayView.hpp
     SortedArray.hpp
-    StackArrayWrapper.hpp
+    StackBuffer.hpp
     stackTrace.hpp
     StringUtilities.hpp
     ArrayOfArraysView.hpp
@@ -30,6 +30,8 @@ set(cxx-utilities_headers
     CRSMatrix.hpp
     totalview/tv_data_display.h
     Permutation.hpp
+    bufferManipulation.hpp
+    ChaiBuffer.hpp
    )
 
 set(cxx-utilities_sources

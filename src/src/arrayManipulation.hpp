@@ -83,7 +83,10 @@ isPositive( INDEX_TYPE const )
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE, class ...ARGS>
 inline
-void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARGS &&... args )
+void resize( T * const restrict ptr,
+             INDEX_TYPE const size,
+             INDEX_TYPE const newSize,
+             ARGS &&... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -105,6 +108,34 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARG
 /**
  * @tparam T the storage type of the array.
  * @tparam INDEX_TYPE the integer type used to index into the array.
+ * @brief Move values from the src array into the dst array and then destroy the src array.
+ * @param [in/out] dst pointer to the destination array.
+ * @param [in] size the size of the destination array.
+ * @param [in/out] src pointer to the source array.
+ * @param [in] srcSize the size of the source array..
+ */
+template <class T, class INDEX_TYPE>
+inline
+void moveInto( T * const restrict dst,
+               INDEX_TYPE const dstSize,
+               T * const restrict src,
+               INDEX_TYPE const srcSize )
+{
+  INDEX_TYPE const newSize = srcSize > dstSize ? dstSize : srcSize;
+  for( INDEX_TYPE i = 0 ; i < newSize ; ++i )
+  {
+    new ( dst + i ) T( std::move( src[ i ] ) );
+  }
+
+  for( INDEX_TYPE i = 0 ; i < srcSize ; ++i )
+  {
+    src[ i ].~T();
+  }
+}
+
+/**
+ * @tparam T the storage type of the array.
+ * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New uninitialized values take their place.
  * @param [in/out] ptr pointer to the array.
@@ -115,7 +146,10 @@ void resize( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const newSize, ARG
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
+void shiftUp( T * const restrict ptr,
+              INDEX_TYPE const size,
+              INDEX_TYPE const index,
+              INDEX_TYPE const n )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -154,7 +188,11 @@ void shiftUp( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1, T const & defaultValue=T())
+void emplace( T * const restrict ptr,
+              INDEX_TYPE const size,
+              INDEX_TYPE const index,
+              INDEX_TYPE const n=1,
+              T const & defaultValue=T() )
 {
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
@@ -180,7 +218,10 @@ void emplace( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDE
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n )
+void shiftDown( T * const restrict ptr,
+                INDEX_TYPE const size,
+                INDEX_TYPE const index,
+                INDEX_TYPE const n )
 {
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
@@ -211,7 +252,10 @@ void shiftDown( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, IN
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_TYPE const n=1 )
+void erase( T * const restrict ptr,
+            INDEX_TYPE const size,
+            INDEX_TYPE const index,
+            INDEX_TYPE const n=1 )
 {
   GEOS_ASSERT( isPositive( n ) );
   if( n == 0 ) return;
@@ -239,7 +283,9 @@ void erase( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, INDEX_
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append( T * const ptr, INDEX_TYPE const size, T const & value )
+void append( T * const restrict ptr,
+             INDEX_TYPE const size,
+             T const & value )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -257,7 +303,9 @@ void append( T * const ptr, INDEX_TYPE const size, T const & value )
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append( T * const ptr, INDEX_TYPE const size, T && value )
+void append( T * const restrict ptr,
+             INDEX_TYPE const size,
+             T && value )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -276,7 +324,10 @@ void append( T * const ptr, INDEX_TYPE const size, T && value )
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX_TYPE const n )
+void append( T * const restrict ptr,
+             INDEX_TYPE const size,
+             T const * const restrict values,
+             INDEX_TYPE const n )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -301,7 +352,10 @@ void append( T * const ptr, INDEX_TYPE const size, T const * const values, INDEX
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const & value )
+void insert( T * const restrict ptr,
+             INDEX_TYPE const size,
+             INDEX_TYPE const index,
+             T const & value )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -324,7 +378,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value )
+void insert( T * const restrict ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -347,7 +401,11 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && 
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T const * const values, INDEX_TYPE const n )
+void insert( T * const restrict ptr,
+             INDEX_TYPE const size,
+             INDEX_TYPE const index,
+             T const * const restrict values,
+             INDEX_TYPE const n )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -371,7 +429,7 @@ void insert( T * const ptr, INDEX_TYPE const size, INDEX_TYPE const index, T con
 DISABLE_HD_WARNING
 template <class T, class INDEX_TYPE>
 LVARRAY_HOST_DEVICE inline
-void popBack( T * const ptr, INDEX_TYPE const size )
+void popBack( T * const restrict ptr, INDEX_TYPE const size )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( size > 0 );

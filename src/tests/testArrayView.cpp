@@ -151,7 +151,7 @@ void testArrayPermutation()
   constexpr int NDIM = LvArray::getDimension( PERMUTATION {} );
   LvArray::Array< int, NDIM, PERMUTATION > a;
 
-  std::array< std::ptrdiff_t, NDIM > dimensions;
+  std::array< INDEX_TYPE, NDIM > dimensions;
   for ( int i = 0; i < NDIM; ++i )
   {
     dimensions[ i ] = rand( 1, 10 );
