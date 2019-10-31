@@ -571,13 +571,20 @@ public:
     if( av!=nullptr )
     {
       int constexpr ndim = NDIM;
-      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
-      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(0, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
-      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
-      TV_ttf_add_row("m_dataVector", totalview::typeName<DATA_VECTOR_TYPE>().c_str() , &(av->m_dataVector) );
-      TV_ttf_add_row("m_singleParameterResizeIndex", "int" , &(av->m_singleParameterResizeIndex) );
+      int errchk = 0;
+      std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
+      if ((errchk = TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) )) != 0)
+	std::cout<<"add_row returned error "<<errchk<<std::endl;
+      if ((errchk = TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(0, av->m_dims ).c_str(), (av->m_data) )) != 0)
+        std::cout<<"add_row returned error "<<errchk<<std::endl;
+      if ((errchk = TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) )) != 0 )
+	std::cout<<"add_row returned error "<<errchk<<std::endl;
+      if ((errchk = TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) )) != 0 )
+	std::cout<<"add_row returned error "<<errchk<<std::endl;	
+      if ((errchk = TV_ttf_add_row("m_dataVector", totalview::typeName<DATA_VECTOR_TYPE>().c_str() , &(av->m_dataVector) )) != 0 )
+	std::cout<<"add_row returned error "<<errchk<<std::endl;	
+      if ((errchk = TV_ttf_add_row("m_singleParameterResizeIndex", "int" , &(av->m_singleParameterResizeIndex) )) != 0 )
+	std::cout<<"add_row returned error "<<errchk<<std::endl;      
     }
     return 0;
   }
