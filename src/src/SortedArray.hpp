@@ -26,18 +26,6 @@
 #include "SortedArrayView.hpp"
 #include "sortedArrayManipulation.hpp"
 
-namespace geosx
-{
-namespace dataRepository
-{
-
-// Forward declaration for friend class purposes.
-template <class U>
-class Wrapper;
-
-} // namespace dataRepository
-} // namespace geosx
-
 namespace LvArray
 {
 
@@ -58,14 +46,9 @@ class SortedArray : protected SortedArrayView<T, INDEX_TYPE>
 {
 public:
 
-  // Wrapper needs access to the data and resize methods, however these methods
-  // need to be private so Wrapper is a friend class.
-  template <class U>
-  friend class geosx::dataRepository::Wrapper;
-
   // These are needed by Wrapper.
   using value_type = T;
-  using pointer = T *;
+  using pointer = T const *;
   using const_pointer = T const *;
 
   // The iterators are defined for compatibility with std::set.
@@ -77,8 +60,20 @@ public:
   using SortedArrayView<T, INDEX_TYPE>::operator[];
   using SortedArrayView<T, INDEX_TYPE>::begin;
   using SortedArrayView<T, INDEX_TYPE>::end;
-  using SortedArrayView<T, INDEX_TYPE>::empty;
-  using SortedArrayView<T, INDEX_TYPE>::size;
+
+  // Duplicating these next two methods because SFINAE macros don't seem to pick them up otherwise.
+
+  // using SortedArrayView<T, INDEX_TYPE>::empty;
+  CONSTEXPRFUNC inline
+  bool empty() const
+  { return SortedArrayView<T, INDEX_TYPE>::empty(); }
+
+  // using SortedArrayView<T, INDEX_TYPE>::size;
+  CONSTEXPRFUNC inline
+  INDEX_TYPE size() const
+  { return SortedArrayView<T, INDEX_TYPE>::size(); }
+
+
   using SortedArrayView<T, INDEX_TYPE>::contains;
   using SortedArrayView<T, INDEX_TYPE>::count;
 
@@ -288,23 +283,10 @@ private:
    * @brief Return a non const pointer to the values.
    * @note This method is private because allowing access to the values in this manner
    * could destroy the sorted nature of the array.
-   *
-   * @note the friend class Wrapper calls this method.
    */
   CONSTEXPRFUNC inline
   T * data() const restrict_this
   { return m_values.data(); }
-
-  /**
-   * @brief Return a non const pointer to the values.
-   * @note This method is private because allowing access to the values in this manner
-   * could destroy the sorted nature of the array.
-   *
-   * @note the friend class Wrapper calls this method.
-   */
-  inline
-  void resize( INDEX_TYPE newSize ) restrict_this
-  { return m_values.resize( newSize ); }
 
   /**
    * @class CallBacks
