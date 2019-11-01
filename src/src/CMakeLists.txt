@@ -29,6 +29,7 @@ set(cxx-utilities_headers
     CRSMatrixView.hpp
     CRSMatrix.hpp
     totalview/tv_data_display.h
+    Permutation.hpp
    )
 
 set(cxx-utilities_sources

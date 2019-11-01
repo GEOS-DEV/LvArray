@@ -69,7 +69,7 @@ class ChaiVector
 {
 public:
 
-  template <class U, int NDIM, class INDEX_TYPE, class DATA_VECTOR_TYPE>
+  template <class U, int NDIM, typename UNIT_STRIDE_DIM, class INDEX_TYPE, class DATA_VECTOR_TYPE>
   friend class Array;
 
   template <class U, class INDEX_TYPE>

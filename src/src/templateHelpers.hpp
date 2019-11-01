@@ -18,13 +18,14 @@
 #ifndef TEMPLATEHELPERS_HPP_
 #define TEMPLATEHELPERS_HPP_
 
-#include "initializer_list"
+#include <initializer_list>
+#include <utility>
 
 /**
  * @brief return the max of the two values.
  */
 template <class U>
-constexpr  U const & max(const U& a, const U& b)
+constexpr U const & max(const U& a, const U& b)
 { return (a > b) ? a : b; }
 
 /**
@@ -44,6 +45,16 @@ void for_each_arg(F && f, ARGS && ...args)
   std::initializer_list<int> unused{((void) f(std::forward<ARGS>(args)), 0)...};
   (void) unused;
 }
+
+template <bool... B>
+struct conjunction {};
+
+template <bool Head, bool... Tail>
+struct conjunction<Head, Tail...>
+  : std::integral_constant<bool, Head && conjunction<Tail...>::value> {};
+
+template <bool B>
+struct conjunction<B> : std::integral_constant<bool, B> {};
 
 /**
  * @class is_instantiation_of

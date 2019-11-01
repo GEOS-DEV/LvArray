@@ -908,10 +908,10 @@ TYPED_TEST(ArrayOfArraysTest, shallowCopy)
 #ifdef USE_CUDA
 
 template <class T>
-using Array1D = Array<T, 1, INDEX_TYPE>;
+using Array1D = Array<T, 1, RAJA::PERM_I, INDEX_TYPE>;
 
 template <class T>
-using Array2D = Array<T, 2, INDEX_TYPE>;
+using Array2D = Array<T, 2, RAJA::PERM_IJ, INDEX_TYPE>;
 
 template <class T>
 class ArrayOfArraysCudaTest : public ArrayOfArraysTest<T>

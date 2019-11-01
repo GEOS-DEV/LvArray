@@ -173,8 +173,8 @@ public:
 #ifdef USE_CHAI
   
   inline
-  void move(chai::ExecutionSpace const space) restrict_this
-  { ArrayOfSetsView<T, INDEX_TYPE>::move(space); }
+  void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
+  { ArrayOfSetsView<T, INDEX_TYPE>::move(space, touch); }
 
   inline
   void registerTouch(chai::ExecutionSpace const space) restrict_this

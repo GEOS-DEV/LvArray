@@ -194,7 +194,7 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<COL_TYPE const, INDEX_TYPE_NC> getColumns( INDEX_TYPE const row ) const restrict_this
+  ArraySlice<COL_TYPE const, 1, 0, INDEX_TYPE_NC> getColumns( INDEX_TYPE const row ) const restrict_this
   { return (*this)[row]; }
 
   /**

@@ -23,7 +23,7 @@
 #ifndef ARRAYVIEW_HPP_
 #define ARRAYVIEW_HPP_
 
-
+#include "Permutation.hpp"
 #include "ArraySlice.hpp"
 #include "Logger.hpp"
 #include "ChaiVector.hpp"
@@ -38,14 +38,6 @@
 
 namespace LvArray
 {
-
-
-
-template< typename T,
-          int NDIM,
-          typename INDEX_TYPE,
-          typename DATA_VECTOR_TYPE >
-class Array;
 
 /**
  * @class ArrayView
@@ -76,6 +68,7 @@ class Array;
  */
 template< typename T,
           int NDIM,
+          int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
           typename DATA_VECTOR_TYPE >
 class ArrayView
@@ -84,6 +77,12 @@ class ArrayView
 #endif
 {
 public:
+
+  static_assert( UNIT_STRIDE_DIM >= 0, "UNIT_STRIDE_DIM must be positive." );
+  static_assert( UNIT_STRIDE_DIM < NDIM, "UNIT_STRIDE_DIM must be less than NDIM." );
+
+  using ViewTypeConst = typename detail::to_arrayViewConst< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+
 
   using value_type = T;
   using iterator = T *;
@@ -113,30 +112,6 @@ public:
     m_strides{ 0 },
     m_dataVector( nullptr )
   {}
-
-  /**
-   * @brief constructor to make a shallow copy of the input data
-   * @param dimsMem
-   * @param stridesMem
-   * @param dataVector
-   * @param singleParameterResizeIndex
-   * @return
-   */
-  inline CONSTEXPRFUNC
-  ArrayView( INDEX_TYPE const * const dimsMem,
-             INDEX_TYPE const * const stridesMem,
-             DATA_VECTOR_TYPE const & dataVector,
-             INDEX_TYPE const CXX_UTILS_UNUSED_ARG( singleParameterResizeIndex ) ) noexcept:
-    m_data{ nullptr },
-    m_dims{ 0 },
-    m_strides{ 0 },
-    m_dataVector(nullptr)
-  {
-    m_dataVector = dataVector;
-    setDims( dimsMem );
-    setStrides( stridesMem );
-    setDataPtr();
-  }
 
   /**
    * @brief Copy Constructor
@@ -198,6 +173,14 @@ public:
     return *this;
   }
 
+  ArrayView & operator=( ArrayView && rhs )
+  {
+    *this = rhs;
+    rhs.m_dataVector.reset();
+    rhs.setDataPtr();
+    return *this;
+  }
+
   /**
    * @brief set all values of array to rhs
    * @param rhs value that array will be set to.
@@ -217,12 +200,15 @@ public:
     return *this;
   }
 
-  ArrayView & operator=( ArrayView && rhs )
+  /**
+   * Convert this Array and any nested Array to ArrayView const.
+   * In addition the data held by the innermost array will be const.
+   */
+  template< typename U = T >
+  typename std::enable_if< !std::is_const<U>::value, ViewTypeConst & >::type
+  toViewConst() const
   {
-    *this = rhs;
-    rhs.m_dataVector.reset();
-    rhs.setDataPtr();
-    return *this;
+    return reinterpret_cast<ViewTypeConst &>(*this);
   }
 
   /**
@@ -234,10 +220,10 @@ public:
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
-                                    ArrayView<T const, NDIM, INDEX_TYPE> const & >::type
+                                    ArrayView<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const & >::type
     () const noexcept
   {
-    return reinterpret_cast<ArrayView<T const, NDIM, INDEX_TYPE> const &>(*this);
+    return reinterpret_cast<ArrayView<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const &>(*this);
   }
 
   /**
@@ -246,18 +232,31 @@ public:
    * only difference between the types is a const specifier.
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator ArraySlice<T, NDIM, INDEX_TYPE>() const noexcept
+  operator ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>() const noexcept
   {
-    return ArraySlice<T, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+    return ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator typename std::enable_if< !std::is_const<U>::value,
-                                    ArraySlice<T const, NDIM, INDEX_TYPE> const >::type
+                                    ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const >::type
     () const noexcept
   {
-    return ArraySlice<T const, NDIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+    return ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+  }
+
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> toSlice() const noexcept
+  {
+    return ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+  }
+
+  template< typename U = T >
+  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> toSliceConst() const noexcept
+  {
+    return ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
   }
 
 
@@ -265,45 +264,25 @@ public:
    * User defined conversion to convert a ArraySlice<T,1,NDIM> to a raw pointer.
    * @return a copy of m_data.
    */
-  template< int U=NDIM >
+  template< int _NDIM=NDIM, int _UNIT_STRIDE_DIM=UNIT_STRIDE_DIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline operator
-  typename std::enable_if< U == 1, T * const restrict >::type () const noexcept restrict_this
+  typename std::enable_if< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >::type () const noexcept restrict_this
   {
     return m_data;
   }
 
   /**
-   * Function to convert to a reduced dimension array. For example, converting from
-   * a 2d array to a 1d array is valid if the last dimension of the 2d array is 1.
-   */
-  template< int U=NDIM >
-  inline CONSTEXPRFUNC
-  typename std::enable_if< (U > 1), ArrayView<T, NDIM - 1, INDEX_TYPE, DATA_VECTOR_TYPE> >::type
-  dimReduce() const noexcept
-  {
-    GEOS_ASSERT_MSG( m_dims[NDIM - 1] == 1,
-                     "Array::operator ArrayView<T,NDIM-1,INDEX_TYPE> is only valid if last "
-                     "dimension is equal to 1." );
-
-    return ArrayView<T, NDIM - 1, INDEX_TYPE, DATA_VECTOR_TYPE>( this->m_dims,
-                                                                 this->m_strides,
-                                                                 this->m_dataVector,
-                                                                 this->m_singleParameterResizeIndex );
-  }
-
-
-  /**
    * @brief function to return the allocated size
    */
   inline LVARRAY_HOST_DEVICE INDEX_TYPE size() const noexcept
-  { return size_helper<NDIM, INDEX_TYPE>::f( m_dims ); }
+  { return multiplyAll< NDIM >( m_dims ); }
 
   /**
    * @brief function check if the array is empty.
    * @return a boolean. True if the array is empty, False if it is not empty.
    */
   inline bool empty() const
-  { return m_dataVector.empty(); }
+  { return size() == 0; }
 
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * begin() const
@@ -336,25 +315,11 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC typename
-  std::enable_if< U >= 3, ArraySlice<T, NDIM-1, INDEX_TYPE> >::type
+  std::enable_if< (U > 1), ArraySlice<T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE> >::type
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice<T, NDIM-1, INDEX_TYPE>( &(m_data[ index*m_strides[0] ] ), m_dims+1, m_strides+1 );
-  }
-
-  /**
-   * @brief This function provides a square bracket operator for array access of a 2D array.
-   * @param index index of the element in array to access
-   * @return a pointer to the data location indicated by the index.
-   */
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  typename std::enable_if< U==2, ArraySlice1d_rval< T, INDEX_TYPE > >::type
-  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return CREATE_ARRAY_SLICE_1D( &(m_data[ index*m_strides[0] ]), m_dims+1, m_strides+1 );
+    return ArraySlice<T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE>( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ), m_dims + 1, m_strides + 1 );
   }
 
   /**
@@ -370,12 +335,8 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ index ];
+    return m_data[ ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ) ];
   }
-
-  ///***********************************************************************************************
-  ///**** END DO NOT EDIT!!! THIS CODE IS COPIED FROM ArraySlice *****
-  ///***********************************************************************************************
 
   /**
    * @brief operator() array accessor
@@ -404,10 +365,14 @@ public:
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
-    linearIndex_helper<NDIM, INDEX_TYPE, INDICES...>::check( m_dims, indices... );
+    checkIndices( m_dims, indices... );
 #endif
-    return linearIndex_helper<NDIM, INDEX_TYPE, INDICES...>::evaluate( m_strides, indices... );
+    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices... );
   }
+
+  ///***********************************************************************************************
+  ///**** END DO NOT EDIT!!! THIS CODE IS COPIED FROM ArraySlice *****
+  ///***********************************************************************************************  
 
   /**
    * @brief accessor for data
@@ -479,6 +444,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline INDEX_TYPE size( int dim ) const noexcept
   {
+    GEOS_ASSERT_GT( NDIM, dim );
     return m_dims[dim];
   }
 
@@ -587,10 +553,10 @@ protected:
 
   T * const restrict m_data;
 
-  /// this data member contains the dimensions of the array
+  /// the dimensions of the array
   INDEX_TYPE const m_dims[NDIM];
 
-  /// this data member contains the strides of the array
+  /// the strides of the array
   INDEX_TYPE const m_strides[NDIM];
 
   /// this data member contains the actual data for the array

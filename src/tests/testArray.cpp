@@ -16,10 +16,15 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#include "gtest/gtest.h"
-
+// Source includes
 #include "Array.hpp"
 #include "testUtils.hpp"
+
+// TPL includes
+#include <gtest/gtest.h>
+
+// System includes
+#include <random>
 
 namespace LvArray
 {
@@ -409,7 +414,7 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
  * @param [in] n the end size of the vector.
  */
 template < class T >
-void resize_test( array< T >& v, INDEX_TYPE n )
+void resize_test( array< T >& v, INDEX_TYPE const n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -426,7 +431,7 @@ void resize_test( array< T >& v, INDEX_TYPE n )
     data_ptr[ i ] = val;
   }
 
-  /* No reallocation should have occured. */
+  /* No reallocation should have occurred. */
   ASSERT_EQ( data_ptr, v.data() );
 
   v.resize( n / 4 );
@@ -1206,11 +1211,6 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N );
     arrayView< int > & vView = v;
     internal::compare_to_view( v, vView );
-
-    array< int const > const & vConst = v;
-    arrayView< int const > const & vViewConst = v;
-    internal::compare_to_view( vConst, vViewConst );
-
   }
 
   {
@@ -1218,11 +1218,6 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N );
     arrayView< Tensor >& vView = v;
     internal::compare_to_view( v, vView );
-
-    array< Tensor const > const & vConst = v;
-    arrayView< Tensor const > const & vViewConst = v;
-    internal::compare_to_view( vConst, vViewConst );
-
   }
 
   {
@@ -1230,11 +1225,6 @@ TEST( Array, test_upcast )
     internal::push_back_test( v, N );
     arrayView< TestString >& vView = v;
     internal::compare_to_view( v, vView );
-
-    array< TestString const > const & vConst = v;
-    arrayView< TestString const > const & vViewConst = v;
-    internal::compare_to_view( vConst, vViewConst );
-
   }
 }
 
@@ -1263,6 +1253,234 @@ TEST( Array, test_array2D )
     arrayView2D< TestString >& vView = v;
     internal::compare_to_view( v, vView );
   }
+}
+
+template< typename T >
+class ArrayResizeTest : public testing::Test
+{
+public:
+
+  template< int UNIT_STRIDE_DIM >
+  void print( ArrayView< T const, 2, UNIT_STRIDE_DIM > const & v )
+  {
+    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    {
+      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      {
+        std::cout << v( i, j ) << " ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
+  template< typename PERMUTATION >
+  void resize( PERMUTATION )
+  {
+    constexpr int NDIM = getDimension( PERMUTATION {} );
+    static_assert( NDIM < 5, "dimension must be less than 4");
+
+    Array< T, NDIM, PERMUTATION > a;
+
+    INDEX_TYPE const maxDimSize = getMaxDimSize( NDIM );
+    INDEX_TYPE initialSizes[ NDIM ];
+    
+    // Iterate over randomly generated sizes.
+    for ( int i = 0; i < 10; ++i )
+    {
+      for ( int d = 0; d < NDIM; ++d )
+      {
+        initialSizes[ d ] = rand( 1, maxDimSize / 2 );
+      }
+
+      // Iterate over the dimensions
+      for ( int d = 0; d < NDIM; ++d )
+      {
+        a.setSingleParameterResizeIndex( d );
+
+        populate( a, initialSizes );
+
+        // Increase the size
+        INDEX_TYPE const largerDefaultSize = rand( initialSizes[ d ], maxDimSize );
+        a.resizeDefault( largerDefaultSize, T( -1 ) );
+        validate( a.toViewConst(), initialSizes, T( -1 ) );
+
+        // Decrease the size
+        INDEX_TYPE const smallerDefaultSize = rand( 0, initialSizes[ d ] );
+        a.resize( smallerDefaultSize );
+        validate( a.toViewConst(), a.dims() );
+      }
+    }
+  }
+
+
+private:
+
+  template< int UNIT_STRIDE_DIM, typename LAMBDA >
+  void arrayIterator( ArrayView< T const, 1, UNIT_STRIDE_DIM > const & v,
+                      LAMBDA && f )
+  {
+    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    {
+      f( i, i );
+    }
+  }
+
+  template< int UNIT_STRIDE_DIM, typename LAMBDA >
+  void arrayIterator( ArrayView< T const, 2, UNIT_STRIDE_DIM > const & v,
+                      LAMBDA && f )
+  {
+    INDEX_TYPE const maxDimSize = getMaxDimSize( 2 );
+    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    {
+      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      {
+        INDEX_TYPE const linearIndex = maxDimSize * i + j;
+        f( linearIndex, i, j );
+      }
+    }
+  }
+
+  template< int UNIT_STRIDE_DIM, typename LAMBDA >
+  void arrayIterator( ArrayView< T const, 3, UNIT_STRIDE_DIM > const & v,
+                      LAMBDA && f )
+  {
+    INDEX_TYPE const maxDimSize = getMaxDimSize( 3 );
+    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    {
+      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      {
+        for ( INDEX_TYPE k = 0; k < v.size( 2 ); ++k )
+        {
+          INDEX_TYPE const linearIndex = maxDimSize * maxDimSize * i + maxDimSize * j + k;
+          f( linearIndex, i, j, k );
+        }
+      }
+    }
+  }
+
+  template< int UNIT_STRIDE_DIM, typename LAMBDA >
+  void arrayIterator( ArrayView< T const, 4, UNIT_STRIDE_DIM > const & v,
+                      LAMBDA && f )
+  {
+    INDEX_TYPE const maxDimSize = getMaxDimSize( 4 );
+    INDEX_TYPE const maxDimSize2 = maxDimSize * maxDimSize;
+    INDEX_TYPE const maxDimSize3 = maxDimSize2 * maxDimSize;
+    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    {
+      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      {
+        for ( INDEX_TYPE k = 0; k < v.size( 2 ); ++k )
+        {
+          for ( INDEX_TYPE l = 0; l < v.size( 3 ); ++l )
+          {
+            INDEX_TYPE const linearIndex = maxDimSize3 * i + maxDimSize2 * j + maxDimSize * k + l;
+            f( linearIndex, i, j, k, l );
+          }
+        }
+      }
+    }
+  }
+
+  template< int NDIM, typename PERMUTATION >
+  void populate( Array< T, NDIM, PERMUTATION > & a,
+                 INDEX_TYPE const * const initialSizes )
+  {
+    a.resize( NDIM, initialSizes );
+    for ( int d = 0; d < NDIM; ++d )
+    {
+      ASSERT_EQ( initialSizes[ d ], a.size( d ) );
+    }
+
+    arrayIterator( a.toViewConst(), [&]( INDEX_TYPE const linearIndex,
+                                         auto... indices )
+    {
+      a( indices... ) = T( linearIndex );
+    } );
+
+    validate( a.toViewConst(), initialSizes );
+  }
+
+  template< int NDIM, int UNIT_STRIDE_DIM >
+  void validate( ArrayView< T const, NDIM, UNIT_STRIDE_DIM > const & v,
+                 INDEX_TYPE const * const initialSizes,
+                 T const & defaultValue = T() )
+  {
+    arrayIterator( v, [&]( INDEX_TYPE const linearIndex,
+                           auto... indices )
+    {
+      if ( !invalidIndices( initialSizes, indices... ) )
+      {
+        EXPECT_EQ( v( indices... ), T( linearIndex ) );
+      }
+      else
+      {
+        EXPECT_EQ( v( indices... ), defaultValue );
+      }
+    } );
+  }
+
+  INDEX_TYPE getMaxDimSize( int const d )
+  { return m_maxDimSizes[ d - 1 ]; }
+
+  INDEX_TYPE rand( INDEX_TYPE const min, INDEX_TYPE const max )
+  { return std::uniform_int_distribution< INDEX_TYPE >( min, max )( m_gen ); }
+
+  INDEX_TYPE const m_maxDimSizes[ 4 ] = { 1000, 40, 20, 10 };
+  std::mt19937_64 m_gen;
+};
+
+// using TestTypes = ::testing::Types< INDEX_TYPE >;
+using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
+TYPED_TEST_CASE( ArrayResizeTest, TestTypes );
+
+TYPED_TEST( ArrayResizeTest, resize1D )
+{
+  this->resize( RAJA::PERM_I {} );
+}
+
+TYPED_TEST( ArrayResizeTest, resize2D )
+{
+  this->resize( RAJA::PERM_IJ {} );
+  this->resize( RAJA::PERM_JI {} );
+}
+
+TYPED_TEST( ArrayResizeTest, resize3D )
+{
+  this->resize( RAJA::PERM_IJK {} );
+  this->resize( RAJA::PERM_JIK {} );
+  this->resize( RAJA::PERM_IKJ {} );
+  this->resize( RAJA::PERM_KIJ {} );
+  this->resize( RAJA::PERM_KJI {} );
+  this->resize( RAJA::PERM_JKI {} );
+}
+
+TYPED_TEST( ArrayResizeTest, resize4D )
+{
+  this->resize( RAJA::PERM_IJKL {} );
+  this->resize( RAJA::PERM_JIKL {} );
+  this->resize( RAJA::PERM_IKJL {} );
+  this->resize( RAJA::PERM_KIJL {} );
+  this->resize( RAJA::PERM_JKIL {} );
+  this->resize( RAJA::PERM_KJIL {} );
+  this->resize( RAJA::PERM_IJLK {} );
+  this->resize( RAJA::PERM_JILK {} );
+  this->resize( RAJA::PERM_ILJK {} );
+  this->resize( RAJA::PERM_LIJK {} );
+  this->resize( RAJA::PERM_JLIK {} );
+  this->resize( RAJA::PERM_LJIK {} );
+  this->resize( RAJA::PERM_IKLJ {} );
+  this->resize( RAJA::PERM_KILJ {} );
+  this->resize( RAJA::PERM_ILKJ {} );
+  this->resize( RAJA::PERM_LIKJ {} );
+  this->resize( RAJA::PERM_KLIJ {} );
+  this->resize( RAJA::PERM_LKIJ {} );
+  this->resize( RAJA::PERM_JKLI {} );
+  this->resize( RAJA::PERM_KJLI {} );
+  this->resize( RAJA::PERM_JLKI {} );
+  this->resize( RAJA::PERM_LJKI {} );
+  this->resize( RAJA::PERM_KLJI {} );
+  this->resize( RAJA::PERM_LKJI {} );
 }
 
 } /* namespace LvArray */

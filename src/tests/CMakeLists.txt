@@ -19,6 +19,7 @@ set(testSources
     testSparsityPattern.cpp
     testStackArray.cpp
     testStringUtilities.cpp
+    testPermutation.cpp
    )
 
 message( "cxx_dependencies = ${cxx_dependencies}" )

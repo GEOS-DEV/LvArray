@@ -163,8 +163,8 @@ public:
    * @brief Moves the CRSMatrix to the given execution space.
    * @param [in] space the space to move to.
    */
-  void move(chai::ExecutionSpace const space) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, m_entries); }
+  void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, touch, m_entries); }
 
   /**
    * @brief Touch in the given memory space.
