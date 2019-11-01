@@ -137,8 +137,8 @@ public:
    * @brief Moves the SparsityPattern to the given execution space.
    * @param [in] space the space to move to.
    */
-  void move(chai::ExecutionSpace const space) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space); }
+  void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, touch); }
 
   /**
    * @brief Touch in the given memory space.

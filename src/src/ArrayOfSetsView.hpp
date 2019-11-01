@@ -133,7 +133,7 @@ public:
    * @param [in] i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<T const, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
+  ArraySlice<T const, 1, 0, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -274,7 +274,7 @@ protected:
    * @note This method is protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> getSetValues( INDEX_TYPE const i ) const restrict_this
+  ArraySlice<T, 1, 0, INDEX_TYPE_NC> getSetValues( INDEX_TYPE const i ) const restrict_this
   { return ParentClass::operator[]( i ); }
 
   /**

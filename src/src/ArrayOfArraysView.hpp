@@ -229,10 +229,10 @@ public:
    * @param [in] i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
+  ArraySlice<T, 1, 0, INDEX_TYPE_NC> operator[]( INDEX_TYPE const i ) const restrict_this
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    return createArraySlice1d<T, INDEX_TYPE_NC>( m_values.data() + m_offsets[i], &m_sizes[i], nullptr );
+    return ArraySlice<T, 1, 0, INDEX_TYPE_NC>( m_values.data() + m_offsets[i], &m_sizes[i], nullptr );
   }
 
   /**
@@ -546,7 +546,7 @@ protected:
    * @brief Destroy all the objects held by this array and free all associated memory.
    * @tparam VECTORS variadic template where each type is a ChaiVector.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
   template <class ...VECTORS>
@@ -626,16 +626,16 @@ protected:
    * @tparam VECTORS variadic template where each type is a ChaiVector.
    * @param [in] space the memory space to move to.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
   template <class ...VECTORS>
-  void move(chai::ExecutionSpace const space, VECTORS & ...vectors)
+  void move(chai::ExecutionSpace const space, bool const touch, VECTORS & ...vectors)
   {
     for_each_arg(
-      [space](auto & vector)
+      [space, touch]( auto & vector )
       {
-        vector.move( space );
+        vector.move( space, touch );
       },
       m_values, m_sizes, m_offsets, vectors...
     );
@@ -646,7 +646,7 @@ protected:
    * @tparam VECTORS variadic template where each type is a ChaiVector.
    * @param [in] space the memory space to touch.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
   template <class ...VECTORS>
@@ -666,7 +666,7 @@ protected:
    * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
    * @tparam VECTORS variadic template where each type is a ChaiVector.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note This method doesn't free any memory. 
    */
@@ -722,7 +722,7 @@ protected:
    * @tparam VECTORS variadic template where each type is a ChaiVector.
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    */
   template <class ...VECTORS>
   void reserveValues( INDEX_TYPE const newValueCapacity, VECTORS & ...vectors )
@@ -742,7 +742,7 @@ protected:
    * @param [in] i the array to set the capacity of.
    * @param [in] newCapacity the value to set the capacity of the given array to.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
   template <class ...VECTORS>
@@ -863,7 +863,7 @@ private:
    * @param [in] begin the array to start with.
    * @param [in] end where to stop destroying values.
    * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
-   *        simlarly to m_values.
+   *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note this method doesn't free any memory.
    */

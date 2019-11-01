@@ -26,67 +26,108 @@ TEST( SizeHelper, SizeHelper )
 {
   int dims[4] = { 3, 7, 11, 17 };
 
-  int const result0 = size_helper<4,int,0>::f(dims);
-  int const result1 = size_helper<4,int,1>::f(dims);
-  int const result2 = size_helper<4,int,2>::f(dims);
-  int const result3 = size_helper<4,int,3>::f(dims);
-  ASSERT_TRUE( result0 == dims[0]*dims[1]*dims[2]*dims[3] );
-  ASSERT_TRUE( result1 ==         dims[1]*dims[2]*dims[3] );
-  ASSERT_TRUE( result2 ==                 dims[2]*dims[3] );
-  ASSERT_TRUE( result3 ==                         dims[3] );
+  int const result0 = multiplyAll< 4 >( dims );
+  int const result1 = multiplyAll< 3 >( dims + 1 );
+  int const result2 = multiplyAll< 2 >( dims + 2 );
+  int const result3 = multiplyAll< 1 >( dims + 3 );
+  ASSERT_EQ( result0, dims[0] * dims[1] * dims[2] * dims[3] );
+  ASSERT_EQ( result1,           dims[1] * dims[2] * dims[3] );
+  ASSERT_EQ( result2,                     dims[2] * dims[3] );
+  ASSERT_EQ( result3,                               dims[3] );
 }
 
-
-template< int NDIM, typename... INDICES >
-int indexCaller( int const * const strides, INDICES... indices )
+TEST( helpers, getLinearIndex )
 {
-  return linearIndex_helper< NDIM, int, INDICES...>::evaluate(strides, indices...);
-}
+  constexpr int NDIM = 4;
+  constexpr int UNIT_STRIDE_DIM = 3;
 
-TEST( IndexHelper, IndexHelper )
-{
-  int dims[4] = { 3, 2, 5, 3 };
-  int strides[4] = { dims[1]*dims[2]*dims[3],
-                             dims[2]*dims[3],
-                                     dims[3],
-                                           1 };
+  int const dims[ NDIM ] = { 3, 2, 5, 3 };
+  int const strides[ NDIM ] = { dims[ 1 ] * dims[ 2 ] * dims[ 3 ],
+                                dims[ 2 ] * dims[ 3 ],
+                                dims[ 3 ],
+                                -1000 }; // The stride of the UNIT_STRIDE_DIM shouldn't be used.
 
-  for( int a0=0 ; a0<dims[0] ; ++a0 )
+  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
   {
-    for( int a1=0 ; a1<dims[1] ; ++a1 )
+    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
     {
-      for( int a2=0 ; a2<dims[2] ; ++a2 )
+      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
       {
-        for( int a3=0 ; a3<dims[3] ; ++a3 )
+        for( int a3 = 0; a3 < dims[ 3 ] ; ++a3 )
         {
-          ASSERT_TRUE( indexCaller<4>( strides, a0,a1,a2,a3 ) ==
-              a0*strides[0]+a1*strides[1]+a2*strides[2]+a3*strides[3] );
+          int const expectedIndex = a0 * strides[ 0 ] + a1 * strides[ 1 ] + a2 * strides[ 2 ] + a3;
+          int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2, a3 );
+          EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2 << ", a3 = " << a3;
         }
       }
     }
   }
 }
 
-
-template< int NDIM, typename... INDICES >
-void indexChecker( int const * const dims, INDICES... indices )
+TEST( helpers, getLinearIndexPermuted )
 {
-  linearIndex_helper< NDIM, int, INDICES...>::check(dims, indices...);
+  constexpr int NDIM = 3;
+  constexpr int UNIT_STRIDE_DIM = 0;
+
+  // Permutation = { 2, 1, 0 }
+  int const dims[ NDIM ] = { 3, 2, 5 };
+  int const strides[ NDIM ] = { -1000, // The stride of the UNIT_STRIDE_DIM shouldn't be used.
+                                dims[ 0 ],
+                                dims[ 0 ] * dims[ 1 ] };
+
+  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
+  {
+    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
+    {
+      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
+      {
+        int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
+        int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
+        EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2;
+      }
+    }
+  }
 }
 
-TEST( IndexChecker, IndexChecker )
+TEST( helpers, getLinearIndexPermuted2 )
+{
+  constexpr int NDIM = 3;
+  constexpr int UNIT_STRIDE_DIM = 0;
+
+  // Permutation = { 1, 2, 0 }
+  int const dims[ NDIM ] = { 3, 2, 5 };
+  int const strides[ NDIM ] = { dims[ 1 ],
+                                -1000, // The stride of the UNIT_STRIDE_DIM shouldn't be used.
+                                dims[ 1 ] * dims[ 2 ] };
+
+  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
+  {
+    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
+    {
+      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
+      {
+        int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
+        int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
+        EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2;
+      }
+    }
+  }
+}
+
+TEST( helpers, checkIndices )
 {
   int dims[4] = { 3, 2, 1, 3 };
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, -1,0,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,-1,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,0,-1,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,0,0,-1 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, dims[0],0,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,dims[1],0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,0,dims[2],0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( indexChecker<4>( dims, 0,0,0,dims[3]), "" );
+  EXPECT_TRUE( invalidIndices( dims, -1, 0, 0, 0 ) );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, -1,0,0,0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,-1,0,0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,-1,0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,0,-1 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, dims[0],0,0,0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,dims[1],0,0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,dims[2],0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,0,dims[3]), "" );
 
   for( int a0=0 ; a0<dims[0] ; ++a0 )
   {
@@ -96,27 +137,11 @@ TEST( IndexChecker, IndexChecker )
       {
         for( int a3=0 ; a3<dims[3] ; ++a3 )
         {
-          ASSERT_NO_FATAL_FAILURE( indexChecker<4>( dims, a0,a1,a2,a3 ) );
+          ASSERT_NO_FATAL_FAILURE( checkIndices( dims, a0,a1,a2,a3 ) );
         }
       }
     }
   }
-}
-
-
-TEST( StrideHelper, StrideHelper )
-{
-  int dims[4] = { 3, 2, 5, 7 };
-
-  int const result0 = stride_helper<4,int>::evaluate(dims);
-  int const result1 = stride_helper<3,int>::evaluate(dims+1);
-  int const result2 = stride_helper<2,int>::evaluate(dims+2);
-  int const result3 = stride_helper<1,int>::evaluate(dims+3);
-
-  ASSERT_TRUE( result0 == dims[1]*dims[2]*dims[3] );
-  ASSERT_TRUE( result1 ==         dims[2]*dims[3] );
-  ASSERT_TRUE( result2 ==                 dims[3] );
-  ASSERT_TRUE( result3 ==                       1 );
 }
 
 

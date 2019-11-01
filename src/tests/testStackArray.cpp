@@ -24,7 +24,7 @@
 using namespace LvArray;
 
 template< typename T, int NDIM, typename INDEX_TYPE >
-using stackArray = Array< T, NDIM, INDEX_TYPE, StackArrayWrapper<T,100> >;
+using stackArray = Array< T, NDIM, camp::make_idx_seq_t<NDIM>, INDEX_TYPE, StackArrayWrapper<T,100> >;
 
 
 TEST( StackArray, allocate1d )

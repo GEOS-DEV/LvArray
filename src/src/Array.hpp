@@ -24,19 +24,19 @@
 #define ARRAY_HPP_
 
 
+
+#include "helpers.hpp"
+#include "ArrayView.hpp"
+#include "ChaiVector.hpp"
+
+#include <RAJA/RAJA.hpp>
+
 #include <iostream>
 #include <limits>
-
-#include "ArrayView.hpp"
-#include "helpers.hpp"
-#include "ChaiVector.hpp"
-#include "SFINAE_Macros.hpp"
-
 
 
 namespace LvArray
 {
-
 
 /**
  * @class Array
@@ -45,45 +45,50 @@ namespace LvArray
  * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
  * @tparam INDEX_TYPE the integer to use for indexing the components of the array
  */
-template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
+template< typename T, int NDIM, typename PERMUTATION, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
 class Array : public ArrayView< T,
                                 NDIM,
+                                getStrideOneDimension( PERMUTATION {} ),
                                 INDEX_TYPE,
                                 DATA_VECTOR_TYPE >
 {
 public:
+
+  static_assert( NDIM >= 0, "The dimension of the Array must be positive." );
+  static_assert( getDimension( PERMUTATION {} ) == NDIM, "The dimension of the permutation must match the dimension of the Array." );
+  static_assert( isValidPermutation( PERMUTATION {} ), "The permutation must be valid." );
+  static_assert(std::is_integral<INDEX_TYPE>::value, "INDEX_TYPE must be integral.");
+  
+  static constexpr int UNIT_STRIDE_DIM = getStrideOneDimension( PERMUTATION {} );
+
   using isArray = std::true_type;
   using value_type = T;
   static constexpr int ndim = NDIM;
 
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dataVector;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dims;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_strides;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_singleParameterResizeIndex;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::toSlice;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::size;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::empty;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::setDataPtr;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::data;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator[];
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator();
 
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::size;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::setDataPtr;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::data;
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator[];
-  using ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::operator();
+  using typename ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::pointer;
+  using typename ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_pointer;
 
-  using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::pointer;
-  using typename ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>::const_pointer;
-
-  using ViewType = typename detail::to_arrayView< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
-  using ViewTypeConst = typename detail::to_arrayViewConst< Array< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  using ViewType = typename detail::to_arrayView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  using ViewTypeConst = typename detail::to_arrayViewConst< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
 
   /**
    * @brief default constructor
    */
   inline Array():
-    ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
+    ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
   {
     CalculateStrides();
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     Array::TV_ttf_display_type( nullptr );
 #endif
-
   }
 
   /**
@@ -108,7 +113,7 @@ public:
    * Performs a deep copy of source
    */
   Array( Array const & source ):
-    ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
+    ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>()
   {
     // This DOES NOT trigger Chai::ManagedArray CC
     *this = source;
@@ -123,17 +128,6 @@ public:
   {
     m_dataVector.free();
     setDataPtr();
-  }
-
-  /**
-   * User Defined Conversion operator to move from an Array<T> to Array<T const>
-   */
-  template< typename U = T >
-  operator typename std::enable_if< !std::is_const<U>::value,
-                                    Array<T const, NDIM, INDEX_TYPE> const & >::type
-    () const
-  {
-    return reinterpret_cast<Array<T const, NDIM, INDEX_TYPE> const &>(*this);
   }
 
   /**
@@ -225,9 +219,7 @@ public:
    */
   template< typename DIMS_TYPE >
   void resize( int const numDims, DIMS_TYPE * const dims )
-  {
-    resize( numDims, const_cast<DIMS_TYPE const *>(dims) );
-  }
+  { resize( numDims, const_cast<DIMS_TYPE const *>(dims) ); }
 
   /**
    * @brief function to resize/reallocate the array
@@ -268,35 +260,6 @@ public:
     this->setDataPtr();
   }
 
-  /**
-   * @brief function to resize/reallocate the array using a single dimension
-   * @param newdim the new dimension
-   *
-   * This resize function will use set the dim[m_singleParameterResizeIndex]=newdim, and reallocate
-   * based on that new size.
-   */
-  void resize( INDEX_TYPE const newdim )
-  {
-    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
-    CalculateStrides();
-    resizePrivate();
-  }
-
-  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
-  {
-    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
-    CalculateStrides();
-    resizePrivate( defaultValue );
-  }
-
-  template <class ...ARGS>
-  void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
-  {
-    const_cast<INDEX_TYPE *>(m_dims)[m_singleParameterResizeIndex] = newdim;
-    CalculateStrides();
-    resizePrivate( std::forward<ARGS>(args)... );
-  }
-
   template < INDEX_TYPE... INDICES, typename... DIMS>
   void resizeDimension( DIMS... newdims )
   {
@@ -312,6 +275,23 @@ public:
     CalculateStrides();
     resizePrivate();
   }
+
+  /**
+   * @brief function to resize/reallocate the array using a single dimension
+   * @param newdim the new dimension
+   *
+   * This resize function will use set the dim[m_singleParameterResizeIndex]=newdim, and reallocate
+   * based on that new size.
+   */
+  void resize( INDEX_TYPE const newdim )
+  { resizeDefaultDimension( newdim ); }
+
+  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
+  { resizeDefaultDimension( newdim, defaultValue ); }
+
+  template <class ...ARGS>
+  void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
+  { resizeDefaultDimension( newdim, std::forward<ARGS>(args)... ); }
 
   /**
    *
@@ -446,18 +426,42 @@ public:
    */
   static int TV_ttf_display_type( Array const * av)
   {
-    return ArrayView< T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE >::TV_ttf_display_type( av );
+    return ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE >::TV_ttf_display_type( av );
   }
 #endif
 
+  std::array< camp::idx_t, NDIM > getPermutation() const
+  { return RAJA::as_array< PERMUTATION >::get(); }
+
 private:
 
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dataVector;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_dims;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_strides;
+  using ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE>::m_singleParameterResizeIndex;
+
+  /**
+   * @brief Calculate the strides given the dimensions and permutation.
+   * @note Adapted from RAJA::make_permuted_layout.
+   */
   void CalculateStrides()
   {
-    const_cast<INDEX_TYPE *>(m_strides)[NDIM-1] = 1;
-    for( int a=NDIM-2 ; a>=0 ; --a )
+    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();
+    std::array< INDEX_TYPE, NDIM > foldedStrides;
+    
+    for (int i = 0; i < NDIM; ++i)
     {
-      const_cast<INDEX_TYPE *>(m_strides)[a] = m_dims[a+1] * m_strides[a+1];
+      foldedStrides[ i ] = 1;
+      for (int j = i + 1; j < NDIM; ++j)
+      {
+        foldedStrides[ i ] *= m_dims[ permutation[ j ] ];
+      }
+    }
+
+    INDEX_TYPE * const strides = const_cast< INDEX_TYPE * >( m_strides );
+    for (int i = 0; i < NDIM; ++i)
+    {
+      strides[ permutation[ i ] ] = foldedStrides[ i ];
     }
   }
 
@@ -465,8 +469,75 @@ private:
   void resizePrivate( ARGS &&... args )
   {
     INDEX_TYPE const newLength = size();
-    m_dataVector.resize( newLength, std::forward<ARGS>(args)... );
+    m_dataVector.resize( newLength, std::forward<ARGS>( args )... );
     this->setDataPtr();
+  }
+
+  template <class ...ARGS>
+  void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS &&... args )
+  {
+    INDEX_TYPE const curDimLength = m_dims[ m_singleParameterResizeIndex ];
+    INDEX_TYPE const curDimStride = m_strides[ m_singleParameterResizeIndex ];
+
+    INDEX_TYPE const oldSize = size();
+    const_cast< INDEX_TYPE * >( m_dims )[ m_singleParameterResizeIndex ] = newDimLength;
+    INDEX_TYPE const newSize = size();
+    CalculateStrides();
+
+    // If we aren't changing the total size then we can return early.
+    if ( newSize == oldSize ) return;
+    
+    if ( newDimLength > curDimLength )
+    {
+      // Reserve space in the ChaiVector but don't initialize the values.
+      m_dataVector.reserve( newSize );
+      this->setDataPtr();
+      T * const ptr = data();
+
+      INDEX_TYPE const valuesToAddPerIteration = curDimStride * ( newDimLength - curDimLength );
+      INDEX_TYPE const valuesToShiftPerIteration = curDimStride * curDimLength;
+      INDEX_TYPE const numIterations = ( newSize - oldSize ) / valuesToAddPerIteration;
+
+      // Iterate backwards over the iterations.
+      for ( INDEX_TYPE i = numIterations - 1; i >= 0; --i )
+      {
+        INDEX_TYPE const valuesLeftToInsert = valuesToAddPerIteration * i;
+        T * const startOfShift = ptr + valuesToShiftPerIteration * i;
+        arrayManipulation::shiftUp( startOfShift, valuesToShiftPerIteration, INDEX_TYPE( 0 ), valuesLeftToInsert );
+
+        // Initialize the new values.
+        T * const startOfNewValues = startOfShift + valuesToShiftPerIteration + valuesLeftToInsert;
+        for ( INDEX_TYPE j = 0; j < valuesToAddPerIteration; ++j )
+        {
+          new ( startOfNewValues + j ) T( std::forward< ARGS >( args )... );
+        }
+      }
+    }
+    else
+    {
+      T * const ptr = data();
+
+      INDEX_TYPE const valuesToRemovePerIteration = curDimStride * ( curDimLength - newDimLength );
+      INDEX_TYPE const valuesToShiftPerIteration = curDimStride * newDimLength;
+      INDEX_TYPE const numIterations = ( oldSize - newSize ) / valuesToRemovePerIteration;
+
+      // Iterate over the iterations, skipping the first.
+      for ( INDEX_TYPE i = 1; i < numIterations; ++i )
+      {
+        INDEX_TYPE const amountToShift = valuesToRemovePerIteration * i;
+        T * const startOfShift = ptr + valuesToShiftPerIteration * i;
+        arrayManipulation::shiftDown( startOfShift, valuesToShiftPerIteration + amountToShift, amountToShift, amountToShift );
+      }
+
+      // Initialize the new values
+      INDEX_TYPE const totalValuesToRemove = valuesToRemovePerIteration * numIterations;
+      for ( INDEX_TYPE i = 0; i < totalValuesToRemove; ++i )
+      {
+        ptr[ newSize + i ].~T();
+      }
+    }
+
+    m_dataVector.setSize( newSize );
   }
 
 };

@@ -16,22 +16,22 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-
-#include "gtest/gtest.h"
-
+// Source includes
 #include "Array.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
 #include "testUtils.hpp"
+
+// TPL includes
+#include <gtest/gtest.h>
+
+#if defined( USE_CUDA ) && defined( USE_CHAI )
+  #include <chai/util/forall.hpp>
+#endif
+
+// System includes
 #include <type_traits>
-
-#ifdef USE_CUDA
-
-#ifdef USE_CHAI
-#include "chai/util/forall.hpp"
-#endif
-
-#endif
+#include <random>
 
 namespace LvArray
 {
@@ -66,84 +66,113 @@ using arrayView3D = ArrayView< T, 3 > const;
 namespace internal
 {
 
-
-template < typename T >
-void test2DAccessors( arrayView2D< T > & v )
+int rand( int const low, int const high )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
+  static std::mt19937_64 m_gen;
+  return std::uniform_int_distribution< int >( low, high )( m_gen );
+}
+
+template< int UNIT_STRIDE_DIM, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 2, UNIT_STRIDE_DIM > const & v,
+                             RAJA::View< int, LAYOUT > view )
+{
+  ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
+  ASSERT_EQ( v.size( 1 ), view.layout.sizes[ 1 ] );
   
-  for ( INDEX_TYPE i = 0; i < I; ++i )
-  {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
-    {
-      v[ i ][ j ] = T( J * i + j );
-    }
-  }
+  int const * const data = v.data();
+  ASSERT_EQ( data, view.data );
 
-  for ( INDEX_TYPE i = 0; i < I; ++i )
+  for ( int i = 0; i < v.size( 0 ); ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for ( int j = 0; j < v.size( 1 ); ++j )
     {
-      v( i, j ) += T( 2 );
-    }
-  }
-
-  for( INDEX_TYPE i = 0; i < I; ++i )
-  {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
-    {
-      T val( J * i + j  );
-      val += T( 2 );
-      EXPECT_EQ( v[ i ][ j ], val );
+      EXPECT_EQ( &view( i, j ) - data, &v[ i ][ j ] - data );
+      EXPECT_EQ( &view( i, j ) - data, &v( i, j ) - data );
     }
   }
 }
 
-
-template < typename T >
-void test3DAccessors( arrayView3D< T > & v )
+template< int UNIT_STRIDE_DIM, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 3, UNIT_STRIDE_DIM > const & v,
+                             RAJA::View< int, LAYOUT > view )
 {
-  const INDEX_TYPE I = v.size(0);
-  const INDEX_TYPE J = v.size(1);
-  const INDEX_TYPE K = v.size(2);
-  
-  for ( INDEX_TYPE i = 0; i < I; ++i )
-  {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
-    {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
-      {
-        v[ i ][ j ][ k ] = T( J * K * i + K * j + k );
-      }
-    }
-  }
+  ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
+  ASSERT_EQ( v.size( 1 ), view.layout.sizes[ 1 ] );
+  ASSERT_EQ( v.size( 2 ), view.layout.sizes[ 2 ] );
 
-  for ( INDEX_TYPE i = 0; i < I; ++i )
-  {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
-    {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
-      {
-        v( i, j, k ) += T( 2 );
-      }
-    }
-  }
+  int const * const data = v.data();
+  ASSERT_EQ( data, view.data );
 
-  for( INDEX_TYPE i = 0; i < I; ++i )
+  for ( int i = 0; i < v.size( 0 ); ++i )
   {
-    for ( INDEX_TYPE j = 0; j < J; ++j )
+    for ( int j = 0; j < v.size( 1 ); ++j )
     {
-      for ( INDEX_TYPE k = 0; k < K; ++k )
+      for ( int k = 0; k < v.size( 2 ); ++k )
       {
-        T val( J * K * i + K * j + k );
-        val += T( 2 );
-        EXPECT_EQ( v[ i ][ j ][ k ], val );
+        EXPECT_EQ( &view( i, j, k ) - data, &v[ i ][ j ][ k ] - data );
+        EXPECT_EQ( &view( i, j, k ) - data, &v( i, j, k ) - data ) << i << ", " << j << ", " << k;
       }
     }
   }
 }
 
+template< int UNIT_STRIDE_DIM, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 4, UNIT_STRIDE_DIM > const & v,
+                             RAJA::View< int, LAYOUT > view )
+{
+  ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
+  ASSERT_EQ( v.size( 1 ), view.layout.sizes[ 1 ] );
+  ASSERT_EQ( v.size( 2 ), view.layout.sizes[ 2 ] );
+  ASSERT_EQ( v.size( 3 ), view.layout.sizes[ 3 ] );
+
+  int const * const data = v.data();
+  ASSERT_EQ( data, view.data );
+
+  for ( int i = 0; i < v.size( 0 ); ++i )
+  {
+    for ( int j = 0; j < v.size( 1 ); ++j )
+    {
+      for ( int k = 0; k < v.size( 2 ); ++k )
+      {
+        for ( int l = 0; l < v.size( 3 ); ++l )
+        {
+          EXPECT_EQ( &view( i, j, k, l ) - data, &v[ i ][ j ][ k ][ l ] - data );
+          EXPECT_EQ( &view( i, j, k, l ) - data, &v( i, j, k, l ) - data );
+          EXPECT_EQ( view( i, j, k, l ), v( i, j, k, l ) );
+        }
+      }
+    }
+  }
+}
+
+template< typename PERMUTATION >
+void testArrayPermutation()
+{
+  constexpr int NDIM = LvArray::getDimension( PERMUTATION {} );
+  LvArray::Array< int, NDIM, PERMUTATION > a;
+
+  std::array< std::ptrdiff_t, NDIM > dimensions;
+  for ( int i = 0; i < NDIM; ++i )
+  {
+    dimensions[ i ] = rand( 1, 10 );
+  }
+
+  a.resize( NDIM, dimensions.data() );
+
+  RAJA::View< int, RAJA::Layout< NDIM > > view( a.data(), RAJA::make_permuted_layout( dimensions, RAJA::as_array< PERMUTATION >::get() ) );
+
+  for ( int i = 0; i < NDIM; ++i )
+  {
+    EXPECT_EQ( a.strides()[ i ], view.layout.strides[ i ] );
+  }
+
+  for ( int i = 0; i < a.size(); ++i )
+  {
+    a.data()[ i ] = i;
+  }
+
+  compareArrayToRAJAView( a, view );
+}
 
 #ifdef USE_CUDA
 
@@ -816,62 +845,49 @@ TEST( ArrayView, test_upcast )
 }
 
 
-TEST( ArrayView, test_dimReduction )
+TEST( ArrayView, Permutations2D )
 {
-  const INDEX_TYPE N = 10;
-  array2D< INDEX_TYPE > v( N, 1 );
-  arrayView2D<INDEX_TYPE> & vView = v;
-  arrayView<INDEX_TYPE> & vView1d = v.dimReduce();
-
-  for( INDEX_TYPE a=0 ; a<N ; ++a )
-  {
-    v[a][0] = 2*a;
-  }
-
-  ASSERT_EQ( vView1d.data(), v.data() );
-
-  for( INDEX_TYPE a=0 ; a<N ; ++a )
-  {
-    ASSERT_EQ( vView[a][0], v[a][0] );
-    ASSERT_EQ( vView1d[a], v[a][0] );
-  }
+  internal::testArrayPermutation< RAJA::PERM_IJ >();
+  internal::testArrayPermutation< RAJA::PERM_JI >();
 }
 
-
-TEST( ArrayView, 2DAccessors )
+TEST( ArrayView, Permutations3D )
 {
-  constexpr INDEX_TYPE N = 20;
-  constexpr INDEX_TYPE M = 10;
-
-  {
-    array2D< INDEX_TYPE > a( N, M );
-    internal::test2DAccessors( a );
-  }
-
-  {
-    array2D< Tensor > a( N, M );
-    internal::test2DAccessors( a );
-  }
+  internal::testArrayPermutation< RAJA::PERM_IJK >();
+  internal::testArrayPermutation< RAJA::PERM_JIK >();
+  internal::testArrayPermutation< RAJA::PERM_IKJ >();
+  internal::testArrayPermutation< RAJA::PERM_KIJ >();
+  internal::testArrayPermutation< RAJA::PERM_JKI >();
+  internal::testArrayPermutation< RAJA::PERM_KJI >();
 }
 
-
-TEST( ArrayView, 3DAccessors )
+TEST( ArrayView, Permutations4D )
 {
-  constexpr INDEX_TYPE N = 7;
-  constexpr INDEX_TYPE M = 8;
-  constexpr INDEX_TYPE P = 9;
-
-  {
-    array3D< INDEX_TYPE > a( N, M, P );
-    internal::test3DAccessors( a );
-  }
-
-  {
-    array3D< Tensor > a( N, M, P );
-    internal::test3DAccessors( a );
-  }
+  internal::testArrayPermutation< RAJA::PERM_IJKL >();
+  internal::testArrayPermutation< RAJA::PERM_JIKL >();
+  internal::testArrayPermutation< RAJA::PERM_IKJL >();
+  internal::testArrayPermutation< RAJA::PERM_KIJL >();
+  internal::testArrayPermutation< RAJA::PERM_JKIL >();
+  internal::testArrayPermutation< RAJA::PERM_KJIL >();
+  internal::testArrayPermutation< RAJA::PERM_IJLK >();
+  internal::testArrayPermutation< RAJA::PERM_JILK >();
+  internal::testArrayPermutation< RAJA::PERM_ILJK >();
+  internal::testArrayPermutation< RAJA::PERM_LIJK >();
+  internal::testArrayPermutation< RAJA::PERM_JLIK >();
+  internal::testArrayPermutation< RAJA::PERM_LJIK >();
+  internal::testArrayPermutation< RAJA::PERM_IKLJ >();
+  internal::testArrayPermutation< RAJA::PERM_KILJ >();
+  internal::testArrayPermutation< RAJA::PERM_ILKJ >();
+  internal::testArrayPermutation< RAJA::PERM_LIKJ >();
+  internal::testArrayPermutation< RAJA::PERM_KLIJ >();
+  internal::testArrayPermutation< RAJA::PERM_LKIJ >();
+  internal::testArrayPermutation< RAJA::PERM_JKLI >();
+  internal::testArrayPermutation< RAJA::PERM_KJLI >();
+  internal::testArrayPermutation< RAJA::PERM_JLKI >();
+  internal::testArrayPermutation< RAJA::PERM_LJKI >();
+  internal::testArrayPermutation< RAJA::PERM_KLJI >();
+  internal::testArrayPermutation< RAJA::PERM_LKJI >();
 }
-
 
 #ifdef USE_CUDA
 

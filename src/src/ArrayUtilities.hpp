@@ -82,8 +82,8 @@ struct stringToArrayHelper
     template< int NDIM >
     static void
     Read( typename std::conditional< (NDIM>1),
-                                     LvArray::ArraySlice<T, NDIM, INDEX_TYPE >,
-                                     LvArray::ArraySlice1d<T, INDEX_TYPE > >::type const & arraySlice,
+                                     LvArray::ArraySlice<T, NDIM, NDIM - 1, INDEX_TYPE >,
+                                     LvArray::ArraySlice<T, 1, 0, INDEX_TYPE > >::type const & arraySlice,
           INDEX_TYPE const * const dims,
           std::istringstream & inputStream )
     {
@@ -123,8 +123,8 @@ struct stringToArrayHelper
  * All values must be delimited with a ','. All spaces are stripped prior to processing.
  * Please don't use \t for anything...ever...thanks.
  */
-template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static void stringToArray(  LvArray::Array<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
+template< typename T, int NDIM, typename PERMUTATION, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
+static void stringToArray(  LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
                             std::string valueString )
 {
 
@@ -362,7 +362,7 @@ struct arrayToStringHelper
  * @return a string containing the contents of @p array
  */
 template< typename T, int NDIM, typename INDEX_TYPE, typename DATA_VECTOR_TYPE >
-static std::string arrayToString(  LvArray::ArrayView<T, NDIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
+static std::string arrayToString(  LvArray::ArrayView<T, NDIM, NDIM - 1, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
   std::string output;
   output.clear();

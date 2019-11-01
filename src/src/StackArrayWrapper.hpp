@@ -37,7 +37,17 @@ struct StackArrayWrapper
 
   void resize( ptrdiff_t length, T const & = T())
   {
-    GEOS_ERROR_IF( length > LENGTH, "C_Array::resize("<<length<<") is larger than template argument LENGTH=" << LENGTH );
+    GEOS_ERROR_IF( length > LENGTH, "StackArrayWrapper::resize(" << length << ") is larger than template argument LENGTH=" << LENGTH );
+  }
+
+  void reserve( ptrdiff_t length )
+  {
+    GEOS_ERROR_IF( length > LENGTH, "StackArrayWrapper::reserve(" << length << ") is larger than template argument LENGTH=" << LENGTH );
+  }
+
+  void setSize( ptrdiff_t length )
+  {
+    GEOS_ERROR_IF( length > LENGTH, "StackArrayWrapper::setSize(" << length << ") is larger than template argument LENGTH=" << LENGTH );
   }
 
   LVARRAY_HOST_DEVICE T * data() const { return const_cast<T *>(m_data); }

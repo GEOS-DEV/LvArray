@@ -849,7 +849,7 @@ TYPED_TEST(ArrayOfSetsTest, ArrayOfArraysStealFrom)
 #ifdef USE_CUDA
 
 template <class T>
-using Array1D = Array<T, 1, INDEX_TYPE>;
+using Array1D = Array<T, 1, RAJA::PERM_I, INDEX_TYPE>;
 
 template <class T>
 class ArrayOfSetsCudaTest : public ArrayOfSetsTest<T>

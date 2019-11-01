@@ -704,7 +704,7 @@ void memoryMotionConstTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef)
   );
 
   // Fill in the rows on host.
-  Array<INDEX_TYPE, 1, INDEX_TYPE> originalNNZ(numRows);
+  Array<INDEX_TYPE, 1> originalNNZ(numRows);
   for (INDEX_TYPE row = 0; row < numRows; ++row)
   {
     originalNNZ[row] = m.numNonZeros(row);
@@ -793,7 +793,7 @@ void insertDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numCols = m.numColumns();
 
   // Create an Array of the columns to insert into each row.
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -812,7 +812,7 @@ void insertDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
 
   // Create views and insert the columns on the device.
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToInsert;
+  ArrayView<COL_TYPE const, 2> const & insertView = columnsToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -852,8 +852,8 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numRows = m.numRows();
   INDEX_TYPE const numCols = m.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
-  Array<T, 2, INDEX_TYPE> entriesToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
+  Array<T, 2> entriesToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -871,8 +871,8 @@ void insertMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   compareToReference(m.toViewCC(), mRef);
 
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colInsertView = columnsToInsert;
-  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = entriesToInsert;
+  ArrayView<COL_TYPE const, 2> const & colInsertView = columnsToInsert;
+  ArrayView<T const, 2> const & valInsertView = entriesToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -906,8 +906,8 @@ void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numRows = m.numRows();
   INDEX_TYPE const numCols = m.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
-  Array<T, 2, INDEX_TYPE> entriesToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
+  Array<T, 2> entriesToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -935,8 +935,8 @@ void insertSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   compareToReference(m.toViewCC(), mRef);
 
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colInsertView = columnsToInsert;
-  ArrayView<T const, 2, INDEX_TYPE> const & valInsertView = entriesToInsert;
+  ArrayView<COL_TYPE const, 2> const & colInsertView = columnsToInsert;
+  ArrayView<T const, 2> const & valInsertView = entriesToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -971,7 +971,7 @@ void removeDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numCols = m.numColumns();
 
   // Create an array of the columns to remove from each row.
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -986,7 +986,7 @@ void removeDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
 
   // Create views and remove the columns on device.
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & removeView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & removeView = columnsToRemove;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -1025,7 +1025,7 @@ void removeMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numRows = m.numRows();
   INDEX_TYPE const numCols = m.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -1038,7 +1038,7 @@ void removeMultipleDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   }
 
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colRemoveView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & colRemoveView = columnsToRemove;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -1072,7 +1072,7 @@ void removeSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   INDEX_TYPE const numRows = m.numRows();
   INDEX_TYPE const numCols = m.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -1089,7 +1089,7 @@ void removeSortedDeviceTest(CRSMatrix<T> & m, REF_TYPE<T> & mRef,
   }
 
   ViewType<T> const & mView = m;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & colRemoveView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & colRemoveView = columnsToRemove;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {

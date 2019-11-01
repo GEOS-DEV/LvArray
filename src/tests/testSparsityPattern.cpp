@@ -700,7 +700,7 @@ void insertDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
   INDEX_TYPE const numCols = v.numColumns();
 
   // Create an Array of the columns to insert into each row.
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -719,7 +719,7 @@ void insertDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
 
   // Create views and insert the columns on the device.
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToInsert;
+  ArrayView<COL_TYPE const, 2> const & insertView = columnsToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -757,7 +757,7 @@ void insertMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   INDEX_TYPE const numRows = v.numRows();
   INDEX_TYPE const numCols = v.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -774,7 +774,7 @@ void insertMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   compareToReference(v.toViewC(), vRef);
 
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToInsert;
+  ArrayView<COL_TYPE const, 2> const & insertView = columnsToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -805,7 +805,7 @@ void insertSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
   INDEX_TYPE const numRows = v.numRows();
   INDEX_TYPE const numCols = v.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToInsert(numRows, MAX_INSERTS);
+  Array<COL_TYPE, 2> columnsToInsert(numRows, MAX_INSERTS);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -826,7 +826,7 @@ void insertSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
   compareToReference(v.toViewC(), vRef);
 
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToInsert;
+  ArrayView<COL_TYPE const, 2, 1, INDEX_TYPE> const & insertView = columnsToInsert;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -858,7 +858,7 @@ void removeDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
   INDEX_TYPE const numCols = v.numColumns();
 
   // Create an array of the columns to remove from each row.
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -873,7 +873,7 @@ void removeDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
 
   // Create views and remove the columns on device.
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & insertView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & insertView = columnsToRemove;
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
@@ -911,7 +911,7 @@ void removeMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   INDEX_TYPE const numRows = v.numRows();
   INDEX_TYPE const numCols = v.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -924,7 +924,7 @@ void removeMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   }
 
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & removeView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & removeView = columnsToRemove;
 
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
@@ -958,7 +958,7 @@ void removeSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
   INDEX_TYPE const numRows = v.numRows();
   INDEX_TYPE const numCols = v.numColumns();
 
-  Array<COL_TYPE, 2, INDEX_TYPE> columnsToRemove(numRows, MAX_REMOVES);
+  Array<COL_TYPE, 2> columnsToRemove(numRows, MAX_REMOVES);
 
   std::uniform_int_distribution<COL_TYPE> columnDist(0, COL_TYPE(numCols - 1));
 
@@ -975,7 +975,7 @@ void removeSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
   }
 
   ViewType<COL_TYPE> const & vView = v;
-  ArrayView<COL_TYPE const, 2, INDEX_TYPE> const & removeView = columnsToRemove;
+  ArrayView<COL_TYPE const, 2> const & removeView = columnsToRemove;
 
   forall(cuda(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)

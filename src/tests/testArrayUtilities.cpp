@@ -42,68 +42,68 @@ TEST( testArrayUtilities, stringToArrayErrors )
   // This should work
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     stringToArray( array, input );
   }
 
   {
     input = " { 10 1 } ";
-    LvArray::Array<int,1,int> array;
+    LvArray::Array<int,1> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { 1, 2 }{ 3, 4 } } ";
-    LvArray::Array<int,2,int> array;
+    LvArray::Array<int,2> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   // This should fail the num('{')==num('}') test
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17}  , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14,{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8,{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { 0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = "  { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2}}{ } }";
-    LvArray::Array<int,3,int> array;
+    LvArray::Array<int,3> array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
@@ -146,7 +146,7 @@ TEST( testArrayUtilities, stringToArray3d )
   }
   input += " }";
 
-  LvArray::Array<int,3,int> array;
+  LvArray::Array<int,3> array;
   stringToArray( array, input );
 
   ASSERT_EQ( array.size(0), numI );
@@ -169,7 +169,7 @@ TEST( testArrayUtilities, stringToArray3d )
 
 TEST( testArrayUtilities, arrayToString )
 {
-  LvArray::Array<int,3,int> array;
+  LvArray::Array<int,3> array;
   array.resize( 2, 4, 3 );
 
   for( int i=0 ; i<2; ++i )

@@ -167,8 +167,8 @@ public:
    * @brief Move to the given memory space.
    * @param [in] space the memory space to move to.
    */
-  void move(chai::ExecutionSpace const space) restrict_this
-  { ArrayOfArraysView<T, INDEX_TYPE>::move(space); }
+  void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
+  { ArrayOfArraysView<T, INDEX_TYPE>::move(space, touch); }
 
   /**
    * @brief Touch in the given memory space.

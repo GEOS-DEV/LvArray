@@ -129,15 +129,15 @@ public:
   CRSMatrixView & operator=( CRSMatrixView const & src ) = default;
 
   /**
-   * @brief Return an ArraySlice1d (pointer) to the matrix entriess of the given row.
+   * @brief Return an ArraySlice1d (pointer) to the matrix entries of the given row.
    *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice1d_rval<T, INDEX_TYPE_NC> getEntries( INDEX_TYPE const row ) const restrict_this
+  ArraySlice<T, 1, 0, INDEX_TYPE_NC> getEntries( INDEX_TYPE const row ) const restrict_this
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    return createArraySlice1d<T, INDEX_TYPE_NC>( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
+    return ArraySlice<T, 1, 0, INDEX_TYPE_NC>( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
   }
 
   /**
