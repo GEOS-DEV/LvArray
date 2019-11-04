@@ -32,6 +32,7 @@ set(cxx-utilities_headers
     Permutation.hpp
     bufferManipulation.hpp
     ChaiBuffer.hpp
+    MallocBuffer.hpp
    )
 
 set(cxx-utilities_sources

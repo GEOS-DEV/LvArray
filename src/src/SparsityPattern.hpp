@@ -134,16 +134,14 @@ public:
 
 #ifdef USE_CHAI
   /**
-   * @brief Moves the SparsityPattern to the given execution space.
-   * @param [in] space the space to move to.
+   * @brief Move to the given memory space, optionally touching it.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch whether to touch the memory in the space or not.
    */
   void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
   { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, touch); }
 
-  /**
-   * @brief Touch in the given memory space.
-   * @param [in] space the memory space to touch.
-   */
+  
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space); }
 #endif

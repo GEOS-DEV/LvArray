@@ -39,8 +39,14 @@ namespace LvArray
 
 namespace internal
 {
+
+// CHAI is not threadsafe so we use a lock to serialize access.
 static std::mutex chaiLock;
 
+/**
+ * @brief Return a string representing the given size in bytes converted to either
+ *        KB or MB.
+ */
 inline std::string calculateSize( size_t const bytes )
 {
   if (bytes >> 20 != 0)
@@ -55,12 +61,27 @@ inline std::string calculateSize( size_t const bytes )
 
 } // namespace internal
 
+/**
+ * @class ChaiBuffer
+ * @brief This class implements the Buffer interface using CHAI and allows classes built on top
+ *        of it to exist in multiple memory spaces.
+ * @tparam T type of data that is contained in the buffer.
+ * @note Both the copy constructor and copy assignment constructor perform a shallow copy
+ *       of the source. Similarly the destructor does not free the allocation. This is
+ *       the standard behavior of the Buffer classes.
+ * @note The parent class chai::CHAICopyable allows for the movement of nested ChaiBuffers.
+ */
 template < typename T >
 class ChaiBuffer : public chai::CHAICopyable
 {
 public:
+
+  // Alias used in the bufferManipulation functions.
   using value_type = T;
 
+  /**
+   * @brief Default constructor, creates an empty buffer.
+   */
   LVARRAY_HOST_DEVICE
   ChaiBuffer():
     m_array()
@@ -70,25 +91,23 @@ public:
 #endif
   }
 
-  ChaiBuffer( std::ptrdiff_t const capacity ):
-    ChaiBuffer()
-  {
-    std::lock_guard< std::mutex > lock( internal::chaiLock );
-    m_array.allocate( capacity );
-  }
-
+  /**
+   * @brief Constructor for creating an uninitialized Buffer. An uninitialized
+   *        buffer is an undefined state and may only be assigned to.
+   */
   LVARRAY_HOST_DEVICE
   ChaiBuffer( std::nullptr_t ) :
     m_array( nullptr )
   {}
 
-  LVARRAY_HOST_DEVICE inline
-  ChaiBuffer & operator=( std::ptrdiff_t )
-  {
-    m_array = nullptr;
-    return *this;
-  }
-
+  /**
+   * @brief Reallocate the buffer to the new capacity.
+   * @param size the number of values that are initialized in the buffer.
+   *        values between [0, size) are destroyed.
+   * @param newCapacity the new capacity of the buffer.
+   * @note This currently only reallocates the buffer on the CPU and it frees
+   *       the buffer in every other memory space.
+   */
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
     internal::chaiLock.lock();
@@ -97,19 +116,17 @@ public:
 
     newArray.setUserCallback( m_array.getUserCallback() );
 
-    arrayManipulation::moveInto( newBuf.data(), newCapacity, data(), size );
+    arrayManipulation::moveInto( &newArray[ 0 ], newCapacity, data(), size );
 
     free();
-    *this = std::move( newBuf );
+    m_array = std::move( newArray );
     registerTouch( chai::CPU );
   }
 
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  std::ptrdiff_t capacity() const
-  {
-    return m_array.size();
-  }
-
+  /**
+   * @brief Free the data in the buffer but does not destroy any values. To
+   *        properly destroy the values and free the data call bufferManipulation::free.
+   */
   inline
   void free()
   {
@@ -117,13 +134,30 @@ public:
     m_array.free();
     m_array = nullptr;
   }
-  
+
+  /**
+   * @brief Return the capacity of the buffer.
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  std::ptrdiff_t capacity() const
+  {
+    return m_array.size();
+  }
+
+  /**
+   * @brief Return a pointer to the beginning of the buffer.
+   */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * data() const
   {
     return &m_array[0];
   }
 
+  /**
+   * @brief Move the buffer to the given execution space, optionally touching it.
+   * @param space the space to move the Array to.
+   * @param touch whether the Array should be touched in the new space or not.
+   */
   void move( chai::ExecutionSpace const space, bool const touch )
   {
 #if defined(USE_CUDA)
@@ -140,12 +174,20 @@ public:
 #endif
   }
 
+  /**
+   * @brief Touch the buffer in the given space.
+   * @param space the space to touch.
+   */
   void registerTouch( chai::ExecutionSpace const space )
   {
     m_array.registerTouch( space );
   }
 
-  template < typename U = ChaiBuffer< T > >
+  /**
+   * @brief Set the name associated with this buffer which is used in the chai callback.
+   * @param name the of the buffer.
+   */
+  template< typename U=ChaiBuffer< T > >
   void setUserCallBack( std::string const & name )
   {
 #if defined(USE_CUDA)

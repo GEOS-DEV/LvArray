@@ -210,14 +210,14 @@ template< typename T,
           int NDIM,
           typename PERMUTATION=camp::make_idx_seq_t<NDIM>,
           typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename... > class DATA_VECTOR_TYPE=ChaiBuffer >
+          template< typename > class DATA_VECTOR_TYPE=ChaiBuffer >
 class Array;
 
 template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM=NDIM-1,
           typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename... > class DATA_VECTOR_TYPE=ChaiBuffer >
+          template< typename > class DATA_VECTOR_TYPE=ChaiBuffer >
 class ArrayView;
 
 
@@ -229,7 +229,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
 
 
@@ -243,7 +243,7 @@ template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 struct AsView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsView< T >::type,
@@ -257,7 +257,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 struct AsView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsView< T >::type,
@@ -277,7 +277,7 @@ template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 struct AsConstView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsConstView< T >::type const,
@@ -291,7 +291,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 struct AsConstView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsConstView< T >::type const,

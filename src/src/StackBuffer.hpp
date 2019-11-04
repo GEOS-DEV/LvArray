@@ -16,8 +16,8 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifndef STACKARRAYWRAPPER_HPP_
-#define STACKARRAYWRAPPER_HPP_
+#ifndef STACKBUFER_HPP_
+#define STACKBUFER_HPP_
 
 // Source includes
 #include "CXX_UtilsConfig.hpp"
@@ -33,6 +33,15 @@
 namespace LvArray
 {
 
+/**
+ * @class StackBuffer
+ * @brief This class implements the Buffer interface using a stack array.
+ * @tparam T type of data that is contained in the buffer.
+ * @tparam LENGTH the length of the buffer.
+ * @note Unlike the standard Buffer classes the StackBuffer does not permit
+ *       making shallow copies.
+ * @note The parent class provides the default execution space related methods.
+ */
 template< typename T, int LENGTH >
 class StackBuffer : public bufferManipulation::VoidBuffer
 {
@@ -41,20 +50,22 @@ public:
 
   StackBuffer() = default;
 
-  StackBuffer( std::ptrdiff_t const initialCapacity )
-  {
-    GEOS_ERROR_IF_GT( initialCapacity, LENGTH );
-  }
-
+  /**
+   * @brief Constructor for creating an uninitialized Buffer. In general an
+   *        uninitialized buffer is an undefined state and may only be assigned to
+   *        however in this case it is the same as the default constructor.
+   */
   StackBuffer( std::nullptr_t ) :
     StackBuffer()
   {}
 
-  StackBuffer & operator=( std::nullptr_t )
-  {
-    return *this;
-  }
-
+  /**
+   * @brief Reallocate the buffer to the new capacity. If the new capacity is
+   *        greater than LENGTH this method will error out.
+   * @param size the number of values that are initialized in the buffer.
+   *        values between [0, size) are destroyed.
+   * @param newCapacity the new capacity of the buffer.
+   */
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
     GEOS_ERROR_IF_GT( newCapacity, LENGTH );
@@ -65,15 +76,25 @@ public:
     }
   }
 
+  /**
+   * @brief Free the data in the buffer but does not destroy any values.
+   *        For this class this is a no-op.
+   */
+  void free()
+  {}
+
+  /**
+   * @brief Return the capacity of the buffer.
+   */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   std::ptrdiff_t capacity() const
   {
     return LENGTH;
   }
 
-  void free()
-  {}
-
+  /**
+   * @brief Return a pointer to the beginning of the buffer.
+   */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * data() const
   {
@@ -81,13 +102,14 @@ public:
   }
 
 private:
-
   T m_data[ LENGTH ];
 };
 
 namespace internal
 {
 
+// Since Array expects the BUFFER to only except a single template parameter we need to
+// create an alias for a StackBuffer with a given length.
 template< typename T,
           int NDIM,
           typename PERMUTATION,
@@ -103,6 +125,7 @@ struct StackArrayHelper
 
 } // namespace internal
 
+// An alias for a Array backed by a StackBuffer of a given length.
 template< typename T,
           int NDIM,
           typename PERMUTATION,
@@ -112,4 +135,4 @@ using StackArray = typename internal::StackArrayHelper< T, NDIM, PERMUTATION, IN
 
 } // namespace LvArray
 
-#endif
+#endif // STACKBUFER_HPP_

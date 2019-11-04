@@ -152,6 +152,10 @@ public:
   inline
   ArrayOfArrays & operator=( ArrayOfArrays && src ) = default;
 
+  /**
+   * @brief Steal the resources from an ArrayOfSets and convert it to an ArrayOfArrays.
+   * @param [in/out] src the ArrayOfSets to convert.
+   */
   inline
   void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
   {
@@ -164,8 +168,9 @@ public:
 
 #ifdef USE_CHAI
   /**
-   * @brief Move to the given memory space.
+   * @brief Move to the given memory space, optionally touching it.
    * @param [in] space the memory space to move to.
+   * @param [in] touch whether to touch the memory in the space or not.
    */
   void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
   { ArrayOfArraysView<T, INDEX_TYPE>::move(space, touch); }
@@ -195,6 +200,7 @@ public:
   /**
    * @brief Set the number of arrays.
    * @param [in] newSize the new number of arrays.
+   * @note We need this method in addition to the following resize method because of SFINAE requirements.
    */
   void resize( INDEX_TYPE const numArrays )
   { ArrayOfArraysView<T, INDEX_TYPE>::resize( numArrays, 0 ); }
@@ -209,8 +215,7 @@ public:
 
   /**
    * @brief Append an array.
-   * @param [in] values the values of the array to append.
-   * @param [in] n the number of values.
+   * @param [in] n the size of the array.
    */
   void appendArray( INDEX_TYPE const n ) restrict_this
   {
@@ -378,8 +383,8 @@ public:
   }
 
   /**
-   * @brief clear a sub-array
-   * @param[in] i the sub-array index that will be cleared
+   * @brief Clear the given array.
+   * @param[in] i the index of the array to clear.
    */
   void clearArray( INDEX_TYPE const i )
   { resizeArray( i, 0 ); }

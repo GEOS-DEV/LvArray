@@ -32,6 +32,12 @@ template <class T, typename INDEX_TYPE>
 class ArrayOfArrays;
 
 
+/**
+ * @class ArrayOfSets
+ * @brief This class implements an array of sets like object with contiguous storage.
+ * @tparam T the type stored in the sets.
+ * @tparam INDEX_TYPE the integer to use for indexing.
+ */
 template <class T, class INDEX_TYPE=std::ptrdiff_t>
 class ArrayOfSets : protected ArrayOfSetsView<T, INDEX_TYPE>
 {
@@ -56,49 +62,81 @@ public:
 
   /**
    * @brief Return the number sets.
-   * @note This needs is duplicated here for the intel compiler on cori. 
+   * @note This needs is duplicated here for the intel compiler on cori.
    */
   inline
   INDEX_TYPE size() const restrict_this
   { return m_sizes.size(); }
 
+  /**
+   * @brief Constructor.
+   * @param [in] nsets the number of sets.
+   * @param [in] defaultSetCapacity the initial capacity of each set.
+   */
   inline
   ArrayOfSets(INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0) restrict_this:
     ArrayOfSetsView<T, INDEX_TYPE>()
   { ArrayOfSetsView<T, INDEX_TYPE>::resize(nsets, defaultSetCapacity); }
-  
+
+  /**
+   * @brief Copy constructor, performs a deep copy.
+   * @param [in] src the ArrayOfSets to copy.
+   */
   inline
   ArrayOfSets( ArrayOfSets const & src ) restrict_this:
     ArrayOfSetsView<T, INDEX_TYPE>()
   { *this = src; }
 
+  /**
+   * @brief Default move constructor, performs a shallow copy.
+   * @param [in/out] src the ArrayOfSets to be moved from.
+   */
   inline
   ArrayOfSets( ArrayOfSets && src ) = default;
 
+  /**
+   * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
+   */
   inline
   ~ArrayOfSets() restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::free(); }
 
+  /**
+   * @brief Conversion operator to an ArrayOfArraysView.
+   */
   CONSTEXPRFUNC inline
   operator ArrayOfSetsView<T, INDEX_TYPE const> const &
   () const restrict_this
   { return reinterpret_cast<ArrayOfSetsView<T, INDEX_TYPE const> const &>(*this); }
 
+  /**
+   * @brief Conversion operator to an ArrayOfArraysView.
+   */
   inline
   ArrayOfSetsView<T, INDEX_TYPE const> const & toView() const restrict_this
   { return *this; }
 
+  /**
+   * @brief Method to convert to an immutable ArrayOfSetsView.
+   */
   CONSTEXPRFUNC inline
   operator ArrayOfSetsView<T const, INDEX_TYPE const> const &
   () const restrict_this
   { return toViewC(); }
 
+  /**
+   * @brief Conversion operator to an immutable ArrayOfArraysView.
+   */
   template<class U=T>
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator ArrayOfArraysView<T const, INDEX_TYPE const, true>
   () const restrict_this
   { return toArrayOfArraysView(); }
 
+  /**
+   * @brief Copy assignment operator, performs a deep copy.
+   * @param [in] src the ArrayOfSets to copy.
+   */
   inline
   ArrayOfSets & operator=( ArrayOfSets const & src ) restrict_this
   {
@@ -106,10 +144,19 @@ public:
     return *this;
   }
 
+  /**
+   * @brief Default move assignment operator, performs a shallow copy.
+   * @param [in] src the ArrayOfSets to be moved from.
+   */
   inline
   ArrayOfSets & operator=( ArrayOfSets && src ) = default;
 
-  // This would be prime for omp parallelism.
+  /**
+   * @brief Steal the resources from an ArrayOfArrays and convert it to an ArrayOfSets.
+   * @param [in/out] src the ArrayOfArrays to convert.
+   * @param [in] desc describes the type of data in the source.
+   * @note This would be prime for omp parallelism.
+   */
   inline
   void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) restrict_this
   {
@@ -160,6 +207,10 @@ public:
 #endif
   }
 
+  /**
+   * @brief Clear a set.
+   * @param[in] i the index of the set to clear.
+   */
   void clearSet( INDEX_TYPE const i ) restrict_this
   { 
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
@@ -171,28 +222,54 @@ public:
   }
 
 #ifdef USE_CHAI
-  
+  /**
+   * @brief Move to the given memory space, optionally touching it.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch whether to touch the memory in the space or not.
+   */
   inline
   void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::move(space, touch); }
-
+  
+  /**
+   * @brief Touch in the given memory space.
+   * @param [in] space the memory space to touch.
+   */
   inline
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::registerTouch(space); }
 #endif
 
+  /**
+   * @brief Reserve space for the given number of sets.
+   * @param [in] newCapacity the new minimum capacity for the number of sets.
+   */
   inline
   void reserve( INDEX_TYPE const newCapacity ) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::reserve( newCapacity ); }
 
+  /**
+   * @brief Reserve space for the given number of values.
+   * @param [in] newValueCapacity the new minimum capacity for the number of values across all sets.
+   */
   inline
   void reserveValues( INDEX_TYPE const nnz ) restrict_this
   { m_values.reserve( nnz ); }
 
+  /**
+   * @brief Set the capacity of a set.
+   * @param [in] i the set to set the capacity of.
+   * @param [in] newCapacity the value to set the capacity of the set to.
+   */
   inline
   void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::setCapacityOfArray(i, newCapacity); }
 
+  /**
+   * @brief Reserve space in a set.
+   * @param [in] i the set to reserve space in.
+   * @param [in] newCapacity the number of values to reserve space for.
+   */
   inline
   void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) restrict_this
   {
@@ -200,16 +277,34 @@ public:
     if ( newCapacity > capacityOfSet( i ) ) setCapacityOfSet( i, newCapacity );
   }
 
+  /**
+   * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
+   * @note This method doesn't free any memory.
+   */
   inline
   void compress() restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::compress(); }
 
+  /**
+   * @brief Set the number of sets.
+   * @param [in] numSets the new number of sets.
+   * @note We need this method in addition to the following resize method because of SFINAE requirements.
+   */
   void resize( INDEX_TYPE const numSets ) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::resize( numSets, 0 ); }
 
+  /**
+   * @brief Set the number of sets.
+   * @param [in] newSize the new number of sets.
+   * @param [in] defaultSetCapacity the default capacity for each new array.
+   */
   void resize( INDEX_TYPE const numSets, INDEX_TYPE const defaultSetCapacity ) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::resize( numSets, defaultSetCapacity ); }
 
+  /**
+   * @brief Append an set with the given capacity.
+   * @param [in] n the capacity of the set.
+   */
   inline
   void appendSet( INDEX_TYPE const n=0 ) restrict_this
   {
@@ -222,6 +317,11 @@ public:
     setCapacityOfSet( nSets, n );
   }
 
+  /**
+   * @brief Insert a set with the given capacity.
+   * @param [in] i the position to insert the set.
+   * @param [in] n the capacity of the set.
+   */
   inline
   void insertSet( INDEX_TYPE const i, INDEX_TYPE const n=0 ) restrict_this
   {
@@ -237,6 +337,10 @@ public:
     setCapacityOfSet( i, n );
   }
 
+  /**
+   * @brief Erase a set.
+   * @param [in] i the position of the set to erase.
+   */
   inline
   void eraseSet( INDEX_TYPE const i ) restrict_this
   {
@@ -247,23 +351,39 @@ public:
     m_offsets.erase( i + 1 );
   }
 
+  /**
+   * @brief Insert a value into the given set.
+   * @param [in] i the set to insert into.
+   * @param [in] val the value to insert.
+   * @return True iff the value was inserted (the set did not already contain the value).
+   */
   inline
   bool insertIntoSet( INDEX_TYPE const i, T const & val ) restrict_this
   { return ArrayOfSetsView<T, INDEX_TYPE>::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
 
+  /**
+   * @brief Insert values into the given set.
+   * @param [in] i the set to insert into.
+   * @param [in] vals the values to insert.
+   * @param [in] n the number of values to insert.
+   * @return The number of values inserted.
+   */
   inline
   INDEX_TYPE insertIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) restrict_this
   { return ArrayOfSetsView<T, INDEX_TYPE>::insertIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
+  /**
+   * @brief Insert values into the given set.
+   * @param [in] i the set to insert into.
+   * @param [in] vals the values to insert. Must be sorted
+   * @param [in] n the number of values to insert.
+   * @return The number of values inserted.
+   */
   inline
   INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) restrict_this
   { return ArrayOfSetsView<T, INDEX_TYPE>::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
 private:
-
-  inline
-  void dynamicallyGrowSet( INDEX_TYPE const i, INDEX_TYPE const newSize ) restrict_this
-  { setCapacityOfSet( i, newSize * 2 ); }
 
   /**
    * @class CallBacks
@@ -273,20 +393,31 @@ private:
   {
 public:
 
+    /**
+     * @brief Constructor.
+     * @param [in/out] aos the ArrayOfSets this CallBacks is associated with.
+     * @param [in] i the set this CallBacks is associated with.
+     */
     inline
     CallBacks( ArrayOfSets<T, INDEX_TYPE> & sp, INDEX_TYPE const i ):
       m_aos( sp ),
       m_i( i )
     {}
 
-    
+    /**
+     * @brief Callback signaling that the size of the set has increased.
+     * @param [in] nToAdd the increase in the size.
+     * @note This method doesn't actually change the size, it just checks if the new size
+     *       exceeds the capacity of the set and if so reserves more space. 
+     * @return a pointer to the sets values.
+     */
     inline
     T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
     {
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;
       if( newNNZ > m_aos.capacityOfSet( m_i ) )
       {
-        m_aos.dynamicallyGrowSet( m_i, newNNZ );
+        m_aos.setCapacityOfSet( m_i, 2 * newNNZ );
       }
 
       return m_aos.getSetValues( m_i );
