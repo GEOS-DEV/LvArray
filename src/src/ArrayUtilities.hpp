@@ -127,7 +127,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
                            std::string valueString )
 {
@@ -369,7 +369,7 @@ template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class DATA_VECTOR_TYPE >
 static std::string arrayToString( LvArray::ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
   std::string output;

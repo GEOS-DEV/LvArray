@@ -35,22 +35,25 @@ namespace LvArray
 {
 
 /**
- * @class ArrayOfSetsview
+ * @class ArrayOfSetsView
  * @brief This class provides a view into an array of sets like object.
  * @tparam T the type stored in the arrays.
  * @tparam INDEX_TYPE the integer to use for indexing.
  *
- * When INDEX_TYPE is const m_offsets is not copied between memory spaces. INDEX_TYPE should always be const
- * since ArrayOfSetsview is not allowed to modify the offsets.
+ * When INDEX_TYPE is const m_offsets is not touched when copied between memory spaces.
+ * INDEX_TYPE should always be const since ArrayOfSetsview is not allowed to modify the offsets.
  * 
  * When T is const and INDEX_TYPE is const you cannot insert or remove from the View
- * and neither the offsets, sizes, or columns are copied between memory spaces.
+ * and neither the offsets, sizes, or values are touched when copied between memory spaces.
  */
-template <class T, class INDEX_TYPE=std::ptrdiff_t>
-class ArrayOfSetsView : protected ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>
+template< typename T, typename INDEX_TYPE=std::ptrdiff_t >
+class ArrayOfSetsView : protected ArrayOfArraysView< T, INDEX_TYPE, std::is_const<T>::value >
 {
+  // Alias for the parent class
   using ParentClass = ArrayOfArraysView<T, INDEX_TYPE, std::is_const<T>::value>;
+
 public:
+
   using INDEX_TYPE_NC = typename std::remove_const<INDEX_TYPE>::type;
 
   // Aliasing public methods of ArrayOfArraysView.
@@ -89,6 +92,9 @@ public:
   ArrayOfSetsView<T const, INDEX_TYPE const> const & toViewC() const restrict_this
   { return *this; }
 
+  /**
+   * @brief Method to convert to an immutable ArrayOfArraysView.
+   */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   ArrayOfArraysView<T const, INDEX_TYPE const, true> const & toArrayOfArraysView() const restrict_this
   { return *this; }
@@ -108,6 +114,10 @@ public:
   ArrayOfSetsView & operator=( ArrayOfSetsView && src ) = default;
 
 
+  /**
+   * @brief Return an object provides an iterable interface to the given set.
+   * @param [in] i the set to get an iterator for.
+   */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const restrict_this
   { return ParentClass::getIterableArray( i ); }
@@ -196,7 +206,7 @@ public:
    * @param [in] i the set to insert into.
    * @param [in] values the values to insert.
    * @param [in] n the number of values to insert.
-   * @return The number of columns inserted.
+   * @return The number of values inserted.
    *
    * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(values, values + n)
    *       and then call insertSortedIntoSet, this will be substantially faster.
@@ -214,7 +224,7 @@ public:
    * @param [in] i the set to insert into.
    * @param [in] values the values to insert. Must be sorted
    * @param [in] n the number of values to insert.
-   * @return The number of columns inserted.
+   * @return The number of values inserted.
    *
    * @note Since the ArrayOfSetsView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
@@ -450,7 +460,7 @@ private:
 
     /**
      * @brief Constructor.
-     * @param [in/out] aos the ArrayOfSets this CallBacks is associated with.
+     * @param [in/out] aos the ArrayOfSetsView this CallBacks is associated with.
      * @param [in] i the set this CallBacks is associated with.
      */
     LVARRAY_HOST_DEVICE inline

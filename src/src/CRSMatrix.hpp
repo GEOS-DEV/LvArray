@@ -160,8 +160,9 @@ public:
 
 #ifdef USE_CHAI
   /**
-   * @brief Moves the CRSMatrix to the given execution space.
-   * @param [in] space the space to move to.
+   * @brief Move to the given memory space, optionally touching it.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch whether to touch the memory in the space or not.
    */
   void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
   { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, touch, m_entries); }

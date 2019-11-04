@@ -41,23 +41,37 @@ namespace LvArray
 
 /**
  * @class Array
- * @brief This class provides a multi-dimensional array interface to a vector type object.
- * @tparam T type of data that is contained by the array
- * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. )
+ * @brief This class provides a fixed dimensional resizeable array interface in addition to an
+ *        interface similar to std::vector for a 1D array.
+ * @tparam T type of data that is contained by the array.
+ * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
+ *         Some methods such as push_back are only available for a 1D array.
  * @tparam PERMUTATION a camp::idx_seq containing the values in [0, NDIM) which describes how the
- *         data is to be laid out in memory. See RAJA::PERM_IJK etc.
- * @tparam INDEX_TYPE the integer to use for indexing the components of the array
+ *         data is to be laid out in memory. Given an 3-dimensional array A of dimension (L, M, N)
+ *         the standard layout is A( i, j, k ) = A.data()[ i * M * N + j * N + k ], this layout is
+ *         the given by the identity permutation (0, 1, 2) which says that the first dimension in
+ *         memory corresponds to the first index (i), and similarly for the other dimensions. The
+ *         same array with a layout of A( i, j, k ) = A.data()[ L * N * j + L * k + i ] would have
+ *         a permutation of (1, 2, 0) because the first dimension in memory corresponds to the second
+ *         index (j), the second dimension in memory corresponds to the third index (k) and the last
+ *         dimension in memory goes with the first index (i).
+ *         Note: RAJA provides aliases for every valid permutations up to 5D, the two permutations
+ *               mentioned above can be used via RAJA::PERM_IJK and RAJA::PERM_JKI.
+ *         Note: The dimension with unit stride is the last dimension in the permutation.
+ * @tparam INDEX_TYPE the integer to use for indexing.
+ * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the Array. Must take
+ *         one template argument that describes the type of the data being stored (T).
  */
 template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename... > class DATA_VECTOR_TYPE >
+          template< typename > class BUFFER_TYPE >
 class Array : public ArrayView< T,
                                 NDIM,
                                 getStrideOneDimension( PERMUTATION {} ),
                                 INDEX_TYPE,
-                                DATA_VECTOR_TYPE >
+                                BUFFER_TYPE >
 {
 public:
 
@@ -74,7 +88,7 @@ public:
   static constexpr int UNIT_STRIDE_DIM = getStrideOneDimension( PERMUTATION {} );
 
   // Alias for the parent class.
-  using ParentType = ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE >;
+  using ParentType = ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE >;
 
   // Aliasing public methods of ArrayView so we don't have to use this->size etc.
   using ParentType::toSlice;
@@ -91,8 +105,8 @@ public:
   using typename ParentType::const_pointer;
 
   // Aliases to convert nested Arrays into ArrayViews
-  using ViewType = typename AsView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
-  using ViewTypeConst = typename AsConstView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >::type;
+  using ViewType = typename AsView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > >::type;
+  using ViewTypeConst = typename AsConstView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > >::type;
 
   /**
    * @brief default constructor
@@ -122,23 +136,25 @@ public:
   }
 
   /**
-   * @brief Copy constructor
-   * @param source object to copy
+   * @brief Copy constructor.
+   * @param source object to copy.
    *
-   * Performs a deep copy of source
+   * @note Performs a deep copy of source
    */
   Array( Array const & source ):
     ParentType()
   {
-    // This DOES NOT trigger Chai::ManagedArray CC
     *this = source;
   }
 
   /**
-   * @brief Move constructor
-   * @param source object to move
+   * @brief Move constructor.
+   * @param source object to move.
    *
-   * Moves the source into *this, a shallow copy that invalidates the contents of source.
+   * @note Moves the source into *this. This calls BUFFER_TYPE( BUFFER_TYPE && ) which usually is a
+   *       shallow copy that invalidates the contents of source. However this depends on the
+   *       implementation of BUFFER_TYPE since for instance it is impossible to create a shallow
+   *       copy of a stack allocation.  
    */
   Array( Array && source ) = default;
 
@@ -147,7 +163,7 @@ public:
    */
   ~Array()
   {
-    bufferManipulation::free( m_dataVector, size() );
+    bufferManipulation::free( m_dataBuffer, size() );
     setDataPtr();
   }
 
@@ -177,7 +193,7 @@ public:
    */
   Array & operator=( Array const& rhs )
   {
-    bufferManipulation::copyInto( m_dataVector, size(), rhs.m_dataVector, rhs.size() );
+    bufferManipulation::copyInto( m_dataBuffer, size(), rhs.m_dataBuffer, rhs.size() );
     setDataPtr();
 
     this->setDims( rhs.m_dims );
@@ -202,9 +218,6 @@ public:
     return *this;
   }
 
-  int numDimensions() const
-  { return NDIM; }
-
   /**
    * @brief Resize the dimensions of the Array to match the given dimensions.
    * @param dims the new size of the dimensions, must be of length NDIM.
@@ -222,7 +235,7 @@ public:
     this->setDims( dims );
     CalculateStrides();
 
-    bufferManipulation::resize( m_dataVector, oldSize, size() );
+    bufferManipulation::resize( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
 
@@ -255,12 +268,12 @@ public:
     dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims... );
     CalculateStrides();
     
-    bufferManipulation::resize( m_dataVector, oldSize, size() );
+    bufferManipulation::resize( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
 
   /**
-   * @brief function to resize the array without initializing any new values or destroying any old values.
+   * @brief Resize the array without initializing any new values or destroying any old values.
    *        Only safe on POD data, however it is much faster for large allocations.
    * @tparam DIMS variadic pack containing the dimension types
    * @param newDims the new dimensions
@@ -276,10 +289,18 @@ public:
     dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims... );
     CalculateStrides();
 
-    bufferManipulation::reserve( m_dataVector, oldSize, size() );
+    bufferManipulation::reserve( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
 
+  /**
+   * @brief Resize specific dimensions of the array.
+   * @tparam INDICES the indices of the dimensions to resize.
+   * @tparam DIMS variadic pack containing the dimension types
+   * @param newDims the new dimensions. newDims[ 0 ] will be the new size of 
+   *        dimensions INDICES[ 0 ].
+   * @note This does not preserve the values in the Array.
+   */
   template < INDEX_TYPE... INDICES, typename... DIMS>
   void resizeDimension( DIMS... newDims )
   {
@@ -294,144 +315,231 @@ public:
                                         newDims... );
     CalculateStrides();
     
-    bufferManipulation::resize( m_dataVector, oldSize, size() );
+    bufferManipulation::resize( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
 
   /**
-   * @brief function to resize the array using a single dimension
-   * @param newdim the new dimension
-   *
-   * This function will use set the the dimension specified by m_singleParameterResizeIndex
-   * and reallocate based on that new size.
+   * @brief Resize the default dimension of the Array.
+   * @param newdim the new size of the default dimension.
+   * @note This preserves the values in the Array.
+   * @note The default dimension is given by m_singleParameterResizeIndex.
    */
   void resize( INDEX_TYPE const newdim )
   { resizeDefaultDimension( newdim ); }
 
+  /**
+   * @brief Resize the default dimension of the Array.
+   * @param newdim the new size of the default dimension.
+   * @param defaultValue the value to initialize the new values with.
+   * @note This preserves the values in the Array.
+   * @note The default dimension is given by m_singleParameterResizeIndex.
+   */
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   { resizeDefaultDimension( newdim, defaultValue ); }
 
-  template <class ...ARGS>
+  /**
+   * @brief Resize the default dimension of the Array.
+   * @tparam ARGS variadic pack containing the types to initialize the new values with.
+   * @param newdim the new size of the default dimension.
+   * @param ARGS arguments to initialize the new values with.
+   * @note This preserves the values in the Array.
+   * @note The default dimension is given by m_singleParameterResizeIndex.
+   */
+  template< typename ...ARGS >
   void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
   { resizeDefaultDimension( newdim, std::forward<ARGS>(args)... ); }
 
   /**
-   *
-   * @param newCapacity
+   * @brief Reserve space in the Array to hold at least the given number of values.
+   * @param newCapacity the number of values to reserve space for. After this call
+   *        capacity() >= newCapacity.
    */
   void reserve( INDEX_TYPE const newCapacity )
   {
-    bufferManipulation::reserve( m_dataVector, size(), newCapacity );
+    bufferManipulation::reserve( m_dataBuffer, size(), newCapacity );
     setDataPtr();
   }
 
+  /**
+   * @brief Return the maximum number of values the Array can hold without reallocation.
+   */
   INDEX_TYPE capacity() const
-  { return integer_conversion<INDEX_TYPE>( m_dataVector.capacity() ); }
+  { return integer_conversion< INDEX_TYPE >( m_dataBuffer.capacity() ); }
 
+  /**
+   * @brief Sets the size of the Array to zero and destroys all the values.
+   *        Sets the size of m_singleParameterResizeIndex to 0 but leaves the
+   *        size of the other dimensions untouched. Equivalent to resize( 0 ).
+   */
   void clear()
   {
-    bufferManipulation::resize( m_dataVector, size(), 0 );
+    bufferManipulation::resize( m_dataBuffer, size(), 0 );
     setDataPtr();
 
-    for( int i = 0 ; i < NDIM ; ++i )
-    {
-      const_cast<INDEX_TYPE *>(m_dims)[i] = 1;
-    }
-    const_cast<INDEX_TYPE *>(m_dims)[getSingleParameterResizeIndex()] = 0;
+    const_cast< INDEX_TYPE * >( m_dims )[ getSingleParameterResizeIndex() ] = 0;
 
     CalculateStrides();
   }
 
+  /**
+   * @brief Append a value to the end of the array. Equivalent to std::vector::push_back.
+   * @param value the value to append via a copy.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
-  push_back( T const & newValue )
+  push_back( T const & value )
   {
-    bufferManipulation::pushBack( m_dataVector, size(), newValue );
+    bufferManipulation::pushBack( m_dataBuffer, size(), value );
     setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
+  /**
+   * @brief Append a value to the end of the array. Equivalent to std::vector::push_back.
+   * @param value the value to append via a move.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
-  push_back( T && newValue )
+  push_back( T && value )
   {
-    bufferManipulation::pushBack( m_dataVector, size(), std::move( newValue ) );
+    bufferManipulation::pushBack( m_dataBuffer, size(), std::move( value ) );
     setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
+  /**
+   * @brief Remove the last value in the array. Equivalent to std::vector::pop_back.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
   pop_back()
   {
-    bufferManipulation::popBack( m_dataVector, size() );
+    bufferManipulation::popBack( m_dataBuffer, size() );
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]--;
   }
 
+  /**
+   * @brief Insert a value into the array at the given position. Similar to std::vector::insert
+   *        but this method takes a position instead of an iterator.
+   * @param pos the position to insert at. 
+   * @param value the value to insert via a copy.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE pos, T const& value )
+  insert( INDEX_TYPE const pos, T const & value )
   {
-    bufferManipulation::insert( m_dataVector, size(), pos, value );
+    bufferManipulation::insert( m_dataBuffer, size(), pos, value );
     setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
+  /**
+   * @brief Insert a value into the array at the given position. Similar to std::vector::insert
+   *        but this method takes a position instead of an iterator.
+   * @param pos the position to insert at.
+   * @param value the value to insert via a move.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE pos, T && value )
+  insert( INDEX_TYPE const pos, T && value )
   {
-    bufferManipulation::insert( m_dataVector, size(), pos, std::move( value ) );
+    bufferManipulation::insert( m_dataBuffer, size(), pos, std::move( value ) );
     setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
+  /**
+   * @brief Insert values into the array at the given position. Similar to std::vector::insert
+   *        but this method takes a position, a pointer and a size instead of three iterators.
+   * @param pos the position to insert at.
+   * @param values a pointer to the values to insert via copies.
+   * @param n the number of values to insert.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE pos, T const * const values, INDEX_TYPE n )
+  insert( INDEX_TYPE const pos, T const * const values, INDEX_TYPE const n )
   {
-    bufferManipulation::insert( m_dataVector, size(), pos, values, n );
+    bufferManipulation::insert( m_dataBuffer, size(), pos, values, n );
     setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ] += n;
   }
 
+  /**
+   * @brief Remove the value at the given position. Similar to std::vector::erase
+   *        but this method takes a position instead of an iterator.
+   * @param pos the position of the value to remove.
+   * @note This method is only available on 1D arrays.
+   */
   template< int N=NDIM >
   std::enable_if_t< N == 1 >
   erase( INDEX_TYPE pos )
   {
-    bufferManipulation::erase( m_dataVector, size(), pos );
+    bufferManipulation::erase( m_dataBuffer, size(), pos );
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]--;
   }
 
+  /**
+   * @brief Get the default resize dimension.
+   */
   inline int getSingleParameterResizeIndex() const
   {
     return m_singleParameterResizeIndex;
   }
 
+  /**
+   * @brief Set the default resize dimension.
+   * @param index the new default dimension. 
+   */
   inline void setSingleParameterResizeIndex( int const index )
   {
     m_singleParameterResizeIndex = index;
   }
 
-
+  /**
+   * @brief Set the name of the Array to be displayed whenever
+   *        the underlying Buffer's user call back is called.
+   * @param name the name of the Array.
+   */
   void setUserCallBack( std::string const & name )
   {
-    m_dataVector.template setUserCallBack<decltype(*this)>( name );
+    m_dataBuffer.template setUserCallBack<decltype(*this)>( name );
   }
 
+  /**
+   * @brief Move the Array to the given execution space, optionally touching it.
+   * @param space the space to move the Array to.
+   * @param touch whether the Array should be touched in the new space or not.
+   * @note This particular method is for when T is not itself an Array.
+   * @note Not all Buffers support memory movement.
+   */
   template< typename U = T >
   std::enable_if_t< !isArray< U > >
-  move( chai::ExecutionSpace space, bool touch=true )
+  move( chai::ExecutionSpace const space, bool const touch=true )
   {
-    m_dataVector.move( space, touch );
+    m_dataBuffer.move( space, touch );
     setDataPtr();
   }
 
+  /**
+   * @brief Move the Array to the given execution space, optionally touching it.
+   * @param space the space to move the Array to.
+   * @param touch whether the Array should be touched in the new space or not.
+   * @note This particular method is for when T is itself an Array, and it also
+   *       moves the inner Arrays. Not sure if the touch gets propagated correctly.
+   * @note Not all Buffers support memory movement.
+   */
   template< typename U = T >
   std::enable_if_t< isArray< U > >
-  move( chai::ExecutionSpace space, bool touch=true )
+  move( chai::ExecutionSpace const space, bool const touch=true )
   {
-    reinterpret_cast< DATA_VECTOR_TYPE< typename T::ViewType > & >( m_dataVector ).move( space, touch );
+    reinterpret_cast< BUFFER_TYPE< typename T::ViewType > & >( m_dataBuffer ).move( space, touch );
     setDataPtr();
   }
 
@@ -447,12 +555,10 @@ public:
   }
 #endif
 
-  std::array< camp::idx_t, NDIM > getPermutation() const
-  { return RAJA::as_array< PERMUTATION >::get(); }
-
 private:
 
-  using ParentType::m_dataVector;
+  // Aliasing the protected members of ArrayView.
+  using ParentType::m_dataBuffer;
   using ParentType::m_dims;
   using ParentType::m_strides;
   using ParentType::m_singleParameterResizeIndex;
@@ -482,34 +588,49 @@ private:
     }
   }
 
-  template <class ...ARGS>
+  /**
+   * @brief Resize the default dimension of the Array.
+   * @tparam ARGS variadic pack containing the types to initialize the new values with.
+   * @param newDimLength the new size of the default dimension.
+   * @param ARGS arguments to initialize the new values with.
+   * @note This preserves the values in the Array.
+   * @note The default dimension is given by m_singleParameterResizeIndex.
+   */
+  template< typename ...ARGS >
   void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS &&... args )
   {
+    // Get the current length and stride of the dimension as well as the size of the whole Array.
     INDEX_TYPE const curDimLength = m_dims[ m_singleParameterResizeIndex ];
     INDEX_TYPE const curDimStride = m_strides[ m_singleParameterResizeIndex ];
+    INDEX_TYPE const curSize = size();
 
-    INDEX_TYPE const oldSize = size();
+    // Set the size of the dimension, recalculate the strides and get the new total size.
     const_cast< INDEX_TYPE * >( m_dims )[ m_singleParameterResizeIndex ] = newDimLength;
-    INDEX_TYPE const newSize = size();
     CalculateStrides();
+    INDEX_TYPE const newSize = size();
 
     // If we aren't changing the total size then we can return early.
-    if ( newSize == oldSize ) return;
+    if ( newSize == curSize ) return;
     
+    // If the size is increasing do one thing, if it's decreasing do another.
     if ( newDimLength > curDimLength )
     {
       // Reserve space in the buffer but don't initialize the values.
-      bufferManipulation::reserve( m_dataVector, oldSize, newSize );
+      bufferManipulation::reserve( m_dataBuffer, curSize, newSize );
       setDataPtr();
       T * const ptr = data();
 
+      // The resizing consists of iterations where each iteration consists of the addition of a
+      // contiguous segment of new values.
       INDEX_TYPE const valuesToAddPerIteration = curDimStride * ( newDimLength - curDimLength );
       INDEX_TYPE const valuesToShiftPerIteration = curDimStride * curDimLength;
-      INDEX_TYPE const numIterations = ( newSize - oldSize ) / valuesToAddPerIteration;
+      INDEX_TYPE const numIterations = ( newSize - curSize ) / valuesToAddPerIteration;
 
       // Iterate backwards over the iterations.
       for ( INDEX_TYPE i = numIterations - 1; i >= 0; --i )
       {
+        // First shift the values up to make remove for the values of subsequent iterations.
+        // This step is a no-op on the last iteration (i=0).
         INDEX_TYPE const valuesLeftToInsert = valuesToAddPerIteration * i;
         T * const startOfShift = ptr + valuesToShiftPerIteration * i;
         arrayManipulation::shiftUp( startOfShift, valuesToShiftPerIteration, INDEX_TYPE( 0 ), valuesLeftToInsert );
@@ -526,9 +647,11 @@ private:
     {
       T * const ptr = data();
 
+      // The resizing consists of iterations where each iteration consists of the removal of a
+      // contiguous segment of new values.
       INDEX_TYPE const valuesToRemovePerIteration = curDimStride * ( curDimLength - newDimLength );
       INDEX_TYPE const valuesToShiftPerIteration = curDimStride * newDimLength;
-      INDEX_TYPE const numIterations = ( oldSize - newSize ) / valuesToRemovePerIteration;
+      INDEX_TYPE const numIterations = ( curSize - newSize ) / valuesToRemovePerIteration;
 
       // Iterate over the iterations, skipping the first.
       for ( INDEX_TYPE i = 1; i < numIterations; ++i )
@@ -538,7 +661,8 @@ private:
         arrayManipulation::shiftDown( startOfShift, valuesToShiftPerIteration + amountToShift, amountToShift, amountToShift );
       }
 
-      // Initialize the new values
+      // After the iterations are complete all the values to remove have been moved to the end of the array.
+      // We destroy them here.
       INDEX_TYPE const totalValuesToRemove = valuesToRemovePerIteration * numIterations;
       for ( INDEX_TYPE i = 0; i < totalValuesToRemove; ++i )
       {
