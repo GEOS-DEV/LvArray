@@ -575,20 +575,24 @@ private:
   {
 #ifdef USE_CHAI
     internal::chaiLock.lock();
-    chai::ManagedArray<T> new_array( new_capacity );
+    chai::ManagedArray<T> newArray( new_capacity );
 #ifdef USE_CUDA
-    new_array.setUserCallback( m_array.getUserCallback() );
+    chai::PointerRecord * record = chai::ArrayManager::getInstance()->getPointerRecord( data() );
+    if ( record != &chai::ArrayManager::s_null_record )
+    {
+      newArray.setUserCallback( record->m_user_callback );
+    }
 #endif
     internal::chaiLock.unlock();
 #else
-    T* new_array = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
+    T* newArray = static_cast< T* >( std::malloc( new_capacity * sizeof( T ) ) );
 #endif
 
     /* Move the values over into the new array. */
     const size_type new_size = new_capacity > size() ? size() : new_capacity;
     for( size_type i = 0 ; i < new_size ; ++i )
     {
-      new ( &new_array[ i ] ) T( std::move( m_array[ i ] ) );
+      new ( &newArray[ i ] ) T( std::move( m_array[ i ] ) );
     }
 
     for( size_type i = 0 ; i < size() ; ++i )
@@ -604,7 +608,7 @@ private:
     std::free( m_array );
     m_capacity = new_capacity;
 #endif
-    m_array = new_array;
+    m_array = newArray;
 
 #ifdef USE_CHAI
     registerTouch( chai::CPU );

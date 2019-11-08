@@ -863,7 +863,7 @@ public:
     INDEX_TYPE const nSets = view.size();
     
     // Update the view on the device.
-    forall(cuda(), 0, nSets,
+    forall(gpu(), 0, nSets,
       [view] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfSet = view.sizeOfSet(i);
@@ -896,7 +896,7 @@ public:
     
     // Update the view on the device.
     array.move(chai::GPU);
-    forall(cuda(), 0, nSets,
+    forall(gpu(), 0, nSets,
       [view=array.toView()] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfSet = view.sizeOfSet(i);
@@ -928,7 +928,7 @@ public:
     populateValuesToInsert(array, ref, valuesToInsert, false);
 
     // Append to the view on the device.
-    forall(cuda(), 0, nSets,
+    forall(gpu(), 0, nSets,
       [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
       {
         for (INDEX_TYPE j = 0; j < toInsert[i].size(); ++j)
@@ -956,7 +956,7 @@ public:
     // Append to the view on the device.
     if (sorted)
     {
-      forall(cuda(), 0, nSets,
+      forall(gpu(), 0, nSets,
         [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.insertSortedIntoSet(i, toInsert[i].data(), toInsert[i].size());
@@ -965,7 +965,7 @@ public:
     }
     else
     {
-      forall(cuda(), 0, nSets,
+      forall(gpu(), 0, nSets,
         [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.insertIntoSet(i, toInsert[i].data(), toInsert[i].size());
@@ -989,7 +989,7 @@ public:
     populateValuesToRemove(array, ref, valuesToRemove, false);
 
     // Append to the view on the device.
-    forall(cuda(), 0, nSets,
+    forall(gpu(), 0, nSets,
       [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
       {
         for (INDEX_TYPE j = 0; j < toRemove[i].size(); ++j)
@@ -1017,7 +1017,7 @@ public:
     // Append to the view on the device.
     if (sorted)
     {
-      forall(cuda(), 0, nSets,
+      forall(gpu(), 0, nSets,
         [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.removeSortedFromSet(i, toRemove[i].data(), toRemove[i].size());
@@ -1026,7 +1026,7 @@ public:
     }
     else
     {
-      forall(cuda(), 0, nSets,
+      forall(gpu(), 0, nSets,
         [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.removeFromSet(i, toRemove[i].data(), toRemove[i].size());
@@ -1261,10 +1261,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
   return result;
 }

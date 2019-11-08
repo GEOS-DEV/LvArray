@@ -25,29 +25,31 @@
 #ifndef CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 #define CXX_UTILITIES_SRC_SRC_LOGGER_HPP_
 
+
+
+// Source incldes
+#include "CXX_UtilsConfig.hpp"
+
+// TPL includes
+#ifdef USE_ATK
+  #if !defined(NDEBUG) && !defined(AXOM_DEBUG)
+    #define AXOM_DEBUG
+  #endif
+
+  #include <axom/slic.hpp>
+#endif
+
+// System includes
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-#include "CXX_UtilsConfig.hpp"
-
-#ifdef USE_ATK
-
-#ifndef NDEBUG
-#ifndef AXOM_DEBUG
-#define AXOM_DEBUG
-#endif
+#if defined(USE_CUDA)
+  #include <cassert>
 #endif
 
-#include "axom/slic.hpp"
-#endif
-
-#ifdef USE_CUDA
-#include <cassert>
-#endif
-
-#ifdef USE_MPI
-#include <mpi.h>
+#if defined(USE_MPI)
+  #include <mpi.h>
 #endif
 
 #define GEOS_LOG( msg )                                                        \

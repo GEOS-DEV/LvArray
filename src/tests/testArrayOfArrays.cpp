@@ -925,7 +925,7 @@ public:
     INDEX_TYPE const nArrays = view.size();
     
     // Update the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfArray = view.sizeOfArray(i);
@@ -964,7 +964,7 @@ public:
     INDEX_TYPE const nArrays = array.size();
     
     // Update the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toViewC()] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfArray = view.sizeOfArray(i);
@@ -1017,7 +1017,7 @@ public:
     }
 
     // Append to the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), toAppend=valuesToAppend.toViewConst()] __device__ (INDEX_TYPE i)
       {
         for (INDEX_TYPE j = 0; j < toAppend[i].size(); ++j)
@@ -1043,7 +1043,7 @@ public:
       ASSERT_EQ(array.sizeOfArray(i), 0);
     }
 
-    forall(cuda(), 0, numThreads,
+    forall(gpu(), 0, numThreads,
       [view=array.toView(), nArrays, appendsPerArrayPerThread] __device__ (INDEX_TYPE const threadNum)
       {
         for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -1100,7 +1100,7 @@ public:
     }
 
     // Append to the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), toAppend=valuesToAppend.toViewConst()] __device__ (INDEX_TYPE i)
       {
         view.appendToArray(i, toAppend[i].data(), toAppend[i].size());
@@ -1141,7 +1141,7 @@ public:
     }
 
     // Insert into the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), positions=positionsToInsert.toViewConst(), values=valuesToInsert.toViewConst()]
       __device__ (INDEX_TYPE i)
       {
@@ -1186,7 +1186,7 @@ public:
     }
 
     // Insert into the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), positions=positionsToInsert.toViewConst(), values=valuesToInsert.toViewConst()] 
       __device__ (INDEX_TYPE i)
       {
@@ -1222,7 +1222,7 @@ public:
     }
 
     // Remove the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), positions=positionsToRemove.toViewConst()]
       __device__ (INDEX_TYPE i)
       {
@@ -1260,7 +1260,7 @@ public:
     }
 
     // Remove from the view on the device.
-    forall(cuda(), 0, nArrays,
+    forall(gpu(), 0, nArrays,
       [view=array.toView(), removals=removals.toViewConst()]
       __device__ (INDEX_TYPE i)
       {
@@ -1443,10 +1443,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
   return result;
 }

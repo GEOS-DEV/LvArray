@@ -411,7 +411,7 @@ void testMemoryMotion( ChaiVector< T > & v )
     v[ i ] = T( i );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       v[ i ] += v[ i ];
@@ -438,7 +438,7 @@ void testMemoryMotionMove( ChaiVector< T > & v )
     v[ i ] = T( i );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       v[ i ] += v[ i ];
@@ -467,7 +467,7 @@ void testMemoryMotionArray( ChaiVector< ChaiVector< T > > & v )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       for ( size_type j = 0; j < N; ++j )
@@ -503,7 +503,7 @@ void testMemoryMotionArrayMove( ChaiVector< ChaiVector< T > > & v )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       for ( size_type j = 0; j < N; ++j )
@@ -541,7 +541,7 @@ void testMemoryMotionArray2( ChaiVector< ChaiVector< ChaiVector< T > > > & v )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       for ( size_type j = 0; j < N; ++j )
@@ -586,7 +586,7 @@ void testMemoryMotionArrayMove2( ChaiVector< ChaiVector< ChaiVector< T > > > & v
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( int i )
     {
       for ( size_type j = 0; j < N; ++j )
@@ -1087,10 +1087,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
   return result;
 }

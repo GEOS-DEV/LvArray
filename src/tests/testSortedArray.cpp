@@ -325,7 +325,7 @@ void memoryMotionTest(SortedArray<T> & v, INDEX_TYPE const SIZE)
 
   // Capture a view on the device.
   SortedArrayView<T const> const & vView = v;
-  forall(cuda(), 0, SIZE,
+  forall(gpu(), 0, SIZE,
     [=] __device__ (INDEX_TYPE i)
     {
       GEOS_ERROR_IF(vView[i] != T(i), "Values changed when moved.");
@@ -370,7 +370,7 @@ void memoryMotionMoveTest(SortedArray<T> & v, INDEX_TYPE SIZE)
 
   // Capture a view on the device.
   SortedArrayView<T const> const & vView = v;
-  forall(cuda(), 0, SIZE,
+  forall(gpu(), 0, SIZE,
     [=] __device__ (INDEX_TYPE i)
     {
       GEOS_ERROR_IF(vView[i] != T(i), "Values changed when moved.");
@@ -412,7 +412,7 @@ void containsDeviceTest(SortedArray<T> & v, INDEX_TYPE SIZE)
   ASSERT_EQ(v.size(), SIZE);
 
   SortedArrayView<T const> const & vView = v;
-  forall(cuda(), 0, SIZE,
+  forall(gpu(), 0, SIZE,
     [=] __device__ (INDEX_TYPE i)
     {
       GEOS_ERROR_IF(!vView.contains(T(2 * i)), "vView should contain even numbers.");
@@ -798,10 +798,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
 #if defined(USE_MPI)
   MPI_Finalize();
