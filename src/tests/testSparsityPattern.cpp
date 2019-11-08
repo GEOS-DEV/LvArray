@@ -577,7 +577,7 @@ void memoryMotionTest(ViewType<COL_TYPE> const & v)
 
   // Capture the view on device and set the values. Here the const cast is necessary
   // because we don't want to test the insert/remove methods on device yet.
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = v.getColumns(row);
@@ -626,7 +626,7 @@ void memoryMotionMove(SparsityPattern<COL_TYPE> & v)
     }
   }
 
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = view.getColumns(row);
@@ -664,7 +664,7 @@ void memoryMotionConstTest(SparsityPattern<COL_TYPE> v, REF_TYPE<COL_TYPE> & vRe
 
   // Create a view const and capture it on device.
   ViewType<COL_TYPE const> const & vConst = v;
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       COL_TYPE const * const columns = vConst.getColumns(row);
@@ -720,7 +720,7 @@ void insertDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
   // Create views and insert the columns on the device.
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2> const & insertView = columnsToInsert;
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       for (INDEX_TYPE i = 0; i < MAX_INSERTS; ++i)
@@ -775,7 +775,7 @@ void insertMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
 
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2> const & insertView = columnsToInsert;
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       vView.insertNonZeros(row, insertView[row], MAX_INSERTS);
@@ -827,7 +827,7 @@ void insertSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
 
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2, 1, INDEX_TYPE> const & insertView = columnsToInsert;
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       vView.insertNonZerosSorted(row, insertView[row], MAX_INSERTS);
@@ -874,7 +874,7 @@ void removeDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & vRef,
   // Create views and remove the columns on device.
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2> const & insertView = columnsToRemove;
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       for (INDEX_TYPE i = 0; i < MAX_REMOVES; ++i)
@@ -926,7 +926,7 @@ void removeMultipleDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> 
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2> const & removeView = columnsToRemove;
 
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       vView.removeNonZeros(row, removeView[row], MAX_REMOVES);
@@ -977,7 +977,7 @@ void removeSortedDeviceTest(SparsityPattern<COL_TYPE> & v, REF_TYPE<COL_TYPE> & 
   ViewType<COL_TYPE> const & vView = v;
   ArrayView<COL_TYPE const, 2> const & removeView = columnsToRemove;
 
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       vView.removeNonZerosSorted(row, removeView[row], MAX_REMOVES);
@@ -1017,7 +1017,7 @@ void emptyDeviceTest(ViewType<COL_TYPE const> const & v)
   }
 
   // Check that each row contains the even columns and no odd columns on device.
-  forall(cuda(), 0, numRows,
+  forall(gpu(), 0, numRows,
     [=] __device__ (INDEX_TYPE row)
     {
       for (INDEX_TYPE i = 0; i < v.numNonZeros(row); ++i)
@@ -1761,10 +1761,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
 #if defined(USE_MPI)
   MPI_Finalize();

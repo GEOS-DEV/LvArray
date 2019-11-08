@@ -114,7 +114,9 @@ public:
     chai::ManagedArray< T > newArray( newCapacity );
     internal::chaiLock.unlock();
 
-    newArray.setUserCallback( m_array.getUserCallback() );
+#if defined(USE_CUDA)
+    newArray.setUserCallback( m_array.getPointerRecord()->m_user_callback );
+#endif
 
     arrayManipulation::moveInto( &newArray[ 0 ], newCapacity, data(), size );
 
@@ -197,14 +199,8 @@ public:
       if (act == chai::ACTION_MOVE)
       {
         std::string const & size = internal::calculateSize( bytes );
-        if (s == chai::CPU)
-        {
-          GEOS_LOG_RANK("Moved " << size << " to the CPU: " << typeString << " " << name );
-        }
-        else if (s == chai::GPU)
-        {
-          GEOS_LOG_RANK("Moved " << size << " to the GPU: " << typeString << " " << name );
-        }
+        char const * const spaceStr = (s == chai::CPU) ? "CPU" : "GPU";
+        GEOS_LOG_RANK("Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
       }
     });
 #else

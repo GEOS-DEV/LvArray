@@ -318,7 +318,7 @@ void correctnessDeviceTest()
     fillArrays(size, a, b);
 
     ArrayView1d<T> & aView = a;
-    forall(cuda(), 0, 1,
+    forall(gpu(), 0, 1,
       [=] __device__ (INDEX_TYPE i)
       {
         makeSorted(aView.begin(), aView.end(), Compare());
@@ -346,7 +346,7 @@ void dualCorrectnessDeviceTest()
 
     ArrayView1d<SORTINGTYPE> & aView = a;
     ArrayView1d<T> & bView = b;
-    forall(cuda(), 0, 1,
+    forall(gpu(), 0, 1,
       [=] __device__ (INDEX_TYPE i)
       {
         dualSort(aView.begin(), aView.end(), bView.begin(), Compare());
@@ -384,7 +384,7 @@ void removeDuplicatesCorrectnessDeviceTest()
     std::sort(values.begin(), values.end());
     ASSERT_TRUE(sortedArrayManipulation::isSorted(values.data(), values.size()));
     
-    forall(cuda(), 0, 1,
+    forall(gpu(), 0, 1,
       [valuesView=values.toView(), numUniqueValuesView=numUniqueValues.toView()] __device__ (INDEX_TYPE i)
       {
         numUniqueValuesView[0] = sortedArrayManipulation::removeDuplicates(valuesView.data(), valuesView.size());
@@ -497,10 +497,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
 #if defined(USE_MPI)
   MPI_Finalize();

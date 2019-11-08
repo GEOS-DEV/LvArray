@@ -101,7 +101,7 @@ If you would like to use an ``Array`` inside a *RAJA* style device kernel you ne
       ArrayView< double, 1 > const & vView = v;
       
       /* Do things with vView on device. */
-      forall( cuda(), 0, 100,
+      forall( gpu(), 0, 100,
         [=] __device__ ( int i )
         {
           vView[ i ] *= 2;

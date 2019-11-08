@@ -187,7 +187,7 @@ void testMemoryMotion( arrayView< T > & v )
     v[ i ] = T( i );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += v[ i ];
@@ -218,7 +218,7 @@ void testMemoryMotionConst( array< T > & a )
   arrayView< T const > & v = a.toViewConst();
 
   // Capture the view on the device.
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       assert(v[i] == T( i ));
@@ -256,7 +256,7 @@ void testMemoryMotionMove( array< T > & a )
   arrayView< T > & v = a;
   T const * const v_device_ptr = v.data();
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += v[ i ];
@@ -285,14 +285,14 @@ void testMemoryMotionMultiple( arrayView< T > & v )
     v[ i ] = T( i );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
     }
   );
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
@@ -306,7 +306,7 @@ void testMemoryMotionMultiple( arrayView< T > & v )
     }
   );
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
@@ -339,14 +339,14 @@ void testMemoryMotionMultipleMove( array< T > & a )
     v[ i ] = T( i );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
     }
   );
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
@@ -359,7 +359,7 @@ void testMemoryMotionMultipleMove( array< T > & a )
     v[ i ] += T( 2 );
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       v[ i ] += T( 2 );
@@ -394,7 +394,7 @@ void testMemoryMotionArray( array< array< T > > & a )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -437,7 +437,7 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
 
   // Create a const view and capture it.  
   arrayView< arrayView< T const > > & v = a.toViewConst();
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -485,7 +485,7 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -526,7 +526,7 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -578,7 +578,7 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
 
   arrayView< arrayView< arrayView< T const > > > & v = a.toViewConst();
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -638,7 +638,7 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
     }
   }
 
-  forall( cuda(), 0, N,
+  forall( gpu(), 0, N,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < N; ++j )
@@ -681,7 +681,7 @@ void test2DAccessorsDevice( arrayView2D< T > & v )
     }
   }
 
-  forall( cuda(), 0, I,
+  forall( gpu(), 0, I,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < J; ++j )
@@ -725,7 +725,7 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
     }
   }
 
-  forall( cuda(), 0, I,
+  forall( gpu(), 0, I,
     [=] __device__ ( INDEX_TYPE i )
     {
       for ( INDEX_TYPE j = 0; j < J; ++j )
@@ -760,7 +760,7 @@ template < typename T >
 void testSizeOnDevice( arrayView3D< T > & v )
 {
 
-  forall( cuda(), 0, v.size(0),
+  forall( gpu(), 0, v.size(0),
     [=] __device__ ( INDEX_TYPE i )
     {
       const INDEX_TYPE I = v.size(0);
@@ -1207,10 +1207,6 @@ int main( int argc, char* argv[] )
   result = RUN_ALL_TESTS();
 
   logger::FinalizeLogger();
-
-#ifdef USE_CHAI
-  chai::ArrayManager::finalize();
-#endif
 
   return result;
 }
