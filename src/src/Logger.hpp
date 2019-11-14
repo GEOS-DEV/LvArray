@@ -52,6 +52,54 @@
   #include <mpi.h>
 #endif
 
+
+#define VERBOSE_LOG( minimumVerbosity, msg )                                   \
+  do {                                                                         \
+    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    {                                                                          \
+      std::ostringstream oss;                                                  \
+      oss << msg;                                                              \
+      std::cout << oss.str() << std::endl;                                     \                                   \
+    }                                                                          \
+  } while( false )
+
+#define VERBOSE_LOG_RANK_0( minimumVerbosity, msg )                            \
+  do {                                                                         \
+    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    {                                                                          \
+      if( logger::internal::rank == 0 )                                        \
+      {                                                                        \
+        std::ostringstream oss;                                                \
+        oss << msg;                                                            \
+        std::cout << oss.str() << std::endl;                                   \
+      }                                                                        \
+    }                                                                          \
+  } while( false )
+
+#define VERBOSE_LOG_RANK( minimumVerbosity, msg )                              \
+  do {                                                                         \
+    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    {                                                                          \
+      std::ostringstream oss;                                                  \
+      if( logger::internal::using_cout_for_rank_stream )                       \
+      {                                                                        \
+        if( logger::internal::n_ranks > 1 )                                    \
+        {                                                                      \
+          oss << "Rank " << logger::internal::rank << ": ";                    \
+        }                                                                      \
+                                                                               \
+        oss << msg;                                                            \
+        std::cout << oss.str() << std::endl;                                   \
+      }                                                                        \
+      else                                                                     \
+      {                                                                        \
+        oss << msg;                                                            \
+        logger::internal::rank_stream << oss.str() << std::endl;               \
+      }                                                                        \                                                                        \
+    }                                                                          \
+  } while( false )
+
+
 #define GEOS_LOG( msg )                                                        \
   do {                                                                         \
     std::ostringstream oss;                                                    \
