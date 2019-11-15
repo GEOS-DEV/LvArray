@@ -55,7 +55,7 @@
 
 #define VERBOSE_LOG( minimumVerbosity, msg )                                   \
   do {                                                                         \
-    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       std::ostringstream oss;                                                  \
       oss << msg;                                                              \
@@ -65,7 +65,7 @@
 
 #define VERBOSE_LOG_RANK_0( minimumVerbosity, msg )                            \
   do {                                                                         \
-    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       if( logger::internal::rank == 0 )                                        \
       {                                                                        \
@@ -78,7 +78,7 @@
 
 #define VERBOSE_LOG_RANK( minimumVerbosity, msg )                              \
   do {                                                                         \
-    if (this->getVerbosityLevel() >= minimumVerbosity)                         \
+    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       std::ostringstream oss;                                                  \
       if( logger::internal::using_cout_for_rank_stream )                       \
