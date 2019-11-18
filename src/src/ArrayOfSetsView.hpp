@@ -25,7 +25,6 @@
 
 #include <limits>
 #include "ArrayOfArraysView.hpp"
-#include "ChaiVector.hpp"
 #include "arrayManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 #include "ArraySlice.hpp"
@@ -168,7 +167,6 @@ public:
       GEOS_ERROR_IF(!sortedArrayManipulation::allUnique(setValues, numValues), "Values should be unique!");
     }
   }
-
 
   /**
    * @brief Return true iff the given set contains the given value.
@@ -444,7 +442,6 @@ protected:
   }
 
   // Aliasing protected members in ArrayOfArraysView
-  using ParentClass::m_offsets;
   using ParentClass::m_sizes;
   using ParentClass::m_values;
 

@@ -52,12 +52,12 @@ public:
   using value_type = T;
 
   /**
-   * @brief Constructor for creating an uninitialized Buffer. In general an
-   *        uninitialized buffer is an undefined state and may only be assigned to
-   *        however in this case it is the same as the default constructor.
+   * @brief Constructor for creating an empty/uninitialized buffer. For the MallocBuffer
+   *        an uninitialized buffer is equivalent to an empty buffer.
    */
-  MallocBuffer( std::nullptr_t ) :
-    MallocBuffer()
+  MallocBuffer( bool=true ) :
+    m_capacity( 0 ),
+    m_data( nullptr )
   {}
   
   /**

@@ -65,7 +65,10 @@ public:
    */
   CRSMatrix( INDEX_TYPE nrows, INDEX_TYPE ncols, INDEX_TYPE initialRowCapacity=0 ):
     CRSMatrixView<T, COL_TYPE, INDEX_TYPE>()
-  { CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity, m_entries); }
+  {
+    CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity, m_entries);
+    setUserCallBack( "" );
+  }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -84,7 +87,7 @@ public:
   CRSMatrix( CRSMatrix && ) = default;
 
   /**
-   * @brief Destructor, frees the entries, values (columns), sizes and offsets ChaiVectors.
+   * @brief Destructor, frees the entries, values (columns), sizes and offsets Buffers.
    */
   ~CRSMatrix()
   { CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::free(m_entries); }
@@ -143,11 +146,13 @@ public:
   CRSMatrix & operator=( CRSMatrix const & src ) restrict_this
   {
     m_num_columns = src.m_num_columns;
-    internal::PairOfVectors<T> entriesPair(m_entries, src.m_entries.toConst());
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(),
-                                                          src.m_sizes.toConst(),
-                                                          src.m_values.toConst(),
-                                                          entriesPair);
+    internal::PairOfBuffers< T > entriesPair( m_entries, src.m_entries );
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo( src.m_numArrays,
+                                                           src.m_offsets[ src.m_numArrays ],
+                                                           src.m_offsets,
+                                                           src.m_sizes,
+                                                           src.m_values,
+                                                           entriesPair );
     return *this;
   }
 
@@ -158,7 +163,6 @@ public:
   inline
   CRSMatrix & operator=( CRSMatrix && src ) = default;
 
-#ifdef USE_CHAI
   /**
    * @brief Move to the given memory space, optionally touching it.
    * @param [in] space the memory space to move to.
@@ -173,7 +177,6 @@ public:
    */
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space, m_entries); }
-#endif
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
@@ -182,8 +185,7 @@ public:
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
   {
-    m_values.reserve( nnz );
-    m_entries.reserve( nnz );
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::reserveValues( nnz, m_entries );
   }
 
   /**
@@ -258,6 +260,12 @@ public:
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
     SparsityPatternView<COL_TYPE, INDEX_TYPE>::setCapacityOfArray(row, newCapacity, m_entries);
+  }
+
+
+  void setUserCallBack( std::string const & name )
+  {
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::template setUserCallBack< decltype( *this ) >( name );
   }
 
 private:

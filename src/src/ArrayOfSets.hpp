@@ -66,7 +66,7 @@ public:
    */
   inline
   INDEX_TYPE size() const restrict_this
-  { return m_sizes.size(); }
+  { return ArrayOfSetsView<T, INDEX_TYPE>::size(); }
 
   /**
    * @brief Constructor.
@@ -76,7 +76,10 @@ public:
   inline
   ArrayOfSets(INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0) restrict_this:
     ArrayOfSetsView<T, INDEX_TYPE>()
-  { ArrayOfSetsView<T, INDEX_TYPE>::resize(nsets, defaultSetCapacity); }
+  {
+    ArrayOfSetsView<T, INDEX_TYPE>::resize(nsets, defaultSetCapacity);
+    setUserCallBack( "" );
+  }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -95,7 +98,7 @@ public:
   ArrayOfSets( ArrayOfSets && src ) = default;
 
   /**
-   * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
+   * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
   ~ArrayOfSets() restrict_this
@@ -140,7 +143,11 @@ public:
   inline
   ArrayOfSets & operator=( ArrayOfSets const & src ) restrict_this
   {
-    ArrayOfSetsView<T, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
+    ArrayOfSetsView<T, INDEX_TYPE>::setEqualTo( src.m_numArrays,
+                                                src.m_offsets[ src.m_numArrays ],
+                                                src.m_offsets,
+                                                src.m_sizes,
+                                                src.m_values );
     return *this;
   }
 
@@ -162,6 +169,10 @@ public:
   {
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfArrays.hpp.
     ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
+
+    m_numArrays = srcView.m_numArrays;
+    srcView.m_numArrays = 0;
+
     m_offsets = std::move( srcView.m_offsets );
     m_sizes = std::move( srcView.m_sizes );
     m_values = std::move( srcView.m_values );
@@ -221,7 +232,6 @@ public:
     m_sizes[ i ] = 0;
   }
 
-#ifdef USE_CHAI
   /**
    * @brief Move to the given memory space, optionally touching it.
    * @param [in] space the memory space to move to.
@@ -238,7 +248,6 @@ public:
   inline
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { ArrayOfSetsView<T, INDEX_TYPE>::registerTouch(space); }
-#endif
 
   /**
    * @brief Reserve space for the given number of sets.
@@ -308,13 +317,12 @@ public:
   inline
   void appendSet( INDEX_TYPE const n=0 ) restrict_this
   {
-    INDEX_TYPE const nSets = size();
-    INDEX_TYPE const totalSize = m_offsets[nSets];
-
-    m_offsets.push_back(totalSize);
-    m_sizes.push_back(0);
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    ++m_numArrays;
     
-    setCapacityOfSet( nSets, n );
+    setCapacityOfSet( m_numArrays - 1, n );
   }
 
   /**
@@ -330,8 +338,9 @@ public:
 
     // Insert an set of capacity zero at the given location 
     INDEX_TYPE const offset = m_offsets[i];
-    m_sizes.insert( i, 0 );
-    m_offsets.insert( i + 1, offset );
+    bufferManipulation::insert( m_offsets, m_numArrays + 1, i + 1, offset );
+    bufferManipulation::insert( m_sizes, m_numArrays, i, 0 );
+    ++m_numArrays;
 
     // Set the capacity of the new set
     setCapacityOfSet( i, n );
@@ -347,8 +356,9 @@ public:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     setCapacityOfSet( i, 0 );
-    m_sizes.erase( i );
-    m_offsets.erase( i + 1 );
+    bufferManipulation::erase( m_offsets, m_numArrays + 1, i + 1 );
+    bufferManipulation::erase( m_sizes, m_numArrays, i );
+    --m_numArrays;
   }
 
   /**
@@ -382,6 +392,11 @@ public:
   inline
   INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) restrict_this
   { return ArrayOfSetsView<T, INDEX_TYPE>::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
+
+  void setUserCallBack( std::string const & name )
+  {
+    ArrayOfArraysView< T, INDEX_TYPE >::template setUserCallBack< decltype( *this ) >( name );
+  }
 
 private:
 
@@ -429,6 +444,7 @@ private:
   };
 
   // Aliasing protected members of ArrayOfSetsView.
+  using ArrayOfSetsView<T, INDEX_TYPE>::m_numArrays;
   using ArrayOfSetsView<T, INDEX_TYPE>::m_offsets;
   using ArrayOfSetsView<T, INDEX_TYPE>::m_sizes;
   using ArrayOfSetsView<T, INDEX_TYPE>::m_values;

@@ -49,7 +49,6 @@ namespace arrayManipulation
 {
 
 /**
- * @tparam INDEX_TYPE a signed integer.
  * @brief Return true iff the given value is greater than or equal to zero.
  * @param [in] i the value to check.
  */
@@ -60,7 +59,6 @@ isPositive( INDEX_TYPE const i )
 { return i >= 0; }
 
 /**
- * @tparam INDEX_TYPE an unsigned integer.
  * @brief Returns true.
  * This specialization for unsigned types avoids compiler warnings.
  */
@@ -70,9 +68,88 @@ typename std::enable_if<!std::is_signed<INDEX_TYPE>::value, bool>::type
 isPositive( INDEX_TYPE const )
 { return true; }
 
+DISABLE_HD_WARNING
+template <class T>
+LVARRAY_HOST_DEVICE inline
+void destroy( T * const restrict ptr,
+              std::ptrdiff_t const size )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+
+  for( std::ptrdiff_t i = 0; i < size; ++i )
+  {
+    ptr[ i ].~T();
+  }
+}
+
+DISABLE_HD_WARNING
+template <class T>
+LVARRAY_HOST_DEVICE inline
+void uninitializedCopy( T * const restrict dst,
+                        std::ptrdiff_t const size,
+                        T const * const restrict src )
+{
+  GEOS_ASSERT( dst != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ) );
+  GEOS_ASSERT( src != nullptr || size == 0 );
+
+  for( std::ptrdiff_t i = 0; i < size; ++i )
+  {
+    new (dst + i) T( src[ i ] );
+  }
+}
+
+DISABLE_HD_WARNING
+template <class T>
+LVARRAY_HOST_DEVICE inline
+void uninitializedMove( T * const restrict dst,
+                        std::ptrdiff_t const size,
+                        T * const restrict src )
+{
+  GEOS_ASSERT( dst != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ) );
+  GEOS_ASSERT( src != nullptr || size == 0 );
+
+  for( std::ptrdiff_t i = 0; i < size; ++i )
+  {
+    new (dst + i) T( std::move( src[ i ] ) );
+  }
+}
+
+DISABLE_HD_WARNING
+template <class T>
+LVARRAY_HOST_DEVICE inline
+void uninitializedShiftDown( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const amount )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ) );
+  GEOS_ASSERT( isPositive( amount ) );
+  
+  for ( std::ptrdiff_t j = 0; j < size; ++j )
+  {
+    new ( ptr + j - amount ) T( std::move( ptr[ j ] ) );
+    ptr[ j ].~T();
+  }
+}
+
+DISABLE_HD_WARNING
+template <class T>
+LVARRAY_HOST_DEVICE inline
+void uninitializedShiftUp( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const amount )
+{
+  GEOS_ASSERT( ptr != nullptr || size == 0 );
+  GEOS_ASSERT( isPositive( size ) );
+  GEOS_ASSERT( isPositive( amount ) );
+  
+  for (std::ptrdiff_t j = size - 1; j >= 0; --j)
+  {
+    new ( ptr + amount + j ) T( std::move( ptr[ j ] ) );
+    ptr[ j ].~T();
+  }
+}
+
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam ARGS the types of the arguments to forward to the constructor.
  * @brief Resize the give array.
  * @param [in/out] ptr pointer to the array.
@@ -81,11 +158,11 @@ isPositive( INDEX_TYPE const )
  * @param [in/out] args the arguments to forward to construct any new elements with.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class ...ARGS>
+template <class T, class ...ARGS>
 inline
 void resize( T * const restrict ptr,
-             INDEX_TYPE const size,
-             INDEX_TYPE const newSize,
+             std::ptrdiff_t const size,
+             std::ptrdiff_t const newSize,
              ARGS &&... args )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
@@ -93,13 +170,10 @@ void resize( T * const restrict ptr,
   GEOS_ASSERT( isPositive( newSize ));
 
   // Delete things between newSize and size.
-  for( INDEX_TYPE i = newSize ; i < size ; ++i )
-  {
-    ptr[ i ].~T();
-  }
+  destroy( ptr + newSize, size - newSize );
 
   // Initialize things between size and newSize.
-  for( INDEX_TYPE i = size ; i < newSize ; ++i )
+  for( std::ptrdiff_t i = size ; i < newSize ; ++i )
   {
     new (&ptr[i]) T(std::forward<ARGS>(args)...);
   }
@@ -107,35 +181,6 @@ void resize( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
- * @brief Move values from the src array into the dst array and then destroy the src array.
- * @param [in/out] dst pointer to the destination array.
- * @param [in] size the size of the destination array.
- * @param [in/out] src pointer to the source array.
- * @param [in] srcSize the size of the source array..
- */
-template <class T, class INDEX_TYPE>
-inline
-void moveInto( T * const restrict dst,
-               INDEX_TYPE const dstSize,
-               T * const restrict src,
-               INDEX_TYPE const srcSize )
-{
-  INDEX_TYPE const newSize = srcSize > dstSize ? dstSize : srcSize;
-  for( INDEX_TYPE i = 0 ; i < newSize ; ++i )
-  {
-    new ( dst + i ) T( std::move( src[ i ] ) );
-  }
-
-  for( INDEX_TYPE i = 0 ; i < srcSize ; ++i )
-  {
-    src[ i ].~T();
-  }
-}
-
-/**
- * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New uninitialized values take their place.
  * @param [in/out] ptr pointer to the array.
@@ -144,12 +189,12 @@ void moveInto( T * const restrict dst,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void shiftUp( T * const restrict ptr,
-              INDEX_TYPE const size,
-              INDEX_TYPE const index,
-              INDEX_TYPE const n )
+              std::ptrdiff_t const size,
+              std::ptrdiff_t const index,
+              std::ptrdiff_t const n )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
@@ -160,23 +205,19 @@ void shiftUp( T * const restrict ptr,
     return;
 
   // Move the existing values up by n.
-  for( INDEX_TYPE i = size ; i > index ; --i )
+  for( std::ptrdiff_t i = size ; i > index ; --i )
   {
-    INDEX_TYPE const curIndex = i - 1;
+    std::ptrdiff_t const curIndex = i - 1;
     new (&ptr[curIndex + n]) T( std::move( ptr[curIndex] ));
   }
 
   // Delete the values moved out of.
-  INDEX_TYPE const bounds = (index + n < size) ? index + n : size;
-  for( INDEX_TYPE i = index ; i < bounds ; ++i )
-  {
-    ptr[i].~T();
-  }
+  std::ptrdiff_t const bounds = (index + n < size) ? index + n : size;
+  destroy( ptr + index, bounds - index );
 }
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New values take their place.
  * @param [in/out] ptr pointer to the array.
@@ -186,12 +227,12 @@ void shiftUp( T * const restrict ptr,
  * @param [in] defaultValue the value to initialize the new entries with.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void emplace( T * const restrict ptr,
-              INDEX_TYPE const size,
-              INDEX_TYPE const index,
-              INDEX_TYPE const n=1,
+              std::ptrdiff_t const size,
+              std::ptrdiff_t const index,
+              std::ptrdiff_t const n=1,
               T const & defaultValue=T() )
 {
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
@@ -199,7 +240,7 @@ void emplace( T * const restrict ptr,
   shiftUp( ptr, size, index, n );
 
   // Initialize the empty values to the default value.
-  for( INDEX_TYPE i = index ; i < index + n ; ++i )
+  for( std::ptrdiff_t i = index ; i < index + n ; ++i )
   {
     new(&ptr[i]) T( defaultValue );
   }
@@ -207,7 +248,6 @@ void emplace( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are not destroyed.
  * @param [in/out] ptr pointer to the array.
@@ -216,12 +256,12 @@ void emplace( T * const restrict ptr,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void shiftDown( T * const restrict ptr,
-                INDEX_TYPE const size,
-                INDEX_TYPE const index,
-                INDEX_TYPE const n )
+                std::ptrdiff_t const size,
+                std::ptrdiff_t const index,
+                std::ptrdiff_t const n )
 {
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
@@ -233,7 +273,7 @@ void shiftDown( T * const restrict ptr,
     return;
 
   // Move the existing down by n.
-  for( INDEX_TYPE i = index ; i < size ; ++i )
+  for( std::ptrdiff_t i = index ; i < size ; ++i )
   {
     ptr[i - n] = std::move( ptr[i] );
   }
@@ -241,7 +281,6 @@ void shiftDown( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are then destroyed.
  * @param [in/out] ptr pointer to the array.
@@ -250,12 +289,12 @@ void shiftDown( T * const restrict ptr,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void erase( T * const restrict ptr,
-            INDEX_TYPE const size,
-            INDEX_TYPE const index,
-            INDEX_TYPE const n=1 )
+            std::ptrdiff_t const size,
+            std::ptrdiff_t const index,
+            std::ptrdiff_t const n=1 )
 {
   GEOS_ASSERT( isPositive( n ) );
   if( n == 0 ) return;
@@ -263,28 +302,24 @@ void erase( T * const restrict ptr,
   ARRAYMANIPULATION_CHECK_BOUNDS( index );
   ARRAYMANIPULATION_CHECK_BOUNDS( index + n - 1 );
 
-  shiftDown( ptr, size, INDEX_TYPE( index + n ), n );
+  shiftDown( ptr, size, std::ptrdiff_t( index + n ), n );
 
   // Delete the values that were moved out of at the end of the array.
-  for( INDEX_TYPE i = size - n ; i < size ; ++i )
-  {
-    ptr[ i ].~T();
-  }
+  destroy( ptr + size - n, n );
 }
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Append the given value to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
-             INDEX_TYPE const size,
+             std::ptrdiff_t const size,
              T const & value )
 {
   GEOS_ASSERT( ptr != nullptr );
@@ -294,17 +329,16 @@ void append( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Append the given value to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  * @param [in/out] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
-             INDEX_TYPE const size,
+             std::ptrdiff_t const size,
              T && value )
 {
   GEOS_ASSERT( ptr != nullptr );
@@ -314,7 +348,6 @@ void append( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Append the given values to the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -322,19 +355,19 @@ void append( T * const restrict ptr,
  * @param [in] n the number of values to append.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
-             INDEX_TYPE const size,
+             std::ptrdiff_t const size,
              T const * const restrict values,
-             INDEX_TYPE const n )
+             std::ptrdiff_t const n )
 {
   GEOS_ASSERT( ptr != nullptr || (size == 0 && n == 0));
   GEOS_ASSERT( isPositive( size ));
   GEOS_ASSERT( isPositive( n ));
   GEOS_ASSERT( values != nullptr || n == 0 );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( std::ptrdiff_t i = 0 ; i < n ; ++i )
   {
     new (&ptr[size + i]) T( values[i] );
   }
@@ -342,7 +375,6 @@ void append( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given value into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -350,11 +382,11 @@ void append( T * const restrict ptr,
  * @param [in] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr,
-             INDEX_TYPE const size,
-             INDEX_TYPE const index,
+             std::ptrdiff_t const size,
+             std::ptrdiff_t const index,
              T const & value )
 {
   GEOS_ASSERT( ptr != nullptr );
@@ -362,13 +394,12 @@ void insert( T * const restrict ptr,
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
   // Create space for the new value.
-  shiftUp( ptr, size, index, INDEX_TYPE( 1 ) );
+  shiftUp( ptr, size, index, std::ptrdiff_t( 1 ) );
   new (&ptr[index]) T( value );
 }
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given value into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -376,21 +407,20 @@ void insert( T * const restrict ptr,
  * @param [in/out] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
-void insert( T * const restrict ptr, INDEX_TYPE const size, INDEX_TYPE const index, T && value )
+void insert( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const index, T && value )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
   ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
 
-  shiftUp( ptr, size, index, INDEX_TYPE( 1 ));
+  shiftUp( ptr, size, index, std::ptrdiff_t( 1 ));
   new (&ptr[index]) T( std::move( value ));
 }
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Insert the given values into the array at the given position.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
@@ -399,13 +429,13 @@ void insert( T * const restrict ptr, INDEX_TYPE const size, INDEX_TYPE const ind
  * @param [in] n the number of values to insert.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr,
-             INDEX_TYPE const size,
-             INDEX_TYPE const index,
+             std::ptrdiff_t const size,
+             std::ptrdiff_t const index,
              T const * const restrict values,
-             INDEX_TYPE const n )
+             std::ptrdiff_t const n )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( isPositive( size ));
@@ -413,7 +443,7 @@ void insert( T * const restrict ptr,
 
   shiftUp( ptr, size, index, n );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( std::ptrdiff_t i = 0 ; i < n ; ++i )
   {
     new (&ptr[index + i]) T( values[i] );
   }
@@ -421,15 +451,14 @@ void insert( T * const restrict ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Destroy the value at the end of the array.
  * @param [in/out] ptr pointer to the array.
  * @param [in] size the size of the array.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE>
+template <class T>
 LVARRAY_HOST_DEVICE inline
-void popBack( T * const restrict ptr, INDEX_TYPE const size )
+void popBack( T * const restrict ptr, std::ptrdiff_t const size )
 {
   GEOS_ASSERT( ptr != nullptr );
   GEOS_ASSERT( size > 0 );

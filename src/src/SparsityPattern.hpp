@@ -62,7 +62,10 @@ public:
   inline
   SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView<COL_TYPE, INDEX_TYPE>()
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity); }
+  {
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity);
+    setUserCallBack( "" );
+  }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -81,7 +84,7 @@ public:
   SparsityPattern( SparsityPattern && src ) = default;
 
   /**
-   * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
+   * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
   ~SparsityPattern() restrict_this
@@ -121,7 +124,11 @@ public:
   SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
   {
     m_num_columns = src.m_num_columns;
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo( src.m_numArrays,
+                                                           src.m_offsets[ src.m_numArrays ],
+                                                           src.m_offsets,
+                                                           src.m_sizes,
+                                                           src.m_values);
     return *this;
   }
 
@@ -132,7 +139,6 @@ public:
   inline
   SparsityPattern & operator=( SparsityPattern && src ) = default;
 
-#ifdef USE_CHAI
   /**
    * @brief Move to the given memory space, optionally touching it.
    * @param [in] space the memory space to move to.
@@ -144,7 +150,6 @@ public:
   
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space); }
-#endif
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
@@ -152,7 +157,7 @@ public:
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
-  { m_values.reserve( nnz ); }
+  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::reserveValues( nnz ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
@@ -228,6 +233,11 @@ public:
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
   { return SparsityPatternView<COL_TYPE, INDEX_TYPE>::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
+  void setUserCallBack( std::string const & name )
+  {
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::template setUserCallBack< decltype( *this ) >( name );
+  }
+
 private:
 
   /**
@@ -284,10 +294,11 @@ private:
   };
 
   // Aliasing protected members of SparsityPatternView.
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_numArrays;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
-  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_sizes;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_values;
+  using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
 };
 
 } /* namespace LvArray */

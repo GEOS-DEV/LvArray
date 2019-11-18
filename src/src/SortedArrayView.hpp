@@ -76,9 +76,11 @@ public:
    * @param [in/out] src the SortedArray to be moved from.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView( SortedArrayView && src )
+  SortedArrayView( SortedArrayView && src ) :
+    m_values( std::move( src.m_values ) ),
+    m_size( src.m_size )
   {
-    *this = std::move( src );
+    src.m_size = 0;
   }
 
   /**
@@ -192,7 +194,9 @@ protected:
    * @brief Default constructor. Made protected since every SortedArrayView should
    *        either be the base of a SortedArrayView or copied from another SortedArrayView.
    */
-  SortedArrayView() = default;
+  SortedArrayView():
+    m_values( true )
+  {}
 
   // Holds the array of values.
   ChaiBuffer< T > m_values;

@@ -94,31 +94,10 @@ public:
   using const_pointer = T const *;
 
   /**
-   * @brief The default constructor
-   */
-  inline explicit CONSTEXPRFUNC
-  ArrayView() noexcept:
-    m_data{ nullptr },
-    m_dims{ 0 },
-    m_strides{ 0 },
-    m_dataBuffer()
-  {
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
-    ArrayView::TV_ttf_display_type( nullptr );
-#endif
-  }
-
-  /**
    * @brief A constructor to create an uninitialized ArrayView. An uninitialized may
    *        not be used until it is assigned to.
    */
-  inline explicit CONSTEXPRFUNC
-  ArrayView( std::nullptr_t ) noexcept:
-    m_data{ nullptr },
-    m_dims{ 0 },
-    m_strides{ 0 },
-    m_dataBuffer( nullptr )
-  {}
+  ArrayView() = default;
 
   /**
    * @brief Copy Constructor
@@ -543,6 +522,22 @@ public:
 protected:
 
   /**
+   * @brief Protected constructor to be used by the Array class.
+   * @note The unused boolean parameter is to distinguish this from the default constructor.
+   */
+  inline explicit CONSTEXPRFUNC
+  ArrayView( bool ) noexcept:
+    m_data{ nullptr },
+    m_dims{ 0 },
+    m_strides{ 0 },
+    m_dataBuffer( true )
+  {
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+    ArrayView::TV_ttf_display_type( nullptr );
+#endif
+  }
+
+  /**
    * @brief Sets the m_data pointer to the current contents of m_dataBuffer.
    */
   LVARRAY_HOST_DEVICE
@@ -579,13 +574,13 @@ protected:
   }
 
   /// A pointer to the values.
-  T * const restrict m_data;
+  T * const restrict m_data = nullptr;
 
   /// the dimensions of the array.
-  INDEX_TYPE const m_dims[NDIM];
+  INDEX_TYPE const m_dims[NDIM] = { 0 };
 
   /// the strides of the array.
-  INDEX_TYPE const m_strides[NDIM];
+  INDEX_TYPE const m_strides[NDIM] = { 0 };
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;

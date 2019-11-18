@@ -112,7 +112,7 @@ public:
    * @brief default constructor
    */
   inline Array():
-    ParentType()
+    ParentType( true )
   {
     CalculateStrides();
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -142,7 +142,7 @@ public:
    * @note Performs a deep copy of source
    */
   Array( Array const & source ):
-    ParentType()
+    Array()
   {
     *this = source;
   }

@@ -63,7 +63,7 @@ MPI_Comm comm;
 slic::GenericOutputStream* createGenericStream()
 {
   std::string format =  std::string( 100, '*' ) + std::string( "\n" ) +
-                       std::string( "[<LEVEL> in line <LINE> of file <FILE>]\n" ) +
+                       std::string( "[<LEVEL> at <FILE>:<LINE>]\n" ) +
                        std::string( "<MESSAGE>\n" ) +
                        std::string( "Rank " ) + std::to_string( internal::rank ) + std::string( "\n" ) +
                        std::string( "<TIMESTAMP>\n" ) +

@@ -24,7 +24,6 @@
 #define CRSMATRIXVIEW_HPP_
 
 #include "SparsityPatternView.hpp"
-#include "ChaiVector.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 
@@ -267,7 +266,10 @@ protected:
    * @brief Default constructor. Made protected since every CRSMatrixView should
    *        either be the base of a CRSMatrix or copied from another CRSMatrixView.
    */
-  CRSMatrixView() = default;
+  CRSMatrixView() :
+    SparsityPatternView<COL_TYPE, INDEX_TYPE>(),
+    m_entries( true )
+  {}
 
   /**
    * @brief Helper function to insert non zeros into the given row.
@@ -305,6 +307,13 @@ protected:
     return nInserted;
   }
 
+  template< typename U >
+  void setUserCallBack( std::string const & name )
+  {
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::template setUserCallBack< U >( name );
+    m_entries.template setUserCallBack< U >( name + "/entries" );
+  }
+
   // Aliasing protected members of SparsityPatternView.
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_num_columns;
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_offsets;
@@ -312,7 +321,7 @@ protected:
   using SparsityPatternView<COL_TYPE, INDEX_TYPE>::m_values;
 
   // Holds the entries of the matrix, of length numNonZeros().
-  ChaiVector<T> m_entries;
+  ChaiBuffer<T> m_entries;
 
 private:
 
