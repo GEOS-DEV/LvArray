@@ -53,18 +53,15 @@ public:
   using ArrayOfArraysView<T, INDEX_TYPE>::getIterableArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::atomicAppendToArray;
   using ArrayOfArraysView<T, INDEX_TYPE>::eraseFromArray;
-  using ArrayOfArraysView<T, INDEX_TYPE>::getOffsets;
-  using ArrayOfArraysView<T, INDEX_TYPE>::getSizes;
-  using ArrayOfArraysView<T, INDEX_TYPE>::getValues;
   using ArrayOfArraysView<T, INDEX_TYPE>::setUserCallBack;
 
   /**
    * @brief Return the number of arrays.
-   * @note This needs is duplicated here for the intel compiler on cori. 
+   * @note This needs is duplicated here for the intel compiler on cori.
    */
   inline
   INDEX_TYPE size() const restrict_this
-  { return m_sizes.size(); }
+  { return m_numArrays; }
 
   /**
    * @brief Constructor.
@@ -74,7 +71,10 @@ public:
   inline 
   ArrayOfArrays(INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0) restrict_this:
     ArrayOfArraysView<T, INDEX_TYPE>()
-  { resize( numArrays, defaultArrayCapacity ); }
+  {
+    resize( numArrays, defaultArrayCapacity );
+    setUserCallBack( "" );
+  }
 
   /**
    * @brief Copy constructor, performs a deep copy.
@@ -93,7 +93,7 @@ public:
   ArrayOfArrays( ArrayOfArrays && ) = default;
 
   /**
-   * @brief Destructor, frees the values, sizes and offsets ChaiVectors.
+   * @brief Destructor, frees the values, sizes and offsets buffers.
    */
   ~ArrayOfArrays()
   { ArrayOfArraysView<T, INDEX_TYPE>::free(); }
@@ -141,7 +141,11 @@ public:
   inline
   ArrayOfArrays & operator=( ArrayOfArrays const & src ) restrict_this
   {
-    ArrayOfArraysView<T, INDEX_TYPE>::setEqualTo(src.m_offsets.toConst(), src.m_sizes.toConst(), src.m_values.toConst());
+    ArrayOfArraysView<T, INDEX_TYPE>::setEqualTo( src.m_numArrays,
+                                                  src.m_offsets[ src.m_numArrays ],
+                                                  src.m_offsets,
+                                                  src.m_sizes,
+                                                  src.m_values );
     return *this;
   }
 
@@ -161,12 +165,15 @@ public:
   {
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfSets.hpp.
     ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
+    
+    m_numArrays = srcView.m_numArrays;
+    srcView.m_numArrays = 0;
+
     m_offsets = std::move( srcView.m_offsets );
     m_sizes = std::move( srcView.m_sizes );
     m_values = std::move( srcView.m_values );
   }
 
-#ifdef USE_CHAI
   /**
    * @brief Move to the given memory space, optionally touching it.
    * @param [in] space the memory space to move to.
@@ -181,7 +188,6 @@ public:
    */
   void registerTouch(chai::ExecutionSpace const space) restrict_this
   { ArrayOfArraysView<T, INDEX_TYPE>::registerTouch(space); }
-#endif
 
   /**
    * @brief Reserve space for the given number of arrays.
@@ -221,13 +227,12 @@ public:
   {
     GEOS_ASSERT( arrayManipulation::isPositive( n ) );
 
-    INDEX_TYPE const nArrays = size();
-    INDEX_TYPE const totalSize = m_offsets[nArrays];
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    ++m_numArrays;
 
-    m_offsets.push_back(totalSize);
-    m_sizes.push_back(0);
-
-    resizeArray( nArrays, n );
+    resizeArray( m_numArrays - 1, n );
   }
 
   /**
@@ -237,13 +242,12 @@ public:
    */
   void appendArray( T const * const values, INDEX_TYPE const n ) restrict_this
   {
-    INDEX_TYPE const nArrays = size();
-    INDEX_TYPE const totalSize = m_offsets[nArrays];
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    ++m_numArrays;
 
-    m_offsets.push_back(totalSize);
-    m_sizes.push_back(0);
-    
-    appendToArray(nArrays, values, n);
+    appendToArray( m_numArrays - 1, values, n );
   }
 
   /**
@@ -260,8 +264,9 @@ public:
 
     // Insert an array of capacity zero at the given location 
     INDEX_TYPE const offset = m_offsets[i];
-    m_sizes.insert( i, 0 );
-    m_offsets.insert( i + 1, offset );
+    bufferManipulation::insert( m_offsets, m_numArrays + 1, i + 1, offset );
+    bufferManipulation::insert( m_sizes, m_numArrays, i, 0 );
+    ++m_numArrays;
 
     // Append to the new array
     appendToArray( i, values, n );
@@ -276,8 +281,9 @@ public:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     setCapacityOfArray( i, 0 );
-    m_sizes.erase( i );
-    m_offsets.erase( i + 1 );
+    bufferManipulation::erase( m_offsets, m_numArrays + 1, i + 1 );
+    bufferManipulation::erase( m_sizes, m_numArrays, i );
+    --m_numArrays;
   }
 
   /**
@@ -397,6 +403,11 @@ public:
   void setCapacityOfArray(INDEX_TYPE const i, INDEX_TYPE const newCapacity)
   { ArrayOfArraysView<T, INDEX_TYPE>::setCapacityOfArray(i, newCapacity); }
 
+  void setUserCallBack( std::string const & name )
+  {
+    ArrayOfArraysView< T, INDEX_TYPE >::template setUserCallBack< decltype( *this ) >( name );
+  }
+
 private:
 
   /**
@@ -415,6 +426,7 @@ private:
     }
   }
 
+  using ArrayOfArraysView<T, INDEX_TYPE>::m_numArrays;
   using ArrayOfArraysView<T, INDEX_TYPE>::m_offsets;
   using ArrayOfArraysView<T, INDEX_TYPE>::m_sizes;
   using ArrayOfArraysView<T, INDEX_TYPE>::m_values;

@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include "ChaiVector.hpp"
+#include "ChaiBuffer.hpp"
+#include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "templateHelpers.hpp"
@@ -82,7 +83,7 @@ namespace LvArray
 namespace internal
 {
 template <class U>
-using PairOfVectors = std::pair<ChaiVector<U> &, ChaiVector<U const> const &>;
+using PairOfBuffers = std::pair<ChaiBuffer<U> &, ChaiBuffer<U> const &>;
 }
 
 /**
@@ -100,9 +101,6 @@ using PairOfVectors = std::pair<ChaiVector<U> &, ChaiVector<U const> const &>;
  */
 template <class T, class INDEX_TYPE=std::ptrdiff_t, bool CONST_SIZES=false>
 class ArrayOfArraysView
-#ifdef USE_CHAI
-  : public chai::CHAICopyable
-#endif
 {
   template <class U, class INDEX>
   friend class ArrayOfSets;
@@ -190,7 +188,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC size() const restrict_this
-  { return m_sizes.size(); }
+  { return m_numArrays; }
 
   /**
    * @brief Return the number of (zero length) arrays that can be stored before reallocation.
@@ -436,24 +434,6 @@ public:
     m_sizes[i] -= n;
   }
 
-  /**
-   * const accessor for m_offsets
-   * @return reference to m_offsets
-   */
-  ChaiVector<INDEX_TYPE const> const & getOffsets() const { return m_offsets; }
-
-  /**
-   * const accessor for m_sizes
-   * @return reference to m_sizes
-   */
-  ChaiVector<SIZE_TYPE const> const & getSizes() const    { return m_sizes; }
-
-  /**
-   * const accessor for m_values
-   * @return reference to m_values
-   */
-  ChaiVector<T const> const & getValues() const           { return m_values; }
-
   friend std::ostream& operator<< ( std::ostream& stream, ArrayOfArraysView const & array )
   {
     stream << "{" << std::endl;
@@ -481,230 +461,217 @@ public:
 protected:
 
   /**
-   * @brief Default constructor. Made protected since every ArrayOfArraysView should
-   *        either be the base of a ArrayOfArrays or copied from another ArrayOfArraysView.
+   * @brief Default constructor.
    */
-  ArrayOfArraysView() = default;
-
-  ArrayOfArraysView(ChaiVector<INDEX_TYPE> && offsets,
-                    ChaiVector<SIZE_TYPE> && sizes,
-                    ChaiVector<T> && values):
-    m_offsets( std::move( offsets ) ),
-    m_sizes( std::move( sizes ) ),
-    m_values( std::move( values ) )
+  ArrayOfArraysView():
+    m_numArrays( 0 ),
+    m_offsets( true ),
+    m_sizes( true ),
+    m_values( true )
   {}
-
 
   /**
    * @brief Set the number of arrays.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] newSize the new number of arrays.
    * @param [in] defaultArrayCapacity the default capacity for each new array.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values. 
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...VECTORS>
-  void resize(INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void resize(INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ...buffers)
   {
     GEOS_ASSERT( arrayManipulation::isPositive( newSize ) );
 
-    INDEX_TYPE const prevSize = size();
-    if (newSize < prevSize)
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
+
+    if (newSize < m_numArrays)
     {
-      destroyValues(newSize, prevSize, vectors...);
-      m_offsets.resize( newSize + 1, 0 );
-      m_sizes.resize( newSize, 0 );
-      return;
+      destroyValues(newSize, m_numArrays, buffers...);
+      bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, 0 );
+      bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
     }
-
-    // The ternary here accounts for the case where m_offsets hasn't been allocated yet (when calling from a constructor).
-    INDEX_TYPE const originalOffset = (prevSize == 0) ? 0 : m_offsets[prevSize];
-    m_offsets.resize( newSize + 1, originalOffset );
-    m_sizes.resize( newSize, 0 );
-
-    if( defaultArrayCapacity > 0 )
+    else
     {
-      for( INDEX_TYPE i = prevSize + 1; i < newSize + 1 ; ++i )
+      // The ternary here accounts for the case where m_offsets hasn't been allocated yet (when calling from a constructor).
+      INDEX_TYPE const originalOffset = (m_numArrays == 0) ? 0 : m_offsets[m_numArrays];
+      bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, originalOffset );
+      bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
+
+      if( defaultArrayCapacity > 0 )
       {
-        m_offsets[i] = originalOffset + i * defaultArrayCapacity;
-      }
-
-      INDEX_TYPE const totalSize = m_offsets[ newSize ];
-
-      for_each_arg(
-        [totalSize](auto & vector)
+        for( INDEX_TYPE i = m_numArrays + 1; i < newSize + 1 ; ++i )
         {
-          vector.reserve( totalSize );
-          vector.setSize( totalSize );
-        },
-        m_values, vectors...);
+          m_offsets[i] = originalOffset + i * defaultArrayCapacity;
+        }
+
+        INDEX_TYPE const totalSize = m_offsets[ newSize ];
+        
+        INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+        for_each_arg(
+          [totalSize, maxOffset](auto & buffer)
+          {
+            bufferManipulation::reserve( buffer, maxOffset, totalSize );
+          },
+          m_values, buffers...
+        );
+      }
     }
+
+    m_numArrays = newSize;
   }
 
   /**
    * @brief Destroy all the objects held by this array and free all associated memory.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...VECTORS>
-  void free(VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void free(BUFFERS & ...buffers)
   {
-    destroyValues(0, size(), vectors...);
+    destroyValues(0, m_numArrays, buffers...);
     
     for_each_arg(
-      [](auto & vector)
+      [](auto & buffer)
       {
-        vector.releaseAllocation();
+        buffer.free();
       },
-      m_values, vectors...
+      m_sizes, m_offsets, m_values, buffers...
     );
 
-    m_sizes.free();
-    m_offsets.free();
+    m_numArrays = 0;
   }
 
   /**
    * @brief Set this ArrayOfArraysView equal to the provided arrays.
-   * @tparam PAIRS_OF_VECTORS variadic template where each type is an internal::PairOfVectors.
+   * @tparam PAIRS_OF_BUFFERS variadic template where each type is an internal::PairOfBuffers.
    * @param [in] srcOffsets the source offsets array.
    * @param [in] srcSizes the source sizes array.
    * @param [in] srcValues the source values array.
-   * @param [in/out] pairs variadic parameter pack where each argument is an internal::PairOfVectors where each pair
-   * should be treated similarly to {m_values, srcValues}.
+   * @param [in/out] pairs variadic parameter pack where each argument is an internal::PairOfBuffers where each pair
+   *                 should be treated similarly to {m_values, srcValues}.
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...PAIRS_OF_VECTORS>
-  void setEqualTo(ChaiVector<INDEX_TYPE const> const & srcOffsets, ChaiVector<INDEX_TYPE const> const & srcSizes,
-                  ChaiVector<T const> const & srcValues, PAIRS_OF_VECTORS & ...pairs)
+  template <class ...PAIRS_OF_BUFFERS>
+  void setEqualTo( INDEX_TYPE const srcNumArrays,
+                   INDEX_TYPE const srcMaxOffset,
+                   ChaiBuffer<INDEX_TYPE> const & srcOffsets,
+                   ChaiBuffer<INDEX_TYPE> const & srcSizes,
+                   ChaiBuffer<T> const & srcValues,
+                   PAIRS_OF_BUFFERS & ...pairs )
   {
-    destroyValues(0, size(), pairs.first...);
+    destroyValues(0, m_numArrays, pairs.first...);
 
-    srcOffsets.copy_into( m_offsets );
-    srcSizes.copy_into( m_sizes );
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
 
-    INDEX_TYPE const newNumValues = srcValues.size();
+    bufferManipulation::copyInto( m_offsets, offsetsSize, srcOffsets, srcNumArrays + 1 );
+    bufferManipulation::copyInto( m_sizes, m_numArrays, srcSizes, srcNumArrays );
 
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     for_each_arg(
-      [newNumValues](auto & dstVector)
+      [maxOffset, srcMaxOffset](auto & dstBuffer)
       {
-        dstVector.reserve(newNumValues);
-        dstVector.setSize(newNumValues);
+        bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
       },
       m_values, pairs.first...
     );
-    
-    internal::PairOfVectors<T> valuesPair(m_values, srcValues);
 
-    INDEX_TYPE const newNumArrays = size();
-    for (INDEX_TYPE_NC i = 0; i < newNumArrays; ++i)
-    {
-      INDEX_TYPE const offset = m_offsets[i];
-      INDEX_TYPE const arraySize = sizeOfArray(i);
-      for (INDEX_TYPE_NC j = 0; j < arraySize; ++j)
+    m_numArrays = srcNumArrays;
+
+    internal::PairOfBuffers<T> valuesPair(m_values, srcValues);
+
+    for_each_arg(
+      [this] ( auto & pair )
       {
-        for_each_arg(
-          [offset, j](auto & pair)
-          {
-            auto & dstVector = pair.first; 
-            auto const & srcVector = pair.second;
-            using U = typename std::remove_reference<decltype(dstVector[0])>::type;
+        auto & dstBuffer = pair.first; 
+        auto const & srcBuffer = pair.second;
 
-            new (&dstVector[offset + j]) U(srcVector[offset + j]);
-          },
-          valuesPair, pairs...
-        );
-      }
-    }
+        for (INDEX_TYPE_NC i = 0; i < m_numArrays; ++i)
+        {
+          INDEX_TYPE const offset = m_offsets[i];
+          INDEX_TYPE const arraySize = sizeOfArray(i);
+          arrayManipulation::uninitializedCopy( &dstBuffer[ offset ], arraySize, &srcBuffer[ offset ] );
+        }
+      },
+      valuesPair, pairs...
+    );
   }
 
-#ifdef USE_CHAI
   /**
    * @brief Move this ArrayOfArrays view to the given memory space.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] space the memory space to move to.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...VECTORS>
-  void move(chai::ExecutionSpace const space, bool const touch, VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void move(chai::ExecutionSpace const space, bool const touch, BUFFERS & ...buffers)
   {
     for_each_arg(
-      [space, touch]( auto & vector )
+      [space, touch]( auto & buffer )
       {
-        vector.move( space, touch );
+        buffer.move( space, touch );
       },
-      m_values, m_sizes, m_offsets, vectors...
+      m_values, m_sizes, m_offsets, buffers...
     );
   }
 
   /**
    * @brief Touch this ArrayOfArrays view in the given memory space.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] space the memory space to touch.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...VECTORS>
-  void registerTouch(chai::ExecutionSpace const space, VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void registerTouch(chai::ExecutionSpace const space, BUFFERS & ...buffers)
   {
     for_each_arg(
-      [space](auto & vector)
+      [space](auto & buffer)
       {
-        vector.registerTouch( space );
+        buffer.registerTouch( space );
       },
-      m_values, m_sizes, m_offsets, vectors...
+      m_values, m_sizes, m_offsets, buffers...
     );
   }
-#endif
 
   /**
    * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note This method doesn't free any memory. 
    */
-  template <class ...VECTORS>
-  void compress(VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void compress(BUFFERS & ...buffers)
   {
-    INDEX_TYPE const nArrays = size();
-    for (INDEX_TYPE i = 0; i < nArrays - 1; ++i)
+    for (INDEX_TYPE i = 0; i < m_numArrays - 1; ++i)
     {
-      INDEX_TYPE const curOffset = m_offsets[ i ];
       INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
-      INDEX_TYPE const sizeOfCurArray = sizeOfArray( i );
-
-      // If the current array is full then skip it.
-      if (curOffset + sizeOfCurArray == nextOffset) continue;
-
+      INDEX_TYPE const shiftAmount = nextOffset - m_offsets[ i ] - sizeOfArray( i );
       INDEX_TYPE const sizeOfNextArray = sizeOfArray( i + 1 );
 
       // Shift the values in the next array down.
-      for (INDEX_TYPE j = 0; j < sizeOfNextArray; ++j)
-      {
-        for_each_arg(
-          [curOffset, sizeOfCurArray, nextOffset, j](auto & vector)
-          {
-            using U = typename std::remove_reference<decltype(vector[0])>::type;
-            new (&vector[curOffset + sizeOfCurArray + j]) U(std::move(vector[nextOffset + j]));
-            vector[nextOffset + j].~U();
-          },
-          m_values, vectors...
-        );
-      }
+      for_each_arg(
+        [sizeOfNextArray, nextOffset, shiftAmount] ( auto & buffer )
+        {
+          arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
+        },
+        m_values, buffers...
+      );
 
       // And update the offsets.
-      m_offsets[ i + 1 ] = curOffset + sizeOfCurArray;
+      m_offsets[ i + 1 ] -= shiftAmount;
     }
 
     // Update the last offset.
-    m_offsets[ nArrays ] = m_offsets[ nArrays - 1 ] + sizeOfArray( nArrays - 1 );
+    m_offsets[ m_numArrays ] = m_offsets[ m_numArrays - 1 ] + sizeOfArray( m_numArrays - 1 );
   }
 
   /**
@@ -713,182 +680,152 @@ protected:
    */
   void reserve( INDEX_TYPE const newCapacity )
   {
-    m_offsets.reserve( newCapacity );
-    m_sizes.reserve( newCapacity );
+    bufferManipulation::reserve( m_offsets, m_numArrays + 1, newCapacity + 1 );
+    bufferManipulation::reserve( m_sizes, m_numArrays, newCapacity );
   }
 
   /**
    * @brief Reserve space for the given number of values.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    */
-  template <class ...VECTORS>
-  void reserveValues( INDEX_TYPE const newValueCapacity, VECTORS & ...vectors )
+  template <class ...BUFFERS>
+  void reserveValues( INDEX_TYPE const newValueCapacity, BUFFERS & ...buffers )
   {
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     for_each_arg(
-      [newValueCapacity] (auto & vector)
+      [newValueCapacity, maxOffset] (auto & buffer)
       {
-        vector.reserve( newValueCapacity );
+        bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
       },
-      m_values, vectors...
+      m_values, buffers...
     );
   }
 
   /**
    * @brief Set the capacity of the given array.
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] i the array to set the capacity of.
    * @param [in] newCapacity the value to set the capacity of the given array to.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
-  template <class ...VECTORS>
-  void setCapacityOfArray(INDEX_TYPE const i, INDEX_TYPE const newCapacity, VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void setCapacityOfArray(INDEX_TYPE const i, INDEX_TYPE const newCapacity, BUFFERS & ...buffers)
   {
     ARRAYOFARRAYS_CHECK_BOUNDS(i);
     GEOS_ASSERT( arrayManipulation::isPositive( newCapacity ) );
 
-    INDEX_TYPE const numArrays = size();
-    INDEX_TYPE const arrayOffset = m_offsets[i];
     INDEX_TYPE const arrayCapacity = capacityOfArray(i);
     INDEX_TYPE const capacityIncrease = newCapacity - arrayCapacity;
     if( capacityIncrease == 0 ) return;
 
     if( capacityIncrease > 0 )
     {
-      // Increase the size of the vectors.
-      INDEX_TYPE const maxOffset = m_offsets[numArrays];
+      INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
       for_each_arg(
-        [maxOffset, capacityIncrease](auto & vector)
+        [this, i, maxOffset, capacityIncrease](auto & buffer)
         {
-          vector.dynamicResize( maxOffset + capacityIncrease );
-          vector.setSize( maxOffset + capacityIncrease );
+          // Increase the size of the buffer.
+          bufferManipulation::dynamicReserve( buffer, maxOffset, maxOffset + capacityIncrease );
+
+           // Shift up the values.
+          for (INDEX_TYPE array = m_numArrays - 1; array > i; --array)
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+          }
         },
-        m_values, vectors...
+        m_values, buffers...
       );
-
-      // Shift up the values of the arrays.
-      for (INDEX_TYPE array = numArrays - 1; array > i; --array)
-      {
-        INDEX_TYPE const curArraySize = sizeOfArray(array);
-        INDEX_TYPE const curArrayOffset = m_offsets[array];
-
-        for (INDEX_TYPE j = curArraySize - 1; j >= 0; --j)
-        {
-          for_each_arg(
-            [curArrayOffset, capacityIncrease, j](auto & vector)
-            {
-              using U = typename std::remove_reference<decltype(vector[0])>::type;
-              new (&vector[curArrayOffset + capacityIncrease + j]) U(std::move(vector[curArrayOffset + j]));
-              vector[curArrayOffset + j].~U();
-            },
-            m_values, vectors...
-          );
-        }
-      }
     }
     else
     {
+      INDEX_TYPE const arrayOffset = m_offsets[i];
       INDEX_TYPE const capacityDecrease = -capacityIncrease;
       
       INDEX_TYPE const prevArraySize = sizeOfArray(i);
       INDEX_TYPE const newArraySize = min(prevArraySize, newCapacity);
 
-      // Delete the values at the end of the array.
       m_sizes[i] = newArraySize;
-      for (INDEX_TYPE j = newArraySize; j < prevArraySize; ++j)
-      {
-        for_each_arg(
-          [arrayOffset, j](auto & vector)
-          {
-            using U = typename std::remove_reference<decltype(vector[0])>::type;
-            vector[arrayOffset + j].~U();
-          },
-          m_values, vectors...
-        );
-      }
-
-      // Shift down the values of subsequent arrays.
-      for (INDEX_TYPE array = i + 1; array < numArrays; ++array)
-      {
-        INDEX_TYPE const curArraySize = sizeOfArray(array);
-        INDEX_TYPE const curArrayOffset = m_offsets[array];
-
-        for (INDEX_TYPE j = 0; j < curArraySize; ++j)
+      for_each_arg(
+        [this, i, capacityDecrease, arrayOffset, newArraySize, prevArraySize] ( auto & buffer )
         {
-          for_each_arg(
-            [curArrayOffset, capacityDecrease, j](auto & vector)
-            {
-              using U = typename std::remove_reference<decltype(vector[0])>::type;
-              new (&vector[curArrayOffset - capacityDecrease + j]) U(std::move(vector[curArrayOffset + j]));
-              vector[curArrayOffset + j].~U();
-            },
-            m_values, vectors...
-          );
-        }
-      }
+          // Delete the values at the end of the array.
+          arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
+
+          // Shift down the values of subsequent arrays.
+          for (INDEX_TYPE array = i + 1; array < m_numArrays; ++array)
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray(array);
+            INDEX_TYPE const curArrayOffset = m_offsets[array];
+            arrayManipulation::uninitializedShiftDown( &buffer[ curArrayOffset ], curArraySize, capacityDecrease );
+          }
+        },
+        m_values, buffers...
+      );
     }
 
     // Update the offsets array
-    for( INDEX_TYPE array = i + 1 ; array < numArrays + 1 ; ++array )
+    for( INDEX_TYPE array = i + 1 ; array < m_numArrays + 1 ; ++array )
     {
       m_offsets[array] += capacityIncrease;
     }
   }
 
+  template< typename U >
   void setUserCallBack(std::string const & name)
   {
-    m_offsets.setUserCallBack(name + "/m_offsets");
-    m_sizes.setUserCallBack(name + "/m_sizes");
-    m_values.setUserCallBack(name + "/m_values");
+    m_offsets.template setUserCallBack< U >( name + "/m_offsets" );
+    m_sizes.template setUserCallBack< U >( name + "/m_sizes" );
+    m_values.template setUserCallBack< U >( name + "/m_values" );
   }
+
+  INDEX_TYPE m_numArrays = 0;
 
   // Holds the offset of each array, of length size() + 1. Array i begins at
   // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
-  ChaiVector<INDEX_TYPE> m_offsets;
+  ChaiBuffer<INDEX_TYPE> m_offsets;
 
-  ChaiVector<SIZE_TYPE> m_sizes;
+  ChaiBuffer<SIZE_TYPE> m_sizes;
 
   // Holds the values of each array, of length numValues().
-  ChaiVector<T> m_values;
+  ChaiBuffer<T> m_values;
 
 private:
 
   /**
    * @brief Destroy the values in arrays in the range [begin, end).
-   * @tparam VECTORS variadic template where each type is a ChaiVector.
+   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
    * @param [in] begin the array to start with.
    * @param [in] end where to stop destroying values.
-   * @param [in/out] vectors variadic parameter pack where each argument is a ChaiVector that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note this method doesn't free any memory.
    */
-  template <class ...VECTORS>
-  void destroyValues(INDEX_TYPE const begin, INDEX_TYPE const end, VECTORS & ...vectors)
+  template <class ...BUFFERS>
+  void destroyValues(INDEX_TYPE const begin, INDEX_TYPE const end, BUFFERS & ...buffers)
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS(begin);
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS(end);
-
-    for( INDEX_TYPE i = begin ; i < end ; ++i )
-    {
-      INDEX_TYPE const offset = m_offsets[i];
-      INDEX_TYPE const arraySize = sizeOfArray( i );
-      for( INDEX_TYPE j = 0 ; j < arraySize ; ++j )
+  
+    for_each_arg(
+      [this, begin, end] ( auto & buffer )
       {
-        for_each_arg(
-          [offset, j](auto & vector)
-          {
-            using U = typename std::remove_reference<decltype(vector[0])>::type;
-            (vector[offset + j]).~U();
-          },
-          m_values, vectors...
-        );
-      }
-    }
+        for( INDEX_TYPE i = begin ; i < end ; ++i )
+        {
+          INDEX_TYPE const offset = m_offsets[ i ];
+          INDEX_TYPE const arraySize = sizeOfArray( i );
+          arrayManipulation::destroy( &buffer[ offset ], arraySize );
+        }
+      },
+      m_values, buffers...
+    );
   }
 };
 

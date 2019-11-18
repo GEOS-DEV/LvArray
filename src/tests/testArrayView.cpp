@@ -424,7 +424,7 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
 
   // Create a shallow copy of a that we can modify later.
   array< arrayView_nc< T > > a_copy;
-  a_copy.resizeWithArgs(N, nullptr);
+  a_copy.resize(N);
 
   for ( INDEX_TYPE i = 0; i < N; ++i )
   { 
@@ -565,7 +565,7 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
   
   for ( INDEX_TYPE i = 0; i < N; ++i )
   { 
-    a_copy[ i ].resizeWithArgs(a[i].size(), nullptr);
+    a_copy[ i ].resize(a[i].size());
     for ( INDEX_TYPE j = 0; j < N; ++j )
     {
       a_copy[ i ][ j ] = a[ i ][ j ];

@@ -80,25 +80,26 @@ public:
   using value_type = T;
 
   /**
-   * @brief Default constructor, creates an empty buffer.
+   * @brief Default constructor. Creates an uninitialized Buffer. An uninitialized
+   *        buffer is an undefined state and may only be assigned to. An uninitialized
+   *        buffer holds no recources and does not need to be free'd.
    */
-  LVARRAY_HOST_DEVICE
   ChaiBuffer():
+    m_array( nullptr )
+  {}
+
+  /**
+   * @brief Constructor for creating an empty Buffer. An empty buffer may hold resources
+   *        and needs to be free'd.
+   * @note The unused boolean parameter is to distinguish this from default constructor.
+   */
+  ChaiBuffer( bool ) :
     m_array()
   {
 #if !defined(__CUDA_ARCH__)
-    setUserCallBack( "NoNameProvided" );
+    setUserCallBack( "" );
 #endif
   }
-
-  /**
-   * @brief Constructor for creating an uninitialized Buffer. An uninitialized
-   *        buffer is an undefined state and may only be assigned to.
-   */
-  LVARRAY_HOST_DEVICE
-  ChaiBuffer( std::nullptr_t ) :
-    m_array( nullptr )
-  {}
 
   /**
    * @brief Reallocate the buffer to the new capacity.
@@ -118,7 +119,9 @@ public:
     newArray.setUserCallback( m_array.getPointerRecord()->m_user_callback );
 #endif
 
-    arrayManipulation::moveInto( &newArray[ 0 ], newCapacity, data(), size );
+    std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
+    arrayManipulation::uninitializedMove( &newArray[ 0 ], overlapAmount, data() );
+    arrayManipulation::destroy( data(), size );
 
     free();
     m_array = std::move( newArray );
@@ -153,6 +156,13 @@ public:
   T * data() const
   {
     return &m_array[0];
+  }
+
+  template< typename INDEX_TYPE >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T & operator[]( INDEX_TYPE const i ) const
+  {
+    return m_array[ i ];
   }
 
   /**

@@ -48,15 +48,11 @@ class StackBuffer : public bufferManipulation::VoidBuffer
 public:
   using value_type = T;
 
-  StackBuffer() = default;
-
   /**
-   * @brief Constructor for creating an uninitialized Buffer. In general an
-   *        uninitialized buffer is an undefined state and may only be assigned to
-   *        however in this case it is the same as the default constructor.
+   * @brief Constructor for creating an empty/uninitialized buffer. For the StackBuffer
+   *        an uninitialized buffer is equivalent to an empty buffer.
    */
-  StackBuffer( std::nullptr_t ) :
-    StackBuffer()
+  StackBuffer( bool=true )
   {}
 
   /**

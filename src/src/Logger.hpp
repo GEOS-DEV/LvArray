@@ -201,16 +201,15 @@
 #else // #if defined(USE_ATK)
 
   #if !defined(__CUDA_ARCH__)
-    #define GEOS_ERROR_IF( EXP, msg )                                      \
-  do {                                                                     \
-    if( EXP )                                                              \
-    {                                                                      \
-      std::cout << "***** GEOS_ERROR " <<std::endl;                        \
-      std::cout << "***** FILE: " << __FILE__ << std::endl;                \
-      std::cout << "***** LINE: " << __LINE__ << std::endl;                \
-      std::cout << msg << std::endl;                                       \
-      logger::abort();                                                     \
-    }                                                                      \
+    #define GEOS_ERROR_IF( EXP, msg )                                              \
+  do {                                                                             \
+    if( EXP )                                                                      \
+    {                                                                              \
+      std::cout << "***** GEOS_ERROR " <<std::endl;                                \
+      std::cout << "***** LOCATION: " << __FILE__ << ":" << __LINE__ << std::endl; \
+      std::cout << msg << std::endl;                                               \
+      logger::abort();                                                             \
+    }                                                                              \
   } while( false )
 
     #define GEOS_ERROR( msg ) GEOS_ERROR_IF( true, msg )
@@ -225,28 +224,26 @@
 
   #endif
 
-  #define GEOS_WARNING_IF( EXP, msg )                                        \
-  do {                                                                       \
-    if( EXP )                                                                \
-    {                                                                        \
-      std::cout << "***** GEOS_WARNING "<<std::endl;                         \
-      std::cout << "***** FILE: " << __FILE__ << std::endl;                  \
-      std::cout << "***** LINE: " << __LINE__ << std::endl;                  \
-      std::cout << msg << std::endl;                                         \
-    }                                                                        \
+  #define GEOS_WARNING_IF( EXP, msg )                                              \
+  do {                                                                             \
+    if( EXP )                                                                      \
+    {                                                                              \
+      std::cout << "***** GEOS_WARNING "<<std::endl;                               \
+      std::cout << "***** LOCATION: " << __FILE__ << ":" << __LINE__ << std::endl; \
+      std::cout << msg << std::endl;                                               \
+    }                                                                              \
   } while( false )
 
   #define GEOS_WARNING( msg ) GEOS_WARNING_IF( true, msg )
 
-  #define GEOS_INFO_IF( EXP, msg )                                           \
-  do {                                                                       \
-    if( EXP )                                                                \
-    {                                                                        \
-      std::cout << "***** GEOS_INFO "<<std::endl;                            \
-      std::cout << "***** FILE: " << __FILE__ << std::endl;                  \
-      std::cout << "***** LINE: " << __LINE__ << std::endl;                  \
-      std::cout << msg << std::endl;                                         \
-    }                                                                        \
+  #define GEOS_INFO_IF( EXP, msg )                                                 \
+  do {                                                                             \
+    if( EXP )                                                                      \
+    {                                                                              \
+      std::cout << "***** GEOS_INFO "<<std::endl;                                  \
+      std::cout << "***** LOCATION: " << __FILE__ << ":" << __LINE__ << std::endl; \
+      std::cout << msg << std::endl;                                               \
+    }                                                                              \
   } while( false )
 
   #define GEOS_INFO( msg ) GEOS_INFO_IF( true, msg )
