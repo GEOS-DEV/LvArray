@@ -50,9 +50,9 @@ void setSignalHandling( void (*handler)( int ) )
 //  signal( SIGALRM, handler );
   signal( SIGTERM, handler );
 //  signal( SIGURG, handler );
-  signal( SIGSTOP, handler );
-  signal( SIGTSTP, handler );
-  signal( SIGCONT, handler );
+//  signal( SIGSTOP, handler );
+//  signal( SIGTSTP, handler );
+//  signal( SIGCONT, handler );
 //  signal( SIGCHLD, handler );
 
 
