@@ -1,31 +1,56 @@
-set( cxx_dependencies "" )
-if( ATK_FOUND )
-    set( cxx_dependencies axom )
-endif()
+set(cxx-utilities_headers
+    templateHelpers.hpp
+    Array.hpp
+    ArraySlice.hpp
+    ArrayUtilities.hpp
+    ArrayView.hpp
+    ChaiVector.hpp
+    arrayManipulation.hpp
+    sortedArrayManipulation.hpp
+    sortedArrayManipulationHelpers.hpp
+    arrayHelpers.hpp
+    IntegerConversion.hpp
+    Macros.hpp
+    SetFPE.hpp
+    SetSignalHandling.hpp
+    SortedArrayView.hpp
+    SortedArray.hpp
+    StackBuffer.hpp
+    stackTrace.hpp
+    StringUtilities.hpp
+    ArrayOfArraysView.hpp
+    ArrayOfArrays.hpp
+    ArrayOfSetsView.hpp
+    ArrayOfSets.hpp
+    SparsityPatternView.hpp
+    SparsityPattern.hpp
+    CRSMatrixView.hpp
+    CRSMatrix.hpp
+    totalview/tv_data_display.h
+    Permutation.hpp
+    bufferManipulation.hpp
+    ChaiBuffer.hpp
+    MallocBuffer.hpp
+   )
 
-if( ENABLE_CHAI )
-    set( cxx_dependencies ${cxx_dependencies} chai umpire )
-endif()
+set(cxx-utilities_sources
+    SetFPE.cpp
+    SetSignalHandling.cpp
+    stackTrace.cpp
+    StringUtilities.cpp
+    totalview/tv_data_display.c 
+    )
 
-if( ${ENABLE_MPI} )
-    set( cxx_dependencies ${cxx_dependencies} mpi )
-endif()
 
-if( ENABLE_CUDA )
-    set( cxx_dependencies ${cxx_dependencies} cuda )
-endif()
+message("adding cxx-utilities library")
+blt_add_library( NAME             cxx-utilities
+                 SOURCES          ${cxx-utilities_sources}
+                 HEADERS          ${cxx-utilities_headers}
+                 HEADERS_OUTPUT_SUBDIR cxx-utilities
+                 DEPENDS_ON       ${cxx_dependencies}
+                 )
 
-if( ENABLE_OPENMP )
-    set( cxx_dependencies ${cxx_dependencies} openmp )
-endif()
+target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )
 
-if( ENABLE_RAJA )
-    set( cxx_dependencies ${cxx_dependencies} raja )
-endif()
+cxxutils_add_code_checks(PREFIX cxx-utilities )
 
-if( ENABLE_CALIPER )
-    set( cxx_dependencies ${cxx_dependencies} caliper )
-endif()
-
-add_subdirectory(src)
-add_subdirectory(tests)
