@@ -32,11 +32,11 @@
 
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index >= size, \
-                 "Array Bounds Check Failed: index=" << index << " size()=" << size )
+                    "Array Bounds Check Failed: index=" << index << " size()=" << size )
 
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index > size, \
-                 "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
+                    "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
@@ -52,9 +52,9 @@ namespace arrayManipulation
  * @brief Return true iff the given value is greater than or equal to zero.
  * @param [in] i the value to check.
  */
-template <class INDEX_TYPE>
+template< class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-typename std::enable_if<std::is_signed<INDEX_TYPE>::value, bool>::type
+typename std::enable_if< std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const i )
 { return i >= 0; }
 
@@ -62,28 +62,28 @@ isPositive( INDEX_TYPE const i )
  * @brief Returns true.
  * This specialization for unsigned types avoids compiler warnings.
  */
-template <class INDEX_TYPE>
+template< class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-typename std::enable_if<!std::is_signed<INDEX_TYPE>::value, bool>::type
+typename std::enable_if< !std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const )
 { return true; }
 
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void destroy( T * const restrict ptr,
               std::ptrdiff_t const size )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
   {
     ptr[ i ].~T();
   }
 }
 
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void uninitializedCopy( T * const restrict dst,
                         std::ptrdiff_t const size,
@@ -93,14 +93,14 @@ void uninitializedCopy( T * const restrict dst,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( src != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
   {
     new (dst + i) T( src[ i ] );
   }
 }
 
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void uninitializedMove( T * const restrict dst,
                         std::ptrdiff_t const size,
@@ -110,22 +110,22 @@ void uninitializedMove( T * const restrict dst,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( src != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
   {
     new (dst + i) T( std::move( src[ i ] ) );
   }
 }
 
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void uninitializedShiftDown( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const amount )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( isPositive( amount ) );
-  
-  for ( std::ptrdiff_t j = 0; j < size; ++j )
+
+  for( std::ptrdiff_t j = 0 ; j < size ; ++j )
   {
     new ( ptr + j - amount ) T( std::move( ptr[ j ] ) );
     ptr[ j ].~T();
@@ -133,15 +133,15 @@ void uninitializedShiftDown( T * const restrict ptr, std::ptrdiff_t const size, 
 }
 
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void uninitializedShiftUp( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const amount )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( isPositive( amount ) );
-  
-  for (std::ptrdiff_t j = size - 1; j >= 0; --j)
+
+  for( std::ptrdiff_t j = size - 1 ; j >= 0 ; --j )
   {
     new ( ptr + amount + j ) T( std::move( ptr[ j ] ) );
     ptr[ j ].~T();
@@ -158,12 +158,12 @@ void uninitializedShiftUp( T * const restrict ptr, std::ptrdiff_t const size, st
  * @param [in/out] args the arguments to forward to construct any new elements with.
  */
 DISABLE_HD_WARNING
-template <class T, class ...ARGS>
+template< class T, class ... ARGS >
 inline
 void resize( T * const restrict ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const newSize,
-             ARGS &&... args )
+             ARGS && ... args )
 {
   LVARRAY_ASSERT( ptr != nullptr || (size == 0 && newSize == 0));
   LVARRAY_ASSERT( isPositive( size ));
@@ -175,7 +175,7 @@ void resize( T * const restrict ptr,
   // Initialize things between size and newSize.
   for( std::ptrdiff_t i = size ; i < newSize ; ++i )
   {
-    new (&ptr[i]) T(std::forward<ARGS>(args)...);
+    new (&ptr[i]) T( std::forward< ARGS >( args )... );
   }
 }
 
@@ -189,7 +189,7 @@ void resize( T * const restrict ptr,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void shiftUp( T * const restrict ptr,
               std::ptrdiff_t const size,
@@ -227,7 +227,7 @@ void shiftUp( T * const restrict ptr,
  * @param [in] defaultValue the value to initialize the new entries with.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void emplace( T * const restrict ptr,
               std::ptrdiff_t const size,
@@ -256,7 +256,7 @@ void emplace( T * const restrict ptr,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void shiftDown( T * const restrict ptr,
                 std::ptrdiff_t const size,
@@ -289,7 +289,7 @@ void shiftDown( T * const restrict ptr,
  * @param [in] n the number of places to shift.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void erase( T * const restrict ptr,
             std::ptrdiff_t const size,
@@ -297,7 +297,8 @@ void erase( T * const restrict ptr,
             std::ptrdiff_t const n=1 )
 {
   LVARRAY_ASSERT( isPositive( n ) );
-  if( n == 0 ) return;
+  if( n == 0 )
+    return;
 
   ARRAYMANIPULATION_CHECK_BOUNDS( index );
   ARRAYMANIPULATION_CHECK_BOUNDS( index + n - 1 );
@@ -316,7 +317,7 @@ void erase( T * const restrict ptr,
  * @param [in] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
              std::ptrdiff_t const size,
@@ -335,7 +336,7 @@ void append( T * const restrict ptr,
  * @param [in/out] value the value to append.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
              std::ptrdiff_t const size,
@@ -355,7 +356,7 @@ void append( T * const restrict ptr,
  * @param [in] n the number of values to append.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void append( T * const restrict ptr,
              std::ptrdiff_t const size,
@@ -382,7 +383,7 @@ void append( T * const restrict ptr,
  * @param [in] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr,
              std::ptrdiff_t const size,
@@ -407,7 +408,7 @@ void insert( T * const restrict ptr,
  * @param [in/out] value the value to insert.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t const index, T && value )
 {
@@ -429,7 +430,7 @@ void insert( T * const restrict ptr, std::ptrdiff_t const size, std::ptrdiff_t c
  * @param [in] n the number of values to insert.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr,
              std::ptrdiff_t const size,
@@ -456,7 +457,7 @@ void insert( T * const restrict ptr,
  * @param [in] size the size of the array.
  */
 DISABLE_HD_WARNING
-template <class T>
+template< class T >
 LVARRAY_HOST_DEVICE inline
 void popBack( T * const restrict ptr, std::ptrdiff_t const size )
 {

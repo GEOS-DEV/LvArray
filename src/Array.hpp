@@ -68,10 +68,10 @@ template< typename T,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
 class Array : public ArrayView< T,
-                                NDIM,
-                                getStrideOneDimension( PERMUTATION {} ),
-                                INDEX_TYPE,
-                                BUFFER_TYPE >
+                     NDIM,
+  getStrideOneDimension( PERMUTATION {} ),
+  INDEX_TYPE,
+  BUFFER_TYPE >
 {
 public:
 
@@ -80,7 +80,7 @@ public:
   static_assert( getDimension( PERMUTATION {} ) == NDIM, "The dimension of the permutation must match the dimension of the Array." );
   static_assert( isValidPermutation( PERMUTATION {} ), "The permutation must be valid." );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
-  
+
   // The dimensionality of the array.
   static constexpr int ndim = NDIM;
 
@@ -124,15 +124,15 @@ public:
    * @brief Constructor that takes in the dimensions as a variadic parameter list
    * @param dims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
    */
-  template< typename... DIMS >
+  template< typename ... DIMS >
   inline explicit Array( DIMS... dims ):
     Array()
   {
-    static_assert( is_integer<INDEX_TYPE>::value, "Error: std::is_integral<INDEX_TYPE> is false" );
+    static_assert( is_integer< INDEX_TYPE >::value, "Error: std::is_integral<INDEX_TYPE> is false" );
     static_assert( sizeof ... (DIMS) == NDIM, "Error: calling Array::Array with incorrect number of arguments." );
-    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type< INDEX_TYPE, DIMS... >::value, "arguments to constructor of geosx::Array( DIMS... dims ) are incompatible with INDEX_TYPE" );
 
-    resize( dims... );
+    resize( dims ... );
   }
 
   /**
@@ -154,7 +154,7 @@ public:
    * @note Moves the source into *this. This calls BUFFER_TYPE( BUFFER_TYPE && ) which usually is a
    *       shallow copy that invalidates the contents of source. However this depends on the
    *       implementation of BUFFER_TYPE since for instance it is impossible to create a shallow
-   *       copy of a stack allocation.  
+   *       copy of a stack allocation.
    */
   Array( Array && source ) = default;
 
@@ -191,7 +191,7 @@ public:
    * @param rhs source for the assignment.
    * @return *this.
    */
-  Array & operator=( Array const& rhs )
+  Array & operator=( Array const & rhs )
   {
     bufferManipulation::copyInto( m_dataBuffer, size(), rhs.m_dataBuffer, rhs.size() );
     setDataPtr();
@@ -250,7 +250,7 @@ public:
    */
   template< typename DIMS_TYPE >
   void resize( int const numDims, DIMS_TYPE * const dims )
-  { resize( numDims, const_cast<DIMS_TYPE const *>(dims) ); }
+  { resize( numDims, const_cast< DIMS_TYPE const * >(dims) ); }
 
   /**
    * @brief function to resize the array.
@@ -258,16 +258,16 @@ public:
    * @param newDims the new dimensions
    * @note This does not preserve the values in the Array.
    */
-  template< typename... DIMS >
+  template< typename ... DIMS >
   std::enable_if_t< sizeof ... (DIMS) == NDIM >
   resize( DIMS... newDims )
   {
     static_assert( check_dim_type< INDEX_TYPE, DIMS... >::value, "arguments to Array::resize(DIMS...newDims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldSize = size();
-    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims... );
+    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims ... );
     CalculateStrides();
-    
+
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
@@ -279,14 +279,15 @@ public:
    * @param newDims the new dimensions
    * @note This does not preserve the values in the Array.
    */
-  template< typename... DIMS >
+  template< typename ... DIMS >
   std::enable_if_t< sizeof ... (DIMS) == NDIM >
   resizeWithoutInitializationOrDestruction( DIMS... newDims )
   {
-    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resizeWithoutInitializationOrDestruction(DIMS...newDims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_type< INDEX_TYPE, DIMS... >::value,
+                   "arguments to Array::resizeWithoutInitializationOrDestruction(DIMS...newDims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldSize = size();
-    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims... );
+    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims ... );
     CalculateStrides();
 
     bufferManipulation::reserve( m_dataBuffer, oldSize, size() );
@@ -297,24 +298,24 @@ public:
    * @brief Resize specific dimensions of the array.
    * @tparam INDICES the indices of the dimensions to resize.
    * @tparam DIMS variadic pack containing the dimension types
-   * @param newDims the new dimensions. newDims[ 0 ] will be the new size of 
+   * @param newDims the new dimensions. newDims[ 0 ] will be the new size of
    *        dimensions INDICES[ 0 ].
    * @note This does not preserve the values in the Array.
    */
-  template < INDEX_TYPE... INDICES, typename... DIMS>
+  template< INDEX_TYPE... INDICES, typename ... DIMS >
   void resizeDimension( DIMS... newDims )
   {
     static_assert( sizeof ... (INDICES) <= NDIM, "Too many arguments provided." );
     static_assert( sizeof ... (INDICES) == sizeof ... (DIMS), "The number of indices must match the number of dimensions." );
-    static_assert( check_dim_type<INDEX_TYPE, DIMS...>::value, "arguments to Array::resizeDimension(DIMS...newDims) are incompatible with INDEX_TYPE" );
-    static_assert( check_dim_indices<INDEX_TYPE, NDIM, INDICES...>::value, "invalid dimension indices in Array::resizeDimension(DIMS...newDims)" );
+    static_assert( check_dim_type< INDEX_TYPE, DIMS... >::value, "arguments to Array::resizeDimension(DIMS...newDims) are incompatible with INDEX_TYPE" );
+    static_assert( check_dim_indices< INDEX_TYPE, NDIM, INDICES... >::value, "invalid dimension indices in Array::resizeDimension(DIMS...newDims)" );
 
     INDEX_TYPE const oldSize = size();
-    dim_index_unpack<INDEX_TYPE, NDIM>( const_cast<INDEX_TYPE *>(m_dims),
-                                        std::integer_sequence<INDEX_TYPE, INDICES...>(),
-                                        newDims... );
+    dim_index_unpack< INDEX_TYPE, NDIM >( const_cast< INDEX_TYPE * >(m_dims),
+                                          std::integer_sequence< INDEX_TYPE, INDICES... >(),
+                                          newDims ... );
     CalculateStrides();
-    
+
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
     setDataPtr();
   }
@@ -346,9 +347,9 @@ public:
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
-  template< typename ...ARGS >
-  void resizeWithArgs( INDEX_TYPE const newdim, ARGS &&... args )
-  { resizeDefaultDimension( newdim, std::forward<ARGS>(args)... ); }
+  template< typename ... ARGS >
+  void resizeWithArgs( INDEX_TYPE const newdim, ARGS && ... args )
+  { resizeDefaultDimension( newdim, std::forward< ARGS >( args )... ); }
 
   /**
    * @brief Reserve space in the Array to hold at least the given number of values.
@@ -425,7 +426,7 @@ public:
   /**
    * @brief Insert a value into the array at the given position. Similar to std::vector::insert
    *        but this method takes a position instead of an iterator.
-   * @param pos the position to insert at. 
+   * @param pos the position to insert at.
    * @param value the value to insert via a copy.
    * @note This method is only available on 1D arrays.
    */
@@ -495,7 +496,7 @@ public:
 
   /**
    * @brief Set the default resize dimension.
-   * @param index the new default dimension. 
+   * @param index the new default dimension.
    */
   inline void setSingleParameterResizeIndex( int const index )
   {
@@ -509,7 +510,7 @@ public:
    */
   void setName( std::string const & name )
   {
-    m_dataBuffer.template setName<decltype(*this)>( name );
+    m_dataBuffer.template setName< decltype(*this) >( name );
   }
 
   /**
@@ -549,7 +550,7 @@ public:
    * @param av A pointer to the array that is being displayed.
    * @return 0 if everything went OK
    */
-  static int TV_ttf_display_type( Array const * av)
+  static int TV_ttf_display_type( Array const * av )
   {
     return ParentType::TV_ttf_display_type( av );
   }
@@ -571,18 +572,18 @@ private:
   {
     constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();
     std::array< INDEX_TYPE, NDIM > foldedStrides;
-    
-    for (int i = 0; i < NDIM; ++i)
+
+    for( int i = 0 ; i < NDIM ; ++i )
     {
       foldedStrides[ i ] = 1;
-      for (int j = i + 1; j < NDIM; ++j)
+      for( int j = i + 1 ; j < NDIM ; ++j )
       {
         foldedStrides[ i ] *= m_dims[ permutation[ j ] ];
       }
     }
 
     INDEX_TYPE * const strides = const_cast< INDEX_TYPE * >( m_strides );
-    for (int i = 0; i < NDIM; ++i)
+    for( int i = 0 ; i < NDIM ; ++i )
     {
       strides[ permutation[ i ] ] = foldedStrides[ i ];
     }
@@ -596,8 +597,8 @@ private:
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
-  template< typename ...ARGS >
-  void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS &&... args )
+  template< typename ... ARGS >
+  void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS && ... args )
   {
     // Get the current length and stride of the dimension as well as the size of the whole Array.
     INDEX_TYPE const curDimLength = m_dims[ m_singleParameterResizeIndex ];
@@ -610,10 +611,10 @@ private:
     INDEX_TYPE const newSize = size();
 
     // If we aren't changing the total size then we can return early.
-    if ( newSize == curSize ) return;
-    
+    if( newSize == curSize ) return;
+
     // If the size is increasing do one thing, if it's decreasing do another.
-    if ( newDimLength > curDimLength )
+    if( newDimLength > curDimLength )
     {
       // Reserve space in the buffer but don't initialize the values.
       bufferManipulation::reserve( m_dataBuffer, curSize, newSize );
@@ -627,7 +628,7 @@ private:
       INDEX_TYPE const numIterations = ( newSize - curSize ) / valuesToAddPerIteration;
 
       // Iterate backwards over the iterations.
-      for ( INDEX_TYPE i = numIterations - 1; i >= 0; --i )
+      for( INDEX_TYPE i = numIterations - 1 ; i >= 0 ; --i )
       {
         // First shift the values up to make remove for the values of subsequent iterations.
         // This step is a no-op on the last iteration (i=0).
@@ -637,7 +638,7 @@ private:
 
         // Initialize the new values.
         T * const startOfNewValues = startOfShift + valuesToShiftPerIteration + valuesLeftToInsert;
-        for ( INDEX_TYPE j = 0; j < valuesToAddPerIteration; ++j )
+        for( INDEX_TYPE j = 0 ; j < valuesToAddPerIteration ; ++j )
         {
           new ( startOfNewValues + j ) T( std::forward< ARGS >( args )... );
         }
@@ -654,7 +655,7 @@ private:
       INDEX_TYPE const numIterations = ( curSize - newSize ) / valuesToRemovePerIteration;
 
       // Iterate over the iterations, skipping the first.
-      for ( INDEX_TYPE i = 1; i < numIterations; ++i )
+      for( INDEX_TYPE i = 1 ; i < numIterations ; ++i )
       {
         INDEX_TYPE const amountToShift = valuesToRemovePerIteration * i;
         T * const startOfShift = ptr + valuesToShiftPerIteration * i;
@@ -664,7 +665,7 @@ private:
       // After the iterations are complete all the values to remove have been moved to the end of the array.
       // We destroy them here.
       INDEX_TYPE const totalValuesToRemove = valuesToRemovePerIteration * numIterations;
-      for ( INDEX_TYPE i = 0; i < totalValuesToRemove; ++i )
+      for( INDEX_TYPE i = 0 ; i < totalValuesToRemove ; ++i )
       {
         ptr[ newSize + i ].~T();
       }

@@ -46,13 +46,13 @@ namespace totalview
  * @param dims  The dimensions of the array
  * @return A string for use as "type" in a TV_tff_add_row( name, type, data) call.
  */
-template< typename TYPE, typename INDEX_TYPE>
+template< typename TYPE, typename INDEX_TYPE >
 std::string format( int NDIM, INDEX_TYPE const * const dims )
 {
-  std::string rval = cxx_utilities::demangle<TYPE>();
-  for( int i=0 ; i<NDIM; ++i )
+  std::string rval = cxx_utilities::demangle< TYPE >();
+  for( int i=0 ; i<NDIM ; ++i )
   {
-    rval += "["+std::to_string(dims[i])+"]";
+    rval += "["+std::to_string( dims[i] )+"]";
   }
   return rval;
 }

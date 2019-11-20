@@ -68,8 +68,8 @@ struct stringToArrayHelper
     inputStream>>arrayValue;
 
     LVARRAY_ERROR_IF( inputStream.fail(),
-                   "Invalid value of type " << typeid(T).name() << " in: " <<
-                   ( inputStream.eof()  ?  "" : inputStream.str().substr( inputStream.tellg() ) ) );
+                      "Invalid value of type " << typeid(T).name() << " in: " <<
+                      ( inputStream.eof()  ?  "" : inputStream.str().substr( inputStream.tellg() ) ) );
   }
 
   /**
@@ -79,29 +79,28 @@ struct stringToArrayHelper
    * @param inputStream the stream to read from
    * @return none
    */
-    template< int NDIM >
-    static void
-    Read( typename std::conditional< (NDIM>1),
-                                     LvArray::ArraySlice<T, NDIM, NDIM - 1, INDEX_TYPE >,
-                                     LvArray::ArraySlice<T, 1, 0, INDEX_TYPE > >::type const & arraySlice,
-          INDEX_TYPE const * const dims,
-          std::istringstream & inputStream )
+  template< int NDIM >
+  static void
+  Read( typename std::conditional< (NDIM>1),
+                                   LvArray::ArraySlice< T, NDIM, NDIM - 1, INDEX_TYPE >,
+                                   LvArray::ArraySlice< T, 1, 0, INDEX_TYPE > >::type const & arraySlice,
+        INDEX_TYPE const * const dims,
+        std::istringstream & inputStream )
+  {
+    LVARRAY_ERROR_IF( inputStream.peek() != '{', "opening { not found for input array: "<<inputStream.str() );
+    inputStream.ignore();
+
+    for( int i=0 ; i<(*dims) ; ++i )
     {
-      LVARRAY_ERROR_IF( inputStream.peek() != '{', "opening { not found for input array: "<<inputStream.str() );
-      inputStream.ignore();
-
-      for( int i=0 ; i<(*dims) ; ++i )
-      {
-        skipDelimters( inputStream );
-        Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
-      }
-
       skipDelimters( inputStream );
-      LVARRAY_ERROR_IF( inputStream.peek() != '}', "closing } not found for input array: "<<inputStream.str() );
-      inputStream.ignore();
+      Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
     }
-};
 
+    skipDelimters( inputStream );
+    LVARRAY_ERROR_IF( inputStream.peek() != '}', "closing } not found for input array: "<<inputStream.str() );
+    inputStream.ignore();
+  }
+};
 
 
 
@@ -147,7 +146,7 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
       {
         if( valueOnLeft && spaceOnLeft )
         {
-          LVARRAY_ERROR( "Array value sequence specified without ',' delimeter: "<<valueString);
+          LVARRAY_ERROR( "Array value sequence specified without ',' delimeter: "<<valueString );
         }
       }
 
@@ -175,7 +174,7 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
   }
 
   // erase all spaces from input string to simplify parsing
-  valueString.erase(std::remove(valueString.begin(), valueString.end(), ' '), valueString.end());
+  valueString.erase( std::remove( valueString.begin(), valueString.end(), ' ' ), valueString.end());
 
   // allow for a null input
   if( valueString=="{}" )
@@ -185,31 +184,31 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
   }
 
   // checking for various formatting errors
-  LVARRAY_ERROR_IF( valueString.find("}{") != std::string::npos ,
-                 "Sub arrays not separated by ',' delimiter: "<<valueString );
+  LVARRAY_ERROR_IF( valueString.find( "}{" ) != std::string::npos,
+                    "Sub arrays not separated by ',' delimiter: "<<valueString );
 
   LVARRAY_ERROR_IF( valueString[0]!='{',
-                 "First non-space character of input string for an array must be {. Given string is: \n"<<valueString );
+                    "First non-space character of input string for an array must be {. Given string is: \n"<<valueString );
 
   size_t const numOpen = std::count( valueString.begin(), valueString.end(), '{' );
   size_t const numClose = std::count( valueString.begin(), valueString.end(), '}' );
 
   LVARRAY_ERROR_IF( numOpen != numClose,
-                 "Number of opening { not equal to number of } in processing of string for filling"
-                 " an Array. Given string is: \n"<<valueString);
+                    "Number of opening { not equal to number of } in processing of string for filling"
+                    " an Array. Given string is: \n"<<valueString );
 
 
   // after allowing for the null input, disallow a sub-array null input
-  LVARRAY_ERROR_IF( valueString.find("{}")!=std::string::npos,
-                 "Cannot have an empty sub-dimension of an array, i.e. { { 0, 1}, {} }. "
-                 "The input is"<<valueString );
+  LVARRAY_ERROR_IF( valueString.find( "{}" )!=std::string::npos,
+                    "Cannot have an empty sub-dimension of an array, i.e. { { 0, 1}, {} }. "
+                    "The input is"<<valueString );
 
   // get the number of dimensions from the number of { characters that begin the input string
-  int const ndims = integer_conversion<int>(valueString.find_first_not_of('{'));
+  int const ndims = integer_conversion< int >( valueString.find_first_not_of( '{' ));
   LVARRAY_ERROR_IF( ndims!=NDIM,
-                 "number of dimensions in string ("<<ndims<<
-                 ") does not match dimensions of array("<<NDIM<<
-                 "). String is:/n"<<valueString );
+                    "number of dimensions in string ("<<ndims<<
+                    ") does not match dimensions of array("<<NDIM<<
+                    "). String is:/n"<<valueString );
 
 
   // now get the number of dimensions, and the size of each dimension.
@@ -233,40 +232,40 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
   }
 
   char lastChar = 0;
-  for( size_t charCount = 0; charCount<valueString.size() ; ++charCount )
+  for( size_t charCount = 0 ; charCount<valueString.size() ; ++charCount )
   {
     char const c = valueString[charCount];
     // this had better be true for the first char...we had a check for this. This is why we can
     // set dimLevel = -1 to start.
-    if( c=='{')
+    if( c=='{' )
     {
       ++dimLevel;
     }
-    else if( c=='}')
+    else if( c=='}' )
     {
       // } means that we are closing a dimension. That means we know the size of this dimLevel
       dimSet[dimLevel] = true;
       LVARRAY_ERROR_IF( dims[dimLevel]!=currentDims[dimLevel],
-                     "Dimension "<<dimLevel<<" is inconsistent across the expression. "
-                     "The first set value of the dimension is "<<dims[dimLevel]<<
-                     " while the current value of the dimension is"<<currentDims[dimLevel]<<
-                     ". The values that have been parsed prior to the error are:\n"<<
-                     valueString.substr(0,charCount+1) );
+                        "Dimension "<<dimLevel<<" is inconsistent across the expression. "
+                                                "The first set value of the dimension is "<<dims[dimLevel]<<
+                        " while the current value of the dimension is"<<currentDims[dimLevel]<<
+                        ". The values that have been parsed prior to the error are:\n"<<
+                        valueString.substr( 0, charCount+1 ) );
 
       // reset currentDims and drop dimLevel for post-closure parsing
       currentDims[dimLevel] = 1;
       --dimLevel;
       LVARRAY_ERROR_IF( dimLevel<0 && charCount<(valueString.size()-1),
-                     "In parsing the input string, the current dimension of the array has dropped "
-                     "below 0. This means that there are more '}' than '{' at some point in the"
-                     " parsing. The values that have been parsed prior to the error are:\n"<<
-                     valueString.substr(0,charCount+1) );
+                        "In parsing the input string, the current dimension of the array has dropped "
+                        "below 0. This means that there are more '}' than '{' at some point in the"
+                        " parsing. The values that have been parsed prior to the error are:\n"<<
+                        valueString.substr( 0, charCount+1 ) );
 
     }
     else if( c==',' ) // we are counting the dimension sizes because there is a delimiter.
     {
       LVARRAY_ERROR_IF( lastChar=='{' || lastChar==',',
-                     "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value.");
+                        "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value." );
       if( dimSet[dimLevel]==false )
       {
         ++(dims[dimLevel]);
@@ -276,8 +275,8 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
     lastChar = c;
   }
   LVARRAY_ERROR_IF( dimLevel!=-1,
-                 "Expression fails to close all '{' with a corresponding '}'. Check your input:"<<
-                 valueString );
+                    "Expression fails to close all '{' with a corresponding '}'. Check your input:"<<
+                    valueString );
 
   array.resize( NDIM, dims );
 
@@ -296,9 +295,9 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
       ++a;
     }
   }
-  std::istringstream strstream(valueString);
+  std::istringstream strstream( valueString );
   // this recursively reads the values from the stringstream
-  stringToArrayHelper<T,INDEX_TYPE>::template Read<NDIM>( array, array.dims(), strstream );
+  stringToArrayHelper< T, INDEX_TYPE >::template Read< NDIM >( array, array.dims(), strstream );
 }
 
 
@@ -347,7 +346,7 @@ struct arrayToStringHelper
     for( INDEX_TYPE i=0 ; i<dims[0] ; ++i )
     {
       output += "{ ";
-      dimExpansion<NDIM-1>( &(data[ i*strides[0] ] ), dims+1, strides+1, output );
+      dimExpansion< NDIM-1 >( &(data[ i*strides[0] ] ), dims+1, strides+1, output );
       output += " }";
       if( i < dims[0] - 1 )
       {
@@ -370,16 +369,16 @@ template< typename T,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
-static std::string arrayToString( LvArray::ArrayView<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
+static std::string arrayToString( LvArray::ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
 {
   std::string output;
   output.clear();
 
   output += "{ ";
-  arrayToStringHelper<T, INDEX_TYPE>::template dimExpansion<NDIM-1>( array.data(),
-                                                                   array.dims(),
-                                                                   array.strides(),
-                                                                   output );
+  arrayToStringHelper< T, INDEX_TYPE >::template dimExpansion< NDIM-1 >( array.data(),
+                                                                         array.dims(),
+                                                                         array.strides(),
+                                                                         output );
 
   output += " }";
 

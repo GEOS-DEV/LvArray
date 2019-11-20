@@ -109,7 +109,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          int LENGTH > 
+          int LENGTH >
 struct StackArrayHelper
 {
   template< typename U >
@@ -125,7 +125,7 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          int LENGTH > 
+          int LENGTH >
 using StackArray = typename internal::StackArrayHelper< T, NDIM, PERMUTATION, INDEX_TYPE, LENGTH >::type;
 
 } // namespace LvArray

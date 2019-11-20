@@ -41,8 +41,8 @@ namespace LvArray
  * The derivation from SortedArrayView is protected to control the conversion to
  * SortedArrayView. Specifically only conversion to SortedArrayView<T const> is allowed.
  */
-template <class T, class INDEX_TYPE=std::ptrdiff_t>
-class SortedArray : protected SortedArrayView<T, INDEX_TYPE>
+template< class T, class INDEX_TYPE=std::ptrdiff_t >
+class SortedArray : protected SortedArrayView< T, INDEX_TYPE >
 {
 public:
 
@@ -56,27 +56,27 @@ public:
   using const_iterator = const_pointer;
 
   // Alias public methods of SortedArrayView.
-  using SortedArrayView<T, INDEX_TYPE>::values;
-  using SortedArrayView<T, INDEX_TYPE>::operator[];
-  using SortedArrayView<T, INDEX_TYPE>::begin;
-  using SortedArrayView<T, INDEX_TYPE>::end;
+  using SortedArrayView< T, INDEX_TYPE >::values;
+  using SortedArrayView< T, INDEX_TYPE >::operator[];
+  using SortedArrayView< T, INDEX_TYPE >::begin;
+  using SortedArrayView< T, INDEX_TYPE >::end;
 
   // Duplicating these next two methods because SFINAE macros don't seem to pick them up otherwise.
 
   // using SortedArrayView<T, INDEX_TYPE>::empty;
   CONSTEXPRFUNC inline
   bool empty() const
-  { return SortedArrayView<T, INDEX_TYPE>::empty(); }
+  { return SortedArrayView< T, INDEX_TYPE >::empty(); }
 
   // using SortedArrayView<T, INDEX_TYPE>::size;
   CONSTEXPRFUNC inline
   INDEX_TYPE size() const
-  { return SortedArrayView<T, INDEX_TYPE>::size(); }
+  { return SortedArrayView< T, INDEX_TYPE >::size(); }
 
-  using SortedArrayView<T, INDEX_TYPE>::contains;
-  using SortedArrayView<T, INDEX_TYPE>::count;
+  using SortedArrayView< T, INDEX_TYPE >::contains;
+  using SortedArrayView< T, INDEX_TYPE >::count;
 
-  using ViewType = SortedArrayView<T const, INDEX_TYPE>;
+  using ViewType = SortedArrayView< T const, INDEX_TYPE >;
   using ViewTypeConst = ViewType;
 
   /**
@@ -84,7 +84,7 @@ public:
    */
   inline
   SortedArray():
-    SortedArrayView<T, INDEX_TYPE>()
+    SortedArrayView< T, INDEX_TYPE >()
   {}
 
   /**
@@ -93,7 +93,7 @@ public:
    */
   inline
   SortedArray( SortedArray const & src ):
-    SortedArrayView<T, INDEX_TYPE>()
+    SortedArrayView< T, INDEX_TYPE >()
   { *this = src; }
 
   /**
@@ -108,7 +108,7 @@ public:
    */
   inline
   ~SortedArray() restrict_this
-  { 
+  {
     bufferManipulation::free( m_values, size() );
   }
 
@@ -275,7 +275,7 @@ public:
   void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
   { m_values.move( space, touch ); }
 
-  friend std::ostream& operator<< ( std::ostream& stream, SortedArray const & array )
+  friend std::ostream & operator<< ( std::ostream & stream, SortedArray const & array )
   {
     stream << array.toView();
     return stream;
@@ -296,7 +296,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation sorted routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks<T, INDEX_TYPE>
+  class CallBacks : public sortedArrayManipulation::CallBacks< T, INDEX_TYPE >
   {
 public:
 
@@ -329,8 +329,8 @@ private:
   };
 
   // Alias the protected members of SortedArrayView.
-  using SortedArrayView<T, INDEX_TYPE>::m_values;
-  using SortedArrayView<T, INDEX_TYPE>::m_size;
+  using SortedArrayView< T, INDEX_TYPE >::m_values;
+  using SortedArrayView< T, INDEX_TYPE >::m_size;
 };
 
 } // namespace LvArray

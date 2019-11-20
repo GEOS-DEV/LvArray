@@ -27,7 +27,7 @@
 namespace cxx_utilities
 {
 
-void setSignalHandling( void (*handler)( int ) )
+void setSignalHandling( void (* handler)( int ) )
 {
   signal( SIGHUP, handler );
   signal( SIGINT, handler );

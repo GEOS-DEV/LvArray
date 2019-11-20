@@ -18,7 +18,8 @@
 
 /**
  * @file sortedArrayManipulationHelpers.hpp
- * These routines were ripped from the gcc standard library (https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/)
+ * These routines were ripped from the gcc standard library
+ *(https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/)
  * almost entirely from stl_heap.h and stl_algo.h.
  */
 
@@ -46,7 +47,7 @@ constexpr int INTROSORT_THRESHOLD = 64;
  * @brief This class is the type returned by the DualIterator operator* and holds
  *        a reference to a value in both underlying arrays.
  */
-template <class A, class B>
+template< class A, class B >
 struct DualIteratorAccessor
 {
   /**
@@ -56,33 +57,33 @@ struct DualIteratorAccessor
   struct Temporary
   {
     /**
-    * @brief Deleted default constructor.
-    */
+     * @brief Deleted default constructor.
+     */
     inline Temporary() = delete;
 
     /**
-    * @brief Deleted copy constructor.
-    */
-    inline Temporary(Temporary const &) = delete;
+     * @brief Deleted copy constructor.
+     */
+    inline Temporary( Temporary const & ) = delete;
 
-   /**
-    * @brief Move constructor, moves the values from src..
-    * @param [in] src Temporary to move the values from.
-    */
+    /**
+     * @brief Move constructor, moves the values from src..
+     * @param [in] src Temporary to move the values from.
+     */
     DISABLE_HD_WARNING
-    LVARRAY_HOST_DEVICE inline Temporary(Temporary && src) :
-      m_a(std::move(src.m_a)),
-      m_b(std::move(src.m_b))
+    LVARRAY_HOST_DEVICE inline Temporary( Temporary && src ):
+      m_a( std::move( src.m_a )),
+      m_b( std::move( src.m_b ))
     {}
 
-   /**
-    * @brief Move the values pointed at by src into a temporary location.
-    * @param [in] src DualIteratorAccessor to the values to move.
-    */
+    /**
+     * @brief Move the values pointed at by src into a temporary location.
+     * @param [in] src DualIteratorAccessor to the values to move.
+     */
     DISABLE_HD_WARNING
-    LVARRAY_HOST_DEVICE inline Temporary(DualIteratorAccessor && src) :
-      m_a(std::move(src.m_a)),
-      m_b(std::move(src.m_b)) 
+    LVARRAY_HOST_DEVICE inline Temporary( DualIteratorAccessor && src ):
+      m_a( std::move( src.m_a )),
+      m_b( std::move( src.m_b ))
     {}
 
     /**
@@ -91,15 +92,15 @@ struct DualIteratorAccessor
     DISABLE_HD_WARNING
     inline ~Temporary() = default;
 
-   /**
-    * @brief Deleted copy assignment operator.
-    */
-    inline Temporary & operator=(Temporary const &) = delete;
+    /**
+     * @brief Deleted copy assignment operator.
+     */
+    inline Temporary & operator=( Temporary const & ) = delete;
 
     /**
-    * @brief Deleted move assignment operator.
-    */
-    inline Temporary & operator=(Temporary &&) = delete;
+     * @brief Deleted move assignment operator.
+     */
+    inline Temporary & operator=( Temporary && ) = delete;
 
     A m_a;
     B m_b;
@@ -116,36 +117,36 @@ struct DualIteratorAccessor
    * @param [in/out] b the second value.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorAccessor(A & a, B & b) :
-    m_a(a),
-    m_b(b)
+  LVARRAY_HOST_DEVICE inline DualIteratorAccessor( A & a, B & b ):
+    m_a( a ),
+    m_b( b )
   {}
 
   /**
    * @brief Delete the copy constructor.
    */
-  DualIteratorAccessor(DualIteratorAccessor const & src) = delete;
+  DualIteratorAccessor( DualIteratorAccessor const & src ) = delete;
 
   /**
    * @brief Default the move constructor.
    */
   DISABLE_HD_WARNING
-  inline DualIteratorAccessor(DualIteratorAccessor && src) = default;
+  inline DualIteratorAccessor( DualIteratorAccessor && src ) = default;
 
   /**
    * @brief Delete the default copy assignment operator.
    */
-  DualIteratorAccessor & operator=(DualIteratorAccessor const & src) = delete;
+  DualIteratorAccessor & operator=( DualIteratorAccessor const & src ) = delete;
 
   /**
    * @brief Move assignment operator that moves the values of src into the values of this.
    * @param [in/out] src the DualIteratorAccessor to move from.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=(DualIteratorAccessor && src) restrict_this
+  LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=( DualIteratorAccessor && src ) restrict_this
   {
-    m_a = std::move(src.m_a);
-    m_b = std::move(src.m_b);
+    m_a = std::move( src.m_a );
+    m_b = std::move( src.m_b );
     return *this;
   }
 
@@ -154,10 +155,10 @@ struct DualIteratorAccessor
    * @param [in/out] src the Temporary to move from.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=(Temporary && src) restrict_this
+  LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=( Temporary && src ) restrict_this
   {
-    m_a = std::move(src.m_a);
-    m_b = std::move(src.m_b);
+    m_a = std::move( src.m_a );
+    m_b = std::move( src.m_b );
     return *this;
   }
 
@@ -173,7 +174,7 @@ struct DualIteratorAccessor
  * @brief This class is used to make a comparison method that takes in DualIteratorAccessor<A, B> from
  *        a comparison method that takes in objects of type A.
  */
-template <class A, class B, class Compare>
+template< class A, class B, class Compare >
 struct DualIteratorComparator
 {
   /**
@@ -181,8 +182,8 @@ struct DualIteratorComparator
    * @param [in/out] comp the comparison method to wrap.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorComparator(Compare comp) :
-    m_compare(comp)
+  LVARRAY_HOST_DEVICE inline DualIteratorComparator( Compare comp ):
+    m_compare( comp )
   {}
 
   /**
@@ -191,9 +192,9 @@ struct DualIteratorComparator
    * @param [in] rhs a DualIteratorAccessor of the second object to compare.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator()(DualIteratorAccessor<A, B> const & lhs,
-                                             DualIteratorAccessor<A, B> const & rhs) const restrict_this
-  { return m_compare(lhs.m_a, rhs.m_a); }
+  LVARRAY_HOST_DEVICE inline bool operator()( DualIteratorAccessor< A, B > const & lhs,
+                                              DualIteratorAccessor< A, B > const & rhs ) const restrict_this
+  { return m_compare( lhs.m_a, rhs.m_a ); }
 
   /**
    * @brief Compare lhs with rhs using their first values.
@@ -201,9 +202,9 @@ struct DualIteratorComparator
    * @param [in] rhs a DualIteratorAccessor of the second object to compare.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator()(typename DualIteratorAccessor<A, B>::Temporary const & lhs,
-                                             DualIteratorAccessor<A, B> const & rhs) const restrict_this
-  { return m_compare(lhs.m_a, rhs.m_a); }
+  LVARRAY_HOST_DEVICE inline bool operator()( typename DualIteratorAccessor< A, B >::Temporary const & lhs,
+                                              DualIteratorAccessor< A, B > const & rhs ) const restrict_this
+  { return m_compare( lhs.m_a, rhs.m_a ); }
 
   Compare m_compare;
 };
@@ -214,7 +215,7 @@ struct DualIteratorComparator
  * @class DualIterator
  * @brief This class acts as a single iterator while wrapping two iterators.
  */
-template <class RandomAccessIteratorA, class RandomAccessIteratorB>
+template< class RandomAccessIteratorA, class RandomAccessIteratorB >
 class DualIterator
 {
 private:
@@ -222,9 +223,9 @@ private:
   RandomAccessIteratorB m_itB;
 
 public:
-  using A = typename std::remove_reference<decltype(*m_itA)>::type;
-  using B = typename std::remove_reference<decltype(*m_itB)>::type;
-  
+  using A = typename std::remove_reference< decltype(*m_itA) >::type;
+  using B = typename std::remove_reference< decltype(*m_itB) >::type;
+
   /**
    * @brief Default constructor.
    */
@@ -237,49 +238,49 @@ public:
    * @param [in] itB the second iterator to wrap.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator(RandomAccessIteratorA const itA, RandomAccessIteratorB const itB) :
-    m_itA(itA),
-    m_itB(itB)
+  LVARRAY_HOST_DEVICE inline DualIterator( RandomAccessIteratorA const itA, RandomAccessIteratorB const itB ):
+    m_itA( itA ),
+    m_itB( itB )
   {}
 
   /**
    * @brief Default copy constructor.
    */
   DISABLE_HD_WARNING
-  inline DualIterator(DualIterator const & src) = default;
+  inline DualIterator( DualIterator const & src ) = default;
 
   /**
    * @brief Default move constructor.
    */
   DISABLE_HD_WARNING
-  inline DualIterator(DualIterator && src) = default;
+  inline DualIterator( DualIterator && src ) = default;
 
   /**
    * @brief Default copy assignment operator.
    */
   DISABLE_HD_WARNING
-  inline DualIterator & operator=(DualIterator const & src) = default;
+  inline DualIterator & operator=( DualIterator const & src ) = default;
 
   /**
    * @brief Default move assignment operator.
    */
   DISABLE_HD_WARNING
-  inline DualIterator & operator=(DualIterator && src) = default;
+  inline DualIterator & operator=( DualIterator && src ) = default;
 
   /**
    * @brief Return a new DualIterator where both of the underlying iterators have been incremented by offset.
    * @param [in] offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator operator+(std::ptrdiff_t const offset) const restrict_this
-  { return DualIterator(m_itA + offset, m_itB + offset); }
+  LVARRAY_HOST_DEVICE inline DualIterator operator+( std::ptrdiff_t const offset ) const restrict_this
+  { return DualIterator( m_itA + offset, m_itB + offset ); }
 
   /**
    * @brief Increment the underlying iterators by offset and return a reference to *this.
    * @param [in] offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator+=(std::ptrdiff_t const offset) restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator & operator+=( std::ptrdiff_t const offset ) restrict_this
   {
     m_itA += offset;
     m_itB += offset;
@@ -302,11 +303,11 @@ public:
    * @param [in] rhs the DualIterator to find the distance between.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-(DualIterator const & rhs) const restrict_this
+  LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const restrict_this
   {
     std::ptrdiff_t const distance = m_itA - rhs.m_itA;
-    LVARRAY_ASSERT(distance == (m_itB - rhs.m_itB));
-    return distance; 
+    LVARRAY_ASSERT( distance == (m_itB - rhs.m_itB));
+    return distance;
   }
 
   /**
@@ -314,16 +315,16 @@ public:
    * @param [in] offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator operator-(std::ptrdiff_t const offset) const restrict_this
-  { return *this + (- offset); }
+  LVARRAY_HOST_DEVICE inline DualIterator operator-( std::ptrdiff_t const offset ) const restrict_this
+  { return *this + (-offset); }
 
   /**
    * @brief Decrement the underlying iterators by offset and return a reference to *this.
    * @param [in] offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator-=(std::ptrdiff_t const offset) restrict_this
-  { return *this += (- offset); }
+  LVARRAY_HOST_DEVICE inline DualIterator & operator-=( std::ptrdiff_t const offset ) restrict_this
+  { return *this += (-offset); }
 
   /**
    * @brief Decrement the underlying iterators by 1 and return a reference to *this.
@@ -341,7 +342,7 @@ public:
    * @param [in] rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator!=(DualIterator const & rhs) const restrict_this
+  LVARRAY_HOST_DEVICE inline bool operator!=( DualIterator const & rhs ) const restrict_this
   { return m_itA != rhs.m_itA; }
 
   /**
@@ -349,15 +350,15 @@ public:
    * @param [in] rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator<(DualIterator const & rhs) const restrict_this
+  LVARRAY_HOST_DEVICE inline bool operator<( DualIterator const & rhs ) const restrict_this
   { return m_itA < rhs.m_itA; }
 
   /**
    * @brief Return a DualIteratorAccessor to the two values at which m_itA and m_itB point at.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorAccessor<A, B> operator*() const restrict_this
-  { return DualIteratorAccessor<A, B>(*m_itA, *m_itB); }
+  LVARRAY_HOST_DEVICE inline DualIteratorAccessor< A, B > operator*() const restrict_this
+  { return DualIteratorAccessor< A, B >( *m_itA, *m_itB ); }
 
   /**
    * @tparam Compare the type of the comparison method.
@@ -365,9 +366,9 @@ public:
    * @param [in] comp the comparison to wrap.
    */
   DISABLE_HD_WARNING
-  template <class Compare>
-  LVARRAY_HOST_DEVICE inline DualIteratorComparator<A, B, Compare> createComparator(Compare comp) const restrict_this
-  { return DualIteratorComparator<A, B, Compare>(comp); }
+  template< class Compare >
+  LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare comp ) const restrict_this
+  { return DualIteratorComparator< A, B, Compare >( comp ); }
 };
 
 /**
@@ -376,9 +377,11 @@ public:
  * @param [in/out] a the value to move.
  */
 DISABLE_HD_WARNING
-template <class T>
-LVARRAY_HOST_DEVICE inline T && createTemporary(T & a)
-{ return std::move(a); }
+template< class T >
+LVARRAY_HOST_DEVICE inline T && createTemporary( T & a )
+{
+  return std::move( a );
+}
 
 /**
  * @tparam A the type of the first value in the DualIteratorAccessor.
@@ -387,9 +390,9 @@ LVARRAY_HOST_DEVICE inline T && createTemporary(T & a)
  * @param [in/out] it the DualIteratorAccessor to move from.
  */
 DISABLE_HD_WARNING
-template <class A, class B>
-inline LVARRAY_HOST_DEVICE typename DualIteratorAccessor<A, B>::Temporary createTemporary(DualIteratorAccessor<A, B> && it)
-{ return typename DualIteratorAccessor<A, B>::Temporary(std::move(it)); }
+template< class A, class B >
+inline LVARRAY_HOST_DEVICE typename DualIteratorAccessor< A, B >::Temporary createTemporary( DualIteratorAccessor< A, B > && it )
+{ return typename DualIteratorAccessor< A, B >::Temporary( std::move( it )); }
 
 /**
  * @tparam Iterator an iterator type.
@@ -398,12 +401,12 @@ inline LVARRAY_HOST_DEVICE typename DualIteratorAccessor<A, B>::Temporary create
  * @param [in/out] b the second iterator.
  */
 DISABLE_HD_WARNING
-template <class Iterator>
-LVARRAY_HOST_DEVICE inline void exchange(Iterator a, Iterator b)
+template< class Iterator >
+LVARRAY_HOST_DEVICE inline void exchange( Iterator a, Iterator b )
 {
-  auto temp = createTemporary(*a);
-  *a = std::move(*b);
-  *b = std::move(temp);
+  auto temp = createTemporary( *a );
+  *a = std::move( *b );
+  *b = std::move( temp );
 }
 
 /**
@@ -418,12 +421,12 @@ LVARRAY_HOST_DEVICE inline void exchange(Iterator a, Iterator b)
  *       https://en.cppreference.com/w/cpp/algorithm/move_backward.
  */
 DISABLE_HD_WARNING
-template <class BidirIt1, class BidirIt2>
-LVARRAY_HOST_DEVICE inline void moveBackward(BidirIt1 first, BidirIt1 last, BidirIt2 d_last)
+template< class BidirIt1, class BidirIt2 >
+LVARRAY_HOST_DEVICE inline void moveBackward( BidirIt1 first, BidirIt1 last, BidirIt2 d_last )
 {
-  while (first != last)
+  while( first != last )
   {
-    *(--d_last) = std::move(*(--last));
+    *(--d_last) = std::move( *(--last));
   }
 }
 
@@ -441,35 +444,35 @@ LVARRAY_HOST_DEVICE inline void moveBackward(BidirIt1 first, BidirIt1 last, Bidi
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template<typename Iterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void computeMedian(Iterator result, Iterator a, Iterator b, Iterator c, Compare comp)
+template< typename Iterator, typename Compare >
+LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iterator b, Iterator c, Compare comp )
 {
-  if (comp(*a, *b))
+  if( comp( *a, *b ))
   {
-    if (comp(*b, *c))
+    if( comp( *b, *c ))
     {
-      exchange(result, b);
+      exchange( result, b );
     }
-    else if (comp(*a, *c))
+    else if( comp( *a, *c ))
     {
-      exchange(result, c);
+      exchange( result, c );
     }
     else
     {
-      exchange(result, a);
+      exchange( result, a );
     }
   }
-  else if (comp(*a, *c))
+  else if( comp( *a, *c ))
   {
-    exchange(result, a);
+    exchange( result, a );
   }
-  else if (comp(*b, *c))
+  else if( comp( *b, *c ))
   {
-    exchange(result, c);
+    exchange( result, c );
   }
   else
   {
-    exchange(result, b);
+    exchange( result, b );
   }
 }
 
@@ -487,29 +490,29 @@ LVARRAY_HOST_DEVICE inline void computeMedian(Iterator result, Iterator a, Itera
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition(RandomAccessIterator first, RandomAccessIterator last,
-                                                                   RandomAccessIterator pivot, Compare comp)
+template< typename RandomAccessIterator, typename Compare >
+LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition( RandomAccessIterator first, RandomAccessIterator last,
+                                                                    RandomAccessIterator pivot, Compare comp )
 {
-  while (true)
+  while( true )
   {
-    while (comp(*first, *pivot))
+    while( comp( *first, *pivot ))
     {
       ++first;
     }
-  
+
     --last;
-    while (comp(*pivot, *last))
+    while( comp( *pivot, *last ))
     {
       --last;
     }
-  
-    if (!(first < last))
+
+    if( !(first < last))
     {
-       return first;
+      return first;
     }
-  
-    exchange(first, last);
+
+    exchange( first, last );
     ++first;
   }
 }
@@ -526,12 +529,12 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition(RandomAccessI
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+template< typename RandomAccessIterator, typename Compare >
+LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
 {
   RandomAccessIterator mid = first + (last - first) / 2;
-  computeMedian(first, first + 1, mid, last - 1, comp);
-  return unguardedPartition(first + 1, last, first, comp);
+  computeMedian( first, first + 1, mid, last - 1, comp );
+  return unguardedPartition( first + 1, last, first, comp );
 }
 
 /**
@@ -544,18 +547,18 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot(RandomAc
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void unguardedLinearInsert(RandomAccessIterator last, Compare comp)
+template< typename RandomAccessIterator, typename Compare >
+LVARRAY_HOST_DEVICE inline void unguardedLinearInsert( RandomAccessIterator last, Compare comp )
 {
-  auto val = createTemporary(*last);
+  auto val = createTemporary( *last );
   RandomAccessIterator next = last - 1;
-  while (comp(val, *next))
+  while( comp( val, *next ))
   {
-    *last = std::move(*next);
+    *last = std::move( *next );
     last = next;
     --next;
   }
-  *last = std::move(val);
+  *last = std::move( val );
 }
 
 /**
@@ -570,20 +573,20 @@ LVARRAY_HOST_DEVICE inline void unguardedLinearInsert(RandomAccessIterator last,
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template <class RandomAccessIterator, class Compare>
-LVARRAY_HOST_DEVICE inline void insertionSort(RandomAccessIterator first, std::ptrdiff_t const n, Compare comp)
+template< class RandomAccessIterator, class Compare >
+LVARRAY_HOST_DEVICE inline void insertionSort( RandomAccessIterator first, std::ptrdiff_t const n, Compare comp )
 {
-  for (std::ptrdiff_t i = 1; i < n; ++i)
+  for( std::ptrdiff_t i = 1 ; i < n ; ++i )
   {
-    if (comp(*(first + i), *first))
+    if( comp( *(first + i), *first ))
     {
-      auto val = createTemporary(*(first + i));
-      moveBackward(first, first + i, first + i + 1);
-      *first = std::move(val);
+      auto val = createTemporary( *(first + i));
+      moveBackward( first, first + i, first + i + 1 );
+      *first = std::move( val );
     }
     else
     {
-      unguardedLinearInsert(first + i, comp);
+      unguardedLinearInsert( first + i, comp );
     }
   }
 }
@@ -600,13 +603,13 @@ LVARRAY_HOST_DEVICE inline void insertionSort(RandomAccessIterator first, std::p
  *       it no-longer does a heap-sort when the recursion depth reaches a limit.
  *       On randomly generated datasets it performs as well or better than std::sort.
  *       However because it no longer does heap-sort there may be certain cases where
- *       std::sort performs better. If this becomes an issue try adding heap-sort back in. 
+ *       std::sort performs better. If this becomes an issue try adding heap-sort back in.
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
 DISABLE_HD_WARNING
-template<typename RandomAccessIterator, typename Compare>
-LVARRAY_HOST_DEVICE inline void introsortLoop(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+template< typename RandomAccessIterator, typename Compare >
+LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
 {
   constexpr int MAX_RANGES = 31;
   RandomAccessIterator ranges[MAX_RANGES + 1];
@@ -614,15 +617,15 @@ LVARRAY_HOST_DEVICE inline void introsortLoop(RandomAccessIterator first, Random
   int nRanges = 1;
   ranges[0] = first;
   ranges[1] = last;
-  while (nRanges != 0)
+  while( nRanges != 0 )
   {
     RandomAccessIterator const m_first = ranges[nRanges - 1];
 
-    if (ranges[nRanges] - m_first > INTROSORT_THRESHOLD)
+    if( ranges[nRanges] - m_first > INTROSORT_THRESHOLD )
     {
-      LVARRAY_ASSERT(nRanges < MAX_RANGES);
+      LVARRAY_ASSERT( nRanges < MAX_RANGES );
       ranges[nRanges + 1] = ranges[nRanges];
-      ranges[nRanges] = unguardedPartitionPivot(m_first, ranges[nRanges], comp);
+      ranges[nRanges] = unguardedPartitionPivot( m_first, ranges[nRanges], comp );
       ++nRanges;
     }
     else

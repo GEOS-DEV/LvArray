@@ -50,7 +50,7 @@ constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
 
 template< camp::idx_t... INDICES >
 constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
-{ 
+{
   constexpr camp::idx_t dimension = camp::seq_at< sizeof...( INDICES ) - 1, camp::idx_seq< INDICES... > >::value;
   static_assert( dimension >= 0, "The dimension must be greater than zero." );
   static_assert( dimension < sizeof...( INDICES ), "The dimension must be less than NDIM." );

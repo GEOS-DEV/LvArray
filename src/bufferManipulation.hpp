@@ -50,7 +50,7 @@ struct VoidBuffer
    *       occurs if you try to move it to a different space.
    */
   void move( chai::ExecutionSpace const space,
-            bool const CXX_UTILS_UNUSED_ARG(touch) )
+             bool const CXX_UTILS_UNUSED_ARG( touch ) )
   {
     LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
   }
@@ -72,7 +72,7 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer does not have a callback so this is a no-op.
    */
   template< typename >
-  void setName( std::string const & CXX_UTILS_UNUSED_ARG(name) )
+  void setName( std::string const & CXX_UTILS_UNUSED_ARG( name ) )
   {}
 };
 
@@ -87,11 +87,11 @@ struct VoidBuffer
 template< typename BUFFER >
 inline
 void check( BUFFER const & buf, std::ptrdiff_t const size )
-{ 
+{
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  if ( size > buf.capacity() )
+  if( size > buf.capacity() )
   {
-    LVARRAY_LOG("ERROR");
+    LVARRAY_LOG( "ERROR" );
   }
 
   LVARRAY_ERROR_IF_GT( 0, buf.capacity() );
@@ -141,7 +141,7 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 
   using T = typename BUFFER::value_type;
   T * const restrict data = buf.data();
-  for ( std::ptrdiff_t i = 0; i < size; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
   {
     data[ i ].~T();
   }
@@ -177,7 +177,7 @@ void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newC
 {
   check( buf, size );
 
-  if ( newCapacity > buf.capacity() )
+  if( newCapacity > buf.capacity() )
   {
     setCapacity( buf, size, newCapacity );
   }
@@ -199,7 +199,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
 {
   check( buf, size );
 
-  if ( newCapacity > buf.capacity() )
+  if( newCapacity > buf.capacity() )
   {
     setCapacity( buf, size, 2 * newCapacity );
   }
@@ -217,8 +217,8 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
  *       the capacity.
  * @note See MallocBuffer for the standard buffer interface.
  */
-template< typename BUFFER, typename... ARGS >
-void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSize, ARGS && ...args )
+template< typename BUFFER, typename ... ARGS >
+void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSize, ARGS && ... args )
 {
   check( buf, size );
 
@@ -226,7 +226,7 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 
-  if ( newSize > 0 )
+  if( newSize > 0 )
   {
     buf.registerTouch( chai::CPU );
   }
@@ -333,10 +333,10 @@ void insert( BUFFER & buf,
  */
 template< typename BUFFER >
 void insert( BUFFER & buf,
-              std::ptrdiff_t const size,
-              std::ptrdiff_t const pos,
-              typename BUFFER::value_type const * const values,
-              std::ptrdiff_t nVals )
+             std::ptrdiff_t const size,
+             std::ptrdiff_t const pos,
+             typename BUFFER::value_type const * const values,
+             std::ptrdiff_t nVals )
 {
   checkInsert( buf, size, pos );
 
@@ -385,7 +385,7 @@ void copyInto( DST_BUFFER & dst,
   T * const restrict dstData = dst.data();
   T const * const restrict srcData = src.data();
 
-  for ( std::ptrdiff_t i = 0; i < srcSize; ++i )
+  for( std::ptrdiff_t i = 0 ; i < srcSize ; ++i )
   {
     dstData[ i ] = srcData[ i ];
   }

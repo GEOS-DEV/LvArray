@@ -27,19 +27,19 @@
 #ifndef NDEBUG
 
   #ifndef __APPLE__
-    /* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
-    #define DEFINE_GDB_PY_SCRIPT(script_name) \
-    asm("\
+/* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
+    #define DEFINE_GDB_PY_SCRIPT( script_name ) \
+  asm ("\
     .pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n\
     .byte 1 /* Python */\n\
     .asciz \"" script_name "\"\n\
     .popsection \n\
     ")
   #else
-    #define DEFINE_GDB_PY_SCRIPT(script_name)
+    #define DEFINE_GDB_PY_SCRIPT( script_name )
   #endif
 
-  DEFINE_GDB_PY_SCRIPT("scripts/gdb-printers.py");
+DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 
 #endif
 
@@ -66,7 +66,7 @@
 
 #define ARRAY_SLICE_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= m_dims[0], \
-                 "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
+                    "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
@@ -90,7 +90,7 @@ namespace LvArray
  *
  * This class serves as a sliced interface to an array. This is a lightweight class that contains
  * only pointers, and provides an operator[] to create a lower dimensionsal slice and an operator()
- * to access values given a multidimensional index. 
+ * to access values given a multidimensional index.
  *
  * In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
  * an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
@@ -138,8 +138,8 @@ public:
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
-                           ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > >
-  () const restrict_this noexcept
+                             ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > >
+    () const restrict_this noexcept
   {
     return toSliceConst();
   }
@@ -150,10 +150,10 @@ public:
   template< int _NDIM=NDIM, int _UNIT_STRIDE_DIM=UNIT_STRIDE_DIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator std::enable_if_t< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >
-  () const noexcept restrict_this
+    () const noexcept restrict_this
   { return m_data; }
 
- /**
+  /**
    * @brief Return a lower dimensionsal slice of this ArrayView.
    * @param index the index of the slice to create.
    * @note This method is only active when NDIM > 1.
@@ -164,7 +164,9 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice<T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE>( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ), m_dims + 1, m_strides + 1 );
+    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
+                                                                                                                                 m_strides[ 0 ] ), m_dims + 1,
+                                                                   m_strides + 1 );
   }
 
   /**
@@ -187,12 +189,12 @@ public:
    * @param indices the indices of access request.
    * @note This is a standard fortran like parentheses interface to array access.
    */
-  template< typename... INDICES >
+  template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-    return m_data[ linearIndex( indices... ) ];
+    return m_data[ linearIndex( indices ... ) ];
   }
 
   /**
@@ -200,15 +202,15 @@ public:
    * @tparam INDICES variadic template parameters to serve as index arguments.
    * @param indices the indices of access request.
    */
-  template< typename... INDICES >
+  template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
-    checkIndices( m_dims, indices... );
+    checkIndices( m_dims, indices ... );
 #endif
-    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices... );
+    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices ... );
   }
 
   /**
@@ -240,16 +242,17 @@ public:
    * @param av A pointer to the array that is being displayed.
    * @return 0 if everything went OK
    */
-  static int TV_ttf_display_type( ArraySlice const * av)
+  static int TV_ttf_display_type( ArraySlice const * av )
   {
     if( av!=nullptr )
     {
       int constexpr ndim = NDIM;
-      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
-      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(1, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
-      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
+      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of
+      // m_data;"<<std::endl;
+      TV_ttf_add_row( "tv(m_data)", totalview::format< T, INDEX_TYPE >( NDIM, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 1, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
+      TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
     }
     return 0;
   }
