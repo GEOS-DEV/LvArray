@@ -55,7 +55,7 @@
 
 #define VERBOSE_LOG( minimumVerbosity, msg )                                   \
   do {                                                                         \
-    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       std::ostringstream oss;                                                  \
       oss << msg;                                                              \
@@ -65,7 +65,7 @@
 
 #define VERBOSE_LOG_RANK_0( minimumVerbosity, msg )                            \
   do {                                                                         \
-    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       if( logger::internal::rank == 0 )                                        \
       {                                                                        \
@@ -78,7 +78,7 @@
 
 #define VERBOSE_LOG_RANK( minimumVerbosity, msg )                              \
   do {                                                                         \
-    if ( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
     {                                                                          \
       std::ostringstream oss;                                                  \
       if( logger::internal::using_cout_for_rank_stream )                       \
@@ -149,7 +149,7 @@
 #endif
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
-  #define GEOS_ERROR_IF( EXP, msg ) if( EXP ) asm ("trap;")
+  #define GEOS_ERROR_IF( EXP, msg ) if( EXP ) asm( "trap;" )
   #define GEOS_ERROR( msg ) GEOS_ERROR_IF( true, msg )
   #define GEOS_ASSERT_MSG( EXP, msg ) ((void) 0)
   #define GEOS_ASSERT( EXP ) ((void) 0)
@@ -294,10 +294,10 @@ extern MPI_Comm comm;
 } /* namespace internal */
 
 #ifdef USE_MPI
-void InitializeLogger( MPI_Comm comm, const std::string& rank_output_dir="" );
+void InitializeLogger( MPI_Comm comm, const std::string & rank_output_dir="" );
 #endif
 
-void InitializeLogger( const std::string& rank_output_dir="" );
+void InitializeLogger( const std::string & rank_output_dir="" );
 
 void FinalizeLogger();
 
