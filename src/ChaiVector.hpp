@@ -115,7 +115,7 @@
 //   /**
 //    * @brief Copy constructor, creates a shallow copy of the given ChaiVector.
 //    * @param [in] source the ChaiVector to copy.
-//    * 
+//    *
 //    * @note The copy is a shallow copy and newly constructed ChaiVector doesn't own the data,
 //    *        as such using push_back or other methods that change the state of the array is dangerous.
 //    * @note When using multiple memory spaces using the copy constructor can trigger a move.

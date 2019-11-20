@@ -46,87 +46,87 @@ enum Description
 };
 
 LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-bool isSorted(Description const desc)
+bool isSorted( Description const desc )
 { return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
 
 LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-bool isUnique(Description const desc)
+bool isUnique( Description const desc )
 { return desc == SORTED_UNIQUE || desc == UNSORTED_NO_DUPLICATES; }
 
 /**
  * @class CallBacks
  * @brief This class provides a no-op callbacks interface for the ArrayManipulation sorted routines.
  */
-template <class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 class CallBacks
 {
 public:
 
-    /**
-     * @brief Callback signaling that the size of the array has increased.
-     * @param [in] nToAdd the increase in the size of the array.
-     * @return a pointer to the array.
-     */
-    LVARRAY_HOST_DEVICE inline
-    T * incrementSize( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nToAdd ) ) restrict_this
-    { return nullptr; }
+  /**
+   * @brief Callback signaling that the size of the array has increased.
+   * @param [in] nToAdd the increase in the size of the array.
+   * @return a pointer to the array.
+   */
+  LVARRAY_HOST_DEVICE inline
+  T * incrementSize( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nToAdd ) ) restrict_this
+  { return nullptr; }
 
-    /**
-     * @brief Callback signaling that a value was inserted at the given position.
-     * @param [in] pos the position the value was inserted at.
-     */
-    LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
-    {}
+  /**
+   * @brief Callback signaling that a value was inserted at the given position.
+   * @param [in] pos the position the value was inserted at.
+   */
+  LVARRAY_HOST_DEVICE inline
+  void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+  {}
 
-    /**
-     * @brief Callback signaling that the entry of the array at the first position was set to the value
-     *        at the second position.
-     * @param [in] pos the position in the array that was set.
-     * @param [in] valuePos the position of the value that the entry in the array was set to.
-     */
-    LVARRAY_HOST_DEVICE inline
-    void set( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
-              INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ) ) restrict_this
-    {}
+  /**
+   * @brief Callback signaling that the entry of the array at the first position was set to the value
+   *        at the second position.
+   * @param [in] pos the position in the array that was set.
+   * @param [in] valuePos the position of the value that the entry in the array was set to.
+   */
+  LVARRAY_HOST_DEVICE inline
+  void set( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
+            INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ) ) restrict_this
+  {}
 
-    /**
-     * @brief Callback signaling that the that the given value was inserted at the given position.
-     *        Further information is provided in order to make the insertion efficient.
-     * @param [in] nLeftToInsert the number of insertions that occur after this one.
-     * @param [in] valuePos the position of the value that was inserted.
-     * @param [in] pos the position in the array the value was inserted at.
-     * @param [in] prevPos the position the previous value was inserted at or the size of the array
-     *             if it is the first insertion.
-     */
-    LVARRAY_HOST_DEVICE inline
-    void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nLeftToInsert ),
-                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ),
-                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
-                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( prevPos ) ) restrict_this
-    {}
+  /**
+   * @brief Callback signaling that the that the given value was inserted at the given position.
+   *        Further information is provided in order to make the insertion efficient.
+   * @param [in] nLeftToInsert the number of insertions that occur after this one.
+   * @param [in] valuePos the position of the value that was inserted.
+   * @param [in] pos the position in the array the value was inserted at.
+   * @param [in] prevPos the position the previous value was inserted at or the size of the array
+   *             if it is the first insertion.
+   */
+  LVARRAY_HOST_DEVICE inline
+  void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nLeftToInsert ),
+               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ),
+               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
+               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( prevPos ) ) restrict_this
+  {}
 
-    /**
-     * @brief Callback signaling that an entry was removed from the array at given position.
-     * @param [in] pos the position of the entry that was removed.
-     */
-    LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
-    {}
+  /**
+   * @brief Callback signaling that an entry was removed from the array at given position.
+   * @param [in] pos the position of the entry that was removed.
+   */
+  LVARRAY_HOST_DEVICE inline
+  void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+  {}
 
-    /**
-     * @brief Callback signaling that the given entry was removed from the given position. Further information
-     *        is provided in order to make the removal efficient.
-     * @param [in] nRemoved the number of entries removed, starts at 1.
-     * @param [in] curPos the position in the array the entry was removed at.
-     * @param [in] nextPos the position the next entry will be removed at or the original size of the array
-     *             if this was the last entry removed.
-     */
-    LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nRemoved ),
-                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( curPos ),
-                 INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nextPos ) ) restrict_this
-    {}
+  /**
+   * @brief Callback signaling that the given entry was removed from the given position. Further information
+   *        is provided in order to make the removal efficient.
+   * @param [in] nRemoved the number of entries removed, starts at 1.
+   * @param [in] curPos the position in the array the entry was removed at.
+   * @param [in] nextPos the position the next entry will be removed at or the original size of the array
+   *             if this was the last entry removed.
+   */
+  LVARRAY_HOST_DEVICE inline
+  void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nRemoved ),
+               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( curPos ),
+               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nextPos ) ) restrict_this
+  {}
 };
 
 /**
@@ -134,14 +134,14 @@ public:
  * @class less
  * @brief This class operates as functor similar to std::less.
  */
-template <class T>
+template< class T >
 struct less
 {
   /**
    * @brief Return true iff lhs < rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
+  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const restrict_this
   { return lhs < rhs; }
 };
 
@@ -150,14 +150,14 @@ struct less
  * @class less
  * @brief This class operates as functor similar to std::greater.
  */
-template <class T>
+template< class T >
 struct greater
 {
   /**
    * @brief Return true iff lhs > rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() (T const & lhs, T const & rhs) const restrict_this
+  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const restrict_this
   { return lhs > rhs; }
 };
 
@@ -172,15 +172,15 @@ struct greater
  * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
-template<class RandomAccessIterator, class Compare>
-LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last, Compare comp)
+template< class RandomAccessIterator, class Compare >
+LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
 {
-  if (last - first > internal::INTROSORT_THRESHOLD)
+  if( last - first > internal::INTROSORT_THRESHOLD )
   {
-    internal::introsortLoop(first, last, comp);
+    internal::introsortLoop( first, last, comp );
   }
 
-  internal::insertionSort(first, last - first, comp);
+  internal::insertionSort( first, last - first, comp );
 }
 
 /**
@@ -192,9 +192,9 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
  * @note should be equivalent to std::sort(first, last).
  */
 DISABLE_HD_WARNING
-template<class RandomAccessIterator>
-LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAccessIterator last)
-{ return makeSorted(first, last, less<typename std::remove_reference<decltype(*first)>::type>()); }
+template< class RandomAccessIterator >
+LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last )
+{ return makeSorted( first, last, less< typename std::remove_reference< decltype(*first) >::type >()); }
 
 /**
  * @tparam RandomAccessIteratorA an iterator type that provides random access.
@@ -208,13 +208,13 @@ LVARRAY_HOST_DEVICE inline void makeSorted(RandomAccessIterator first, RandomAcc
  * @param [in/out] comp a function that does the comparison between two objects.
  */
 DISABLE_HD_WARNING
-template<class RandomAccessIteratorA, class RandomAccessIteratorB, class Compare>
-LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
-                                         RandomAccessIteratorB dataFirst, Compare comp)
+template< class RandomAccessIteratorA, class RandomAccessIteratorB, class Compare >
+LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
+                                          RandomAccessIteratorB dataFirst, Compare comp )
 {
   std::ptrdiff_t const size = valueLast - valueFirst;
-  internal::DualIterator<RandomAccessIteratorA, RandomAccessIteratorB> dualIter(valueFirst, dataFirst);
-  return makeSorted(dualIter, dualIter + size, dualIter.createComparator(comp));
+  internal::DualIterator< RandomAccessIteratorA, RandomAccessIteratorB > dualIter( valueFirst, dataFirst );
+  return makeSorted( dualIter, dualIter + size, dualIter.createComparator( comp ));
 }
 
 /**
@@ -231,27 +231,27 @@ LVARRAY_HOST_DEVICE inline void dualSort(RandomAccessIteratorA valueFirst, Rando
  *       deallocate the created buffer.
  */
 DISABLE_HD_WARNING
-template <class T, int N>
+template< class T, int N >
 LVARRAY_HOST_DEVICE inline
 T * createTemporaryBuffer( T const * const restrict values,
                            std::ptrdiff_t const nVals,
-                           T (&localBuffer)[N] )
+                           T (& localBuffer)[N] )
 {
   T * buffer = localBuffer;
-  if (nVals <= N)
+  if( nVals <= N )
   {
-    for (std::ptrdiff_t i = 0; i < nVals; ++i)
+    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
     {
       localBuffer[i] = values[i];
     }
   }
   else
   {
-    buffer = static_cast<T*>(std::malloc(sizeof(T) * nVals));
+    buffer = static_cast< T * >(std::malloc( sizeof(T) * nVals ));
 
-    for (std::ptrdiff_t i = 0; i < nVals; ++i)
+    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
     {
-      new (buffer + i) T(values[i]);
+      new (buffer + i) T( values[i] );
     }
   }
 
@@ -267,22 +267,22 @@ T * createTemporaryBuffer( T const * const restrict values,
  * @param [in] localBuffer a reference to an array T[N].
  */
 DISABLE_HD_WARNING
-template <class T, int N>
+template< class T, int N >
 LVARRAY_HOST_DEVICE inline
 void freeTemporaryBuffer( T * const restrict buffer,
                           std::ptrdiff_t const nVals,
                           T const (&localBuffer)[N] )
 {
-  if (buffer == localBuffer)
+  if( buffer == localBuffer )
   {
     return;
   }
 
-  for (std::ptrdiff_t i = 0; i < nVals; ++i)
+  for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
   {
     buffer[i].~T();
   }
-  std::free(buffer);
+  std::free( buffer );
 }
 
 /**
@@ -297,7 +297,7 @@ void freeTemporaryBuffer( T * const restrict buffer,
  * @note Should be equivalent to std::is_sorted(ptr, ptr + size, comp).
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class Compare=less<T>>
+template< class T, class INDEX_TYPE, class Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 bool isSorted( T const * const restrict ptr,
                INDEX_TYPE const size,
@@ -307,11 +307,12 @@ bool isSorted( T const * const restrict ptr,
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
   // This short circuit is necessary if INDEX_TYPE is unsigned.
-  if (size == 0) return true;
+  if( size == 0 )
+    return true;
 
   for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
-    if( comp(ptr[i + 1], ptr[i]) ) 
+    if( comp( ptr[i + 1], ptr[i] ) )
     {
       return false;
     }
@@ -330,12 +331,12 @@ bool isSorted( T const * const restrict ptr,
  * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
  */
 DISABLE_HD_WARNING
-template<class RandomAccessIteratorA, class RandomAccessIteratorB>
-LVARRAY_HOST_DEVICE inline 
+template< class RandomAccessIteratorA, class RandomAccessIteratorB >
+LVARRAY_HOST_DEVICE inline
 void dualSort( RandomAccessIteratorA valueFirst,
                RandomAccessIteratorA valueLast,
                RandomAccessIteratorB dataFirst )
-{ return dualSort(valueFirst, valueLast, dataFirst, less<typename std::remove_reference<decltype(*valueFirst)>::type>()); }
+{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >()); }
 
 /**
  * @tparam T the type of the values stored in the array.
@@ -346,13 +347,14 @@ void dualSort( RandomAccessIteratorA valueFirst,
  * @note The array must be sorted such that values that compare equal are adjacent.
  */
 DISABLE_HD_WARNING
-template<class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
 {
-  for (INDEX_TYPE i = 0; i < size - 1; ++i)
+  for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
   {
-    if (ptr[i] == ptr[i + 1]) return false;
+    if( ptr[i] == ptr[i + 1] )
+      return false;
   }
 
   return true;
@@ -370,31 +372,33 @@ bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
  *       change the std::move to a portable implementation of std::swap.
  */
 DISABLE_HD_WARNING
-template<class T, class INDEX_TYPE>
+template< class T, class INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
 {
-  LVARRAY_ASSERT(ptr != nullptr || size == 0);
-  LVARRAY_ASSERT(arrayManipulation::isPositive(size));
+  LVARRAY_ASSERT( ptr != nullptr || size == 0 );
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
 
   // Note it doesn't have to be sorted under less<T>, so this assert is a bit too restrictive.
-  LVARRAY_ASSERT(isSorted(ptr, size));
+  LVARRAY_ASSERT( isSorted( ptr, size ));
 
-  if (size == 0) return 0;
+  if( size == 0 )
+    return 0;
 
   INDEX_TYPE shiftAmount = 0;
   INDEX_TYPE curPos = 0;
-  while (curPos + shiftAmount + 1 < size)
+  while( curPos + shiftAmount + 1 < size )
   {
-    if (ptr[curPos] != ptr[curPos + shiftAmount + 1])
+    if( ptr[curPos] != ptr[curPos + shiftAmount + 1] )
     {
       ++curPos;
-      if (shiftAmount != 0)
+      if( shiftAmount != 0 )
       {
-        ptr[curPos] = std::move(ptr[curPos + shiftAmount]);
+        ptr[curPos] = std::move( ptr[curPos + shiftAmount] );
       }
     }
-    else ++shiftAmount;
+    else
+      ++shiftAmount;
   }
 
   return curPos + 1;
@@ -413,7 +417,7 @@ INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
  * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class Compare=less<T>>
+template< class T, class INDEX_TYPE, class Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE find( T const * const restrict ptr,
                  INDEX_TYPE const size,
@@ -429,7 +433,7 @@ INDEX_TYPE find( T const * const restrict ptr,
   while( lower != upper )
   {
     INDEX_TYPE const guess = (lower + upper) / 2;
-    if (comp(ptr[guess], value))
+    if( comp( ptr[guess], value ))
     {
       lower = guess + 1;
     }
@@ -455,7 +459,7 @@ INDEX_TYPE find( T const * const restrict ptr,
  * @note Should be equivalent to std::binary_search(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class Compare=less<T>>
+template< class T, class INDEX_TYPE, class Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 bool contains( T const * const restrict ptr,
                INDEX_TYPE const size,
@@ -480,7 +484,7 @@ bool contains( T const * const restrict ptr,
  * @return True iff the value was removed.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 bool remove( T * const restrict ptr,
              INDEX_TYPE const size,
@@ -515,13 +519,15 @@ bool remove( T * const restrict ptr,
  * @param [in] values the values to remove, must be sorted under less<T>.
  * @param [in] nVals the number of values to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- *                 If a value is found it is removed then this method is called with the number of values removed so far,
- *                 the position of the last value removed and the position of the next value to remove or size if there are no more
+ *                 If a value is found it is removed then this method is called with the number of values removed so
+ * far,
+ *                 the position of the last value removed and the position of the next value to remove or size if there
+ * are no more
  *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE removeSorted( T * const restrict ptr,
                          INDEX_TYPE const size,
@@ -622,13 +628,15 @@ INDEX_TYPE removeSorted( T * const restrict ptr,
  * @param [in] values the values to remove.
  * @param [in] nVals the number of values to remove.
  * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- *                 If a value is found it is removed then this method is called with the number of values removed so far,
- *                 the position of the last value removed and the position of the next value to remove or size if there are no more
+ *                 If a value is found it is removed then this method is called with the number of values removed so
+ * far,
+ *                 the position of the last value removed and the position of the next value to remove or size if there
+ * are no more
  *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE remove( T * const restrict ptr,
                    INDEX_TYPE const size,
@@ -643,12 +651,12 @@ INDEX_TYPE remove( T * const restrict ptr,
 
   constexpr INDEX_TYPE LOCAL_SIZE = 16;
   T localBuffer[LOCAL_SIZE];
-  T * const buffer = createTemporaryBuffer(values, nVals, localBuffer);
-  makeSorted(buffer, buffer + nVals);
+  T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
+  makeSorted( buffer, buffer + nVals );
 
-  INDEX_TYPE const nInserted = removeSorted(ptr, size, buffer, nVals, std::move(callBacks));
-    
-  freeTemporaryBuffer(buffer, nVals, localBuffer);
+  INDEX_TYPE const nInserted = removeSorted( ptr, size, buffer, nVals, std::move( callBacks ));
+
+  freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
 }
 
@@ -667,7 +675,7 @@ INDEX_TYPE remove( T * const restrict ptr,
  * @return True iff the value was inserted.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 bool insert( T const * const restrict ptr,
              INDEX_TYPE const size,
@@ -677,12 +685,12 @@ bool insert( T const * const restrict ptr,
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
 
-  INDEX_TYPE insertPos = INDEX_TYPE(-1);
-  if (size == 0 || value < ptr[0]) // Take care of the case of an empty array or inserting at the beginning.
+  INDEX_TYPE insertPos = INDEX_TYPE( -1 );
+  if( size == 0 || value < ptr[0] ) // Take care of the case of an empty array or inserting at the beginning.
   {
     insertPos = 0;
   }
-  else if (ptr[size - 1] < value) // The case of inserting at the end.
+  else if( ptr[size - 1] < value ) // The case of inserting at the end.
   {
     insertPos = size;
   }
@@ -726,7 +734,7 @@ bool insert( T const * const restrict ptr,
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE insertSorted( T const * const restrict ptr,
                          INDEX_TYPE const size,
@@ -898,7 +906,7 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
-template <class T, class INDEX_TYPE, class CALLBACKS>
+template< class T, class INDEX_TYPE, class CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 INDEX_TYPE insert( T const * const restrict ptr,
                    INDEX_TYPE const size,
@@ -913,12 +921,12 @@ INDEX_TYPE insert( T const * const restrict ptr,
 
   constexpr INDEX_TYPE LOCAL_SIZE = 16;
   T localBuffer[LOCAL_SIZE];
-  T * const buffer = createTemporaryBuffer(values, nVals, localBuffer);
-  makeSorted(buffer, buffer + nVals);
+  T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
+  makeSorted( buffer, buffer + nVals );
 
-  INDEX_TYPE const nInserted = insertSorted(ptr, size, buffer, nVals, std::move(callBacks));
+  INDEX_TYPE const nInserted = insertSorted( ptr, size, buffer, nVals, std::move( callBacks ));
 
-  freeTemporaryBuffer(buffer, nVals, localBuffer);
+  freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
 }
 

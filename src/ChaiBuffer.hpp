@@ -48,13 +48,13 @@ static std::mutex chaiLock;
  */
 inline std::string calculateSize( size_t const bytes )
 {
-  if (bytes >> 20 != 0)
+  if( bytes >> 20 != 0 )
   {
-    return std::to_string(bytes >> 20) + "MB";
+    return std::to_string( bytes >> 20 ) + "MB";
   }
   else
   {
-    return std::to_string(bytes >> 10) + "KB";
+    return std::to_string( bytes >> 10 ) + "KB";
   }
 }
 
@@ -70,7 +70,7 @@ inline std::string calculateSize( size_t const bytes )
  *       the standard behavior of the Buffer classes.
  * @note The parent class chai::CHAICopyable allows for the movement of nested ChaiBuffers.
  */
-template < typename T >
+template< typename T >
 class ChaiBuffer : public chai::CHAICopyable
 {
 public:
@@ -92,7 +92,7 @@ public:
    *        and needs to be free'd.
    * @note The unused boolean parameter is to distinguish this from default constructor.
    */
-  ChaiBuffer( bool ) :
+  ChaiBuffer( bool ):
     m_array()
   {
 #if !defined(__CUDA_ARCH__)
@@ -172,12 +172,12 @@ public:
   void move( chai::ExecutionSpace const space, bool const touch )
   {
 #if defined(USE_CUDA)
-    if ( capacity() == 0 ) return;
+    if( capacity() == 0 ) return;
 
-    void * ptr = const_cast< typename std::remove_const<T>::type * >( data() );
-    if ( space == chai::ArrayManager::getInstance()->getPointerRecord( ptr )->m_last_space ) return;
+    void * ptr = const_cast< typename std::remove_const< T >::type * >( data() );
+    if( space == chai::ArrayManager::getInstance()->getPointerRecord( ptr )->m_last_space ) return;
 
-    if ( touch ) m_array.move( space );
+    if( touch ) m_array.move( space );
     else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
 #else
     CXX_UTILS_UNUSED_VARIABLE( space );
@@ -204,14 +204,14 @@ public:
 #if defined(USE_CUDA)
     std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
     m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
-    {
-      if (act == chai::ACTION_MOVE)
       {
-        std::string const & size = internal::calculateSize( bytes );
-        char const * const spaceStr = ( s == chai::CPU ) ? "CPU" : "GPU";
-        LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
-      }
-    });
+        if( act == chai::ACTION_MOVE )
+        {
+          std::string const & size = internal::calculateSize( bytes );
+          char const * const spaceStr = ( s == chai::CPU ) ? "CPU" : "GPU";
+          LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
+        }
+      } );
 #else
     CXX_UTILS_UNUSED_VARIABLE( name );
 #endif

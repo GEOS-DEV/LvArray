@@ -79,7 +79,7 @@ void crit_err_hdlr( int sig_num, siginfo_t * info, void * ucontext_inp ) {
   // overwrite sigaction with caller's address
   array[1] = caller_address;
 
-  char ** messages = backtrace_symbols( array, size );
+  char * * messages = backtrace_symbols( array, size );
 
   // skip first stack frame (points here)
   for( int i = 1 ; i < size && messages != NULL ; ++i )
@@ -102,7 +102,7 @@ void my_terminate() {
     if( !tried_throw++ )
       throw;
   }
-  catch( const std::exception &e )
+  catch( const std::exception & e )
   {
     std::cerr << __FUNCTION__ << " caught unhandled exception. what(): "
               << e.what() << std::endl;
@@ -119,7 +119,7 @@ void my_terminate() {
   std::cerr << __FUNCTION__ << " backtrace returned "
             << size << " frames\n\n";
 
-  char ** messages = backtrace_symbols( array, size );
+  char * * messages = backtrace_symbols( array, size );
 
   for( int i = 0 ; i < size && messages != NULL ; ++i )
   {
@@ -148,7 +148,7 @@ int foo1() {
   return 0;
 }
 
-int main( int argc, char ** argv ) {
+int main( int argc, char * * argv ) {
   struct sigaction sigact;
 
   sigact.sa_sigaction = crit_err_hdlr;

@@ -139,7 +139,7 @@ public:
     setDims( source.m_dims );
     setStrides( source.m_strides );
 
-    for ( int i = 0; i < NDIM; ++i )
+    for( int i = 0 ; i < NDIM ; ++i )
     {
       const_cast< INDEX_TYPE * >( source.m_dims )[ i ] = 0;
       const_cast< INDEX_TYPE * >( source.m_strides )[ i ] = 0;
@@ -188,11 +188,11 @@ public:
   DISABLE_HD_WARNING
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  std::enable_if_t< !(std::is_const<U>::value), ArrayView const & >
+  std::enable_if_t< !(std::is_const< U >::value), ArrayView const & >
   operator=( T const & rhs ) const noexcept
   {
     INDEX_TYPE const length = size();
-    T* const data_ptr = data();
+    T * const data_ptr = data();
     for( INDEX_TYPE a = 0 ; a < length ; ++a )
     {
       data_ptr[a] = rhs;
@@ -206,7 +206,7 @@ public:
    */
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  std::enable_if_t< !std::is_const<U>::value, ViewTypeConst & >
+  std::enable_if_t< !std::is_const< U >::value, ViewTypeConst & >
   toViewConst() const
   {
     return reinterpret_cast< ViewTypeConst & >( *this );
@@ -214,28 +214,28 @@ public:
 
   /**
    * @brief User Defined Conversion operator to move from an ArrayView<T> const to
-   *        ArrayView<T const> const &. 
+   *        ArrayView<T const> const &.
    * @note This is achieved by applying a reinterpret_cast to the this pointer,
    *       which is a safe operation as the only difference between the types is a
    *       const specifier on the template parameter T.
    */
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator std::enable_if_t< !std::is_const<U>::value,
-                             ArrayView<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const & >
-  () const noexcept
+  operator std::enable_if_t< !std::is_const< U >::value,
+                             ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & >
+    () const noexcept
   {
-    return reinterpret_cast<ArrayView<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const &>(*this);
+    return reinterpret_cast< ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & >(*this);
   }
 
   /**
    * @brief Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>
+  ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
   toSlice() const noexcept
   {
-    return ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+    return ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( m_data, m_dims, m_strides );
   }
 
   /**
@@ -243,17 +243,17 @@ public:
    */
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>
+  ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
   toSliceConst() const noexcept
   {
-    return ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>( m_data, m_dims, m_strides );
+    return ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( m_data, m_dims, m_strides );
   }
 
   /**
    * @brief User defined conversion to an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator ArraySlice<T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE>() const noexcept
+  operator ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >() const noexcept
   {
     return toSlice();
   }
@@ -263,9 +263,9 @@ public:
    */
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator std::enable_if_t< !std::is_const<U>::value,
-                             ArraySlice<T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE> const >
-  () const noexcept
+  operator std::enable_if_t< !std::is_const< U >::value,
+                             ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const >
+    () const noexcept
   {
     return toSliceConst();
   }
@@ -276,7 +276,7 @@ public:
   template< int _NDIM=NDIM, int _UNIT_STRIDE_DIM=UNIT_STRIDE_DIM >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator std::enable_if_t< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >
-  () const noexcept restrict_this
+    () const noexcept restrict_this
   {
     return m_data;
   }
@@ -348,7 +348,9 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice<T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE>( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ), m_dims + 1, m_strides + 1 );
+    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
+                                                                                                                                 m_strides[ 0 ] ), m_dims + 1,
+                                                                   m_strides + 1 );
   }
 
   /**
@@ -371,12 +373,12 @@ public:
    * @param indices the indices of access request.
    * @note This is a standard fortran like parentheses interface to array access.
    */
-  template< typename... INDICES >
+  template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-    return m_data[ linearIndex( indices... ) ];
+    return m_data[ linearIndex( indices ... ) ];
   }
 
   /**
@@ -384,20 +386,20 @@ public:
    * @tparam INDICES variadic template parameters to serve as index arguments.
    * @param indices the indices of access request.
    */
-  template< typename... INDICES >
+  template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
-    checkIndices( m_dims, indices... );
+    checkIndices( m_dims, indices ... );
 #endif
-    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices... );
+    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices ... );
   }
 
   ///***********************************************************************************************
   ///**** END DO NOT EDIT!!! THIS CODE IS COPIED FROM ArraySlice *****
-  ///***********************************************************************************************  
+  ///***********************************************************************************************
 
   /**
    * @brief Return a pointer to the values.
@@ -452,9 +454,9 @@ public:
     INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
 
     LVARRAY_ERROR_IF( source.size() > this->size() - offset,
-                   "Insufficient storage space to copy source (size="<<source.size()<<
-                   ") into current array at specified offset ("<<offset<<")."<<
-                   " Available space is equal to this->size() - offset = "<<this->size() - offset );
+                      "Insufficient storage space to copy source (size="<<source.size()<<
+                      ") into current array at specified offset ("<<offset<<")."<<
+                      " Available space is equal to this->size() - offset = "<<this->size() - offset );
     for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
     {
       m_data[offset+i] = source.data()[i];
@@ -483,7 +485,7 @@ public:
    * @param array the array to output
    * @return a reference to the ostream
    */
-  friend std::ostream& operator<< ( std::ostream& stream, ArrayView const & array )
+  friend std::ostream & operator<< ( std::ostream & stream, ArrayView const & array )
   {
     T const * const data_ptr = array.data();
     stream<<"{ "<< data_ptr[0];
@@ -506,13 +508,14 @@ public:
     if( av!=nullptr )
     {
       int constexpr ndim = NDIM;
-      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of m_data;"<<std::endl;
-      TV_ttf_add_row("tv(m_data)", totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_data", totalview::format<T,INDEX_TYPE>(0, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row("m_dims", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_dims) );
-      TV_ttf_add_row("m_strides", totalview::format<INDEX_TYPE,int>(1,&ndim).c_str(), (av->m_strides) );
-      TV_ttf_add_row("m_dataBuffer", cxx_utilities::demangle<BUFFER_TYPE<T>>().c_str() , &(av->m_dataBuffer) );
-      TV_ttf_add_row("m_singleParameterResizeIndex", "int" , &(av->m_singleParameterResizeIndex) );
+      //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of
+      // m_data;"<<std::endl;
+      TV_ttf_add_row( "tv(m_data)", totalview::format< T, INDEX_TYPE >( NDIM, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 0, av->m_dims ).c_str(), (av->m_data) );
+      TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
+      TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
+      TV_ttf_add_row( "m_dataBuffer", cxx_utilities::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
+      TV_ttf_add_row( "m_singleParameterResizeIndex", "int", &(av->m_singleParameterResizeIndex) );
     }
     return 0;
   }
@@ -542,7 +545,7 @@ protected:
   LVARRAY_HOST_DEVICE
   void setDataPtr() noexcept
   {
-    T*& dataPtr = const_cast<T*&>(this->m_data);
+    T * & dataPtr = const_cast< T * & >(this->m_data);
     dataPtr = m_dataBuffer.data();
   }
 
@@ -555,7 +558,7 @@ protected:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      const_cast<INDEX_TYPE *>(m_dims)[a] = dims[a];
+      const_cast< INDEX_TYPE * >(m_dims)[a] = dims[a];
     }
   }
 
@@ -568,7 +571,7 @@ protected:
   {
     for( int a=0 ; a<NDIM ; ++a )
     {
-      const_cast<INDEX_TYPE *>(m_strides)[a] = strides[a];
+      const_cast< INDEX_TYPE * >(m_strides)[a] = strides[a];
     }
   }
 

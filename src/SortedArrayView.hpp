@@ -34,7 +34,7 @@
 
 #define SORTEDARRAY_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= size(), \
-                 "Array Bounds Check Failed: index=" << index << " size()=" << size())
+                    "Array Bounds Check Failed: index=" << index << " size()=" << size())
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
@@ -55,7 +55,7 @@ namespace LvArray
  * since the View has no way of modifying the values. This also prevents unnecessary
  * memory movement.
  */
-template <class T, class INDEX_TYPE=std::ptrdiff_t>
+template< class T, class INDEX_TYPE=std::ptrdiff_t >
 class SortedArrayView
 #ifdef USE_CHAI
   : public chai::CHAICopyable
@@ -76,7 +76,7 @@ public:
    * @param [in/out] src the SortedArray to be moved from.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView( SortedArrayView && src ) :
+  SortedArrayView( SortedArrayView && src ):
     m_values( std::move( src.m_values ) ),
     m_size( src.m_size )
   {
@@ -167,19 +167,19 @@ public:
    * @note the is a alias for contains to conform to the std::set interface.
    */
   LVARRAY_HOST_DEVICE inline
-  bool count( const T& value ) const
+  bool count( const T & value ) const
   { return contains( value ); }
 
-  friend std::ostream& operator<< ( std::ostream& stream, SortedArrayView const & array )
+  friend std::ostream & operator<< ( std::ostream & stream, SortedArrayView const & array )
   {
-    if ( array.size() == 0 )
+    if( array.size() == 0 )
     {
       stream << "{}";
       return stream;
     }
 
     stream << "{ " << array[ 0 ];
-    for( INDEX_TYPE i = 1; i < array.size(); ++i )
+    for( INDEX_TYPE i = 1 ; i < array.size() ; ++i )
     {
       stream << ", " << array[ i ];
     }

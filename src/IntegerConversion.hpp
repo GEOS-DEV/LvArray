@@ -46,22 +46,22 @@
  * to make sure that no data is lost as a result of this conversion.
  */
 template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_unsigned<T>::value && std::is_signed<RTYPE>::value,
+inline typename std::enable_if< std::is_unsigned< T >::value && std::is_signed< RTYPE >::value,
                                 RTYPE >::type
 integer_conversion( T input )
 {
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
 
-  LVARRAY_ERROR_IF( input > std::numeric_limits<RTYPE>::max(),
-                 "conversion of \"("
-                 <<cxx_utilities::demangle( typeid(T).name() )
-                 <<")"<<input<<"\" to ("
-                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                 <<") loses information! ("<<input<<">"
-                 <<std::numeric_limits<RTYPE>::max()<<")" );
+  LVARRAY_ERROR_IF( input > std::numeric_limits< RTYPE >::max(),
+                    "conversion of \"("
+                    <<cxx_utilities::demangle( typeid(T).name() )
+                    <<")"<<input<<"\" to ("
+                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                    <<") loses information! ("<<input<<">"
+                    <<std::numeric_limits< RTYPE >::max()<<")" );
 
-  return static_cast<RTYPE>(input);
+  return static_cast< RTYPE >(input);
 }
 
 /**
@@ -75,29 +75,29 @@ integer_conversion( T input )
  * to make sure that no data is lost as a result of this conversion.
  */
 template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_signed<T>::value && std::is_unsigned<RTYPE>::value,
+inline typename std::enable_if< std::is_signed< T >::value && std::is_unsigned< RTYPE >::value,
                                 RTYPE >::type
 integer_conversion( T input )
 {
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
 
   LVARRAY_ERROR_IF( input < 0,
-                 "conversion of integer \"("
-                 <<cxx_utilities::demangle( typeid(T).name() )
-                 <<")"<<input<<"\" to type ("
-                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                 <<") loses information! ("<<input<<"<0)" );
+                    "conversion of integer \"("
+                    <<cxx_utilities::demangle( typeid(T).name() )
+                    <<")"<<input<<"\" to type ("
+                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                    <<") loses information! ("<<input<<"<0)" );
 
-  LVARRAY_ERROR_IF( static_cast<typename std::make_unsigned<T>::type>(input) > std::numeric_limits<RTYPE>::max(),
-                 "conversion of integer \"("
-                 <<cxx_utilities::demangle( typeid(T).name() )
-                 <<")"<<input<<"\" to type ("
-                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                 <<") loses information! ("<<input<<">"
-                 <<std::numeric_limits<RTYPE>::max()<<")" );
+  LVARRAY_ERROR_IF( static_cast< typename std::make_unsigned< T >::type >(input) > std::numeric_limits< RTYPE >::max(),
+                    "conversion of integer \"("
+                    <<cxx_utilities::demangle( typeid(T).name() )
+                    <<")"<<input<<"\" to type ("
+                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                    <<") loses information! ("<<input<<">"
+                    <<std::numeric_limits< RTYPE >::max()<<")" );
 
-  return static_cast<RTYPE>(input);
+  return static_cast< RTYPE >(input);
 }
 
 
@@ -112,13 +112,13 @@ integer_conversion( T input )
  * to make sure that no data is lost as a result of this conversion.
  */
 template< typename RTYPE, typename T >
-inline typename std::enable_if< ( std::is_signed<T>::value && std::is_signed<RTYPE>::value ) ||
-                                ( std::is_unsigned<T>::value && std::is_unsigned<RTYPE>::value ),
+inline typename std::enable_if< ( std::is_signed< T >::value && std::is_signed< RTYPE >::value ) ||
+                                ( std::is_unsigned< T >::value && std::is_unsigned< RTYPE >::value ),
                                 RTYPE >::type
 integer_conversion( T input )
 {
-  static_assert( std::numeric_limits<T>::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits<RTYPE>::is_integer, "requested conversion is not an integer type" );
+  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
+  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
 
 //  if( input > std::numeric_limits<RTYPE>::max() ||
 //      input < std::numeric_limits<RTYPE>::lowest() )
@@ -126,23 +126,23 @@ integer_conversion( T input )
 //    abort();
 //  }
 
-  LVARRAY_ERROR_IF( input > std::numeric_limits<RTYPE>::max(),
-                 "conversion of integer \"("
-                 <<cxx_utilities::demangle( typeid(T).name() )
-                 <<")"<<input<<"\" to type "
-                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                 <<" loses information! ("<<input<<">"
-                 <<std::numeric_limits<RTYPE>::max()<<")" );
+  LVARRAY_ERROR_IF( input > std::numeric_limits< RTYPE >::max(),
+                    "conversion of integer \"("
+                    <<cxx_utilities::demangle( typeid(T).name() )
+                    <<")"<<input<<"\" to type "
+                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                    <<" loses information! ("<<input<<">"
+                    <<std::numeric_limits< RTYPE >::max()<<")" );
 
-  LVARRAY_ERROR_IF( std::is_signed<T>::value && input < std::numeric_limits<RTYPE>::lowest(),
-                 "conversion of integer \"("
-                 <<cxx_utilities::demangle( typeid(T).name() )
-                 <<")"<<input<<"\" to type ("
-                 <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                 <<") loses information! ("<<input<<"<"
-                 <<std::numeric_limits<RTYPE>::lowest()<<")" );
+  LVARRAY_ERROR_IF( std::is_signed< T >::value && input < std::numeric_limits< RTYPE >::lowest(),
+                    "conversion of integer \"("
+                    <<cxx_utilities::demangle( typeid(T).name() )
+                    <<")"<<input<<"\" to type ("
+                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
+                    <<") loses information! ("<<input<<"<"
+                    <<std::numeric_limits< RTYPE >::lowest()<<")" );
 
-  return static_cast<RTYPE>(input);
+  return static_cast< RTYPE >(input);
 }
 
 

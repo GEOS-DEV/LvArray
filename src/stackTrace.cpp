@@ -45,18 +45,18 @@ namespace cxx_utilities
 namespace internal
 {
 
-std::string demangle( char* backtraceString, int frame )
+std::string demangle( char * backtraceString, int frame )
 {
-  char* mangledName = nullptr;
-  char* functionOffset = nullptr;
-  char* returnOffset = nullptr;
+  char * mangledName = nullptr;
+  char * functionOffset = nullptr;
+  char * returnOffset = nullptr;
 
 #ifdef __APPLE__
   /* On apple machines the mangled function name always starts at the 58th
    * character */
   constexpr int APPLE_OFFSET = 58;
   mangledName = backtraceString + APPLE_OFFSET;
-  for( char* p = backtraceString ; *p ; ++p )
+  for( char * p = backtraceString ; *p ; ++p )
   {
     if( *p == '+' )
     {
@@ -65,7 +65,7 @@ std::string demangle( char* backtraceString, int frame )
     returnOffset = p;
   }
 #else
-  for( char* p = backtraceString ; *p ; ++p )
+  for( char * p = backtraceString ; *p ; ++p )
   {
     if( *p == '(' )
     {
@@ -100,8 +100,8 @@ std::string demangle( char* backtraceString, int frame )
     ++returnOffset;
 
     int status;
-    char* realName = abi::__cxa_demangle( mangledName, nullptr, nullptr,
-                                          &status );
+    char * realName = abi::__cxa_demangle( mangledName, nullptr, nullptr,
+                                           &status );
 
     // if demangling is successful, output the demangled function name
     if( status == 0 )
@@ -129,10 +129,10 @@ std::string demangle( char* backtraceString, int frame )
 
 std::string stackTrace( )
 {
-  void *array[ MAX_FRAMES ];
+  void * array[ MAX_FRAMES ];
 
   const int size = backtrace( array, MAX_FRAMES );
-  char** strings = backtrace_symbols( array, size );
+  char * * strings = backtrace_symbols( array, size );
 
   // skip first stack frame (points here)
   std::ostringstream oss;

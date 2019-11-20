@@ -53,8 +53,8 @@
 
 #define VA_LIST( ... ) __VA_ARGS__
 
-#define TYPEOFPTR( x ) typename std::remove_pointer<decltype(x)>::type
-#define TYPEOFREF( x ) typename std::remove_reference<decltype(x)>::type
+#define TYPEOFPTR( x ) typename std::remove_pointer< decltype(x) >::type
+#define TYPEOFREF( x ) typename std::remove_reference< decltype(x) >::type
 
 
 #define LVARRAY_LOG( msg ) \
@@ -75,7 +75,7 @@
 #endif
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
-  #define LVARRAY_ERROR_IF( EXP, msg ) if( EXP ) asm ("trap;")
+  #define LVARRAY_ERROR_IF( EXP, msg ) if( EXP ) asm( "trap;" )
   #define LVARRAY_ERROR( msg ) LVARRAY_ERROR_IF( true, msg )
   #define LVARRAY_ASSERT_MSG( EXP, msg ) ((void) 0)
   #define LVARRAY_ASSERT( EXP ) ((void) 0)
@@ -83,16 +83,16 @@
 
 #if !defined(__CUDA_ARCH__)
   #define LVARRAY_ERROR_IF( EXP, msg ) \
-    do \
+  do \
+  { \
+    if( EXP ) \
     { \
-      if( EXP ) \
-      { \
-        std::cout << "***** ERROR" << std::endl; \
-        std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-        std::cout << msg << std::endl; \
-        cxx_utilities::handler1( EXIT_FAILURE ); \
-      } \
-    } while( false )
+      std::cout << "***** ERROR" << std::endl; \
+      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << msg << std::endl; \
+      cxx_utilities::handler1( EXIT_FAILURE ); \
+    } \
+  } while( false )
 
   #define LVARRAY_ERROR( msg ) LVARRAY_ERROR_IF( true, msg )
 
@@ -107,28 +107,28 @@
 #endif
 
 #define LVARRAY_WARNING_IF( EXP, msg ) \
-do \
-{ \
-  if( EXP ) \
+  do \
   { \
-    std::cout << "***** WARNING" << std::endl; \
-    std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-    std::cout << msg << std::endl; \
-  } \
-} while( false )
+    if( EXP ) \
+    { \
+      std::cout << "***** WARNING" << std::endl; \
+      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << msg << std::endl; \
+    } \
+  } while( false )
 
 #define LVARRAY_WARNING( msg ) LVARRAY_WARNING_IF( true, msg )
 
 #define LVARRAY_INFO_IF( EXP, msg ) \
-do \
-{ \
-  if( EXP ) \
+  do \
   { \
-    std::cout << "***** INFO "<<std::endl; \
-    std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-    std::cout << msg << std::endl; \
-  } \
-} while( false )
+    if( EXP ) \
+    { \
+      std::cout << "***** INFO "<<std::endl; \
+      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << msg << std::endl; \
+    } \
+  } while( false )
 
 #define LVARRAY_INFO( msg ) LVARRAY_INFO_IF( true, msg )
 

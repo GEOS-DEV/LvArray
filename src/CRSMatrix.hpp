@@ -36,26 +36,26 @@ namespace LvArray
  * @class CRSMatrix
  * @brief This class implements a compressed row storage matrix.
  */
-template <class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t>
-class CRSMatrix : protected CRSMatrixView<T, COL_TYPE, INDEX_TYPE>
+template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
+class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE >
 {
 public:
 
   // Aliasing public methods of CRSMatrixView.
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::numRows;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::numColumns;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::numNonZeros;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::nonZeroCapacity;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::empty;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::getColumns;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::toViewC;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::toViewCC;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::toSparsityPatternView;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::getEntries;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZero;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZeros;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::removeNonZero;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::removeNonZeros;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::numRows;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::numColumns;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::numNonZeros;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::empty;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getColumns;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewC;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewCC;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toSparsityPatternView;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getEntries;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZero;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZeros;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::removeNonZero;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::removeNonZeros;
 
   /**
    * @brief Constructor.
@@ -64,9 +64,9 @@ public:
    * @param [in] initialRowCapacity the initial non zero capacity of each row.
    */
   CRSMatrix( INDEX_TYPE nrows, INDEX_TYPE ncols, INDEX_TYPE initialRowCapacity=0 ):
-    CRSMatrixView<T, COL_TYPE, INDEX_TYPE>()
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >()
   {
-    CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::resize(nrows, ncols, initialRowCapacity, m_entries);
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::resize( nrows, ncols, initialRowCapacity, m_entries );
     setName( "" );
   }
 
@@ -76,7 +76,7 @@ public:
    */
   inline
   CRSMatrix( CRSMatrix const & src ):
-    CRSMatrixView<T, COL_TYPE, INDEX_TYPE>()
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >()
   { *this = src; }
 
   /**
@@ -90,22 +90,22 @@ public:
    * @brief Destructor, frees the entries, values (columns), sizes and offsets Buffers.
    */
   ~CRSMatrix()
-  { CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::free(m_entries); }
+  { CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::free( m_entries ); }
 
   /**
    * @brief Conversion operator to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>.
    */
   CONSTEXPRFUNC inline
-  operator CRSMatrixView<T, COL_TYPE, INDEX_TYPE const> const &
+  operator CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const &
   () const restrict_this
-  { return reinterpret_cast<CRSMatrixView<T, COL_TYPE, INDEX_TYPE const> const &>(*this); }
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
-  CRSMatrixView<T, COL_TYPE, INDEX_TYPE const> const & toView() const restrict_this
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const restrict_this
   { return *this; }
 
   /**
@@ -114,7 +114,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const> const &
+  operator CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const &
   () const restrict_this
   { return toViewC(); }
 
@@ -124,7 +124,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const> const &
+  operator CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const &
   () const restrict_this
   { return toViewCC(); }
 
@@ -134,7 +134,7 @@ public:
    *        it is redefined here.
    */
   CONSTEXPRFUNC inline
-  operator SparsityPatternView<COL_TYPE const, INDEX_TYPE const> const &
+  operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
   () const restrict_this
   { return toSparsityPatternView(); }
 
@@ -147,12 +147,12 @@ public:
   {
     m_num_columns = src.m_num_columns;
     internal::PairOfBuffers< T > entriesPair( m_entries, src.m_entries );
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setEqualTo( src.m_numArrays,
-                                                           src.m_offsets[ src.m_numArrays ],
-                                                           src.m_offsets,
-                                                           src.m_sizes,
-                                                           src.m_values,
-                                                           entriesPair );
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_numArrays,
+                                                             src.m_offsets[ src.m_numArrays ],
+                                                             src.m_offsets,
+                                                             src.m_sizes,
+                                                             src.m_values,
+                                                             entriesPair );
     return *this;
   }
 
@@ -168,15 +168,15 @@ public:
    * @param [in] space the memory space to move to.
    * @param [in] touch whether to touch the memory in the space or not.
    */
-  void move(chai::ExecutionSpace const space, bool const touch=true) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::move(space, touch, m_entries); }
+  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::move( space, touch, m_entries ); }
 
   /**
    * @brief Touch in the given memory space.
    * @param [in] space the memory space to touch.
    */
-  void registerTouch(chai::ExecutionSpace const space) restrict_this
-  { SparsityPatternView<COL_TYPE, INDEX_TYPE>::registerTouch(space, m_entries); }
+  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space, m_entries ); }
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
@@ -185,7 +185,7 @@ public:
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
   {
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::reserveValues( nnz, m_entries );
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::reserveValues( nnz, m_entries );
   }
 
   /**
@@ -210,7 +210,7 @@ public:
    */
   inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) restrict_this
-  { return CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry )); }
+  { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry )); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -220,7 +220,8 @@ public:
    * @param [in] ncols the number of columns/entries to insert.
    * @return The number of entries inserted.
    *
-   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols + ncols, entriesToInsert)
+   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols +
+   * ncols, entriesToInsert)
    *       and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
@@ -228,7 +229,7 @@ public:
                              COL_TYPE const * const cols,
                              T const * const entriesToInsert,
                              INDEX_TYPE const ncols ) restrict_this
-  { return CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
+  { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -243,7 +244,7 @@ public:
                                    COL_TYPE const * const cols,
                                    T const * const entriesToInsert,
                                    INDEX_TYPE const ncols ) restrict_this
-  { return CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert )); }
+  { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert )); }
 
   /**
    * @brief Set the non zero capacity of the given row.
@@ -259,7 +260,7 @@ public:
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
-    SparsityPatternView<COL_TYPE, INDEX_TYPE>::setCapacityOfArray(row, newCapacity, m_entries);
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity, m_entries );
   }
 
 
@@ -294,7 +295,7 @@ public:
      * @param [in] row the row this CallBacks is associated with.
      * @param [in] entriesToInsert pointer to the entries to insert.
      */
-    CallBacks( CRSMatrix<T, COL_TYPE, INDEX_TYPE> & crsM,
+    CallBacks( CRSMatrix< T, COL_TYPE, INDEX_TYPE > & crsM,
                INDEX_TYPE const row, T const * const entriesToInsert ):
       m_crsM( crsM ),
       m_row( row ),
@@ -366,7 +367,7 @@ public:
     }
 
 private:
-    CRSMatrix<T, COL_TYPE, INDEX_TYPE> & m_crsM;
+    CRSMatrix< T, COL_TYPE, INDEX_TYPE > & m_crsM;
     INDEX_TYPE const m_row;
     INDEX_TYPE const m_rowNNZ;
     INDEX_TYPE const m_rowCapacity;
@@ -375,11 +376,11 @@ private:
   };
 
   // Aliasing protected members of CRSMatrixView.
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::m_num_columns;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::m_offsets;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::m_sizes;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::m_values;
-  using CRSMatrixView<T, COL_TYPE, INDEX_TYPE>::m_entries;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_offsets;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_sizes;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_values;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_entries;
 };
 
 } /* namespace LvArray */

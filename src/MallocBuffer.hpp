@@ -54,11 +54,11 @@ public:
    * @brief Constructor for creating an empty/uninitialized buffer. For the MallocBuffer
    *        an uninitialized buffer is equivalent to an empty buffer.
    */
-  MallocBuffer( bool=true ) :
+  MallocBuffer( bool=true ):
     m_capacity( 0 ),
     m_data( nullptr )
   {}
-  
+
   /**
    * @brief Reallocate the buffer to the new capacity.
    * @param size the number of values that are initialized in the buffer.
@@ -75,7 +75,7 @@ public:
     m_capacity = newCapacity;
     m_data = newPtr;
   }
-  
+
   /**
    * @brief Free the data in the buffer but does not destroy any values. To
    *        properly destroy the values and free the data call bufferManipulation::free.
