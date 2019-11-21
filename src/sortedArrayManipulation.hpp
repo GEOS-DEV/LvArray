@@ -57,7 +57,7 @@ bool isUnique( Description const desc )
  * @class CallBacks
  * @brief This class provides a no-op callbacks interface for the ArrayManipulation sorted routines.
  */
-template< class T, class INDEX_TYPE >
+template< typename T >
 class CallBacks
 {
 public:
@@ -68,7 +68,7 @@ public:
    * @return a pointer to the array.
    */
   LVARRAY_HOST_DEVICE inline
-  T * incrementSize( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nToAdd ) ) restrict_this
+  T * incrementSize( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( nToAdd ) ) restrict_this
   { return nullptr; }
 
   /**
@@ -76,7 +76,7 @@ public:
    * @param [in] pos the position the value was inserted at.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+  void insert( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
   {}
 
   /**
@@ -86,8 +86,8 @@ public:
    * @param [in] valuePos the position of the value that the entry in the array was set to.
    */
   LVARRAY_HOST_DEVICE inline
-  void set( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
-            INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ) ) restrict_this
+  void set( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( pos ),
+            std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( valuePos ) ) restrict_this
   {}
 
   /**
@@ -100,10 +100,10 @@ public:
    *             if it is the first insertion.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nLeftToInsert ),
-               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( valuePos ),
-               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ),
-               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( prevPos ) ) restrict_this
+  void insert( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( nLeftToInsert ),
+               std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( valuePos ),
+               std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( pos ),
+               std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( prevPos ) ) restrict_this
   {}
 
   /**
@@ -111,7 +111,7 @@ public:
    * @param [in] pos the position of the entry that was removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
+  void remove( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( pos ) ) restrict_this
   {}
 
   /**
@@ -123,9 +123,9 @@ public:
    *             if this was the last entry removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nRemoved ),
-               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( curPos ),
-               INDEX_TYPE const CXX_UTILS_UNUSED_ARG( nextPos ) ) restrict_this
+  void remove( std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( nRemoved ),
+               std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( curPos ),
+               std::ptrdiff_t const CXX_UTILS_UNUSED_ARG( nextPos ) ) restrict_this
   {}
 };
 
@@ -134,7 +134,7 @@ public:
  * @class less
  * @brief This class operates as functor similar to std::less.
  */
-template< class T >
+template< typename T >
 struct less
 {
   /**
@@ -150,7 +150,7 @@ struct less
  * @class less
  * @brief This class operates as functor similar to std::greater.
  */
-template< class T >
+template< typename T >
 struct greater
 {
   /**
@@ -172,7 +172,7 @@ struct greater
  * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
-template< class RandomAccessIterator, class Compare >
+template< typename RandomAccessIterator, typename Compare >
 LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
 {
   if( last - first > internal::INTROSORT_THRESHOLD )
@@ -192,9 +192,9 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAc
  * @note should be equivalent to std::sort(first, last).
  */
 DISABLE_HD_WARNING
-template< class RandomAccessIterator >
+template< typename RandomAccessIterator >
 LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last )
-{ return makeSorted( first, last, less< typename std::remove_reference< decltype(*first) >::type >()); }
+{ return makeSorted( first, last, less< typename std::remove_reference< decltype(*first) >::type >() ); }
 
 /**
  * @tparam RandomAccessIteratorA an iterator type that provides random access.
@@ -208,13 +208,13 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAc
  * @param [in/out] comp a function that does the comparison between two objects.
  */
 DISABLE_HD_WARNING
-template< class RandomAccessIteratorA, class RandomAccessIteratorB, class Compare >
+template< typename RandomAccessIteratorA, typename RandomAccessIteratorB, typename Compare >
 LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
                                           RandomAccessIteratorB dataFirst, Compare comp )
 {
   std::ptrdiff_t const size = valueLast - valueFirst;
   internal::DualIterator< RandomAccessIteratorA, RandomAccessIteratorB > dualIter( valueFirst, dataFirst );
-  return makeSorted( dualIter, dualIter + size, dualIter.createComparator( comp ));
+  return makeSorted( dualIter, dualIter + size, dualIter.createComparator( comp ) );
 }
 
 /**
@@ -231,7 +231,7 @@ LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, Rand
  *       deallocate the created buffer.
  */
 DISABLE_HD_WARNING
-template< class T, int N >
+template< typename T, int N >
 LVARRAY_HOST_DEVICE inline
 T * createTemporaryBuffer( T const * const restrict values,
                            std::ptrdiff_t const nVals,
@@ -247,11 +247,11 @@ T * createTemporaryBuffer( T const * const restrict values,
   }
   else
   {
-    buffer = static_cast< T * >(std::malloc( sizeof(T) * nVals ));
+    buffer = static_cast< T * >( std::malloc( sizeof( T ) * nVals ) );
 
     for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
     {
-      new (buffer + i) T( values[i] );
+      new ( buffer + i ) T( values[i] );
     }
   }
 
@@ -267,7 +267,7 @@ T * createTemporaryBuffer( T const * const restrict values,
  * @param [in] localBuffer a reference to an array T[N].
  */
 DISABLE_HD_WARNING
-template< class T, int N >
+template< typename T, int N >
 LVARRAY_HOST_DEVICE inline
 void freeTemporaryBuffer( T * const restrict buffer,
                           std::ptrdiff_t const nVals,
@@ -287,7 +287,6 @@ void freeTemporaryBuffer( T * const restrict buffer,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
  * @brief Return true if the given array is sorted using comp.
  * @param [in] ptr pointer to the array.
@@ -297,20 +296,16 @@ void freeTemporaryBuffer( T * const restrict buffer,
  * @note Should be equivalent to std::is_sorted(ptr, ptr + size, comp).
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class Compare=less< T > >
+template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 bool isSorted( T const * const restrict ptr,
-               INDEX_TYPE const size,
+               std::ptrdiff_t const size,
                Compare comp=Compare() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
-  // This short circuit is necessary if INDEX_TYPE is unsigned.
-  if( size == 0 )
-    return true;
-
-  for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size - 1 ; ++i )
   {
     if( comp( ptr[i + 1], ptr[i] ) )
     {
@@ -331,27 +326,26 @@ bool isSorted( T const * const restrict ptr,
  * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
  */
 DISABLE_HD_WARNING
-template< class RandomAccessIteratorA, class RandomAccessIteratorB >
+template< typename RandomAccessIteratorA, typename RandomAccessIteratorB >
 LVARRAY_HOST_DEVICE inline
 void dualSort( RandomAccessIteratorA valueFirst,
                RandomAccessIteratorA valueLast,
                RandomAccessIteratorB dataFirst )
-{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >()); }
+{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >() ); }
 
 /**
  * @tparam T the type of the values stored in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Return true if the array contains no duplicates.
  * @param [in/out] ptr a pointer to the values.
  * @param [in] size the number of values.
  * @note The array must be sorted such that values that compare equal are adjacent.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE >
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
+bool allUnique( T const * const restrict ptr, std::ptrdiff_t const size )
 {
-  for( INDEX_TYPE i = 0 ; i < size - 1 ; ++i )
+  for( std::ptrdiff_t i = 0 ; i < size - 1 ; ++i )
   {
     if( ptr[i] == ptr[i + 1] )
       return false;
@@ -362,7 +356,6 @@ bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
 
 /**
  * @tparam T the type of the values stored in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @brief Remove duplicates from the array, duplicates aren't destroyed but they're moved out of.
  * @return The number of unique elements, such that ptr[0, returnValue) contains the unique elements.
  * @param [in/out] ptr a pointer to the values.
@@ -372,21 +365,21 @@ bool allUnique( T const * const restrict ptr, INDEX_TYPE const size )
  *       change the std::move to a portable implementation of std::swap.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE >
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
+std::ptrdiff_t removeDuplicates( T * const restrict ptr, std::ptrdiff_t const size )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
   // Note it doesn't have to be sorted under less<T>, so this assert is a bit too restrictive.
-  LVARRAY_ASSERT( isSorted( ptr, size ));
+  LVARRAY_ASSERT( isSorted( ptr, size ) );
 
   if( size == 0 )
     return 0;
 
-  INDEX_TYPE shiftAmount = 0;
-  INDEX_TYPE curPos = 0;
+  std::ptrdiff_t shiftAmount = 0;
+  std::ptrdiff_t curPos = 0;
   while( curPos + shiftAmount + 1 < size )
   {
     if( ptr[curPos] != ptr[curPos + shiftAmount + 1] )
@@ -406,7 +399,6 @@ INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
  * @brief Return the index of the first value in the array greater than or equal to value.
  * @param [in] ptr pointer to the array, must be sorted under comp.
@@ -417,10 +409,10 @@ INDEX_TYPE removeDuplicates( T * const restrict ptr, INDEX_TYPE const size )
  * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class Compare=less< T > >
+template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE find( T const * const restrict ptr,
-                 INDEX_TYPE const size,
+std::ptrdiff_t find( T const * const restrict ptr,
+                 std::ptrdiff_t const size,
                  T const & value,
                  Compare comp=Compare() )
 {
@@ -428,12 +420,12 @@ INDEX_TYPE find( T const * const restrict ptr,
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( isSorted( ptr, size, comp ) );
 
-  INDEX_TYPE lower = 0;
-  INDEX_TYPE upper = size;
+  std::ptrdiff_t lower = 0;
+  std::ptrdiff_t upper = size;
   while( lower != upper )
   {
-    INDEX_TYPE const guess = (lower + upper) / 2;
-    if( comp( ptr[guess], value ))
+    std::ptrdiff_t const guess = (lower + upper) / 2;
+    if( comp( ptr[guess], value ) )
     {
       lower = guess + 1;
     }
@@ -448,7 +440,6 @@ INDEX_TYPE find( T const * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
  * @brief Return true if the array contains value.
  * @param [in] ptr pointer to the array, must be sorted under comp.
@@ -459,43 +450,42 @@ INDEX_TYPE find( T const * const restrict ptr,
  * @note Should be equivalent to std::binary_search(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class Compare=less< T > >
+template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 bool contains( T const * const restrict ptr,
-               INDEX_TYPE const size,
+               std::ptrdiff_t const size,
                T const & value,
                Compare comp=Compare() )
 {
-  INDEX_TYPE const pos = find( ptr, size, value, comp );
+  std::ptrdiff_t const pos = find( ptr, size, value, comp );
   return (pos != size) && (ptr[pos] == value);
 }
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given value from the array if it exists.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to remove.
- * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE).
+ * @param [in/out] callBacks class which must define at least a method remove(std::ptrdiff_t).
  *                 If the value is found it is removed then this method is called with the index the value
  *                 was found at.
  * @return True iff the value was removed.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 bool remove( T * const restrict ptr,
-             INDEX_TYPE const size,
+             std::ptrdiff_t const size,
              T const & value,
              CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
   // Find the position of value.
-  INDEX_TYPE const index = find( ptr, size, value );
+  std::ptrdiff_t const index = find( ptr, size, value );
 
   // If it's not in the array we can return.
   if( index == size || ptr[index] != value )
@@ -511,44 +501,43 @@ bool remove( T * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to remove, must be sorted under less<T>.
  * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- *                 If a value is found it is removed then this method is called with the number of values removed so
- * far,
- *                 the position of the last value removed and the position of the next value to remove or size if there
- * are no more
+ * @param [in/out] callBacks class which must define at least a method
+ *                 remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
+ *                 If a value is found it is removed then this method is called with the
+ *                 number of values removed so far, the position of the last value removed
+ *                 and the position of the next value to remove or size if there are no more
  *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE removeSorted( T * const restrict ptr,
-                         INDEX_TYPE const size,
+std::ptrdiff_t removeSorted( T * const restrict ptr,
+                         std::ptrdiff_t const size,
                          T const * const restrict values,
-                         INDEX_TYPE const nVals,
+                         std::ptrdiff_t const nVals,
                          CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ));
-  LVARRAY_ASSERT( isSorted( values, nVals ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ) );
+  LVARRAY_ASSERT( isSorted( values, nVals ) );
 
   // If there are no values to remove we can return.
   if( nVals == 0 )
     return 0;
 
   // Find the position of the first value to remove and the position it's at in the array.
-  INDEX_TYPE firstValuePos = nVals;
-  INDEX_TYPE curPos = size;
-  for( INDEX_TYPE i = 0 ; i < nVals ; ++i )
+  std::ptrdiff_t firstValuePos = nVals;
+  std::ptrdiff_t curPos = size;
+  for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
   {
     curPos = find( ptr, size, values[i] );
 
@@ -568,20 +557,20 @@ INDEX_TYPE removeSorted( T * const restrict ptr,
     return 0;
 
   // Loop over the values
-  INDEX_TYPE nRemoved = 0;
-  for( INDEX_TYPE curValuePos = firstValuePos ; curValuePos < nVals ; )
+  std::ptrdiff_t nRemoved = 0;
+  for( std::ptrdiff_t curValuePos = firstValuePos ; curValuePos < nVals ; )
   {
     // Find the next value to remove
-    INDEX_TYPE nextValuePos = nVals;
-    INDEX_TYPE nextPos = size;
-    for( INDEX_TYPE j = curValuePos + 1 ; j < nVals ; ++j )
+    std::ptrdiff_t nextValuePos = nVals;
+    std::ptrdiff_t nextPos = size;
+    for( std::ptrdiff_t j = curValuePos + 1 ; j < nVals ; ++j )
     {
       // Skip over duplicate values
       if( values[j] == values[j - 1] )
         continue;
 
       // Find the position
-      INDEX_TYPE const pos = find( ptr + curPos, size - curPos, values[j] ) + curPos;
+      std::ptrdiff_t const pos = find( ptr + curPos, size - curPos, values[j] ) + curPos;
 
       // If it's not in the array then neither are any of the rest of the values.
       if( pos == size )
@@ -610,7 +599,7 @@ INDEX_TYPE removeSorted( T * const restrict ptr,
   }
 
   // Destroy the values moved out of at the end of the array.
-  for( INDEX_TYPE i = size - nRemoved ; i < size ; ++i )
+  for( std::ptrdiff_t i = size - nRemoved ; i < size ; ++i )
   {
     ptr[i].~T();
   }
@@ -620,41 +609,39 @@ INDEX_TYPE removeSorted( T * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to remove.
  * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define at least a method remove(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
- *                 If a value is found it is removed then this method is called with the number of values removed so
- * far,
- *                 the position of the last value removed and the position of the next value to remove or size if there
- * are no more
+ * @param [in/out] callBacks class which must define at least a method
+ *                 remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t). If a value is found it is removed then
+ *                 this method is called with the number of values removed so far, the position of the last
+ *                 value removed and the position of the next value to remove or size if there are no more
  *                 values to remove.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE remove( T * const restrict ptr,
-                   INDEX_TYPE const size,
+std::ptrdiff_t remove( T * const restrict ptr,
+                   std::ptrdiff_t const size,
                    T const * const values,
-                   INDEX_TYPE const nVals,
+                   std::ptrdiff_t const nVals,
                    CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ) );
 
-  constexpr INDEX_TYPE LOCAL_SIZE = 16;
+  constexpr std::ptrdiff_t LOCAL_SIZE = 16;
   T localBuffer[LOCAL_SIZE];
   T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
   makeSorted( buffer, buffer + nVals );
 
-  INDEX_TYPE const nInserted = removeSorted( ptr, size, buffer, nVals, std::move( callBacks ));
+  std::ptrdiff_t const nInserted = removeSorted( ptr, size, buffer, nVals, std::move( callBacks ) );
 
   freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
@@ -662,30 +649,29 @@ INDEX_TYPE remove( T * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given value into the array if it doesn't already exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE)
- *                 and insert(INDEX_TYPE). incrementSize is called with the number of values to insert and returns a new
- *                 pointer to the array. If an insert has occurred insert is called with the position in the array
- *                 at which the insert took place.
+ * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t)
+ *                 and insert(std::ptrdiff_t). incrementSize is called with the number of values to insert 
+ *                 and returns a new pointer to the array. If an insert has occurred insert is called with
+ *                 the position in the array at which the insert took place.
  * @return True iff the value was inserted.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
 bool insert( T const * const restrict ptr,
-             INDEX_TYPE const size,
+             std::ptrdiff_t const size,
              T const & value,
              CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
-  INDEX_TYPE insertPos = INDEX_TYPE( -1 );
+  std::ptrdiff_t insertPos = std::ptrdiff_t( -1 );
   if( size == 0 || value < ptr[0] ) // Take care of the case of an empty array or inserting at the beginning.
   {
     insertPos = 0;
@@ -716,15 +702,14 @@ bool insert( T const * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to insert, must be sorted under less<T>.
  * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE),
- *                 set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t),
+ *                 set(std::ptrdiff_t, std::ptrdiff_t) and insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
  *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
  *                 After an insert has occurred insert is called with the number of values left to insert, the
  *                 index of the value inserted, the index at which it was inserted and the index at
@@ -734,19 +719,19 @@ bool insert( T const * const restrict ptr,
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE insertSorted( T const * const restrict ptr,
-                         INDEX_TYPE const size,
+std::ptrdiff_t insertSorted( T const * const restrict ptr,
+                         std::ptrdiff_t const size,
                          T const * const restrict values,
-                         INDEX_TYPE const nVals,
+                         std::ptrdiff_t const nVals,
                          CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( values != nullptr || nVals == 0 );
   LVARRAY_ASSERT( nVals >= 0 );
-  LVARRAY_ASSERT( isSorted( values, nVals ));
+  LVARRAY_ASSERT( isSorted( values, nVals ) );
 
   // If there are no values to insert.
   if( nVals == 0 )
@@ -755,14 +740,14 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
     return 0;
   }
 
-  INDEX_TYPE nToInsert = 0; // The number of values that will actually be inserted.
+  std::ptrdiff_t nToInsert = 0; // The number of values that will actually be inserted.
 
   // Special case for inserting into an empty array.
   if( size == 0 )
   {
     // Count up the number of unique values.
     nToInsert = 1;
-    for( INDEX_TYPE i = 1 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 1 ; i < nVals ; ++i )
     {
       if( values[i] != values[i - 1] )
         ++nToInsert;
@@ -772,16 +757,16 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
     T * const newPtr = callBacks.incrementSize( nToInsert );
 
     // Insert the first value.
-    new (&newPtr[0]) T( values[0] );
+    new ( newPtr ) T( values[0] );
     callBacks.set( 0, 0 );
 
     // Insert the remaining values, checking for duplicates.
-    INDEX_TYPE curInsertPos = 1;
-    for( INDEX_TYPE i = 1 ; i < nVals ; ++i )
+    std::ptrdiff_t curInsertPos = 1;
+    for( std::ptrdiff_t i = 1 ; i < nVals ; ++i )
     {
       if( values[i] != values[i - 1] )
       {
-        new (&newPtr[curInsertPos]) T( values[i] );
+        new ( newPtr + curInsertPos ) T( values[i] );
         callBacks.set( curInsertPos, i );
         ++curInsertPos;
       }
@@ -796,12 +781,12 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
   // to find them again.
 
   constexpr int MAX_PRE_CALCULATED = 32;
-  INDEX_TYPE valuePositions[MAX_PRE_CALCULATED];  // Positions of the first 32 values to insert.
-  INDEX_TYPE insertPositions[MAX_PRE_CALCULATED]; // Position at which to insert the first 32 values.
+  std::ptrdiff_t valuePositions[MAX_PRE_CALCULATED];  // Positions of the first 32 values to insert.
+  std::ptrdiff_t insertPositions[MAX_PRE_CALCULATED]; // Position at which to insert the first 32 values.
 
   // Loop over the values in reverse (from largest to smallest).
-  INDEX_TYPE curPos = size;
-  for( INDEX_TYPE i = nVals - 1 ; i >= 0 ; --i )
+  std::ptrdiff_t curPos = size;
+  for( std::ptrdiff_t i = nVals - 1 ; i >= 0 ; --i )
   {
     // Skip duplicate values.
     if( i != 0 && values[i] == values[i - 1] )
@@ -831,19 +816,19 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
     return 0;
 
   //
-  INDEX_TYPE const nPreCalculated = (nToInsert < MAX_PRE_CALCULATED) ?
+  std::ptrdiff_t const nPreCalculated = (nToInsert < MAX_PRE_CALCULATED) ?
                                     nToInsert : MAX_PRE_CALCULATED;
 
   // Insert pre-calculated values.
-  INDEX_TYPE prevInsertPos = size;
-  for( INDEX_TYPE i = 0 ; i < nPreCalculated ; ++i )
+  std::ptrdiff_t prevInsertPos = size;
+  for( std::ptrdiff_t i = 0 ; i < nPreCalculated ; ++i )
   {
     // Shift the values up...
-    arrayManipulation::shiftUp( newPtr, prevInsertPos, insertPositions[i], INDEX_TYPE( nToInsert - i ));
+    arrayManipulation::shiftUp( newPtr, prevInsertPos, insertPositions[i], std::ptrdiff_t( nToInsert - i ) );
 
     // and insert.
-    INDEX_TYPE const curValuePos = valuePositions[i];
-    new (&newPtr[insertPositions[i] + nToInsert - i - 1]) T( values[curValuePos] );
+    std::ptrdiff_t const curValuePos = valuePositions[i];
+    new ( newPtr + insertPositions[ i ] + nToInsert - i - 1 ) T( values[curValuePos] );
     callBacks.insert( nToInsert - i, curValuePos, insertPositions[i], prevInsertPos );
 
     prevInsertPos = insertPositions[i];
@@ -854,23 +839,23 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
     return nToInsert;
 
   // Insert the rest of the values.
-  INDEX_TYPE const prevValuePos = valuePositions[MAX_PRE_CALCULATED - 1];
-  INDEX_TYPE nInserted = MAX_PRE_CALCULATED;
-  for( INDEX_TYPE i = prevValuePos - 1 ; i >= 0 ; --i )
+  std::ptrdiff_t const prevValuePos = valuePositions[MAX_PRE_CALCULATED - 1];
+  std::ptrdiff_t nInserted = MAX_PRE_CALCULATED;
+  for( std::ptrdiff_t i = prevValuePos - 1 ; i >= 0 ; --i )
   {
     // Skip duplicates
     if( values[i] == values[i + 1] )
       continue;
 
-    INDEX_TYPE const pos = find( newPtr, prevInsertPos, values[i] );
+    std::ptrdiff_t const pos = find( newPtr, prevInsertPos, values[i] );
 
     // If values[i] is already in the array skip it.
     if( pos != prevInsertPos && newPtr[pos] == values[i] )
       continue;
 
     // Else shift the values up and insert.
-    arrayManipulation::shiftUp( newPtr, prevInsertPos, pos, INDEX_TYPE( nToInsert - nInserted ));
-    new (&newPtr[pos + nToInsert - nInserted - 1]) T( values[i] );
+    arrayManipulation::shiftUp( newPtr, prevInsertPos, pos, std::ptrdiff_t( nToInsert - nInserted ) );
+    new ( newPtr + pos + nToInsert - nInserted - 1 ) T( values[i] );
     callBacks.insert( nToInsert - nInserted, i, pos, prevInsertPos );
 
     nInserted += 1;
@@ -888,15 +873,14 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @tparam INDEX_TYPE the integer type used to index into the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] values the values to insert.
  * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(INDEX_TYPE),
- *                 set(INDEX_TYPE, INDEX_TYPE) and insert(INDEX_TYPE, INDEX_TYPE, INDEX_TYPE, INDEX_TYPE).
+ * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t),
+ *                 set(std::ptrdiff_t, std::ptrdiff_t) and insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
  *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
  *                 After an insert has occurred insert is called with the number of values left to insert, the
  *                 index of the value inserted, the index at which it was inserted and the index at
@@ -906,25 +890,25 @@ INDEX_TYPE insertSorted( T const * const restrict ptr,
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
-template< class T, class INDEX_TYPE, class CALLBACKS >
+template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-INDEX_TYPE insert( T const * const restrict ptr,
-                   INDEX_TYPE const size,
+std::ptrdiff_t insert( T const * const restrict ptr,
+                   std::ptrdiff_t const size,
                    T const * const restrict values,
-                   INDEX_TYPE const nVals,
+                   std::ptrdiff_t const nVals,
                    CALLBACKS && callBacks )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ));
+  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( values != nullptr || nVals == 0 );
   LVARRAY_ASSERT( nVals >= 0 );
 
-  constexpr INDEX_TYPE LOCAL_SIZE = 16;
+  constexpr std::ptrdiff_t LOCAL_SIZE = 16;
   T localBuffer[LOCAL_SIZE];
   T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
   makeSorted( buffer, buffer + nVals );
 
-  INDEX_TYPE const nInserted = insertSorted( ptr, size, buffer, nVals, std::move( callBacks ));
+  std::ptrdiff_t const nInserted = insertSorted( ptr, size, buffer, nVals, std::move( callBacks ) );
 
   freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
