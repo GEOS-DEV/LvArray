@@ -50,7 +50,7 @@ struct VoidBuffer
    *       occurs if you try to move it to a different space.
    */
   void move( chai::ExecutionSpace const space,
-             bool const CXX_UTILS_UNUSED_ARG( touch ) )
+             bool const LVARRAY_UNUSED_ARG( touch )=true )
   {
     LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
   }
@@ -67,12 +67,12 @@ struct VoidBuffer
   }
 
   /**
-   * @brief Set the name associated with this buffer which is used in the chai callback.
-   * @param name the of the buffer.
-   * @note The default behavior is that the Buffer does not have a callback so this is a no-op.
+   * @tparam The type of the owning object.
+   * @brief Set the name associated with this buffer.
+   * @param name the name of the buffer.
    */
-  template< typename >
-  void setName( std::string const & CXX_UTILS_UNUSED_ARG( name ) )
+  template< typename=VoidBuffer >
+  void setName( std::string const & LVARRAY_UNUSED_ARG( name ) )
   {}
 };
 
@@ -98,8 +98,8 @@ void check( BUFFER const & buf, std::ptrdiff_t const size )
   LVARRAY_ERROR_IF_GT( 0, size );
   LVARRAY_ERROR_IF_GT( size, buf.capacity() );
 #else
-  CXX_UTILS_DEBUG_VAR( buf );
-  CXX_UTILS_DEBUG_VAR( size );
+  LVARRAY_DEBUG_VAR( buf );
+  LVARRAY_DEBUG_VAR( size );
 #endif
 }
 
@@ -121,9 +121,9 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
   LVARRAY_ERROR_IF_GT( 0, pos );
   LVARRAY_ERROR_IF_GT( pos, size );
 #else
-  CXX_UTILS_DEBUG_VAR( buf );
-  CXX_UTILS_DEBUG_VAR( size );
-  CXX_UTILS_DEBUG_VAR( pos );
+  LVARRAY_DEBUG_VAR( buf );
+  LVARRAY_DEBUG_VAR( size );
+  LVARRAY_DEBUG_VAR( pos );
 #endif
 }
 

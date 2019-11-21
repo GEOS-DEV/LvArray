@@ -72,6 +72,8 @@ void compareToReference(ViewType<T const, true> const & view, REF_TYPE<T> const 
   }
 }
 
+#define COMPARE_TO_REFERENCE(view, ref) { SCOPED_TRACE(""); compareToReference(view, ref); }
+
 template <class T>
 void printArray(ViewType<T const, true> const & view)
 {
@@ -96,8 +98,6 @@ void printArray(ViewType<T const, true> const & view)
   std::cout << "}" << std::endl;
 }
 
-#define COMPARE_TO_REFERENCE(view, ref) { SCOPED_TRACE(""); compareToReference(view, ref); }
-
 template <class T>
 class ArrayOfArraysTest : public ::testing::Test
 {
@@ -106,7 +106,7 @@ public:
   void appendArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
                     INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     std::vector<T> arrayToAppend(maxAppendSize);
 
@@ -124,13 +124,13 @@ public:
       ref.push_back(arrayToAppend);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void appendArray2( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
                      INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     std::vector<T> arrayToAppend(maxAppendSize);
 
@@ -150,13 +150,13 @@ public:
       ref.push_back(arrayToAppend);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void insertArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
                     INDEX_TYPE const nArrays, INDEX_TYPE const maxAppendSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     std::vector<T> arrayToAppend(maxAppendSize);
 
@@ -175,13 +175,13 @@ public:
       ref.insert(ref.begin() + insertPos, arrayToAppend);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void eraseArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref,
                     INDEX_TYPE const nArrays )
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
     {
@@ -190,23 +190,23 @@ public:
       ref.erase(ref.begin() + removePos);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void resize(ArrayOfArrays<T> & array, REF_TYPE<T> & ref)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const newSize = rand(0, 2 * array.size());
     array.resize(newSize);
     ref.resize(newSize);
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void resizeArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -218,12 +218,12 @@ public:
       ref[i].resize(newSize, defaultValue);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void appendToArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxAppendSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -239,7 +239,7 @@ public:
       }
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void atomicAppendToArraySerial( ArrayOfArrays<T> & array, INDEX_TYPE const numAppends )
@@ -328,7 +328,7 @@ public:
 
   void appendMultipleToArray( ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxAppendSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     std::vector<T> valuesToAppend(maxAppendSize);
     INDEX_TYPE const nArrays = array.size();
@@ -348,12 +348,12 @@ public:
       ref[i].insert(ref[i].end(), valuesToAppend.begin(), valuesToAppend.end());
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void insertIntoArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxInsertSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -370,12 +370,12 @@ public:
       }
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void insertMultipleIntoArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxInsertSize)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     std::vector<T> valuesToAppend(maxInsertSize);
     
@@ -397,12 +397,12 @@ public:
       ref[i].insert(ref[i].begin() + insertPos, valuesToAppend.begin(), valuesToAppend.end());
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void eraseFromArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxRemoves)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -418,12 +418,12 @@ public:
       }
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void removeMultipleFromArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxRemoves)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     for (INDEX_TYPE i = 0; i < nArrays; ++i)
@@ -438,12 +438,12 @@ public:
       ref[i].erase(ref[i].begin() + removePosition, ref[i].begin() + removePosition + nToRemove);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void compress(ArrayOfArrays<T> & array, REF_TYPE<T> const & ref)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     array.compress();
     T const * const values = array[0];
@@ -459,12 +459,12 @@ public:
       curOffset += array.sizeOfArray(i);
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void fill(ArrayOfArrays<T> & array, REF_TYPE<T> & ref)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     T const * const values = array[0];
     T const * const endValues = array[array.size() - 1];
@@ -479,12 +479,12 @@ public:
     ASSERT_EQ(values, newValues);
     ASSERT_EQ(endValues, newEndValues);
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void capacityOfArray(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const MAX_CAPACITY)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     for (INDEX_TYPE i = 0; i < array.size(); ++i)
     {
@@ -507,12 +507,12 @@ public:
       }
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void deepCopy(ArrayOfArrays<T> const & array, REF_TYPE<T> const & ref)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     ArrayOfArrays<T> copy(array);
 
@@ -534,7 +534,7 @@ public:
       }
     }
 
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void shallowCopy(ArrayOfArrays<T> const & array)
@@ -1201,7 +1201,7 @@ public:
 
   void removeDevice(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxRemoves)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     Array1D<Array1D<INDEX_TYPE>> positionsToRemove(nArrays);
@@ -1235,12 +1235,12 @@ public:
 
     // Move the view back to the host and compare with the reference.
     array.move(chai::CPU);
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
   void removeMultipleDevice(ArrayOfArrays<T> & array, REF_TYPE<T> & ref, INDEX_TYPE const maxRemoves)
   {
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
 
     INDEX_TYPE const nArrays = array.size();
     Array2D<INDEX_TYPE> removals(nArrays, 2);
@@ -1271,7 +1271,7 @@ public:
 
     // Move the view back to the host and compare with the reference.
     array.move(chai::CPU);
-    compareToReference(array.toViewCC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewCC(), ref);
   }
 
 protected:

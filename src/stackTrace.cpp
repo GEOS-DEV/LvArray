@@ -180,7 +180,7 @@ std::string getFpeDetails()
   return oss.str();
 }
 
-void handler( int sig, int exitFlag, int CXX_UTILS_UNUSED_ARG( exitCode ) )
+void handler( int sig, int exitFlag, int LVARRAY_UNUSED_ARG( exitCode ) )
 {
   std::ostringstream oss;
 

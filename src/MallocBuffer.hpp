@@ -50,6 +50,9 @@ public:
   // Alias used in the bufferManipulation functions.
   using value_type = T;
 
+  // member that signifies that this Buffer implementation supports shallow copies.
+  static constexpr bool hasShallowCopy = true;
+
   /**
    * @brief Constructor for creating an empty/uninitialized buffer. For the MallocBuffer
    *        an uninitialized buffer is equivalent to an empty buffer.
@@ -59,6 +62,27 @@ public:
     m_data( nullptr )
   {}
 
+  MallocBuffer( MallocBuffer const & src ) = default;
+
+  MallocBuffer( MallocBuffer && src ):
+    m_capacity( src.m_capacity ),
+    m_data( src.m_data )
+  {
+    src.m_capacity = 0;
+    src.m_data = nullptr;
+  }
+
+  MallocBuffer & operator=( MallocBuffer const & src ) = default;
+
+  MallocBuffer & operator=( MallocBuffer && src )
+  {
+    m_capacity = src.m_capacity;
+    m_data = src.m_data;
+    src.m_capacity = 0;
+    src.m_data = nullptr;
+    return *this;
+  }
+
   /**
    * @brief Reallocate the buffer to the new capacity.
    * @param size the number of values that are initialized in the buffer.
@@ -67,9 +91,12 @@ public:
    */
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
-    // If std::is_trivially_copyable_v< T > then we could use std::realloc.
-    T * const newPtr = std::malloc( newCapacity * sizeof( T ) );
-    arrayManipulation::moveInto( newPtr, newCapacity, m_data, size );
+    // Note: If std::is_trivially_copyable_v< T > then we could use std::realloc.
+    T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );
+
+    std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
+    arrayManipulation::uninitializedMove( newPtr, overlapAmount, m_data );
+    arrayManipulation::destroy( m_data, size );
 
     std::free( m_data );
     m_capacity = newCapacity;
@@ -92,7 +119,7 @@ public:
    */
   inline CONSTEXPRFUNC
   std::ptrdiff_t capacity() const
-  { return 0; }
+  { return m_capacity; }
 
   /**
    * @brief Return a pointer to the beginning of the buffer.
@@ -101,6 +128,13 @@ public:
   T * data() const
   {
     return m_data;
+  }
+
+  template< typename INDEX_TYPE >
+  inline CONSTEXPRFUNC
+  T & operator[]( INDEX_TYPE const i ) const
+  {
+    return m_data[ i ];
   }
 
 private:

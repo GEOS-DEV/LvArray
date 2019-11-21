@@ -166,6 +166,8 @@ public:
   inline
   void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) restrict_this
   {
+    ArrayOfSetsView< T, INDEX_TYPE >::free();
+
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfArrays.hpp.
     ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
 

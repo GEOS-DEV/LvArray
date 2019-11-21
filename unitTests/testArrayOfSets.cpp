@@ -74,6 +74,9 @@ void compareToReference(ViewType<T const> const & view, REF_TYPE<T> const & ref)
   }
 }
 
+// Use this macro to call compareToReference with better error messages.
+#define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); }
+
 template <class T>
 void printArray(ViewType<T const> const & view)
 {
@@ -110,8 +113,6 @@ INDEX_TYPE insertIntoRef(std::set<T> & ref, std::vector<T> const & values)
   return numInserted;
 }
 
-#define COMPARE_TO_REFERENCE(view, ref) { SCOPED_TRACE(""); compareToReference(view, ref); }
-
 template <class T>
 class ArrayOfSetsTest : public ::testing::Test
 {
@@ -121,7 +122,7 @@ public:
                  INDEX_TYPE const nSets, INDEX_TYPE const maxInserts,
                  INDEX_TYPE const maxValue)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     std::vector<T> arrayToAppend(maxInserts);
 
@@ -141,14 +142,14 @@ public:
       ref.push_back(std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void insertSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                  INDEX_TYPE const nSets, INDEX_TYPE const maxInserts,
                  INDEX_TYPE const maxValue)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     std::vector<T> arrayToAppend(maxInserts);
 
@@ -171,13 +172,13 @@ public:
       ref.insert(ref.begin() + insertPos, std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void eraseSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                 INDEX_TYPE const nSets)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
@@ -186,24 +187,24 @@ public:
       ref.erase(ref.begin() + removePos);
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void resize(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     INDEX_TYPE const newSize = rand(0, 2 * array.size());
     array.resize(newSize);
     ref.resize(newSize);
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void insertIntoSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                      INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     INDEX_TYPE const nSets = array.size();
     for (INDEX_TYPE i = 0; i < nSets; ++i)
@@ -217,14 +218,14 @@ public:
       }
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void insertMultipleIntoSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                              INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue,
                              bool const sorted)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     std::vector<T> valuesToInsert(maxInserts);
     INDEX_TYPE const nSets = array.size();
@@ -253,13 +254,13 @@ public:
       EXPECT_EQ(numInserted, insertIntoRef(ref[i], valuesToInsert));
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void removeFromSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                      INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     INDEX_TYPE const nSets = array.size();
     for (INDEX_TYPE i = 0; i < nSets; ++i)
@@ -273,14 +274,14 @@ public:
       }
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void removeMultipleFromSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
                              INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue,
                              bool const sorted)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     std::vector<T> valuesToRemove(maxInserts);
     INDEX_TYPE const nSets = array.size();
@@ -309,12 +310,12 @@ public:
       }
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void compress(ArrayOfSets<T> & array, REF_TYPE<T> const & ref)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     array.compress();
     T const * const values = array[0];
@@ -330,7 +331,7 @@ public:
       curOffset += array.sizeOfSet(i);
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void reserveSet(ArrayOfSets<T> & array, INDEX_TYPE const maxIncrease)
@@ -348,7 +349,7 @@ public:
 
   void fill(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     T const * const values = array[0];
     T const * const endValues = array[array.size() - 1];
@@ -363,12 +364,12 @@ public:
     EXPECT_EQ(values, newValues);
     EXPECT_EQ(endValues, newEndValues);
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void deepCopy(ArrayOfSets<T> const & array, REF_TYPE<T> const & ref)
   {
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
 
     ArrayOfSets<T> copy(array);
 
@@ -394,7 +395,7 @@ public:
       EXPECT_EQ(array.sizeOfSet(i), setSize);
     }
 
-    compareToReference(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(array.toViewC(), ref);
   }
 
   void shallowCopy(ArrayOfSets<T> const & array)
@@ -772,7 +773,7 @@ TYPED_TEST(ArrayOfSetsTest, stealFromSortedUnique)
   REF_TYPE<TypeParam> ref(NUM_ARRAYS);
 
   this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE);
-  compareToReference(array.toViewC(), ref);
+  COMPARE_TO_REFERENCE(array.toViewC(), ref);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedNoDuplicates)
@@ -785,7 +786,7 @@ TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedNoDuplicates)
   REF_TYPE<TypeParam> ref(NUM_ARRAYS);
 
   this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES);
-  compareToReference(array.toViewC(), ref);
+  COMPARE_TO_REFERENCE(array.toViewC(), ref);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromSortedWithDuplicates)
@@ -798,7 +799,7 @@ TYPED_TEST(ArrayOfSetsTest, stealFromSortedWithDuplicates)
   REF_TYPE<TypeParam> ref(NUM_ARRAYS);
 
   this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES);
-  compareToReference(array.toViewC(), ref);
+  COMPARE_TO_REFERENCE(array.toViewC(), ref);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedWithDuplicates)
@@ -811,7 +812,7 @@ TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedWithDuplicates)
   REF_TYPE<TypeParam> ref(NUM_ARRAYS);
 
   this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES);
-  compareToReference(array.toViewC(), ref);
+  COMPARE_TO_REFERENCE(array.toViewC(), ref);
 }
 
 // Note this is testing capabilities of the ArrayOfArrays class, howver it needs to first populate

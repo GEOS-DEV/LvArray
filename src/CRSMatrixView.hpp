@@ -364,7 +364,7 @@ public:
 #ifdef USE_ARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF( m_rowNNZ + nToAdd > m_rowCapacity, "CRSMatrixView cannot do reallocation." );
 #else
-      CXX_UTILS_DEBUG_VAR( nToAdd );
+      LVARRAY_DEBUG_VAR( nToAdd );
 #endif
       return m_crsMV.getSetValues( m_row );
     }

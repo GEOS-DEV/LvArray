@@ -322,7 +322,7 @@ struct arrayToStringHelper
   typename std::enable_if< NDIM==0, void >::type
   dimExpansion( T const * const data,
                 INDEX_TYPE const * const dims,
-                INDEX_TYPE const * const CXX_UTILS_UNUSED_ARG( strides ),
+                INDEX_TYPE const * const LVARRAY_UNUSED_ARG( strides ),
                 std::string & output )
   {
     for( INDEX_TYPE i=0 ; i<dims[0] ; ++i )
