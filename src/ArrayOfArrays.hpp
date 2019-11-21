@@ -162,6 +162,8 @@ public:
   inline
   void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
   {
+    ArrayOfArraysView< T, INDEX_TYPE >::free();
+
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfSets.hpp.
     ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
 

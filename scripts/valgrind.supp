@@ -84,6 +84,74 @@
    ...
 }
 
+################################################################################
+# Caliper suppressions
+################################################################################
+{
+   Caliper exit time invalid read.
+   Memcheck:Addr4
+   ...
+   fun:__cxa_finalize
+   obj:/*/caliper/*
+   ...
+}
+
+{
+   Caliper initialization leaks
+   Memcheck:Leak
+   ...
+   obj:/*/caliper/*
+   ...
+   fun:_dl_init
+   ...
+}
+
+################################################################################
+# MKL suppressions
+################################################################################
+{
+   MKL dynamic library leaks.
+   Memcheck:Leak
+   ...
+   fun:dlopen*
+   fun:mkl_*
+   ...
+}
+
+{
+   MKL dynamic library leaks.
+   Memcheck:Leak
+   ...
+   fun:dlopen*
+   fun:MKL_*
+   ...
+}
+
+{
+   mkl_get_max_threads
+   Memcheck:Leak
+   ...
+   fun:mkl_serv_domain_get_max_threads
+   ...
+}
+
+{
+   mkl DGETRF leak
+   Memcheck:Leak
+   ...
+   fun:mkl_serv_allocate
+   fun:DGETRF
+   ...
+}
+
+{
+   register_printf_flt128
+   Memcheck:Leak
+   ...
+   fun:register_printf_flt128
+   ...
+}
+
 
 # For blueos
 

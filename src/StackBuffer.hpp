@@ -27,6 +27,7 @@
 
 // System includes
 #include <stddef.h>
+#include <type_traits>
 
 
 namespace LvArray
@@ -35,7 +36,8 @@ namespace LvArray
 /**
  * @class StackBuffer
  * @brief This class implements the Buffer interface using a stack array.
- * @tparam T type of data that is contained in the buffer.
+ * @tparam T type of data that is contained in the buffer. T must be both
+ *         trivially copyable and trivially destructable.
  * @tparam LENGTH the length of the buffer.
  * @note Unlike the standard Buffer classes the StackBuffer does not permit
  *       making shallow copies.
@@ -45,7 +47,12 @@ template< typename T, int LENGTH >
 class StackBuffer : public bufferManipulation::VoidBuffer
 {
 public:
+  static_assert( std::is_trivially_destructible< T >::value, "The StackBuffer can only hold trivially copyable and destructable types." );
+  // static_assert( std::is_trivially_copyable< int >::value, "The StackBuffer can only hold trivially copyable and
+  // destructable types." );
+
   using value_type = T;
+  constexpr static bool hasShallowCopy = false;
 
   /**
    * @brief Constructor for creating an empty/uninitialized buffer. For the StackBuffer
@@ -55,22 +62,17 @@ public:
   {}
 
   /**
-   * @brief Reallocate the buffer to the new capacity. If the new capacity is
-   *        greater than LENGTH this method will error out.
-   * @param size the number of values that are initialized in the buffer.
-   *        values between [0, size) are destroyed.
+   * @brief Notionally this method reallocates the buffer, but since the StackBuffer
+   *        is statically sized and only holds POD types all this does is check that
+   *        newCapacity doesn't exceed LENGTH.
+   * @param size Not used.
    * @param newCapacity the new capacity of the buffer.
    */
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const LVARRAY_UNUSED_ARG( size ),
+                   std::ptrdiff_t const newCapacity )
   {
     LVARRAY_ERROR_IF_GT( newCapacity, LENGTH );
-
-    for( std::ptrdiff_t i = newCapacity ; i < size ; ++i )
-    {
-      m_data[ i ].~T();
-    }
   }
-
   /**
    * @brief Free the data in the buffer but does not destroy any values.
    *        For this class this is a no-op.
@@ -94,6 +96,13 @@ public:
   T * data() const
   {
     return const_cast< T * >( m_data );
+  }
+
+  template< typename INDEX_TYPE >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T & operator[]( INDEX_TYPE const i ) const
+  {
+    return const_cast< T * >( m_data )[ i ];
   }
 
 private:

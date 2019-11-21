@@ -29,6 +29,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <type_traits>
 
 #if defined(USE_CUDA)
   #include <cassert>
@@ -41,20 +42,20 @@
 #define STRINGIZE( A ) STRINGIZE_NX( A )
 
 // Use this to mark an unused argument and silence compiler warnings
-#define CXX_UTILS_UNUSED_ARG( X )
+#define LVARRAY_UNUSED_ARG( X )
 
 // Use this to mark an unused variable and silence compiler warnings.
-#define CXX_UTILS_UNUSED_VARIABLE( X ) ( ( void ) X )
+#define LVARRAY_UNUSED_VARIABLE( X ) ( ( void ) X )
 
 // Use this to mark a debug variable and silence compiler warnings
-#define CXX_UTILS_DEBUG_VAR( X ) CXX_UTILS_UNUSED_VARIABLE( X )
+#define LVARRAY_DEBUG_VAR( X ) LVARRAY_UNUSED_VARIABLE( X )
 
 #define LOCATION __FILE__ ":" STRINGIZE( __LINE__ )
 
 #define VA_LIST( ... ) __VA_ARGS__
 
-#define TYPEOFPTR( x ) typename std::remove_pointer< decltype(x) >::type
-#define TYPEOFREF( x ) typename std::remove_reference< decltype(x) >::type
+#define TYPEOFPTR( x ) typename std::remove_pointer< decltype( x ) >::type
+#define TYPEOFREF( x ) typename std::remove_reference< decltype( x ) >::type
 
 
 #define LVARRAY_LOG( msg ) \
@@ -75,7 +76,7 @@
 #endif
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
-  #define LVARRAY_ERROR_IF( EXP, msg ) if( EXP ) asm( "trap;" )
+  #define LVARRAY_ERROR_IF( EXP, msg ) if( EXP ) asm ( "trap;" )
   #define LVARRAY_ERROR( msg ) LVARRAY_ERROR_IF( true, msg )
   #define LVARRAY_ASSERT_MSG( EXP, msg ) ((void) 0)
   #define LVARRAY_ASSERT( EXP ) ((void) 0)

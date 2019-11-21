@@ -77,6 +77,7 @@ public:
 
   // Alias used in the bufferManipulation functions.
   using value_type = T;
+  constexpr static bool hasShallowCopy = true;
 
   /**
    * @brief Default constructor. Creates an uninitialized Buffer. An uninitialized
@@ -169,7 +170,7 @@ public:
    * @param space the space to move the Array to.
    * @param touch whether the Array should be touched in the new space or not.
    */
-  void move( chai::ExecutionSpace const space, bool const touch )
+  void move( chai::ExecutionSpace const space, bool const touch=true )
   {
 #if defined(USE_CUDA)
     if( capacity() == 0 ) return;
@@ -180,8 +181,8 @@ public:
     if( touch ) m_array.move( space );
     else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
 #else
-    CXX_UTILS_UNUSED_VARIABLE( space );
-    CXX_UTILS_UNUSED_VARIABLE( touch );
+    LVARRAY_UNUSED_VARIABLE( space );
+    LVARRAY_UNUSED_VARIABLE( touch );
 #endif
   }
 
@@ -213,7 +214,7 @@ public:
         }
       } );
 #else
-    CXX_UTILS_UNUSED_VARIABLE( name );
+    LVARRAY_UNUSED_VARIABLE( name );
 #endif
   }
 

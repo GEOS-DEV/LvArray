@@ -8,7 +8,6 @@ set(testSources
     testArrayOfSets.cpp
     testArrayUtilities.cpp
     testArrayView.cpp
-    testChaiVector.cpp
     testCRSMatrix.cpp
     testFloatingPointExceptions.cpp
     testArrayHelpers.cpp
@@ -19,6 +18,7 @@ set(testSources
     testStackArray.cpp
     testStringUtilities.cpp
     testPermutation.cpp
+    testBuffers.cpp
    )
 
 message( "cxx_dependencies = ${cxx_dependencies}" )

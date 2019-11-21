@@ -55,7 +55,7 @@ struct ConditionalMultiply< i, i >
 {
   // Use a reference here for B so that you can do multiply( 5, *nullptr ), which is use by the ArrayOfArray classes.
   template< typename A, typename B >
-  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const & CXX_UTILS_UNUSED_ARG( b ) )
+  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const & LVARRAY_UNUSED_ARG( b ) )
   {
     // assume b == 1
     return a;
@@ -76,7 +76,7 @@ multiplyAll( T const * const restrict values )
 
 template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename none = void >
 LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-INDEX_TYPE getLinearIndex( void const * const restrict CXX_UTILS_UNUSED_ARG( strides ) )
+INDEX_TYPE getLinearIndex( void const * const restrict LVARRAY_UNUSED_ARG( strides ) )
 { return 0; }
 
 template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
@@ -110,7 +110,7 @@ std::string printDimsAndIndices( INDEX_TYPE const * const restrict dims, INDEX c
 
 template< typename none = void >
 LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndices( void const * const restrict CXX_UTILS_UNUSED_ARG( dims ) )
+bool invalidIndices( void const * const restrict LVARRAY_UNUSED_ARG( dims ) )
 { return false; }
 
 
@@ -192,7 +192,7 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
 template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename ... DIMS >
 LVARRAY_HOST_DEVICE
 constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                        std::integer_sequence< INDEX_TYPE, INDEX0, INDICES... > CXX_UTILS_UNUSED_ARG( indices ),
+                                        std::integer_sequence< INDEX_TYPE, INDEX0, INDICES... > LVARRAY_UNUSED_ARG( indices ),
                                         DIM0 dim0, DIMS... dims )
 {
   m_dims[INDEX0] = dim0;
@@ -201,9 +201,9 @@ constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
 
 template< typename INDEX_TYPE, int NDIM, typename ... DIMS >
 LVARRAY_HOST_DEVICE
-constexpr static void dim_index_unpack( INDEX_TYPE CXX_UTILS_UNUSED_ARG( m_dims )[NDIM],
-                                        std::integer_sequence< INDEX_TYPE > CXX_UTILS_UNUSED_ARG( indices ),
-                                        DIMS... CXX_UTILS_UNUSED_ARG( dims ) )
+constexpr static void dim_index_unpack( INDEX_TYPE LVARRAY_UNUSED_ARG( m_dims )[NDIM],
+                                        std::integer_sequence< INDEX_TYPE > LVARRAY_UNUSED_ARG( indices ),
+                                        DIMS... LVARRAY_UNUSED_ARG( dims ) )
 {
   // terminates recursion trivially
 }

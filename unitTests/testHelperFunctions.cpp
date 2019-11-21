@@ -83,7 +83,7 @@ double of_test( double x, double y )
   return x * y;
 }
 
-double invalid_test( double CXX_UTILS_UNUSED_ARG( x ) )
+double invalid_test( double LVARRAY_UNUSED_ARG( x ) )
 {
   return std::acos(2.0);
 }

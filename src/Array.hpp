@@ -70,8 +70,8 @@ template< typename T,
 class Array : public ArrayView< T,
                      NDIM,
   getStrideOneDimension( PERMUTATION {} ),
-  INDEX_TYPE,
-  BUFFER_TYPE >
+                     INDEX_TYPE,
+                     BUFFER_TYPE >
 {
 public:
 
