@@ -403,7 +403,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks< T, INDEX_TYPE >
+  class CallBacks : public sortedArrayManipulation::CallBacks< T >
   {
 public:
 

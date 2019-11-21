@@ -255,7 +255,7 @@ private:
    * @class CallBacks
    * @brief This class provides the callbacks for the sortedArrayManipulation routines.
    */
-  class CallBacks : public sortedArrayManipulation::CallBacks< COL_TYPE, INDEX_TYPE >
+  class CallBacks : public sortedArrayManipulation::CallBacks< COL_TYPE >
   {
 public:
 
