@@ -53,19 +53,42 @@
 #endif
 
 
-#define VERBOSE_LOG( minimumVerbosity, msg )                                   \
+/**
+ * @brief Macro used to turn on/off a function based on the log level.
+ * @param[in] minLevel Minimum log level
+ * @param[in] fn Function to filter
+ */
+#define LOG_LEVEL_FN( minLevel, fn )                                           \
   do {                                                                         \
-    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
-      std::ostringstream oss;                                                  \
-      oss << msg;                                                              \
-      std::cout << oss.str() << std::endl;                                     \                                   \
+      fn;                                                                      \
     }                                                                          \
   } while( false )
 
-#define VERBOSE_LOG_RANK_0( minimumVerbosity, msg )                            \
+/**
+ * @brief Macro used to output messages based on the log level.
+ * @param[in] minLevel Minimum log level
+ * @param[in] msg Log message
+ */
+#define LOG_LEVEL( minLevel, msg )                                             \
   do {                                                                         \
-    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getLogLevel() >= minLevel )                                      \
+    {                                                                          \
+      std::ostringstream oss;                                                  \
+      oss << msg;                                                              \
+      std::cout << oss.str() << std::endl;                                     \
+    }                                                                          \
+  } while( false )
+
+/**
+ * @brief Macro used to output messages (only on rank 0) based on the log level.
+ * @param[in] minLevel Minimum log level
+ * @param[in] msg Log message
+ */
+#define LOG_LEVEL_RANK_0( minLevel, msg )                                      \
+  do {                                                                         \
+    if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
       if( logger::internal::rank == 0 )                                        \
       {                                                                        \
@@ -76,9 +99,14 @@
     }                                                                          \
   } while( false )
 
-#define VERBOSE_LOG_RANK( minimumVerbosity, msg )                              \
+/**
+ * @brief Macro used to output messages (with one line per rank) based on the log level.
+ * @param[in] minLevel Minimum log level
+ * @param[in] msg Log message
+ */
+#define LOG_LEVEL_BY_RANK( minLevel, msg )                                     \
   do {                                                                         \
-    if( this->getVerbosityLevel() >= minimumVerbosity )                       \
+    if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
       std::ostringstream oss;                                                  \
       if( logger::internal::using_cout_for_rank_stream )                       \
@@ -95,7 +123,7 @@
       {                                                                        \
         oss << msg;                                                            \
         logger::internal::rank_stream << oss.str() << std::endl;               \
-      }                                                                        \                                                                        \
+      }                                                                        \
     }                                                                          \
   } while( false )
 
