@@ -58,7 +58,7 @@
  * @param[in] minLevel Minimum log level
  * @param[in] fn Function to filter
  */
-#define LOG_LEVEL_FN( minLevel, fn )                                           \
+#define GEOS_LOG_LEVEL_FN( minLevel, fn )                                      \
   do {                                                                         \
     if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
@@ -71,7 +71,7 @@
  * @param[in] minLevel Minimum log level
  * @param[in] msg Log message
  */
-#define LOG_LEVEL( minLevel, msg )                                             \
+#define GEOS_LOG_LEVEL( minLevel, msg )                                        \
   do {                                                                         \
     if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
@@ -86,7 +86,7 @@
  * @param[in] minLevel Minimum log level
  * @param[in] msg Log message
  */
-#define LOG_LEVEL_RANK_0( minLevel, msg )                                      \
+#define GEOS_LOG_LEVEL_RANK_0( minLevel, msg )                                 \
   do {                                                                         \
     if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
@@ -104,7 +104,7 @@
  * @param[in] minLevel Minimum log level
  * @param[in] msg Log message
  */
-#define LOG_LEVEL_BY_RANK( minLevel, msg )                                     \
+#define GEOS_LOG_LEVEL_BY_RANK( minLevel, msg )                                \
   do {                                                                         \
     if( this->getLogLevel() >= minLevel )                                      \
     {                                                                          \
