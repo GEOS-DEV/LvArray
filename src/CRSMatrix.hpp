@@ -36,7 +36,7 @@ namespace LvArray
  * @class CRSMatrix
  * @brief This class implements a compressed row storage matrix.
  */
-template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
+template< class T, class COL_TYPE=int, class INDEX_TYPE=std::ptrdiff_t >
 class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE >
 {
 public:
@@ -48,6 +48,7 @@ public:
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::empty;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getColumns;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getOffsets;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewC;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewCC;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toSparsityPatternView;
@@ -56,6 +57,9 @@ public:
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZeros;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::removeNonZero;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::removeNonZeros;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::removeNonZerosSorted;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::setValues;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::addToRow;
 
   /**
    * @brief Constructor.
@@ -63,10 +67,12 @@ public:
    * @param [in] ncols the number of columns in the matrix.
    * @param [in] initialRowCapacity the initial non zero capacity of each row.
    */
-  CRSMatrix( INDEX_TYPE nrows, INDEX_TYPE ncols, INDEX_TYPE initialRowCapacity=0 ):
+  CRSMatrix( INDEX_TYPE const nrows=0,
+             INDEX_TYPE const ncols=0,
+             INDEX_TYPE const initialRowCapacity=0 ):
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE >()
   {
-    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::resize( nrows, ncols, initialRowCapacity, m_entries );
+    resize( nrows, ncols, initialRowCapacity );
     setName( "" );
   }
 
@@ -145,7 +151,7 @@ public:
   inline
   CRSMatrix & operator=( CRSMatrix const & src ) restrict_this
   {
-    m_num_columns = src.m_num_columns;
+    m_numCols = src.m_numCols;
     internal::PairOfBuffers< T > entriesPair( m_entries, src.m_entries );
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_numArrays,
                                                              src.m_offsets[ src.m_numArrays ],
@@ -179,7 +185,7 @@ public:
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space, m_entries ); }
 
   /**
-   * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
+   * @brief Reserve space to hold at least the given total number of non zero entries.
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
@@ -189,8 +195,7 @@ public:
   }
 
   /**
-   * @brief Reserve space to hold at least the given number of non zero entries in the given row without
-   * either reallocation or shifting the row offsets.
+   * @brief Reserve space to hold at least the given number of non zero entries in the given row.
    * @param [in] row the row to reserve space in.
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
@@ -260,10 +265,38 @@ public:
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity, m_entries );
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity, m_entries );
   }
 
+  /**
+   * @brief Compress the CRSMatrix so that the non-zeros and values of each row
+   *        are contiguous with no extra capacity in between.
+   * @note This method doesn't free any memory.
+   */
+  inline
+  void compress() restrict_this
+  { CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::compress( m_entries ); }
 
+  /**
+   * @brief Set the dimensions of the matrix.
+   * @param [in] nRows the new number of rows.
+   * @param [in] nCols the new number of columns.
+   * @param [in] defaultSetCapacity the default capacity for each new array.
+   * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
+   *       This can leave the matrix in an invalid state where a row has more columns than the matrix
+   *       or where a specific column is greater than the number of columns in the matrix.
+   *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
+   * TODO: Add tests.
+   */
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) restrict_this
+  { 
+    CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity, m_entries );
+  }
+
+  /**
+   * @brief Set the name associated with this CRSMatrix which is used in the chai callback.
+   * @param name the of the CRSMatrix.
+   */
   void setName( std::string const & name )
   {
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::template setName< decltype( *this ) >( name );
@@ -376,7 +409,7 @@ private:
   };
 
   // Aliasing protected members of CRSMatrixView.
-  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_numCols;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_offsets;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_sizes;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::m_values;

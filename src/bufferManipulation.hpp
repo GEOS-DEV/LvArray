@@ -31,6 +31,8 @@
 // System includes
 #include <utility>
 
+namespace LvArray
+{
 namespace bufferManipulation
 {
 
@@ -391,9 +393,7 @@ void copyInto( DST_BUFFER & dst,
   }
 }
 
-
 } // namespace bufferManipulations
-
-
+} // namespace LvArray
 
 #endif /* BUFFER_MANIPULATION_HPP_ */

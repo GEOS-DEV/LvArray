@@ -34,6 +34,8 @@
 // System includes
 #include <cstdlib>      // for malloc / free.
 
+namespace LvArray
+{
 namespace sortedArrayManipulation
 {
 
@@ -917,5 +919,6 @@ std::ptrdiff_t insert( T const * const restrict ptr,
 }
 
 } // namespace sortedArrayManipulation
+} // namespace LvArray
 
 #endif // SORTEDARRAYMANIPULATION_HPP_

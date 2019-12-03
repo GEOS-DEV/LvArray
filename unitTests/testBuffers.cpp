@@ -726,7 +726,7 @@ TYPED_TEST( BufferTestWithRealloc, combination )
 }
 
 
-// To do:
+// TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
 // Move tests with ChaiBuffer
 // Copy-capture tests with ChaiBuffer

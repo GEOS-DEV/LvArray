@@ -45,6 +45,8 @@
 
 #endif // USE_ARRAY_BOUNDS_CHECK
 
+namespace LvArray
+{
 namespace arrayManipulation
 {
 
@@ -516,5 +518,6 @@ void popBack( T * const restrict ptr,
 }
 
 } // namespace arrayManipulation
+} // namespace LvArray
 
 #endif /* ARRAYMANIPULATION_HPP_ */

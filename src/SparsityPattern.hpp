@@ -34,7 +34,7 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template< class COL_TYPE=unsigned int, typename INDEX_TYPE=std::ptrdiff_t >
+template< class COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
 class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
 public:
@@ -60,10 +60,12 @@ public:
    * @param [in] initialRowCapacity the initial non zero capacity of each row.
    */
   inline
-  SparsityPattern( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE initialRowCapacity=0 ) restrict_this:
+  SparsityPattern( INDEX_TYPE const nrows=0,
+                   INDEX_TYPE const ncols=0,
+                   INDEX_TYPE initialRowCapacity=0 ) restrict_this:
     SparsityPatternView< COL_TYPE, INDEX_TYPE >()
   {
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::resize( nrows, ncols, initialRowCapacity );
+    resize( nrows, ncols, initialRowCapacity );
     setName( "" );
   }
 
@@ -123,7 +125,7 @@ public:
   inline
   SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
   {
-    m_num_columns = src.m_num_columns;
+    m_numCols = src.m_numCols;
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_numArrays,
                                                              src.m_offsets[ src.m_numArrays ],
                                                              src.m_offsets,
@@ -199,6 +201,22 @@ public:
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::compress(); }
 
   /**
+   * @brief Set the dimensions of the matrix.
+   * @param [in] nRows the new number of rows.
+   * @param [in] nCols the new number of columns.
+   * @param [in] defaultSetCapacity the default capacity for each new array.
+   * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
+   *       This can leave the matrix in an invalid state where a row has more columns than the matrix
+   *       or where a specific column is greater than the number of columns in the matrix.
+   *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
+   * TODO: Add tests.
+   */
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) restrict_this
+  { 
+    SparsityPatternView< COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity );
+  }
+
+  /**
    * @brief Insert a non zero entry in the entry (row, col).
    * @param [in] row the row of the entry to insert.
    * @param [in] col the column of the entry to insert.
@@ -233,6 +251,10 @@ public:
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
+  /**
+   * @brief Set the name associated with this SparsityPattern which is used in the chai callback.
+   * @param name the of the SparsityPattern.
+   */
   void setName( std::string const & name )
   {
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::template setName< decltype( *this ) >( name );
@@ -298,7 +320,7 @@ private:
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_numCols;
 };
 
 } /* namespace LvArray */

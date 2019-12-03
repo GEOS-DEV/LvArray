@@ -19,7 +19,15 @@
 #ifndef TEST_UTILS_HPP_
 #define TEST_UTILS_HPP_
 
+// Source includes
 #include "CXX_UtilsConfig.hpp"
+#include "Macros.hpp"
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
+#include <gtest/gtest.h>
+
+// System includes
 #include <string>
 #include <ostream>
 
@@ -30,6 +38,62 @@
   TEST(X, Y) { cuda_test_##X##Y(); } \
   static void cuda_test_##X##Y()
 
+#endif
+
+namespace LvArray
+{
+namespace testing
+{
+
+template< typename >
+struct RAJAHelper
+{};
+
+using serialPolicy = RAJA::loop_exec;
+
+template<>
+struct RAJAHelper< serialPolicy >
+{
+  using ReducePolicy = RAJA::seq_reduce;
+  using AtomicPolicy = RAJA::seq_atomic;
+};
+
+#if defined(USE_OPENMP)
+
+using parallelHostPolicy = RAJA::omp_parallel_for_exec;
+
+template<>
+struct RAJAHelper< parallelHostPolicy >
+{
+  using ReducePolicy = RAJA::omp_reduce;
+  using AtomicPolicy = RAJA::builtin_atomic;
+};
+
+#endif
+
+#if defined(USE_CUDA)
+
+using parallelDevicePolicy = RAJA::cuda_exec< 256 >;
+
+template<>
+struct RAJAHelper< parallelDevicePolicy >
+{
+  using ReducePolicy = RAJA::cuda_reduce;
+  using AtomicPolicy = RAJA::cuda_atomic;
+};
+
+#endif
+
+template< typename POLICY, typename INDEX_TYPE, typename LAMBDA >
+inline void forall( INDEX_TYPE const max, LAMBDA && body )
+{
+  RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, max ), std::forward< LAMBDA >( body ) );
+}
+
+#ifndef __CUDA_ARCH__
+  #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#else
+  #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #endif
 
 // Comparator that compares a std::pair by it's first object.
@@ -47,7 +111,7 @@ struct PairComp {
  * @class TestString
  * @brief A wrapper around std::string that adds a constructor that takes a number
  *        and converts it to a string. Used for testing purposes.
- * @note The default constructors, destructor, and operator are implemented here
+ * * @note The default constructors, destructor, and operator are implemented here
  *       because otherwise nvcc will complain about host-device errors.
  */
 class TestString
@@ -58,8 +122,8 @@ public:
     TestString(0)
   {}
 
-  template <class T=int>
-  TestString(T val=0) :
+  template <class T>
+  TestString(T val) :
     m_string( std::to_string( val ) +
               std::string( " The rest of this is to avoid any small string optimizations. " ) +
               std::to_string( 2 * val ) )
@@ -76,16 +140,20 @@ public:
   ~TestString()
   {}
 
-  TestString & operator=( TestString const & src )
+  void operator=( TestString const & src )
   { 
     m_string = src.m_string;
-    return *this;
   }
 
-  TestString & operator=( TestString && src )
+  void operator=( TestString && src )
   { 
     m_string = std::move( src.m_string );
-    return *this;
+  }
+
+  void operator+=( TestString const & other )
+  {
+    long newVal = getValue() + other.getValue();
+    *this = TestString( newVal );
   }
 
   bool operator==( TestString const & rhs ) const
@@ -182,6 +250,7 @@ private:
   double m_x, m_y, m_z;
 };
 
-
+} // namespace testing
+} // namespace LvArray
 
 #endif // TEST_UTILS_HPP_

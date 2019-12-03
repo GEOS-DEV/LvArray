@@ -36,6 +36,8 @@
 
 namespace LvArray
 {
+namespace testing
+{
 
 using INDEX_TYPE = std::ptrdiff_t;
 
@@ -118,11 +120,9 @@ class ArrayOfSetsTest : public ::testing::Test
 {
 public:
 
-  void appendSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                 INDEX_TYPE const nSets, INDEX_TYPE const maxInserts,
-                 INDEX_TYPE const maxValue)
+  void appendSet(INDEX_TYPE const nSets, INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
     std::vector<T> arrayToAppend(maxInserts);
 
@@ -136,20 +136,18 @@ public:
         arrayToAppend[j] = T(rand(0, maxValue));
       }
 
-      array.appendSet(nValues);
-      EXPECT_EQ(nValues, array.capacityOfSet(array.size() - 1));
-      array.insertIntoSet(array.size() - 1, arrayToAppend.data(), arrayToAppend.size());
-      ref.push_back(std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
+      m_array.appendSet(nValues);
+      EXPECT_EQ(nValues, m_array.capacityOfSet(m_array.size() - 1));
+      m_array.insertIntoSet(m_array.size() - 1, arrayToAppend.data(), arrayToAppend.size());
+      m_ref.push_back(std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void insertSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                 INDEX_TYPE const nSets, INDEX_TYPE const maxInserts,
-                 INDEX_TYPE const maxValue)
+  void insertSet(INDEX_TYPE const nSets, INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
     std::vector<T> arrayToAppend(maxInserts);
 
@@ -163,50 +161,58 @@ public:
         arrayToAppend[j] = T(rand(0, maxValue));
       }
 
-      INDEX_TYPE insertPos = rand(0, array.size());
+      INDEX_TYPE insertPos = rand(0, m_array.size());
 
-      array.insertSet(insertPos, nValues);
-      EXPECT_EQ(nValues, array.capacityOfSet(insertPos));
+      m_array.insertSet(insertPos, nValues);
+      EXPECT_EQ(nValues, m_array.capacityOfSet(insertPos));
 
-      array.insertIntoSet(insertPos, arrayToAppend.data(), arrayToAppend.size());
-      ref.insert(ref.begin() + insertPos, std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
+      m_array.insertIntoSet(insertPos, arrayToAppend.data(), arrayToAppend.size());
+      m_ref.insert(m_ref.begin() + insertPos, std::set<T>(arrayToAppend.begin(), arrayToAppend.end()));
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void eraseSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                INDEX_TYPE const nSets)
+  void eraseSet(INDEX_TYPE const nSets)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
-      INDEX_TYPE const removePos = rand(0, array.size() -1);
-      array.eraseSet(removePos);
-      ref.erase(ref.begin() + removePos);
+      INDEX_TYPE const removePos = rand(0, m_array.size() -1);
+      m_array.eraseSet(removePos);
+      m_ref.erase(m_ref.begin() + removePos);
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void resize(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
+  void resize( INDEX_TYPE const newSize, INDEX_TYPE const capacityPerSet=0 )
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const newSize = rand(0, 2 * array.size());
-    array.resize(newSize);
-    ref.resize(newSize);
+    m_array.resize(newSize, capacityPerSet);
+    m_ref.resize(newSize);
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void insertIntoSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                     INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
+  void resize()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const newSize = rand(0, 2 * m_array.size());
+    m_array.resize(newSize);
+    m_ref.resize(newSize);
+
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
+  }
+
+  void insertIntoSet(INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
+  {
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
+
+    INDEX_TYPE const nSets = m_array.size();
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
       INDEX_TYPE const nValues = rand(0, maxInserts);
@@ -214,21 +220,19 @@ public:
       for (INDEX_TYPE j = 0; j < nValues; ++j)
       {
         T const value = T(rand(0, maxValue));
-        EXPECT_EQ(array.insertIntoSet(i, value), ref[i].insert(value).second);
+        EXPECT_EQ(m_array.insertIntoSet(i, value), m_ref[i].insert(value).second);
       }
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void insertMultipleIntoSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                             INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue,
-                             bool const sorted)
+  void insertMultipleIntoSet(INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue, bool const sorted)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
     std::vector<T> valuesToInsert(maxInserts);
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
 
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
@@ -244,25 +248,24 @@ public:
       if (sorted)
       {
         std::sort(valuesToInsert.begin(), valuesToInsert.end());
-        numInserted = array.insertSortedIntoSet(i, valuesToInsert.data(), valuesToInsert.size());
+        numInserted = m_array.insertSortedIntoSet(i, valuesToInsert.data(), valuesToInsert.size());
       }
       else
       {
-        numInserted = array.insertIntoSet(i, valuesToInsert.data(), valuesToInsert.size());
+        numInserted = m_array.insertIntoSet(i, valuesToInsert.data(), valuesToInsert.size());
       }
 
-      EXPECT_EQ(numInserted, insertIntoRef(ref[i], valuesToInsert));
+      EXPECT_EQ(numInserted, insertIntoRef(m_ref[i], valuesToInsert));
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void removeFromSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                     INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
+  void removeFromSet(INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
       INDEX_TYPE const nValues = rand(0, maxInserts);
@@ -270,21 +273,19 @@ public:
       for (INDEX_TYPE j = 0; j < nValues; ++j)
       {
         T const value = T(rand(0, maxValue));
-        EXPECT_EQ(array.removeFromSet(i, value), ref[i].erase(value));
+        EXPECT_EQ(m_array.removeFromSet(i, value), m_ref[i].erase(value));
       }
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void removeMultipleFromSet(ArrayOfSets<T> & array, REF_TYPE<T> & ref,
-                             INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue,
-                             bool const sorted)
+  void removeMultipleFromSet(INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue, bool const sorted)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
     std::vector<T> valuesToRemove(maxInserts);
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
 
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
@@ -296,145 +297,139 @@ public:
       {
         T const value(rand(0, maxValue));
         valuesToRemove[j] = value;
-        numRemovedFromRef += ref[i].erase(value);
+        numRemovedFromRef += m_ref[i].erase(value);
       }
 
       if (sorted)
       {
         std::sort(valuesToRemove.begin(), valuesToRemove.end());
-        EXPECT_EQ(array.removeSortedFromSet(i, valuesToRemove.data(), valuesToRemove.size()), numRemovedFromRef);
+        EXPECT_EQ(m_array.removeSortedFromSet(i, valuesToRemove.data(), valuesToRemove.size()), numRemovedFromRef);
       }
       else
       {
-        EXPECT_EQ(array.removeFromSet(i, valuesToRemove.data(), valuesToRemove.size()), numRemovedFromRef);
+        EXPECT_EQ(m_array.removeFromSet(i, valuesToRemove.data(), valuesToRemove.size()), numRemovedFromRef);
       }
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void compress(ArrayOfSets<T> & array, REF_TYPE<T> const & ref)
+  void compress()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    array.compress();
-    T const * const values = array[0];
+    m_array.compress();
+    T const * const values = m_array[0];
 
     INDEX_TYPE curOffset = 0;
-    for (INDEX_TYPE i = 0; i < array.size(); ++i)
+    for (INDEX_TYPE i = 0; i < m_array.size(); ++i)
     {
-      EXPECT_EQ(array.sizeOfSet(i), array.capacityOfSet(i));
+      EXPECT_EQ(m_array.sizeOfSet(i), m_array.capacityOfSet(i));
 
-      T const * const curValues = array[i];
+      T const * const curValues = m_array[i];
       EXPECT_EQ(values + curOffset, curValues);
 
-      curOffset += array.sizeOfSet(i);
+      curOffset += m_array.sizeOfSet(i);
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void reserveSet(ArrayOfSets<T> & array, INDEX_TYPE const maxIncrease)
+  void reserveSet(INDEX_TYPE const maxIncrease)
   {
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
       INDEX_TYPE const increment = rand(-maxIncrease, maxIncrease);
-      INDEX_TYPE const newCapacity = std::max(INDEX_TYPE(0), array.sizeOfSet(i) + increment);
+      INDEX_TYPE const newCapacity = std::max(INDEX_TYPE(0), m_array.sizeOfSet(i) + increment);
       
-      array.reserveCapacityOfSet(i, newCapacity);
-      ASSERT_GE(array.capacityOfSet(i), newCapacity);
+      m_array.reserveCapacityOfSet(i, newCapacity);
+      ASSERT_GE(m_array.capacityOfSet(i), newCapacity);
     }
   }
 
-  void fill(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
+  void fill()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    T const * const values = array[0];
-    T const * const endValues = array[array.size() - 1];
+    T const * const values = m_array[0];
+    T const * const endValues = m_array[m_array.size() - 1];
 
-    for (INDEX_TYPE i = 0; i < array.size(); ++i)
+    for (INDEX_TYPE i = 0; i < m_array.size(); ++i)
     {
-      fillSet(array, ref, i);
+      fillSet(i);
     }
 
-    T const * const newValues = array[0];
-    T const * const newEndValues = array[array.size() - 1];
-    EXPECT_EQ(values, newValues);
-    EXPECT_EQ(endValues, newEndValues);
+    EXPECT_EQ(m_array[0], values);
+    EXPECT_EQ(m_array[m_array.size() - 1], endValues);
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void deepCopy(ArrayOfSets<T> const & array, REF_TYPE<T> const & ref)
+  void deepCopy()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    ArrayOfSets<T> copy(array);
+    ArrayOfSets<T> copy(m_array);
 
-    EXPECT_EQ(array.size(), copy.size());
+    EXPECT_EQ(m_array.size(), copy.size());
 
-    for (INDEX_TYPE i = 0; i < array.size(); ++i)
+    for (INDEX_TYPE i = 0; i < m_array.size(); ++i)
     {
-      INDEX_TYPE const setSize = array.sizeOfSet(i);
+      INDEX_TYPE const setSize = m_array.sizeOfSet(i);
       EXPECT_EQ(setSize, copy.sizeOfSet(i));
       
-      T const * const values = array[i];
+      T const * const values = m_array[i];
       T const * const valuesCopy = copy[i];
       ASSERT_NE(values, valuesCopy);
 
       for (INDEX_TYPE j = setSize -1; j >= 0; --j)
       {
-        T const val = array(i, j);
+        T const val = m_array(i, j);
         EXPECT_EQ(val, copy(i, j));
         copy.removeFromSet(i, val);
       }
 
       EXPECT_EQ(copy.sizeOfSet(i), 0);
-      EXPECT_EQ(array.sizeOfSet(i), setSize);
+      EXPECT_EQ(m_array.sizeOfSet(i), setSize);
     }
 
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void shallowCopy(ArrayOfSets<T> const & array)
+  void shallowCopy()
   {
-    ViewType<T> const copy(array.toView());
+    ViewType<T> const copy(m_array.toView());
 
-    EXPECT_EQ(array.size(), copy.size());
+    EXPECT_EQ(m_array.size(), copy.size());
 
-    for (INDEX_TYPE i = 0; i < array.size(); ++i)
+    for (INDEX_TYPE i = 0; i < m_array.size(); ++i)
     {
-      INDEX_TYPE const setSize = array.sizeOfSet(i);
+      INDEX_TYPE const setSize = m_array.sizeOfSet(i);
       EXPECT_EQ(setSize, copy.sizeOfSet(i));
 
-      T const * const values = array[i];
+      T const * const values = m_array[i];
       T const * const valuesCopy = copy[i];
       EXPECT_EQ(values, valuesCopy);
 
       for (INDEX_TYPE j = setSize -1; j >= 0; --j)
       {
-        EXPECT_EQ(j, array.sizeOfSet(i) - 1);
+        EXPECT_EQ(j, m_array.sizeOfSet(i) - 1);
         EXPECT_EQ(j, copy.sizeOfSet(i) - 1);
 
-        T const val = array(i, j);
+        T const val = m_array(i, j);
         EXPECT_EQ(val, copy(i, j));
         copy.removeFromSet(i, val);
       }
 
       EXPECT_EQ(copy.sizeOfSet(i), 0);
-      EXPECT_EQ(array.sizeOfSet(i), 0);
+      EXPECT_EQ(m_array.sizeOfSet(i), 0);
     }
   }
 
-  void stealFrom(ArrayOfSets<T> & array,
-                 REF_TYPE<T> & ref,
-                 INDEX_TYPE const maxValue,
-                 INDEX_TYPE const maxInserts,
-                 sortedArrayManipulation::Description const desc)
+  void stealFrom(INDEX_TYPE const maxValue, INDEX_TYPE const maxInserts, sortedArrayManipulation::Description const desc)
   {
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     ArrayOfArrays<T> arrayToSteal(nSets);
 
     for (INDEX_TYPE i = 0; i < nSets; ++i)
@@ -444,7 +439,7 @@ public:
       for (INDEX_TYPE j = 0; j < nValues; ++j)
       {
         T const value = T(rand(0, maxValue));
-        bool const insertSuccess = ref[i].insert(value).second;
+        bool const insertSuccess = m_ref[i].insert(value).second;
 
         if (sortedArrayManipulation::isUnique(desc))
         {
@@ -466,34 +461,33 @@ public:
       }
     }
 
-    array.stealFrom(std::move(arrayToSteal), desc);
+    m_array.stealFrom(std::move(arrayToSteal), desc);
+
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
 protected:
 
-  void fillSet(ViewType<T> const & array, REF_TYPE<T> & ref, INDEX_TYPE const i)
+  void fillSet(INDEX_TYPE const i)
   {
-    INDEX_TYPE const setSize = array.sizeOfSet(i);
-    INDEX_TYPE const setCapacity = array.capacityOfSet(i);
+    INDEX_TYPE const setSize = m_array.sizeOfSet(i);
+    INDEX_TYPE const setCapacity = m_array.capacityOfSet(i);
     INDEX_TYPE nToInsert = setCapacity - setSize;
     
-    T const * const values = array[i];
-    T const * const endValues = array[array.size() - 1];
+    T const * const values = m_array[i];
+    T const * const endValues = m_array[m_array.size() - 1];
 
     while (nToInsert > 0)
     {
       T const testValue = T(rand(0, 2 * setCapacity));
-      bool const inserted = array.insertIntoSet(i, testValue);
-      EXPECT_EQ(inserted, ref[i].insert(testValue).second);
+      bool const inserted = m_array.insertIntoSet(i, testValue);
+      EXPECT_EQ(inserted, m_ref[i].insert(testValue).second);
       nToInsert -= inserted;
     }
 
-    T const * const newValues = array[i];
-    T const * const newEndValues = array[array.size() - 1];
-    INDEX_TYPE const endCapacity = array.capacityOfSet(i);
-    ASSERT_EQ(values, newValues);
-    ASSERT_EQ(endValues, newEndValues);
-    ASSERT_EQ(setCapacity, endCapacity);
+    ASSERT_EQ(m_array[i], values);
+    ASSERT_EQ(m_array[m_array.size() - 1], endValues);
+    ASSERT_EQ(setCapacity, m_array.capacityOfSet(i));
   }
 
   INDEX_TYPE rand(INDEX_TYPE const min, INDEX_TYPE const max)
@@ -502,348 +496,221 @@ protected:
   }
 
   static constexpr INDEX_TYPE LARGE_NUMBER = 1E6;
+
+  ArrayOfSets< T > m_array;
+
+  std::vector< std::set< T > > m_ref;
+
   std::mt19937_64 m_gen;
 };
 
 using TestTypes = ::testing::Types<INDEX_TYPE, Tensor, TestString>;
 TYPED_TEST_CASE(ArrayOfSetsTest, TestTypes);
 
-TYPED_TEST(ArrayOfSetsTest, construction)
+INDEX_TYPE const DEFAULT_MAX_INSERTS = 25;
+INDEX_TYPE const DEFAULT_MAX_VALUE = 2 * DEFAULT_MAX_INSERTS;
+
+TYPED_TEST(ArrayOfSetsTest, emptyConstruction)
 {
-  // Test empty construction
+  ArrayOfSets<TypeParam> a;
+  ASSERT_EQ(a.size(), 0);
+  ASSERT_EQ(a.capacity(), 0);
+}
+
+TYPED_TEST(ArrayOfSetsTest, sizedConstruction)
+{
+  ArrayOfSets<TypeParam> a(10);
+  ASSERT_EQ(a.size(), 10);
+  ASSERT_EQ(a.capacity(), 10);
+
+  for (INDEX_TYPE i = 0; i < a.size(); ++i)
   {
-    ArrayOfSets<TypeParam> a;
-    ASSERT_EQ(a.size(), 0);
-    ASSERT_EQ(a.capacity(), 0);
+    ASSERT_EQ(a.sizeOfSet(i), 0);
+    ASSERT_EQ(a.capacityOfSet(i), 0);
   }
+}
 
-  // Test construction with number of arrays
+TYPED_TEST(ArrayOfSetsTest, sizedHintConstruction)
+{
+  ArrayOfSets<TypeParam> a(10, 20);
+  ASSERT_EQ(a.size(), 10);
+  ASSERT_EQ(a.capacity(), 10);
+
+  for (INDEX_TYPE i = 0; i < a.size(); ++i)
   {
-    ArrayOfSets<TypeParam> a(10);
-    ASSERT_EQ(a.size(), 10);
-    ASSERT_EQ(a.capacity(), 10);
-
-    for (INDEX_TYPE i = 0; i < a.size(); ++i)
-    {
-      ASSERT_EQ(a.sizeOfSet(i), 0);
-      ASSERT_EQ(a.capacityOfSet(i), 0);
-    }
-  }
-
-  // Test construction with a number of arrays and a hint
-  {
-    ArrayOfSets<TypeParam> a(10, 20);
-    ASSERT_EQ(a.size(), 10);
-    ASSERT_EQ(a.capacity(), 10);
-
-    for (INDEX_TYPE i = 0; i < a.size(); ++i)
-    {
-      ASSERT_EQ(a.sizeOfSet(i), 0);
-      ASSERT_EQ(a.capacityOfSet(i), 20);
-    }
+    ASSERT_EQ(a.sizeOfSet(i), 0);
+    ASSERT_EQ(a.capacityOfSet(i), 20);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, appendSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array;
-  REF_TYPE<TypeParam> ref;
-  this->appendSet(array, ref, NUM_ARRAYS, MAX_INSERTS, MAX_VALUE);
+  this->appendSet(50, DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
 }
 
 TYPED_TEST(ArrayOfSetsTest, insertSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array;
-  REF_TYPE<TypeParam> ref;
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertSet(array, ref, NUM_ARRAYS, MAX_INSERTS, MAX_VALUE);
+    this->insertSet(50, DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, eraseArray)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array;
-  REF_TYPE<TypeParam> ref;
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->appendSet(array, ref, NUM_ARRAYS, MAX_INSERTS, MAX_VALUE);
-    this->eraseSet(array, ref, array.size() / 2);
+    this->appendSet(50, DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->eraseSet(this->m_array.size() / 2);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, resize)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array;
-  REF_TYPE<TypeParam> ref;
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertSet(array, ref, NUM_ARRAYS, MAX_INSERTS, MAX_VALUE);
-    this->resize(array, ref);
+    this->insertSet(50, DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->resize();
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, insertIntoSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, insertMultipleIntoSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertMultipleIntoSet(array, ref, MAX_INSERTS, MAX_VALUE, false);
+    this->insertMultipleIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, false);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, insertMultipleIntoSetSorted)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertMultipleIntoSet(array, ref, MAX_INSERTS, MAX_VALUE, true);
+    this->insertMultipleIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, true);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, removeFromSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    this->removeFromSet(array, ref, MAX_INSERTS, MAX_VALUE);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeFromSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, removeMultipleFromSet)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    this->removeMultipleFromSet(array, ref, MAX_INSERTS, MAX_VALUE, false);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeMultipleFromSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, false);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, removeMultipleFromSetSorted)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    this->removeMultipleFromSet(array, ref, MAX_INSERTS, MAX_VALUE, true);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeMultipleFromSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, true);
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, compress)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    this->compress(array, ref);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->compress();
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, capacity)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INCREASE = 50;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->reserveSet(array, MAX_INCREASE);
-    this->fill(array, ref);
+    this->reserveSet(50);
+    this->fill();
   }
 }
 
 TYPED_TEST(ArrayOfSetsTest, deepCopy)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-  this->deepCopy(array, ref);
+  this->resize( 50 );
+  this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+  this->deepCopy();
 }
 
 TYPED_TEST(ArrayOfSetsTest, shallowCopy)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-  this->shallowCopy(array);
+  this->resize( 50 );
+  this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+  this->shallowCopy();
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromSortedUnique)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE);
-  COMPARE_TO_REFERENCE(array.toViewC(), ref);
+  this->resize( 50 );
+  this->stealFrom( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedNoDuplicates)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES);
-  COMPARE_TO_REFERENCE(array.toViewC(), ref);
+  this->resize( 50 );
+  this->stealFrom(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromSortedWithDuplicates)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES);
-  COMPARE_TO_REFERENCE(array.toViewC(), ref);
+  this->resize( 50 );
+  this->stealFrom(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES);
 }
 
 TYPED_TEST(ArrayOfSetsTest, stealFromUnsortedWithDuplicates)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-
-  this->stealFrom(array, ref, MAX_INSERTS, MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES);
-  COMPARE_TO_REFERENCE(array.toViewC(), ref);
+  this->resize( 50 );
+  this->stealFrom(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_WITH_DUPLICATES);
 }
 
-// Note this is testing capabilities of the ArrayOfArrays class, howver it needs to first populate
+// Note this is testing capabilities of the ArrayOfArrays class, however it needs to first populate
 // the ArrayOfSets so it involves less code duplication to put it here.
 TYPED_TEST(ArrayOfSetsTest, ArrayOfArraysStealFrom)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-
   ArrayOfArrays<TypeParam> array;
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
   
-  {
-    ArrayOfSets<TypeParam> arrayToStealFrom(NUM_ARRAYS);
-    this->insertIntoSet(arrayToStealFrom, ref, MAX_INSERTS, MAX_VALUE);
-    array.stealFrom(std::move(arrayToStealFrom));
-  }
+  this->resize( 50 );
+  this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
+  array.stealFrom(std::move(this->m_array));
 
-  ASSERT_EQ(array.size(), ref.size());
+  ASSERT_EQ(array.size(), this->m_ref.size());
   
   for (INDEX_TYPE i = 0; i < array.size(); ++i)
   {
-    ASSERT_EQ(array.sizeOfArray(i), ref[i].size());
+    ASSERT_EQ(array.sizeOfArray(i), this->m_ref[i].size());
 
-    typename std::set<TypeParam>::iterator it = ref[i].begin();
+    typename std::set<TypeParam>::iterator it = this->m_ref[i].begin();
     for (INDEX_TYPE j = 0; j < array.sizeOfArray(i); ++j)
     {
       EXPECT_EQ(array[i][j], *it++);
     }
-    EXPECT_EQ(it, ref[i].end());
+    EXPECT_EQ(it, this->m_ref[i].end());
   }
 }
 
@@ -857,15 +724,15 @@ class ArrayOfSetsCudaTest : public ArrayOfSetsTest<T>
 {
 public:
 
-  void memoryMotion(ViewType<T> const & view, REF_TYPE<T> & ref)
+  void memoryMotion()
   {
-    COMPARE_TO_REFERENCE(view.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = view.size();
+    INDEX_TYPE const nSets = m_array.size();
     
     // Update the view on the device.
     forall(gpu(), 0, nSets,
-      [view] __device__ (INDEX_TYPE i)
+      [view = m_array.toView()] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfSet = view.sizeOfSet(i);
         for (INDEX_TYPE j = 0; j < sizeOfSet; ++j)
@@ -882,23 +749,23 @@ public:
 
     // Move the view back to the host and compare with the reference.
     forall(sequential(), 0, 1,
-      [view, &ref] (INDEX_TYPE)
+      [view = m_array.toView(), this] (INDEX_TYPE)
       {
-        COMPARE_TO_REFERENCE(view.toViewC(), ref);
+        COMPARE_TO_REFERENCE(view.toViewC(), m_ref);
       }
     );
   }
 
-  void memoryMotionMove(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
+  void memoryMotionMove()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     
     // Update the view on the device.
-    array.move(chai::GPU);
+    m_array.move(chai::GPU);
     forall(gpu(), 0, nSets,
-      [view=array.toView()] __device__ (INDEX_TYPE i)
+      [view=m_array.toView()] __device__ (INDEX_TYPE i)
       {
         INDEX_TYPE const sizeOfSet = view.sizeOfSet(i);
         for (INDEX_TYPE j = 0; j < sizeOfSet; ++j)
@@ -914,23 +781,23 @@ public:
     );
 
     // Move the view back to the host and compare with the reference.
-    array.move(chai::CPU);
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    m_array.move(chai::CPU);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void insertDevice(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
+  void insertDevice()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     Array1D<Array1D<T>> valuesToInsert(nSets);
 
     // Populate the valuesToInsert array and append the values to the reference.
-    populateValuesToInsert(array, ref, valuesToInsert, false);
+    populateValuesToInsert(valuesToInsert, false);
 
     // Append to the view on the device.
     forall(gpu(), 0, nSets,
-      [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
+      [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
       {
         for (INDEX_TYPE j = 0; j < toInsert[i].size(); ++j)
         {
@@ -940,25 +807,25 @@ public:
     );
 
     // Move the view back to the host and compare with the reference.
-    array.move(chai::CPU);
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    m_array.move(chai::CPU);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void insertMultipleDevice(ArrayOfSets<T> & array, REF_TYPE<T> & ref, bool const sorted)
+  void insertMultipleDevice(bool const sorted)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     Array1D<Array1D<T>> valuesToInsert(nSets);
 
     // Populate the valuesToInsert array and append the values to the reference.
-    populateValuesToInsert(array, ref, valuesToInsert, sorted);
+    populateValuesToInsert(valuesToInsert, sorted);
 
     // Append to the view on the device.
     if (sorted)
     {
       forall(gpu(), 0, nSets,
-        [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
+        [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.insertSortedIntoSet(i, toInsert[i].data(), toInsert[i].size());
         }
@@ -967,7 +834,7 @@ public:
     else
     {
       forall(gpu(), 0, nSets,
-        [view=array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
+        [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.insertIntoSet(i, toInsert[i].data(), toInsert[i].size());
         }
@@ -975,23 +842,23 @@ public:
     }
 
     // Move the view back to the host and compare with the reference.
-    array.move(chai::CPU);
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    m_array.move(chai::CPU);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void removeDevice(ArrayOfSets<T> & array, REF_TYPE<T> & ref)
+  void removeDevice()
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     Array1D<Array1D<T>> valuesToRemove(nSets);
 
     // Populate the valuesToRemove array and remove the values from the reference.
-    populateValuesToRemove(array, ref, valuesToRemove, false);
+    populateValuesToRemove(valuesToRemove, false);
 
     // Append to the view on the device.
     forall(gpu(), 0, nSets,
-      [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
+      [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
       {
         for (INDEX_TYPE j = 0; j < toRemove[i].size(); ++j)
         {
@@ -1001,25 +868,25 @@ public:
     );
 
     // Move the view back to the host and compare with the reference.
-    array.move(chai::CPU);
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    m_array.move(chai::CPU);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
 
-  void removeMultiple(ArrayOfSets<T> & array, REF_TYPE<T> & ref, bool const sorted)
+  void removeMultipleDevice(bool const sorted)
   {
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
 
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     Array1D<Array1D<T>> valuesToRemove(nSets);
 
     // Populate the valuesToRemove array and remove the values from the reference.
-    populateValuesToRemove(array, ref, valuesToRemove, sorted);
+    populateValuesToRemove(valuesToRemove, sorted);
 
     // Append to the view on the device.
     if (sorted)
     {
       forall(gpu(), 0, nSets,
-        [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
+        [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.removeSortedFromSet(i, toRemove[i].data(), toRemove[i].size());
         }
@@ -1028,7 +895,7 @@ public:
     else
     {
       forall(gpu(), 0, nSets,
-        [view=array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
+        [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ (INDEX_TYPE const i)
         {
           view.removeFromSet(i, toRemove[i].data(), toRemove[i].size());
         }
@@ -1036,25 +903,22 @@ public:
     }
 
     // Move the view back to the host and compare with the reference.
-    array.move(chai::CPU);
-    COMPARE_TO_REFERENCE(array.toViewC(), ref);
+    m_array.move(chai::CPU);
+    COMPARE_TO_REFERENCE(m_array.toViewC(), m_ref);
   }
   
 protected:
 
-  void populateValuesToRemove(ViewType<T const> const & array,
-                              REF_TYPE<T> & ref,
-                              Array1D<Array1D<T>> & valuesToRemove,
-                              bool const sorted)
+  void populateValuesToRemove(Array1D<Array1D<T>> & valuesToRemove, bool const sorted)
   {
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     LVARRAY_ERROR_IF_NE(nSets, valuesToRemove.size());
 
     // Populate the valuesToRemove array and remove the values from the reference.
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
-      INDEX_TYPE const sizeOfSet = array.sizeOfSet(i);
-      INDEX_TYPE const capacityOfSet = array.capacityOfSet(i);
+      INDEX_TYPE const sizeOfSet = m_array.sizeOfSet(i);
+      INDEX_TYPE const capacityOfSet = m_array.capacityOfSet(i);
       INDEX_TYPE const nValues = rand(0, capacityOfSet);
       
       valuesToRemove[i].resize(nValues);
@@ -1062,7 +926,7 @@ protected:
       for (INDEX_TYPE j = 0; j < nValues; ++j)
       {
         T const value = T(rand(0, 2 * capacityOfSet));
-        ref[i].erase(value);
+        m_ref[i].erase(value);
         valuesToRemove[i][j] = value;
       }
 
@@ -1070,18 +934,15 @@ protected:
     }
   }
 
-  void populateValuesToInsert(ViewType<T const> const & array,
-                              REF_TYPE<T> & ref,
-                              Array1D<Array1D<T>> & valuesToInsert,
-                              bool const sorted)
+  void populateValuesToInsert(Array1D<Array1D<T>> & valuesToInsert, bool const sorted)
   {
-    INDEX_TYPE const nSets = array.size();
+    INDEX_TYPE const nSets = m_array.size();
     LVARRAY_ERROR_IF_NE(nSets, valuesToInsert.size());
     
     for (INDEX_TYPE i = 0; i < nSets; ++i)
     {
-      INDEX_TYPE const sizeOfSet = array.sizeOfSet(i);
-      INDEX_TYPE const capacityOfSet = array.capacityOfSet(i);
+      INDEX_TYPE const sizeOfSet = m_array.sizeOfSet(i);
+      INDEX_TYPE const capacityOfSet = m_array.capacityOfSet(i);
       INDEX_TYPE const nValues = rand(0, capacityOfSet - sizeOfSet);
       
       valuesToInsert[i].resize(nValues);
@@ -1089,7 +950,7 @@ protected:
       for (INDEX_TYPE j = 0; j < nValues; ++j)
       {
         T const value = T(rand(0, 2 * capacityOfSet));
-        ref[i].insert(value);
+        m_ref[i].insert(value);
         valuesToInsert[i][j] = value;
       }
 
@@ -1099,6 +960,8 @@ protected:
 
   using ArrayOfSetsTest<T>::rand;
   using ArrayOfSetsTest<T>::LARGE_NUMBER;
+  using ArrayOfSetsTest<T>::m_array;
+  using ArrayOfSetsTest<T>::m_ref;
   using ArrayOfSetsTest<T>::m_gen;
 };
 
@@ -1107,148 +970,93 @@ TYPED_TEST_CASE(ArrayOfSetsCudaTest, CudaTestTypes);
 
 TYPED_TEST(ArrayOfSetsCudaTest, memoryMotion)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->memoryMotion(array, ref);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->memoryMotion();
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, memoryMotionMove)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->memoryMotionMove(array, ref);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->memoryMotionMove();
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, insertDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->insertDevice(array, ref);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->insertDevice();
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, insertMultipleDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->insertMultipleDevice(array, ref, false);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->insertMultipleDevice(false);
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, insertSortedDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->insertMultipleDevice(array, ref, true);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->insertMultipleDevice(true);
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, removeDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->removeDevice(array, ref);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeDevice();
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, removeMultipleDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->removeMultiple(array, ref, false);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeMultipleDevice(false);
   }
 }
 
 TYPED_TEST(ArrayOfSetsCudaTest, removeSortedDevice)
 {
-  constexpr INDEX_TYPE NUM_ARRAYS = 50;
-  constexpr INDEX_TYPE MAX_INSERTS = 50;
-  constexpr INDEX_TYPE MAX_VALUE = 100;
-  constexpr INDEX_TYPE N_ITER = 2;
-
-  ArrayOfSets<TypeParam> array(NUM_ARRAYS);
-  REF_TYPE<TypeParam> ref(NUM_ARRAYS);
-  
-  for (INDEX_TYPE i = 0; i < N_ITER; ++i)
+  this->resize( 50 );
+  for (INDEX_TYPE i = 0; i < 2; ++i)
   {
-    this->insertIntoSet(array, ref, MAX_INSERTS, MAX_VALUE);
-    array.registerTouch(chai::CPU);
-    this->removeMultiple(array, ref, true);
+    this->insertIntoSet(DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE);
+    this->removeMultipleDevice(true);
   }
 }
 
 #endif // USE_CUDA
 
+} // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

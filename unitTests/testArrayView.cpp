@@ -35,6 +35,8 @@
 
 namespace LvArray
 {
+namespace testing
+{
 
 using INDEX_TYPE = std::ptrdiff_t;
 
@@ -62,9 +64,6 @@ using array3D = Array< T, 3 >;
 
 template < typename T >
 using arrayView3D = ArrayView< T, 3 > const;
-
-namespace internal
-{
 
 int rand( int const low, int const high )
 {
@@ -798,8 +797,6 @@ void testSizeOnDevice( arrayView3D< T > & v )
 
 #endif
 
-} /* namespace internal */
-
 
 TEST( ArrayView, test_upcast )
 {
@@ -847,46 +844,46 @@ TEST( ArrayView, test_upcast )
 
 TEST( ArrayView, Permutations2D )
 {
-  internal::testArrayPermutation< RAJA::PERM_IJ >();
-  internal::testArrayPermutation< RAJA::PERM_JI >();
+  testArrayPermutation< RAJA::PERM_IJ >();
+  testArrayPermutation< RAJA::PERM_JI >();
 }
 
 TEST( ArrayView, Permutations3D )
 {
-  internal::testArrayPermutation< RAJA::PERM_IJK >();
-  internal::testArrayPermutation< RAJA::PERM_JIK >();
-  internal::testArrayPermutation< RAJA::PERM_IKJ >();
-  internal::testArrayPermutation< RAJA::PERM_KIJ >();
-  internal::testArrayPermutation< RAJA::PERM_JKI >();
-  internal::testArrayPermutation< RAJA::PERM_KJI >();
+  testArrayPermutation< RAJA::PERM_IJK >();
+  testArrayPermutation< RAJA::PERM_JIK >();
+  testArrayPermutation< RAJA::PERM_IKJ >();
+  testArrayPermutation< RAJA::PERM_KIJ >();
+  testArrayPermutation< RAJA::PERM_JKI >();
+  testArrayPermutation< RAJA::PERM_KJI >();
 }
 
 TEST( ArrayView, Permutations4D )
 {
-  internal::testArrayPermutation< RAJA::PERM_IJKL >();
-  internal::testArrayPermutation< RAJA::PERM_JIKL >();
-  internal::testArrayPermutation< RAJA::PERM_IKJL >();
-  internal::testArrayPermutation< RAJA::PERM_KIJL >();
-  internal::testArrayPermutation< RAJA::PERM_JKIL >();
-  internal::testArrayPermutation< RAJA::PERM_KJIL >();
-  internal::testArrayPermutation< RAJA::PERM_IJLK >();
-  internal::testArrayPermutation< RAJA::PERM_JILK >();
-  internal::testArrayPermutation< RAJA::PERM_ILJK >();
-  internal::testArrayPermutation< RAJA::PERM_LIJK >();
-  internal::testArrayPermutation< RAJA::PERM_JLIK >();
-  internal::testArrayPermutation< RAJA::PERM_LJIK >();
-  internal::testArrayPermutation< RAJA::PERM_IKLJ >();
-  internal::testArrayPermutation< RAJA::PERM_KILJ >();
-  internal::testArrayPermutation< RAJA::PERM_ILKJ >();
-  internal::testArrayPermutation< RAJA::PERM_LIKJ >();
-  internal::testArrayPermutation< RAJA::PERM_KLIJ >();
-  internal::testArrayPermutation< RAJA::PERM_LKIJ >();
-  internal::testArrayPermutation< RAJA::PERM_JKLI >();
-  internal::testArrayPermutation< RAJA::PERM_KJLI >();
-  internal::testArrayPermutation< RAJA::PERM_JLKI >();
-  internal::testArrayPermutation< RAJA::PERM_LJKI >();
-  internal::testArrayPermutation< RAJA::PERM_KLJI >();
-  internal::testArrayPermutation< RAJA::PERM_LKJI >();
+  testArrayPermutation< RAJA::PERM_IJKL >();
+  testArrayPermutation< RAJA::PERM_JIKL >();
+  testArrayPermutation< RAJA::PERM_IKJL >();
+  testArrayPermutation< RAJA::PERM_KIJL >();
+  testArrayPermutation< RAJA::PERM_JKIL >();
+  testArrayPermutation< RAJA::PERM_KJIL >();
+  testArrayPermutation< RAJA::PERM_IJLK >();
+  testArrayPermutation< RAJA::PERM_JILK >();
+  testArrayPermutation< RAJA::PERM_ILJK >();
+  testArrayPermutation< RAJA::PERM_LIJK >();
+  testArrayPermutation< RAJA::PERM_JLIK >();
+  testArrayPermutation< RAJA::PERM_LJIK >();
+  testArrayPermutation< RAJA::PERM_IKLJ >();
+  testArrayPermutation< RAJA::PERM_KILJ >();
+  testArrayPermutation< RAJA::PERM_ILKJ >();
+  testArrayPermutation< RAJA::PERM_LIKJ >();
+  testArrayPermutation< RAJA::PERM_KLIJ >();
+  testArrayPermutation< RAJA::PERM_LKIJ >();
+  testArrayPermutation< RAJA::PERM_JKLI >();
+  testArrayPermutation< RAJA::PERM_KJLI >();
+  testArrayPermutation< RAJA::PERM_JLKI >();
+  testArrayPermutation< RAJA::PERM_LJKI >();
+  testArrayPermutation< RAJA::PERM_KLJI >();
+  testArrayPermutation< RAJA::PERM_LKJI >();
 }
 
 #ifdef USE_CUDA
@@ -897,12 +894,12 @@ CUDA_TEST( ArrayView, memoryMotion )
 
   {
     array< INDEX_TYPE > a( N );
-    internal::testMemoryMotion( a );
+    testMemoryMotion( a );
   }
 
   {
     array< Tensor > a( N );
-    internal::testMemoryMotion( a );
+    testMemoryMotion( a );
   }
 }
 
@@ -912,12 +909,12 @@ CUDA_TEST( ArrayView, memoryMotionConst )
 
   {
     array< INDEX_TYPE > a( N );
-    internal::testMemoryMotionConst( a );
+    testMemoryMotionConst( a );
   }
 
   {
     array< Tensor > a( N );
-    internal::testMemoryMotionConst( a );
+    testMemoryMotionConst( a );
   }
 }
 
@@ -927,12 +924,12 @@ CUDA_TEST( ArrayView, memoryMotionMove )
 
   {
     array< INDEX_TYPE > a( N );
-    internal::testMemoryMotionMove( a );
+    testMemoryMotionMove( a );
   }
 
   {
     array< Tensor > a( N );
-    internal::testMemoryMotionMove( a );
+    testMemoryMotionMove( a );
   }
 }
 
@@ -942,12 +939,12 @@ CUDA_TEST( ArrayView, memoryMotionMultiple )
 
   {
     array< INDEX_TYPE > a( N );
-    internal::testMemoryMotionMultiple( a );
+    testMemoryMotionMultiple( a );
   }
 
   {
     array< Tensor > a( N );
-    internal::testMemoryMotionMultiple( a );
+    testMemoryMotionMultiple( a );
   }
 }
 
@@ -957,12 +954,12 @@ CUDA_TEST( ArrayView, memoryMotionMultipleMove )
 
   {
     array< INDEX_TYPE > a( N );
-    internal::testMemoryMotionMultipleMove( a );
+    testMemoryMotionMultipleMove( a );
   }
 
   {
     array< Tensor > a( N );
-    internal::testMemoryMotionMultipleMove( a );
+    testMemoryMotionMultipleMove( a );
   }
 }
 
@@ -977,7 +974,7 @@ CUDA_TEST( ArrayView, memoryMotionArray )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArray( a );
+    testMemoryMotionArray( a );
   }
 
   {
@@ -987,7 +984,7 @@ CUDA_TEST( ArrayView, memoryMotionArray )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArray( a );
+    testMemoryMotionArray( a );
   }
 }
 
@@ -1002,7 +999,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayConst )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArrayConst( a );
+    testMemoryMotionArrayConst( a );
   }
 
   {
@@ -1012,7 +1009,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayConst )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArrayConst( a );
+    testMemoryMotionArrayConst( a );
   }
 }
 
@@ -1027,7 +1024,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArrayMove( a );
+    testMemoryMotionArrayMove( a );
   }
 
   {
@@ -1037,7 +1034,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove )
       a[ i ].resize( N );
     }
 
-    internal::testMemoryMotionArrayMove( a );
+    testMemoryMotionArrayMove( a );
   }
 }
 
@@ -1056,7 +1053,7 @@ CUDA_TEST( ArrayView, memoryMotionArray2 )
       }
     }
 
-    internal::testMemoryMotionArray2( a );
+    testMemoryMotionArray2( a );
   }
 
   {
@@ -1070,7 +1067,7 @@ CUDA_TEST( ArrayView, memoryMotionArray2 )
       }
     }
 
-    internal::testMemoryMotionArray2( a );
+    testMemoryMotionArray2( a );
   }
 }
 
@@ -1089,7 +1086,7 @@ CUDA_TEST( ArrayView, memoryMotionArray2Const )
       }
     }
 
-    internal::testMemoryMotionArray2Const( a );
+    testMemoryMotionArray2Const( a );
   }
 
   {
@@ -1103,7 +1100,7 @@ CUDA_TEST( ArrayView, memoryMotionArray2Const )
       }
     }
 
-    internal::testMemoryMotionArray2Const( a );
+    testMemoryMotionArray2Const( a );
   }
 }
 
@@ -1122,7 +1119,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
       }
     }
 
-    internal::testMemoryMotionArrayMove2( a );
+    testMemoryMotionArrayMove2( a );
   }
 
   {
@@ -1136,7 +1133,7 @@ CUDA_TEST( ArrayView, memoryMotionArrayMove2 )
       }
     }
 
-    internal::testMemoryMotionArrayMove2( a );
+    testMemoryMotionArrayMove2( a );
   }
 }
 
@@ -1147,12 +1144,12 @@ CUDA_TEST( ArrayView, 2DAccessorsDevice )
 
   {
     array2D< INDEX_TYPE > a( N, M );
-    internal::test2DAccessorsDevice( a );
+    test2DAccessorsDevice( a );
   }
 
   {
     array2D< Tensor > a( N, M );
-    internal::test2DAccessorsDevice( a );
+    test2DAccessorsDevice( a );
   }
 }
 
@@ -1165,12 +1162,12 @@ CUDA_TEST( ArrayView, 3DAccessorsDevice )
 
   {
     array3D< INDEX_TYPE > a( N, M, P );
-    internal::test3DAccessorsDevice( a );
+    test3DAccessorsDevice( a );
   }
 
   {
     array3D< Tensor > a( N, M, P );
-    internal::test3DAccessorsDevice( a );
+    test3DAccessorsDevice( a );
   }
 }
 
@@ -1182,17 +1179,25 @@ CUDA_TEST( ArrayView, sizeOnDevice )
 
   {
     array3D< INDEX_TYPE > a( N, M, P );
-    internal::testSizeOnDevice( a );
+    testSizeOnDevice( a );
   }
 
   {
     array3D< Tensor > a( N, M, P );
-    internal::testSizeOnDevice( a );
+    testSizeOnDevice( a );
   }
 }
 
 
 #endif
 
+} // namespace testing
+} // namespace LvArray
 
-} /* namespace LvArray */
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

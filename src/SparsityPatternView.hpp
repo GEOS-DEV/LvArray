@@ -123,7 +123,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numColumns() const restrict_this
-  { return m_num_columns; }
+  { return m_numCols; }
 
   /**
    * @brief Return the total number of non zero entries in the matrix.
@@ -363,7 +363,7 @@ protected:
       initialRowCapacity = ncols;
     }
 
-    m_num_columns = ncols;
+    m_numCols = ncols;
     ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::resize( nrows, initialRowCapacity, vectors ... );
   }
 
@@ -373,7 +373,7 @@ protected:
   using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_values;
 
   // The number of columns in the matrix.
-  INDEX_TYPE m_num_columns;
+  INDEX_TYPE m_numCols;
 };
 
 } /* namespace LvArray */
