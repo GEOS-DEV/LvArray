@@ -776,6 +776,11 @@ protected:
     {
       m_offsets[array] += capacityIncrease;
     }
+
+    // We need to touch the offsets on the CPU because since it contains const data
+    // when the ArrayOfArraysView gets copy constructed it doesn't get touched even though
+    // it can then be modified via this method when called from a parent non-view class.
+    m_offsets.registerTouch( chai::CPU );
   }
 
   template< typename U >

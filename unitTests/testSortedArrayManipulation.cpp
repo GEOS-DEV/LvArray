@@ -36,6 +36,15 @@
 #include <vector>
 #include <set>
 
+namespace LvArray
+{
+namespace sortedArrayManipulation
+{
+namespace testing
+{
+
+using namespace LvArray::testing;
+
 using INDEX_TYPE = std::ptrdiff_t;
 
 template <class T>
@@ -44,11 +53,6 @@ using Array1d = LvArray::Array<T, 1>;
 template <class T>
 using ArrayView1d = LvArray::ArrayView<T, 1> const;
 
-namespace sortedArrayManipulation
-{
-
-namespace internal
-{
 
 // A static random number generator is used so that subsequent calls to the same test method will
 // do different things. This initializes the generator with the default seed so the test behavior will
@@ -406,78 +410,78 @@ void removeDuplicatesCorrectnessDeviceTest()
 
 #endif
 
-} // namespace internal
-
 TEST(sort, correctness)
 {
-  internal::correctnessTest<int, less<int>>();
-  internal::correctnessTest<int, greater<int>>();
+  correctnessTest<int, less<int>>();
+  correctnessTest<int, greater<int>>();
 
-  internal::correctnessTest<Tensor, less<Tensor>>();
-  internal::correctnessTest<Tensor, greater<Tensor>>();
+  correctnessTest<Tensor, less<Tensor>>();
+  correctnessTest<Tensor, greater<Tensor>>();
 
-  internal::correctnessTest<TestString, less<TestString>>();
-  internal::correctnessTest<TestString, greater<TestString>>();
+  correctnessTest<TestString, less<TestString>>();
+  correctnessTest<TestString, greater<TestString>>();
 }
 
 TEST(dualSort, correctness)
 {
-  internal::dualCorrectnessTest<int, int, less<int>>();
-  internal::dualCorrectnessTest<int, Tensor, greater<int>>();
+  dualCorrectnessTest<int, int, less<int>>();
+  dualCorrectnessTest<int, Tensor, greater<int>>();
 
-  internal::dualCorrectnessTest<Tensor, int, less<Tensor>>();
-  internal::dualCorrectnessTest<Tensor, TestString, greater<Tensor>>();
+  dualCorrectnessTest<Tensor, int, less<Tensor>>();
+  dualCorrectnessTest<Tensor, TestString, greater<Tensor>>();
 
-  internal::dualCorrectnessTest<TestString, int, less<TestString>>();
-  internal::dualCorrectnessTest<TestString, Tensor, greater<TestString>>();
+  dualCorrectnessTest<TestString, int, less<TestString>>();
+  dualCorrectnessTest<TestString, Tensor, greater<TestString>>();
 }
 
 TEST(sort, performance)
 {
-  // internal::performanceTest<int, less<int>>();
+  // performanceTest<int, less<int>>();
   SUCCEED();
 }
 
 TEST(dualSort, performance)
 {
-  // internal::dualPerformanceTest<int, int, less<int>>();
+  // dualPerformanceTest<int, int, less<int>>();
   SUCCEED();
 }
 
 TEST(removeDuplicates, correctness)
 {
-  internal::removeDuplicatesCorrectnessTest<int>();
-  internal::removeDuplicatesCorrectnessTest<Tensor>();
-  internal::removeDuplicatesCorrectnessTest<TestString>();
+  removeDuplicatesCorrectnessTest<int>();
+  removeDuplicatesCorrectnessTest<Tensor>();
+  removeDuplicatesCorrectnessTest<TestString>();
 }
 
 #ifdef USE_CUDA
 
 CUDA_TEST(sort, correctnessDevice)
 {
-  internal::correctnessDeviceTest<int, less<int>>();
-  internal::correctnessDeviceTest<int, greater<int>>();
+  correctnessDeviceTest<int, less<int>>();
+  correctnessDeviceTest<int, greater<int>>();
 
-  internal::correctnessDeviceTest<Tensor, less<Tensor>>();
-  internal::correctnessDeviceTest<Tensor, greater<Tensor>>();
+  correctnessDeviceTest<Tensor, less<Tensor>>();
+  correctnessDeviceTest<Tensor, greater<Tensor>>();
 }
 
 CUDA_TEST(dualSort, correctnessDevice)
 {
-  internal::dualCorrectnessDeviceTest<int, int, less<int>>();
-  internal::dualCorrectnessDeviceTest<int, Tensor, greater<int>>();
+  dualCorrectnessDeviceTest<int, int, less<int>>();
+  dualCorrectnessDeviceTest<int, Tensor, greater<int>>();
 
-  internal::dualCorrectnessDeviceTest<Tensor, int, less<Tensor>>();
-  internal::dualCorrectnessDeviceTest<Tensor, Tensor, greater<Tensor>>();
+  dualCorrectnessDeviceTest<Tensor, int, less<Tensor>>();
+  dualCorrectnessDeviceTest<Tensor, Tensor, greater<Tensor>>();
 }
 
 CUDA_TEST(removeDuplicates, correctnessDevice)
 {
-  internal::removeDuplicatesCorrectnessDeviceTest<int>();
-  internal::removeDuplicatesCorrectnessDeviceTest<Tensor>();
+  removeDuplicatesCorrectnessDeviceTest<int>();
+  removeDuplicatesCorrectnessDeviceTest<Tensor>();
 }
 
 
 #endif
 
+} // namespace testing
 } // namespace sortedArrayManipulation
+} // namespace LvArray

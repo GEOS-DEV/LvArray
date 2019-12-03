@@ -216,7 +216,7 @@ public:
   /**
    * @brief Return the allocated size.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   INDEX_TYPE size() const noexcept
   { return multiplyAll< NDIM >( m_dims ); }
 
@@ -224,13 +224,23 @@ public:
    * @brief Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   INDEX_TYPE size( int dim ) const noexcept
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
     return m_dims[dim];
+  }
+
+  /**
+   * @brief Return true iff the given pointer matches the data pointer of this ArraySlice.
+   * @param ptr the pointer to check.
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  bool operator==( T const * const ptr ) const
+  {
+    return m_data == ptr;
   }
 
   /// deleted default constructor

@@ -76,7 +76,7 @@ public:
   ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) restrict_this:
     ArrayOfSetsView< T, INDEX_TYPE >()
   {
-    ArrayOfSetsView< T, INDEX_TYPE >::resize( nsets, defaultSetCapacity );
+    resize( nsets, defaultSetCapacity );
     setName( "" );
   }
 

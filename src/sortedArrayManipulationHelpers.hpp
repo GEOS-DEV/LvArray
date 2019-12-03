@@ -31,9 +31,10 @@
 
 #include <utility>
 
+namespace LvArray
+{
 namespace sortedArrayManipulation
 {
-
 namespace internal
 {
 
@@ -636,7 +637,7 @@ LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, Rando
 }
 
 } // namespace internal
-
 } // namespace sortedArrayManipulation
+} // namespace LvArray
 
 #endif // SORTEDARRAYMANIPULATIONHELPERS_HPP_

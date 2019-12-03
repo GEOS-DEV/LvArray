@@ -48,14 +48,18 @@ static std::mutex chaiLock;
  */
 inline std::string calculateSize( size_t const bytes )
 {
+  std::string size;
   if( bytes >> 20 != 0 )
   {
-    return std::to_string( bytes >> 20 ) + "MB";
+    size = std::to_string( bytes >> 20 ) + "MB";
   }
   else
   {
-    return std::to_string( bytes >> 10 ) + "KB";
+    size = std::to_string( bytes >> 10 ) + "KB";
   }
+
+  // return a space padded size
+  return std::string( 7 - size.length(), ' ' ) + size;
 }
 
 } // namespace internal
@@ -175,8 +179,7 @@ public:
 #if defined(USE_CUDA)
     if( capacity() == 0 ) return;
 
-    void * ptr = const_cast< typename std::remove_const< T >::type * >( data() );
-    if( space == chai::ArrayManager::getInstance()->getPointerRecord( ptr )->m_last_space ) return;
+    if( space == m_array.getPointerRecord()->m_last_space ) return;
 
     if( touch ) m_array.move( space );
     else reinterpret_cast< chai::ManagedArray< T const > & >( m_array ).move( space );
@@ -189,10 +192,15 @@ public:
   /**
    * @brief Touch the buffer in the given space.
    * @param space the space to touch.
+   * @note This is done manually instead of calling ManagedArray::registerTouch
+   *       to inline the method and avoid the std::lock used in ArrayManager::registerTouch.
+   *       This call therefore is not threadsafe, but that shouldn't be a problem.
    */
   void registerTouch( chai::ExecutionSpace const space )
   {
-    m_array.registerTouch( space );
+    chai::PointerRecord * const pr = const_cast< chai::PointerRecord * >( m_array.getPointerRecord() );
+    pr->m_touched[ space ] = true;
+    pr->m_last_space = space;
   }
 
   /**
@@ -209,7 +217,7 @@ public:
         if( act == chai::ACTION_MOVE )
         {
           std::string const & size = internal::calculateSize( bytes );
-          char const * const spaceStr = ( s == chai::CPU ) ? "CPU" : "GPU";
+          char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
           LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
         }
       } );

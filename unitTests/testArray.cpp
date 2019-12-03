@@ -28,6 +28,8 @@
 
 namespace LvArray
 {
+namespace testing
+{
 
 using INDEX_TYPE = std::ptrdiff_t;
 
@@ -42,9 +44,6 @@ using arrayView = ArrayView< T, 1 >;
 
 template < typename T >
 using arrayView2D = ArrayView< T, 2 >;
-
-namespace internal
-{
 
 /**
  * @brief Check that the Array is equivalent to the std::vector. Checks equality using the
@@ -830,25 +829,23 @@ void shallow_copy_array_test( const array< array< T > >& v )
   }
 }
 
-} /* namespace internal */
-
 TEST( Array, push_back )
 {
   constexpr INDEX_TYPE N = 1000;     /* Number of values to push_back */
 
   {
     array< int > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
   }
 
   {
     array< TestString > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
   }
 }
 
@@ -859,17 +856,17 @@ TEST( Array, push_back_array )
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M );
+    push_back_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M );
+    push_back_array_test( v, N, M );
   }
 
   {
     array< array< TestString > > v;
-    internal::push_back_array_test( v, N, M );
+    push_back_array_test( v, N, M );
   }
 }
 
@@ -880,17 +877,17 @@ TEST( Array, insert )
 
   {
     array< int > v;
-    internal::insert_test( v, N, M );
+    insert_test( v, N, M );
   }
 
   {
     array< Tensor > v;
-    internal::insert_test( v, N, M );
+    insert_test( v, N, M );
   }
 
   {
     array< TestString > v;
-    internal::insert_test( v, N, M );
+    insert_test( v, N, M );
   }
 }
 
@@ -902,17 +899,17 @@ TEST( Array, insert_array )
 
   {
     array< array< int > > v;
-    internal::insert_array_test( v, N, M, P );
+    insert_array_test( v, N, M, P );
   }
 
   {
     array< array< Tensor > > v;
-    internal::insert_array_test( v, N, M, P );
+    insert_array_test( v, N, M, P );
   }
 
   {
     array< array< TestString > > v;
-    internal::insert_array_test( v, N, M, P );
+    insert_array_test( v, N, M, P );
   }
 }
 
@@ -922,20 +919,20 @@ TEST( Array, erase )
 
   {
     array< int > v;
-    std::vector< int > v_ref = internal::push_back_test( v, N );
-    internal::erase_test( v, v_ref );
+    std::vector< int > v_ref = push_back_test( v, N );
+    erase_test( v, v_ref );
   }
 
   {
     array< Tensor > v;
-    std::vector< Tensor > v_ref =  internal::push_back_test( v, N );
-    internal::erase_test( v, v_ref );
+    std::vector< Tensor > v_ref =  push_back_test( v, N );
+    erase_test( v, v_ref );
   }
 
   {
     array< TestString > v;
-    std::vector< TestString > v_ref =  internal::push_back_test( v, N );
-    internal::erase_test( v, v_ref );
+    std::vector< TestString > v_ref =  push_back_test( v, N );
+    erase_test( v, v_ref );
   }
 
 }
@@ -947,20 +944,20 @@ TEST( Array, erase_array )
 
   {
     array< array< int > > v;
-    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M );
-    internal::erase_test( v, v_ref );
+    std::vector< std::vector< int > > v_ref = push_back_array_test( v, N, M );
+    erase_test( v, v_ref );
   }
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
-    internal::erase_test( v, v_ref );
+    std::vector< std::vector < Tensor > > v_ref =  push_back_array_test( v, N, M );
+    erase_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
-    internal::erase_test( v, v_ref );
+    std::vector< std::vector < TestString > > v_ref =  push_back_array_test( v, N, M );
+    erase_test( v, v_ref );
   }
 }
 
@@ -970,20 +967,20 @@ TEST( Array, pop_back )
 
   {
     array< int > v;
-    std::vector< int > v_ref = internal::push_back_test( v, N );
-    internal::pop_back_test( v, v_ref );
+    std::vector< int > v_ref = push_back_test( v, N );
+    pop_back_test( v, v_ref );
   }
 
   {
     array< Tensor > v;
-    std::vector< Tensor > v_ref =  internal::push_back_test( v, N );
-    internal::pop_back_test( v, v_ref );
+    std::vector< Tensor > v_ref =  push_back_test( v, N );
+    pop_back_test( v, v_ref );
   }
 
   {
     array< TestString > v;
-    std::vector< TestString > v_ref =  internal::push_back_test( v, N );
-    internal::pop_back_test( v, v_ref );
+    std::vector< TestString > v_ref =  push_back_test( v, N );
+    pop_back_test( v, v_ref );
   }
 }
 
@@ -994,20 +991,20 @@ TEST( Array, pop_back_array )
 
   {
     array< array< int > > v;
-    std::vector< std::vector< int > > v_ref = internal::push_back_array_test( v, N, M );
-    internal::pop_back_test( v, v_ref );
+    std::vector< std::vector< int > > v_ref = push_back_array_test( v, N, M );
+    pop_back_test( v, v_ref );
   }
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  internal::push_back_array_test( v, N, M );
-    internal::pop_back_test( v, v_ref );
+    std::vector< std::vector < Tensor > > v_ref =  push_back_array_test( v, N, M );
+    pop_back_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  internal::push_back_array_test( v, N, M );
-    internal::pop_back_test( v, v_ref );
+    std::vector< std::vector < TestString > > v_ref =  push_back_array_test( v, N, M );
+    pop_back_test( v, v_ref );
   }
 }
 
@@ -1017,17 +1014,17 @@ TEST( Array, resize )
 
   {
     array< int > v;
-    internal::resize_test( v, N );
+    resize_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::resize_test( v, N );
+    resize_test( v, N );
   }
 
   {
     array< TestString > v;
-    internal::resize_test( v, N );
+    resize_test( v, N );
   }
 }
 
@@ -1037,12 +1034,12 @@ TEST( Array, resizeNoInitOrDestroy )
 
   {
     array< int > v;
-    internal::resizeNoInitOrDestroy_test( v, N );
+    resizeNoInitOrDestroy_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::resizeNoInitOrDestroy_test( v, N );
+    resizeNoInitOrDestroy_test( v, N );
   }
 }
 
@@ -1053,17 +1050,17 @@ TEST( Array, resize_array )
 
   {
     array< array< int > > v;
-    internal::resize_array_test( v, N, M );
+    resize_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::resize_array_test( v, N, M );
+    resize_array_test( v, N, M );
   }
 
   {
     array< array< TestString > > v;
-    internal::resize_array_test( v, N, M );
+    resize_array_test( v, N, M );
   }
 }
 
@@ -1073,17 +1070,17 @@ TEST( Array, reserve )
 
   {
     array< int > v;
-    internal::reserve_test( v, N );
+    reserve_test( v, N );
   }
 
   {
     array< Tensor > v;
-    internal::reserve_test( v, N );
+    reserve_test( v, N );
   }
 
   {
     array< TestString > v;
-    internal::reserve_test( v, N );
+    reserve_test( v, N );
   }
 }
 
@@ -1094,17 +1091,17 @@ TEST( Array, reserve_array )
 
   {
     array< array< int > > v;
-    internal::reserve_array_test( v, N, M );
+    reserve_array_test( v, N, M );
   }
 
   {
     array< array< Tensor > > v;
-    internal::reserve_array_test( v, N, M );
+    reserve_array_test( v, N, M );
   }
 
   {
     array< array< TestString > > v;
-    internal::reserve_array_test( v, N, M );
+    reserve_array_test( v, N, M );
   }
 }
 
@@ -1114,20 +1111,20 @@ TEST( Array, deep_copy )
 
   {
     array< int > v;
-    internal::push_back_test( v, N );
-    internal::deep_copy_test( v );
+    push_back_test( v, N );
+    deep_copy_test( v );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N );
-    internal::deep_copy_test( v );
+    push_back_test( v, N );
+    deep_copy_test( v );
   }
 
   {
     array< TestString > v;
-    internal::push_back_test( v, N );
-    internal::deep_copy_test( v );
+    push_back_test( v, N );
+    deep_copy_test( v );
   }
 }
 
@@ -1138,20 +1135,20 @@ TEST( Array, deep_copy_array )
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::deep_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    deep_copy_array_test( v );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::deep_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    deep_copy_array_test( v );
   }
 
   {
     array< array< TestString > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::deep_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    deep_copy_array_test( v );
   }
 }
 
@@ -1161,20 +1158,20 @@ TEST( Array, shallow_copy )
 
   {
     array< int > v;
-    internal::push_back_test( v, N );
-    internal::shallow_copy_test( v );
+    push_back_test( v, N );
+    shallow_copy_test( v );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N );
-    internal::shallow_copy_test( v );
+    push_back_test( v, N );
+    shallow_copy_test( v );
   }
 
   {
     array< TestString > v;
-    internal::push_back_test( v, N );
-    internal::shallow_copy_test( v );
+    push_back_test( v, N );
+    shallow_copy_test( v );
   }
 }
 
@@ -1185,20 +1182,20 @@ TEST( Array, shallow_copy_array )
 
   {
     array< array< int > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::shallow_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    shallow_copy_array_test( v );
   }
 
   {
     array< array< Tensor > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::shallow_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    shallow_copy_array_test( v );
   }
 
   {
     array< array< TestString > > v;
-    internal::push_back_array_test( v, N, M );
-    internal::shallow_copy_array_test( v );
+    push_back_array_test( v, N, M );
+    shallow_copy_array_test( v );
   }
 }
 
@@ -1208,23 +1205,23 @@ TEST( Array, test_upcast )
 
   {
     array< int > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
     arrayView< int > & vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 
   {
     array< Tensor > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
     arrayView< Tensor >& vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 
   {
     array< TestString > v;
-    internal::push_back_test( v, N );
+    push_back_test( v, N );
     arrayView< TestString >& vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 }
 
@@ -1235,28 +1232,28 @@ TEST( Array, test_array2D )
 
   {
     array2D< int > v;
-    internal::create_2D_test( v, N, M );
+    create_2D_test( v, N, M );
     arrayView2D< int >& vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 
   {
     array2D< Tensor > v;
-    internal::create_2D_test( v, N, M );
+    create_2D_test( v, N, M );
     arrayView2D< Tensor >& vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 
   {
     array2D< TestString > v;
-    internal::create_2D_test( v, N, M );
+    create_2D_test( v, N, M );
     arrayView2D< TestString >& vView = v;
-    internal::compare_to_view( v, vView );
+    compare_to_view( v, vView );
   }
 }
 
 template< typename T >
-class ArrayResizeTest : public testing::Test
+class ArrayResizeTest : public ::testing::Test
 {
 public:
 
@@ -1482,4 +1479,13 @@ TYPED_TEST( ArrayResizeTest, resize4D )
   this->resize( RAJA::PERM_LKJI {} );
 }
 
-} /* namespace LvArray */
+} // namespace testing
+} // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

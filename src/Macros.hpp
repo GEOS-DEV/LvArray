@@ -90,6 +90,7 @@
     { \
       std::cout << "***** ERROR" << std::endl; \
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
       std::cout << msg << std::endl; \
       cxx_utilities::handler1( EXIT_FAILURE ); \
     } \
@@ -114,6 +115,7 @@
     { \
       std::cout << "***** WARNING" << std::endl; \
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
       std::cout << msg << std::endl; \
     } \
   } while( false )
@@ -125,8 +127,9 @@
   { \
     if( EXP ) \
     { \
-      std::cout << "***** INFO "<<std::endl; \
+      std::cout << "***** INFO " << std::endl; \
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
+      std::cout << "***** Controlling expression: " << STRINGIZE( EXP ) << std::endl; \
       std::cout << msg << std::endl; \
     } \
   } while( false )

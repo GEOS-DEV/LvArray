@@ -30,6 +30,26 @@
 namespace LvArray
 {
 
+// Wrapper around RAJA::atomicAdd that allows for non primitive types with RAJA::seq_atomic
+// TODO: Can be removed after updating RAJA.
+namespace
+{
+  template< typename POLICY, typename T >
+  LVARRAY_HOST_DEVICE inline
+  void atomicAdd( POLICY, T * const acc, T const & val )
+  {
+    RAJA::atomicAdd< POLICY >( acc, val );
+  }
+
+  DISABLE_HD_WARNING
+  template< typename T >
+  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
+  {
+    *acc += val;
+  }
+}
+
 /**
  * @class CRSMatrixView
  * @brief This class provides a view into a compressed row storage matrix.
@@ -49,6 +69,9 @@ template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t 
 class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
 public:
+  static_assert( !std::is_const< T >::value ||
+                 (std::is_const< COL_TYPE >::value && std::is_const< INDEX_TYPE >::value),
+                 "When T is const COL_TYPE and INDEX_TYPE must also be const." );
 
   // Aliasing public typedefs of SparsityPatternView.
   using typename SparsityPatternView< COL_TYPE, INDEX_TYPE >::INDEX_TYPE_NC;
@@ -60,6 +83,7 @@ public:
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::empty;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getColumns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getOffsets;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -173,8 +197,8 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const cols,
-                                T const * const entriesToInsert,
+                                COL_TYPE const * const restrict cols,
+                                T const * const restrict entriesToInsert,
                                 INDEX_TYPE const ncols ) const restrict_this
   { return insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
 
@@ -193,8 +217,8 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const cols,
-                                      T const * const entriesToInsert,
+                                      COL_TYPE const * const restrict cols,
+                                      T const * const restrict entriesToInsert,
                                       INDEX_TYPE const ncols ) const restrict_this
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
@@ -221,7 +245,7 @@ public:
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const cols,
+                                COL_TYPE const * const restrict cols,
                                 INDEX_TYPE const ncols ) const restrict_this
   {
     T * const entries = getEntries( row );
@@ -246,7 +270,7 @@ public:
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const cols,
+                                      COL_TYPE const * const restrict cols,
                                       INDEX_TYPE const ncols ) const restrict_this
   {
     T * const entries = getEntries( row );
@@ -260,6 +284,134 @@ public:
 
     return nRemoved;
   }
+
+  /**
+   * @brief Set all the values in the matrix to the given value.
+   * @param [in] value the value to set values in the matrix to.
+   */
+  inline
+  void setValues( T const & value ) const
+  {
+    for( INDEX_TYPE_NC row = 0 ; row < numRows() ; ++row )
+    {
+      INDEX_TYPE const nnz = numNonZeros( row );
+      T * const entries = getEntries( row );
+
+      for( INDEX_TYPE_NC i = 0 ; i < nnz ; ++i )
+      {
+        entries[ i ] = value;
+      }
+    }
+  }
+
+  /**
+   * @brief Add to the given entries, the entries must already exist in the matrix.
+   *        The columns must be sorted.
+   * @tparam AtomicPolicy the policy to use when adding to the values.
+   * @param [in] row the row to access.
+   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
+   * @param [in] vals the values to add, of length nCols.
+   * @param [in] nCols the number of columns to add to.
+   * TODO: Use benchmarks of addToRowBinarySearch and addToRowLinearSearch
+   *       to develop a better heuristic.
+   */
+  template< typename AtomicPolicy=RAJA::seq_atomic >
+  LVARRAY_HOST_DEVICE inline
+  void addToRow( INDEX_TYPE const row,
+                 COL_TYPE const * const restrict cols,
+                 T const * const restrict vals,
+                 INDEX_TYPE const nCols ) const
+  {
+    INDEX_TYPE const nnz = numNonZeros( row );
+    if( nCols < nnz / 4 && nnz > 64 )
+    {
+      addToRowBinarySearch< AtomicPolicy >( row, cols, vals, nCols );
+    }
+    else
+    {
+      addToRowLinearSearch< AtomicPolicy >( row, cols, vals, nCols );
+    }
+  }
+
+  /**
+   * @brief Add to the given entries, the entries must already exist in the matrix.
+   *        The columns must be sorted and this method uses a binary search to find
+   *        the entries in the row to add to. This makes the method O( nCols * log( numNonZeros( row ) ) )
+   *        and is therefore best to use when nCols is much less than numNonZeros( row ).
+   * @tparam AtomicPolicy the policy to use when adding to the values.
+   * @param [in] row the row to access.
+   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
+   * @param [in] vals the values to add, of length nCols.
+   * @param [in] nCols the number of columns to add to.
+   */
+  template< typename AtomicPolicy=RAJA::seq_atomic >
+  LVARRAY_HOST_DEVICE inline
+  void addToRowBinarySearch( INDEX_TYPE const row,
+                             COL_TYPE const * const restrict cols,
+                             T const * const restrict vals,
+                             INDEX_TYPE const nCols ) const
+  {
+    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
+    LVARRAY_ASSERT( sortedArrayManipulation::allUnique( cols, nCols ) );
+
+    INDEX_TYPE const nnz = numNonZeros( row );
+    COL_TYPE const * const columns = getColumns( row );
+    T * const entries = getEntries( row );
+
+    INDEX_TYPE_NC curPos = 0;
+    for( INDEX_TYPE_NC i = 0 ; i < nCols ; ++i )
+    {
+      INDEX_TYPE const pos = sortedArrayManipulation::find( columns + curPos, nnz - curPos, cols[ i ] ) + curPos;
+      LVARRAY_ASSERT_GT( nnz, pos );
+      LVARRAY_ASSERT_EQ( columns[ pos ], cols[ i ] );
+
+      atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
+      curPos = pos + 1;
+    }
+  }
+
+  /**
+   * @brief Add to the given entries, the entries must already exist in the matrix.
+   *        The columns must be sorted and this method uses a linear search to find
+   *        the entries in the row to add to. This makes the method O( numNonZeros( row ) )
+   *        and is therefore best to use when nCols is similar to numNonZeros( row ).
+   * @tparam AtomicPolicy the policy to use when adding to the values.
+   * @param [in] row the row to access.
+   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
+   * @param [in] vals the values to add, of length nCols.
+   * @param [in] nCols the number of columns to add to.
+   */
+  template< typename AtomicPolicy=RAJA::seq_atomic >
+  LVARRAY_HOST_DEVICE inline
+  void addToRowLinearSearch( INDEX_TYPE const row,
+                             COL_TYPE const * const restrict cols,
+                             T const * const restrict vals,
+                             INDEX_TYPE const nCols ) const
+  {
+    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
+    LVARRAY_ASSERT( sortedArrayManipulation::allUnique( cols, nCols ) );
+
+    INDEX_TYPE const nnz = numNonZeros( row );
+    COL_TYPE const * const columns = getColumns( row );
+    T * const entries = getEntries( row );
+
+    INDEX_TYPE_NC curPos = 0;
+    for( INDEX_TYPE_NC i = 0 ; i < nCols ; ++i )
+    {
+      for( INDEX_TYPE_NC j = curPos ; j < nnz ; ++j )
+      {
+        if( columns[ j ] == cols[ i ] )
+        {
+          curPos = j;
+          break;
+        }
+      }
+      LVARRAY_ASSERT_EQ( columns[ curPos ], cols[ i ] );
+      atomicAdd( AtomicPolicy{}, entries + curPos, vals[ i ] );
+      ++curPos;
+    }
+  }
+
 
 protected:
 
@@ -316,7 +468,7 @@ protected:
   }
 
   // Aliasing protected members of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_num_columns;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_numCols;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
@@ -386,6 +538,7 @@ public:
      * @param [in] pos the position that was set.
      * @param [in] colPos the position of the column.
      */
+    DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
     void set( INDEX_TYPE const pos, INDEX_TYPE const colPos ) const
     { new (&m_entries[pos]) T( m_entriesToInsert[colPos] ); }
@@ -401,6 +554,7 @@ public:
      * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ
      *             if it is the first insertion.
      */
+    DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE const nLeftToInsert,
                  INDEX_TYPE const colPos,
