@@ -34,20 +34,20 @@ namespace LvArray
 // TODO: Can be removed after updating RAJA.
 namespace
 {
-  template< typename POLICY, typename T >
-  LVARRAY_HOST_DEVICE inline
-  void atomicAdd( POLICY, T * const acc, T const & val )
-  {
-    RAJA::atomicAdd< POLICY >( acc, val );
-  }
+template< typename POLICY, typename T >
+LVARRAY_HOST_DEVICE inline
+void atomicAdd( POLICY, T * const acc, T const & val )
+{
+  RAJA::atomicAdd< POLICY >( acc, val );
+}
 
-  DISABLE_HD_WARNING
-  template< typename T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
-  {
-    *acc += val;
-  }
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
+{
+  *acc += val;
+}
 }
 
 /**

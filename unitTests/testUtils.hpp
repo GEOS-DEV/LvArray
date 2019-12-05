@@ -33,10 +33,10 @@
 
 #ifdef USE_CUDA
 
-#define CUDA_TEST(X, Y)              \
-  static void cuda_test_##X##Y();    \
-  TEST(X, Y) { cuda_test_##X##Y(); } \
-  static void cuda_test_##X##Y()
+#define CUDA_TEST( X, Y )              \
+  static void cuda_test_ ## X ## Y();    \
+  TEST( X, Y ) { cuda_test_ ## X ## Y(); } \
+  static void cuda_test_ ## X ## Y()
 
 #endif
 
@@ -97,13 +97,14 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 #endif
 
 // Comparator that compares a std::pair by it's first object.
-template <class A, class B, class COMP=std::less<B>>
-struct PairComp {
+template< class A, class B, class COMP=std::less< B > >
+struct PairComp
+{
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
-  constexpr bool operator()(const std::pair<A, B>& lhs, const std::pair<A, B>& rhs) const
+  constexpr bool operator()( const std::pair< A, B > & lhs, const std::pair< A, B > & rhs ) const
   {
-    return COMP()(lhs.second, rhs.second); 
+    return COMP()( lhs.second, rhs.second );
   }
 };
 
@@ -118,22 +119,22 @@ class TestString
 {
 public:
 
-  TestString() :
-    TestString(0)
+  TestString():
+    TestString( 0 )
   {}
 
-  template <class T>
-  TestString(T val) :
+  template< class T >
+  TestString( T val ):
     m_string( std::to_string( val ) +
               std::string( " The rest of this is to avoid any small string optimizations. " ) +
               std::to_string( 2 * val ) )
   {}
 
-  TestString( TestString const & src ) :
+  TestString( TestString const & src ):
     m_string( src.m_string )
   {}
 
-  TestString( TestString && src ) :
+  TestString( TestString && src ):
     m_string( std::move( src.m_string ) )
   {}
 
@@ -141,12 +142,12 @@ public:
   {}
 
   void operator=( TestString const & src )
-  { 
+  {
     m_string = src.m_string;
   }
 
   void operator=( TestString && src )
-  { 
+  {
     m_string = std::move( src.m_string );
   }
 
@@ -192,22 +193,22 @@ private:
  */
 struct Tensor
 {
-  LVARRAY_HOST_DEVICE Tensor() :
+  LVARRAY_HOST_DEVICE Tensor():
     Tensor( 0 )
   {}
 
-  template <class T>
+  template< class T >
   LVARRAY_HOST_DEVICE explicit Tensor( T val ):
     m_x( 3 * val ), m_y( 3 * val + 1 ), m_z( 3 * val + 2 )
   {}
 
-  LVARRAY_HOST_DEVICE Tensor( Tensor const & src ) :
-    m_x(src.m_x),
-    m_y(src.m_y),
-    m_z(src.m_z)
+  LVARRAY_HOST_DEVICE Tensor( Tensor const & src ):
+    m_x( src.m_x ),
+    m_y( src.m_y ),
+    m_z( src.m_z )
   {}
 
-  LVARRAY_HOST_DEVICE Tensor& operator=( Tensor const& src )
+  LVARRAY_HOST_DEVICE Tensor & operator=( Tensor const & src )
   {
     m_x = src.m_x;
     m_y = src.m_y;
@@ -215,7 +216,7 @@ struct Tensor
     return *this;
   }
 
-  LVARRAY_HOST_DEVICE Tensor& operator+=( Tensor const& rhs )
+  LVARRAY_HOST_DEVICE Tensor & operator+=( Tensor const & rhs )
   {
     m_x += rhs.m_x;
     m_y += rhs.m_y;
@@ -223,7 +224,7 @@ struct Tensor
     return *this;
   }
 
-  LVARRAY_HOST_DEVICE bool operator==( Tensor const& rhs ) const
+  LVARRAY_HOST_DEVICE bool operator==( Tensor const & rhs ) const
   {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -231,16 +232,16 @@ struct Tensor
 #pragma GCC diagnostic pop
   }
 
-  LVARRAY_HOST_DEVICE bool operator<( Tensor const& rhs ) const
+  LVARRAY_HOST_DEVICE bool operator<( Tensor const & rhs ) const
   { return m_x < rhs.m_x; }
 
-  LVARRAY_HOST_DEVICE bool operator>( Tensor const& rhs ) const
+  LVARRAY_HOST_DEVICE bool operator>( Tensor const & rhs ) const
   { return m_x > rhs.m_x; }
 
   LVARRAY_HOST_DEVICE bool operator !=( Tensor const & rhs ) const
   { return !(*this == rhs); }
 
-  friend std::ostream& operator<<(std::ostream& stream, Tensor const & t )
+  friend std::ostream & operator<<( std::ostream & stream, Tensor const & t )
   {
     stream << "(" << t.m_x << ", " << t.m_y << ", " << t.m_z << ")";
     return stream;

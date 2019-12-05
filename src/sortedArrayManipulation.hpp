@@ -657,7 +657,7 @@ std::ptrdiff_t remove( T * const restrict ptr,
  * @param [in] size the size of the array.
  * @param [in] value the value to insert.
  * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t)
- *                 and insert(std::ptrdiff_t). incrementSize is called with the number of values to insert 
+ *                 and insert(std::ptrdiff_t). incrementSize is called with the number of values to insert
  *                 and returns a new pointer to the array. If an insert has occurred insert is called with
  *                 the position in the array at which the insert took place.
  * @return True iff the value was inserted.

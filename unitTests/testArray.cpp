@@ -33,16 +33,16 @@ namespace testing
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-template < typename T >
+template< typename T >
 using array = Array< T, 1 >;
 
-template < typename T >
+template< typename T >
 using array2D = Array< T, 2 >;
 
-template < typename T >
+template< typename T >
 using arrayView = ArrayView< T, 1 >;
 
-template < typename T >
+template< typename T >
 using arrayView2D = ArrayView< T, 2 >;
 
 /**
@@ -51,8 +51,8 @@ using arrayView2D = ArrayView< T, 2 >;
  * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against.
  */
-template < class T >
-void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
+template< class T >
+void compare_to_reference( const array< T > & v, const std::vector< T > & v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
   ASSERT_EQ( v.empty(), v_ref.empty() );
@@ -68,8 +68,8 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
     ASSERT_EQ( v( i ), v_ref[ i ] );
   }
 
-  const T* v_ptr = v.data();
-  const T* ref_ptr = v_ref.data();
+  const T * v_ptr = v.data();
+  const T * ref_ptr = v_ref.data();
   for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
@@ -82,9 +82,9 @@ void compare_to_reference( const array< T >& v, const std::vector< T >& v_ref )
  * @param [in] v the Array to check.
  * @param [in] v_ref the std::vector to check against.
  */
-template < class T >
-void compare_to_reference( const array< array< T > >& v,
-                           const std::vector< std::vector< T > >& v_ref )
+template< class T >
+void compare_to_reference( const array< array< T > > & v,
+                           const std::vector< std::vector< T > > & v_ref )
 {
   ASSERT_EQ( v.size(), v_ref.size() );
   ASSERT_EQ( v.empty(), v_ref.empty() );
@@ -100,8 +100,8 @@ void compare_to_reference( const array< array< T > >& v,
   }
 }
 
-template < class T >
-void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
+template< class T >
+void compare_to_view( array< T > const & v, arrayView< T > const & v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
   ASSERT_EQ( v.empty(), v_view.empty() );
@@ -117,16 +117,16 @@ void compare_to_view( array< T > const& v, arrayView< T > const& v_view )
     ASSERT_EQ( v( i ), v_view( i ) );
   }
 
-  const T* v_ptr = v.data();
-  const T* ref_ptr = v_view.data();
+  const T * v_ptr = v.data();
+  const T * ref_ptr = v_view.data();
   for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
 }
 
-template < class T >
-void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
+template< class T >
+void compare_to_view( array2D< T > const & v, arrayView2D< T > const & v_view )
 {
   ASSERT_EQ( v.size(), v_view.size() );
   ASSERT_EQ( v.size( 0 ), v_view.size( 0 ) );
@@ -139,12 +139,12 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
   }
 
   INDEX_TYPE pos = 0;
-  const T* v_ptr = v.data();
-  const T* ref_ptr = v_view.data();
+  const T * v_ptr = v.data();
+  const T * ref_ptr = v_view.data();
   for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
   {
-    const T* v_ptr_cur = v.data();
-    const T* ref_ptr_cur = v_view.data();
+    const T * v_ptr_cur = v.data();
+    const T * ref_ptr_cur = v_view.data();
     for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_view[ i ][ j ] );
@@ -157,8 +157,8 @@ void compare_to_view( array2D< T > const& v, arrayView2D< T > const& v_view )
 }
 
 
-template < class T >
-void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
+template< class T >
+void create_2D_test( array2D< T > & v, INDEX_TYPE N, INDEX_TYPE M )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -178,10 +178,10 @@ void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
   }
 
   pos = 0;
-  T const* data_ptr = v.data();
+  T const * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    T const* cur_data_ptr = v.data( i );
+    T const * cur_data_ptr = v.data( i );
     for( INDEX_TYPE j = 0 ; j < M ; ++j )
     {
       const T value = T( pos );
@@ -200,15 +200,15 @@ void create_2D_test( array2D< T >& v, INDEX_TYPE N, INDEX_TYPE M )
  * @param [in] n the number of values to append.
  * @return the std::vector compared against.
  */
-template < class T >
-std::vector< T > push_back_test( array< T >& v, INDEX_TYPE n )
+template< class T >
+std::vector< T > push_back_test( array< T > & v, INDEX_TYPE n )
 {
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
   for( INDEX_TYPE i = 0 ; i < n ; ++i )
   {
-    const T& val = T( i );
+    const T & val = T( i );
     v.push_back( val );
     v_ref.push_back( val );
   }
@@ -223,9 +223,9 @@ std::vector< T > push_back_test( array< T >& v, INDEX_TYPE n )
  * @param [in] n the number of values to append.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< std::vector< T > >
-push_back_array_test( array< array < T > >& v, INDEX_TYPE n, INDEX_TYPE m )
+push_back_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -256,8 +256,8 @@ push_back_array_test( array< array < T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in] m the number of values to insert per iteration.
  * @return the std::vector compared against.
  */
-template < class T >
-std::vector< T > insert_test( array< T >& v, INDEX_TYPE n, INDEX_TYPE m )
+template< class T >
+std::vector< T > insert_test( array< T > & v, INDEX_TYPE n, INDEX_TYPE m )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -298,9 +298,9 @@ std::vector< T > insert_test( array< T >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in] m the number of values to insert per iteration.
  * @return the std::vector compared against.
  */
-template < class T >
+template< class T >
 std::vector< std::vector< T > >
-insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYPE p)
+insert_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYPE p )
 {
   EXPECT_TRUE( v.empty() );
 
@@ -351,8 +351,8 @@ insert_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TYP
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T, class U >
-void erase_test( array< T >& v, std::vector< U >& v_ref )
+template< class T, class U >
+void erase_test( array< T > & v, std::vector< U > & v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
   for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
@@ -388,8 +388,8 @@ void erase_test( array< T >& v, std::vector< U >& v_ref )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] v_ref the std::vector to compare against.
  */
-template < class T, class U >
-void pop_back_test( array< T >& v, std::vector< U >& v_ref )
+template< class T, class U >
+void pop_back_test( array< T > & v, std::vector< U > & v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
   for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
@@ -412,8 +412,8 @@ void pop_back_test( array< T >& v, std::vector< U >& v_ref )
  * @param [in/out] v the Array to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
-void resize_test( array< T >& v, INDEX_TYPE const n )
+template< class T >
+void resize_test( array< T > & v, INDEX_TYPE const n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -422,7 +422,7 @@ void resize_test( array< T >& v, INDEX_TYPE const n )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  T* data_ptr = v.data();
+  T * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     ASSERT_EQ( data_ptr[ i ], T() );
@@ -460,8 +460,8 @@ void resize_test( array< T >& v, INDEX_TYPE const n )
   }
 }
 
-template < class T >
-void resizeNoInitOrDestroy_test( array< T >& v, INDEX_TYPE n )
+template< class T >
+void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -470,7 +470,7 @@ void resizeNoInitOrDestroy_test( array< T >& v, INDEX_TYPE n )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  T* data_ptr = v.data();
+  T * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     const T val = T( i );
@@ -512,8 +512,8 @@ void resizeNoInitOrDestroy_test( array< T >& v, INDEX_TYPE n )
  * @param [in/out] v the Array to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
-void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
+template< class T >
+void resize_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -522,7 +522,7 @@ void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  array< T >* data_ptr = v.data();
+  array< T > * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     for( INDEX_TYPE j = 0 ; j < m ; ++j )
@@ -583,8 +583,8 @@ void resize_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
-void reserve_test( array< T >& v, INDEX_TYPE n )
+template< class T >
+void reserve_test( array< T > & v, INDEX_TYPE n )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -593,7 +593,7 @@ void reserve_test( array< T >& v, INDEX_TYPE n )
   ASSERT_EQ( v.size(), 0 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  T* data_ptr = v.data();
+  T * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     v.push_back( T( i ) );
@@ -632,8 +632,8 @@ void reserve_test( array< T >& v, INDEX_TYPE n )
  * @param [in/out] v the ChaiVector to check.
  * @param [in] n the end size of the vector.
  */
-template < class T >
-void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
+template< class T >
+void reserve_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
 {
   ASSERT_TRUE( v.empty() );
 
@@ -642,7 +642,7 @@ void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.size(), 0 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  array< T >* data_ptr = v.data();
+  array< T > * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
   {
     array< T > temp( m );
@@ -698,8 +698,8 @@ void reserve_array_test( array< array< T > >& v, INDEX_TYPE n, INDEX_TYPE m )
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
-void deep_copy_test( const array< T >& v  )
+template< class T >
+void deep_copy_test( const array< T > & v )
 {
   array< T > v_cpy( v );
 
@@ -729,8 +729,8 @@ void deep_copy_test( const array< T >& v  )
  * @brief Test the deep_copy method of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
-void deep_copy_array_test( const array< array< T > >& v )
+template< class T >
+void deep_copy_array_test( const array< array< T > > & v )
 {
   array< array< T > > v_cpy( v );
 
@@ -773,8 +773,8 @@ void deep_copy_array_test( const array< array< T > >& v )
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
-void shallow_copy_test( const array< T >& v )
+template< class T >
+void shallow_copy_test( const array< T > & v )
 {
   {
     arrayView< T > v_cpy( v.toView() );
@@ -799,11 +799,11 @@ void shallow_copy_test( const array< T >& v )
  * @brief Test the shallow copy copy-constructor of the ChaiVector.
  * @param [in/out] v the ChaiVector to copy.
  */
-template < class T >
-void shallow_copy_array_test( const array< array< T > >& v )
+template< class T >
+void shallow_copy_array_test( const array< array< T > > & v )
 {
   {
-    arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const &>(v) );
+    arrayView< array< T > > v_cpy( static_cast< arrayView< array< T > > const & >(v) );
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
@@ -950,13 +950,13 @@ TEST( Array, erase_array )
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  push_back_array_test( v, N, M );
+    std::vector< std::vector< Tensor > > v_ref =  push_back_array_test( v, N, M );
     erase_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  push_back_array_test( v, N, M );
+    std::vector< std::vector< TestString > > v_ref =  push_back_array_test( v, N, M );
     erase_test( v, v_ref );
   }
 }
@@ -997,13 +997,13 @@ TEST( Array, pop_back_array )
 
   {
     array< array< Tensor > > v;
-    std::vector< std::vector < Tensor > > v_ref =  push_back_array_test( v, N, M );
+    std::vector< std::vector< Tensor > > v_ref =  push_back_array_test( v, N, M );
     pop_back_test( v, v_ref );
   }
 
   {
     array< array< TestString > > v;
-    std::vector< std::vector < TestString > > v_ref =  push_back_array_test( v, N, M );
+    std::vector< std::vector< TestString > > v_ref =  push_back_array_test( v, N, M );
     pop_back_test( v, v_ref );
   }
 }
@@ -1213,14 +1213,14 @@ TEST( Array, test_upcast )
   {
     array< Tensor > v;
     push_back_test( v, N );
-    arrayView< Tensor >& vView = v;
+    arrayView< Tensor > & vView = v;
     compare_to_view( v, vView );
   }
 
   {
     array< TestString > v;
     push_back_test( v, N );
-    arrayView< TestString >& vView = v;
+    arrayView< TestString > & vView = v;
     compare_to_view( v, vView );
   }
 }
@@ -1233,21 +1233,21 @@ TEST( Array, test_array2D )
   {
     array2D< int > v;
     create_2D_test( v, N, M );
-    arrayView2D< int >& vView = v;
+    arrayView2D< int > & vView = v;
     compare_to_view( v, vView );
   }
 
   {
     array2D< Tensor > v;
     create_2D_test( v, N, M );
-    arrayView2D< Tensor >& vView = v;
+    arrayView2D< Tensor > & vView = v;
     compare_to_view( v, vView );
   }
 
   {
     array2D< TestString > v;
     create_2D_test( v, N, M );
-    arrayView2D< TestString >& vView = v;
+    arrayView2D< TestString > & vView = v;
     compare_to_view( v, vView );
   }
 }
@@ -1260,9 +1260,9 @@ public:
   template< int UNIT_STRIDE_DIM >
   void print( ArrayView< T const, 2, UNIT_STRIDE_DIM > const & v )
   {
-    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
-      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
       {
         std::cout << v( i, j ) << " ";
       }
@@ -1275,23 +1275,23 @@ public:
   void resize( PERMUTATION )
   {
     constexpr int NDIM = getDimension( PERMUTATION {} );
-    static_assert( NDIM < 5, "dimension must be less than 4");
+    static_assert( NDIM < 5, "dimension must be less than 4" );
 
     Array< T, NDIM, PERMUTATION > a;
 
     INDEX_TYPE const maxDimSize = getMaxDimSize( NDIM );
     INDEX_TYPE initialSizes[ NDIM ];
-    
+
     // Iterate over randomly generated sizes.
-    for ( int i = 0; i < 10; ++i )
+    for( int i = 0 ; i < 10 ; ++i )
     {
-      for ( int d = 0; d < NDIM; ++d )
+      for( int d = 0 ; d < NDIM ; ++d )
       {
         initialSizes[ d ] = rand( 1, maxDimSize / 2 );
       }
 
       // Iterate over the dimensions
-      for ( int d = 0; d < NDIM; ++d )
+      for( int d = 0 ; d < NDIM ; ++d )
       {
         a.setSingleParameterResizeIndex( d );
 
@@ -1317,7 +1317,7 @@ private:
   void arrayIterator( ArrayView< T const, 1, UNIT_STRIDE_DIM > const & v,
                       LAMBDA && f )
   {
-    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
       f( i, i );
     }
@@ -1328,9 +1328,9 @@ private:
                       LAMBDA && f )
   {
     INDEX_TYPE const maxDimSize = getMaxDimSize( 2 );
-    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
-      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
       {
         INDEX_TYPE const linearIndex = maxDimSize * i + j;
         f( linearIndex, i, j );
@@ -1343,11 +1343,11 @@ private:
                       LAMBDA && f )
   {
     INDEX_TYPE const maxDimSize = getMaxDimSize( 3 );
-    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
-      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
       {
-        for ( INDEX_TYPE k = 0; k < v.size( 2 ); ++k )
+        for( INDEX_TYPE k = 0 ; k < v.size( 2 ) ; ++k )
         {
           INDEX_TYPE const linearIndex = maxDimSize * maxDimSize * i + maxDimSize * j + k;
           f( linearIndex, i, j, k );
@@ -1363,13 +1363,13 @@ private:
     INDEX_TYPE const maxDimSize = getMaxDimSize( 4 );
     INDEX_TYPE const maxDimSize2 = maxDimSize * maxDimSize;
     INDEX_TYPE const maxDimSize3 = maxDimSize2 * maxDimSize;
-    for ( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
-      for ( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
+      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
       {
-        for ( INDEX_TYPE k = 0; k < v.size( 2 ); ++k )
+        for( INDEX_TYPE k = 0 ; k < v.size( 2 ) ; ++k )
         {
-          for ( INDEX_TYPE l = 0; l < v.size( 3 ); ++l )
+          for( INDEX_TYPE l = 0 ; l < v.size( 3 ) ; ++l )
           {
             INDEX_TYPE const linearIndex = maxDimSize3 * i + maxDimSize2 * j + maxDimSize * k + l;
             f( linearIndex, i, j, k, l );
@@ -1384,16 +1384,16 @@ private:
                  INDEX_TYPE const * const initialSizes )
   {
     a.resize( NDIM, initialSizes );
-    for ( int d = 0; d < NDIM; ++d )
+    for( int d = 0 ; d < NDIM ; ++d )
     {
       ASSERT_EQ( initialSizes[ d ], a.size( d ) );
     }
 
     arrayIterator( a.toViewConst(), [&]( INDEX_TYPE const linearIndex,
                                          auto... indices )
-    {
-      a( indices... ) = T( linearIndex );
-    } );
+        {
+          a( indices ... ) = T( linearIndex );
+        } );
 
     validate( a.toViewConst(), initialSizes );
   }
@@ -1405,16 +1405,16 @@ private:
   {
     arrayIterator( v, [&]( INDEX_TYPE const linearIndex,
                            auto... indices )
-    {
-      if ( !invalidIndices( initialSizes, indices... ) )
-      {
-        EXPECT_EQ( v( indices... ), T( linearIndex ) );
-      }
-      else
-      {
-        EXPECT_EQ( v( indices... ), defaultValue );
-      }
-    } );
+        {
+          if( !invalidIndices( initialSizes, indices ... ) )
+          {
+            EXPECT_EQ( v( indices ... ), T( linearIndex ) );
+          }
+          else
+          {
+            EXPECT_EQ( v( indices ... ), defaultValue );
+          }
+        } );
   }
 
   INDEX_TYPE getMaxDimSize( int const d )

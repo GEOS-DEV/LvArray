@@ -44,7 +44,7 @@ namespace testing
  * @tparam BUFFER_TYPE the type of the buffer to check.
  * @brief Check that the provided buffer has identical contents to the std::vector.
  * @param buffer the buffer to check, the size is given by ref.
- * @param ref the reference std::vector to compare against. 
+ * @param ref the reference std::vector to compare against.
  */
 template< typename BUFFER_TYPE >
 void compareToReference( BUFFER_TYPE const & buffer,
@@ -62,7 +62,8 @@ void compareToReference( BUFFER_TYPE const & buffer,
 }
 
 // Use this macro to call compareToReference with better error messages.
-#define COMPARE_TO_REFERENCE( buffer, ref ) { SCOPED_TRACE( "" ); compareToReference( buffer, ref ); }
+#define COMPARE_TO_REFERENCE( buffer, ref ) { SCOPED_TRACE( "" ); compareToReference( buffer, ref ); \
+}
 
 constexpr std::ptrdiff_t NO_REALLOC_CAPACITY = 100;
 
@@ -79,7 +80,7 @@ using BufferAPITestTypes = ::testing::Types< ChaiBuffer< int >,
                                              StackBuffer< int, NO_REALLOC_CAPACITY >,
                                              MallocBuffer< int >,
                                              MallocBuffer< TestString >
-                                           >;
+                                             >;
 
 TYPED_TEST_CASE( BufferAPITest, BufferAPITestTypes );
 
@@ -201,7 +202,7 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for ( std::ptrdiff_t i = 0; i < size(); ++i )
+    for( std::ptrdiff_t i = 0 ; i < size() ; ++i )
     {
       T const v( randInt() );
       m_buffer[ i ] = v;
@@ -219,7 +220,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for ( std::ptrdiff_t i = 0; i < nVals; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
     {
       T const val( randInt() );
       bufferManipulation::pushBack( m_buffer, size(), val );
@@ -237,7 +238,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for ( std::ptrdiff_t i = 0; i < nVals; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
     {
       std::ptrdiff_t const seed = randInt();
       bufferManipulation::pushBack( m_buffer, size(), T( seed ) );
@@ -257,7 +258,7 @@ public:
 
     LVARRAY_ERROR_IF_GT( nToPop, size() );
 
-    for ( std::ptrdiff_t i = 0; i < nToPop; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nToPop ; ++i )
     {
       bufferManipulation::popBack( m_buffer, size() );
       m_ref.pop_back();
@@ -274,7 +275,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for ( std::ptrdiff_t i = 0; i < nToInsert; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nToInsert ; ++i )
     {
       T const val( randInt() );
       std::ptrdiff_t const position = randInt( size() );
@@ -293,7 +294,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for ( std::ptrdiff_t i = 0; i < nToInsert; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nToInsert ; ++i )
     {
       std::ptrdiff_t const seed = randInt();
       std::ptrdiff_t const position = randInt( size() );
@@ -316,12 +317,12 @@ public:
     std::vector< T > valsToInsert( MAX_VALS_PER_INSERT );
 
     std::ptrdiff_t nInserted = 0;
-    while ( nInserted < nToInsert )
+    while( nInserted < nToInsert )
     {
       std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
       std::ptrdiff_t const position = randInt( size() );
 
-      for ( std::ptrdiff_t i = 0; i < nToInsertThisIter; ++i )
+      for( std::ptrdiff_t i = 0 ; i < nToInsertThisIter ; ++i )
       {
         valsToInsert[ i ] = T( randInt() );
       }
@@ -346,7 +347,7 @@ public:
 
     LVARRAY_ERROR_IF_GT( nToErase, size() );
 
-    for ( std::ptrdiff_t i = 0; i < nToErase; ++i )
+    for( std::ptrdiff_t i = 0 ; i < nToErase ; ++i )
     {
       std::ptrdiff_t const position = randInt( size() - 1 );
       bufferManipulation::erase( m_buffer, size(), position );
@@ -371,7 +372,7 @@ protected:
 
   /// The buffer to test.
   BUFFER_TYPE m_buffer;
-  
+
   /// The reference to compare against.
   std::vector< T > m_ref;
 };
@@ -406,7 +407,7 @@ TYPED_TEST( BufferTestNoRealloc, CopyConstructor )
   TypeParam copy( this->m_buffer );
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
 
-  if ( TypeParam::hasShallowCopy )
+  if( TypeParam::hasShallowCopy )
   {
     EXPECT_EQ( this->m_buffer.data(), copy.data() );
   }
@@ -428,7 +429,7 @@ TYPED_TEST( BufferTestNoRealloc, copyAssignmentOperator )
   copy = this->m_buffer;
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
 
-  if ( TypeParam::hasShallowCopy )
+  if( TypeParam::hasShallowCopy )
   {
     EXPECT_EQ( this->m_buffer.data(), copy.data() );
   }
@@ -538,15 +539,15 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
 
   for_each_arg(
     [this]( auto && copy )
-    {
-      bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
-      COMPARE_TO_REFERENCE( copy, this->m_ref );
-      bufferManipulation::free( copy, NO_REALLOC_CAPACITY ); 
-    },
+      {
+        bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
+        COMPARE_TO_REFERENCE( copy, this->m_ref );
+        bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
+      },
     ChaiBuffer< typename TypeParam::value_type >( true ),
     MallocBuffer< typename TypeParam::value_type >( true )
     // I would like to copInto a StackBuffer but that doesn't work with std::string.
-  );
+    );
 
   COMPARE_TO_REFERENCE( this->m_buffer, this->m_ref );
 }
@@ -584,7 +585,7 @@ public:
 
     bufferManipulation::setCapacity( m_buffer, size(), size() + 100 );
     T const * const ptr = m_buffer.data();
-    
+
     T const val( randInt() );
     bufferManipulation::resize( m_buffer, size(), size() + 100, val );
     m_ref.resize( size() + 100, val );
@@ -638,7 +639,7 @@ using BufferTestWithReallocTypes = ::testing::Types< ChaiBuffer< int >,
                                                      ChaiBuffer< TestString >,
                                                      MallocBuffer< int >,
                                                      MallocBuffer< TestString >
-                                                   >;
+                                                     >;
 
 TYPED_TEST_CASE( BufferTestWithRealloc, BufferTestWithReallocTypes );
 

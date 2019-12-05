@@ -28,22 +28,21 @@
 
 namespace testFloatingPointExceptionsHelpers
 {
-void func3(double divisor);
+void func3( double divisor );
 
-void func2(double divisor);
+void func2( double divisor );
 
-void func1(double divisor);
+void func1( double divisor );
 
-void func0(double divisor);
+void func0( double divisor );
 
-void testStackTrace(double divisor);
+void testStackTrace( double divisor );
 
-void show_fe_exceptions(void);
+void show_fe_exceptions( void );
 
-double uf_test(double x, double denominator);
+double uf_test( double x, double denominator );
 
 double of_test( double x, double y );
 
 double invalid_test( double x );
 }
-

@@ -25,14 +25,14 @@ TEST( Permutations, isValid )
 {
   // 1D
   static_assert( LvArray::isValidPermutation( camp::idx_seq< 0 > {} ), "This is a valid permutation." );
-  
+
   static_assert( !LvArray::isValidPermutation( camp::idx_seq< 1 > {} ), "This is not a valid permutation." );
   static_assert( !LvArray::isValidPermutation( camp::idx_seq< -1 > {} ), "This is not a valid permutation." );
 
   // 2D
   static_assert( LvArray::isValidPermutation( camp::idx_seq< 0, 1 > {} ), "This is a valid permutation." );
   static_assert( LvArray::isValidPermutation( camp::idx_seq< 1, 0 > {} ), "This is a valid permutation." );
-  
+
   static_assert( !LvArray::isValidPermutation( camp::idx_seq< 1, 1 > {} ), "This is not a valid permutation." );
   static_assert( !LvArray::isValidPermutation( camp::idx_seq< 0, 2 > {} ), "This is not a valid permutation." );
   static_assert( !LvArray::isValidPermutation( camp::idx_seq< -1, 0 > {} ), "This is not a valid permutation." );

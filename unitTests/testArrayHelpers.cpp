@@ -31,9 +31,9 @@ TEST( SizeHelper, SizeHelper )
   int const result2 = multiplyAll< 2 >( dims + 2 );
   int const result3 = multiplyAll< 1 >( dims + 3 );
   ASSERT_EQ( result0, dims[0] * dims[1] * dims[2] * dims[3] );
-  ASSERT_EQ( result1,           dims[1] * dims[2] * dims[3] );
-  ASSERT_EQ( result2,                     dims[2] * dims[3] );
-  ASSERT_EQ( result3,                               dims[3] );
+  ASSERT_EQ( result1, dims[1] * dims[2] * dims[3] );
+  ASSERT_EQ( result2, dims[2] * dims[3] );
+  ASSERT_EQ( result3, dims[3] );
 }
 
 TEST( helpers, getLinearIndex )
@@ -47,13 +47,13 @@ TEST( helpers, getLinearIndex )
                                 dims[ 3 ],
                                 -1000 }; // The stride of the UNIT_STRIDE_DIM shouldn't be used.
 
-  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
+  for( int a0 = 0 ; a0 < dims[ 0 ] ; ++a0 )
   {
-    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
+    for( int a1 = 0 ; a1 < dims[ 1 ] ; ++a1 )
     {
-      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
+      for( int a2 = 0 ; a2 < dims[ 2 ] ; ++a2 )
       {
-        for( int a3 = 0; a3 < dims[ 3 ] ; ++a3 )
+        for( int a3 = 0 ; a3 < dims[ 3 ] ; ++a3 )
         {
           int const expectedIndex = a0 * strides[ 0 ] + a1 * strides[ 1 ] + a2 * strides[ 2 ] + a3;
           int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2, a3 );
@@ -75,11 +75,11 @@ TEST( helpers, getLinearIndexPermuted )
                                 dims[ 0 ],
                                 dims[ 0 ] * dims[ 1 ] };
 
-  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
+  for( int a0 = 0 ; a0 < dims[ 0 ] ; ++a0 )
   {
-    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
+    for( int a1 = 0 ; a1 < dims[ 1 ] ; ++a1 )
     {
-      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
+      for( int a2 = 0 ; a2 < dims[ 2 ] ; ++a2 )
       {
         int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
         int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
@@ -100,11 +100,11 @@ TEST( helpers, getLinearIndexPermuted2 )
                                 -1000, // The stride of the UNIT_STRIDE_DIM shouldn't be used.
                                 dims[ 1 ] * dims[ 2 ] };
 
-  for( int a0 = 0; a0 < dims[ 0 ]; ++a0 )
+  for( int a0 = 0 ; a0 < dims[ 0 ] ; ++a0 )
   {
-    for( int a1 = 0; a1 < dims[ 1 ]; ++a1 )
+    for( int a1 = 0 ; a1 < dims[ 1 ] ; ++a1 )
     {
-      for( int a2 = 0; a2 < dims[ 2 ]; ++a2 )
+      for( int a2 = 0 ; a2 < dims[ 2 ] ; ++a2 )
       {
         int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
         int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
@@ -120,14 +120,14 @@ TEST( helpers, checkIndices )
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
   EXPECT_TRUE( invalidIndices( dims, -1, 0, 0, 0 ) );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, -1,0,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,-1,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,-1,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,0,-1 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, dims[0],0,0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,dims[1],0,0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,dims[2],0 ), "" );
-  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0,0,0,dims[3]), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, -1, 0, 0, 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, -1, 0, 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, 0, -1, 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, 0, 0, -1 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, dims[0], 0, 0, 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, dims[1], 0, 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, 0, dims[2], 0 ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( checkIndices( dims, 0, 0, 0, dims[3] ), "" );
 
   for( int a0=0 ; a0<dims[0] ; ++a0 )
   {
@@ -137,7 +137,7 @@ TEST( helpers, checkIndices )
       {
         for( int a3=0 ; a3<dims[3] ; ++a3 )
         {
-          ASSERT_NO_FATAL_FAILURE( checkIndices( dims, a0,a1,a2,a3 ) );
+          ASSERT_NO_FATAL_FAILURE( checkIndices( dims, a0, a1, a2, a3 ) );
         }
       }
     }
