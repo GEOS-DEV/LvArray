@@ -93,7 +93,8 @@ void compareToReference( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE cons
   }
 }
 
-#define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); }
+#define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); \
+}
 
 enum class ModificationType
 {
@@ -380,9 +381,9 @@ public:
     T const val = T( rand( 100 ) );
     m_matrix.setValues( val );
 
-    for ( auto & row : m_ref )
+    for( auto & row : m_ref )
     {
-      for ( auto & kvPair : row )
+      for( auto & kvPair : row )
       {
         kvPair.second = val;
       }
@@ -400,25 +401,25 @@ public:
     INDEX_TYPE const * const offsets = m_matrix.getOffsets();
 
     INDEX_TYPE curOffset = 0;
-    for (INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row)
+    for( INDEX_TYPE row = 0 ; row < m_matrix.numRows() ; ++row )
     {
       // The last row will have all the extra capacity.
-      if (row != m_matrix.numRows() - 1)
+      if( row != m_matrix.numRows() - 1 )
       {
-        EXPECT_EQ(m_matrix.numNonZeros(row), m_matrix.nonZeroCapacity(row));
+        EXPECT_EQ( m_matrix.numNonZeros( row ), m_matrix.nonZeroCapacity( row ));
       }
-      
-      COL_TYPE const * const rowColumns = m_matrix.getColumns(row);
-      EXPECT_EQ(rowColumns, columns + curOffset);
+
+      COL_TYPE const * const rowColumns = m_matrix.getColumns( row );
+      EXPECT_EQ( rowColumns, columns + curOffset );
 
       T const * const rowEntries = m_matrix.getEntries( row );
       EXPECT_EQ( rowEntries, entries + curOffset );
 
-      EXPECT_EQ(offsets[row], curOffset);
-      curOffset += m_matrix.numNonZeros(row);
+      EXPECT_EQ( offsets[row], curOffset );
+      curOffset += m_matrix.numNonZeros( row );
     }
 
-    COMPARE_TO_REFERENCE(m_matrix.toViewCC(), m_ref);
+    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
   }
 
 protected:
@@ -452,7 +453,7 @@ protected:
   {
     for( INDEX_TYPE i = 0 ; i < columnsToInsert.size() ; ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < columnsToInsert.sizeOfArray( i  ) ; ++j )
+      for( INDEX_TYPE j = 0 ; j < columnsToInsert.sizeOfArray( i ) ; ++j )
       {
         COL_TYPE const col = columnsToInsert( i, j );
         m_ref[ i ][ col ] = T( col );
@@ -490,11 +491,11 @@ protected:
   REF_TYPE< T > m_ref;
 };
 
-using TestTypes = ::testing::Types< 
-    int
+using TestTypes = ::testing::Types<
+  int
   , Tensor
-  , TestString 
->;
+  , TestString
+  >;
 TYPED_TEST_CASE( CRSMatrixTest, TestTypes );
 
 const int DEFAULT_NROWS = 25;
@@ -624,7 +625,7 @@ public:
   using Policy = typename POLICY_VALUE_PAIR::first_type;
   using T = typename POLICY_VALUE_PAIR::second_type;
 
-  CRSMatrixViewTest() :
+  CRSMatrixViewTest():
     CRSMatrixTest< T >(),
     m_view( this->m_matrix )
   {};
@@ -640,11 +641,11 @@ public:
     INDEX_TYPE curIndex = 0;
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
     forall< serialPolicy >( m_view.numRows(),
-      [view, &curIndex]( INDEX_TYPE row )
-      {
-        memoryMotionCheckRow( view, row, curIndex );
-      }
-    );
+                            [view, &curIndex]( INDEX_TYPE row )
+        {
+          memoryMotionCheckRow( view, row, curIndex );
+        }
+                            );
   }
 
   /**
@@ -673,17 +674,17 @@ public:
     // Capture a view with const columns on device and update the entries.
     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
     forall< Policy >( numRows,
-      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
-      {
-        COL_TYPE const * const columns = view.getColumns( row );
-        T * const entries = view.getEntries( row );
-        for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+                      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
-          LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
-          entries[i] = T( 2 * i + 7 );
+          COL_TYPE const * const columns = view.getColumns( row );
+          T * const entries = view.getEntries( row );
+          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          {
+            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
+            entries[i] = T( 2 * i + 7 );
+          }
         }
-      }
-    );
+                      );
 
     // This should copy back the entries but not the columns.
     this->m_matrix.move( chai::CPU );
@@ -715,17 +716,17 @@ public:
     // Capture a view with const columns and const values on device.
     CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
     forall< Policy >( numRows,
-      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
-      {
-        COL_TYPE const * const columns = view.getColumns( row );
-        T const * const entries = view.getEntries( row );
-        for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+                      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
-          LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
-          LVARRAY_ERROR_IF( entries[i] != T( columns[i] ), "Incorrect value." );
+          COL_TYPE const * const columns = view.getColumns( row );
+          T const * const entries = view.getEntries( row );
+          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          {
+            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
+            LVARRAY_ERROR_IF( entries[i] != T( columns[i] ), "Incorrect value." );
+          }
         }
-      }
-    );
+                      );
 
     // Insert entries, this will modify the offsets, sizes, columns and entries.
     this->insert( maxInserts, ModificationType::SORTED );
@@ -749,7 +750,7 @@ public:
     // Create an Array of the columns and values to insert into each row.
     ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, type == ModificationType::SORTED );
     ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert );
-    
+
     // Reserve space for the inserts
     for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
     {
@@ -765,47 +766,47 @@ public:
     if( type == ModificationType::SINGLE )
     {
       forall< Policy >( numRows,
-        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE nInserted = 0;
-          for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
           {
-            COL_TYPE const col = columnsView( row, i );
-            nInserted += view.insertNonZero( row, col, T( col ) );
-          }
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE nInserted = 0;
+            for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+            {
+              COL_TYPE const col = columnsView( row, i );
+              nInserted += view.insertNonZero( row, col, T( col ) );
+            }
 
-          PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
-        }
-      );
+            PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
+          }
+                        );
     }
     if( type == ModificationType::MULTIPLE )
     {
       forall< Policy >( numRows,
-        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE const nInserted = view.insertNonZeros( row,
-                                                            columnsView[row],
-                                                            valuesView[row],
-                                                            columnsView.sizeOfArray( row ) );
-          PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
-        }
-      );
+                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+          {
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE const nInserted = view.insertNonZeros( row,
+                                                              columnsView[row],
+                                                              valuesView[row],
+                                                              columnsView.sizeOfArray( row ) );
+            PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
+          }
+                        );
     }
     if( type == ModificationType::SORTED )
     {
       forall< Policy >( numRows,
-        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE const nInserted = view.insertNonZerosSorted( row,
-                                                                  columnsView[row],
-                                                                  valuesView[row],
-                                                                  columnsView.sizeOfArray( row ) );
-          PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
-        }
-      );
+                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+          {
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE const nInserted = view.insertNonZerosSorted( row,
+                                                                    columnsView[row],
+                                                                    valuesView[row],
+                                                                    columnsView.sizeOfArray( row ) );
+            PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
+          }
+                        );
     }
 
     this->m_matrix.move( chai::CPU );
@@ -839,40 +840,40 @@ public:
     if( type == ModificationType::SINGLE )
     {
       forall< Policy >( numRows,
-        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE nRemoved = 0;
-          for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
           {
-            nRemoved += view.removeNonZero( row, columnsView( row, i ) );
-          }
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE nRemoved = 0;
+            for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+            {
+              nRemoved += view.removeNonZero( row, columnsView( row, i ) );
+            }
 
-          PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-        }
-      );
+            PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
+          }
+                        );
     }
     if( type == ModificationType::MULTIPLE )
     {
       forall< Policy >( numRows,
-        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
-          PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-        }
-      );
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+          {
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
+            PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
+          }
+                        );
     }
     if( type == ModificationType::SORTED )
     {
       forall< Policy >( numRows,
-        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-        {
-          INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-          INDEX_TYPE const nRemoved = view.removeNonZerosSorted( row, columnsView[row], columnsView.sizeOfArray( row ) );
-          PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-        }
-      );
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+          {
+            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
+            INDEX_TYPE const nRemoved = view.removeNonZerosSorted( row, columnsView[row], columnsView.sizeOfArray( row ) );
+            PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
+          }
+                        );
     }
 
     this->m_matrix.move( chai::CPU );
@@ -900,15 +901,15 @@ public:
     // Check that each row contains the even columns and no odd columns.
     CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
     forall< Policy >( numRows,
-      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-      {
-        for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+                      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
-          PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
-          PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
+          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          {
+            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
+            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
+          }
         }
-      }
-    );
+                      );
   }
 
   /**
@@ -923,23 +924,23 @@ public:
     // Check that each row contains the even columns and no odd columns on device.
     CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
     forall< Policy >( numRows,
-      [spView, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-      {
-        INDEX_TYPE const nnz = view.numNonZeros( row );
-        PORTABLE_EXPECT_EQ( nnz, spView.numNonZeros( row ) );
-
-        COL_TYPE const * const columns = view.getColumns( row );
-        COL_TYPE const * const spColumns = spView.getColumns( row );
-        PORTABLE_EXPECT_EQ( columns, spColumns );
-
-        for( INDEX_TYPE i = 0 ; i < nnz ; ++i )
+                      [spView, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
-          PORTABLE_EXPECT_EQ( columns[ i ], spColumns[ i ] );
-          PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
-          PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( i ) ), spView.empty( row, COL_TYPE( i ) ) );
+          INDEX_TYPE const nnz = view.numNonZeros( row );
+          PORTABLE_EXPECT_EQ( nnz, spView.numNonZeros( row ) );
+
+          COL_TYPE const * const columns = view.getColumns( row );
+          COL_TYPE const * const spColumns = spView.getColumns( row );
+          PORTABLE_EXPECT_EQ( columns, spColumns );
+
+          for( INDEX_TYPE i = 0 ; i < nnz ; ++i )
+          {
+            PORTABLE_EXPECT_EQ( columns[ i ], spColumns[ i ] );
+            PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
+            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( i ) ), spView.empty( row, COL_TYPE( i ) ) );
+          }
         }
-      }
-    );
+                      );
   }
 
   // This should be private but you can't have device lambdas need to be in public methods :(
@@ -966,18 +967,18 @@ public:
     // because we don't want to test the insert/remove methods on device yet.
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
     forall< Policy >( numRows,
-      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-      {
-        COL_TYPE const * const columns = view.getColumns( row );
-        COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-        T * const entries = view.getEntries( row );
-        for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+                      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
-          columnsNC[i] += columns[i];
-          entries[i] += entries[i];
+          COL_TYPE const * const columns = view.getColumns( row );
+          COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
+          T * const entries = view.getEntries( row );
+          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          {
+            columnsNC[i] += columns[i];
+            entries[i] += entries[i];
+          }
         }
-      }
-    );
+                      );
   }
 
 protected:
@@ -999,7 +1000,7 @@ protected:
 };
 
 using ViewTestTypes = ::testing::Types<
-    std::pair< serialPolicy, int >
+  std::pair< serialPolicy, int >
   , std::pair< serialPolicy, Tensor >
   , std::pair< serialPolicy, TestString >
 #if defined(USE_OPENMP)
@@ -1011,7 +1012,7 @@ using ViewTestTypes = ::testing::Types<
   , std::pair< parallelDevicePolicy, int >
   , std::pair< parallelDevicePolicy, Tensor >
 #endif
->;
+  >;
 
 TYPED_TEST_CASE( CRSMatrixViewTest, ViewTestTypes );
 
@@ -1132,18 +1133,18 @@ public:
   {
     INDEX_TYPE const numRows = m_view.numRows();
 
-    for ( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
     {
       INDEX_TYPE const nColsInRow = m_view.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
       ArrayOfSets< COL_TYPE > columns;
-      for ( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+      for( INDEX_TYPE threadID = 0 ; threadID < nThreads ; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = this->rand( nColsInRow );
         columns.appendSet( nColsToAddTo );
 
-        for ( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
+        for( INDEX_TYPE i = 0 ; i < nColsToAddTo ; ++i )
         {
           INDEX_TYPE const pos = this->rand( nColsInRow - 1 );
           columns.insertIntoSet( threadID, m_view.getColumns( row )[ pos ] );
@@ -1152,12 +1153,12 @@ public:
 
       // Array that holds the values each thread will add to in the current row.
       ArrayOfArrays< T > values;
-      for ( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+      for( INDEX_TYPE threadID = 0 ; threadID < nThreads ; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = columns.sizeOfSet( threadID );
         values.appendArray( nColsToAddTo );
 
-        for ( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
+        for( INDEX_TYPE i = 0 ; i < nColsToAddTo ; ++i )
         {
           COL_TYPE const column = columns( threadID, i );
           values( threadID, i ) = T( columns( threadID, i ) );
@@ -1169,32 +1170,32 @@ public:
       ArrayOfSetsView< COL_TYPE const, INDEX_TYPE const > colView = columns;
       ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values;
 
-      if ( type == AddType::LINEAR_SEARCH )
+      if( type == AddType::LINEAR_SEARCH )
       {
         forall< Policy >( nThreads,
-          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
-          {
-            view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-          }
-        );
+                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+            {
+              view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
+            }
+                          );
       }
-      if ( type == AddType::BINARY_SEARCH )
+      if( type == AddType::BINARY_SEARCH )
       {
         forall< Policy >( nThreads,
-          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
-          {
-            view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-          }
-        );
+                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+            {
+              view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
+            }
+                          );
       }
-      if ( type == AddType::HYBRID )
+      if( type == AddType::HYBRID )
       {
         forall< Policy >( nThreads,
-          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
-          {
-            view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-          }
-        );
+                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+            {
+              view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
+            }
+                          );
       }
     }
 
@@ -1207,7 +1208,7 @@ protected:
 };
 
 using ViewAtomicTestTypes = ::testing::Types<
-    std::pair< serialPolicy, int >
+  std::pair< serialPolicy, int >
   , std::pair< serialPolicy, Tensor >
   , std::pair< serialPolicy, TestString >
 #if defined(USE_OPENMP)
@@ -1216,7 +1217,7 @@ using ViewAtomicTestTypes = ::testing::Types<
 #if defined(USE_CUDA)
   , std::pair< parallelDevicePolicy, int >
 #endif
->;
+  >;
 
 TYPED_TEST_CASE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes );
 

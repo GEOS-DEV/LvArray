@@ -1,7 +1,6 @@
 #
 # Specify list of tests
 #
-
 set(testSources
     testArray.cpp
     testArrayOfArrays.cpp
@@ -20,8 +19,6 @@ set(testSources
     testPermutation.cpp
     testBuffers.cpp
    )
-
-message( "cxx_dependencies = ${cxx_dependencies}" )
 
 #
 # Add gtest C++ based tests

@@ -25,9 +25,6 @@ include(cmake/Macros.cmake)
 include(cmake/Config.cmake)
 
 set( cxx_dependencies "" )
-if( ATK_FOUND )
-    set( cxx_dependencies axom )
-endif()
 
 if( ENABLE_CHAI )
     set( cxx_dependencies ${cxx_dependencies} chai umpire )
@@ -57,5 +54,5 @@ add_subdirectory(unitTests)
 add_subdirectory(src)
 add_subdirectory(docs)
 
-#install(DIRECTORY ${PROJECT_BINARY_DIR}/bin DESTINATION . OPTIONAL)
-#install(DIRECTORY ${PROJECT_BINARY_DIR}/include DESTINATION . OPTIONAL)
+cxxutils_add_code_checks(PREFIX cxx-utilities
+                         EXCLUDES "blt/*" )

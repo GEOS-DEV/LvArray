@@ -289,7 +289,7 @@ public:
    * TODO: Add tests.
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) restrict_this
-  { 
+  {
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity, m_entries );
   }
 

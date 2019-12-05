@@ -51,5 +51,3 @@ blt_add_library( NAME             cxx-utilities
 
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )
 
-cxxutils_add_code_checks(PREFIX cxx-utilities )
-

@@ -157,7 +157,7 @@ void uninitializedShiftDown( T * const restrict ptr,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( isPositive( amount ) );
 
-  if ( amount == 0 )
+  if( amount == 0 )
     return;
 
   for( std::ptrdiff_t j = 0 ; j < size ; ++j )
@@ -185,7 +185,7 @@ void uninitializedShiftUp( T * const restrict ptr,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( isPositive( amount ) );
 
-  if ( amount == 0 )
+  if( amount == 0 )
     return;
 
   for( std::ptrdiff_t j = size - 1 ; j >= 0 ; --j )
@@ -458,9 +458,9 @@ DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const restrict ptr,
-            std::ptrdiff_t const size,
-            std::ptrdiff_t const index,
-            T && value )
+             std::ptrdiff_t const size,
+             std::ptrdiff_t const index,
+             T && value )
 {
   LVARRAY_ASSERT( ptr != nullptr );
   LVARRAY_ASSERT( isPositive( size ) );
