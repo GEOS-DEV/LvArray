@@ -1,0 +1,121 @@
+To run a benchmark
+
+l/srun -n 1 path/to/benchmark.exe --benchmark_filter="REXEX MATCHING BENCHMARKS TO RUN"
+
+I like to pipe the output through grep via | grep -E "real_time_max|###" which cuts down the output to the maximum values across the repetitions as well as the error
+checking output. I prefer real_time_max over real_time_min because then I can look at the bytes_per_second field which should remain valid across different problem sizes.
+
+The format for the benchmark aggregate results is
+functionName<TEMPLATE_ARGUMENT>/BENCHMARK/SIZE/ARGUMENTS/repeats:NUMBER_OF_BENCHMARK_REPETITIONS/BENCHMARK_STATISTIC
+
+The results below are from
+srun -n 1 ./tests/benchmarkArray1DR2TensorMultiplication | grep -E "real_time_max|###"
+
+Quartz clang results:
+fortranNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=8.8642G/s
+subscriptNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=8.70546G/s
+tensorAbstractionNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=11.9358G/s
+rajaViewNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=8.26385G/s
+pointerNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=19.6177G/s
+fortranNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=6.83998G/s
+subscriptNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=6.54636G/s
+tensorAbstractionNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=6.86866G/s
+rajaViewNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=6.9297G/s
+pointerNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=14.405G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=8.53978G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=8.50494G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=10.7661G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=7.71024G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=15.0519G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=7.5034G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=8.01657G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=7.85626G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=7.51993G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=8.20466G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=223.008G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=222.011G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=277.252G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=221.718G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=365.722G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=183.927G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=195.219G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=191.924G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=185.624G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=203.323G/s
+### All benchmarks produced the same answers.
+
+Quartz gcc results:
+fortranNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=6.94408G/s
+subscriptNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=7.14354G/s
+tensorAbstractionNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=8.14809G/s
+rajaViewNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=7.40816G/s
+pointerNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=16.669G/s
+fortranNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=5.87524G/s
+subscriptNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=6.15526G/s
+tensorAbstractionNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=5.89848G/s
+rajaViewNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=6.38813G/s
+pointerNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=8.26624G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=17.4758G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=18.3133G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=17.4615G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=18.344G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=15.3133G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=9.74542G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=11.9016G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=10.1977G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=11.5234G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=7.92755G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=323.488G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=343.215G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=324.905G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=349.679G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=343.036G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=204.427G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=245.607G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=214.021G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=211.068G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=204.874G/s
+### All benchmarks produced the same answers.
+
+Lassen results:
+fortranNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=5.53756G/s
+subscriptNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=6.68391G/s
+tensorAbstractionNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=9.10778G/s
+rajaViewNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=5.26253G/s
+pointerNative<RAJA::PERM_IJK>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=25.3322G/s
+fortranNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=5.17761G/s
+subscriptNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                               ...     10 bytes_per_second=5.93545G/s
+tensorAbstractionNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                       ...     10 bytes_per_second=6.0197G/s
+rajaViewNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                ...     10 bytes_per_second=5.33607G/s
+pointerNative<RAJA::PERM_KJI>/130985/repeats:10/real_time_max                                                                 ...     10 bytes_per_second=14.0521G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=5.28749G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=6.273G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=8.54283G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=5.21009G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=13.5384G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=5.05396G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                      ...     10 bytes_per_second=6.55339G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                              ...     10 bytes_per_second=6.43804G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                       ...     10 bytes_per_second=5.06251G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, serialPolicy >>/130985/repeats:10/real_time_max                                        ...     10 bytes_per_second=6.64554G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=85.095G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=111.804G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=151.241G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=81.4372G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=246.212G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=80.8232G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                ...     10 bytes_per_second=122.076G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                        ...     10 bytes_per_second=118.369G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                 ...     10 bytes_per_second=82.0444G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, parallelHostPolicy >>/130985/repeats:10/real_time_max                                  ...     10 bytes_per_second=122.378G/s
+fortranRaja<std::pair< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max                ...     10 bytes_per_second=3.97099G/s
+subscriptRaja<std::pair< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max              ...     10 bytes_per_second=3.97016G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max      ...     10 bytes_per_second=7.18581G/s
+rajaViewRaja<std::pair< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max               ...     10 bytes_per_second=3.84636G/s
+pointerRaja<std::pair< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max                ...     10 bytes_per_second=3.75541G/s
+fortranRaja<std::pair< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max                ...     10 bytes_per_second=35.2015G/s
+subscriptRaja<std::pair< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max              ...     10 bytes_per_second=35.2064G/s
+tensorAbstractionRaja<std::pair< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max      ...     10 bytes_per_second=45.5475G/s
+rajaViewRaja<std::pair< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max               ...     10 bytes_per_second=35.1499G/s
+pointerRaja<std::pair< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >>/130985/repeats:10/real_time_max                ...     10 bytes_per_second=33.1865G/s
+### All benchmarks produced the same answers.

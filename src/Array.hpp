@@ -233,7 +233,6 @@ public:
     LVARRAY_ERROR_IF_NE( numDims, NDIM );
 
     INDEX_TYPE const oldSize = size();
-
     for( int i = 0 ; i < NDIM ; ++i )
     {
       m_dims[ i ] = dims[ i ];
