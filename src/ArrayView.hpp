@@ -156,7 +156,6 @@ public:
   {
     m_dataBuffer = rhs.m_dataBuffer;
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-
     for( int i = 0 ; i < NDIM ; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
@@ -176,7 +175,6 @@ public:
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-
     for( int i = 0 ; i < NDIM ; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
