@@ -475,7 +475,7 @@ public:
   /**
    * @brief Return a pointer to the array containing the stride of each dimension.
    */
-  inline INDEX_TYPE const * strides() const noexcept
+  LVARRAY_HOST_DEVICE inline INDEX_TYPE const * strides() const noexcept
   {
     return m_strides;
   }

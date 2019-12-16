@@ -540,7 +540,7 @@ public:
   std::enable_if_t< isArray< U > >
   move( chai::ExecutionSpace const space, bool const touch=true )
   {
-    reinterpret_cast< BUFFER_TYPE< typename T::ViewType > & >( m_dataBuffer ).move( space, touch );
+    reinterpret_cast< BUFFER_TYPE< typename std::remove_const< typename T::ViewType >::type > & >( m_dataBuffer ).move( space, touch );
     setDataPtr();
   }
 
