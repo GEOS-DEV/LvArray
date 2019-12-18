@@ -81,9 +81,6 @@ template< typename T, typename U >
 constexpr bool is_instance_of_v = is_instance_of< T, U >::value;
 
 template <class T, class U>
-struct is_base_of: std::is_base_of< T, U > {};
-
-template <class T, class U>
-constexpr bool is_base_of_v = is_base_of<T, U>::value;
+constexpr bool is_base_of_v = std::is_base_of<T, U>::value;
 
 #endif // TEMPLATEHELPERS_HPP_
