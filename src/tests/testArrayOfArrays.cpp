@@ -226,7 +226,7 @@ public:
       for (INDEX_TYPE j = 0; j < numAppends; ++j)
       {
         T const value = T(i * LARGE_NUMBER + j);
-        array.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+        array.atomicAppendToArray(RAJA::auto_atomic{}, i, value);
       }
     }
 
@@ -269,7 +269,7 @@ public:
         for (INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j)
         {
           T const value = T(i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j);
-          array.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+          array.atomicAppendToArray(RAJA::auto_atomic{}, i, value);
         }
       }
     }
@@ -1001,7 +1001,7 @@ public:
           for (INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j)
           {
             T const value = T(i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j);
-            view.atomicAppendToArray(RAJA::atomic::auto_atomic{}, i, value);
+            view.atomicAppendToArray(RAJA::auto_atomic{}, i, value);
           }
         }
       }

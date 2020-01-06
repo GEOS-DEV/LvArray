@@ -270,7 +270,7 @@ public:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     T * const ptr = m_values.data() + m_offsets[ i ];
-    INDEX_TYPE const previousSize = RAJA::atomic::atomicInc< POLICY >( &m_sizes[ i ] );
+    INDEX_TYPE const previousSize = RAJA::atomicInc< POLICY >( &m_sizes[ i ] );
     ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, 1 );
 
     arrayManipulation::append( ptr, previousSize, value );
