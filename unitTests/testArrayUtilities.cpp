@@ -182,8 +182,10 @@ TEST( testArrayUtilities, arrayToString )
       }
     }
   }
-  string stringy = arrayToString( array );
-  ASSERT_EQ( stringy, "{ { { 0, 1, 2 }, { 10, 11, 12 }, { 20, 21, 22 }, { 30, 31, 32 } },"
-                      " { { 100, 101, 102 }, { 110, 111, 112 }, { 120, 121, 122 }, { 130, 131, 132 } } }" );
+
+  std::stringstream ss;
+  ss << array;
+  ASSERT_EQ( ss.str(), "{ { { 0, 1, 2 }, { 10, 11, 12 }, { 20, 21, 22 }, { 30, 31, 32 } },"
+                       " { { 100, 101, 102 }, { 110, 111, 112 }, { 120, 121, 122 }, { 130, 131, 132 } } }" );
 
 }

@@ -29,6 +29,7 @@
 #include "Macros.hpp"
 #include "arrayHelpers.hpp"
 #include "IntegerConversion.hpp"
+#include "ArrayUtilities.hpp"
 
 // System includes
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -477,24 +478,6 @@ public:
   inline INDEX_TYPE const * strides() const noexcept
   {
     return m_strides;
-  }
-
-  /**
-   * @brief This function outputs the contents of an array to an output stream
-   * @param stream the output stream for which to apply operator<<
-   * @param array the array to output
-   * @return a reference to the ostream
-   */
-  friend std::ostream & operator<< ( std::ostream & stream, ArrayView const & array )
-  {
-    T const * const data_ptr = array.data();
-    stream<<"{ "<< data_ptr[0];
-    for( INDEX_TYPE a=1 ; a<array.size() ; ++a )
-    {
-      stream<<", "<< data_ptr[a];
-    }
-    stream<<" }";
-    return stream;
   }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)

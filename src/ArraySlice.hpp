@@ -102,6 +102,9 @@ public:
 
   static_assert( UNIT_STRIDE_DIM < NDIM, "UNIT_STRIDE_DIM must be less than NDIM." );
 
+  /// deleted default constructor
+  ArraySlice() = delete;
+
   /**
    * @brief Construct a new ArraySlice.
    * @param inputData pointer to the beginning of the data for this slice of the array
@@ -242,9 +245,6 @@ public:
   {
     return m_data == ptr;
   }
-
-  /// deleted default constructor
-  ArraySlice() = delete;
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
   /**
