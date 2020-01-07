@@ -34,7 +34,7 @@ namespace cxx_utilities
 
 /**
  * @struct stringToArrayHelper
- * This is a helper struct to recursivly read an istringstream into an array.
+ * This is a helper struct to recursively read an istringstream into an array.
  */
 template< typename T, typename INDEX_TYPE >
 struct stringToArrayHelper
@@ -300,91 +300,46 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
   stringToArrayHelper< T, INDEX_TYPE >::template Read< NDIM >( array, array.dims(), strstream );
 }
 
-
 /**
- * @struct arrayToStringHelper
- * Helper struct/functor to output an array into a string.
+ * @brief This function outputs the contents of an array slice to an output stream.
+ * @param stream the output stream for which to apply operator<<.
+ * @param slice the slice to output.
+ * @return a reference to the ostream.
  */
-template< typename T, typename INDEX_TYPE >
-struct arrayToStringHelper
+template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE >
+std::ostream & operator<<( std::ostream & stream,
+                           LvArray::ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice )
 {
+  stream << "{ ";
 
-  /**
-   * @brief recursive function to loop over the contents of an array and output in a
-   *        format similar to the initializer of a standard c-array.
-   * @param[in] data pointer to the data
-   * @param[in] dims pointer to the dims array
-   * @param[in] strides pointer to the strides array
-   * @param[in/out] output the output string
-   */
-  template< int NDIM >
-  static
-  typename std::enable_if< NDIM==0, void >::type
-  dimExpansion( T const * const data,
-                INDEX_TYPE const * const dims,
-                INDEX_TYPE const * const LVARRAY_UNUSED_ARG( strides ),
-                std::string & output )
+  if( slice.size( 0 ) > 0 )
+    stream << slice[ 0 ];
+
+  for( INDEX_TYPE i = 1 ; i < slice.size( 0 ) ; ++i )
   {
-    for( INDEX_TYPE i=0 ; i<dims[0] ; ++i )
-    {
-      output += std::to_string( data[i] );
-      if( i < dims[0] - 1 )
-      {
-        output += ", ";
-      }
-    }
+    stream << ", " << slice[ i ];
   }
 
-  template< int NDIM >
-  static
-  typename std::enable_if< NDIM!=0, void >::type
-  dimExpansion( T const * const data,
-                INDEX_TYPE const * const dims,
-                INDEX_TYPE const * const strides,
-                std::string & output )
-  {
-    for( INDEX_TYPE i=0 ; i<dims[0] ; ++i )
-    {
-      output += "{ ";
-      dimExpansion< NDIM-1 >( &(data[ i*strides[0] ] ), dims+1, strides+1, output );
-      output += " }";
-      if( i < dims[0] - 1 )
-      {
-        output += ", ";
-      }
-
-    }
-  }
-
-};
-
+  stream << " }";
+  return stream;
+}
 
 /**
- * @brief This function converts an array to a string
- * @param array The array to convert
- * @return a string containing the contents of @p array
+ * @brief This function outputs the contents of an array view to an output stream.
+ * @param stream the output stream for which to apply operator<<.
+ * @param view the view to output.
+ * @return a reference to the ostream.
  */
 template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
-static std::string arrayToString( LvArray::ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & array )
+std::ostream & operator<<( std::ostream & stream,
+                           LvArray::ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
 {
-  std::string output;
-  output.clear();
-
-  output += "{ ";
-  arrayToStringHelper< T, INDEX_TYPE >::template dimExpansion< NDIM-1 >( array.data(),
-                                                                         array.dims(),
-                                                                         array.strides(),
-                                                                         output );
-
-  output += " }";
-
-  return output;
+  return stream << view.toSliceConst();
 }
-
 
 }
 
