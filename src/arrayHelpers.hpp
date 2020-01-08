@@ -27,10 +27,11 @@
 #include "Macros.hpp"
 #include "Permutation.hpp"
 #include "ChaiBuffer.hpp"
+#include "NewChaiBuffer.hpp"
 #include "templateHelpers.hpp"
 
 // TPL includes
-#include <camp/camp.hpp>
+#include <RAJA/RAJA.hpp>
 
 namespace LvArray
 {
@@ -38,7 +39,7 @@ namespace LvArray
 /**
  *
  */
-template< int i, int exclude_i >
+template< std::ptrdiff_t i, std::ptrdiff_t exclude_i >
 struct ConditionalMultiply
 {
 
@@ -50,7 +51,7 @@ struct ConditionalMultiply
   }
 };
 
-template< int i >
+template< std::ptrdiff_t i >
 struct ConditionalMultiply< i, i >
 {
   // Use a reference here for B so that you can do multiply( 5, *nullptr ), which is use by the ArrayOfArray classes.
@@ -63,30 +64,31 @@ struct ConditionalMultiply< i, i >
 };
 
 template< int SIZE, typename T >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 typename std::enable_if< (SIZE == 1), T >::type
 multiplyAll( T const * const restrict values )
 { return values[ 0 ]; }
 
 template< int SIZE, typename T >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 typename std::enable_if< (SIZE > 1), T >::type
 multiplyAll( T const * const restrict values )
 { return values[ 0 ] * multiplyAll< SIZE - 1 >( values + 1 ); }
 
-template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename none = void >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-INDEX_TYPE getLinearIndex( void const * const restrict LVARRAY_UNUSED_ARG( strides ) )
-{ return 0; }
+template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename INDEX >
+LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index )
+{
+  return ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, strides[ 0 ] );
+}
 
 template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index, REMAINING_INDICES... indices )
 {
   return ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, strides[ 0 ] ) +
          getLinearIndex< UNIT_STRIDE_DIM - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
-
 
 template< typename INDEX_TYPE, typename INDEX, typename ... INDICES >
 std::string printDimsAndIndices( INDEX_TYPE const * const restrict dims, INDEX const index, INDICES... indices )
@@ -102,7 +104,7 @@ std::string printDimsAndIndices( INDEX_TYPE const * const restrict dims, INDEX c
 
   using expander = int[];
   (void) expander{ 0, ( void (oss << ", " << indices ), 0 )... };
-  oss << "}";
+  oss << " }";
 
   return oss.str();
 }
@@ -212,14 +214,14 @@ template< typename T,
           int NDIM,
           typename PERMUTATION=camp::make_idx_seq_t< NDIM >,
           typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class DATA_VECTOR_TYPE=ChaiBuffer >
+          template< typename > class DATA_VECTOR_TYPE=NewChaiBuffer >
 class Array;
 
 template< typename T,
           int NDIM,
           int UNIT_STRIDE_DIM=NDIM-1,
           typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class DATA_VECTOR_TYPE=ChaiBuffer >
+          template< typename > class DATA_VECTOR_TYPE=NewChaiBuffer >
 class ArrayView;
 
 

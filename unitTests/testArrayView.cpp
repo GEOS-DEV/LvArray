@@ -559,15 +559,10 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
 {
   const INDEX_TYPE N = a.size();
 
-  // Create a shallow copy of a that we can modify later.
-  array< array< arrayView_nc< T > > > a_copy( N );
-
   for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    a_copy[ i ].resize( a[i].size());
     for( INDEX_TYPE j = 0 ; j < N ; ++j )
     {
-      a_copy[ i ][ j ] = a[ i ][ j ];
       for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
         a[ i ][ j ][ k ] = T( N * N * i + N * j + k );
@@ -575,43 +570,28 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
     }
   }
 
-  arrayView< arrayView< arrayView< T const > > > & v = a.toViewConst();
-
+  arrayView< arrayView< arrayView< T const > const > const > const & v = a.toViewConst();
   forall( gpu(), 0, N,
-          [=] __device__ ( INDEX_TYPE i )
+          [v, N] __device__ ( INDEX_TYPE i )
       {
         for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
           for( INDEX_TYPE k = 0 ; k < N ; ++k )
           {
-            assert( v[ i ][ j ][ k ] == T( N * N * i + N * j + k ));
+            const_cast< T & >( v[ i ][ j ][ k ] ) = T( N * N * i + N * j + k + 1 );
           }
         }
       }
           );
 
-  // Modify a_copy. We can't use a directly since the inner arrays
-  // have device pointers.
-  for( INDEX_TYPE i = 0 ; i < N ; ++i )
-  {
-    for( INDEX_TYPE j = 0 ; j < N ; ++j )
-    {
-      for( INDEX_TYPE k = 0 ; k < N ; ++k )
-      {
-        a_copy[ i ][ j ][ k ] = T( 2 * ( N * N * i + N * j + k ) );
-      }
-    }
-  }
-
-  // Check that the modifications weren't overwritten.
   forall( sequential(), 0, N,
-          [=]( INDEX_TYPE i )
+          [v, N]( INDEX_TYPE const i )
       {
         for( INDEX_TYPE j = 0 ; j < N ; ++j )
         {
           for( INDEX_TYPE k = 0 ; k < N ; ++k )
           {
-            EXPECT_EQ( v[ i ][ j ][ k ], T( 2 * ( N * N * i + N * j + k ) ) );
+            EXPECT_EQ( v[ i ][ j ][ k ], T( N * N * i + N * j + k ) );
           }
         }
       }

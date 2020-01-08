@@ -94,7 +94,6 @@ public:
   using ParentType::toSlice;
   using ParentType::size;
   using ParentType::empty;
-  using ParentType::setDataPtr;
   using ParentType::data;
   using ParentType::operator[];
   using ParentType::operator();
@@ -114,6 +113,7 @@ public:
   inline Array():
     ParentType( true )
   {
+    setName( "" );
     CalculateStrides();
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     Array::TV_ttf_display_type( nullptr );
@@ -164,7 +164,6 @@ public:
   ~Array()
   {
     bufferManipulation::free( m_dataBuffer, size() );
-    setDataPtr();
   }
 
   /**
@@ -194,10 +193,12 @@ public:
   Array & operator=( Array const & rhs )
   {
     bufferManipulation::copyInto( m_dataBuffer, size(), rhs.m_dataBuffer, rhs.size() );
-    setDataPtr();
 
-    this->setDims( rhs.m_dims );
-    this->setStrides( rhs.m_strides );
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      m_dims[ i ] = rhs.m_dims[ i ];
+      m_strides[ i ] = rhs.m_strides[ i ];
+    }
 
     setSingleParameterResizeIndex( rhs.getSingleParameterResizeIndex() );
     return *this;
@@ -213,7 +214,7 @@ public:
     INDEX_TYPE const length = size();
     for( INDEX_TYPE a = 0 ; a < length ; ++a )
     {
-      this->m_data[a] = rhs;
+      this->data()[a] = rhs;
     }
     return *this;
   }
@@ -232,11 +233,15 @@ public:
     LVARRAY_ERROR_IF_NE( numDims, NDIM );
 
     INDEX_TYPE const oldSize = size();
-    this->setDims( dims );
+
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      m_dims[ i ] = dims[ i ];
+    }
+
     CalculateStrides();
 
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
-    setDataPtr();
   }
 
   /**
@@ -269,7 +274,6 @@ public:
     CalculateStrides();
 
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
-    setDataPtr();
   }
 
   /**
@@ -291,7 +295,6 @@ public:
     CalculateStrides();
 
     bufferManipulation::reserve( m_dataBuffer, oldSize, size() );
-    setDataPtr();
   }
 
   /**
@@ -317,7 +320,6 @@ public:
     CalculateStrides();
 
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
-    setDataPtr();
   }
 
   /**
@@ -359,7 +361,6 @@ public:
   void reserve( INDEX_TYPE const newCapacity )
   {
     bufferManipulation::reserve( m_dataBuffer, size(), newCapacity );
-    setDataPtr();
   }
 
   /**
@@ -376,7 +377,6 @@ public:
   void clear()
   {
     bufferManipulation::resize( m_dataBuffer, size(), 0 );
-    setDataPtr();
 
     const_cast< INDEX_TYPE * >( m_dims )[ getSingleParameterResizeIndex() ] = 0;
 
@@ -393,7 +393,6 @@ public:
   push_back( T const & value )
   {
     bufferManipulation::pushBack( m_dataBuffer, size(), value );
-    setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
@@ -407,7 +406,6 @@ public:
   push_back( T && value )
   {
     bufferManipulation::pushBack( m_dataBuffer, size(), std::move( value ) );
-    setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
@@ -435,7 +433,6 @@ public:
   insert( INDEX_TYPE const pos, T const & value )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, value );
-    setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
@@ -451,7 +448,6 @@ public:
   insert( INDEX_TYPE const pos, T && value )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, std::move( value ) );
-    setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
   }
 
@@ -468,7 +464,6 @@ public:
   insert( INDEX_TYPE const pos, T const * const values, INDEX_TYPE const n )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, values, n );
-    setDataPtr();
     const_cast< INDEX_TYPE * >( m_dims )[ 0 ] += n;
   }
 
@@ -525,7 +520,6 @@ public:
   move( chai::ExecutionSpace const space, bool const touch=true )
   {
     m_dataBuffer.move( space, touch );
-    setDataPtr();
   }
 
   /**
@@ -541,7 +535,6 @@ public:
   move( chai::ExecutionSpace const space, bool const touch=true )
   {
     reinterpret_cast< BUFFER_TYPE< typename std::remove_const< typename T::ViewType >::type > & >( m_dataBuffer ).move( space, touch );
-    setDataPtr();
   }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -570,7 +563,7 @@ private:
    */
   void CalculateStrides()
   {
-    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();
+    constexpr std::array< camp::idx_t, NDIM > permutation = RAJA::as_array< PERMUTATION >::get();
     std::array< INDEX_TYPE, NDIM > foldedStrides;
 
     for( int i = 0 ; i < NDIM ; ++i )
@@ -582,10 +575,9 @@ private:
       }
     }
 
-    INDEX_TYPE * const strides = const_cast< INDEX_TYPE * >( m_strides );
     for( int i = 0 ; i < NDIM ; ++i )
     {
-      strides[ permutation[ i ] ] = foldedStrides[ i ];
+      m_strides[ permutation[ i ] ] = foldedStrides[ i ];
     }
   }
 
@@ -618,7 +610,6 @@ private:
     {
       // Reserve space in the buffer but don't initialize the values.
       bufferManipulation::reserve( m_dataBuffer, curSize, newSize );
-      setDataPtr();
       T * const ptr = data();
 
       // The resizing consists of iterations where each iteration consists of the addition of a
