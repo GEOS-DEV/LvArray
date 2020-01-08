@@ -24,6 +24,7 @@
 #include "testUtils.hpp"
 #include "bufferManipulation.hpp"
 #include "ChaiBuffer.hpp"
+#include "NewChaiBuffer.hpp"
 #include "StackBuffer.hpp"
 #include "MallocBuffer.hpp"
 
@@ -77,6 +78,8 @@ class BufferAPITest : public ::testing::Test
 /// The list of types to instantiate BufferAPITest with, should contain at least one instance of every buffer class.
 using BufferAPITestTypes = ::testing::Types< ChaiBuffer< int >,
                                              ChaiBuffer< TestString >,
+                                             NewChaiBuffer< int >,
+                                             NewChaiBuffer< TestString >,
                                              StackBuffer< int, NO_REALLOC_CAPACITY >,
                                              MallocBuffer< int >,
                                              MallocBuffer< TestString >
@@ -94,12 +97,20 @@ TYPED_TEST( BufferAPITest, hasShallowCopy )
 }
 
 /**
+ * @brief Function to silence unused warnings with nvcc where casting to void doesn't work.
+ */
+template< typename T >
+void voidFunction( T & )
+{}
+
+/**
  * @brief Test that the buffer is default constructable and that no memory
  *        leak occurs when you don't free it.
  */
 TYPED_TEST( BufferAPITest, DefaultConstruction )
 {
   TypeParam buffer;
+  voidFunction( buffer );
 }
 
 /**
@@ -545,6 +556,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
         bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
       },
     ChaiBuffer< typename TypeParam::value_type >( true ),
+    NewChaiBuffer< typename TypeParam::value_type >( true ),
     MallocBuffer< typename TypeParam::value_type >( true )
     // I would like to copInto a StackBuffer but that doesn't work with std::string.
     );
@@ -734,3 +746,11 @@ TYPED_TEST( BufferTestWithRealloc, combination )
 
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

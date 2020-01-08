@@ -59,7 +59,7 @@ struct conjunction< B > : std::integral_constant< bool, B > {};
 
 /**
  * @class is_instantiation_of
- * @brief usage :  static_assert(is_instance_of_v<LvArray::Array, LvArray::Array<int, 1, int>>)
+ * @brief usage :  static_assert(is_instantiation_of_v<LvArray::Array, LvArray::Array<int, 1, int>>)
  * @note Taken from https://cukic.co/2019/03/15/template-meta-functions-for-detecting-template-instantiation/
  */
 template< template< typename ... > class Template,
@@ -70,15 +70,9 @@ template< template< typename ... > class Template,
           typename ... Args >
 constexpr bool is_instantiation_of< Template, Template< Args... > > = true;
 
-/**
- * @class is_instance_of of
- * @brief usage :  static_assert(is_instance_of_v<LvArray::Array<int 1, int>, LvArray::Array<int, 1, int>>)
- */
-template< typename T, typename U >
-struct is_instance_of : std::is_same< T, U > {};
 
 template< typename T, typename U >
-constexpr bool is_instance_of_v = is_instance_of< T, U >::value;
+constexpr bool is_same_v = std::is_same< T, U >::value;
 
 template< class T, class U >
 constexpr bool is_base_of_v = std::is_base_of< T, U >::value;

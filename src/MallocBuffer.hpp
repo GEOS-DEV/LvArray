@@ -57,13 +57,19 @@ public:
    * @brief Constructor for creating an empty/uninitialized buffer. For the MallocBuffer
    *        an uninitialized buffer is equivalent to an empty buffer.
    */
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( bool=true ):
     m_capacity( 0 ),
     m_data( nullptr )
   {}
 
-  MallocBuffer( MallocBuffer const & src ) = default;
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  MallocBuffer( MallocBuffer const & src ):
+    m_capacity( src.m_capacity ),
+    m_data( src.m_data )
+  {}
 
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( MallocBuffer && src ):
     m_capacity( src.m_capacity ),
     m_data( src.m_data )
@@ -72,8 +78,15 @@ public:
     src.m_data = nullptr;
   }
 
-  MallocBuffer & operator=( MallocBuffer const & src ) = default;
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  MallocBuffer & operator=( MallocBuffer const & src )
+  {
+    m_capacity = src.m_capacity;
+    m_data = src.m_data;
+    return *this;
+  }
 
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer & operator=( MallocBuffer && src )
   {
     m_capacity = src.m_capacity;
@@ -107,6 +120,7 @@ public:
    * @brief Free the data in the buffer but does not destroy any values. To
    *        properly destroy the values and free the data call bufferManipulation::free.
    */
+  LVARRAY_HOST_DEVICE inline
   void free()
   {
     std::free( m_data );
@@ -117,21 +131,21 @@ public:
   /**
    * @brief Return the capacity of the buffer.
    */
-  inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline
   std::ptrdiff_t capacity() const
   { return m_capacity; }
 
   /**
    * @brief Return a pointer to the beginning of the buffer.
    */
-  inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T * data() const
   {
     return m_data;
   }
 
   template< typename INDEX_TYPE >
-  inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   T & operator[]( INDEX_TYPE const i ) const
   {
     return m_data[ i ];
@@ -139,7 +153,7 @@ public:
 
 private:
   std::ptrdiff_t m_capacity = 0;
-  T * m_data = nullptr;
+  T * restrict m_data = nullptr;
 };
 
 } // namespace LvArray

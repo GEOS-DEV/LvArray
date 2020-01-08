@@ -112,15 +112,16 @@ public:
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   ArrayView( ArrayView const & source ) noexcept:
-    m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataBuffer{ source.m_dataBuffer },
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    setDataPtr();
-    setDims( source.m_dims );
-    setStrides( source.m_strides );
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      m_dims[ i ] = source.m_dims[ i ];
+      m_strides[ i ] = source.m_strides[ i ];
+    }
   }
 
   /**
@@ -130,23 +131,19 @@ public:
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   ArrayView( ArrayView && source ):
-    m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataBuffer( std::move( source.m_dataBuffer ) ),
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    setDataPtr();
-    setDims( source.m_dims );
-    setStrides( source.m_strides );
-
     for( int i = 0 ; i < NDIM ; ++i )
     {
-      const_cast< INDEX_TYPE * >( source.m_dims )[ i ] = 0;
-      const_cast< INDEX_TYPE * >( source.m_strides )[ i ] = 0;
-    }
+      m_dims[ i ] = source.m_dims[ i ];
+      m_strides[ i ] = source.m_strides[ i ];
 
-    source.setDataPtr();
+      source.m_dims[ i ] = 0;
+      source.m_strides[ i ] = 0;
+    }
   }
 
   /**
@@ -159,9 +156,13 @@ public:
   {
     m_dataBuffer = rhs.m_dataBuffer;
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-    setStrides( rhs.m_strides );
-    setDims( rhs.m_dims );
-    setDataPtr();
+
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      m_dims[ i ] = rhs.m_dims[ i ];
+      m_strides[ i ] = rhs.m_strides[ i ];
+    }
+
     return *this;
   }
 
@@ -175,9 +176,13 @@ public:
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-    setStrides( rhs.m_strides );
-    setDims( rhs.m_dims );
-    setDataPtr();
+
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      m_dims[ i ] = rhs.m_dims[ i ];
+      m_strides[ i ] = rhs.m_strides[ i ];
+    }
+
     return *this;
   }
 
@@ -236,7 +241,7 @@ public:
   ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
   toSlice() const noexcept
   {
-    return ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( m_data, m_dims, m_strides );
+    return ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( data(), m_dims, m_strides );
   }
 
   /**
@@ -247,7 +252,7 @@ public:
   ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
   toSliceConst() const noexcept
   {
-    return ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( m_data, m_dims, m_strides );
+    return ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( data(), m_dims, m_strides );
   }
 
   /**
@@ -279,7 +284,7 @@ public:
   operator std::enable_if_t< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >
     () const noexcept restrict_this
   {
-    return m_data;
+    return data();
   }
 
   /**
@@ -326,13 +331,13 @@ public:
    * @brief Return a reference to the first value.
    */
   T & front() const
-  { return m_data[0]; }
+  { return data()[ 0 ]; }
 
   /**
    * @brief Return a reference to the last value.
    */
   T & back() const
-  { return m_data[size() - 1]; }
+  { return data()[size() - 1]; }
 
   ///***********************************************************************************************
   ///**** DO NOT EDIT!!! THIS CODE IS COPIED FROM ArraySlice *****
@@ -349,7 +354,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
+    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
                                                                                                                                  m_strides[ 0 ] ), m_dims + 1,
                                                                    m_strides + 1 );
   }
@@ -365,7 +370,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ) ];
+    return data()[ ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ) ];
   }
 
   /**
@@ -375,11 +380,11 @@ public:
    * @note This is a standard fortran like parentheses interface to array access.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-    return m_data[ linearIndex( indices ... ) ];
+    return data()[ linearIndex( indices ... ) ];
   }
 
   /**
@@ -405,9 +410,9 @@ public:
   /**
    * @brief Return a pointer to the values.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
-  { return m_data; }
+  { return m_dataBuffer.data(); }
 
   /**
    * @brief Return a pointer to a slice of the values.
@@ -460,14 +465,15 @@ public:
                       " Available space is equal to this->size() - offset = "<<this->size() - offset );
     for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
     {
-      m_data[offset+i] = source.data()[i];
+      data()[offset+i] = source.data()[i];
     }
   }
 
   /**
    * @brief Return a pointer to the array containing the size of each dimension.
    */
-  LVARRAY_HOST_DEVICE inline INDEX_TYPE const * dims() const noexcept
+  LVARRAY_HOST_DEVICE inline constexpr
+  INDEX_TYPE const * dims() const noexcept
   {
     return m_dims;
   }
@@ -475,7 +481,8 @@ public:
   /**
    * @brief Return a pointer to the array containing the stride of each dimension.
    */
-  LVARRAY_HOST_DEVICE inline INDEX_TYPE const * strides() const noexcept
+  LVARRAY_HOST_DEVICE inline constexpr
+  INDEX_TYPE const * strides() const noexcept
   {
     return m_strides;
   }
@@ -493,8 +500,8 @@ public:
       int constexpr ndim = NDIM;
       //std::cout<<"Totalview using ("<<totalview::format<T,INDEX_TYPE>(NDIM, av->m_dims )<<") for display of
       // m_data;"<<std::endl;
-      TV_ttf_add_row( "tv(m_data)", totalview::format< T, INDEX_TYPE >( NDIM, av->m_dims ).c_str(), (av->m_data) );
-      TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 0, av->m_dims ).c_str(), (av->m_data) );
+      // TV_ttf_add_row( "tv(m_data)", totalview::format< T, INDEX_TYPE >( NDIM, av->m_dims ).c_str(), (av->m_data) );
+      // TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 0, av->m_dims ).c_str(), (av->m_data) );
       TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
       TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
       TV_ttf_add_row( "m_dataBuffer", cxx_utilities::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
@@ -512,7 +519,6 @@ protected:
    */
   inline explicit CONSTEXPRFUNC
   ArrayView( bool ) noexcept:
-    m_data{ nullptr },
     m_dims{ 0 },
     m_strides{ 0 },
     m_dataBuffer( true )
@@ -522,50 +528,11 @@ protected:
 #endif
   }
 
-  /**
-   * @brief Sets the m_data pointer to the current contents of m_dataBuffer.
-   */
-  LVARRAY_HOST_DEVICE
-  void setDataPtr() noexcept
-  {
-    T * & dataPtr = const_cast< T * & >(this->m_data);
-    dataPtr = m_dataBuffer.data();
-  }
-
-  /**
-   * @brief Sets the dimensions of the array without resizing.
-   * @param dims a pointer to the new dimensions.
-   */
-  LVARRAY_HOST_DEVICE
-  void setDims( INDEX_TYPE const dims[NDIM] ) noexcept
-  {
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      const_cast< INDEX_TYPE * >(m_dims)[a] = dims[a];
-    }
-  }
-
-  /**
-   * @brief Sets the strides of the array.
-   * @param strides a pointer to the new strides
-   */
-  LVARRAY_HOST_DEVICE
-  void setStrides( INDEX_TYPE const strides[NDIM] ) noexcept
-  {
-    for( int a=0 ; a<NDIM ; ++a )
-    {
-      const_cast< INDEX_TYPE * >(m_strides)[a] = strides[a];
-    }
-  }
-
-  /// A pointer to the values.
-  T * const restrict m_data = nullptr;
-
   /// the dimensions of the array.
-  INDEX_TYPE const m_dims[NDIM] = { 0 };
+  INDEX_TYPE m_dims[NDIM] = { 0 };
 
   /// the strides of the array.
-  INDEX_TYPE const m_strides[NDIM] = { 0 };
+  INDEX_TYPE m_strides[NDIM] = { 0 };
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;

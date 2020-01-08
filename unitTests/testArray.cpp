@@ -1313,71 +1313,29 @@ public:
 
 private:
 
-  template< int UNIT_STRIDE_DIM, typename LAMBDA >
-  void arrayIterator( ArrayView< T const, 1, UNIT_STRIDE_DIM > const & v,
-                      LAMBDA && f )
+  INDEX_TYPE getTestingLinearIndex( INDEX_TYPE const i )
   {
-    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
-    {
-      f( i, i );
-    }
+    return i;
   }
 
-  template< int UNIT_STRIDE_DIM, typename LAMBDA >
-  void arrayIterator( ArrayView< T const, 2, UNIT_STRIDE_DIM > const & v,
-                      LAMBDA && f )
+  INDEX_TYPE getTestingLinearIndex( INDEX_TYPE const i, INDEX_TYPE const j )
   {
     INDEX_TYPE const maxDimSize = getMaxDimSize( 2 );
-    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
-    {
-      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
-      {
-        INDEX_TYPE const linearIndex = maxDimSize * i + j;
-        f( linearIndex, i, j );
-      }
-    }
+    return maxDimSize * i + j;
   }
 
-  template< int UNIT_STRIDE_DIM, typename LAMBDA >
-  void arrayIterator( ArrayView< T const, 3, UNIT_STRIDE_DIM > const & v,
-                      LAMBDA && f )
+  INDEX_TYPE getTestingLinearIndex( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const k )
   {
     INDEX_TYPE const maxDimSize = getMaxDimSize( 3 );
-    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
-    {
-      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
-      {
-        for( INDEX_TYPE k = 0 ; k < v.size( 2 ) ; ++k )
-        {
-          INDEX_TYPE const linearIndex = maxDimSize * maxDimSize * i + maxDimSize * j + k;
-          f( linearIndex, i, j, k );
-        }
-      }
-    }
+    return maxDimSize * maxDimSize * i + maxDimSize * j + k;
   }
 
-  template< int UNIT_STRIDE_DIM, typename LAMBDA >
-  void arrayIterator( ArrayView< T const, 4, UNIT_STRIDE_DIM > const & v,
-                      LAMBDA && f )
+  INDEX_TYPE getTestingLinearIndex( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const k, INDEX_TYPE const l )
   {
     INDEX_TYPE const maxDimSize = getMaxDimSize( 4 );
-    INDEX_TYPE const maxDimSize2 = maxDimSize * maxDimSize;
-    INDEX_TYPE const maxDimSize3 = maxDimSize2 * maxDimSize;
-    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
-    {
-      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
-      {
-        for( INDEX_TYPE k = 0 ; k < v.size( 2 ) ; ++k )
-        {
-          for( INDEX_TYPE l = 0 ; l < v.size( 3 ) ; ++l )
-          {
-            INDEX_TYPE const linearIndex = maxDimSize3 * i + maxDimSize2 * j + maxDimSize * k + l;
-            f( linearIndex, i, j, k, l );
-          }
-        }
-      }
-    }
+    return maxDimSize * maxDimSize * maxDimSize * i + maxDimSize * maxDimSize * j + maxDimSize * k + l;
   }
+
 
   template< int NDIM, typename PERMUTATION >
   void populate( Array< T, NDIM, PERMUTATION > & a,
@@ -1389,11 +1347,13 @@ private:
       ASSERT_EQ( initialSizes[ d ], a.size( d ) );
     }
 
-    arrayIterator( a.toViewConst(), [&]( INDEX_TYPE const linearIndex,
-                                         auto... indices )
+    arrayIterator( a.toView(),
+                   [this]( auto const & view, auto... indices )
         {
-          a( indices ... ) = T( linearIndex );
-        } );
+          INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+          view( indices ... ) = T( idx );
+        }
+                   );
 
     validate( a.toViewConst(), initialSizes );
   }
@@ -1403,18 +1363,20 @@ private:
                  INDEX_TYPE const * const initialSizes,
                  T const & defaultValue = T() )
   {
-    arrayIterator( v, [&]( INDEX_TYPE const linearIndex,
-                           auto... indices )
+    arrayIterator( v,
+                   [initialSizes, defaultValue, this]( auto const & view, auto... indices )
         {
           if( !invalidIndices( initialSizes, indices ... ) )
           {
-            EXPECT_EQ( v( indices ... ), T( linearIndex ) );
+            INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+            EXPECT_EQ( view( indices ... ), T( idx ) );
           }
           else
           {
-            EXPECT_EQ( v( indices ... ), defaultValue );
+            EXPECT_EQ( view( indices ... ), defaultValue );
           }
-        } );
+        }
+                   );
   }
 
   INDEX_TYPE getMaxDimSize( int const d )
