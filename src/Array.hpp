@@ -305,7 +305,7 @@ public:
    * @note This does not preserve the values in the Array.
    */
   template< INDEX_TYPE... INDICES, typename ... DIMS >
-  void resizeDimension( DIMS... newDims )
+  void resizeDimension( DIMS const... newDims )
   {
     static_assert( sizeof ... (INDICES) <= NDIM, "Too many arguments provided." );
     static_assert( sizeof ... (INDICES) == sizeof ... (DIMS), "The number of indices must match the number of dimensions." );

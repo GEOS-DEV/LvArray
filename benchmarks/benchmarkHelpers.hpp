@@ -112,12 +112,12 @@ void initialize( Array< VALUE_TYPE, PERMUTATION > const & array, int & iter )
 
   std::uniform_int_distribution< VALUE_TYPE > dis( -100, 100 );
 
-  arrayIterator( array,
-                 [&dis, &gen]( auto const & view, auto... indices )
+  forValuesInSlice( array.toSlice(),
+                    [&dis, &gen]( VALUE_TYPE & value )
       {
-        view( indices ... ) = dis( gen );
+        value = dis( gen );
       }
-                 );
+                    );
 }
 
 
@@ -142,12 +142,12 @@ INDEX_TYPE reduce( Array< VALUE_TYPE, PERMUTATION > const & array )
 {
   VALUE_TYPE result = 0;
 
-  arrayIterator( array.toViewConst(),
-                 [&result]( auto const & view, auto... indices )
+  forValuesInSlice( array.toSlice(),
+                    [&result]( VALUE_TYPE const & value )
       {
-        result += view( indices ... );
+        result += value;
       }
-                 );
+                    );
 
   return result;
 }

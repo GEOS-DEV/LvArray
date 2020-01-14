@@ -31,6 +31,7 @@ set(cxx-utilities_headers
     ChaiBuffer.hpp
     NewChaiBuffer.hpp
     MallocBuffer.hpp
+    tensorOps.hpp
    )
 
 set(cxx-utilities_sources

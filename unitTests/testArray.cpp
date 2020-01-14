@@ -1347,13 +1347,13 @@ private:
       ASSERT_EQ( initialSizes[ d ], a.size( d ) );
     }
 
-    arrayIterator( a.toView(),
-                   [this]( auto const & view, auto... indices )
-    {
-      INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-      view( indices ... ) = T( idx );
-    }
-                   );
+    forValuesInSliceWithIndices( a.toSlice(),
+                                 [this]( T & value, auto const... indices )
+        {
+          INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+          value = T( idx );
+        }
+                                 );
 
     validate( a.toViewConst(), initialSizes );
   }
@@ -1363,20 +1363,20 @@ private:
                  INDEX_TYPE const * const initialSizes,
                  T const & defaultValue = T() )
   {
-    arrayIterator( v,
-                   [initialSizes, defaultValue, this]( auto const & view, auto... indices )
-    {
-      if( !invalidIndices( initialSizes, indices ... ) )
-      {
-        INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-        EXPECT_EQ( view( indices ... ), T( idx ) );
-      }
-      else
-      {
-        EXPECT_EQ( view( indices ... ), defaultValue );
-      }
-    }
-                   );
+    forValuesInSliceWithIndices( v.toSlice(),
+                                 [initialSizes, defaultValue, this]( T const & value, auto const... indices )
+        {
+          if( !invalidIndices( initialSizes, indices ... ) )
+          {
+            INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+            EXPECT_EQ( value, T( idx ) );
+          }
+          else
+          {
+            EXPECT_EQ( value, defaultValue );
+          }
+        }
+                                 );
   }
 
   INDEX_TYPE getMaxDimSize( int const d )

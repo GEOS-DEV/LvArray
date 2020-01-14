@@ -113,64 +113,6 @@ struct PairComp
   }
 };
 
-template< typename T, typename INDEX_TYPE, typename LAMBDA >
-void arrayIterator( ArrayView< T, 1, 0, INDEX_TYPE > const & view,
-                    LAMBDA && f )
-{
-  for( INDEX_TYPE i = 0 ; i < view.size( 0 ) ; ++i )
-  {
-    f( view, i );
-  }
-}
-
-template< typename T, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
-void arrayIterator( ArrayView< T, 2, UNIT_STRIDE_DIM, INDEX_TYPE > const & view,
-                    LAMBDA && f )
-{
-  for( INDEX_TYPE i = 0 ; i < view.size( 0 ) ; ++i )
-  {
-    for( INDEX_TYPE j = 0 ; j < view.size( 1 ) ; ++j )
-    {
-      f( view, i, j );
-    }
-  }
-}
-
-template< typename T, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
-void arrayIterator( ArrayView< T, 3, UNIT_STRIDE_DIM, INDEX_TYPE > const & view,
-                    LAMBDA && f )
-{
-  for( INDEX_TYPE i = 0 ; i < view.size( 0 ) ; ++i )
-  {
-    for( INDEX_TYPE j = 0 ; j < view.size( 1 ) ; ++j )
-    {
-      for( INDEX_TYPE k = 0 ; k < view.size( 2 ) ; ++k )
-      {
-        f( view, i, j, k );
-      }
-    }
-  }
-}
-
-template< typename T, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
-void arrayIterator( ArrayView< T, 4, UNIT_STRIDE_DIM, INDEX_TYPE > const & view,
-                    LAMBDA && f )
-{
-  for( INDEX_TYPE i = 0 ; i < view.size( 0 ) ; ++i )
-  {
-    for( INDEX_TYPE j = 0 ; j < view.size( 1 ) ; ++j )
-    {
-      for( INDEX_TYPE k = 0 ; k < view.size( 2 ) ; ++k )
-      {
-        for( INDEX_TYPE l = 0 ; l < view.size( 3 ) ; ++l )
-        {
-          f( view, i, j, k, l );
-        }
-      }
-    }
-  }
-}
-
 /**
  * @class TestString
  * @brief A wrapper around std::string that adds a constructor that takes a number
