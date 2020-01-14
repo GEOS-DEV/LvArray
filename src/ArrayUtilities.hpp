@@ -23,13 +23,15 @@
 #ifndef ARRAYUTILITIES_HPP_
 #define ARRAYUTILITIES_HPP_
 
+// SRC includes
+#include "Array.hpp"
 
+// System includes
 #include <string>
 #include <vector>
 #include <iostream>
-#include "Array.hpp"
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /**
@@ -79,11 +81,9 @@ struct stringToArrayHelper
    * @param inputStream the stream to read from
    * @return none
    */
-  template< int NDIM >
+  template< int NDIM, int UNIT_STRIDE_DIM >
   static void
-  Read( typename std::conditional< (NDIM>1),
-                                   LvArray::ArraySlice< T, NDIM, NDIM - 1, INDEX_TYPE >,
-                                   LvArray::ArraySlice< T, 1, 0, INDEX_TYPE > >::type const & arraySlice,
+  Read( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & arraySlice,
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {
@@ -105,7 +105,7 @@ struct stringToArrayHelper
 
 
 /**
- * @brief This function reads the contents of a string into an LvArray::Array.
+ * @brief This function reads the contents of a string into an Array.
  * @param array Reference to the array that will receive the contents of the input.
  * @param valueString The string that contains the data to read into @p array.
  *
@@ -127,7 +127,7 @@ template< typename T,
           typename PERMUTATION,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
-static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
+static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
                            std::string valueString )
 {
 
@@ -297,7 +297,7 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
   }
   std::istringstream strstream( valueString );
   // this recursively reads the values from the stringstream
-  stringToArrayHelper< T, INDEX_TYPE >::template Read< NDIM >( array, array.dims(), strstream );
+  stringToArrayHelper< T, INDEX_TYPE >::Read( array.toSlice(), array.dims(), strstream );
 }
 
 /**
@@ -308,7 +308,7 @@ static void stringToArray( LvArray::Array< T, NDIM, PERMUTATION, INDEX_TYPE, DAT
  */
 template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           LvArray::ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice )
+                           ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice )
 {
   stream << "{ ";
 
@@ -336,11 +336,99 @@ template< typename T,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           LvArray::ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
+                           ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
 {
   return stream << view.toSliceConst();
 }
 
+
+/**
+ * @brief Iterate over the values in the slice in lexicographic order.
+ * @param slice the slice to iterate over.
+ * @param f the lambda to apply to each value.
+ * @note This function is specialized for 1D slices.
+ */
+DISABLE_HD_WARNING
+template< typename T, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
+LVARRAY_HOST_DEVICE
+void forValuesInSlice( ArraySlice< T, 1, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice, LAMBDA && f )
+{
+  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  {
+    f( slice[ i ] );
+  }
 }
+
+/**
+ * @brief Iterate over the values in the slice in lexicographic order.
+ * @param slice the slice to iterate over.
+ * @param f the lambda to apply to each value.
+ */
+DISABLE_HD_WARNING
+template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
+LVARRAY_HOST_DEVICE
+void forValuesInSlice( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice, LAMBDA && f )
+{
+  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  {
+    forValuesInSlice( slice[ i ], f );
+  }
+}
+
+/**
+ * @brief Apply the given lambda to the given value.
+ * @param value the value to pass to the lambda.
+ * @param f the lambda to apply to the value.
+ * @note This lets you write forValuesInSlice( s[ i ], []( auto & val ){} ) for any dimensional
+ *       slice s.
+ */
+DISABLE_HD_WARNING
+template< typename T, typename LAMBDA >
+LVARRAY_HOST_DEVICE
+void forValuesInSlice( T & value, LAMBDA && f )
+{ f( value ); }
+
+/**
+ * @brief Iterate over the values in the slice in lexicographic order, passing the indices as
+ *        well as the value to the lambda.
+ * @param slice the slice to iterate over.
+ * @param f the lambda to apply to each value.
+ * @param indices the previous sliced off indices.
+ * @note This function is specialized for 1D slices.
+ */
+DISABLE_HD_WARNING
+template< typename T, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
+LVARRAY_HOST_DEVICE
+void forValuesInSliceWithIndices( ArraySlice< T, 1, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice,
+                                  LAMBDA && f,
+                                  INDICES... indices )
+{
+  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  {
+    f( slice[ i ], indices ..., i );
+  }
+}
+
+/**
+ * @brief Iterate over the values in the slice in lexicographic order, passing the indices as
+ *        well as the value to the lambda.
+ * @param slice the slice to iterate over.
+ * @param f the lambda to apply to each value.
+ * @param indices the previous sliced off indices.
+ */
+DISABLE_HD_WARNING
+template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
+LVARRAY_HOST_DEVICE
+void forValuesInSliceWithIndices( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice,
+                                  LAMBDA && f,
+                                  INDICES... indices )
+{
+  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  {
+    forValuesInSliceWithIndices( slice[ i ], f, indices ..., i );
+  }
+}
+
+} // namespace LvArray
 
 #endif /* STRINGUTILITIES_HPP_ */
