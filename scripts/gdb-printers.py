@@ -1,4 +1,5 @@
 import gdb
+import itertools
 
 
 def array_length(arr):
@@ -6,11 +7,11 @@ def array_length(arr):
 
 
 def format_array(arr):
-    return '[' + ']['.join(['%d' % arr[i] for i in range(array_length(arr))]) + ']'
+    return '[' + ']['.join([str(arr[i]) for i in range(array_length(arr))]) + ']'
 
 
-class ArrayViewPrinter(gdb.printing.PrettyPrinter):
-    """Pretty-print an Array/View/Slice"""
+class CxxUtilsPrinter(gdb.printing.PrettyPrinter):
+    """Base printer for cxx-utilities classes"""
 
     def __init__(self, val):
         self.val = val
@@ -18,14 +19,98 @@ class ArrayViewPrinter(gdb.printing.PrettyPrinter):
     def real_type(self):
         return self.val.type.strip_typedefs()
 
+    def to_string(self):
+        return self.real_type().name
+
+    def children(self):
+        return [(f.name, self.val.cast(f.type)) for f in self.real_type().fields() if f.is_base_class] \
+             + [(f.name, self.val[f.name]) for f in self.real_type().fields() if not f.is_base_class]
+
+
+class BufferPrinter(CxxUtilsPrinter):
+    """Base class for printing buffer contents"""
+
+    def size(self):
+        raise NotImplementedError("Must override size()")
+
+    def data(self):
+        raise NotImplementedError("Must override data()")
+
+    def value_type(self):
+        return self.val.type.template_argument(0)
+
+    def __getitem__(self, key):
+        return self.data()[key]
+
+    def __setitem__(self, key, value):
+        self.data()[key] = value
+
+    def to_string(self):
+        return '%s of size %d' % (self.real_type().name, self.size())
+
+    def children(self):
+        if self.data() != 0:
+            array_type = self.value_type().array(self.size()-1)
+            arr = self.data().dereference().cast(array_type)
+        else:
+            arr = self.data()
+        return [('gdb_view', arr)] + CxxUtilsPrinter.children(self)
+
+
+class StackBufferPrinter(BufferPrinter):
+    """Pretty-print a StackBuffer"""
+
+    def size(self):
+        return self.val.type.template_argument(1)
+
+    def data(self):
+        return self.val['m_data']
+
+
+class ChaiBufferPrinter(BufferPrinter):
+    """Pretty-print a ChaiBuffer"""
+
+    def size(self):
+        return self.val['m_array']['m_elems']
+
+    def data(self):
+        return self.val['m_array']['m_active_pointer']
+
+
+class NewChaiBufferPrinter(ChaiBufferPrinter):
+    """Pretty-print a NewChaiBuffer"""
+
+    def size(self):
+        return self.val['m_capacity']
+
+    def data(self):
+        return self.val['m_pointer']
+
+
+def build_buffer_printer():
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-buffers")
+    pp.add_printer('LvArray::StackBuffer', 'LvArray::StackBuffer<.*>', StackBufferPrinter)
+    pp.add_printer('LvArray::ChaiBuffer', 'LvArray::ChaiBuffer<.*>', ChaiBufferPrinter)
+    pp.add_printer('LvArray::NewChaiBuffer', 'LvArray::NewChaiBuffer<.*>', NewChaiBufferPrinter)
+    return pp
+
+
+try:
+    import gdb.printing
+    buffer_printer = build_buffer_printer()
+    gdb.printing.register_pretty_printer(gdb.current_objfile(), buffer_printer)
+except ImportError:
+    pass
+
+
+class ArrayViewPrinter(CxxUtilsPrinter):
+    """Pretty-print an ArrayView/Slice"""
+
     def value_type(self):
         return self.val.type.template_argument(0)
 
     def ndim(self):
         return self.val.type.template_argument(1)
-
-    def index_type(self):
-        return self.val.type.template_argument(2)
 
     def dims(self):
         return self.val['m_dims']
@@ -34,47 +119,62 @@ class ArrayViewPrinter(gdb.printing.PrettyPrinter):
         return self.val['m_strides']
 
     def data(self):
-        return self.val['m_data']
+        return buffer_printer(self.val['m_dataBuffer']).data()
 
     def to_string(self):
         return '%s of size %s' % (self.real_type().name, format_array(self.dims()))
 
     def children(self):
-
         array_type = self.value_type()
         for i in range(self.ndim()):
             array_type = array_type.array(self.dims()[self.ndim() - i - 1] - 1)
-
-        values = [('gdb(m_data)',   self.data().dereference().cast(array_type)),
-                  ('m_data',    self.data()),
-                  ('m_dims',    self.dims()),
-                  ('m_strides', self.strides())]
-
-        try:
-            values.append(('m_dataVector', self.val['m_dataVector']))
-        except gdb.error:
-            pass
-
-        try:
-            values.append(('m_singleParameterResizeIndex', self.val['m_singleParameterResizeIndex']))
-        except gdb.error:
-            pass
-
-        return values
+        return [('gdb_view', self.data().dereference().cast(array_type))] + CxxUtilsPrinter.children(self)
 
 
-def build_pretty_printer():
-    pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities")
-    pp.add_printer('Array', '^LvArray::Array<.*>$', ArrayViewPrinter)
-    pp.add_printer('ArrayView', '^LvArray::ArrayView<.*>$', ArrayViewPrinter)
-    pp.add_printer('ArraySlice', '^LvArray::ArraySlice<.*>$', ArrayViewPrinter)
+class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
+    """Pretty-print an ArrayOfArraysView"""
+
+    def value_type(self):
+        return self.val.type.template_argument(0)
+
+    def data(self):
+        return buffer_printer(self.val['m_values']).data()
+
+    def size(self):
+        return buffer_printer(self.val['m_sizes']).size()
+
+    def size_of_array(self, i):
+        return buffer_printer(self.val['m_sizes'])[i]
+
+    def offset_of_array(self, i):
+        return buffer_printer(self.val['m_offsets'])[i]
+
+    def ptr_to_array(self, i):
+        return self.data() + self.offset_of_array(i)
+
+    def get_array(self, i):
+        return self.ptr_to_array(i).dereference().cast(self.value_type().array(self.size_of_array(i)-1))
+
+    def to_string(self):
+        return '%s of size %d' % (self.real_type().name, self.size())
+
+    def child_arrays(self):
+        for i in range(self.size()):
+            yield str(i), self.get_array(i)
+
+    def children(self):
+        return itertools.chain(CxxUtilsPrinter.children(self), self.child_arrays())
+
+
+def build_array_printer():
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-arrays")
+    pp.add_printer('LvArray::ArrayView', '^LvArray::Array(View|Slice)<.*>$', ArrayViewPrinter)
+    pp.add_printer('LvArray::ArrayOfArraysView', '^LvArray::ArrayOfArraysView<.*>$', ArrayOfArraysViewPrinter)
     return pp
 
 
 try:
     import gdb.printing
-    gdb.printing.register_pretty_printer(
-        gdb.current_objfile(),
-        build_pretty_printer())
+    gdb.printing.register_pretty_printer(gdb.current_objfile(), build_array_printer())
 except ImportError:
     pass
