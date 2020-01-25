@@ -74,8 +74,8 @@ public:
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer():
-    m_capacity( 0 ),
     m_pointer( nullptr ),
+    m_capacity( 0 ),
     m_pointer_record( nullptr )
   {}
 
@@ -85,8 +85,8 @@ public:
    * @note The unused boolean parameter is to distinguish this from default constructor.
    */
   NewChaiBuffer( bool ):
-    m_capacity( 0 ),
     m_pointer( nullptr ),
+    m_capacity( 0 ),
     m_pointer_record( new chai::PointerRecord{} )
   {
     m_pointer_record->m_size = 0;
@@ -94,14 +94,14 @@ public:
 
     for( int space = chai::CPU ; space < chai::NUM_EXECUTION_SPACES ; ++space )
     {
-      m_pointer_record->m_allocators[space] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ));
+      m_pointer_record->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ));
     }
   }
 
   LVARRAY_HOST_DEVICE RAJA_INLINE
   NewChaiBuffer( NewChaiBuffer const & src ):
-    m_capacity( src.m_capacity ),
     m_pointer( src.m_pointer ),
+    m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
   {
   #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
@@ -111,8 +111,8 @@ public:
 
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer( NewChaiBuffer && src ):
-    m_capacity( src.m_capacity ),
     m_pointer( src.m_pointer ),
+    m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
   {
     src.m_capacity = 0;
@@ -156,6 +156,11 @@ public:
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
     newRecord->m_user_callback = m_pointer_record->m_user_callback;
+
+    for( int space = chai::CPU ; space < chai::NUM_EXECUTION_SPACES ; ++space )
+    {
+      newRecord->m_allocators[ space ] = m_pointer_record->m_allocators[ space ];
+    }
 
     internal::chaiLock.lock();
     internal::getArrayManager().allocate( newRecord, chai::CPU );
@@ -303,8 +308,8 @@ private:
     internal::getArrayManager().setExecutionSpace( prevSpace );
   }
 
-  std::ptrdiff_t m_capacity = 0;
   T * restrict m_pointer = nullptr;
+  std::ptrdiff_t m_capacity = 0;
   chai::PointerRecord * m_pointer_record = nullptr;
 };
 
