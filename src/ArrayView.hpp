@@ -226,10 +226,10 @@ public:
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
-                             ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & >
+                             ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE > const & >
     () const noexcept
   {
-    return reinterpret_cast< ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & >(*this);
+    return reinterpret_cast< ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE > const & >(*this);
   }
 
   /**

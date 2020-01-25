@@ -59,20 +59,20 @@ public:
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( bool=true ):
-    m_capacity( 0 ),
-    m_data( nullptr )
+    m_data( nullptr ),
+    m_capacity( 0 )
   {}
 
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( MallocBuffer const & src ):
-    m_capacity( src.m_capacity ),
-    m_data( src.m_data )
+    m_data( src.m_data ),
+    m_capacity( src.m_capacity )
   {}
 
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( MallocBuffer && src ):
-    m_capacity( src.m_capacity ),
-    m_data( src.m_data )
+    m_data( src.m_data ),
+    m_capacity( src.m_capacity )
   {
     src.m_capacity = 0;
     src.m_data = nullptr;
@@ -152,8 +152,8 @@ public:
   }
 
 private:
-  std::ptrdiff_t m_capacity = 0;
   T * restrict m_data = nullptr;
+  std::ptrdiff_t m_capacity = 0;
 };
 
 } // namespace LvArray
