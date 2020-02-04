@@ -263,8 +263,8 @@ public:
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all sets.
    */
   inline
-  void reserveValues( INDEX_TYPE const nnz ) restrict_this
-  { m_values.reserve( nnz ); }
+  void reserveValues( INDEX_TYPE const newValueCapacity ) restrict_this
+  { ArrayOfSetsView< T, INDEX_TYPE >::reserveValues( newValueCapacity ); }
 
   /**
    * @brief Set the capacity of a set.
