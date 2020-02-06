@@ -81,9 +81,9 @@ struct stringToArrayHelper
    * @param inputStream the stream to read from
    * @return none
    */
-  template< int NDIM, int UNIT_STRIDE_DIM >
+  template< int NDIM, int USD >
   static void
-  Read( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & arraySlice,
+  Read( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & arraySlice,
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {
@@ -306,9 +306,9 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
  * @param slice the slice to output.
  * @return a reference to the ostream.
  */
-template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice )
+                           ArraySlice< T const, NDIM, USD, INDEX_TYPE > const & slice )
 {
   stream << "{ ";
 
@@ -332,11 +332,11 @@ std::ostream & operator<<( std::ostream & stream,
  */
 template< typename T,
           int NDIM,
-          int UNIT_STRIDE_DIM,
+          int USD,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
+                           ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
 {
   return stream << view.toSliceConst();
 }

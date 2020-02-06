@@ -39,13 +39,13 @@ TEST( SizeHelper, SizeHelper )
 TEST( helpers, getLinearIndex )
 {
   constexpr int NDIM = 4;
-  constexpr int UNIT_STRIDE_DIM = 3;
+  constexpr int USD = 3;
 
   int const dims[ NDIM ] = { 3, 2, 5, 3 };
   int const strides[ NDIM ] = { dims[ 1 ] * dims[ 2 ] * dims[ 3 ],
                                 dims[ 2 ] * dims[ 3 ],
                                 dims[ 3 ],
-                                -1000 }; // The stride of the UNIT_STRIDE_DIM shouldn't be used.
+                                -1000 }; // The stride of the USD shouldn't be used.
 
   for( int a0 = 0 ; a0 < dims[ 0 ] ; ++a0 )
   {
@@ -56,7 +56,7 @@ TEST( helpers, getLinearIndex )
         for( int a3 = 0 ; a3 < dims[ 3 ] ; ++a3 )
         {
           int const expectedIndex = a0 * strides[ 0 ] + a1 * strides[ 1 ] + a2 * strides[ 2 ] + a3;
-          int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2, a3 );
+          int const calculatedIndex = getLinearIndex< USD >( strides, a0, a1, a2, a3 );
           EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2 << ", a3 = " << a3;
         }
       }
@@ -67,11 +67,11 @@ TEST( helpers, getLinearIndex )
 TEST( helpers, getLinearIndexPermuted )
 {
   constexpr int NDIM = 3;
-  constexpr int UNIT_STRIDE_DIM = 0;
+  constexpr int USD = 0;
 
   // Permutation = { 2, 1, 0 }
   int const dims[ NDIM ] = { 3, 2, 5 };
-  int const strides[ NDIM ] = { -1000, // The stride of the UNIT_STRIDE_DIM shouldn't be used.
+  int const strides[ NDIM ] = { -1000, // The stride of the USD shouldn't be used.
                                 dims[ 0 ],
                                 dims[ 0 ] * dims[ 1 ] };
 
@@ -82,7 +82,7 @@ TEST( helpers, getLinearIndexPermuted )
       for( int a2 = 0 ; a2 < dims[ 2 ] ; ++a2 )
       {
         int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
-        int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
+        int const calculatedIndex = getLinearIndex< USD >( strides, a0, a1, a2 );
         EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2;
       }
     }
@@ -92,12 +92,12 @@ TEST( helpers, getLinearIndexPermuted )
 TEST( helpers, getLinearIndexPermuted2 )
 {
   constexpr int NDIM = 3;
-  constexpr int UNIT_STRIDE_DIM = 0;
+  constexpr int USD = 0;
 
   // Permutation = { 1, 2, 0 }
   int const dims[ NDIM ] = { 3, 2, 5 };
   int const strides[ NDIM ] = { dims[ 1 ],
-                                -1000, // The stride of the UNIT_STRIDE_DIM shouldn't be used.
+                                -1000, // The stride of the USD shouldn't be used.
                                 dims[ 1 ] * dims[ 2 ] };
 
   for( int a0 = 0 ; a0 < dims[ 0 ] ; ++a0 )
@@ -107,7 +107,7 @@ TEST( helpers, getLinearIndexPermuted2 )
       for( int a2 = 0 ; a2 < dims[ 2 ] ; ++a2 )
       {
         int const expectedIndex = a0 + a1 * strides[ 1 ] + a2 * strides[ 2 ];
-        int const calculatedIndex = getLinearIndex< UNIT_STRIDE_DIM >( strides, a0, a1, a2 );
+        int const calculatedIndex = getLinearIndex< USD >( strides, a0, a1, a2 );
         EXPECT_EQ( expectedIndex, calculatedIndex ) << "a0 = " << a0 << ", a1 = " << a1 << ", a2 = " << a2;
       }
     }

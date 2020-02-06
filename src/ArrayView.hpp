@@ -45,7 +45,7 @@ namespace LvArray
  * @brief This class serves to provide a "view" of a multidimensional array.
  * @tparam T type of data that is contained by the array
  * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
- * @tparam UNIT_STRIDE_DIM the dimension with a unit stride, in an Array with a standard layout
+ * @tparam USD the dimension with a unit stride, in an Array with a standard layout
  *         this is the last dimension.
  * @tparam INDEX_TYPE the integer to use for indexing.
  * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the Array. Must take
@@ -72,7 +72,7 @@ namespace LvArray
  */
 template< typename T,
           int NDIM,
-          int UNIT_STRIDE_DIM,
+          int USD,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
 class ArrayView
@@ -82,10 +82,10 @@ class ArrayView
 {
 public:
 
-  static_assert( UNIT_STRIDE_DIM >= 0, "UNIT_STRIDE_DIM must be positive." );
-  static_assert( UNIT_STRIDE_DIM < NDIM, "UNIT_STRIDE_DIM must be less than NDIM." );
+  static_assert( USD >= 0, "USD must be positive." );
+  static_assert( USD < NDIM, "USD must be less than NDIM." );
 
-  using ViewTypeConst = typename AsConstView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE > >::type;
+  using ViewTypeConst = typename AsConstView< ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >::type;
 
   using value_type = T;
   using iterator = T *;
@@ -226,20 +226,20 @@ public:
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
-                             ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE > const & >
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & >
     () const noexcept
   {
-    return reinterpret_cast< ArrayView< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE > const & >(*this);
+    return reinterpret_cast< ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & >(*this);
   }
 
   /**
    * @brief Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
+  ArraySlice< T, NDIM, USD, INDEX_TYPE >
   toSlice() const noexcept
   {
-    return ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( data(), m_dims, m_strides );
+    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides );
   }
 
   /**
@@ -247,17 +247,17 @@ public:
    */
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
+  ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const noexcept
   {
-    return ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( data(), m_dims, m_strides );
+    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides );
   }
 
   /**
    * @brief User defined conversion to an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
-  operator ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >() const noexcept
+  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const noexcept
   {
     return toSlice();
   }
@@ -268,7 +268,7 @@ public:
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
-                             ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const >
+                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >
     () const noexcept
   {
     return toSliceConst();
@@ -277,9 +277,9 @@ public:
   /**
    * @brief User defined conversion to convert a ArraySlice< T, 1, 0 > to a raw pointer.
    */
-  template< int _NDIM=NDIM, int _UNIT_STRIDE_DIM=UNIT_STRIDE_DIM >
+  template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator std::enable_if_t< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >
+  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const restrict >
     () const noexcept restrict_this
   {
     return data();
@@ -348,13 +348,13 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, UNIT_STRIDE_DIM - 1, INDEX_TYPE > >
+  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
-                                                                                                                                 m_strides[ 0 ] ), m_dims + 1,
-                                                                   m_strides + 1 );
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, USD >::multiply( index,
+                                                                                                         m_strides[ 0 ] ), m_dims + 1,
+                                                       m_strides + 1 );
   }
 
   /**
@@ -368,7 +368,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return data()[ ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ) ];
+    return data()[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];
   }
 
   /**
@@ -398,7 +398,7 @@ public:
 #ifdef USE_ARRAY_BOUNDS_CHECK
     checkIndices( m_dims, indices ... );
 #endif
-    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices ... );
+    return getLinearIndex< USD >( m_strides, indices ... );
   }
 
   ///***********************************************************************************************

@@ -84,7 +84,7 @@ namespace LvArray
  *        classes.
  * @tparam T type of data that is contained by the array
  * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
- * @tparam UNIT_STRIDE_DIM the dimension with a unit stride, in an Array with a standard layout
+ * @tparam USD the dimension with a unit stride, in an Array with a standard layout
  *         this is the last dimension.
  * @tparam INDEX_TYPE the integer to use for indexing the components of the array
  *
@@ -95,12 +95,12 @@ namespace LvArray
  * In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
  * an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
  */
-template< typename T, int NDIM, int UNIT_STRIDE_DIM=NDIM-1, typename INDEX_TYPE=std::ptrdiff_t >
+template< typename T, int NDIM, int USD=NDIM-1, typename INDEX_TYPE=std::ptrdiff_t >
 class ArraySlice
 {
 public:
 
-  static_assert( UNIT_STRIDE_DIM < NDIM, "UNIT_STRIDE_DIM must be less than NDIM." );
+  static_assert( USD < NDIM, "USD must be less than NDIM." );
 
   /// deleted default constructor
   ArraySlice() = delete;
@@ -129,10 +129,10 @@ public:
    */
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >
+  ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const restrict_this noexcept
   {
-    return ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE >( m_data, m_dims, m_strides );
+    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides );
   }
 
   /**
@@ -141,7 +141,7 @@ public:
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
-                             ArraySlice< T const, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > >
+                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > >
     () const restrict_this noexcept
   {
     return toSliceConst();
@@ -150,9 +150,9 @@ public:
   /**
    * @brief User defined conversion to convert an ArraySlice<T,1,0> to a raw pointer.
    */
-  template< int _NDIM=NDIM, int _UNIT_STRIDE_DIM=UNIT_STRIDE_DIM >
+  template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator std::enable_if_t< _NDIM == 1 && _UNIT_STRIDE_DIM == 0, T * const restrict >
+  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const restrict >
     () const noexcept restrict_this
   { return m_data; }
 
@@ -163,13 +163,13 @@ public:
    */
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, UNIT_STRIDE_DIM - 1, INDEX_TYPE > >
+  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, UNIT_STRIDE_DIM-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index,
-                                                                                                                                 m_strides[ 0 ] ), m_dims + 1,
-                                                                   m_strides + 1 );
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, USD >::multiply( index,
+                                                                                                         m_strides[ 0 ] ), m_dims + 1,
+                                                       m_strides + 1 );
   }
 
   /**
@@ -183,7 +183,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept restrict_this
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, m_strides[ 0 ] ) ];
+    return m_data[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];
   }
 
   /**
@@ -213,7 +213,7 @@ public:
 #ifdef USE_ARRAY_BOUNDS_CHECK
     checkIndices( m_dims, indices ... );
 #endif
-    return getLinearIndex< UNIT_STRIDE_DIM >( m_strides, indices ... );
+    return getLinearIndex< USD >( m_strides, indices ... );
   }
 
   /**
@@ -296,7 +296,7 @@ void forValuesInSlice( T & value, LAMBDA && f )
 /**
  * @tparam T The type of values stored in @p slice.
  * @tparam NDIM the dimension of @p slice.
- * @tparam UNIT_STRIDE_DIM the unit stride dimension of @p slice.
+ * @tparam USD the unit stride dimension of @p slice.
  * @tparam INDEX_TYPE the integer used to index into @p slice.
  * @tparam LAMBDA the type of the function @p f to apply.
  * @brief Iterate over the values in the slice in lexicographic order.
@@ -304,9 +304,9 @@ void forValuesInSlice( T & value, LAMBDA && f )
  * @param f the function to apply to each value.
  */
 DISABLE_HD_WARNING
-template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
 LVARRAY_HOST_DEVICE
-void forValuesInSlice( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice, LAMBDA && f )
+void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAMBDA && f )
 {
   for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
   {
@@ -333,7 +333,7 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
 /**
  * @tparam T The type of values stored in @p slice.
  * @tparam NDIM the dimension of @p slice.
- * @tparam UNIT_STRIDE_DIM the unit stride dimension of @p slice.
+ * @tparam USD the unit stride dimension of @p slice.
  * @tparam INDEX_TYPE the integer used to index into @p slice.
  * @tparam INDICES variadic pack of indices.
  * @tparam LAMBDA the type of the function @p f to apply.
@@ -344,9 +344,9 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
  * @param indices the previous sliced off indices.
  */
 DISABLE_HD_WARNING
-template< typename T, int NDIM, int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
 LVARRAY_HOST_DEVICE
-void forValuesInSliceWithIndices( ArraySlice< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE > const & slice,
+void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice,
                                   LAMBDA && f,
                                   INDICES const ... indices )
 {

@@ -85,10 +85,10 @@ public:
   static constexpr int ndim = NDIM;
 
   // The dimension with unit stride.
-  static constexpr int UNIT_STRIDE_DIM = getStrideOneDimension( PERMUTATION {} );
+  static constexpr int USD = getStrideOneDimension( PERMUTATION {} );
 
   // Alias for the parent class.
-  using ParentType = ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, BUFFER_TYPE >;
+  using ParentType = ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
 
   // Aliasing public methods of ArrayView so we don't have to use this->size etc.
   using ParentType::toSlice;
