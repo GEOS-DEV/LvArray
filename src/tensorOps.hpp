@@ -29,11 +29,11 @@ namespace LvArray
 namespace tensorOps
 {
 
-template< typename T, int UNIT_STRIDE0, int UNIT_STRIDE1, int UNIT_STRIDE2, typename INDEX_TYPE >
+template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE constexpr inline
-void outerProduct( ArraySlice< T, 2, UNIT_STRIDE0, INDEX_TYPE > const & a,
-                   ArraySlice< T const, 1, UNIT_STRIDE1, INDEX_TYPE > const & b,
-                   ArraySlice< T const, 1, UNIT_STRIDE2, INDEX_TYPE > const & c )
+void outerProduct( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
+                   ArraySlice< T const, 1, USD1, INDEX_TYPE > const & b,
+                   ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );
@@ -49,11 +49,11 @@ void outerProduct( ArraySlice< T, 2, UNIT_STRIDE0, INDEX_TYPE > const & a,
   }
 }
 
-template< typename T, int UNIT_STRIDE0, int UNIT_STRIDE1, int UNIT_STRIDE2, typename INDEX_TYPE >
+template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE constexpr inline
-void outerProductPE( ArraySlice< T, 2, UNIT_STRIDE0, INDEX_TYPE > const & a,
-                     ArraySlice< T const, 1, UNIT_STRIDE1, INDEX_TYPE > const & b,
-                     ArraySlice< T const, 1, UNIT_STRIDE2, INDEX_TYPE > const & c )
+void outerProductPE( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
+                     ArraySlice< T const, 1, USD1, INDEX_TYPE > const & b,
+                     ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );
@@ -69,11 +69,11 @@ void outerProductPE( ArraySlice< T, 2, UNIT_STRIDE0, INDEX_TYPE > const & a,
   }
 }
 
-template< typename T, int UNIT_STRIDE0, int UNIT_STRIDE1, int UNIT_STRIDE2, typename INDEX_TYPE >
+template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE constexpr inline
-void matTVec( ArraySlice< T, 1, UNIT_STRIDE0, INDEX_TYPE > const & a,
-              ArraySlice< T const, 2, UNIT_STRIDE1, INDEX_TYPE > const & b,
-              ArraySlice< T const, 1, UNIT_STRIDE2, INDEX_TYPE > const & c )
+void matTVec( ArraySlice< T, 1, USD0, INDEX_TYPE > const & a,
+              ArraySlice< T const, 2, USD1, INDEX_TYPE > const & b,
+              ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
 {
   LVARRAY_ASSERT_EQ( a.size(), 3 );
   LVARRAY_ASSERT_EQ( b.size( 0 ), 3 );
@@ -85,9 +85,9 @@ void matTVec( ArraySlice< T, 1, UNIT_STRIDE0, INDEX_TYPE > const & a,
   a( 2 ) = b( 0, 2 ) * c( 0 ) + b( 1, 2 ) * c( 1 ) + b( 2, 2 ) * c( 2 );
 }
 
-template< typename T, int UNIT_STRIDE, typename INDEX_TYPE >
+template< typename T, int USD, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE constexpr inline
-T invert( ArraySlice< T, 2, UNIT_STRIDE, INDEX_TYPE > const & a )
+T invert( ArraySlice< T, 2, USD, INDEX_TYPE > const & a )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );

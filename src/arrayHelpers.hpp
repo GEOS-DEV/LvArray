@@ -75,19 +75,19 @@ typename std::enable_if< (SIZE > 1), T >::type
 multiplyAll( T const * const restrict values )
 { return values[ 0 ] * multiplyAll< SIZE - 1 >( values + 1 ); }
 
-template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename INDEX >
+template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index )
 {
-  return ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, strides[ 0 ] );
+  return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] );
 }
 
-template< int UNIT_STRIDE_DIM, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
+template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index, REMAINING_INDICES... indices )
 {
-  return ConditionalMultiply< 0, UNIT_STRIDE_DIM >::multiply( index, strides[ 0 ] ) +
-         getLinearIndex< UNIT_STRIDE_DIM - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
+  return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] ) +
+         getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
 
 template< typename INDEX_TYPE, typename INDEX, typename ... INDICES >
@@ -219,7 +219,7 @@ class Array;
 
 template< typename T,
           int NDIM,
-          int UNIT_STRIDE_DIM=NDIM-1,
+          int USD=NDIM-1,
           typename INDEX_TYPE=std::ptrdiff_t,
           template< typename > class DATA_VECTOR_TYPE=NewChaiBuffer >
 class ArrayView;
@@ -245,14 +245,14 @@ struct AsView
 
 template< typename T,
           int NDIM,
-          int UNIT_STRIDE_DIM,
+          int USD,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
-struct AsView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
+struct AsView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsView< T >::type,
                           NDIM,
-                          UNIT_STRIDE_DIM,
+                          USD,
                           INDEX_TYPE,
                           DATA_VECTOR_TYPE > const;
 };
@@ -279,14 +279,14 @@ struct AsConstView
 
 template< typename T,
           int NDIM,
-          int UNIT_STRIDE_DIM,
+          int USD,
           typename INDEX_TYPE,
           template< typename > class DATA_VECTOR_TYPE >
-struct AsConstView< ArrayView< T, NDIM, UNIT_STRIDE_DIM, INDEX_TYPE, DATA_VECTOR_TYPE > >
+struct AsConstView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > >
 {
   using type = ArrayView< typename AsConstView< T >::type const,
                           NDIM,
-                          UNIT_STRIDE_DIM,
+                          USD,
                           INDEX_TYPE,
                           DATA_VECTOR_TYPE > const;
 };

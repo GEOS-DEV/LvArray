@@ -1255,8 +1255,8 @@ class ArrayResizeTest : public ::testing::Test
 {
 public:
 
-  template< int UNIT_STRIDE_DIM >
-  void print( ArrayView< T const, 2, UNIT_STRIDE_DIM > const & v )
+  template< int USD >
+  void print( ArrayView< T const, 2, USD > const & v )
   {
     for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
     {
@@ -1356,8 +1356,8 @@ private:
     validate( a.toViewConst(), initialSizes );
   }
 
-  template< int NDIM, int UNIT_STRIDE_DIM >
-  void validate( ArrayView< T const, NDIM, UNIT_STRIDE_DIM > const & v,
+  template< int NDIM, int USD >
+  void validate( ArrayView< T const, NDIM, USD > const & v,
                  INDEX_TYPE const * const initialSizes,
                  T const & defaultValue = T() )
   {

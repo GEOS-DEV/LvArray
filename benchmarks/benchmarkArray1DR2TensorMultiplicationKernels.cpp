@@ -66,11 +66,11 @@ namespace benchmarking
   RAJA_OUTER_LOOP( INNER_LOOP( a_ijl, b_ilk, c_ijk ) )
 
 
-template< int UNIT_STRIDE_DIM >
+template< int USD >
 RAJA_INLINE LVARRAY_HOST_DEVICE constexpr
-void R2TensorMultiply( ArraySlice< VALUE_TYPE const, 2, UNIT_STRIDE_DIM > const & a,
-                       ArraySlice< VALUE_TYPE const, 2, UNIT_STRIDE_DIM > const & b,
-                       ArraySlice< VALUE_TYPE, 2, UNIT_STRIDE_DIM > const & c )
+void R2TensorMultiply( ArraySlice< VALUE_TYPE const, 2, USD > const & a,
+                       ArraySlice< VALUE_TYPE const, 2, USD > const & b,
+                       ArraySlice< VALUE_TYPE, 2, USD > const & c )
 { INNER_LOOP( a( j, l ), b( l, k ), c( j, k ) ) }
 
 

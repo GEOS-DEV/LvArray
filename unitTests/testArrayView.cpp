@@ -71,8 +71,8 @@ int rand( int const low, int const high )
   return std::uniform_int_distribution< int >( low, high )( m_gen );
 }
 
-template< int UNIT_STRIDE_DIM, typename LAYOUT >
-void compareArrayToRAJAView( LvArray::ArrayView< int, 2, UNIT_STRIDE_DIM > const & v,
+template< int USD, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 2, USD > const & v,
                              RAJA::View< int, LAYOUT > view )
 {
   ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
@@ -91,8 +91,8 @@ void compareArrayToRAJAView( LvArray::ArrayView< int, 2, UNIT_STRIDE_DIM > const
   }
 }
 
-template< int UNIT_STRIDE_DIM, typename LAYOUT >
-void compareArrayToRAJAView( LvArray::ArrayView< int, 3, UNIT_STRIDE_DIM > const & v,
+template< int USD, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 3, USD > const & v,
                              RAJA::View< int, LAYOUT > view )
 {
   ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
@@ -115,8 +115,8 @@ void compareArrayToRAJAView( LvArray::ArrayView< int, 3, UNIT_STRIDE_DIM > const
   }
 }
 
-template< int UNIT_STRIDE_DIM, typename LAYOUT >
-void compareArrayToRAJAView( LvArray::ArrayView< int, 4, UNIT_STRIDE_DIM > const & v,
+template< int USD, typename LAYOUT >
+void compareArrayToRAJAView( LvArray::ArrayView< int, 4, USD > const & v,
                              RAJA::View< int, LAYOUT > view )
 {
   ASSERT_EQ( v.size( 0 ), view.layout.sizes[ 0 ] );
