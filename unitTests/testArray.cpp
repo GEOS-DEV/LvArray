@@ -181,14 +181,12 @@ void create_2D_test( array2D< T > & v, INDEX_TYPE N, INDEX_TYPE M )
   T const * data_ptr = v.data();
   for( INDEX_TYPE i = 0 ; i < N ; ++i )
   {
-    T const * cur_data_ptr = v.data( i );
     for( INDEX_TYPE j = 0 ; j < M ; ++j )
     {
       const T value = T( pos );
       EXPECT_EQ( v[i][j], value );
       EXPECT_EQ( v( i, j ), value );
       EXPECT_EQ( data_ptr[ pos ], value );
-      EXPECT_EQ( cur_data_ptr[ j ], value );
       ++pos;
     }
   }

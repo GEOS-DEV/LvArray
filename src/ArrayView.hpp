@@ -413,35 +413,18 @@ public:
   { return m_dataBuffer.data(); }
 
   /**
-   * @brief Return a pointer to a slice of the values.
-   * @param index the index of the slice to get.
-   * @todo THIS FUNCION NEEDS TO BE GENERALIZED for all dims.
-   */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  T * data( INDEX_TYPE const index ) const
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return data() + index * m_strides[ 0 ];
-  }
-
-  /**
    * @brief Copy the values from one slice in this array to another.
    * @param destIndex index for which to copy data into.
    * @param sourceIndex index to copy data from.
    */
   void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
-    ARRAY_SLICE_CHECK_BOUNDS( destIndex );
-    ARRAY_SLICE_CHECK_BOUNDS( sourceIndex );
-
-    INDEX_TYPE const stride0 = m_strides[0];
-    T * const dest = data( destIndex );
-    T const * const source = data( sourceIndex );
-
-    for( INDEX_TYPE i = 0 ; i < stride0 ; ++i )
-    {
-      dest[i] = source[i];
-    }
+    forValuesInSliceWithIndices( (*this)[ sourceIndex ],
+                                 [destIndex, this]( T const & sourceVal, auto const ... indices )
+      {
+        (*this)( destIndex, indices ... ) = sourceVal;
+      }
+                                 );
   }
 
   /**
