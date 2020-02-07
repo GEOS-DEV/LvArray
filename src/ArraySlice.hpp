@@ -246,6 +246,13 @@ public:
     return m_data == ptr;
   }
 
+  /**
+   * @brief Return a pointer to the values.
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T * data() const
+  { return m_data; }
+
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
