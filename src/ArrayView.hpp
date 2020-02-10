@@ -421,9 +421,9 @@ public:
   {
     forValuesInSliceWithIndices( (*this)[ sourceIndex ],
                                  [destIndex, this]( T const & sourceVal, auto const ... indices )
-      {
-        (*this)( destIndex, indices ... ) = sourceVal;
-      }
+    {
+      (*this)( destIndex, indices ... ) = sourceVal;
+    }
                                  );
   }
 

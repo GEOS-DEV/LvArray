@@ -1347,10 +1347,10 @@ private:
 
     forValuesInSliceWithIndices( a.toSlice(),
                                  [this]( T & value, auto const... indices )
-        {
-          INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-          value = T( idx );
-        }
+    {
+      INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+      value = T( idx );
+    }
                                  );
 
     validate( a.toViewConst(), initialSizes );
@@ -1363,17 +1363,17 @@ private:
   {
     forValuesInSliceWithIndices( v.toSlice(),
                                  [initialSizes, defaultValue, this]( T const & value, auto const... indices )
-        {
-          if( !invalidIndices( initialSizes, indices ... ) )
-          {
-            INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-            EXPECT_EQ( value, T( idx ) );
-          }
-          else
-          {
-            EXPECT_EQ( value, defaultValue );
-          }
-        }
+    {
+      if( !invalidIndices( initialSizes, indices ... ) )
+      {
+        INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+        EXPECT_EQ( value, T( idx ) );
+      }
+      else
+      {
+        EXPECT_EQ( value, defaultValue );
+      }
+    }
                                  );
   }
 
