@@ -213,14 +213,14 @@ public:
 #if defined(USE_CUDA)
     std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
     m_array.setUserCallback( [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
-    {
-      if( act == chai::ACTION_MOVE )
       {
-        std::string const & size = internal::calculateSize( bytes );
-        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
-        LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
-      }
-    } );
+        if( act == chai::ACTION_MOVE )
+        {
+          std::string const & size = internal::calculateSize( bytes );
+          char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+          LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
+        }
+      } );
 #else
     LVARRAY_UNUSED_VARIABLE( name );
 #endif

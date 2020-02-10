@@ -642,9 +642,9 @@ public:
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
     forall< serialPolicy >( m_view.numRows(),
                             [view, &curIndex]( INDEX_TYPE row )
-    {
-      memoryMotionCheckRow( view, row, curIndex );
-    }
+        {
+          memoryMotionCheckRow( view, row, curIndex );
+        }
                             );
   }
 

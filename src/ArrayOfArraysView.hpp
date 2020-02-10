@@ -512,9 +512,9 @@ protected:
         INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
         for_each_arg(
           [totalSize, maxOffset]( auto & buffer )
-        {
-          bufferManipulation::reserve( buffer, maxOffset, totalSize );
-        },
+          {
+            bufferManipulation::reserve( buffer, maxOffset, totalSize );
+          },
           m_values, buffers ...
           );
       }
@@ -537,9 +537,9 @@ protected:
 
     for_each_arg(
       []( auto & buffer )
-    {
-      buffer.free();
-    },
+      {
+        buffer.free();
+      },
       m_sizes, m_offsets, m_values, buffers ...
       );
 
@@ -574,9 +574,9 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     for_each_arg(
       [maxOffset, srcMaxOffset]( auto & dstBuffer )
-    {
-      bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
-    },
+      {
+        bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
+      },
       m_values, pairs.first ...
       );
 
@@ -586,17 +586,17 @@ protected:
 
     for_each_arg(
       [this] ( auto & pair )
-    {
-      auto & dstBuffer = pair.first;
-      auto const & srcBuffer = pair.second;
-
-      for( INDEX_TYPE_NC i = 0 ; i < m_numArrays ; ++i )
       {
-        INDEX_TYPE const offset = m_offsets[i];
-        INDEX_TYPE const arraySize = sizeOfArray( i );
-        arrayManipulation::uninitializedCopy( &dstBuffer[ offset ], arraySize, &srcBuffer[ offset ] );
-      }
-    },
+        auto & dstBuffer = pair.first;
+        auto const & srcBuffer = pair.second;
+
+        for( INDEX_TYPE_NC i = 0 ; i < m_numArrays ; ++i )
+        {
+          INDEX_TYPE const offset = m_offsets[i];
+          INDEX_TYPE const arraySize = sizeOfArray( i );
+          arrayManipulation::uninitializedCopy( &dstBuffer[ offset ], arraySize, &srcBuffer[ offset ] );
+        }
+      },
       valuesPair, pairs ...
       );
   }
@@ -614,9 +614,9 @@ protected:
   {
     for_each_arg(
       [space, touch]( auto & buffer )
-    {
-      buffer.move( space, touch );
-    },
+      {
+        buffer.move( space, touch );
+      },
       m_values, m_sizes, m_offsets, buffers ...
       );
   }
@@ -634,9 +634,9 @@ protected:
   {
     for_each_arg(
       [space]( auto & buffer )
-    {
-      buffer.registerTouch( space );
-    },
+      {
+        buffer.registerTouch( space );
+      },
       m_values, m_sizes, m_offsets, buffers ...
       );
   }
@@ -661,9 +661,9 @@ protected:
       // Shift the values in the next array down.
       for_each_arg(
         [sizeOfNextArray, nextOffset, shiftAmount] ( auto & buffer )
-      {
-        arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
-      },
+        {
+          arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
+        },
         m_values, buffers ...
         );
 
@@ -698,9 +698,9 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     for_each_arg(
       [newValueCapacity, maxOffset] ( auto & buffer )
-    {
-      bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
-    },
+      {
+        bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
+      },
       m_values, buffers ...
       );
   }
@@ -729,18 +729,18 @@ protected:
       INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
       for_each_arg(
         [this, i, maxOffset, capacityIncrease]( auto & buffer )
-      {
-        // Increase the size of the buffer.
-        bufferManipulation::dynamicReserve( buffer, maxOffset, maxOffset + capacityIncrease );
-
-        // Shift up the values.
-        for( INDEX_TYPE array = m_numArrays - 1 ; array > i ; --array )
         {
-          INDEX_TYPE const curArraySize = sizeOfArray( array );
-          INDEX_TYPE const curArrayOffset = m_offsets[ array ];
-          arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
-        }
-      },
+          // Increase the size of the buffer.
+          bufferManipulation::dynamicReserve( buffer, maxOffset, maxOffset + capacityIncrease );
+
+          // Shift up the values.
+          for( INDEX_TYPE array = m_numArrays - 1 ; array > i ; --array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+          }
+        },
         m_values, buffers ...
         );
     }
@@ -755,18 +755,18 @@ protected:
       m_sizes[i] = newArraySize;
       for_each_arg(
         [this, i, capacityDecrease, arrayOffset, newArraySize, prevArraySize] ( auto & buffer )
-      {
-        // Delete the values at the end of the array.
-        arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
-
-        // Shift down the values of subsequent arrays.
-        for( INDEX_TYPE array = i + 1 ; array < m_numArrays ; ++array )
         {
-          INDEX_TYPE const curArraySize = sizeOfArray( array );
-          INDEX_TYPE const curArrayOffset = m_offsets[array];
-          arrayManipulation::uninitializedShiftDown( &buffer[ curArrayOffset ], curArraySize, capacityDecrease );
-        }
-      },
+          // Delete the values at the end of the array.
+          arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
+
+          // Shift down the values of subsequent arrays.
+          for( INDEX_TYPE array = i + 1 ; array < m_numArrays ; ++array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[array];
+            arrayManipulation::uninitializedShiftDown( &buffer[ curArrayOffset ], curArraySize, capacityDecrease );
+          }
+        },
         m_values, buffers ...
         );
     }
@@ -822,14 +822,14 @@ private:
 
     for_each_arg(
       [this, begin, end] ( auto & buffer )
-    {
-      for( INDEX_TYPE i = begin ; i < end ; ++i )
       {
-        INDEX_TYPE const offset = m_offsets[ i ];
-        INDEX_TYPE const arraySize = sizeOfArray( i );
-        arrayManipulation::destroy( &buffer[ offset ], arraySize );
-      }
-    },
+        for( INDEX_TYPE i = begin ; i < end ; ++i )
+        {
+          INDEX_TYPE const offset = m_offsets[ i ];
+          INDEX_TYPE const arraySize = sizeOfArray( i );
+          arrayManipulation::destroy( &buffer[ offset ], arraySize );
+        }
+      },
       m_values, buffers ...
       );
   }

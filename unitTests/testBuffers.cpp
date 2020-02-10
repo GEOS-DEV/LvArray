@@ -550,11 +550,11 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
 
   for_each_arg(
     [this]( auto && copy )
-  {
-    bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
-    COMPARE_TO_REFERENCE( copy, this->m_ref );
-    bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
-  },
+      {
+        bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
+        COMPARE_TO_REFERENCE( copy, this->m_ref );
+        bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
+      },
     ChaiBuffer< typename TypeParam::value_type >( true ),
     NewChaiBuffer< typename TypeParam::value_type >( true ),
     MallocBuffer< typename TypeParam::value_type >( true )
