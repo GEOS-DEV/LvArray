@@ -15,7 +15,7 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-
+/* *UNCRUSTIFY-OFF* */
 #pragma once
 
 // Source includes
@@ -241,3 +241,4 @@ inline int verifyResults( ResultsMap< N > const & benchmarkResults )
 
 } // namespace benchmarking
 } // namespace LvArray
+/* *UNCRUSITIFY-ON* */

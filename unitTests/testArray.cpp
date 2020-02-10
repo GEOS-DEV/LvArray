@@ -1349,10 +1349,10 @@ private:
 
     arrayIterator( a.toView(),
                    [this]( auto const & view, auto... indices )
-        {
-          INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-          view( indices ... ) = T( idx );
-        }
+    {
+      INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+      view( indices ... ) = T( idx );
+    }
                    );
 
     validate( a.toViewConst(), initialSizes );
@@ -1365,17 +1365,17 @@ private:
   {
     arrayIterator( v,
                    [initialSizes, defaultValue, this]( auto const & view, auto... indices )
-        {
-          if( !invalidIndices( initialSizes, indices ... ) )
-          {
-            INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
-            EXPECT_EQ( view( indices ... ), T( idx ) );
-          }
-          else
-          {
-            EXPECT_EQ( view( indices ... ), defaultValue );
-          }
-        }
+    {
+      if( !invalidIndices( initialSizes, indices ... ) )
+      {
+        INDEX_TYPE const idx = this->getTestingLinearIndex( indices ... );
+        EXPECT_EQ( view( indices ... ), T( idx ) );
+      }
+      else
+      {
+        EXPECT_EQ( view( indices ... ), defaultValue );
+      }
+    }
                    );
   }
 

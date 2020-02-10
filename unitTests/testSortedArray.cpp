@@ -402,9 +402,9 @@ public:
     // Capture the view on host and check that the values haven't been overwritten.
     forall( sequential(), 0, size,
             [view = m_set.toView()]( INDEX_TYPE i )
-        {
-          EXPECT_EQ( view[i], T( i * i ));
-        }
+    {
+      EXPECT_EQ( view[i], T( i * i ));
+    }
             );
   }
 

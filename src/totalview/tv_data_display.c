@@ -161,7 +161,7 @@ marshal_unsigned_body ( char * buffer, size_t len, size_t val, int base,
 
   int     ret_val = 0;
   size_t  q, r;
-  char    digit [ 2 ];
+  char    digit[ 2 ];
   char * my_buffer  = buffer;
   size_t  my_len     = len;
 

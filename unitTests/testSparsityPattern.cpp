@@ -717,14 +717,14 @@ public:
     curIndex = 0;
     forall( sequential(), 0, numRows,
             [view = m_sp.toView(), &curIndex]( INDEX_TYPE row )
-        {
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
-          {
-            COL_TYPE val = COL_TYPE( curIndex ) * COL_TYPE( curIndex );
-            EXPECT_EQ( val, view.getColumns( row )[i] );
-            ++curIndex;
-          }
-        }
+    {
+      for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+      {
+        COL_TYPE val = COL_TYPE( curIndex ) * COL_TYPE( curIndex );
+        EXPECT_EQ( val, view.getColumns( row )[i] );
+        ++curIndex;
+      }
+    }
             );
   }
 

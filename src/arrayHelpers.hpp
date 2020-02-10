@@ -178,10 +178,10 @@ void dimUnpack( INDEX_TYPE * const dims, DIMS... newDims )
 {
   int curDim = 0;
   for_each_arg( [&]( INDEX_TYPE const size )
-    {
-      dims[ curDim ] = size;
-      curDim += 1;
-    }, newDims ... );
+  {
+    dims[ curDim ] = size;
+    curDim += 1;
+  }, newDims ... );
 }
 
 

@@ -751,9 +751,9 @@ public:
     // Move the view back to the host and compare with the reference.
     forall( sequential(), 0, 1,
             [view = m_array.toView(), this] ( INDEX_TYPE )
-        {
-          COMPARE_TO_REFERENCE( view.toViewC(), m_ref );
-        }
+    {
+      COMPARE_TO_REFERENCE( view.toViewC(), m_ref );
+    }
             );
   }
 

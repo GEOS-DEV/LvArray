@@ -195,11 +195,11 @@ void testMemoryMotion( arrayView< T > & v )
 
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        T val( i );
-        val += val;
-        EXPECT_EQ( v[ i ], val );
-      }
+  {
+    T val( i );
+    val += val;
+    EXPECT_EQ( v[ i ], val );
+  }
           );
 }
 
@@ -234,9 +234,9 @@ void testMemoryMotionConst( array< T > & a )
   // and therefore the values should be those set above.
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        EXPECT_EQ( v[ i ], T( 2 * i ) );
-      }
+  {
+    EXPECT_EQ( v[ i ], T( 2 * i ) );
+  }
           );
 }
 
@@ -300,9 +300,9 @@ void testMemoryMotionMultiple( arrayView< T > & v )
 
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   forall( gpu(), 0, N,
@@ -315,14 +315,14 @@ void testMemoryMotionMultiple( arrayView< T > & v )
 
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        T val( i );
-        val += T( 2 );
-        val += T( 2 );
-        val += T( 2 );
-        val += T( 2 );
-        EXPECT_EQ( v[ i ], val );
-      }
+  {
+    T val( i );
+    val += T( 2 );
+    val += T( 2 );
+    val += T( 2 );
+    val += T( 2 );
+    EXPECT_EQ( v[ i ], val );
+  }
           );
 }
 
@@ -405,14 +405,14 @@ void testMemoryMotionArray( array< array< T > > & a )
 
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0 ; j < N ; ++j )
-        {
-          T val( N * i + j );
-          val += val;
-          EXPECT_EQ( v[ i ][ j ], val );
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
+    {
+      T val( N * i + j );
+      val += val;
+      EXPECT_EQ( v[ i ][ j ], val );
+    }
+  }
           );
 }
 
@@ -459,12 +459,12 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
   // Check that the modifications weren't overwritten.
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0 ; j < N ; ++j )
-        {
-          EXPECT_EQ( v[ i ][ j ], T( 2 * ( N * i + j ) ) );
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
+    {
+      EXPECT_EQ( v[ i ][ j ], T( 2 * ( N * i + j ) ) );
+    }
+  }
           );
 }
 
@@ -540,17 +540,17 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
 
   forall( sequential(), 0, N,
           [=]( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
+    {
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
-        for( INDEX_TYPE j = 0 ; j < N ; ++j )
-        {
-          for( INDEX_TYPE k = 0 ; k < N ; ++k )
-          {
-            T val( N * N * i + N * j + k );
-            val += val;
-            EXPECT_EQ( v[ i ][ j ][ k ], val );
-          }
-        }
+        T val( N * N * i + N * j + k );
+        val += val;
+        EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
+    }
+  }
           );
 }
 
@@ -586,15 +586,15 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
 
   forall( sequential(), 0, N,
           [v, N]( INDEX_TYPE const i )
+  {
+    for( INDEX_TYPE j = 0 ; j < N ; ++j )
+    {
+      for( INDEX_TYPE k = 0 ; k < N ; ++k )
       {
-        for( INDEX_TYPE j = 0 ; j < N ; ++j )
-        {
-          for( INDEX_TYPE k = 0 ; k < N ; ++k )
-          {
-            EXPECT_EQ( v[ i ][ j ][ k ], T( N * N * i + N * j + k ) );
-          }
-        }
+        EXPECT_EQ( v[ i ][ j ][ k ], T( N * N * i + N * j + k ) );
       }
+    }
+  }
           );
 }
 
@@ -673,15 +673,15 @@ void test2DAccessorsDevice( arrayView2D< T > & v )
 
   forall( sequential(), 0, I,
           [=] ( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0 ; j < J ; ++j )
-        {
-          T val( J * i + j );
-          val += T( 2 );
-          val += T( 2 );
-          EXPECT_EQ( v[ i ][ j ], val );
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
+    {
+      T val( J * i + j );
+      val += T( 2 );
+      val += T( 2 );
+      EXPECT_EQ( v[ i ][ j ], val );
+    }
+  }
           );
 }
 
@@ -720,18 +720,18 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
 
   forall( sequential(), 0, I,
           [=] ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
+    {
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
-        for( INDEX_TYPE j = 0 ; j < J ; ++j )
-        {
-          for( INDEX_TYPE k = 0 ; k < K ; ++k )
-          {
-            T val( J * K * i + K * j + k );
-            val += T( 2 );
-            val += T( 2 );
-            EXPECT_EQ( v[ i ][ j ][ k ], val );
-          }
-        }
+        T val( J * K * i + K * j + k );
+        val += T( 2 );
+        val += T( 2 );
+        EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
+    }
+  }
           );
 }
 
@@ -761,16 +761,16 @@ void testSizeOnDevice( arrayView3D< T > & v )
 
   forall( sequential(), 0, I,
           [=] ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0 ; j < J ; ++j )
+    {
+      for( INDEX_TYPE k = 0 ; k < K ; ++k )
       {
-        for( INDEX_TYPE j = 0 ; j < J ; ++j )
-        {
-          for( INDEX_TYPE k = 0 ; k < K ; ++k )
-          {
-            T val( J * K * i + K * j + k );
-            EXPECT_EQ( v[ i ][ j ][ k ], val );
-          }
-        }
+        T val( J * K * i + K * j + k );
+        EXPECT_EQ( v[ i ][ j ][ k ], val );
       }
+    }
+  }
           );
 }
 
