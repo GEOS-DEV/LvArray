@@ -426,7 +426,8 @@ protected:
    */
   template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n,
+                                         CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );

@@ -189,12 +189,12 @@
   #define LVARRAY_HOST_DEVICE __host__ __device__
   #define LVARRY_DEVICE __device__
 
-  // This pragma disables nvcc warnings about calling a host function from a host-device
-  // function. This is used on templated host-device functions where some template instantiations
-  // call host only code. This is safe as long as the host only instantiations are only called on
-  // the host. Furthermore it seems like trying to call a host only instantiation on the device leads
-  // to other compiler errors/warnings.
-  // To use place directly above a function declaration.
+// This pragma disables nvcc warnings about calling a host function from a host-device
+// function. This is used on templated host-device functions where some template instantiations
+// call host only code. This is safe as long as the host only instantiations are only called on
+// the host. Furthermore it seems like trying to call a host only instantiation on the device leads
+// to other compiler errors/warnings.
+// To use place directly above a function declaration.
   #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
 #else
   #define LVARRAY_HOST_DEVICE
@@ -218,4 +218,3 @@
     #define CONSTEXPRFUNC constexpr
   #endif
 #endif
-
