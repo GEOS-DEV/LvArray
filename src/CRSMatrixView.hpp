@@ -108,7 +108,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !std::is_const< U >::value && !std::is_const< CTYPE >::value,
                                     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -116,7 +116,7 @@ public:
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewC() const restrict_this
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -126,7 +126,7 @@ public:
   template< class U=T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !std::is_const< U >::value, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -134,7 +134,7 @@ public:
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewCC() const restrict_this
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewCC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -157,7 +157,7 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const restrict_this
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
@@ -176,7 +176,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const restrict_this
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
@@ -197,9 +197,9 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const restrict cols,
-                                T const * const restrict entriesToInsert,
-                                INDEX_TYPE const ncols ) const restrict_this
+                                COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                T const * const LVARRAY_RESTRICT entriesToInsert,
+                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   { return insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
 
   /**
@@ -217,9 +217,9 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const restrict cols,
-                                      T const * const restrict entriesToInsert,
-                                      INDEX_TYPE const ncols ) const restrict_this
+                                      COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                      T const * const LVARRAY_RESTRICT entriesToInsert,
+                                      INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
@@ -229,7 +229,7 @@ public:
    * @return True iff the entry was removed (the entry was non-zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
 
   /**
@@ -245,8 +245,8 @@ public:
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const restrict cols,
-                                INDEX_TYPE const ncols ) const restrict_this
+                                COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
@@ -270,8 +270,8 @@ public:
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const restrict cols,
-                                      INDEX_TYPE const ncols ) const restrict_this
+                                      COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                      INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
@@ -318,8 +318,8 @@ public:
   template< typename AtomicPolicy=RAJA::seq_atomic >
   LVARRAY_HOST_DEVICE inline
   void addToRow( INDEX_TYPE const row,
-                 COL_TYPE const * const restrict cols,
-                 T const * const restrict vals,
+                 COL_TYPE const * const LVARRAY_RESTRICT cols,
+                 T const * const LVARRAY_RESTRICT vals,
                  INDEX_TYPE const nCols ) const
   {
     INDEX_TYPE const nnz = numNonZeros( row );
@@ -347,8 +347,8 @@ public:
   template< typename AtomicPolicy=RAJA::seq_atomic >
   LVARRAY_HOST_DEVICE inline
   void addToRowBinarySearch( INDEX_TYPE const row,
-                             COL_TYPE const * const restrict cols,
-                             T const * const restrict vals,
+                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             T const * const LVARRAY_RESTRICT vals,
                              INDEX_TYPE const nCols ) const
   {
     LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
@@ -384,8 +384,8 @@ public:
   template< typename AtomicPolicy=RAJA::seq_atomic >
   LVARRAY_HOST_DEVICE inline
   void addToRowLinearSearch( INDEX_TYPE const row,
-                             COL_TYPE const * const restrict cols,
-                             T const * const restrict vals,
+                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             T const * const LVARRAY_RESTRICT vals,
                              INDEX_TYPE const nCols ) const
   {
     LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
@@ -441,7 +441,7 @@ protected:
                                     COL_TYPE const * const cols,
                                     T const * const entriesToInsert,
                                     INDEX_TYPE const ncols,
-                                    DERIVED & obj ) const restrict_this
+                                    DERIVED & obj ) const LVARRAY_RESTRICT_THIS
   {
     static_assert( std::is_base_of< CRSMatrixView, DERIVED >::value, "DERIVED must be derived from CRSMatrixView!" );
 

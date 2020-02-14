@@ -40,7 +40,7 @@ struct ReduceNative
   static VALUE_TYPE rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                               INDEX_TYPE const N );
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const restrict a,
+  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
                              INDEX_TYPE const N );
 };
 
@@ -56,7 +56,7 @@ struct ReduceRAJA
   static VALUE_TYPE rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                               INDEX_TYPE const N );
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const restrict a,
+  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
                              INDEX_TYPE const N );
 };
 

@@ -86,7 +86,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !std::is_const< CTYPE >::value,
                                     SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -94,7 +94,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewC() const restrict_this
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -115,21 +115,21 @@ public:
    * @brief Return the number of rows in the matrix.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC numRows() const restrict_this
+  INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::size(); }
 
   /**
    * @brief Return the number of columns in the matrix.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC numColumns() const restrict_this
+  INDEX_TYPE_NC numColumns() const LVARRAY_RESTRICT_THIS
   { return m_numCols; }
 
   /**
    * @brief Return the total number of non zero entries in the matrix.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC numNonZeros() const restrict_this
+  INDEX_TYPE_NC numNonZeros() const LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE_NC nnz = 0;
     for( INDEX_TYPE_NC row = 0 ; row < numRows() ; ++row )
@@ -145,14 +145,14 @@ public:
    * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const restrict_this
+  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::sizeOfSet( row ); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC nonZeroCapacity() const restrict_this
+  INDEX_TYPE_NC nonZeroCapacity() const LVARRAY_RESTRICT_THIS
   { return m_values.capacity(); }
 
   /**
@@ -161,14 +161,14 @@ public:
    * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const restrict_this
+  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::capacityOfSet( row ); }
 
   /**
    * @brief Return true iff the matrix is all zeros.
    */
   LVARRAY_HOST_DEVICE inline
-  bool empty() const restrict_this
+  bool empty() const LVARRAY_RESTRICT_THIS
   { return numNonZeros() == 0; }
 
   /**
@@ -176,7 +176,7 @@ public:
    * @param [in] row the row to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  bool empty( INDEX_TYPE const row ) const restrict_this
+  bool empty( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return numNonZeros( row ) == 0; }
 
   /**
@@ -185,7 +185,7 @@ public:
    * @param [in] col the col to query.
    */
   LVARRAY_HOST_DEVICE inline
-  bool empty( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  bool empty( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   { return !ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::contains( row, col ); }
 
   /**
@@ -194,7 +194,7 @@ public:
    * @param [in] row the row to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const restrict_this
+  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return (*this)[row]; }
 
   /**
@@ -202,7 +202,7 @@ public:
    *        This array has length numRows() + 1.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE const * getOffsets() const restrict_this
+  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
   { return m_offsets.data(); }
 
   /**
@@ -217,7 +217,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
@@ -239,7 +239,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const restrict_this
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
@@ -266,7 +266,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const restrict_this
+  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
@@ -287,7 +287,7 @@ public:
    * @return True iff the column was removed (the entry was non zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const restrict_this
+  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
@@ -305,7 +305,7 @@ public:
    *       and then call removeNonZerosSorted, this will be substantially faster.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const restrict_this
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
@@ -327,7 +327,7 @@ public:
    * @return The number of columns removed.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const restrict_this
+  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );

@@ -142,7 +142,7 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
   check( buf, size );
 
   using T = typename BUFFER::value_type;
-  T * const restrict data = buf.data();
+  T * const LVARRAY_RESTRICT data = buf.data();
   for( std::ptrdiff_t i = 0 ; i < size ; ++i )
   {
     data[ i ].~T();
@@ -384,8 +384,8 @@ void copyInto( DST_BUFFER & dst,
   resize( dst, dstSize, srcSize );
 
   using T = typename DST_BUFFER::value_type;
-  T * const restrict dstData = dst.data();
-  T const * const restrict srcData = src.data();
+  T * const LVARRAY_RESTRICT dstData = dst.data();
+  T const * const LVARRAY_RESTRICT srcData = src.data();
 
   for( std::ptrdiff_t i = 0 ; i < srcSize ; ++i )
   {

@@ -75,18 +75,18 @@ rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
 
 template<>
 void OuterProductNative< RAJA::PERM_IJ >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { OUTER_PRODUCT_KERNEL( a[ i ], b[ j ], c[ M * i + j ] ); }
 
 template<>
 void OuterProductNative< RAJA::PERM_JI >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { OUTER_PRODUCT_KERNEL( a[ i ], b[ j ], c[ N * j + i ] ); }
@@ -120,27 +120,27 @@ rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_IJ,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N,
                         INDEX_TYPE const M )
 { OUTER_PRODUCT_KERNEL_RAJA( a[ i ], b[ j ], c[ M * i + j ] ); }
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_JI,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N,
                         INDEX_TYPE const M )
 { OUTER_PRODUCT_KERNEL_RAJA( a[ i ], b[ j ], c[ N * j + i ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void OuterProductRAJA< PERMUTATION, POLICY >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { return pointerRajaHelper< POLICY >( PERMUTATION {}, a, b, c, N, M ); }

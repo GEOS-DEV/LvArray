@@ -103,7 +103,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -111,7 +111,7 @@ public:
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const restrict_this
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -121,7 +121,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewC(); }
 
   /**
@@ -131,7 +131,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewCC(); }
 
   /**
@@ -141,7 +141,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toSparsityPatternView(); }
 
   /**
@@ -149,7 +149,7 @@ public:
    * @param [in] src the CRSMatrix to copy.
    */
   inline
-  CRSMatrix & operator=( CRSMatrix const & src ) restrict_this
+  CRSMatrix & operator=( CRSMatrix const & src ) LVARRAY_RESTRICT_THIS
   {
     m_numCols = src.m_numCols;
     internal::PairOfBuffers< T > entriesPair( m_entries, src.m_entries );
@@ -174,14 +174,14 @@ public:
    * @param [in] space the memory space to move to.
    * @param [in] touch whether to touch the memory in the space or not.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::move( space, touch, m_entries ); }
 
   /**
    * @brief Touch in the given memory space.
    * @param [in] space the memory space to touch.
    */
-  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space, m_entries ); }
 
   /**
@@ -189,7 +189,7 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
+  void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
   {
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::reserveValues( nnz, m_entries );
   }
@@ -200,7 +200,7 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE row, INDEX_TYPE nnz ) restrict_this
+  void reserveNonZeros( INDEX_TYPE row, INDEX_TYPE nnz ) LVARRAY_RESTRICT_THIS
   {
     if( nonZeroCapacity( row ) >= nnz ) return;
     setRowCapacity( row, nnz );
@@ -214,7 +214,7 @@ public:
    * @return True iff the entry was inserted (the entry was zero before).
    */
   inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) restrict_this
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) LVARRAY_RESTRICT_THIS
   { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry )); }
 
   /**
@@ -233,7 +233,7 @@ public:
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
                              COL_TYPE const * const cols,
                              T const * const entriesToInsert,
-                             INDEX_TYPE const ncols ) restrict_this
+                             INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
   { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
 
   /**
@@ -248,7 +248,7 @@ public:
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row,
                                    COL_TYPE const * const cols,
                                    T const * const entriesToInsert,
-                                   INDEX_TYPE const ncols ) restrict_this
+                                   INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
   { return CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert )); }
 
   /**
@@ -274,7 +274,7 @@ public:
    * @note This method doesn't free any memory.
    */
   inline
-  void compress() restrict_this
+  void compress() LVARRAY_RESTRICT_THIS
   { CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::compress( m_entries ); }
 
   /**
@@ -288,7 +288,7 @@ public:
    *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
    * TODO: Add tests.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) restrict_this
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
   {
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity, m_entries );
   }

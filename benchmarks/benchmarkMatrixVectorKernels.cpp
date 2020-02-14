@@ -75,18 +75,18 @@ rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
 
 template<>
 void MatrixVectorNative< RAJA::PERM_IJ >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { MATRIX_VECTOR_KERNEL( a[ ACCESS_IJ( N, M, i, j ) ], b[ j ], c[ i ] ); }
 
 template<>
 void MatrixVectorNative< RAJA::PERM_JI >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { MATRIX_VECTOR_KERNEL( a[ ACCESS_JI( N, M, i, j ) ], b[ j ], c[ i ] ); }
@@ -120,27 +120,27 @@ rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_IJ,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N,
                         INDEX_TYPE const M )
 { MATRIX_VECTOR_KERNEL_RAJA( a[ ACCESS_IJ( N, M, i, j ) ], b[ j ], c[ i ] ); }
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_JI,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N,
                         INDEX_TYPE const M )
 { MATRIX_VECTOR_KERNEL_RAJA( a[ ACCESS_JI( N, M, i, j ) ], b[ j ], c[ i ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void MatrixVectorRAJA< PERMUTATION, POLICY >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N,
          INDEX_TYPE const M )
 { return pointerRajaHelper< POLICY >( PERMUTATION {}, a, b, c, N, M ); }

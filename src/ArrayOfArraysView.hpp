@@ -140,7 +140,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !SIZES_ARE_CONST,
                                     ArrayOfArraysView< T, INDEX_TYPE const, true > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, true > const & >(*this); }
 
   /**
@@ -148,7 +148,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewC() const restrict_this
+  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -158,7 +158,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !std::is_const< U >::value,
                                     ArrayOfArraysView< T const, INDEX_TYPE const, true > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true > const & >(*this); }
 
   /**
@@ -166,7 +166,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewCC() const restrict_this
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewCC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -187,14 +187,14 @@ public:
    * @brief Return the number of arrays.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC size() const restrict_this
+  INDEX_TYPE_NC size() const LVARRAY_RESTRICT_THIS
   { return m_numArrays; }
 
   /**
    * @brief Return the number of (zero length) arrays that can be stored before reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC capacity() const restrict_this
+  INDEX_TYPE_NC capacity() const LVARRAY_RESTRICT_THIS
   {
     LVARRAY_ASSERT( m_sizes.capacity() < m_offsets.capacity());
     return m_sizes.capacity();
@@ -205,7 +205,7 @@ public:
    * @param [in] i the array to querry.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const restrict_this
+  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return m_sizes[i];
@@ -216,7 +216,7 @@ public:
    * @param [in] i the array to querry.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const restrict_this
+  INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return m_offsets[i + 1] - m_offsets[i];
@@ -227,7 +227,7 @@ public:
    * @param [in] i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const restrict_this
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_values.data() + m_offsets[i], &m_sizes[i], nullptr );
@@ -239,7 +239,7 @@ public:
    * @param [in] j the index within the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const restrict_this
+  T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
     return m_values[m_offsets[i] + j];
@@ -255,11 +255,11 @@ public:
     {}
 
     LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-    T * begin() const restrict_this
+    T * begin() const LVARRAY_RESTRICT_THIS
     { return m_data; }
 
     LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-    T * end() const restrict_this
+    T * end() const LVARRAY_RESTRICT_THIS
     { return m_data + m_size; }
 
 private:
@@ -268,7 +268,7 @@ private:
   };
 
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  IterableArray getIterableArray( INDEX_TYPE const i ) const restrict_this
+  IterableArray getIterableArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return IterableArray( m_values.data() + m_offsets[i], m_sizes[i] );
@@ -285,7 +285,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void appendToArray( INDEX_TYPE const i, T const & value ) const restrict_this
+  void appendToArray( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -297,7 +297,7 @@ private:
 
   template< class POLICY >
   LVARRAY_HOST_DEVICE inline
-  void atomicAppendToArray( POLICY, INDEX_TYPE const i, T const & value ) const restrict_this
+  void atomicAppendToArray( POLICY, INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -319,7 +319,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void appendToArray( INDEX_TYPE const i, T && value ) const restrict_this
+  void appendToArray( INDEX_TYPE const i, T && value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -341,7 +341,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
+  void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, n );
@@ -363,7 +363,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value ) const restrict_this
+  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -385,7 +385,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value ) const restrict_this
+  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -408,7 +408,7 @@ private:
    *       otherwise the values in the subsequent array will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n ) const restrict_this
+  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, n );
@@ -425,7 +425,7 @@ private:
    * @param [in] n the number of values to erase.
    */
   LVARRAY_HOST_DEVICE inline
-  void eraseFromArray( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const n=1 ) const restrict_this
+  void eraseFromArray( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const n=1 ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
 

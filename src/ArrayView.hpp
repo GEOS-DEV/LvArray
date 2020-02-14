@@ -279,8 +279,8 @@ public:
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const restrict >
-    () const noexcept restrict_this
+  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
+    () const noexcept LVARRAY_RESTRICT_THIS
   {
     return data();
   }
@@ -349,7 +349,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, USD >::multiply( index,
@@ -365,7 +365,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return data()[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];

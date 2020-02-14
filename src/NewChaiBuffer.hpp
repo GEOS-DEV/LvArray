@@ -308,7 +308,7 @@ private:
     internal::getArrayManager().setExecutionSpace( prevSpace );
   }
 
-  T * restrict m_pointer = nullptr;
+  T * LVARRAY_RESTRICT m_pointer = nullptr;
   std::ptrdiff_t m_capacity = 0;
   chai::PointerRecord * m_pointer_record = nullptr;
 };

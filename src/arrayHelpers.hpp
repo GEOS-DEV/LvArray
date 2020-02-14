@@ -66,32 +66,32 @@ struct ConditionalMultiply< i, i >
 template< int SIZE, typename T >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 typename std::enable_if< (SIZE == 1), T >::type
-multiplyAll( T const * const restrict values )
+multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ]; }
 
 template< int SIZE, typename T >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 typename std::enable_if< (SIZE > 1), T >::type
-multiplyAll( T const * const restrict values )
+multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ] * multiplyAll< SIZE - 1 >( values + 1 ); }
 
 template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index )
+INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
 {
   return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] );
 }
 
 template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-INDEX_TYPE getLinearIndex( INDEX_TYPE const * const restrict strides, INDEX const index, REMAINING_INDICES... indices )
+INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES... indices )
 {
   return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] ) +
          getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
 
 template< typename INDEX_TYPE, typename INDEX, typename ... INDICES >
-std::string printDimsAndIndices( INDEX_TYPE const * const restrict dims, INDEX const index, INDICES... indices )
+std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDEX const index, INDICES... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES) + 1;
   std::ostringstream oss;
@@ -112,19 +112,19 @@ std::string printDimsAndIndices( INDEX_TYPE const * const restrict dims, INDEX c
 
 template< typename none = void >
 LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndices( void const * const restrict LVARRAY_UNUSED_ARG( dims ) )
+bool invalidIndices( void const * const LVARRAY_RESTRICT LVARRAY_UNUSED_ARG( dims ) )
 { return false; }
 
 
 template< typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
 LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndices( INDEX_TYPE const * const restrict dims, INDEX const index, REMAINING_INDICES... indices )
+bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDEX const index, REMAINING_INDICES... indices )
 { return index < 0 || index >= dims[ 0 ] || invalidIndices( dims + 1, indices ... ); }
 
 
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
-void checkIndices( INDEX_TYPE const * const restrict dims, INDICES... indices )
+void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES... indices )
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
 

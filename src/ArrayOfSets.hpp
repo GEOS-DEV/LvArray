@@ -64,7 +64,7 @@ public:
    * @note This needs is duplicated here for the intel compiler on cori.
    */
   inline
-  INDEX_TYPE size() const restrict_this
+  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< T, INDEX_TYPE >::size(); }
 
   /**
@@ -73,7 +73,7 @@ public:
    * @param [in] defaultSetCapacity the initial capacity of each set.
    */
   inline
-  ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) restrict_this:
+  ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS:
     ArrayOfSetsView< T, INDEX_TYPE >()
   {
     resize( nsets, defaultSetCapacity );
@@ -85,7 +85,7 @@ public:
    * @param [in] src the ArrayOfSets to copy.
    */
   inline
-  ArrayOfSets( ArrayOfSets const & src ) restrict_this:
+  ArrayOfSets( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS:
     ArrayOfSetsView< T, INDEX_TYPE >()
   { *this = src; }
 
@@ -100,7 +100,7 @@ public:
    * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
-  ~ArrayOfSets() restrict_this
+  ~ArrayOfSets() LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::free(); }
 
   /**
@@ -108,14 +108,14 @@ public:
    */
   CONSTEXPRFUNC inline
   operator ArrayOfSetsView< T, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const > const & >(*this); }
 
   /**
    * @brief Conversion operator to an ArrayOfArraysView.
    */
   inline
-  ArrayOfSetsView< T, INDEX_TYPE const > const & toView() const restrict_this
+  ArrayOfSetsView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -123,7 +123,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator ArrayOfSetsView< T const, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewC(); }
 
   /**
@@ -132,7 +132,7 @@ public:
   template< class U=T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T const, INDEX_TYPE const, true >
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toArrayOfArraysView(); }
 
   /**
@@ -140,7 +140,7 @@ public:
    * @param [in] src the ArrayOfSets to copy.
    */
   inline
-  ArrayOfSets & operator=( ArrayOfSets const & src ) restrict_this
+  ArrayOfSets & operator=( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS
   {
     ArrayOfSetsView< T, INDEX_TYPE >::setEqualTo( src.m_numArrays,
                                                   src.m_offsets[ src.m_numArrays ],
@@ -164,7 +164,7 @@ public:
    * @note This would be prime for omp parallelism.
    */
   inline
-  void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) restrict_this
+  void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
   {
     ArrayOfSetsView< T, INDEX_TYPE >::free();
 
@@ -223,7 +223,7 @@ public:
    * @brief Clear a set.
    * @param[in] i the index of the set to clear.
    */
-  void clearSet( INDEX_TYPE const i ) restrict_this
+  void clearSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -239,7 +239,7 @@ public:
    * @param [in] touch whether to touch the memory in the space or not.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::move( space, touch ); }
 
   /**
@@ -247,7 +247,7 @@ public:
    * @param [in] space the memory space to touch.
    */
   inline
-  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::registerTouch( space ); }
 
   /**
@@ -255,7 +255,7 @@ public:
    * @param [in] newCapacity the new minimum capacity for the number of sets.
    */
   inline
-  void reserve( INDEX_TYPE const newCapacity ) restrict_this
+  void reserve( INDEX_TYPE const newCapacity ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::reserve( newCapacity ); }
 
   /**
@@ -263,7 +263,7 @@ public:
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all sets.
    */
   inline
-  void reserveValues( INDEX_TYPE const newValueCapacity ) restrict_this
+  void reserveValues( INDEX_TYPE const newValueCapacity ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::reserveValues( newValueCapacity ); }
 
   /**
@@ -272,7 +272,7 @@ public:
    * @param [in] newCapacity the value to set the capacity of the set to.
    */
   inline
-  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) restrict_this
+  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::setCapacityOfArray( i, newCapacity ); }
 
   /**
@@ -281,7 +281,7 @@ public:
    * @param [in] newCapacity the number of values to reserve space for.
    */
   inline
-  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) restrict_this
+  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     if( newCapacity > capacityOfSet( i ) ) setCapacityOfSet( i, newCapacity );
@@ -292,7 +292,7 @@ public:
    * @note This method doesn't free any memory.
    */
   inline
-  void compress() restrict_this
+  void compress() LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::compress(); }
 
   /**
@@ -300,7 +300,7 @@ public:
    * @param [in] numSets the new number of sets.
    * @note We need this method in addition to the following resize method because of SFINAE requirements.
    */
-  void resize( INDEX_TYPE const numSets ) restrict_this
+  void resize( INDEX_TYPE const numSets ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::resize( numSets, 0 ); }
 
   /**
@@ -308,7 +308,7 @@ public:
    * @param [in] newSize the new number of sets.
    * @param [in] defaultSetCapacity the default capacity for each new array.
    */
-  void resize( INDEX_TYPE const numSets, INDEX_TYPE const defaultSetCapacity ) restrict_this
+  void resize( INDEX_TYPE const numSets, INDEX_TYPE const defaultSetCapacity ) LVARRAY_RESTRICT_THIS
   { ArrayOfSetsView< T, INDEX_TYPE >::resize( numSets, defaultSetCapacity ); }
 
   /**
@@ -316,7 +316,7 @@ public:
    * @param [in] n the capacity of the set.
    */
   inline
-  void appendSet( INDEX_TYPE const n=0 ) restrict_this
+  void appendSet( INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
@@ -332,7 +332,7 @@ public:
    * @param [in] n the capacity of the set.
    */
   inline
-  void insertSet( INDEX_TYPE const i, INDEX_TYPE const n=0 ) restrict_this
+  void insertSet( INDEX_TYPE const i, INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
@@ -352,7 +352,7 @@ public:
    * @param [in] i the position of the set to erase.
    */
   inline
-  void eraseSet( INDEX_TYPE const i ) restrict_this
+  void eraseSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -369,7 +369,7 @@ public:
    * @return True iff the value was inserted (the set did not already contain the value).
    */
   inline
-  bool insertIntoSet( INDEX_TYPE const i, T const & val ) restrict_this
+  bool insertIntoSet( INDEX_TYPE const i, T const & val ) LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< T, INDEX_TYPE >::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
 
   /**
@@ -380,7 +380,7 @@ public:
    * @return The number of values inserted.
    */
   inline
-  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) restrict_this
+  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< T, INDEX_TYPE >::insertIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
   /**
@@ -391,7 +391,7 @@ public:
    * @return The number of values inserted.
    */
   inline
-  INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) restrict_this
+  INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   { return ArrayOfSetsView< T, INDEX_TYPE >::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
   void setName( std::string const & name )
@@ -428,7 +428,7 @@ public:
      * @return a pointer to the sets values.
      */
     inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
+    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;
       if( newNNZ > m_aos.capacityOfSet( m_i ) )

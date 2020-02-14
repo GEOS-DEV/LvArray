@@ -62,7 +62,7 @@ public:
   inline
   SparsityPattern( INDEX_TYPE const nrows=0,
                    INDEX_TYPE const ncols=0,
-                   INDEX_TYPE initialRowCapacity=0 ) restrict_this:
+                   INDEX_TYPE initialRowCapacity=0 ) LVARRAY_RESTRICT_THIS:
     SparsityPatternView< COL_TYPE, INDEX_TYPE >()
   {
     resize( nrows, ncols, initialRowCapacity );
@@ -74,7 +74,7 @@ public:
    * @param [in] src the SparsityPattern to copy.
    */
   inline
-  SparsityPattern( SparsityPattern const & src ) restrict_this:
+  SparsityPattern( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS:
     SparsityPatternView< COL_TYPE, INDEX_TYPE >()
   { *this = src; }
 
@@ -89,7 +89,7 @@ public:
    * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
-  ~SparsityPattern() restrict_this
+  ~SparsityPattern() LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::free(); }
 
   /**
@@ -97,7 +97,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView< COL_TYPE, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -105,7 +105,7 @@ public:
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const restrict_this
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -115,7 +115,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewC(); }
 
   /**
@@ -123,7 +123,7 @@ public:
    * @param [in] src the SparsityPattern to copy.
    */
   inline
-  SparsityPattern & operator=( SparsityPattern const & src ) restrict_this
+  SparsityPattern & operator=( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS
   {
     m_numCols = src.m_numCols;
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_numArrays,
@@ -146,11 +146,11 @@ public:
    * @param [in] space the memory space to move to.
    * @param [in] touch whether to touch the memory in the space or not.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::move( space, touch ); }
 
 
-  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space ); }
 
   /**
@@ -158,7 +158,7 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const nnz ) restrict_this
+  void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::reserveValues( nnz ); }
 
   /**
@@ -168,7 +168,7 @@ public:
    * @param [in] nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) restrict_this
+  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
   {
     if( nonZeroCapacity( row ) >= nnz ) return;
     setRowCapacity( row, nnz );
@@ -185,7 +185,7 @@ public:
    *       min(newCapacity, numColumns()).
    */
   inline
-  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) restrict_this
+  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity );
@@ -197,7 +197,7 @@ public:
    * @note This method doesn't free any memory.
    */
   inline
-  void compress() restrict_this
+  void compress() LVARRAY_RESTRICT_THIS
   { SparsityPatternView< COL_TYPE, INDEX_TYPE >::compress(); }
 
   /**
@@ -211,7 +211,7 @@ public:
    *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
    * TODO: Add tests.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) restrict_this
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
   {
     SparsityPatternView< COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity );
   }
@@ -223,7 +223,7 @@ public:
    * @return True iff the entry was previously empty.
    */
   inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) restrict_this
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
@@ -237,7 +237,7 @@ public:
    *       and then call insertNonZerosSorted, this will be substantially faster.
    */
   inline
-  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
+  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
@@ -248,7 +248,7 @@ public:
    * @return The number of columns actually inserted.
    */
   inline
-  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) restrict_this
+  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
   { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
@@ -270,7 +270,7 @@ private:
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
   inline
-  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ ) restrict_this
+  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ ) LVARRAY_RESTRICT_THIS
   { setRowCapacity( row, newNNZ * 2 ); }
 
   /**
@@ -299,7 +299,7 @@ public:
      * @return a pointer to the columns of the associated row.
      */
     inline
-    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
+    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;
       if( newNNZ > m_sp.nonZeroCapacity( m_row ) )

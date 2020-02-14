@@ -152,7 +152,7 @@ public:
   }
 
 private:
-  T * restrict m_data = nullptr;
+  T * LVARRAY_RESTRICT m_data = nullptr;
   std::ptrdiff_t m_capacity = 0;
 };
 

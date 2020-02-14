@@ -80,7 +80,7 @@ public:
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   operator typename std::enable_if< !std::is_const< U >::value,
                                     ArrayOfSetsView< T const, INDEX_TYPE const > const & >::type
-    () const restrict_this
+    () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -88,14 +88,14 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewC() const restrict_this
+  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewC() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief Method to convert to an immutable ArrayOfArraysView.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const restrict_this
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -118,7 +118,7 @@ public:
    * @param [in] i the set to get an iterator for.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const restrict_this
+  typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::getIterableArray( i ); }
 
   /**
@@ -126,7 +126,7 @@ public:
    * @param [in] i the set to querry.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const restrict_this
+  INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::sizeOfArray( i ); }
 
   /**
@@ -134,7 +134,7 @@ public:
    * @param [in] i the set to querry.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const restrict_this
+  INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::capacityOfArray( i ); }
 
   /**
@@ -142,7 +142,7 @@ public:
    * @param [in] i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const restrict_this
+  ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -151,10 +151,10 @@ public:
    * @param [in] j the index within the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const restrict_this
+  T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator()( i, j ); }
 
-  void consistencyCheck() const restrict_this
+  void consistencyCheck() const LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const numSets = size();
     for( INDEX_TYPE_NC i = 0 ; i < numSets ; ++i )
@@ -174,7 +174,7 @@ public:
    * @param [in] value the value to search for.
    */
   LVARRAY_HOST_DEVICE inline
-  bool contains( INDEX_TYPE const i, T const & value ) const restrict_this
+  bool contains( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -196,7 +196,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertIntoSet( INDEX_TYPE const i, T const & value ) const restrict_this
+  bool insertIntoSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   { return insertIntoSetImpl( i, value, CallBacks( *this, i ) ); }
 
   /**
@@ -214,7 +214,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
+  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   { return insertIntoSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
   /**
@@ -230,7 +230,7 @@ public:
    *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertSortedIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
+  INDEX_TYPE_NC insertSortedIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   { return insertSortedIntoSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
   /**
@@ -240,7 +240,7 @@ public:
    * @return True iff the value was removed (the set previously contained the value).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeFromSet( INDEX_TYPE const i, T const & value ) const restrict_this
+  bool removeFromSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   { return removeFromSetImpl( i, value, CallBacks( *this, i ) ); }
 
   /**
@@ -254,7 +254,7 @@ public:
    *       and then call removeSortedFromSet, this will be substantially faster.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
+  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   { return removeFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
 /**
@@ -265,7 +265,7 @@ public:
  * @return The number of values removed.
  */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeSortedFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const restrict_this
+  INDEX_TYPE_NC removeSortedFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   { return removeSortedFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
 protected:
@@ -282,7 +282,7 @@ protected:
    * @note This method is protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const restrict_this
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -295,7 +295,7 @@ protected:
    */
   template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const restrict_this
+  bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -321,7 +321,7 @@ protected:
   INDEX_TYPE_NC insertIntoSetImpl( INDEX_TYPE const i,
                                    T const * const valuesToInsert,
                                    INDEX_TYPE const n,
-                                   CALLBACKS && cbacks ) const restrict_this
+                                   CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     constexpr int LOCAL_SIZE = 16;
     T localValueBuffer[LOCAL_SIZE];
@@ -349,7 +349,7 @@ protected:
   INDEX_TYPE_NC insertSortedIntoSetImpl( INDEX_TYPE const i,
                                          T const * const valuesToInsert,
                                          INDEX_TYPE const n,
-                                         CALLBACKS && cbacks ) const restrict_this
+                                         CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
@@ -374,7 +374,7 @@ protected:
    */
   template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const restrict_this
+  bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -397,7 +397,7 @@ protected:
    */
   template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const restrict_this
+  INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
@@ -426,7 +426,7 @@ protected:
    */
   template< class CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const restrict_this
+  INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
@@ -474,7 +474,7 @@ public:
      * @return a pointer to the sets values.
      */
     LVARRAY_HOST_DEVICE inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
+    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd > m_aos.capacityOfSet( m_indexOfSet ),
