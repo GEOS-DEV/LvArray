@@ -112,9 +112,9 @@ public:
    * @param inputStrides pointer to the beginning of the strides for this slice
    */
   LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
-  ArraySlice( T * const restrict inputData,
-              INDEX_TYPE const * const restrict inputDimensions,
-              INDEX_TYPE const * const restrict inputStrides ) noexcept:
+  ArraySlice( T * const LVARRAY_RESTRICT inputData,
+              INDEX_TYPE const * const LVARRAY_RESTRICT inputDimensions,
+              INDEX_TYPE const * const LVARRAY_RESTRICT inputStrides ) noexcept:
     m_data( inputData ),
     m_dims( inputDimensions ),
     m_strides( inputStrides )
@@ -130,7 +130,7 @@ public:
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
-  toSliceConst() const restrict_this noexcept
+  toSliceConst() const LVARRAY_RESTRICT_THIS noexcept
   {
     return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides );
   }
@@ -142,7 +142,7 @@ public:
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   operator std::enable_if_t< !std::is_const< U >::value,
                              ArraySlice< T const, NDIM, USD, INDEX_TYPE > >
-    () const restrict_this noexcept
+    () const LVARRAY_RESTRICT_THIS noexcept
   {
     return toSliceConst();
   }
@@ -152,8 +152,8 @@ public:
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const restrict >
-    () const noexcept restrict_this
+  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
+    () const noexcept LVARRAY_RESTRICT_THIS
   { return m_data; }
 
   /**
@@ -164,7 +164,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, USD >::multiply( index,
@@ -180,7 +180,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
   std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept restrict_this
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return m_data[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];
@@ -270,13 +270,13 @@ public:
 
 protected:
   /// pointer to beginning of data for this array, or sub-array.
-  T * const restrict m_data;
+  T * const LVARRAY_RESTRICT m_data;
 
   /// pointer to array of length NDIM that contains the lengths of each array dimension
-  INDEX_TYPE const * const restrict m_dims;
+  INDEX_TYPE const * const LVARRAY_RESTRICT m_dims;
 
   /// pointer to array of length NDIM that contains the strides of each array dimension
-  INDEX_TYPE const * const restrict m_strides;
+  INDEX_TYPE const * const LVARRAY_RESTRICT m_strides;
 
 };
 

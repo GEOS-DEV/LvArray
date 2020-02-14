@@ -112,9 +112,9 @@ rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
 
 template<>
 void Array1DR2TensorMultiplicationNative< RAJA::PERM_IJK >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N )
 {
   KERNEL( a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
@@ -125,9 +125,9 @@ pointer( VALUE_TYPE const * const restrict a,
 
 template<>
 void Array1DR2TensorMultiplicationNative< RAJA::PERM_KJI >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N )
 {
   KERNEL( a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
@@ -174,9 +174,9 @@ rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_IJK,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N )
 {
   RAJA_KERNEL( a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
@@ -187,9 +187,9 @@ void pointerRajaHelper( RAJA::PERM_IJK,
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_KJI,
-                        VALUE_TYPE const * const restrict a,
-                        VALUE_TYPE const * const restrict b,
-                        VALUE_TYPE * const restrict c,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                        VALUE_TYPE * const LVARRAY_RESTRICT c,
                         INDEX_TYPE const N )
 {
   RAJA_KERNEL( a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
@@ -200,9 +200,9 @@ void pointerRajaHelper( RAJA::PERM_KJI,
 
 template< typename PERMUTATION, typename POLICY >
 void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-pointer( VALUE_TYPE const * const restrict a,
-         VALUE_TYPE const * const restrict b,
-         VALUE_TYPE * const restrict c,
+pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+         VALUE_TYPE const * const LVARRAY_RESTRICT b,
+         VALUE_TYPE * const LVARRAY_RESTRICT c,
          INDEX_TYPE const N )
 { return pointerRajaHelper< POLICY >( PERMUTATION {}, a, b, c, N ); }
 

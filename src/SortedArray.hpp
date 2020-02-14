@@ -107,7 +107,7 @@ public:
    * @brief Destructor, frees the values array.
    */
   inline
-  ~SortedArray() restrict_this
+  ~SortedArray() LVARRAY_RESTRICT_THIS
   {
     bufferManipulation::free( m_values, size() );
   }
@@ -117,7 +117,7 @@ public:
    * @param [in] src the SortedArray to copy.
    */
   inline
-  SortedArray & operator=( SortedArray const & src ) restrict_this
+  SortedArray & operator=( SortedArray const & src ) LVARRAY_RESTRICT_THIS
   {
     bufferManipulation::copyInto( m_values, size(), src.m_values, src.size() );
     m_size = src.size();
@@ -136,7 +136,7 @@ public:
    */
   template< typename U = T >
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  operator ViewType const & () const restrict_this
+  operator ViewType const & () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ViewType const & >( *this ); }
 
   /**
@@ -144,21 +144,21 @@ public:
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE inline
-  ViewType const & toView() const restrict_this
+  ViewType const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief Duplicate method to placate Wrapper's SFINAE.
    */
   LVARRAY_HOST_DEVICE inline
-  ViewType const & toViewConst() const restrict_this
+  ViewType const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief Remove all the values from the array.
    */
   inline
-  void clear() restrict_this
+  void clear() LVARRAY_RESTRICT_THIS
   {
     bufferManipulation::resize( m_values, size(), 0 );
     m_size = 0;
@@ -169,7 +169,7 @@ public:
    * @param [in] nVals the number of values to reserve space for.
    */
   inline
-  void reserve( INDEX_TYPE const nVals ) restrict_this
+  void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
   {
     bufferManipulation::reserve( m_values, size(), nVals );
   }
@@ -180,7 +180,7 @@ public:
    * @return True iff the value was actually inserted.
    */
   inline
-  bool insert( T const & value ) restrict_this
+  bool insert( T const & value ) LVARRAY_RESTRICT_THIS
   {
     bool const success = sortedArrayManipulation::insert( data(), size(), value, CallBacks( m_values, size() ) );
     m_size += success;
@@ -197,7 +197,7 @@ public:
    *       and then call insertSorted, this will be substantially faster.
    */
   inline
-  INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) restrict_this
+  INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const nInserted = sortedArrayManipulation::insert( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size += nInserted;
@@ -211,7 +211,7 @@ public:
    * @return The number of values actually inserted.
    */
   inline
-  INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) restrict_this
+  INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size += nInserted;
@@ -224,7 +224,7 @@ public:
    * @return True iff the value was actually removed.
    */
   inline
-  bool erase( T const & value ) restrict_this
+  bool erase( T const & value ) LVARRAY_RESTRICT_THIS
   {
     bool const success = sortedArrayManipulation::remove( data(), size(), value, CallBacks( m_values, size() ) );
     m_size -= success;
@@ -241,7 +241,7 @@ public:
    *       and then call eraseSorted, this will be substantially faster.
    */
   inline
-  INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) restrict_this
+  INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size -= nRemoved;
@@ -255,7 +255,7 @@ public:
    * @return The number of values actually removed.
    */
   inline
-  INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) restrict_this
+  INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size -= nRemoved;
@@ -272,7 +272,7 @@ public:
    * @param [in] space the space to move to.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
   { m_values.move( space, touch ); }
 
   friend std::ostream & operator<< ( std::ostream & stream, SortedArray const & array )
@@ -289,7 +289,7 @@ private:
    * could destroy the sorted nature of the array.
    */
   CONSTEXPRFUNC inline
-  T * data() const restrict_this
+  T * data() const LVARRAY_RESTRICT_THIS
   { return m_values.data(); }
 
   /**
@@ -317,7 +317,7 @@ public:
      * @return a pointer to the new array.
      */
     inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const restrict_this
+    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       bufferManipulation::dynamicReserve( m_cb, m_size, m_size + nToAdd );
       return m_cb.data();

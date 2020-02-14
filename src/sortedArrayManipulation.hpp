@@ -70,7 +70,7 @@ public:
    * @return a pointer to the array.
    */
   LVARRAY_HOST_DEVICE inline
-  T * incrementSize( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nToAdd ) ) restrict_this
+  T * incrementSize( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nToAdd ) ) LVARRAY_RESTRICT_THIS
   { return nullptr; }
 
   /**
@@ -78,7 +78,7 @@ public:
    * @param [in] pos the position the value was inserted at.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) restrict_this
+  void insert( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) LVARRAY_RESTRICT_THIS
   {}
 
   /**
@@ -89,7 +89,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   void set( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ),
-            std::ptrdiff_t const LVARRAY_UNUSED_ARG( valuePos ) ) restrict_this
+            std::ptrdiff_t const LVARRAY_UNUSED_ARG( valuePos ) ) LVARRAY_RESTRICT_THIS
   {}
 
   /**
@@ -105,7 +105,7 @@ public:
   void insert( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nLeftToInsert ),
                std::ptrdiff_t const LVARRAY_UNUSED_ARG( valuePos ),
                std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( prevPos ) ) restrict_this
+               std::ptrdiff_t const LVARRAY_UNUSED_ARG( prevPos ) ) LVARRAY_RESTRICT_THIS
   {}
 
   /**
@@ -113,7 +113,7 @@ public:
    * @param [in] pos the position of the entry that was removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) restrict_this
+  void remove( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) LVARRAY_RESTRICT_THIS
   {}
 
   /**
@@ -127,7 +127,7 @@ public:
   LVARRAY_HOST_DEVICE inline
   void remove( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nRemoved ),
                std::ptrdiff_t const LVARRAY_UNUSED_ARG( curPos ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( nextPos ) ) restrict_this
+               std::ptrdiff_t const LVARRAY_UNUSED_ARG( nextPos ) ) LVARRAY_RESTRICT_THIS
   {}
 };
 
@@ -143,7 +143,7 @@ struct less
    * @brief Return true iff lhs < rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const restrict_this
+  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
   { return lhs < rhs; }
 };
 
@@ -159,7 +159,7 @@ struct greater
    * @brief Return true iff lhs > rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const restrict_this
+  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
   { return lhs > rhs; }
 };
 
@@ -235,7 +235,7 @@ LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, Rand
 DISABLE_HD_WARNING
 template< typename T, int N >
 LVARRAY_HOST_DEVICE inline
-T * createTemporaryBuffer( T const * const restrict values,
+T * createTemporaryBuffer( T const * const LVARRAY_RESTRICT values,
                            std::ptrdiff_t const nVals,
                            T (& localBuffer)[N] )
 {
@@ -271,7 +271,7 @@ T * createTemporaryBuffer( T const * const restrict values,
 DISABLE_HD_WARNING
 template< typename T, int N >
 LVARRAY_HOST_DEVICE inline
-void freeTemporaryBuffer( T * const restrict buffer,
+void freeTemporaryBuffer( T * const LVARRAY_RESTRICT buffer,
                           std::ptrdiff_t const nVals,
                           T const (&localBuffer)[N] )
 {
@@ -300,7 +300,7 @@ void freeTemporaryBuffer( T * const restrict buffer,
 DISABLE_HD_WARNING
 template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
-bool isSorted( T const * const restrict ptr,
+bool isSorted( T const * const LVARRAY_RESTRICT ptr,
                std::ptrdiff_t const size,
                Compare comp=Compare() )
 {
@@ -345,7 +345,7 @@ void dualSort( RandomAccessIteratorA valueFirst,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-bool allUnique( T const * const restrict ptr, std::ptrdiff_t const size )
+bool allUnique( T const * const LVARRAY_RESTRICT ptr, std::ptrdiff_t const size )
 {
   for( std::ptrdiff_t i = 0 ; i < size - 1 ; ++i )
   {
@@ -369,7 +369,7 @@ bool allUnique( T const * const restrict ptr, std::ptrdiff_t const size )
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeDuplicates( T * const restrict ptr, std::ptrdiff_t const size )
+std::ptrdiff_t removeDuplicates( T * const LVARRAY_RESTRICT ptr, std::ptrdiff_t const size )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
@@ -413,7 +413,7 @@ std::ptrdiff_t removeDuplicates( T * const restrict ptr, std::ptrdiff_t const si
 DISABLE_HD_WARNING
 template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t find( T const * const restrict ptr,
+std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
                      std::ptrdiff_t const size,
                      T const & value,
                      Compare comp=Compare() )
@@ -454,7 +454,7 @@ std::ptrdiff_t find( T const * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
-bool contains( T const * const restrict ptr,
+bool contains( T const * const LVARRAY_RESTRICT ptr,
                std::ptrdiff_t const size,
                T const & value,
                Compare comp=Compare() )
@@ -478,7 +478,7 @@ bool contains( T const * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-bool remove( T * const restrict ptr,
+bool remove( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T const & value,
              CALLBACKS && callBacks )
@@ -520,9 +520,9 @@ bool remove( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeSorted( T * const restrict ptr,
+std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
                              std::ptrdiff_t const size,
-                             T const * const restrict values,
+                             T const * const LVARRAY_RESTRICT values,
                              std::ptrdiff_t const nVals,
                              CALLBACKS && callBacks )
 {
@@ -627,7 +627,7 @@ std::ptrdiff_t removeSorted( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t remove( T * const restrict ptr,
+std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
                        std::ptrdiff_t const size,
                        T const * const values,
                        std::ptrdiff_t const nVals,
@@ -665,7 +665,7 @@ std::ptrdiff_t remove( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-bool insert( T const * const restrict ptr,
+bool insert( T const * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T const & value,
              CALLBACKS && callBacks )
@@ -724,9 +724,9 @@ bool insert( T const * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insertSorted( T const * const restrict ptr,
+std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
                              std::ptrdiff_t const size,
-                             T const * const restrict values,
+                             T const * const LVARRAY_RESTRICT values,
                              std::ptrdiff_t const nVals,
                              CALLBACKS && callBacks )
 {
@@ -896,9 +896,9 @@ std::ptrdiff_t insertSorted( T const * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insert( T const * const restrict ptr,
+std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
                        std::ptrdiff_t const size,
-                       T const * const restrict values,
+                       T const * const LVARRAY_RESTRICT values,
                        std::ptrdiff_t const nVals,
                        CALLBACKS && callBacks )
 {

@@ -116,9 +116,9 @@ template< typename PERMUTATION >
 void pointerNative( benchmark::State & state )
 {
   NATIVE_INIT;
-  VALUE_TYPE const * const restrict aView = a.data();
-  VALUE_TYPE const * const restrict bView = b.data();
-  VALUE_TYPE * const restrict cView = c.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT aView = a.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT bView = b.data();
+  VALUE_TYPE * const LVARRAY_RESTRICT cView = c.data();
   for( auto _ : state )
   {
     OuterProductNative< PERMUTATION >::pointer( aView, bView, cView, N, M );
@@ -180,9 +180,9 @@ template< typename PERMUTATION_POLICY_PAIR >
 void pointerRAJA( benchmark::State & state )
 {
   RAJA_INIT;
-  VALUE_TYPE const * const restrict aView = a.data();
-  VALUE_TYPE const * const restrict bView = b.data();
-  VALUE_TYPE * const restrict cView = c.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT aView = a.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT bView = b.data();
+  VALUE_TYPE * const LVARRAY_RESTRICT cView = c.data();
   for( auto _ : state )
   {
     OuterProductRAJA< PERMUTATION, POLICY >::pointer( aView, bView, cView, N, M );

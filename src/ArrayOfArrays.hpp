@@ -59,7 +59,7 @@ public:
    * @note This needs is duplicated here for the intel compiler on cori.
    */
   inline
-  INDEX_TYPE size() const restrict_this
+  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
   { return m_numArrays; }
 
   /**
@@ -68,7 +68,7 @@ public:
    * @param [in] defaultArrayCapacity the initial capacity of each array.
    */
   inline
-  ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) restrict_this:
+  ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) LVARRAY_RESTRICT_THIS:
     ArrayOfArraysView< T, INDEX_TYPE >()
   {
     resize( numArrays, defaultArrayCapacity );
@@ -102,7 +102,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T, INDEX_TYPE const > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >(*this); }
 
   /**
@@ -110,7 +110,7 @@ public:
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   CONSTEXPRFUNC inline
-  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const restrict_this
+  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -120,7 +120,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T, INDEX_TYPE const, true > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewC(); }
 
   /**
@@ -130,7 +130,7 @@ public:
    */
   CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T const, INDEX_TYPE const, true > const &
-  () const restrict_this
+  () const LVARRAY_RESTRICT_THIS
   { return toViewCC(); }
 
   /**
@@ -138,7 +138,7 @@ public:
    * @param [in] src the ArrayOfArrays to copy.
    */
   inline
-  ArrayOfArrays & operator=( ArrayOfArrays const & src ) restrict_this
+  ArrayOfArrays & operator=( ArrayOfArrays const & src ) LVARRAY_RESTRICT_THIS
   {
     ArrayOfArraysView< T, INDEX_TYPE >::setEqualTo( src.m_numArrays,
                                                     src.m_offsets[ src.m_numArrays ],
@@ -180,14 +180,14 @@ public:
    * @param [in] space the memory space to move to.
    * @param [in] touch whether to touch the memory in the space or not.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) restrict_this
+  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
   { ArrayOfArraysView< T, INDEX_TYPE >::move( space, touch ); }
 
   /**
    * @brief Touch in the given memory space.
    * @param [in] space the memory space to touch.
    */
-  void registerTouch( chai::ExecutionSpace const space ) restrict_this
+  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
   { ArrayOfArraysView< T, INDEX_TYPE >::registerTouch( space ); }
 
   /**
@@ -224,7 +224,7 @@ public:
    * @brief Append an array.
    * @param [in] n the size of the array.
    */
-  void appendArray( INDEX_TYPE const n ) restrict_this
+  void appendArray( INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
 
@@ -241,7 +241,7 @@ public:
    * @param [in] values the values of the array to append.
    * @param [in] n the number of values.
    */
-  void appendArray( T const * const values, INDEX_TYPE const n ) restrict_this
+  void appendArray( T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
@@ -299,7 +299,7 @@ public:
    * @param [in] i the array to append to.
    * @param [in] value the value to append.
    */
-  void appendToArray( INDEX_TYPE const i, T const & value ) restrict_this
+  void appendToArray( INDEX_TYPE const i, T const & value ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, 1 );
     ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, value );
@@ -310,7 +310,7 @@ public:
    * @param [in] i the array to append to.
    * @param [in/out] value the value to append.
    */
-  void appendToArray( INDEX_TYPE const i, T && value ) restrict_this
+  void appendToArray( INDEX_TYPE const i, T && value ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, 1 );
     ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, std::move( value ) );
@@ -322,7 +322,7 @@ public:
    * @param [in] values the values to append.
    * @param [in] n the number of values to append.
    */
-  void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) restrict_this
+  void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, n );
     ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, values, n );

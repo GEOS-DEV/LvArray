@@ -54,7 +54,7 @@ VALUE_TYPE ReduceNative::rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > co
                                    INDEX_TYPE const N )
 { REDUCE_KERNEL( a( i ) ); }
 
-VALUE_TYPE ReduceNative::pointer( VALUE_TYPE const * const restrict a,
+VALUE_TYPE ReduceNative::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
                                   INDEX_TYPE const N )
 { REDUCE_KERNEL( a[ i ] ); }
 
@@ -74,7 +74,7 @@ VALUE_TYPE ReduceRAJA< POLICY >::rajaView( RajaView< VALUE_TYPE const, RAJA::PER
 { REDUCE_KERNEL_RAJA( a( i ) ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::pointer( VALUE_TYPE const * const restrict a,
+VALUE_TYPE ReduceRAJA< POLICY >::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
                                           INDEX_TYPE const N )
 { REDUCE_KERNEL_RAJA( a[ i ] ); }
 

@@ -42,8 +42,8 @@ struct InnerProductNative
                               RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                               INDEX_TYPE const N );
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const restrict a,
-                             VALUE_TYPE const * const restrict b,
+  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                             VALUE_TYPE const * const LVARRAY_RESTRICT b,
                              INDEX_TYPE const N );
 };
 
@@ -62,8 +62,8 @@ struct InnerProductRAJA
                               RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                               INDEX_TYPE const N );
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const restrict a,
-                             VALUE_TYPE const * const restrict b,
+  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                             VALUE_TYPE const * const LVARRAY_RESTRICT b,
                              INDEX_TYPE const N );
 };
 

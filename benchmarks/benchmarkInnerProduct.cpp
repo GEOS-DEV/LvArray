@@ -104,8 +104,8 @@ void rajaViewNative( benchmark::State & state )
 void pointerNative( benchmark::State & state )
 {
   NATIVE_INIT;
-  VALUE_TYPE const * const restrict aPtr = a.data();
-  VALUE_TYPE const * const restrict bPtr = b.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT aPtr = a.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT bPtr = b.data();
   for( auto _ : state )
   {
     sum += InnerProductNative::pointer( aPtr, bPtr, N );
@@ -172,8 +172,8 @@ template< typename POLICY >
 void pointerRAJA( benchmark::State & state )
 {
   NATIVE_INIT;
-  VALUE_TYPE const * const restrict aPtr = a.data();
-  VALUE_TYPE const * const restrict bPtr = b.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT aPtr = a.data();
+  VALUE_TYPE const * const LVARRAY_RESTRICT bPtr = b.data();
   for( auto _ : state )
   {
     sum += InnerProductRAJA< POLICY >::pointer( aPtr, bPtr, N );

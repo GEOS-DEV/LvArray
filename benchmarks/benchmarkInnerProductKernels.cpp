@@ -56,8 +56,8 @@ VALUE_TYPE InnerProductNative::rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_
                                          INDEX_TYPE const N )
 { INNER_PRODUCT_KERNEL( a( i ), b( i ) ); }
 
-VALUE_TYPE InnerProductNative::pointer( VALUE_TYPE const * const restrict a,
-                                        VALUE_TYPE const * const restrict b,
+VALUE_TYPE InnerProductNative::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                        VALUE_TYPE const * const LVARRAY_RESTRICT b,
                                         INDEX_TYPE const N )
 { INNER_PRODUCT_KERNEL( a[ i ], b[ i ] ); }
 
@@ -80,8 +80,8 @@ VALUE_TYPE InnerProductRAJA< POLICY >::rajaView( RajaView< VALUE_TYPE const, RAJ
 { INNER_PRODUCT_KERNEL_RAJA( a( i ), b( i ) ); }
 
 template< class POLICY >
-VALUE_TYPE InnerProductRAJA< POLICY >::pointer( VALUE_TYPE const * const restrict a,
-                                                VALUE_TYPE const * const restrict b,
+VALUE_TYPE InnerProductRAJA< POLICY >::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                                VALUE_TYPE const * const LVARRAY_RESTRICT b,
                                                 INDEX_TYPE const N )
 { INNER_PRODUCT_KERNEL_RAJA( a[ i ], b[ i ] ); }
 

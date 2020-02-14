@@ -52,9 +52,9 @@ struct MatrixMatrixNative
                         INDEX_TYPE const M,
                         INDEX_TYPE const P );
 
-  static void pointer( VALUE_TYPE const * const restrict a,
-                       VALUE_TYPE const * const restrict b,
-                       VALUE_TYPE * const restrict c,
+  static void pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                       VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                       VALUE_TYPE * const LVARRAY_RESTRICT c,
                        INDEX_TYPE const N,
                        INDEX_TYPE const M,
                        INDEX_TYPE const P );
@@ -84,9 +84,9 @@ struct MatrixMatrixRAJA
                         INDEX_TYPE const M,
                         INDEX_TYPE const P );
 
-  static void pointer( VALUE_TYPE const * const restrict a,
-                       VALUE_TYPE const * const restrict b,
-                       VALUE_TYPE * const restrict c,
+  static void pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                       VALUE_TYPE const * const LVARRAY_RESTRICT b,
+                       VALUE_TYPE * const LVARRAY_RESTRICT c,
                        INDEX_TYPE const N,
                        INDEX_TYPE const M,
                        INDEX_TYPE const P );

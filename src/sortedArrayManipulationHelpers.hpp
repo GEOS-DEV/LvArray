@@ -144,7 +144,7 @@ struct DualIteratorAccessor
    * @param [in/out] src the DualIteratorAccessor to move from.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=( DualIteratorAccessor && src ) restrict_this
+  LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=( DualIteratorAccessor && src ) LVARRAY_RESTRICT_THIS
   {
     m_a = std::move( src.m_a );
     m_b = std::move( src.m_b );
@@ -156,7 +156,7 @@ struct DualIteratorAccessor
    * @param [in/out] src the Temporary to move from.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=( Temporary && src ) restrict_this
+  LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=( Temporary && src ) LVARRAY_RESTRICT_THIS
   {
     m_a = std::move( src.m_a );
     m_b = std::move( src.m_b );
@@ -194,7 +194,7 @@ struct DualIteratorComparator
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( DualIteratorAccessor< A, B > const & lhs,
-                                              DualIteratorAccessor< A, B > const & rhs ) const restrict_this
+                                              DualIteratorAccessor< A, B > const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_compare( lhs.m_a, rhs.m_a ); }
 
   /**
@@ -204,7 +204,7 @@ struct DualIteratorComparator
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( typename DualIteratorAccessor< A, B >::Temporary const & lhs,
-                                              DualIteratorAccessor< A, B > const & rhs ) const restrict_this
+                                              DualIteratorAccessor< A, B > const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_compare( lhs.m_a, rhs.m_a ); }
 
   Compare m_compare;
@@ -273,7 +273,7 @@ public:
    * @param [in] offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator operator+( std::ptrdiff_t const offset ) const restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator operator+( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
   { return DualIterator( m_itA + offset, m_itB + offset ); }
 
   /**
@@ -281,7 +281,7 @@ public:
    * @param [in] offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator+=( std::ptrdiff_t const offset ) restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator & operator+=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
   {
     m_itA += offset;
     m_itB += offset;
@@ -292,7 +292,7 @@ public:
    * @brief Increment the underlying iterators by 1 and return a reference to *this.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator++() restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator & operator++() LVARRAY_RESTRICT_THIS
   {
     m_itA++;
     m_itB++;
@@ -304,7 +304,7 @@ public:
    * @param [in] rhs the DualIterator to find the distance between.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const restrict_this
+  LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
   {
     std::ptrdiff_t const distance = m_itA - rhs.m_itA;
     LVARRAY_ASSERT( distance == (m_itB - rhs.m_itB));
@@ -316,7 +316,7 @@ public:
    * @param [in] offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator operator-( std::ptrdiff_t const offset ) const restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator operator-( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
   { return *this + (-offset); }
 
   /**
@@ -324,14 +324,14 @@ public:
    * @param [in] offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator-=( std::ptrdiff_t const offset ) restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator & operator-=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
   { return *this += (-offset); }
 
   /**
    * @brief Decrement the underlying iterators by 1 and return a reference to *this.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIterator & operator--() restrict_this
+  LVARRAY_HOST_DEVICE inline DualIterator & operator--() LVARRAY_RESTRICT_THIS
   {
     m_itA--;
     m_itB--;
@@ -343,7 +343,7 @@ public:
    * @param [in] rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator!=( DualIterator const & rhs ) const restrict_this
+  LVARRAY_HOST_DEVICE inline bool operator!=( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_itA != rhs.m_itA; }
 
   /**
@@ -351,14 +351,14 @@ public:
    * @param [in] rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline bool operator<( DualIterator const & rhs ) const restrict_this
+  LVARRAY_HOST_DEVICE inline bool operator<( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_itA < rhs.m_itA; }
 
   /**
    * @brief Return a DualIteratorAccessor to the two values at which m_itA and m_itB point at.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline DualIteratorAccessor< A, B > operator*() const restrict_this
+  LVARRAY_HOST_DEVICE inline DualIteratorAccessor< A, B > operator*() const LVARRAY_RESTRICT_THIS
   { return DualIteratorAccessor< A, B >( *m_itA, *m_itB ); }
 
   /**
@@ -368,7 +368,7 @@ public:
    */
   DISABLE_HD_WARNING
   template< class Compare >
-  LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare comp ) const restrict_this
+  LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare comp ) const LVARRAY_RESTRICT_THIS
   { return DualIteratorComparator< A, B, Compare >( comp ); }
 };
 

@@ -80,7 +80,7 @@ isPositive( INDEX_TYPE const )
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void destroy( T * const restrict ptr,
+void destroy( T * const LVARRAY_RESTRICT ptr,
               std::ptrdiff_t const size )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
@@ -101,9 +101,9 @@ void destroy( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedCopy( T * const restrict dst,
+void uninitializedCopy( T * const LVARRAY_RESTRICT dst,
                         std::ptrdiff_t const size,
-                        T const * const restrict src )
+                        T const * const LVARRAY_RESTRICT src )
 {
   LVARRAY_ASSERT( dst != nullptr || size == 0 );
   LVARRAY_ASSERT( isPositive( size ) );
@@ -125,9 +125,9 @@ void uninitializedCopy( T * const restrict dst,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedMove( T * const restrict dst,
+void uninitializedMove( T * const LVARRAY_RESTRICT dst,
                         std::ptrdiff_t const size,
-                        T * const restrict src )
+                        T * const LVARRAY_RESTRICT src )
 {
   LVARRAY_ASSERT( dst != nullptr || size == 0 );
   LVARRAY_ASSERT( isPositive( size ) );
@@ -149,7 +149,7 @@ void uninitializedMove( T * const restrict dst,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedShiftDown( T * const restrict ptr,
+void uninitializedShiftDown( T * const LVARRAY_RESTRICT ptr,
                              std::ptrdiff_t const size,
                              std::ptrdiff_t const amount )
 {
@@ -177,7 +177,7 @@ void uninitializedShiftDown( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedShiftUp( T * const restrict ptr,
+void uninitializedShiftUp( T * const LVARRAY_RESTRICT ptr,
                            std::ptrdiff_t const size,
                            std::ptrdiff_t const amount )
 {
@@ -207,7 +207,7 @@ void uninitializedShiftUp( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T, typename ... ARGS >
 inline
-void resize( T * const restrict ptr,
+void resize( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const newSize,
              ARGS && ... args )
@@ -238,7 +238,7 @@ void resize( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void shiftUp( T * const restrict ptr,
+void shiftUp( T * const LVARRAY_RESTRICT ptr,
               std::ptrdiff_t const size,
               std::ptrdiff_t const index,
               std::ptrdiff_t const n )
@@ -276,7 +276,7 @@ void shiftUp( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void emplace( T * const restrict ptr,
+void emplace( T * const LVARRAY_RESTRICT ptr,
               std::ptrdiff_t const size,
               std::ptrdiff_t const index,
               std::ptrdiff_t const n=1,
@@ -305,7 +305,7 @@ void emplace( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void shiftDown( T * const restrict ptr,
+void shiftDown( T * const LVARRAY_RESTRICT ptr,
                 std::ptrdiff_t const size,
                 std::ptrdiff_t const index,
                 std::ptrdiff_t const n )
@@ -338,7 +338,7 @@ void shiftDown( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void erase( T * const restrict ptr,
+void erase( T * const LVARRAY_RESTRICT ptr,
             std::ptrdiff_t const size,
             std::ptrdiff_t const index,
             std::ptrdiff_t const n=1 )
@@ -366,7 +366,7 @@ void erase( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void append( T * const restrict ptr,
+void append( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T const & value )
 {
@@ -385,7 +385,7 @@ void append( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void append( T * const restrict ptr,
+void append( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T && value )
 {
@@ -405,9 +405,9 @@ void append( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void append( T * const restrict ptr,
+void append( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
-             T const * const restrict values,
+             T const * const LVARRAY_RESTRICT values,
              std::ptrdiff_t const n )
 {
   LVARRAY_ASSERT( ptr != nullptr || (size == 0 && n == 0) );
@@ -432,7 +432,7 @@ void append( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void insert( T * const restrict ptr,
+void insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const index,
              T const & value )
@@ -457,7 +457,7 @@ void insert( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void insert( T * const restrict ptr,
+void insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const index,
              T && value )
@@ -482,10 +482,10 @@ void insert( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void insert( T * const restrict ptr,
+void insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const index,
-             T const * const restrict values,
+             T const * const LVARRAY_RESTRICT values,
              std::ptrdiff_t const n )
 {
   LVARRAY_ASSERT( ptr != nullptr );
@@ -509,7 +509,7 @@ void insert( T * const restrict ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-void popBack( T * const restrict ptr,
+void popBack( T * const LVARRAY_RESTRICT ptr,
               std::ptrdiff_t const size )
 {
   LVARRAY_ASSERT( ptr != nullptr );
