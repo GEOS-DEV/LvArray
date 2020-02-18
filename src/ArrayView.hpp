@@ -437,7 +437,7 @@ public:
    * for m_singleParameterResizeIndex;
    */
   template< typename U=T >
-  typename std::enable_if< !std::is_const<U>::value, void >::type
+  typename std::enable_if< !std::is_const< U >::value, void >::type
   copy( INDEX_TYPE const destIndex, ViewTypeConst const & source )
   {
     INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
