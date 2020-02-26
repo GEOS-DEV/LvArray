@@ -503,6 +503,22 @@ bool remove( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
+ * @brief Remove the given value from the array if it exists.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] value the value to remove.
+ * @return True iff the value was removed.
+ */
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+bool remove( T * const LVARRAY_RESTRICT ptr,
+             std::ptrdiff_t const size,
+             T const & value )
+{ return remove( ptr, size, value, CallBacks< T > {} ); }
+
+/**
+ * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
@@ -611,6 +627,24 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
+ * @brief Remove the given values from the array if they exist.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to remove, must be sorted under less<T>.
+ * @param [in] nVals the number of values to remove.
+ * @return The number of values removed.
+ */
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
+                             std::ptrdiff_t const size,
+                             T const * const LVARRAY_RESTRICT values,
+                             std::ptrdiff_t const nVals )
+{ return removeSorted( ptr, size, values, nVals, CallBacks< T > {} ); }
+
+/**
+ * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
@@ -648,6 +682,24 @@ std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
   freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
 }
+
+/**
+ * @tparam T the type of values in the array.
+ * @brief Remove the given values from the array if they exist.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to remove.
+ * @param [in] nVals the number of values to remove.
+ * @return The number of values removed.
+ */
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
+                       std::ptrdiff_t const size,
+                       T const * const values,
+                       std::ptrdiff_t const nVals )
+{ return remove( ptr, size, values, nVals, CallBacks< T > {} ); }
 
 /**
  * @tparam T the type of values in the array.
@@ -701,6 +753,22 @@ bool insert( T const * const LVARRAY_RESTRICT ptr,
   callBacks.insert( insertPos );
   return true;
 }
+
+/**
+ * @tparam T the type of values in the array.
+ * @brief Insert the given value into the array if it doesn't already exist.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] value the value to insert.
+ * @return True iff the value was inserted.
+ */
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+bool insert( T const * const LVARRAY_RESTRICT ptr,
+             std::ptrdiff_t const size,
+             T const & value )
+{ return insert( ptr, size, value, CallBacks< T > {} ); }
 
 /**
  * @tparam T the type of values in the array.
@@ -876,6 +944,24 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
+ * @brief Insert the given values into the array if they don't already exist.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to insert, must be sorted under less<T>.
+ * @param [in] nVals the number of values to insert.
+ * @return The number of values inserted.
+ */
+DISABLE_HD_WARNING
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
+                             std::ptrdiff_t const size,
+                             T const * const LVARRAY_RESTRICT values,
+                             std::ptrdiff_t const nVals )
+{ return insertSorted( ptr, size, values, nVals, CallBacks< T > {} ); }
+
+/**
+ * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
@@ -917,6 +1003,24 @@ std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
   freeTemporaryBuffer( buffer, nVals, localBuffer );
   return nInserted;
 }
+
+/**
+ * @tparam T the type of values in the array.
+ * @brief Insert the given values into the array if they don't already exist.
+ * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in] size the size of the array.
+ * @param [in] values the values to insert.
+ * @param [in] nVals the number of values to insert.
+ * @return The number of values inserted.
+ */
+DISABLE_HD_WARNING
+template< typename T, typename CALLBACKS >
+LVARRAY_HOST_DEVICE inline
+std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
+                       std::ptrdiff_t const size,
+                       T const * const LVARRAY_RESTRICT values,
+                       std::ptrdiff_t const nVals )
+{ return insert( ptr, size, values, nVals, CallBacks< T > {} ); }
 
 } // namespace sortedArrayManipulation
 } // namespace LvArray
