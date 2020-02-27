@@ -340,13 +340,15 @@ public:
 
     /**
      * @brief Callback signaling that the size of the row has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the increase in the size.
      * @return a pointer to the rows columns.
      * @note This method doesn't actually change the size, but it does potentially
      *       do an allocation.
      */
     inline
-    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd )
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG(curPtr),
+                              INDEX_TYPE const nToAdd )
     {
       if( m_rowNNZ + nToAdd > m_rowCapacity )
       {

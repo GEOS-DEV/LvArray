@@ -66,12 +66,14 @@ public:
 
   /**
    * @brief Callback signaling that the size of the array has increased.
+   * @param [in] curPtr the current pointer to the array.
    * @param [in] nToAdd the increase in the size of the array.
    * @return a pointer to the array.
    */
   LVARRAY_HOST_DEVICE inline
-  T * incrementSize( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nToAdd ) ) LVARRAY_RESTRICT_THIS
-  { return nullptr; }
+  T * incrementSize( T * const curPtr,
+                     std::ptrdiff_t const LVARRAY_UNUSED_ARG( nToAdd ) ) LVARRAY_RESTRICT_THIS
+  { return curPtr; }
 
   /**
    * @brief Callback signaling that a value was inserted at the given position.
@@ -470,9 +472,7 @@ bool contains( T const * const LVARRAY_RESTRICT ptr,
  * @param [in] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to remove.
- * @param [in/out] callBacks class which must define at least a method remove(std::ptrdiff_t).
- *                 If the value is found it is removed then this method is called with the index the value
- *                 was found at.
+ * @param [in/out] callBacks class which must define a method equivalent to CallBacks::remove(std::ptrdiff_t).
  * @return True iff the value was removed.
  */
 DISABLE_HD_WARNING
@@ -525,12 +525,8 @@ bool remove( T * const LVARRAY_RESTRICT ptr,
  * @param [in] size the size of the array.
  * @param [in] values the values to remove, must be sorted under less<T>.
  * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define at least a method
- *                 remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
- *                 If a value is found it is removed then this method is called with the
- *                 number of values removed so far, the position of the last value removed
- *                 and the position of the next value to remove or size if there are no more
- *                 values to remove.
+ * @param [in/out] callBacks class which must define methods equivalent to 
+ *                 CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
@@ -651,11 +647,8 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
  * @param [in] size the size of the array.
  * @param [in] values the values to remove.
  * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define at least a method
- *                 remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t). If a value is found it is removed then
- *                 this method is called with the number of values removed so far, the position of the last
- *                 value removed and the position of the next value to remove or size if there are no more
- *                 values to remove.
+ * @param [in/out] callBacks class which must define a method similar to
+ *                 CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
@@ -705,19 +698,17 @@ std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given value into the array if it doesn't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
+ * @param [in/out] ptr pointer to the array, must be sorted under less<T>.
  * @param [in] size the size of the array.
  * @param [in] value the value to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t)
- *                 and insert(std::ptrdiff_t). incrementSize is called with the number of values to insert
- *                 and returns a new pointer to the array. If an insert has occurred insert is called with
- *                 the position in the array at which the insert took place.
+ * @param [in/out] callBacks class which must define methods similar to
+ *                 CallBacks::incrementSize(std::ptrdiff_t) and CallBacks::insert(std::ptrdiff_t).
  * @return True iff the value was inserted.
  */
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-bool insert( T const * const LVARRAY_RESTRICT ptr,
+bool insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T const & value,
              CALLBACKS && callBacks )
@@ -743,12 +734,12 @@ bool insert( T const * const LVARRAY_RESTRICT ptr,
   // If it's in the array we call the incrementSize callback and return false.
   if( insertPos != size && ptr[insertPos] == value )
   {
-    callBacks.incrementSize( 0 );
+    callBacks.incrementSize( ptr, 0 );
     return false;
   }
 
   // Otherwise call the incrementSize callback, get the new pointer, insert and call the insert callback.
-  T * const newPtr = callBacks.incrementSize( 1 );
+  T * const newPtr = callBacks.incrementSize( ptr, 1 );
   arrayManipulation::insert( newPtr, size, insertPos, value );
   callBacks.insert( insertPos );
   return true;
@@ -778,21 +769,15 @@ bool insert( T const * const LVARRAY_RESTRICT ptr,
  * @param [in] size the size of the array.
  * @param [in] values the values to insert, must be sorted under less<T>.
  * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t),
- *                 set(std::ptrdiff_t, std::ptrdiff_t) and insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t,
- * std::ptrdiff_t).
- *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
- *                 After an insert has occurred insert is called with the number of values left to insert, the
- *                 index of the value inserted, the index at which it was inserted and the index at
- *                 which the the previous value was inserted or size if it is the first value inserted.
- *                 set is called when the array is empty and it takes a position in the array and the position of the
- *                 value that will occupy that position.
+ * @param [in/out] callBacks class which must define methods similar to 
+ *                 CallBacks::incrementSize(std::ptrdiff_t), CallBacks::set(std::ptrdiff_t, std::ptrdiff_t) 
+ *                 and CallBacks::insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, * std::ptrdiff_t).
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
+std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
                              std::ptrdiff_t const size,
                              T const * const LVARRAY_RESTRICT values,
                              std::ptrdiff_t const nVals,
@@ -807,7 +792,7 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
   // If there are no values to insert.
   if( nVals == 0 )
   {
-    callBacks.incrementSize( 0 );
+    callBacks.incrementSize( ptr, 0 );
     return 0;
   }
 
@@ -825,7 +810,7 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
     }
 
     // Call callBack with the number to insert and get a new pointer back.
-    T * const newPtr = callBacks.incrementSize( nToInsert );
+    T * const newPtr = callBacks.incrementSize( ptr, nToInsert );
 
     // Insert the first value.
     new ( newPtr ) T( values[0] );
@@ -880,7 +865,7 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
   }
 
   // Call callBack with the number to insert and get a new pointer back.
-  T * const newPtr = callBacks.incrementSize( nToInsert );
+  T * const newPtr = callBacks.incrementSize( ptr, nToInsert );
 
   // If there are no values to insert we can return.
   if( nToInsert == 0 )
@@ -954,7 +939,7 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
+std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
                              std::ptrdiff_t const size,
                              T const * const LVARRAY_RESTRICT values,
                              std::ptrdiff_t const nVals )
@@ -982,7 +967,7 @@ std::ptrdiff_t insertSorted( T const * const LVARRAY_RESTRICT ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
+std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
                        std::ptrdiff_t const size,
                        T const * const LVARRAY_RESTRICT values,
                        std::ptrdiff_t const nVals,
@@ -1016,7 +1001,7 @@ std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
 DISABLE_HD_WARNING
 template< typename T, typename CALLBACKS >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insert( T const * const LVARRAY_RESTRICT ptr,
+std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
                        std::ptrdiff_t const size,
                        T const * const LVARRAY_RESTRICT values,
                        std::ptrdiff_t const nVals )

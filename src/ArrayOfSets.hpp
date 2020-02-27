@@ -422,13 +422,15 @@ public:
 
     /**
      * @brief Callback signaling that the size of the set has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks if the new size
      *       exceeds the capacity of the set and if so reserves more space.
      * @return a pointer to the sets values.
      */
     inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const LVARRAY_UNUSED_ARG(curPtr),
+                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;
       if( newNNZ > m_aos.capacityOfSet( m_i ) )
