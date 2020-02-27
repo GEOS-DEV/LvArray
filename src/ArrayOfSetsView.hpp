@@ -300,7 +300,7 @@ protected:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     INDEX_TYPE const setSize = sizeOfSet( i );
-    T const * const setValues = (*this)[i];
+    T * const setValues = getSetValues( i );
 
     bool const success = sortedArrayManipulation::insert( setValues, setSize, value, std::move( cbacks ) );
     m_sizes[i] += success;
@@ -357,7 +357,7 @@ protected:
     LVARRAY_ASSERT( sortedArrayManipulation::isSorted( valuesToInsert, n ));
 
     INDEX_TYPE const setSize = sizeOfSet( i );
-    T const * const setValues = (*this)[i];
+    T * const setValues = getSetValues( i );
 
     INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( setValues, setSize, valuesToInsert, n, std::move( cbacks ) );
     m_sizes[i] += nInserted;
@@ -469,13 +469,15 @@ public:
 
     /**
      * @brief Callback signaling that the size of the set has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
      *       size doesn't exceed the capacity since the ArrayOfSetsView can't do allocation.
      * @return a pointer to the sets values.
      */
     LVARRAY_HOST_DEVICE inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
+                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd > m_aos.capacityOfSet( m_indexOfSet ),

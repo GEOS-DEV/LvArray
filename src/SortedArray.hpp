@@ -312,12 +312,14 @@ public:
 
     /**
      * @brief Callback signaling that the size of the array has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size but it can do reallocation.
      * @return a pointer to the new array.
      */
     inline
-    T * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
+                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       bufferManipulation::dynamicReserve( m_cb, m_size, m_size + nToAdd );
       return m_cb.data();
