@@ -505,16 +505,18 @@ public:
 
     /**
      * @brief Callback signaling that the size of the row has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
      *       size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
-    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
+                              INDEX_TYPE const nToAdd ) const
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK
-      LVARRAY_ERROR_IF( m_rowNNZ + nToAdd > m_rowCapacity, "CRSMatrixView cannot do reallocation." );
+      LVARRAY_ERROR_IF_GT_MSG( m_rowNNZ + nToAdd, m_rowCapacity, "CRSMatrixView cannot do reallocation." );
 #else
       LVARRAY_DEBUG_VAR( nToAdd );
 #endif

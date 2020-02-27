@@ -294,12 +294,14 @@ public:
 
     /**
      * @brief Callback signaling that the number of non zeros of the associated row has increased.
+     * @param [in] curPtr the current pointer to the array.
      * @param [in] nToAdd the number of non zeros added.
      * @note This method doesn't actually change the size but it can do reallocation.
      * @return a pointer to the columns of the associated row.
      */
     inline
-    COL_TYPE * incrementSize( INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
+                              INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;
       if( newNNZ > m_sp.nonZeroCapacity( m_row ) )
