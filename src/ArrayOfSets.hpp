@@ -429,7 +429,7 @@ public:
      * @return a pointer to the sets values.
      */
     inline
-    T * incrementSize( T * const LVARRAY_UNUSED_ARG(curPtr),
+    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
                        INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;

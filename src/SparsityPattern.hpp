@@ -300,7 +300,7 @@ public:
      * @return a pointer to the columns of the associated row.
      */
     inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG(curPtr),
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
                               INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;

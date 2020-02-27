@@ -512,7 +512,7 @@ public:
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG(curPtr),
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
                               INDEX_TYPE const nToAdd ) const
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK

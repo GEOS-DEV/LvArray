@@ -318,7 +318,7 @@ public:
      * @return a pointer to the new array.
      */
     inline
-    T * incrementSize( T * const LVARRAY_UNUSED_ARG(curPtr),
+    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
                        INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       bufferManipulation::dynamicReserve( m_cb, m_size, m_size + nToAdd );

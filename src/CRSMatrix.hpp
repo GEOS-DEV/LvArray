@@ -347,7 +347,7 @@ public:
      *       do an allocation.
      */
     inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG(curPtr),
+    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
                               INDEX_TYPE const nToAdd )
     {
       if( m_rowNNZ + nToAdd > m_rowCapacity )

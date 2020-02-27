@@ -525,7 +525,7 @@ bool remove( T * const LVARRAY_RESTRICT ptr,
  * @param [in] size the size of the array.
  * @param [in] values the values to remove, must be sorted under less<T>.
  * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define methods equivalent to 
+ * @param [in/out] callBacks class which must define methods equivalent to
  *                 CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
  * @return The number of values removed.
  */
@@ -769,8 +769,8 @@ bool insert( T const * const LVARRAY_RESTRICT ptr,
  * @param [in] size the size of the array.
  * @param [in] values the values to insert, must be sorted under less<T>.
  * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define methods similar to 
- *                 CallBacks::incrementSize(std::ptrdiff_t), CallBacks::set(std::ptrdiff_t, std::ptrdiff_t) 
+ * @param [in/out] callBacks class which must define methods similar to
+ *                 CallBacks::incrementSize(std::ptrdiff_t), CallBacks::set(std::ptrdiff_t, std::ptrdiff_t)
  *                 and CallBacks::insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, * std::ptrdiff_t).
  * @return The number of values inserted.
  */
