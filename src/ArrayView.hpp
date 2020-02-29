@@ -352,8 +352,8 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, USD >::multiply( index,
-                                                                                                         m_strides[ 0 ] ), m_dims + 1,
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ),
+                                                       m_dims + 1,
                                                        m_strides + 1 );
   }
 

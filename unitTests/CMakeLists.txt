@@ -7,6 +7,7 @@ set(testSources
     testArrayOfSets.cpp
     testArrayUtilities.cpp
     testArrayView.cpp
+    testArraySlice.cpp
     testCRSMatrix.cpp
     testFloatingPointExceptions.cpp
     testArrayHelpers.cpp
