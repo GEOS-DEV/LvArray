@@ -144,10 +144,10 @@
 
 #define LVARRAY_ERROR_IF_OP_MSG( lhs, OP, NOP, rhs, msg ) \
   LVARRAY_ERROR_IF( lhs OP rhs, \
+                    msg << "\n" << \
                     "Expected " << #lhs << " " << #NOP << " " << #rhs << "\n" << \
                     "  " << #lhs << " = " << lhs << "\n" << \
-                    "  " << #rhs << " = " << rhs << "\n" << \
-                    msg )
+                    "  " << #rhs << " = " << rhs << "\n" )
 
 #define LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, ==, !=, rhs, msg )
 #define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
@@ -170,9 +170,9 @@
 
 #define LVARRAY_ASSERT_OP_MSG( lhs, OP, rhs, msg ) \
   LVARRAY_ASSERT_MSG( lhs OP rhs, \
+                      msg << "\n" << \
                       "  " << #lhs << " = " << lhs << "\n" << \
-                      "  " << #rhs << " = " << rhs << "\n" << \
-                      msg )
+                      "  " << #rhs << " = " << rhs << "\n" )
 
 #define LVARRAY_ASSERT_EQ_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, ==, rhs, msg )
 #define LVARRAY_ASSERT_EQ( lhs, rhs ) LVARRAY_ASSERT_EQ_MSG( lhs, rhs, "" )
