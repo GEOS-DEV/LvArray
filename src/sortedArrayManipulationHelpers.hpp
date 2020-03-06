@@ -612,7 +612,7 @@ DISABLE_HD_WARNING
 template< typename RandomAccessIterator, typename Compare >
 LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
 {
-  constexpr int MAX_RANGES = 31;
+  constexpr int MAX_RANGES = 100;
   RandomAccessIterator ranges[MAX_RANGES + 1];
 
   int nRanges = 1;
