@@ -32,7 +32,8 @@
 #include "sortedArrayManipulationHelpers.hpp"
 
 // System includes
-#include <cstdlib>      // for malloc / free.
+#include <cstdlib>      // for std::malloc and std::free.
+#include <algorithm>    // for std::sort
 
 namespace LvArray
 {
@@ -177,14 +178,18 @@ struct greater
  */
 DISABLE_HD_WARNING
 template< typename RandomAccessIterator, typename Compare >
-LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
+LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare && comp )
 {
+#ifdef __CUDA_ARCH__
   if( last - first > internal::INTROSORT_THRESHOLD )
   {
     internal::introsortLoop( first, last, comp );
   }
 
   internal::insertionSort( first, last - first, comp );
+#else
+  std::sort( first, last, std::forward< Compare >( comp ) );
+#endif
 }
 
 /**
@@ -214,12 +219,38 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAc
 DISABLE_HD_WARNING
 template< typename RandomAccessIteratorA, typename RandomAccessIteratorB, typename Compare >
 LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
-                                          RandomAccessIteratorB dataFirst, Compare comp )
+                                          RandomAccessIteratorB dataFirst, Compare && comp )
 {
   std::ptrdiff_t const size = valueLast - valueFirst;
   internal::DualIterator< RandomAccessIteratorA, RandomAccessIteratorB > dualIter( valueFirst, dataFirst );
-  return makeSorted( dualIter, dualIter + size, dualIter.createComparator( comp ) );
+
+  auto dualCompare = dualIter.createComparator( std::forward< Compare >( comp ) );
+
+  if( size > internal::INTROSORT_THRESHOLD )
+  {
+    internal::introsortLoop( dualIter, dualIter + size, dualCompare );
+  }
+
+  internal::insertionSort( dualIter, size, dualCompare );
 }
+
+
+/**
+ * @tparam RandomAccessIteratorA an iterator type that provides random access.
+ * @tparam RandomAccessIteratorB an iterator type that provides random access.
+ * @brief Sort the given values in place from least to greatest and perform the same operations
+ *        on the data array thus preserving the mapping between values[i] and data[i].
+ * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
+ * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
+ * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
+ */
+DISABLE_HD_WARNING
+template< typename RandomAccessIteratorA, typename RandomAccessIteratorB >
+LVARRAY_HOST_DEVICE inline
+void dualSort( RandomAccessIteratorA valueFirst,
+               RandomAccessIteratorA valueLast,
+               RandomAccessIteratorB dataFirst )
+{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >() ); }
 
 /**
  * @tparam T the type of the values stored in the buffer.
@@ -304,7 +335,7 @@ template< typename T, typename Compare=less< T > >
 LVARRAY_HOST_DEVICE inline
 bool isSorted( T const * const LVARRAY_RESTRICT ptr,
                std::ptrdiff_t const size,
-               Compare comp=Compare() )
+               Compare && comp=Compare() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
@@ -319,23 +350,6 @@ bool isSorted( T const * const LVARRAY_RESTRICT ptr,
 
   return true;
 }
-
-/**
- * @tparam RandomAccessIteratorA an iterator type that provides random access.
- * @tparam RandomAccessIteratorB an iterator type that provides random access.
- * @brief Sort the given values in place from least to greatest and perform the same operations
- *        on the data array thus preserving the mapping between values[i] and data[i].
- * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
- */
-DISABLE_HD_WARNING
-template< typename RandomAccessIteratorA, typename RandomAccessIteratorB >
-LVARRAY_HOST_DEVICE inline
-void dualSort( RandomAccessIteratorA valueFirst,
-               RandomAccessIteratorA valueLast,
-               RandomAccessIteratorB dataFirst )
-{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >() ); }
 
 /**
  * @tparam T the type of the values stored in the array.
@@ -418,7 +432,7 @@ LVARRAY_HOST_DEVICE inline
 std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
                      std::ptrdiff_t const size,
                      T const & value,
-                     Compare comp=Compare() )
+                     Compare && comp=Compare() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
@@ -459,9 +473,9 @@ LVARRAY_HOST_DEVICE inline
 bool contains( T const * const LVARRAY_RESTRICT ptr,
                std::ptrdiff_t const size,
                T const & value,
-               Compare comp=Compare() )
+               Compare && comp=Compare() )
 {
-  std::ptrdiff_t const pos = find( ptr, size, value, comp );
+  std::ptrdiff_t const pos = find( ptr, size, value, std::forward< Compare >( comp ) );
   return (pos != size) && (ptr[pos] == value);
 }
 
