@@ -446,7 +446,7 @@ LVARRAY_HOST_DEVICE inline void moveBackward( BidirIt1 first, BidirIt1 last, Bid
  */
 DISABLE_HD_WARNING
 template< typename Iterator, typename Compare >
-LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iterator b, Iterator c, Compare comp )
+LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iterator b, Iterator c, Compare && comp )
 {
   if( comp( *a, *b ))
   {
@@ -493,7 +493,7 @@ LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iter
 DISABLE_HD_WARNING
 template< typename RandomAccessIterator, typename Compare >
 LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition( RandomAccessIterator first, RandomAccessIterator last,
-                                                                    RandomAccessIterator pivot, Compare comp )
+                                                                    RandomAccessIterator pivot, Compare && comp )
 {
   while( true )
   {
@@ -531,7 +531,7 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition( RandomAccess
  */
 DISABLE_HD_WARNING
 template< typename RandomAccessIterator, typename Compare >
-LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
+LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot( RandomAccessIterator first, RandomAccessIterator last, Compare && comp )
 {
   RandomAccessIterator mid = first + (last - first) / 2;
   computeMedian( first, first + 1, mid, last - 1, comp );
@@ -610,7 +610,7 @@ LVARRAY_HOST_DEVICE inline void insertionSort( RandomAccessIterator first, std::
  */
 DISABLE_HD_WARNING
 template< typename RandomAccessIterator, typename Compare >
-LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, RandomAccessIterator last, Compare comp )
+LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, RandomAccessIterator last, Compare && comp )
 {
   constexpr int MAX_RANGES = 31;
   RandomAccessIterator ranges[MAX_RANGES + 1];
