@@ -51,7 +51,11 @@ if( ENABLE_CALIPER )
 endif()
 
 add_subdirectory(unitTests)
-add_subdirectory(benchmarks)
+
+if( ENABLE_BENCHMARKS )
+    add_subdirectory(benchmarks)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(docs)
 
