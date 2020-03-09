@@ -110,7 +110,7 @@ public:
    *        the values of the set.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T * values() const
+  T const * data() const
   { return m_values.data(); }
 
   /**
@@ -118,25 +118,25 @@ public:
    * @param [in] i the index of the value to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T & operator[]( INDEX_TYPE const i ) const
+  T const & operator[]( INDEX_TYPE const i ) const
   {
     SORTEDARRAY_CHECK_BOUNDS( i );
-    return values()[ i ];
+    return data()[ i ];
   }
 
   /**
    * @brief Return a pointer to the beginning of the array.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T * begin() const
-  { return values(); }
+  T const * begin() const
+  { return data(); }
 
   /**
    * @brief Return a pointer to the end of the array.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  T * end() const
-  { return values() + size(); }
+  T const * end() const
+  { return data() + size(); }
 
   /**
    * @brief Return true if the array holds no values.
@@ -158,7 +158,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool contains( T const & value ) const
-  { return sortedArrayManipulation::contains( values(), size(), value ); }
+  { return sortedArrayManipulation::contains( data(), size(), value ); }
 
   /**
    * @brief Return true if the given value is in the array.
