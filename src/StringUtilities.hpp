@@ -35,7 +35,11 @@ namespace cxx_utilities
 std::string demangle( std::string const & name );
 
 template< class T >
-inline std::string demangle()
+inline std::string demangleType()
+{ return demangle( typeid( T ).name() ); }
+
+template< class T >
+inline std::string demangleType( T const & )
 { return demangle( typeid( T ).name() ); }
 
 }

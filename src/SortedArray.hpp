@@ -56,7 +56,7 @@ public:
   using const_iterator = const_pointer;
 
   // Alias public methods of SortedArrayView.
-  using SortedArrayView< T, INDEX_TYPE >::values;
+  using SortedArrayView< T, INDEX_TYPE >::data;
   using SortedArrayView< T, INDEX_TYPE >::operator[];
   using SortedArrayView< T, INDEX_TYPE >::begin;
   using SortedArrayView< T, INDEX_TYPE >::end;
@@ -182,7 +182,7 @@ public:
   inline
   bool insert( T const & value ) LVARRAY_RESTRICT_THIS
   {
-    bool const success = sortedArrayManipulation::insert( data(), size(), value, CallBacks( m_values, size() ) );
+    bool const success = sortedArrayManipulation::insert( m_values.data(), size(), value, CallBacks( m_values, size() ) );
     m_size += success;
     return success;
   }
@@ -199,7 +199,7 @@ public:
   inline
   INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size += nInserted;
     return nInserted;
   }
@@ -213,7 +213,7 @@ public:
   inline
   INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size += nInserted;
     return nInserted;
   }
@@ -226,7 +226,7 @@ public:
   inline
   bool erase( T const & value ) LVARRAY_RESTRICT_THIS
   {
-    bool const success = sortedArrayManipulation::remove( data(), size(), value, CallBacks( m_values, size() ) );
+    bool const success = sortedArrayManipulation::remove( m_values.data(), size(), value, CallBacks( m_values, size() ) );
     m_size -= success;
     return success;
   }
@@ -243,7 +243,7 @@ public:
   inline
   INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size -= nRemoved;
     return nRemoved;
   }
@@ -257,7 +257,7 @@ public:
   inline
   INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
     m_size -= nRemoved;
     return nRemoved;
   }
@@ -282,15 +282,6 @@ public:
   }
 
 private:
-
-  /**
-   * @brief Return a non const pointer to the values.
-   * @note This method is private because allowing access to the values in this manner
-   * could destroy the sorted nature of the array.
-   */
-  CONSTEXPRFUNC inline
-  T * data() const LVARRAY_RESTRICT_THIS
-  { return m_values.data(); }
 
   /**
    * @class CallBacks

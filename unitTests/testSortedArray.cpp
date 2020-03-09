@@ -56,7 +56,7 @@ void compareToReference( SortedArrayView< T const > const & set, const std::set<
     return;
   }
 
-  T const * ptr = set.values();
+  T const * ptr = set.data();
   typename std::set< T >::const_iterator it = ref.begin();
   for( int i = 0; i < set.size(); ++i )
   {
@@ -245,8 +245,8 @@ public:
     SortedArray< T > v_cpy( m_set );
     ASSERT_EQ( N, v_cpy.size());
 
-    T const * const vals = m_set.values();
-    T const * const vals_cpy = v_cpy.values();
+    T const * const vals = m_set.data();
+    T const * const vals_cpy = v_cpy.data();
     ASSERT_NE( vals, vals_cpy );
 
     // Iterate backwards and erase entries from v_cpy.
@@ -294,14 +294,14 @@ TYPED_TEST( SortedArrayTest, insert )
 TYPED_TEST( SortedArrayTest, reserve )
 {
   this->m_set.reserve( DEFAULT_MAX_VAL + 1 );
-  TypeParam const * const ptr = this->m_set.values();
+  TypeParam const * const ptr = this->m_set.data();
 
   for( int i = 0; i < 4; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
 
-  EXPECT_EQ( ptr, this->m_set.values());
+  EXPECT_EQ( ptr, this->m_set.data());
 }
 
 TYPED_TEST( SortedArrayTest, insertMultipleSorted )
