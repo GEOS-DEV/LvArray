@@ -109,7 +109,7 @@ public:
     m_sp.resize( nRows, nCols, initialRowCapacity );
     m_ref.resize( nRows );
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -133,7 +133,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -163,7 +163,7 @@ public:
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -194,7 +194,7 @@ public:
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -218,7 +218,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -251,7 +251,7 @@ public:
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -285,7 +285,7 @@ public:
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -385,7 +385,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -414,7 +414,7 @@ public:
       curOffset += m_sp.numNonZeros( row );
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -453,7 +453,7 @@ public:
     EXPECT_EQ( copy.numNonZeros(), 0 );
     EXPECT_EQ( m_sp.numNonZeros(), totalNNZ );
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -783,7 +783,7 @@ public:
 
     // Create a view const and capture it on device.
     forall( gpu(), 0, numRows,
-            [constView = m_sp.toViewC(), numCols] __device__ ( INDEX_TYPE row )
+            [constView = m_sp.toViewConst(), numCols] __device__ ( INDEX_TYPE row )
         {
           COL_TYPE const * const columns = constView.getColumns( row );
           for( INDEX_TYPE i = 0; i < constView.numNonZeros( row ); ++i )
@@ -801,7 +801,7 @@ public:
 
     // Move the SparsityPattern back from device, this should be a no-op.
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -827,7 +827,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
 
     // Create views and insert the columns on the device.
     forall( gpu(), 0, numRows,
@@ -852,7 +852,7 @@ public:
 
     // Move the SparsityPattern back to the host and compare against the reference.
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -876,7 +876,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
 
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts]
@@ -893,7 +893,7 @@ public:
     }
 
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -921,7 +921,7 @@ public:
       std::sort( colPtr, colPtr + maxInserts );
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
 
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts] __device__ ( INDEX_TYPE row )
@@ -937,7 +937,7 @@ public:
     }
 
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -984,7 +984,7 @@ public:
 
     // Move v back to the host and compare.
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -1023,7 +1023,7 @@ public:
     }
 
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -1066,7 +1066,7 @@ public:
     }
 
     m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewC(), m_ref );
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
 
   /**
@@ -1090,7 +1090,7 @@ public:
 
     // Check that each row contains the even columns and no odd columns on device.
     forall( gpu(), 0, numRows,
-            [view = m_sp.toViewC()] __device__ ( INDEX_TYPE row )
+            [view = m_sp.toViewConst()] __device__ ( INDEX_TYPE row )
         {
           for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {

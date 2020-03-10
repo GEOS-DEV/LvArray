@@ -88,7 +88,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewC() const LVARRAY_RESTRICT_THIS
+  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**

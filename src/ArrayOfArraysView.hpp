@@ -148,7 +148,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewC() const LVARRAY_RESTRICT_THIS
+  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewSemiConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -166,7 +166,7 @@ public:
    *        isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewCC() const LVARRAY_RESTRICT_THIS
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
