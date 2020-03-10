@@ -116,7 +116,7 @@ public:
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewC() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewSemiConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
@@ -134,7 +134,7 @@ public:
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewCC() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**

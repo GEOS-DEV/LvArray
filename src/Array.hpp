@@ -341,18 +341,6 @@ public:
   { resizeDefaultDimension( newdim, defaultValue ); }
 
   /**
-   * @brief Resize the default dimension of the Array.
-   * @tparam ARGS variadic pack containing the types to initialize the new values with.
-   * @param newdim the new size of the default dimension.
-   * @param ARGS arguments to initialize the new values with.
-   * @note This preserves the values in the Array.
-   * @note The default dimension is given by m_singleParameterResizeIndex.
-   */
-  template< typename ... ARGS >
-  void resizeWithArgs( INDEX_TYPE const newdim, ARGS && ... args )
-  { resizeDefaultDimension( newdim, std::forward< ARGS >( args )... ); }
-
-  /**
    * @brief Reserve space in the Array to hold at least the given number of values.
    * @param newCapacity the number of values to reserve space for. After this call
    *        capacity() >= newCapacity.

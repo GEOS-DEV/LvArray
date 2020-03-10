@@ -122,7 +122,7 @@ public:
     m_matrix.resize( nRows, nCols, initialRowCapacity );
     m_ref.resize( nRows );
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
   /**
@@ -165,7 +165,7 @@ public:
       ASSERT_EQ( m_matrix.numNonZeros( row ), m_ref[ row ].size());
     }
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
   /**
@@ -252,7 +252,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
   /**
@@ -297,7 +297,7 @@ public:
     EXPECT_EQ( copy.numNonZeros(), 0 );
     EXPECT_EQ( m_matrix.numNonZeros(), totalNNZ );
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
   /**
@@ -389,7 +389,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
   void compress()
@@ -419,7 +419,7 @@ public:
       curOffset += m_matrix.numNonZeros( row );
     }
 
-    COMPARE_TO_REFERENCE( m_matrix.toViewCC(), m_ref );
+    COMPARE_TO_REFERENCE( m_matrix.toViewConst(), m_ref );
   }
 
 protected:
@@ -659,7 +659,7 @@ public:
     INDEX_TYPE curIndex = 0;
     for( INDEX_TYPE row = 0; row < m_view.numRows(); ++row )
     {
-      memoryMotionCheckRow( m_view.toViewCC(), row, curIndex );
+      memoryMotionCheckRow( m_view.toViewConst(), row, curIndex );
     }
   }
 
@@ -735,7 +735,7 @@ public:
     this->m_matrix.move( chai::CPU );
 
     // And therefore the matrix should still equal the reference.
-    COMPARE_TO_REFERENCE( m_view.toViewCC(), this->m_ref );
+    COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
   }
 
   /**
@@ -810,7 +810,7 @@ public:
     }
 
     this->m_matrix.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_view.toViewCC(), this->m_ref );
+    COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
   }
 
   /**
@@ -877,7 +877,7 @@ public:
     }
 
     this->m_matrix.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_view.toViewCC(), this->m_ref );
+    COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
   }
 
   /**
@@ -1200,7 +1200,7 @@ public:
     }
 
     this->m_matrix.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_view.toViewCC(), this->m_ref );
+    COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
   }
 
 protected:

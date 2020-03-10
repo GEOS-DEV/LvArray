@@ -44,7 +44,7 @@ class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE >
 public:
 
   // Aliasing public methods of ArrayOfSetsView.
-  using ArrayOfSetsView< T, INDEX_TYPE >::toViewC;
+  using ArrayOfSetsView< T, INDEX_TYPE >::toViewConst;
   using ArrayOfSetsView< T, INDEX_TYPE >::toArrayOfArraysView;
   using ArrayOfSetsView< T, INDEX_TYPE >::capacity;
   using ArrayOfSetsView< T, INDEX_TYPE >::sizeOfSet;
@@ -124,7 +124,7 @@ public:
   CONSTEXPRFUNC inline
   operator ArrayOfSetsView< T const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewC(); }
+  { return toViewConst(); }
 
   /**
    * @brief Conversion operator to an immutable ArrayOfArraysView.

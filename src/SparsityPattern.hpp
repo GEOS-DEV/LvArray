@@ -40,7 +40,7 @@ class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 public:
 
   // Aliasing public methods of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::toViewC;
+  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::toViewConst;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numRows;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numColumns;
   using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numNonZeros;
@@ -116,7 +116,7 @@ public:
   CONSTEXPRFUNC inline
   operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewC(); }
+  { return toViewConst(); }
 
   /**
    * @brief Copy assignment operator, performs a deep copy.

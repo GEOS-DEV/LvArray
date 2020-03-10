@@ -43,8 +43,8 @@ class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE >
 public:
 
   // Aliasing public methods of ArrayOfArraysView.
-  using ArrayOfArraysView< T, INDEX_TYPE >::toViewC;
-  using ArrayOfArraysView< T, INDEX_TYPE >::toViewCC;
+  using ArrayOfArraysView< T, INDEX_TYPE >::toViewSemiConst;
+  using ArrayOfArraysView< T, INDEX_TYPE >::toViewConst;
   using ArrayOfArraysView< T, INDEX_TYPE >::sizeOfArray;
   using ArrayOfArraysView< T, INDEX_TYPE >::capacity;
   using ArrayOfArraysView< T, INDEX_TYPE >::capacityOfArray;
@@ -121,7 +121,7 @@ public:
   CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T, INDEX_TYPE const, true > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewC(); }
+  { return toViewSemiConst(); }
 
   /**
    * @brief Conversion operator to ArrayOfArraysView<T const, INDEX_TYPE const, true>.
@@ -131,7 +131,7 @@ public:
   CONSTEXPRFUNC inline
   operator ArrayOfArraysView< T const, INDEX_TYPE const, true > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewCC(); }
+  { return toViewConst(); }
 
   /**
    * @brief Copy assignment operator, performs a deep copy.

@@ -49,8 +49,8 @@ public:
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::empty;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getColumns;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getOffsets;
-  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewC;
-  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewCC;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewSemiConst;
+  using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toViewConst;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::toSparsityPatternView;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::getEntries;
   using CRSMatrixView< T, COL_TYPE, INDEX_TYPE >::insertNonZero;
@@ -122,7 +122,7 @@ public:
   CONSTEXPRFUNC inline
   operator CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewC(); }
+  { return toViewSemiConst(); }
 
   /**
    * @brief Conversion operator to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
@@ -132,7 +132,7 @@ public:
   CONSTEXPRFUNC inline
   operator CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
-  { return toViewCC(); }
+  { return toViewConst(); }
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
