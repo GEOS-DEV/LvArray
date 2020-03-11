@@ -58,7 +58,7 @@ void compareToReference( SortedArrayView< T const > const & set, const std::set<
 
   T const * ptr = set.values();
   typename std::set< T >::const_iterator it = ref.begin();
-  for( int i = 0 ; i < set.size() ; ++i )
+  for( int i = 0; i < set.size(); ++i )
   {
     ASSERT_EQ( set[ i ], *it );
     ASSERT_EQ( ptr[ i ], *it );
@@ -84,7 +84,7 @@ public:
     INDEX_TYPE const N = m_set.size();
     ASSERT_EQ( N, m_ref.size());
 
-    for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+    for( INDEX_TYPE i = 0; i < maxInserts; ++i )
     {
       T const value = randVal( maxVal );
       ASSERT_EQ( m_ref.insert( value ).second, m_set.insert( value ));
@@ -106,7 +106,7 @@ public:
     std::vector< T > values( maxInserts );
 
 
-    for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+    for( INDEX_TYPE i = 0; i < maxInserts; ++i )
     {
       values[i] = randVal( maxVal );
     }
@@ -130,7 +130,7 @@ public:
 
     std::vector< T > values( maxInserts );
 
-    for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+    for( INDEX_TYPE i = 0; i < maxInserts; ++i )
     {
       values[i] = randVal( maxVal );
     }
@@ -151,7 +151,7 @@ public:
     INDEX_TYPE const N = m_set.size();
     ASSERT_EQ( N, m_ref.size());
 
-    for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       T const value = randVal( maxVal );
       ASSERT_EQ( m_ref.erase( value ), m_set.erase( value ));
@@ -172,7 +172,7 @@ public:
 
     std::vector< T > values( maxRemoves );
 
-    for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       values[i] = randVal( maxVal );
     }
@@ -180,7 +180,7 @@ public:
     std::sort( values.begin(), values.end());
     m_set.eraseSorted( values.data(), maxRemoves );
 
-    for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       m_ref.erase( values[i] );
     }
@@ -200,14 +200,14 @@ public:
 
     std::vector< T > values( maxRemoves );
 
-    for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       values[i] = randVal( maxVal );
     }
 
     m_set.erase( values.data(), maxRemoves );
 
-    for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       m_ref.erase( values[i] );
     }
@@ -226,7 +226,7 @@ public:
     COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
 
     typename std::set< T >::iterator it = m_ref.begin();
-    for( INDEX_TYPE i = 0 ; i < N ; ++i )
+    for( INDEX_TYPE i = 0; i < N; ++i )
     {
       T const & value = *it;
       EXPECT_TRUE( m_set.contains( value ));
@@ -250,7 +250,7 @@ public:
     ASSERT_NE( vals, vals_cpy );
 
     // Iterate backwards and erase entries from v_cpy.
-    for( INDEX_TYPE i = N - 1 ; i >= 0 ; --i )
+    for( INDEX_TYPE i = N - 1; i >= 0; --i )
     {
       EXPECT_EQ( vals[i], vals_cpy[i] );
       v_cpy.erase( vals_cpy[i] );
@@ -285,7 +285,7 @@ INDEX_TYPE const DEFAULT_MAX_VAL = 1000;
 
 TYPED_TEST( SortedArrayTest, insert )
 {
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
@@ -296,7 +296,7 @@ TYPED_TEST( SortedArrayTest, reserve )
   this->m_set.reserve( DEFAULT_MAX_VAL + 1 );
   TypeParam const * const ptr = this->m_set.values();
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
@@ -306,7 +306,7 @@ TYPED_TEST( SortedArrayTest, reserve )
 
 TYPED_TEST( SortedArrayTest, insertMultipleSorted )
 {
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertMultipleSortedTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
@@ -314,7 +314,7 @@ TYPED_TEST( SortedArrayTest, insertMultipleSorted )
 
 TYPED_TEST( SortedArrayTest, insertMultiple )
 {
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertMultipleTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
@@ -322,7 +322,7 @@ TYPED_TEST( SortedArrayTest, insertMultiple )
 
 TYPED_TEST( SortedArrayTest, erase )
 {
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
     this->eraseTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
@@ -331,7 +331,7 @@ TYPED_TEST( SortedArrayTest, erase )
 
 TYPED_TEST( SortedArrayTest, eraseMultipleSorted )
 {
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
     this->eraseMultipleSortedTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
@@ -340,7 +340,7 @@ TYPED_TEST( SortedArrayTest, eraseMultipleSorted )
 
 TYPED_TEST( SortedArrayTest, eraseMultiple )
 {
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
     this->eraseMultipleTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
@@ -375,7 +375,7 @@ public:
     ASSERT_TRUE( m_set.empty());
 
     // Insert values.
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       m_set.insert( T( i ));
     }
@@ -392,7 +392,7 @@ public:
 
     // Change the values.
     m_set.clear();
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       m_set.insert( T( i * i ));
     }
@@ -417,7 +417,7 @@ public:
     ASSERT_TRUE( m_set.empty());
 
     // Insert values.
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       m_set.insert( T( i ));
     }
@@ -434,7 +434,7 @@ public:
 
     // Change the values.
     m_set.clear();
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       m_set.insert( T( i * i ));
     }
@@ -443,7 +443,7 @@ public:
 
     // Move the array back to the host and check that the values haven't been overwritten.
     m_set.move( chai::CPU );
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       EXPECT_EQ( m_set[i], T( i * i ));
     }
@@ -457,7 +457,7 @@ public:
   {
     ASSERT_TRUE( m_set.empty());
 
-    for( INDEX_TYPE i = 0 ; i < size ; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       m_set.insert( T( 2 * i ));
     }

@@ -36,6 +36,7 @@
  *
  */
 
+//UNCRUSTIFY-OFF
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,13 +52,13 @@ extern "C" {
 #define TV_FORMAT_APPEND_CALL 2
 
 volatile int TV_ttf_data_format_control      = TV_FORMAT_INACTIVE;
-int          TV_ttf_data_display_api_version = TV_TTF_DATA_DISPLAY_API_VERSION;
+int TV_ttf_data_display_api_version = TV_TTF_DATA_DISPLAY_API_VERSION;
 
 /* TV_ttf_data_format_buffer should not be static for icc 11, and others */
 char TV_ttf_data_format_buffer[DATA_FORMAT_BUFFER_SIZE];
 static char * TV_ttf_data_buffer_ptr = TV_ttf_data_format_buffer;
 
-static const char   digits []  = "0123456789abcdefghijklmnopqrstuvwxyz";
+static const char digits []  = "0123456789abcdefghijklmnopqrstuvwxyz";
 static const size_t base_bound = sizeof ( digits );
 
 /* ************************************************************************ */
@@ -65,7 +66,7 @@ static const size_t base_bound = sizeof ( digits );
 int
 TV_ttf_is_format_result_ok ( TV_ttf_format_result fr )
 {
-  int  ret_val;
+  int ret_val;
 
   switch( fr )
   {
@@ -113,9 +114,9 @@ my_strpbrk ( const char * str, const char * accept )
   char * ret_val = NULL;
   char * s, * t;
 
-  for( s = (char *) str ; (*s) && (!ret_val) ; s++ )
+  for( s = (char *) str; (*s) && (!ret_val); s++ )
   {
-    for( t = (char *) accept ; (*t) && (!ret_val) ; t++ )
+    for( t = (char *) accept; (*t) && (!ret_val); t++ )
     {
       if( *s == *t )
         ret_val = s;
@@ -130,7 +131,7 @@ int
 marshal_string ( char * buffer, size_t len, const char * s,
                  char * * nbuffer, size_t * nlen )
 {
-  int   ret_val = 0;
+  int ret_val = 0;
   char * cursor  = buffer;
 
   while( *s )
@@ -159,11 +160,11 @@ marshal_unsigned_body ( char * buffer, size_t len, size_t val, int base,
                         char * * nbuffer, size_t * nlen )
 {
 
-  int     ret_val = 0;
-  size_t  q, r;
-  char    digit[ 2 ];
+  int ret_val = 0;
+  size_t q, r;
+  char digit[ 2 ];
   char * my_buffer  = buffer;
-  size_t  my_len     = len;
+  size_t my_len     = len;
 
   if( (int)val < base )
   {
@@ -188,7 +189,7 @@ int
 marshal_unsigned ( char * buffer, size_t len, size_t val, int base,
                    char * * nbuffer, size_t * nlen )
 {
-  int     ret_val = 0;
+  int ret_val = 0;
 
   if( 0 == base )
     base = 10;
@@ -205,9 +206,9 @@ int
 marshal_hex ( char * buffer, size_t len, size_t hex_val,
               char * * nbuffer, size_t * nlen )
 {
-  int     ret_val = 0;
+  int ret_val = 0;
   char * my_buffer;
-  size_t  my_len;
+  size_t my_len;
 
   ret_val += marshal_string ( buffer, len, "0x", &my_buffer, &my_len );
   ret_val += marshal_unsigned ( my_buffer, my_len, hex_val, 16, nbuffer, nlen );
@@ -223,9 +224,9 @@ marshal_row ( char * buffer, size_t len, const char * field_name,
               char * * nbuffer,
               size_t * nlen )
 {
-  int     ret_val = 0;
+  int ret_val = 0;
   char * my_buffer;
-  size_t  my_len;
+  size_t my_len;
 
   ret_val += marshal_string ( buffer, len, field_name, &my_buffer, &my_len );
   ret_val += marshal_string ( my_buffer, my_len, "\t", &my_buffer, &my_len );
@@ -300,3 +301,5 @@ void TV_ttf_post_display_callback( void )
 #ifdef __cplusplus
 }
 #endif
+
+//UNCRUSTIFY-ON

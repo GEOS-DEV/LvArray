@@ -25,9 +25,9 @@ namespace benchmarking
 {
 
 #define MATRIX_VECTOR_KERNEL( a_ij, b_j, c_i ) \
-  for( INDEX_TYPE i = 0 ; i < N ; ++i ) \
+  for( INDEX_TYPE i = 0; i < N; ++i ) \
   { \
-    for( INDEX_TYPE j = 0 ; j < M ; ++j ) \
+    for( INDEX_TYPE j = 0; j < M; ++j ) \
     { \
       c_i += a_ij * b_j; \
     } \
@@ -38,7 +38,7 @@ namespace benchmarking
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, N ), \
                           [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i ) \
   { \
-    for( INDEX_TYPE j = 0 ; j < M ; ++j ) \
+    for( INDEX_TYPE j = 0; j < M; ++j ) \
     { \
       c_i += a_ij * b_j; \
     } \

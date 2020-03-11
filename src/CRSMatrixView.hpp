@@ -252,7 +252,7 @@ public:
     INDEX_TYPE const rowNNZ = numNonZeros( row );
     INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
 
-    for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
+    for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
     {
       entries[i].~T();
     }
@@ -277,7 +277,7 @@ public:
     INDEX_TYPE const rowNNZ = numNonZeros( row );
     INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
 
-    for( INDEX_TYPE_NC i = rowNNZ - nRemoved ; i < rowNNZ ; ++i )
+    for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
     {
       entries[i].~T();
     }
@@ -292,12 +292,12 @@ public:
   inline
   void setValues( T const & value ) const
   {
-    for( INDEX_TYPE_NC row = 0 ; row < numRows() ; ++row )
+    for( INDEX_TYPE_NC row = 0; row < numRows(); ++row )
     {
       INDEX_TYPE const nnz = numNonZeros( row );
       T * const entries = getEntries( row );
 
-      for( INDEX_TYPE_NC i = 0 ; i < nnz ; ++i )
+      for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
       {
         entries[ i ] = value;
       }
@@ -359,7 +359,7 @@ public:
     T * const entries = getEntries( row );
 
     INDEX_TYPE_NC curPos = 0;
-    for( INDEX_TYPE_NC i = 0 ; i < nCols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < nCols; ++i )
     {
       INDEX_TYPE const pos = sortedArrayManipulation::find( columns + curPos, nnz - curPos, cols[ i ] ) + curPos;
       LVARRAY_ASSERT_GT( nnz, pos );
@@ -396,9 +396,9 @@ public:
     T * const entries = getEntries( row );
 
     INDEX_TYPE_NC curPos = 0;
-    for( INDEX_TYPE_NC i = 0 ; i < nCols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < nCols; ++i )
     {
-      for( INDEX_TYPE_NC j = curPos ; j < nnz ; ++j )
+      for( INDEX_TYPE_NC j = curPos; j < nnz; ++j )
       {
         if( columns[ j ] == cols[ i ] )
         {

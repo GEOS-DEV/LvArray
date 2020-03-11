@@ -56,7 +56,7 @@ void compareToReference( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE cons
   ASSERT_EQ( numRows, ref.size());
 
   INDEX_TYPE ref_nnz = 0;
-  for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+  for( INDEX_TYPE row = 0; row < numRows; ++row )
   {
     INDEX_TYPE const rowNNZ = view.numNonZeros( row );
     INDEX_TYPE const refRowNNZ = ref[row].size();
@@ -76,7 +76,7 @@ void compareToReference( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE cons
     auto it = ref[row].begin();
     COL_TYPE const * const columns = view.getColumns( row );
     T const * const entries = view.getEntries( row );
-    for( INDEX_TYPE i = 0 ; i < rowNNZ ; ++i )
+    for( INDEX_TYPE i = 0; i < rowNNZ; ++i )
     {
       EXPECT_FALSE( view.empty( row, columns[i] ));
       EXPECT_EQ( columns[i], it->first );
@@ -141,13 +141,13 @@ public:
     // Insert the entries into the reference.
     insertIntoRef( columnsToInsert );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const initialNNZ = m_matrix.numNonZeros( row );
       INDEX_TYPE nInserted = 0;
       if( type == ModificationType::SINGLE )
       {
-        for( INDEX_TYPE i = 0 ; i < columnsToInsert.sizeOfArray( row ) ; ++i )
+        for( INDEX_TYPE i = 0; i < columnsToInsert.sizeOfArray( row ); ++i )
         {
           nInserted += m_matrix.insertNonZero( row, columnsToInsert( row, i ), valuesToInsert( row, i ) );
         }
@@ -214,7 +214,7 @@ public:
     INDEX_TYPE const numRows = m_matrix.numRows();
     ASSERT_EQ( numRows, m_ref.size());
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const rowNNZ = m_matrix.numNonZeros( row );
       ASSERT_EQ( rowNNZ, m_ref[row].size());
@@ -268,7 +268,7 @@ public:
 
     INDEX_TYPE const totalNNZ = m_matrix.numNonZeros();
 
-    for( INDEX_TYPE row = 0 ; row < m_matrix.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
     {
       INDEX_TYPE const nnz = m_matrix.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
@@ -282,7 +282,7 @@ public:
       ASSERT_NE( entries, entries_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1 ; i >= 0 ; --i )
+      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[i], cols_cpy[i] );
         EXPECT_EQ( entries[i], entries_cpy[i] );
@@ -311,7 +311,7 @@ public:
     ASSERT_EQ( m_matrix.numColumns(), copy.numColumns());
     ASSERT_EQ( m_matrix.numNonZeros(), copy.numNonZeros());
 
-    for( INDEX_TYPE row = 0 ; row < m_matrix.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
     {
       INDEX_TYPE const nnz = m_matrix.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
@@ -325,7 +325,7 @@ public:
       ASSERT_EQ( entries, entries_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1 ; i >= 0 ; --i )
+      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[i], cols_cpy[i] );
         EXPECT_EQ( entries[i], entries_cpy[i] );
@@ -357,7 +357,7 @@ public:
     ASSERT_EQ( m_matrix.nonZeroCapacity(), nRows * capacityPerRow );
     ASSERT_EQ( m_matrix.numNonZeros(), 0 );
 
-    for( INDEX_TYPE row = 0 ; row < nRows ; ++row )
+    for( INDEX_TYPE row = 0; row < nRows; ++row )
     {
       ASSERT_EQ( m_matrix.nonZeroCapacity( row ), 0 );
       ASSERT_EQ( m_matrix.numNonZeros( row ), 0 );
@@ -401,7 +401,7 @@ public:
     INDEX_TYPE const * const offsets = m_matrix.getOffsets();
 
     INDEX_TYPE curOffset = 0;
-    for( INDEX_TYPE row = 0 ; row < m_matrix.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
     {
       // The last row will have all the extra capacity.
       if( row != m_matrix.numRows() - 1 )
@@ -431,11 +431,11 @@ protected:
     // Create an array of the columns.
     ArrayOfArrays< COL_TYPE > columns;
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const nCols = rand( maxCols );
       columns.appendArray( nCols );
-      for( INDEX_TYPE i = 0 ; i < nCols ; ++i )
+      for( INDEX_TYPE i = 0; i < nCols; ++i )
       {
         columns( row, i ) = rand( m_matrix.numColumns() - 1 );
       }
@@ -451,9 +451,9 @@ protected:
 
   void insertIntoRef( ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsToInsert )
   {
-    for( INDEX_TYPE i = 0 ; i < columnsToInsert.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < columnsToInsert.size(); ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < columnsToInsert.sizeOfArray( i ) ; ++j )
+      for( INDEX_TYPE j = 0; j < columnsToInsert.sizeOfArray( i ); ++j )
       {
         COL_TYPE const col = columnsToInsert( i, j );
         m_ref[ i ][ col ] = T( col );
@@ -466,11 +466,11 @@ protected:
     ArrayOfArrays< T > values;
 
     INDEX_TYPE const numRows = m_matrix.numRows();
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const nCols = columns.sizeOfArray( row );
       values.appendArray( nCols );
-      for( INDEX_TYPE i = 0 ; i < nCols ; ++i )
+      for( INDEX_TYPE i = 0; i < nCols; ++i )
       {
         values( row, i ) = T( columns( row, i ) );
       }
@@ -510,7 +510,7 @@ TYPED_TEST( CRSMatrixTest, construction )
   EXPECT_EQ( m.numNonZeros(), 0 );
   EXPECT_TRUE( m.empty());
 
-  for( INDEX_TYPE row = 0 ; row < DEFAULT_NROWS ; ++row )
+  for( INDEX_TYPE row = 0; row < DEFAULT_NROWS; ++row )
   {
     EXPECT_EQ( m.numNonZeros( row ), 0 );
     EXPECT_EQ( m.nonZeroCapacity( row ), 0 );
@@ -533,7 +533,7 @@ TYPED_TEST( CRSMatrixTest, hintConstruction )
   EXPECT_EQ( m.nonZeroCapacity(), DEFAULT_NROWS * 5 );
   EXPECT_TRUE( m.empty());
 
-  for( INDEX_TYPE row = 0 ; row < DEFAULT_NROWS ; ++row )
+  for( INDEX_TYPE row = 0; row < DEFAULT_NROWS; ++row )
   {
     EXPECT_EQ( m.numNonZeros( row ), 0 );
     EXPECT_EQ( m.nonZeroCapacity( row ), 5 );
@@ -551,7 +551,7 @@ TYPED_TEST( CRSMatrixTest, insert )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
   }
@@ -561,7 +561,7 @@ TYPED_TEST( CRSMatrixTest, insertMultiple )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
   }
@@ -571,7 +571,7 @@ TYPED_TEST( CRSMatrixTest, insertSorted )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
   }
@@ -657,7 +657,7 @@ public:
 
     this->m_matrix.move( chai::CPU );
     INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0 ; row < m_view.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_view.numRows(); ++row )
     {
       memoryMotionCheckRow( m_view.toViewCC(), row, curIndex );
     }
@@ -678,7 +678,7 @@ public:
         {
           COL_TYPE const * const columns = view.getColumns( row );
           T * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
             entries[i] = T( 2 * i + 7 );
@@ -688,12 +688,12 @@ public:
 
     // This should copy back the entries but not the columns.
     this->m_matrix.move( chai::CPU );
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       ASSERT_EQ( m_view.numNonZeros( row ), this->m_ref[row].size());
 
       auto it = this->m_ref[row].begin();
-      for( INDEX_TYPE i = 0 ; i < m_view.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
       {
         // So the columns should be the same as the reference.
         COL_TYPE const col = m_view.getColumns( row )[i];
@@ -720,7 +720,7 @@ public:
         {
           COL_TYPE const * const columns = view.getColumns( row );
           T const * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
             LVARRAY_ERROR_IF( entries[i] != T( columns[i] ), "Incorrect value." );
@@ -752,7 +752,7 @@ public:
     ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert );
 
     // Reserve space for the inserts
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       this->m_matrix.reserveNonZeros( row, this->m_matrix.numNonZeros( row ) + columnsToInsert.sizeOfArray( row ) );
     }
@@ -770,7 +770,7 @@ public:
           {
             INDEX_TYPE const initialNNZ = view.numNonZeros( row );
             INDEX_TYPE nInserted = 0;
-            for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+            for( INDEX_TYPE i = 0; i < columnsView.sizeOfArray( row ); ++i )
             {
               COL_TYPE const col = columnsView( row, i );
               nInserted += view.insertNonZero( row, col, T( col ) );
@@ -826,9 +826,9 @@ public:
     ArrayOfArrays< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, type == ModificationType::SORTED );
 
     // Insert the entries into the reference.
-    for( INDEX_TYPE i = 0 ; i < columnsToRemove.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < columnsToRemove.size(); ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < columnsToRemove.sizeOfArray( i ) ; ++j )
+      for( INDEX_TYPE j = 0; j < columnsToRemove.sizeOfArray( i ); ++j )
       {
         COL_TYPE const col = columnsToRemove( i, j );
         this->m_ref[ i ].erase( col );
@@ -844,7 +844,7 @@ public:
           {
             INDEX_TYPE const initialNNZ = view.numNonZeros( row );
             INDEX_TYPE nRemoved = 0;
-            for( INDEX_TYPE i = 0 ; i < columnsView.sizeOfArray( row ) ; ++i )
+            for( INDEX_TYPE i = 0; i < columnsView.sizeOfArray( row ); ++i )
             {
               nRemoved += view.removeNonZero( row, columnsView( row, i ) );
             }
@@ -888,11 +888,11 @@ public:
     INDEX_TYPE const numRows = m_view.numRows();
 
     // Initialize each row to only contain even numbered columns.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const columns = m_view.getColumns( row );
       COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-      for( INDEX_TYPE i = 0 ; i < m_view.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
       {
         columnsNC[i] = COL_TYPE( 2 * i );
       }
@@ -903,7 +903,7 @@ public:
     forall< Policy >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
@@ -933,7 +933,7 @@ public:
           COL_TYPE const * const spColumns = spView.getColumns( row );
           PORTABLE_EXPECT_EQ( columns, spColumns );
 
-          for( INDEX_TYPE i = 0 ; i < nnz ; ++i )
+          for( INDEX_TYPE i = 0; i < nnz; ++i )
           {
             PORTABLE_EXPECT_EQ( columns[ i ], spColumns[ i ] );
             PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
@@ -951,12 +951,12 @@ public:
     // Set the columns and entries. The const casts here isn't necessary, we could remove and insert
     // into the view instead, but this is quicker.
     INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const columns = m_view.getColumns( row );
       COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
       T * const entries = m_view.getEntries( row );
-      for( INDEX_TYPE i = 0 ; i < m_view.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
       {
         columnsNC[i] = curIndex;
         entries[i] = T( curIndex++ );
@@ -972,7 +972,7 @@ public:
           COL_TYPE const * const columns = view.getColumns( row );
           COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
           T * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             columnsNC[i] += columns[i];
             entries[i] += entries[i];
@@ -986,7 +986,7 @@ protected:
   static void memoryMotionCheckRow( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view,
                                     INDEX_TYPE const row, INDEX_TYPE & curIndex )
   {
-    for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+    for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
     {
       EXPECT_EQ( COL_TYPE( curIndex ) * 2, view.getColumns( row )[i] );
       T expectedEntry( curIndex );
@@ -1048,7 +1048,7 @@ TYPED_TEST( CRSMatrixViewTest, insert )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
   }
@@ -1058,7 +1058,7 @@ TYPED_TEST( CRSMatrixViewTest, insertMultiple )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
   }
@@ -1068,7 +1068,7 @@ TYPED_TEST( CRSMatrixViewTest, insertSorted )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
   }
@@ -1078,7 +1078,7 @@ TYPED_TEST( CRSMatrixViewTest, remove )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
     this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
@@ -1089,7 +1089,7 @@ TYPED_TEST( CRSMatrixViewTest, removeMultiple )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
     this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
@@ -1100,7 +1100,7 @@ TYPED_TEST( CRSMatrixViewTest, removeSorted )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
 
-  for( int i = 0 ; i < 4 ; ++i )
+  for( int i = 0; i < 4; ++i )
   {
     this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
     this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
@@ -1133,18 +1133,18 @@ public:
   {
     INDEX_TYPE const numRows = m_view.numRows();
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const nColsInRow = m_view.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
       ArrayOfSets< COL_TYPE > columns;
-      for( INDEX_TYPE threadID = 0 ; threadID < nThreads ; ++threadID )
+      for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = this->rand( nColsInRow );
         columns.appendSet( nColsToAddTo );
 
-        for( INDEX_TYPE i = 0 ; i < nColsToAddTo ; ++i )
+        for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
         {
           INDEX_TYPE const pos = this->rand( nColsInRow - 1 );
           columns.insertIntoSet( threadID, m_view.getColumns( row )[ pos ] );
@@ -1153,12 +1153,12 @@ public:
 
       // Array that holds the values each thread will add to in the current row.
       ArrayOfArrays< T > values;
-      for( INDEX_TYPE threadID = 0 ; threadID < nThreads ; ++threadID )
+      for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = columns.sizeOfSet( threadID );
         values.appendArray( nColsToAddTo );
 
-        for( INDEX_TYPE i = 0 ; i < nColsToAddTo ; ++i )
+        for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
         {
           COL_TYPE const column = columns( threadID, i );
           values( threadID, i ) = T( columns( threadID, i ) );

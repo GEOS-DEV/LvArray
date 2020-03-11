@@ -181,7 +181,7 @@ public:
     INDEX_TYPE const numSets = size();
     if( desc == sortedArrayManipulation::UNSORTED_NO_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0 ; i < numSets ; ++i )
+      for( INDEX_TYPE i = 0; i < numSets; ++i )
       {
         T * const setValues = getSetValues( i );
         INDEX_TYPE const numValues = sizeOfSet( i );
@@ -190,7 +190,7 @@ public:
     }
     if( desc == sortedArrayManipulation::SORTED_WITH_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0 ; i < numSets ; ++i )
+      for( INDEX_TYPE i = 0; i < numSets; ++i )
       {
         T * const setValues = getSetValues( i );
         INDEX_TYPE const numValues = sizeOfSet( i );
@@ -202,7 +202,7 @@ public:
     }
     if( desc == sortedArrayManipulation::UNSORTED_WITH_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0 ; i < numSets ; ++i )
+      for( INDEX_TYPE i = 0; i < numSets; ++i )
       {
         T * const setValues = getSetValues( i );
         INDEX_TYPE const numValues = sizeOfSet( i );

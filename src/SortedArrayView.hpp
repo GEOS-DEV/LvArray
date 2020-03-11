@@ -179,7 +179,7 @@ public:
     }
 
     stream << "{ " << array[ 0 ];
-    for( INDEX_TYPE i = 1 ; i < array.size() ; ++i )
+    for( INDEX_TYPE i = 1; i < array.size(); ++i )
     {
       stream << ", " << array[ i ];
     }

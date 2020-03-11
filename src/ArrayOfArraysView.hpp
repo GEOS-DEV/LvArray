@@ -438,10 +438,10 @@ private:
   {
     stream << "{" << std::endl;
 
-    for( INDEX_TYPE_NC i = 0 ; i < array.size() ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < array.size(); ++i )
     {
       stream << i << "\t{";
-      for( INDEX_TYPE_NC j = 0 ; j < array.sizeOfArray( i ) ; ++j )
+      for( INDEX_TYPE_NC j = 0; j < array.sizeOfArray( i ); ++j )
       {
         stream << array( i, j ) << ", ";
       }
@@ -502,7 +502,7 @@ protected:
 
       if( defaultArrayCapacity > 0 )
       {
-        for( INDEX_TYPE i = m_numArrays + 1 ; i < newSize + 1 ; ++i )
+        for( INDEX_TYPE i = m_numArrays + 1; i < newSize + 1; ++i )
         {
           m_offsets[i] = originalOffset + i * defaultArrayCapacity;
         }
@@ -590,7 +590,7 @@ protected:
       auto & dstBuffer = pair.first;
       auto const & srcBuffer = pair.second;
 
-      for( INDEX_TYPE_NC i = 0 ; i < m_numArrays ; ++i )
+      for( INDEX_TYPE_NC i = 0; i < m_numArrays; ++i )
       {
         INDEX_TYPE const offset = m_offsets[i];
         INDEX_TYPE const arraySize = sizeOfArray( i );
@@ -652,7 +652,7 @@ protected:
   template< class ... BUFFERS >
   void compress( BUFFERS & ... buffers )
   {
-    for( INDEX_TYPE i = 0 ; i < m_numArrays - 1 ; ++i )
+    for( INDEX_TYPE i = 0; i < m_numArrays - 1; ++i )
     {
       INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
       INDEX_TYPE const shiftAmount = nextOffset - m_offsets[ i ] - sizeOfArray( i );
@@ -734,7 +734,7 @@ protected:
         bufferManipulation::dynamicReserve( buffer, maxOffset, maxOffset + capacityIncrease );
 
         // Shift up the values.
-        for( INDEX_TYPE array = m_numArrays - 1 ; array > i ; --array )
+        for( INDEX_TYPE array = m_numArrays - 1; array > i; --array )
         {
           INDEX_TYPE const curArraySize = sizeOfArray( array );
           INDEX_TYPE const curArrayOffset = m_offsets[ array ];
@@ -760,7 +760,7 @@ protected:
         arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
 
         // Shift down the values of subsequent arrays.
-        for( INDEX_TYPE array = i + 1 ; array < m_numArrays ; ++array )
+        for( INDEX_TYPE array = i + 1; array < m_numArrays; ++array )
         {
           INDEX_TYPE const curArraySize = sizeOfArray( array );
           INDEX_TYPE const curArrayOffset = m_offsets[array];
@@ -772,7 +772,7 @@ protected:
     }
 
     // Update the offsets array
-    for( INDEX_TYPE array = i + 1 ; array < m_numArrays + 1 ; ++array )
+    for( INDEX_TYPE array = i + 1; array < m_numArrays + 1; ++array )
     {
       m_offsets[array] += capacityIncrease;
     }
@@ -823,7 +823,7 @@ private:
     for_each_arg(
       [this, begin, end] ( auto & buffer )
     {
-      for( INDEX_TYPE i = begin ; i < end ; ++i )
+      for( INDEX_TYPE i = begin; i < end; ++i )
       {
         INDEX_TYPE const offset = m_offsets[ i ];
         INDEX_TYPE const arraySize = sizeOfArray( i );

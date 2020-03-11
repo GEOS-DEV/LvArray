@@ -50,7 +50,7 @@ template< typename TYPE, typename INDEX_TYPE >
 std::string format( int NDIM, INDEX_TYPE const * const dims )
 {
   std::string rval = cxx_utilities::demangle< TYPE >();
-  for( int i=0 ; i<NDIM ; ++i )
+  for( int i=0; i<NDIM; ++i )
   {
     rval += "["+std::to_string( dims[i] )+"]";
   }

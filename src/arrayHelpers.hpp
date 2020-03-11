@@ -96,7 +96,7 @@ std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims,
   constexpr int NDIM = sizeof ... (INDICES) + 1;
   std::ostringstream oss;
   oss << "dimensions = { " << dims[ 0 ];
-  for( int i = 1 ; i < NDIM ; ++i )
+  for( int i = 1; i < NDIM; ++i )
   {
     oss << ", " << dims[ i ];
   }

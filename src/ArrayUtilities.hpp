@@ -90,7 +90,7 @@ struct stringToArrayHelper
     LVARRAY_ERROR_IF( inputStream.peek() != '{', "opening { not found for input array: "<<inputStream.str() );
     inputStream.ignore();
 
-    for( int i=0 ; i<(*dims) ; ++i )
+    for( int i=0; i<(*dims); ++i )
     {
       skipDelimters( inputStream );
       Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
@@ -225,14 +225,14 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
   // flag to see if the dims value has been set for a given dimension
   bool dimSet[NDIM] = {false};
 
-  for( int i=0 ; i<NDIM ; ++i )
+  for( int i=0; i<NDIM; ++i )
   {
     dims[i]=1;
     currentDims[i] = 1;
   }
 
   char lastChar = 0;
-  for( size_t charCount = 0 ; charCount<valueString.size() ; ++charCount )
+  for( size_t charCount = 0; charCount<valueString.size(); ++charCount )
   {
     char const c = valueString[charCount];
     // this had better be true for the first char...we had a check for this. This is why we can
@@ -287,7 +287,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
 
   // we also need to add a ' ' in front of any '}' otherwise the
   // stringstream::operator>> will grab the }
-  for( std::string::size_type a=0 ; a<valueString.size() ; ++a )
+  for( std::string::size_type a=0; a<valueString.size(); ++a )
   {
     if( valueString[a] == '}' )
     {
@@ -315,7 +315,7 @@ std::ostream & operator<<( std::ostream & stream,
   if( slice.size( 0 ) > 0 )
     stream << slice[ 0 ];
 
-  for( INDEX_TYPE i = 1 ; i < slice.size( 0 ) ; ++i )
+  for( INDEX_TYPE i = 1; i < slice.size( 0 ); ++i )
   {
     stream << ", " << slice[ i ];
   }

@@ -26,7 +26,7 @@ namespace benchmarking
 
 #define REDUCE_KERNEL( a_i ) \
   VALUE_TYPE sum = 0; \
-  for( INDEX_TYPE i = 0 ; i < N ; ++i ) \
+  for( INDEX_TYPE i = 0; i < N; ++i ) \
   { \
     sum += a_i; \
   } \

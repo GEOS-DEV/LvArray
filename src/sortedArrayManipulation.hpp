@@ -275,7 +275,7 @@ T * createTemporaryBuffer( T const * const LVARRAY_RESTRICT values,
   T * buffer = localBuffer;
   if( nVals <= N )
   {
-    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 0; i < nVals; ++i )
     {
       localBuffer[i] = values[i];
     }
@@ -284,7 +284,7 @@ T * createTemporaryBuffer( T const * const LVARRAY_RESTRICT values,
   {
     buffer = static_cast< T * >( std::malloc( sizeof( T ) * nVals ) );
 
-    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 0; i < nVals; ++i )
     {
       new ( buffer + i ) T( values[i] );
     }
@@ -313,7 +313,7 @@ void freeTemporaryBuffer( T * const LVARRAY_RESTRICT buffer,
     return;
   }
 
-  for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+  for( std::ptrdiff_t i = 0; i < nVals; ++i )
   {
     buffer[i].~T();
   }
@@ -340,7 +340,7 @@ bool isSorted( T const * const LVARRAY_RESTRICT ptr,
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
 
-  for( std::ptrdiff_t i = 0 ; i < size - 1 ; ++i )
+  for( std::ptrdiff_t i = 0; i < size - 1; ++i )
   {
     if( comp( ptr[i + 1], ptr[i] ) )
     {
@@ -363,7 +363,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 bool allUnique( T const * const LVARRAY_RESTRICT ptr, std::ptrdiff_t const size )
 {
-  for( std::ptrdiff_t i = 0 ; i < size - 1 ; ++i )
+  for( std::ptrdiff_t i = 0; i < size - 1; ++i )
   {
     if( ptr[i] == ptr[i + 1] )
       return false;
@@ -565,7 +565,7 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
   // Find the position of the first value to remove and the position it's at in the array.
   std::ptrdiff_t firstValuePos = nVals;
   std::ptrdiff_t curPos = size;
-  for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+  for( std::ptrdiff_t i = 0; i < nVals; ++i )
   {
     curPos = find( ptr, size, values[i] );
 
@@ -586,12 +586,12 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
 
   // Loop over the values
   std::ptrdiff_t nRemoved = 0;
-  for( std::ptrdiff_t curValuePos = firstValuePos ; curValuePos < nVals ; )
+  for( std::ptrdiff_t curValuePos = firstValuePos; curValuePos < nVals; )
   {
     // Find the next value to remove
     std::ptrdiff_t nextValuePos = nVals;
     std::ptrdiff_t nextPos = size;
-    for( std::ptrdiff_t j = curValuePos + 1 ; j < nVals ; ++j )
+    for( std::ptrdiff_t j = curValuePos + 1; j < nVals; ++j )
     {
       // Skip over duplicate values
       if( values[j] == values[j - 1] )
@@ -627,7 +627,7 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
   }
 
   // Destroy the values moved out of at the end of the array.
-  for( std::ptrdiff_t i = size - nRemoved ; i < size ; ++i )
+  for( std::ptrdiff_t i = size - nRemoved; i < size; ++i )
   {
     ptr[i].~T();
   }
@@ -817,7 +817,7 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
   {
     // Count up the number of unique values.
     nToInsert = 1;
-    for( std::ptrdiff_t i = 1 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 1; i < nVals; ++i )
     {
       if( values[i] != values[i - 1] )
         ++nToInsert;
@@ -832,7 +832,7 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
 
     // Insert the remaining values, checking for duplicates.
     std::ptrdiff_t curInsertPos = 1;
-    for( std::ptrdiff_t i = 1 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 1; i < nVals; ++i )
     {
       if( values[i] != values[i - 1] )
       {
@@ -856,7 +856,7 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
 
   // Loop over the values in reverse (from largest to smallest).
   std::ptrdiff_t curPos = size;
-  for( std::ptrdiff_t i = nVals - 1 ; i >= 0 ; --i )
+  for( std::ptrdiff_t i = nVals - 1; i >= 0; --i )
   {
     // Skip duplicate values.
     if( i != 0 && values[i] == values[i - 1] )
@@ -891,7 +891,7 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
 
   // Insert pre-calculated values.
   std::ptrdiff_t prevInsertPos = size;
-  for( std::ptrdiff_t i = 0 ; i < nPreCalculated ; ++i )
+  for( std::ptrdiff_t i = 0; i < nPreCalculated; ++i )
   {
     // Shift the values up...
     arrayManipulation::shiftUp( newPtr, prevInsertPos, insertPositions[i], std::ptrdiff_t( nToInsert - i ) );
@@ -911,7 +911,7 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
   // Insert the rest of the values.
   std::ptrdiff_t const prevValuePos = valuePositions[MAX_PRE_CALCULATED - 1];
   std::ptrdiff_t nInserted = MAX_PRE_CALCULATED;
-  for( std::ptrdiff_t i = prevValuePos - 1 ; i >= 0 ; --i )
+  for( std::ptrdiff_t i = prevValuePos - 1; i >= 0; --i )
   {
     // Skip duplicates
     if( values[i] == values[i + 1] )

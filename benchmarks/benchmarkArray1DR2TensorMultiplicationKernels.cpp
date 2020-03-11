@@ -26,7 +26,7 @@ namespace benchmarking
 
 
 #define OUTER_LOOP( BODY ) \
-  for( INDEX_TYPE i = 0 ; i < N ; ++i ) \
+  for( INDEX_TYPE i = 0; i < N; ++i ) \
   { \
     BODY \
   } \
@@ -44,12 +44,12 @@ namespace benchmarking
 
 
 #define INNER_LOOP( a_ijl, b_ilk, c_ijk ) \
-  for( INDEX_TYPE j = 0 ; j < 3 ; ++j ) \
+  for( INDEX_TYPE j = 0; j < 3; ++j ) \
   { \
-    for( INDEX_TYPE k = 0 ; k < 3 ; ++k ) \
+    for( INDEX_TYPE k = 0; k < 3; ++k ) \
     { \
       VALUE_TYPE dot = 0; \
-      for( INDEX_TYPE l = 0 ; l < 3 ; ++l ) \
+      for( INDEX_TYPE l = 0; l < 3; ++l ) \
       { \
         dot += a_ijl * b_ilk; \
       } \

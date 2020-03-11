@@ -63,7 +63,7 @@ static std::mt19937_64 gen;
 template< class T >
 void checkEqual( Array1d< T > const & a, std::vector< T > const & b )
 {
-  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < a.size(); ++i )
   {
     EXPECT_EQ( a[i], b[i] );
   }
@@ -72,7 +72,7 @@ void checkEqual( Array1d< T > const & a, std::vector< T > const & b )
 template< class SORTINGTYPE, class T >
 void checkEqual( Array1d< SORTINGTYPE > const & a, Array1d< T > const & b, std::vector< std::pair< T, SORTINGTYPE > > const & c )
 {
-  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < a.size(); ++i )
   {
     EXPECT_EQ( a[i], c[i].second );
     EXPECT_EQ( b[i], c[i].first );
@@ -102,7 +102,7 @@ void fillArrays( INDEX_TYPE size, Array1d< T > & a, std::vector< T > & b )
 
   a.resize( size );
   b.resize( size );
-  for( INDEX_TYPE i = 0 ; i < size ; ++i )
+  for( INDEX_TYPE i = 0; i < size; ++i )
   {
     T const val = T( valueDist( gen ));
     a[i] = val;
@@ -118,7 +118,7 @@ void fillArrays( INDEX_TYPE size, Array1d< SORTINGTYPE > & a, Array1d< T > & b, 
   a.resize( size );
   b.resize( size );
   c.resize( size );
-  for( INDEX_TYPE i = 0 ; i < size ; ++i )
+  for( INDEX_TYPE i = 0; i < size; ++i )
   {
     INDEX_TYPE const seed = valueDist( gen );
     SORTINGTYPE const sortingVal = SORTINGTYPE( seed );
@@ -137,7 +137,7 @@ void correctnessTest()
   Array1d< T > a( MAX_SIZE );
   std::vector< T > b( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     fillArrays( size, a, b );
     check( a, b, Compare());
@@ -152,7 +152,7 @@ void dualCorrectnessTest()
   Array1d< T > b( MAX_SIZE );
   std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     fillArrays( size, a, b, c );
     check( a, b, c, Compare());
@@ -169,11 +169,11 @@ void performanceTest()
   Array1d< T > a( MAX_SIZE );
   std::vector< T > b( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size <= MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     std::chrono::duration< double > sortingTime {};
     std::chrono::duration< double > stdTime {};
-    for( INDEX_TYPE iter = 0 ; iter < MAX_SIZE / (size + 1) + 1 ; ++iter )
+    for( INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter )
     {
       fillArrays( size, a, b );
 
@@ -226,11 +226,11 @@ void dualPerformanceTest()
   Array1d< T > b( MAX_SIZE );
   std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size <= MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     std::chrono::duration< double > sortingTime {};
     std::chrono::duration< double > stdTime {};
-    for( INDEX_TYPE iter = 0 ; iter < MAX_SIZE / (size + 1) + 1 ; ++iter )
+    for( INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter )
     {
       fillArrays( size, a, b, c );
 
@@ -278,7 +278,7 @@ void removeDuplicatesCorrectnessTest()
   constexpr INDEX_TYPE MAX_SIZE = 2000;
   std::vector< T > values( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     values.resize( size );
 
@@ -316,7 +316,7 @@ void correctnessDeviceTest()
   constexpr INDEX_TYPE MAX_SIZE = 100;
   Array1d< T > a( MAX_SIZE );
   std::vector< T > b( MAX_SIZE );
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     fillArrays( size, a, b );
 
@@ -343,7 +343,7 @@ void dualCorrectnessDeviceTest()
   Array1d< T > b( MAX_SIZE );
   std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
 
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     fillArrays( size, a, b, c );
 
@@ -371,7 +371,7 @@ void removeDuplicatesCorrectnessDeviceTest()
   Array1d< T > values( MAX_SIZE );
   Array1d< INDEX_TYPE > numUniqueValues( 1 );
 
-  for( INDEX_TYPE size = 0 ; size < MAX_SIZE ; size = INDEX_TYPE( size * 1.5 + 1 ))
+  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
   {
     values.resize( size );
 

@@ -53,11 +53,11 @@ void compareToReference( ViewType< T const, true > const & view, std::vector< st
 {
   ASSERT_EQ( view.size(), ref.size());
 
-  for( INDEX_TYPE i = 0 ; i < view.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < view.size(); ++i )
   {
     ASSERT_EQ( view.sizeOfArray( i ), ref[i].size());
 
-    for( INDEX_TYPE j = 0 ; j < view.sizeOfArray( i ) ; ++j )
+    for( INDEX_TYPE j = 0; j < view.sizeOfArray( i ); ++j )
     {
       EXPECT_EQ( view[i][j], ref[i][j] );
       EXPECT_EQ( view( i, j ), view[i][j] );
@@ -82,15 +82,15 @@ void printArray( ViewType< T const, true > const & view )
 {
   std::cout << "{" << std::endl;
 
-  for( INDEX_TYPE i = 0 ; i < view.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < view.size(); ++i )
   {
     std::cout << "\t{";
-    for( INDEX_TYPE j = 0 ; j < view.sizeOfArray( i ) ; ++j )
+    for( INDEX_TYPE j = 0; j < view.sizeOfArray( i ); ++j )
     {
       std::cout << view[i][j] << ", ";
     }
 
-    for( INDEX_TYPE j = view.sizeOfArray( i ) ; j < view.capacityOfArray( i ) ; ++j )
+    for( INDEX_TYPE j = view.sizeOfArray( i ); j < view.capacityOfArray( i ); ++j )
     {
       std::cout << "X" << ", ";
     }
@@ -112,12 +112,12 @@ public:
 
     std::vector< T > arrayToAppend( maxAppendSize );
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxAppendSize );
       arrayToAppend.resize( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         arrayToAppend[j] = T( i * LARGE_NUMBER + j );
       }
@@ -135,13 +135,13 @@ public:
 
     std::vector< T > arrayToAppend( maxAppendSize );
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxAppendSize );
       arrayToAppend.resize( nValues );
       m_array.appendArray( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + j );
         arrayToAppend[j] = value;
@@ -160,12 +160,12 @@ public:
 
     std::vector< T > arrayToAppend( maxAppendSize );
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxAppendSize );
       arrayToAppend.resize( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         arrayToAppend[j] = T( i * LARGE_NUMBER + j );
       }
@@ -182,7 +182,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const removePos = rand( 0, m_array.size() -1 );
       m_array.eraseArray( removePos );
@@ -218,7 +218,7 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const newSize = rand( 0, maxSize );
 
@@ -235,12 +235,12 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxAppendSize );
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
         m_array.appendToArray( i, value );
@@ -255,15 +255,15 @@ public:
   {
     INDEX_TYPE const nArrays = m_array.size();
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), 0 );
     }
 
     // Append sequential values to each array
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < numAppends ; ++j )
+      for( INDEX_TYPE j = 0; j < numAppends; ++j )
       {
         T const value = T( i * LARGE_NUMBER + j );
         m_array.atomicAppendToArray( RAJA::auto_atomic{}, i, value );
@@ -271,12 +271,12 @@ public:
     }
 
     // Now check that the values are as expected.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), numAppends );
       ASSERT_LE( m_array.sizeOfArray( i ), m_array.capacityOfArray( i ));
 
-      for( INDEX_TYPE j = 0 ; j < numAppends ; ++j )
+      for( INDEX_TYPE j = 0; j < numAppends; ++j )
       {
         T const value = T( i * LARGE_NUMBER + j );
         EXPECT_EQ( value, m_array( i, j )) << i << ", " << j;
@@ -289,7 +289,7 @@ public:
   {
     INDEX_TYPE const nArrays = m_array.size();
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), 0 );
     }
@@ -304,9 +304,9 @@ public:
       INDEX_TYPE const threadNum = omp_get_thread_num();
 
       // In parallel append sequential values to each array.
-      for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+      for( INDEX_TYPE i = 0; i < nArrays; ++i )
       {
-        for( INDEX_TYPE j = 0 ; j < appendsPerArrayPerThread ; ++j )
+        for( INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j )
         {
           T const value = T( i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j );
           m_array.atomicAppendToArray( RAJA::auto_atomic{}, i, value );
@@ -318,7 +318,7 @@ public:
 
     // Now sort each array and check that the values are as expected.
     INDEX_TYPE const appendsPerArray = numThreads * appendsPerArrayPerThread;
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), appendsPerArray );
       ASSERT_LE( m_array.sizeOfArray( i ), m_array.capacityOfArray( i ));
@@ -326,7 +326,7 @@ public:
       T * const subArrayPtr = m_array[i];
       std::sort( subArrayPtr, subArrayPtr + appendsPerArray );
 
-      for( INDEX_TYPE j = 0 ; j < appendsPerArray ; ++j )
+      for( INDEX_TYPE j = 0; j < appendsPerArray; ++j )
       {
         T const value = T( i * LARGE_NUMBER + j );
         EXPECT_EQ( value, m_array( i, j )) << i << ", " << j;
@@ -342,13 +342,13 @@ public:
     std::vector< T > valuesToAppend( maxAppendSize );
     INDEX_TYPE const nArrays = m_array.size();
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxAppendSize );
       valuesToAppend.resize( nValues );
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         valuesToAppend[j] = T( i * LARGE_NUMBER + arraySize + j );
       }
@@ -365,11 +365,11 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const nValues = rand( 0, maxInsertSize );
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
 
@@ -389,13 +389,13 @@ public:
     std::vector< T > valuesToAppend( maxInsertSize );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const nValues = rand( 0, maxInsertSize );
       valuesToAppend.resize( nValues );
 
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         valuesToAppend[j] = T( i * LARGE_NUMBER + arraySize + j );
       }
@@ -414,11 +414,11 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const nToRemove = rand( 0, min( arraySize, maxRemoves ));
-      for( INDEX_TYPE j = 0 ; j < nToRemove ; ++j )
+      for( INDEX_TYPE j = 0; j < nToRemove; ++j )
       {
         INDEX_TYPE const removePosition = rand( 0, arraySize - j - 1 );
 
@@ -435,7 +435,7 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
     INDEX_TYPE const nArrays = m_array.size();
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       if( arraySize == 0 ) continue;
@@ -458,7 +458,7 @@ public:
     T const * const values = m_array[0];
 
     INDEX_TYPE curOffset = 0;
-    for( INDEX_TYPE i = 0 ; i < m_array.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), m_array.capacityOfArray( i ));
 
@@ -478,7 +478,7 @@ public:
     T const * const values = m_array[0];
     T const * const endValues = m_array[m_array.size() - 1];
 
-    for( INDEX_TYPE i = 0 ; i < m_array.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       fillArray( i );
     }
@@ -495,7 +495,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_array.toViewCC(), m_ref );
 
-    for( INDEX_TYPE i = 0 ; i < m_array.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       INDEX_TYPE const capacity = m_array.capacityOfArray( i );
       INDEX_TYPE const newCapacity = rand( 0, maxCapacity );
@@ -527,7 +527,7 @@ public:
 
     ASSERT_EQ( m_array.size(), copy.size());
 
-    for( INDEX_TYPE i = 0 ; i < m_array.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       ASSERT_EQ( arraySize, copy.sizeOfArray( i ));
@@ -536,7 +536,7 @@ public:
       T const * const valuesCopy = copy[i];
       ASSERT_NE( values, valuesCopy );
 
-      for( INDEX_TYPE j = 0 ; j < arraySize ; ++j )
+      for( INDEX_TYPE j = 0; j < arraySize; ++j )
       {
         ASSERT_EQ( m_array[i][j], copy[i][j] );
         copy[i][j] = T( -i * LARGE_NUMBER - j );
@@ -552,7 +552,7 @@ public:
 
     ASSERT_EQ( m_array.size(), copy.size());
 
-    for( INDEX_TYPE i = 0 ; i < m_array.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       ASSERT_EQ( arraySize, copy.sizeOfArray( i ));
@@ -560,7 +560,7 @@ public:
       T const * const valuesCopy = copy[i];
       ASSERT_EQ( values, valuesCopy );
 
-      for( INDEX_TYPE j = 0 ; j < arraySize ; ++j )
+      for( INDEX_TYPE j = 0; j < arraySize; ++j )
       {
         ASSERT_EQ( m_array[i][j], copy[i][j] );
 
@@ -582,7 +582,7 @@ protected:
     T const * const endValues = m_array[m_array.size() - 1];
     INDEX_TYPE const capacity = m_array.capacityOfArray( i );
 
-    for( INDEX_TYPE j = 0 ; j < nToAppend ; ++j )
+    for( INDEX_TYPE j = 0; j < nToAppend; ++j )
     {
       T const valueToAppend( LARGE_NUMBER * i + j );
       m_array.appendToArray( i, valueToAppend );
@@ -629,7 +629,7 @@ TYPED_TEST( ArrayOfArraysTest, sizedConstruction )
   ASSERT_EQ( a.size(), 10 );
   ASSERT_EQ( a.capacity(), 10 );
 
-  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < a.size(); ++i )
   {
     ASSERT_EQ( a.sizeOfArray( i ), 0 );
     ASSERT_EQ( a.capacityOfArray( i ), 0 );
@@ -642,7 +642,7 @@ TYPED_TEST( ArrayOfArraysTest, sizedHintConstruction )
   ASSERT_EQ( a.size(), 10 );
   ASSERT_EQ( a.capacity(), 10 );
 
-  for( INDEX_TYPE i = 0 ; i < a.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < a.size(); ++i )
   {
     ASSERT_EQ( a.sizeOfArray( i ), 0 );
     ASSERT_EQ( a.capacityOfArray( i ), 20 );
@@ -661,7 +661,7 @@ TYPED_TEST( ArrayOfArraysTest, appendArray2 )
 
 TYPED_TEST( ArrayOfArraysTest, insertArray )
 {
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->insertArray( 100, 10 );
   }
@@ -669,7 +669,7 @@ TYPED_TEST( ArrayOfArraysTest, insertArray )
 
 TYPED_TEST( ArrayOfArraysTest, eraseArray )
 {
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendArray( 100, 10 );
     this->eraseArray( this->m_array.size() / 2 );
@@ -678,7 +678,7 @@ TYPED_TEST( ArrayOfArraysTest, eraseArray )
 
 TYPED_TEST( ArrayOfArraysTest, resize )
 {
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->insertArray( 100, 10 );
     this->resize();
@@ -689,7 +689,7 @@ TYPED_TEST( ArrayOfArraysTest, resizeArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->resizeArray( 10 );
   }
@@ -699,7 +699,7 @@ TYPED_TEST( ArrayOfArraysTest, appendToArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
   }
@@ -730,7 +730,7 @@ TYPED_TEST( ArrayOfArraysTest, appendMultipleToArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendMultipleToArray( 10 );
   }
@@ -740,7 +740,7 @@ TYPED_TEST( ArrayOfArraysTest, insertIntoArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->insertIntoArray( 10 );
   }
@@ -750,7 +750,7 @@ TYPED_TEST( ArrayOfArraysTest, insertMultipleIntoArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->insertMultipleIntoArray( 10 );
   }
@@ -760,7 +760,7 @@ TYPED_TEST( ArrayOfArraysTest, eraseFromArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->eraseFromArray( 10 );
@@ -771,7 +771,7 @@ TYPED_TEST( ArrayOfArraysTest, removeMultipleFromArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->removeMultipleFromArray( 10 );
@@ -782,7 +782,7 @@ TYPED_TEST( ArrayOfArraysTest, compress )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->compress();
@@ -793,7 +793,7 @@ TYPED_TEST( ArrayOfArraysTest, capacity )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->resizeArray( 10 );
     this->fill();
@@ -804,7 +804,7 @@ TYPED_TEST( ArrayOfArraysTest, capacityOfArray )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->capacityOfArray( 30 );
   }
@@ -850,7 +850,7 @@ public:
             [view = m_array.toView()] __device__ ( INDEX_TYPE i )
         {
           INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
-          for( INDEX_TYPE j = 0 ; j < sizeOfArray ; ++j )
+          for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
           {
             LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
             view[i][j] += T( 1 );
@@ -860,9 +860,9 @@ public:
             );
 
     // Update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < m_ref[i].size() ; ++j )
+      for( INDEX_TYPE j = 0; j < m_ref[i].size(); ++j )
       {
         m_ref[i][j] += T( 1 );
         m_ref[i][j] += T( 1 );
@@ -889,7 +889,7 @@ public:
             [view=m_array.toViewC()] __device__ ( INDEX_TYPE i )
         {
           INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
-          for( INDEX_TYPE j = 0 ; j < sizeOfArray ; ++j )
+          for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
           {
             LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
             view[i][j] += T( 1 );
@@ -899,9 +899,9 @@ public:
             );
 
     // Update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < m_ref[i].size() ; ++j )
+      for( INDEX_TYPE j = 0; j < m_ref[i].size(); ++j )
       {
         m_ref[i][j] += T( 1 );
         m_ref[i][j] += T( 1 );
@@ -921,7 +921,7 @@ public:
     Array1D< Array1D< T > > valuesToAppend( nArrays );
 
     // Populate the valuesToAppend array and append the values to the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE maxAppends = m_array.capacityOfArray( i ) - arraySize;
@@ -929,7 +929,7 @@ public:
 
       valuesToAppend[i].resize( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
         m_ref[i].push_back( value );
@@ -941,7 +941,7 @@ public:
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), toAppend=valuesToAppend.toViewConst()] __device__ ( INDEX_TYPE i )
         {
-          for( INDEX_TYPE j = 0 ; j < toAppend[i].size() ; ++j )
+          for( INDEX_TYPE j = 0; j < toAppend[i].size(); ++j )
           {
             view.appendToArray( i, toAppend[i][j] );
           }
@@ -957,7 +957,7 @@ public:
   {
     INDEX_TYPE const nArrays = m_array.size();
 
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), 0 );
     }
@@ -965,9 +965,9 @@ public:
     forall( gpu(), 0, numThreads,
             [view=m_array.toView(), nArrays, appendsPerArrayPerThread] __device__ ( INDEX_TYPE const threadNum )
         {
-          for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+          for( INDEX_TYPE i = 0; i < nArrays; ++i )
           {
-            for( INDEX_TYPE j = 0 ; j < appendsPerArrayPerThread ; ++j )
+            for( INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j )
             {
               T const value = T( i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j );
               view.atomicAppendToArray( RAJA::auto_atomic{}, i, value );
@@ -979,7 +979,7 @@ public:
     // Now sort each array and check that the values are as expected.
     m_array.move( chai::CPU );
     INDEX_TYPE const appendsPerArray = numThreads * appendsPerArrayPerThread;
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       ASSERT_EQ( m_array.sizeOfArray( i ), appendsPerArray );
       ASSERT_LE( m_array.sizeOfArray( i ), m_array.capacityOfArray( i ));
@@ -987,7 +987,7 @@ public:
       T * const subArrayPtr = m_array[i];
       std::sort( subArrayPtr, subArrayPtr + appendsPerArray );
 
-      for( INDEX_TYPE j = 0 ; j < appendsPerArray ; ++j )
+      for( INDEX_TYPE j = 0; j < appendsPerArray; ++j )
       {
         T const value = T( i * LARGE_NUMBER + j );
         EXPECT_EQ( value, m_array( i, j )) << i << ", " << j;
@@ -1003,14 +1003,14 @@ public:
     Array1D< Array1D< T > > valuesToAppend( nArrays );
 
     // Populate the valuesToAppend array and update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const maxAppends = m_array.capacityOfArray( i ) - arraySize;
       INDEX_TYPE const nValues = rand( 0, maxAppends );
       valuesToAppend[i].resize( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
         m_ref[i].push_back( value );
@@ -1040,7 +1040,7 @@ public:
     Array1D< Array1D< INDEX_TYPE > > positionsToInsert( nArrays );
 
     // Populate the valuesToInsert and positionsToInsert arrays and update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const maxInserts = m_array.capacityOfArray( i ) - arraySize;
@@ -1048,7 +1048,7 @@ public:
       valuesToInsert[i].resize( nValues );
       positionsToInsert[i].resize( nValues );
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
 
@@ -1064,7 +1064,7 @@ public:
             [view=m_array.toView(), positions=positionsToInsert.toViewConst(), values=valuesToInsert.toViewConst()]
             __device__ ( INDEX_TYPE i )
         {
-          for( INDEX_TYPE j = 0 ; j < values[i].size() ; ++j )
+          for( INDEX_TYPE j = 0; j < values[i].size(); ++j )
           {
             view.insertIntoArray( i, positions[i][j], values[i][j] );
           }
@@ -1085,7 +1085,7 @@ public:
     Array1D< INDEX_TYPE > positionsToInsert( nArrays );
 
     // Populate the valuesToInsert and positionsToInsert arrays and update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const maxInserts = m_array.capacityOfArray( i ) - arraySize;
@@ -1095,7 +1095,7 @@ public:
       INDEX_TYPE const insertPos = rand( 0, arraySize );
       positionsToInsert[i] = insertPos;
 
-      for( INDEX_TYPE j = 0 ; j < nValues ; ++j )
+      for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( i * LARGE_NUMBER + arraySize + j );
         valuesToInsert[i][j] = value;
@@ -1126,13 +1126,13 @@ public:
     Array1D< Array1D< INDEX_TYPE > > positionsToRemove( nArrays );
 
     // Populate the positionsToRemove array and update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       INDEX_TYPE const nToRemove = rand( 0, min( arraySize, maxRemoves ));
       positionsToRemove[i].resize( nToRemove );
 
-      for( INDEX_TYPE j = 0 ; j < nToRemove ; ++j )
+      for( INDEX_TYPE j = 0; j < nToRemove; ++j )
       {
         INDEX_TYPE const removePosition = rand( 0, arraySize - j - 1 );
         m_ref[i].erase( m_ref[i].begin() + removePosition );
@@ -1145,7 +1145,7 @@ public:
             [view=m_array.toView(), positions=positionsToRemove.toViewConst()]
             __device__ ( INDEX_TYPE i )
         {
-          for( INDEX_TYPE j = 0 ; j < positions[i].size() ; ++j )
+          for( INDEX_TYPE j = 0; j < positions[i].size(); ++j )
           {
             view.eraseFromArray( i, positions[i][j] );
           }
@@ -1165,7 +1165,7 @@ public:
     Array2D< INDEX_TYPE > removals( nArrays, 2 );
 
     // Populate the removals array and update the reference.
-    for( INDEX_TYPE i = 0 ; i < nArrays ; ++i )
+    for( INDEX_TYPE i = 0; i < nArrays; ++i )
     {
       INDEX_TYPE const arraySize = m_array.sizeOfArray( i );
       if( arraySize == 0 ) continue;
@@ -1208,7 +1208,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, memoryMotion )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 30 );
     this->memoryMotion();
@@ -1219,7 +1219,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, memoryMotionMove )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 30 );
     this->memoryMotionMove();
@@ -1230,7 +1230,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, append )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->appendDevice();
@@ -1250,7 +1250,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, appendMultiple )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->appendMultipleDevice();
@@ -1261,7 +1261,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, insert )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->insertDevice();
@@ -1272,7 +1272,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, insertMultiple )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->insertMultipleDevice();
@@ -1283,7 +1283,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, remove )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->removeDevice( 10 );
@@ -1294,7 +1294,7 @@ TYPED_TEST( ArrayOfArraysCudaTest, removeMultiple )
 {
   this->resize( 100 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
     this->appendToArray( 10 );
     this->removeMultipleDevice( 10 );

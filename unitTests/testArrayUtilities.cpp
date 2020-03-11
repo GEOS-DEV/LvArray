@@ -119,13 +119,13 @@ TEST( testArrayUtilities, stringToArray3d )
   int numI = 4;
   int numJ = 5;
   int numK = 3;
-  for( int i=0 ; i<4 ; ++i )
+  for( int i=0; i<4; ++i )
   {
     input += "{ ";
-    for( int j=0 ; j<5 ; ++j )
+    for( int j=0; j<5; ++j )
     {
       input += "{ ";
-      for( int k=0 ; k<3 ; ++k )
+      for( int k=0; k<3; ++k )
       {
         input += std::to_string( i*2+j*3+k*4 );
         if( k<(numK-1) )
@@ -154,11 +154,11 @@ TEST( testArrayUtilities, stringToArray3d )
   ASSERT_EQ( array.size( 1 ), numJ );
   ASSERT_EQ( array.size( 2 ), numK );
 
-  for( int i=0 ; i<array.size( 0 ) ; ++i )
+  for( int i=0; i<array.size( 0 ); ++i )
   {
-    for( int j=0 ; j<array.size( 1 ) ; ++j )
+    for( int j=0; j<array.size( 1 ); ++j )
     {
-      for( int k=0 ; k<array.size( 2 ) ; ++k )
+      for( int k=0; k<array.size( 2 ); ++k )
       {
         ASSERT_EQ( array[i][j][k], i*2+j*3+k*4 );
       }
@@ -172,11 +172,11 @@ TEST( testArrayUtilities, arrayToString )
 {
   LvArray::Array< int, 3 > array( 2, 4, 3 );
 
-  for( int i=0 ; i<2 ; ++i )
+  for( int i=0; i<2; ++i )
   {
-    for( int j=0 ; j<4 ; ++j )
+    for( int j=0; j<4; ++j )
     {
-      for( int k=0 ; k<3 ; ++k )
+      for( int k=0; k<3; ++k )
       {
         array[i][j][k] = i*100 + j*10 + k;
       }

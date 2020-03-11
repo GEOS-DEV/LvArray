@@ -85,7 +85,7 @@ void destroy( T * const LVARRAY_RESTRICT ptr,
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
+  for( std::ptrdiff_t i = 0; i < size; ++i )
   {
     ptr[ i ].~T();
   }
@@ -109,7 +109,7 @@ void uninitializedCopy( T * const LVARRAY_RESTRICT dst,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( src != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
+  for( std::ptrdiff_t i = 0; i < size; ++i )
   {
     new (dst + i) T( src[ i ] );
   }
@@ -133,7 +133,7 @@ void uninitializedMove( T * const LVARRAY_RESTRICT dst,
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( src != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
+  for( std::ptrdiff_t i = 0; i < size; ++i )
   {
     new (dst + i) T( std::move( src[ i ] ) );
   }
@@ -160,7 +160,7 @@ void uninitializedShiftDown( T * const LVARRAY_RESTRICT ptr,
   if( amount == 0 )
     return;
 
-  for( std::ptrdiff_t j = 0 ; j < size ; ++j )
+  for( std::ptrdiff_t j = 0; j < size; ++j )
   {
     new ( ptr + j - amount ) T( std::move( ptr[ j ] ) );
     ptr[ j ].~T();
@@ -188,7 +188,7 @@ void uninitializedShiftUp( T * const LVARRAY_RESTRICT ptr,
   if( amount == 0 )
     return;
 
-  for( std::ptrdiff_t j = size - 1 ; j >= 0 ; --j )
+  for( std::ptrdiff_t j = size - 1; j >= 0; --j )
   {
     new ( ptr + amount + j ) T( std::move( ptr[ j ] ) );
     ptr[ j ].~T();
@@ -220,7 +220,7 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   destroy( ptr + newSize, size - newSize );
 
   // Initialize things between size and newSize.
-  for( std::ptrdiff_t i = size ; i < newSize ; ++i )
+  for( std::ptrdiff_t i = size; i < newSize; ++i )
   {
     new ( ptr + i ) T( std::forward< ARGS >( args )... );
   }
@@ -252,7 +252,7 @@ void shiftUp( T * const LVARRAY_RESTRICT ptr,
     return;
 
   // Move the existing values up by n.
-  for( std::ptrdiff_t i = size ; i > index ; --i )
+  for( std::ptrdiff_t i = size; i > index; --i )
   {
     std::ptrdiff_t const curIndex = i - 1;
     new ( ptr + curIndex + n ) T( std::move( ptr[ curIndex ] ) );
@@ -287,7 +287,7 @@ void emplace( T * const LVARRAY_RESTRICT ptr,
   shiftUp( ptr, size, index, n );
 
   // Initialize the empty values to the default value.
-  for( std::ptrdiff_t i = index ; i < index + n ; ++i )
+  for( std::ptrdiff_t i = index; i < index + n; ++i )
   {
     new( ptr + i ) T( defaultValue );
   }
@@ -320,7 +320,7 @@ void shiftDown( T * const LVARRAY_RESTRICT ptr,
     return;
 
   // Move the existing down by n.
-  for( std::ptrdiff_t i = index ; i < size ; ++i )
+  for( std::ptrdiff_t i = index; i < size; ++i )
   {
     ptr[i - n] = std::move( ptr[i] );
   }
@@ -415,7 +415,7 @@ void append( T * const LVARRAY_RESTRICT ptr,
   LVARRAY_ASSERT( isPositive( n ) );
   LVARRAY_ASSERT( values != nullptr || n == 0 );
 
-  for( std::ptrdiff_t i = 0 ; i < n ; ++i )
+  for( std::ptrdiff_t i = 0; i < n; ++i )
   {
     new ( ptr + size + i ) T( values[i] );
   }
@@ -494,7 +494,7 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 
   shiftUp( ptr, size, index, n );
 
-  for( std::ptrdiff_t i = 0 ; i < n ; ++i )
+  for( std::ptrdiff_t i = 0; i < n; ++i )
   {
     new ( ptr + index + i ) T( values[ i ] );
   }

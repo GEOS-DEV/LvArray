@@ -62,7 +62,7 @@ void compare_to_reference( const array< T > & v, const std::vector< T > & v_ref 
     return;
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], v_ref[ i ] );
     ASSERT_EQ( v( i ), v_ref[ i ] );
@@ -70,7 +70,7 @@ void compare_to_reference( const array< T > & v, const std::vector< T > & v_ref 
 
   const T * v_ptr = v.data();
   const T * ref_ptr = v_ref.data();
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -94,7 +94,7 @@ void compare_to_reference( const array< array< T > > & v,
     return;
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     compare_to_reference( v[ i ], v_ref[ i ] );
   }
@@ -111,7 +111,7 @@ void compare_to_view( array< T > const & v, arrayView< T > const & v_view )
     return;
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], v_view[ i ] );
     ASSERT_EQ( v( i ), v_view( i ) );
@@ -119,7 +119,7 @@ void compare_to_view( array< T > const & v, arrayView< T > const & v_view )
 
   const T * v_ptr = v.data();
   const T * ref_ptr = v_view.data();
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v_ptr[ i ], ref_ptr[ i ] );
   }
@@ -141,11 +141,11 @@ void compare_to_view( array2D< T > const & v, arrayView2D< T > const & v_view )
   INDEX_TYPE pos = 0;
   const T * v_ptr = v.data();
   const T * ref_ptr = v_view.data();
-  for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
   {
     const T * v_ptr_cur = v.data();
     const T * ref_ptr_cur = v_view.data();
-    for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
+    for( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_view[ i ][ j ] );
       ASSERT_EQ( v( i, j ), v_view( i, j ) );
@@ -168,9 +168,9 @@ void create_2D_test( array2D< T > & v, INDEX_TYPE N, INDEX_TYPE M )
   EXPECT_EQ( v.size( 1 ), M );
 
   INDEX_TYPE pos = 0;
-  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  for( INDEX_TYPE i = 0; i < N; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < M ; ++j )
+    for( INDEX_TYPE j = 0; j < M; ++j )
     {
       v[i][j] = T( pos );
       pos++;
@@ -179,9 +179,9 @@ void create_2D_test( array2D< T > & v, INDEX_TYPE N, INDEX_TYPE M )
 
   pos = 0;
   T const * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < N ; ++i )
+  for( INDEX_TYPE i = 0; i < N; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < M ; ++j )
+    for( INDEX_TYPE j = 0; j < M; ++j )
     {
       const T value = T( pos );
       EXPECT_EQ( v[i][j], value );
@@ -204,7 +204,7 @@ std::vector< T > push_back_test( array< T > & v, INDEX_TYPE n )
   EXPECT_TRUE( v.empty() );
 
   std::vector< T > v_ref;
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     const T & val = T( i );
     v.push_back( val );
@@ -230,9 +230,9 @@ push_back_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   std::vector< std::vector< T > > v_ref;
   array< T > v_append( m );
   std::vector< T > v_ref_append( m );
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       const T val = T( m * i + j );
       v_append[ j ] = val;
@@ -261,9 +261,9 @@ std::vector< T > insert_test( array< T > & v, INDEX_TYPE n, INDEX_TYPE m )
 
   std::vector< T > v_ref;
   std::vector< T > v_insert( m );
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       v_insert[ j ] = T( m * i + j );
     }
@@ -305,16 +305,16 @@ insert_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m, INDEX_TY
   std::vector< std::vector< T > > v_ref;
   array< array< T > > v_insert;
   std::vector< std::vector< T > > v_ref_insert;
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     v_insert.clear();
     v_ref_insert.clear();
 
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       array< T > temp( p );
       std::vector< T > temp_ref( p );
-      for( INDEX_TYPE k = 0 ; k < p ; ++k )
+      for( INDEX_TYPE k = 0; k < p; ++k )
       {
         const T val = T( m * p * i + p * j + k );
         temp[ k ] = val;
@@ -353,7 +353,7 @@ template< class T, class U >
 void erase_test( array< T > & v, std::vector< U > & v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
-  for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
+  for( INDEX_TYPE i = 0; i < n_elems; ++i )
   {
     if( i % 3 == 0 )    /* erase the beginning. */
     {
@@ -390,7 +390,7 @@ template< class T, class U >
 void pop_back_test( array< T > & v, std::vector< U > & v_ref )
 {
   const INDEX_TYPE n_elems = v.size();
-  for( INDEX_TYPE i = 0 ; i < n_elems ; ++i )
+  for( INDEX_TYPE i = 0; i < n_elems; ++i )
   {
     v.pop_back();
     v_ref.pop_back();
@@ -421,7 +421,7 @@ void resize_test( array< T > & v, INDEX_TYPE const n )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
     ASSERT_EQ( data_ptr[ i ], T() );
     const T val = T( i );
@@ -436,7 +436,7 @@ void resize_test( array< T > & v, INDEX_TYPE const n )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 4; ++i )
   {
     ASSERT_EQ( v[ i ], T( i ) );
   }
@@ -446,13 +446,13 @@ void resize_test( array< T > & v, INDEX_TYPE const n )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     const T val = T( 2 * i );
     v[ i ] = val;
   }
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     ASSERT_EQ( v[ i ], T( 2 * i ) );
   }
@@ -469,7 +469,7 @@ void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
     const T val = T( i );
     data_ptr[ i ] = val;
@@ -483,7 +483,7 @@ void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 4; ++i )
   {
     ASSERT_EQ( v[ i ], T( i ) );
   }
@@ -493,13 +493,13 @@ void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     const T val = T( 2 * i );
     v[ i ] = val;
   }
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     ASSERT_EQ( v[ i ], T( 2 * i ) );
   }
@@ -521,9 +521,9 @@ void resize_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T > * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       data_ptr[ i ].push_back( T( m * i + j ) );
     }
@@ -537,9 +537,9 @@ void resize_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.size(), n / 4 );
   ASSERT_EQ( v.capacity(), n / 2 );
 
-  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 4; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
@@ -550,26 +550,26 @@ void resize_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.size(), n );
   ASSERT_EQ( v.capacity(), n );
 
-  for( INDEX_TYPE i = 0 ; i < n / 4 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 4; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       v[ i ][ j ] = T( 2 * ( m * i + j ) );
     }
   }
 
-  for( INDEX_TYPE i = n / 4 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 4; i < n; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       v[ i ].push_back( T( 2 * ( m * i + j ) ) );
     }
   }
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     ASSERT_EQ( v[ i ].size(), m );
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( 2 * ( m * i + j ) ) );
     }
@@ -592,7 +592,7 @@ void reserve_test( array< T > & v, INDEX_TYPE n )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   T * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
     v.push_back( T( i ) );
   }
@@ -605,13 +605,13 @@ void reserve_test( array< T > & v, INDEX_TYPE n )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
     ASSERT_EQ( v[ i ], T( i ) );
   }
 
   data_ptr = v.data();
-  for( INDEX_TYPE i = n / 2 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 2; i < n; ++i )
   {
     v.push_back( T ( i ) );
   }
@@ -619,7 +619,7 @@ void reserve_test( array< T > & v, INDEX_TYPE n )
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
     ASSERT_EQ( v[ i ], T( i ) );
   }
@@ -641,10 +641,10 @@ void reserve_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.capacity(), n / 2 );
 
   array< T > * data_ptr = v.data();
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
     array< T > temp( m );
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       temp[ j ] = T( m * i + j );
     }
@@ -660,19 +660,19 @@ void reserve_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   ASSERT_EQ( v.size(), n / 2 );
   ASSERT_EQ( v.capacity(), n );
 
-  for( INDEX_TYPE i = 0 ; i < n / 2 ; ++i )
+  for( INDEX_TYPE i = 0; i < n / 2; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
   }
 
   data_ptr = v.data();
-  for( INDEX_TYPE i = n / 2 ; i < n ; ++i )
+  for( INDEX_TYPE i = n / 2; i < n; ++i )
   {
     array< T > temp( m );
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       temp[ j ] = T( m * i + j );
     }
@@ -683,9 +683,9 @@ void reserve_array_test( array< array< T > > & v, INDEX_TYPE n, INDEX_TYPE m )
   /* No reallocation should have occured. */
   ASSERT_EQ( data_ptr, v.data() );
 
-  for( INDEX_TYPE i = 0 ; i < n ; ++i )
+  for( INDEX_TYPE i = 0; i < n; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < m ; ++j )
+    for( INDEX_TYPE j = 0; j < m; ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( m * i + j ) );
     }
@@ -705,18 +705,18 @@ void deep_copy_test( const array< T > & v )
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], v_cpy[ i ] );
     ASSERT_EQ( v[ i ], T( i ) );
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     v_cpy[ i ] = T( 2 * i );
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v_cpy[ i ], T( 2 * i ) );
     ASSERT_EQ( v[ i ], T( i ) );
@@ -736,30 +736,30 @@ void deep_copy_array_test( const array< array< T > > & v )
 
   ASSERT_NE( v.data(), v_cpy.data() );
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0; j < v[ i ].size(); ++j )
     {
       ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
       ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
     }
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0; j < v[ i ].size(); ++j )
     {
       v_cpy[ i ][ j ] = T( 2 * ( v[ i ].size() * i + j ) );
     }
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0; j < v[ i ].size(); ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
       ASSERT_EQ( v_cpy[ i ][ j ], T( 2 * ( v[ i ].size() * i + j ) ) );
@@ -779,7 +779,7 @@ void shallow_copy_test( const array< T > & v )
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < v.size(); ++i )
     {
       ASSERT_EQ( v[ i ], v_cpy[ i ] );
       ASSERT_EQ( v[ i ], T( i ) );
@@ -787,7 +787,7 @@ void shallow_copy_test( const array< T > & v )
     }
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
     ASSERT_EQ( v[ i ], T( 2 * i ) );
   }
@@ -805,11 +805,11 @@ void shallow_copy_array_test( const array< array< T > > & v )
     ASSERT_EQ( v.size(), v_cpy.size() );
     ASSERT_EQ( v.data(), v_cpy.data() );
 
-    for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+    for( INDEX_TYPE i = 0; i < v.size(); ++i )
     {
       ASSERT_EQ( v[ i ].size(), v_cpy[ i ].size() );
 
-      for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
+      for( INDEX_TYPE j = 0; j < v[ i ].size(); ++j )
       {
         ASSERT_EQ( v[ i ][ j ], v_cpy[ i ][ j ] );
         ASSERT_EQ( v[ i ][ j ], T( v[ i ].size() * i + j ) );
@@ -818,9 +818,9 @@ void shallow_copy_array_test( const array< array< T > > & v )
     }
   }
 
-  for( INDEX_TYPE i = 0 ; i < v.size() ; ++i )
+  for( INDEX_TYPE i = 0; i < v.size(); ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < v[ i ].size() ; ++j )
+    for( INDEX_TYPE j = 0; j < v[ i ].size(); ++j )
     {
       ASSERT_EQ( v[ i ][ j ], T( 2 * ( v[ i ].size() * i + j ) ) );
     }
@@ -1258,9 +1258,9 @@ public:
   template< int USD >
   void print( ArrayView< T const, 2, USD > const & v )
   {
-    for( INDEX_TYPE i = 0 ; i < v.size( 0 ) ; ++i )
+    for( INDEX_TYPE i = 0; i < v.size( 0 ); ++i )
     {
-      for( INDEX_TYPE j = 0 ; j < v.size( 1 ) ; ++j )
+      for( INDEX_TYPE j = 0; j < v.size( 1 ); ++j )
       {
         std::cout << v( i, j ) << " ";
       }
@@ -1281,15 +1281,15 @@ public:
     INDEX_TYPE initialSizes[ NDIM ];
 
     // Iterate over randomly generated sizes.
-    for( int i = 0 ; i < 10 ; ++i )
+    for( int i = 0; i < 10; ++i )
     {
-      for( int d = 0 ; d < NDIM ; ++d )
+      for( int d = 0; d < NDIM; ++d )
       {
         initialSizes[ d ] = rand( 1, maxDimSize / 2 );
       }
 
       // Iterate over the dimensions
-      for( int d = 0 ; d < NDIM ; ++d )
+      for( int d = 0; d < NDIM; ++d )
       {
         a.setSingleParameterResizeIndex( d );
 
@@ -1340,7 +1340,7 @@ private:
                  INDEX_TYPE const * const initialSizes )
   {
     a.resize( NDIM, initialSizes );
-    for( int d = 0 ; d < NDIM ; ++d )
+    for( int d = 0; d < NDIM; ++d )
     {
       ASSERT_EQ( initialSizes[ d ], a.size( d ) );
     }

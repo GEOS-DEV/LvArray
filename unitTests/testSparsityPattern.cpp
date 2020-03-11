@@ -59,7 +59,7 @@ void compareToReference( ViewType< COL_TYPE const > const & v, std::vector< std:
   ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
 
   INDEX_TYPE ref_nnz = 0;
-  for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+  for( INDEX_TYPE row = 0; row < numRows; ++row )
   {
     INDEX_TYPE const rowNNZ = v.numNonZeros( row );
     INDEX_TYPE const refRowNNZ = m_ref[row].size();
@@ -78,7 +78,7 @@ void compareToReference( ViewType< COL_TYPE const > const & v, std::vector< std:
 
     auto it = m_ref[row].begin();
     COL_TYPE const * const columns = v.getColumns( row );
-    for( INDEX_TYPE i = 0 ; i < v.numNonZeros( row ) ; ++i )
+    for( INDEX_TYPE i = 0; i < v.numNonZeros( row ); ++i )
     {
       EXPECT_FALSE( v.empty( row, columns[i] ));
       EXPECT_EQ( columns[i], *it );
@@ -121,12 +121,12 @@ public:
     INDEX_TYPE const numRows = m_sp.numRows();
     ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), INDEX_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         COL_TYPE const col = randCol();
         ASSERT_EQ( refRow.insert( col ).second, m_sp.insertNonZero( row, col ));
@@ -147,12 +147,12 @@ public:
 
     std::vector< COL_TYPE > columns( maxInserts );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         columns[i] = randCol();
       }
@@ -177,12 +177,12 @@ public:
 
     std::vector< COL_TYPE > columns( maxInserts );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         columns[i] = randCol();
       }
@@ -206,12 +206,12 @@ public:
     INDEX_TYPE const numRows = m_sp.numRows();
     ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         COL_TYPE const col = randCol();
         ASSERT_EQ( m_sp.removeNonZero( row, col ), refRow.erase( col ));
@@ -232,18 +232,18 @@ public:
 
     std::vector< COL_TYPE > columns( maxRemoves );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         columns[i] = randCol();
       }
 
       m_sp.removeNonZeros( row, columns.data(), maxRemoves );
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         refRow.erase( columns[i] );
       }
@@ -265,19 +265,19 @@ public:
 
     std::vector< COL_TYPE > columns( maxRemoves );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       ASSERT_EQ( m_sp.numNonZeros( row ), COL_TYPE( refRow.size()));
 
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         columns[i] = randCol();
       }
 
       std::sort( columns.begin(), columns.end());
       m_sp.removeNonZeros( row, columns.data(), maxRemoves );
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         refRow.erase( columns[i] );
       }
@@ -296,14 +296,14 @@ public:
     INDEX_TYPE const numRows = m_sp.numRows();
     ASSERT_EQ( numRows, m_ref.size());
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > const & refRow = m_ref[row];
       INDEX_TYPE const nnz = m_sp.numNonZeros( row );
       ASSERT_EQ( nnz, refRow.size());
 
       auto it = refRow.begin();
-      for( INDEX_TYPE i = 0 ; i < nnz ; ++i )
+      for( INDEX_TYPE i = 0; i < nnz; ++i )
       {
         COL_TYPE const col = *it;
         EXPECT_FALSE( m_sp.empty( row, col ));
@@ -345,7 +345,7 @@ public:
     INDEX_TYPE const numRows = m_sp.numRows();
     ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       std::set< COL_TYPE > & refRow = m_ref[row];
       INDEX_TYPE const rowNNZ = m_sp.numNonZeros( row );
@@ -399,7 +399,7 @@ public:
     INDEX_TYPE const * const offsets = m_sp.getOffsets();
 
     INDEX_TYPE curOffset = 0;
-    for( INDEX_TYPE row = 0 ; row < m_sp.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_sp.numRows(); ++row )
     {
       // The last row will have all the extra capacity.
       if( row != m_sp.numRows() - 1 )
@@ -430,7 +430,7 @@ public:
 
     INDEX_TYPE const totalNNZ = m_sp.numNonZeros();
 
-    for( INDEX_TYPE row = 0 ; row < m_sp.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_sp.numRows(); ++row )
     {
       INDEX_TYPE const nnz = m_sp.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
@@ -440,7 +440,7 @@ public:
       ASSERT_NE( cols, cols_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1 ; i >= 0 ; --i )
+      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[i], cols_cpy[i] );
         copy.removeNonZero( row, cols_cpy[i] );
@@ -468,7 +468,7 @@ public:
     ASSERT_EQ( m_sp.numColumns(), copy.numColumns());
     ASSERT_EQ( m_sp.numNonZeros(), copy.numNonZeros());
 
-    for( INDEX_TYPE row = 0 ; row < m_sp.numRows() ; ++row )
+    for( INDEX_TYPE row = 0; row < m_sp.numRows(); ++row )
     {
       INDEX_TYPE const nnz = m_sp.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
@@ -478,7 +478,7 @@ public:
       ASSERT_EQ( cols, cols_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1 ; i >= 0 ; --i )
+      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[i], cols_cpy[i] );
         copy.removeNonZero( row, cols_cpy[i] );
@@ -520,7 +520,7 @@ TYPED_TEST( SparsityPatternTest, constructionNoHint )
   EXPECT_EQ( sp.numNonZeros(), 0 );
   EXPECT_TRUE( sp.empty());
 
-  for( INDEX_TYPE row = 0 ; row < NROWS ; ++row )
+  for( INDEX_TYPE row = 0; row < NROWS; ++row )
   {
     EXPECT_EQ( sp.numNonZeros( row ), 0 );
     EXPECT_EQ( sp.nonZeroCapacity( row ), 0 );
@@ -541,7 +541,7 @@ TYPED_TEST( SparsityPatternTest, constructionWithHint )
   EXPECT_EQ( sp.nonZeroCapacity(), NROWS * SIZE_HINT );
   EXPECT_TRUE( sp.empty());
 
-  for( INDEX_TYPE row = 0 ; row < NROWS ; ++row )
+  for( INDEX_TYPE row = 0; row < NROWS; ++row )
   {
     EXPECT_EQ( sp.numNonZeros( row ), 0 );
     EXPECT_EQ( sp.nonZeroCapacity( row ), SIZE_HINT );
@@ -555,7 +555,7 @@ TYPED_TEST( SparsityPatternTest, constructionWithHint )
 TYPED_TEST( SparsityPatternTest, insert )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( MAX_INSERTS );
   }
@@ -564,7 +564,7 @@ TYPED_TEST( SparsityPatternTest, insert )
 TYPED_TEST( SparsityPatternTest, insertMultiple )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertMultipleTest( MAX_INSERTS );
   }
@@ -573,7 +573,7 @@ TYPED_TEST( SparsityPatternTest, insertMultiple )
 TYPED_TEST( SparsityPatternTest, insertSorted )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertSortedTest( MAX_INSERTS );
   }
@@ -582,7 +582,7 @@ TYPED_TEST( SparsityPatternTest, insertSorted )
 TYPED_TEST( SparsityPatternTest, remove )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( MAX_INSERTS );
     this->removeTest( MAX_INSERTS );
@@ -592,7 +592,7 @@ TYPED_TEST( SparsityPatternTest, remove )
 TYPED_TEST( SparsityPatternTest, removeMultiple )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( MAX_INSERTS );
     this->removeMultipleTest( MAX_INSERTS );
@@ -602,7 +602,7 @@ TYPED_TEST( SparsityPatternTest, removeMultiple )
 TYPED_TEST( SparsityPatternTest, removeSorted )
 {
   this->resize( NROWS, NCOLS );
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertTest( MAX_INSERTS );
     this->removeSortedTest( MAX_INSERTS );
@@ -626,7 +626,7 @@ TYPED_TEST( SparsityPatternTest, capacity )
   ASSERT_EQ( this->m_sp.nonZeroCapacity(), 2 * NROWS * MAX_INSERTS );
   ASSERT_EQ( this->m_sp.numNonZeros(), 0 );
 
-  for( INDEX_TYPE row = 0 ; row < NROWS ; ++row )
+  for( INDEX_TYPE row = 0; row < NROWS; ++row )
   {
     ASSERT_EQ( this->m_sp.nonZeroCapacity( row ), 0 );
     ASSERT_EQ( this->m_sp.numNonZeros( row ), 0 );
@@ -689,11 +689,11 @@ public:
     // Set the columns. The const cast here isn't necessary, we could remove and insert
     // into the SparsityPattern instead, but this is quicker.
     INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const columns = m_sp.getColumns( row );
       COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-      for( INDEX_TYPE i = 0 ; i < m_sp.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_sp.numNonZeros( row ); ++i )
       {
         columnsNC[i] = COL_TYPE( curIndex++ );
       }
@@ -706,7 +706,7 @@ public:
         {
           COL_TYPE const * const columns = view.getColumns( row );
           COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             columnsNC[i] *= columns[i];
           }
@@ -718,7 +718,7 @@ public:
     forall( sequential(), 0, numRows,
             [view = m_sp.toView(), &curIndex]( INDEX_TYPE row )
     {
-      for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
       {
         COL_TYPE val = COL_TYPE( curIndex ) * COL_TYPE( curIndex );
         EXPECT_EQ( val, view.getColumns( row )[i] );
@@ -738,11 +738,11 @@ public:
     ViewType< COL_TYPE > const & view = m_sp;
 
     INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const columns = view.getColumns( row );
       COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-      for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
       {
         columnsNC[i] = COL_TYPE( curIndex++ );
       }
@@ -753,7 +753,7 @@ public:
         {
           COL_TYPE const * const columns = view.getColumns( row );
           COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             columnsNC[i] *= columns[i];
           }
@@ -762,9 +762,9 @@ public:
 
     m_sp.move( chai::CPU );
     curIndex = 0;
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < m_sp.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_sp.numNonZeros( row ); ++i )
       {
         COL_TYPE val = COL_TYPE( curIndex ) * COL_TYPE( curIndex );
         EXPECT_EQ( val, m_sp.getColumns( row )[i] );
@@ -786,7 +786,7 @@ public:
             [constView = m_sp.toViewC(), numCols] __device__ ( INDEX_TYPE row )
         {
           COL_TYPE const * const columns = constView.getColumns( row );
-          for( INDEX_TYPE i = 0 ; i < constView.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < constView.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
           }
@@ -794,7 +794,7 @@ public:
             );
 
     // Fill in the rows on host.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       this->fillRow( row );
     }
@@ -817,11 +817,11 @@ public:
     Array< COL_TYPE, 2 > columnsToInsert( numRows, maxInserts );
 
     // Reserve space in each row for the number of insertions and populate the columnsToInsert Array.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       m_sp.reserveNonZeros( row, m_sp.numNonZeros( row ) + maxInserts );
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         columnsToInsert( row, i ) = randCol();
       }
@@ -834,7 +834,7 @@ public:
             [vView = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts]
             __device__ ( INDEX_TYPE row )
         {
-          for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+          for( INDEX_TYPE i = 0; i < maxInserts; ++i )
           {
             vView.insertNonZero( row, insertView( row, i ));
           }
@@ -842,9 +842,9 @@ public:
             );
 
     // Insert the values into the reference.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         m_ref[row].insert( columnsToInsert( row, i ));
       }
@@ -866,11 +866,11 @@ public:
 
     Array< COL_TYPE, 2 > columnsToInsert( numRows, maxInserts );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       m_sp.reserveNonZeros( row, m_sp.numNonZeros( row ) + maxInserts );
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         columnsToInsert( row, i ) = randCol();
       }
@@ -886,7 +886,7 @@ public:
         }
             );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const colPtr = columnsToInsert[row];
       m_ref[row].insert( colPtr, colPtr + maxInserts );
@@ -907,11 +907,11 @@ public:
 
     Array< COL_TYPE, 2 > columnsToInsert( numRows, maxInserts );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       m_sp.reserveNonZeros( row, m_sp.numNonZeros( row ) + maxInserts );
 
-      for( INDEX_TYPE i = 0 ; i < maxInserts ; ++i )
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
       {
         columnsToInsert( row, i ) = randCol();
       }
@@ -930,7 +930,7 @@ public:
         }
             );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const colPtr = columnsToInsert[row];
       m_ref[row].insert( colPtr, colPtr + maxInserts );
@@ -953,9 +953,9 @@ public:
     Array< COL_TYPE, 2 > columnsToRemove( numRows, maxRemoves );
 
     // Initialize the columns to remove.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         columnsToRemove( row, i ) = randCol();
       }
@@ -966,7 +966,7 @@ public:
             [view = m_sp.toView(), removeView = columnsToRemove.toViewConst(), maxRemoves]
             __device__ ( INDEX_TYPE row )
         {
-          for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+          for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
           {
             view.removeNonZero( row, removeView( row, i ));
           }
@@ -974,9 +974,9 @@ public:
             );
 
     // Remove the columns from m_ref
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         m_ref[row].erase( columnsToRemove( row, i ));
       }
@@ -998,9 +998,9 @@ public:
 
     Array< COL_TYPE, 2 > columnsToRemove( numRows, maxRemoves );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         columnsToRemove( row, i ) = randCol();
       }
@@ -1014,9 +1014,9 @@ public:
         }
             );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         m_ref[row].erase( columnsToRemove( row, i ));
       }
@@ -1037,9 +1037,9 @@ public:
 
     Array< COL_TYPE, 2 > columnsToRemove( numRows, maxRemoves );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         columnsToRemove( row, i ) = randCol();
       }
@@ -1057,9 +1057,9 @@ public:
         }
             );
 
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
-      for( INDEX_TYPE i = 0 ; i < maxRemoves ; ++i )
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
       {
         m_ref[row].erase( columnsToRemove( row, i ));
       }
@@ -1078,11 +1078,11 @@ public:
     INDEX_TYPE const numRows = m_sp.numRows();
 
     // Initialize each row to only contain even numbered columns.
-    for( INDEX_TYPE row = 0 ; row < numRows ; ++row )
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       COL_TYPE const * const columns = m_sp.getColumns( row );
       COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-      for( INDEX_TYPE i = 0 ; i < m_sp.numNonZeros( row ) ; ++i )
+      for( INDEX_TYPE i = 0; i < m_sp.numNonZeros( row ); ++i )
       {
         columnsNC[i] = COL_TYPE( 2 * i );
       }
@@ -1092,7 +1092,7 @@ public:
     forall( gpu(), 0, numRows,
             [view = m_sp.toViewC()] __device__ ( INDEX_TYPE row )
         {
-          for( INDEX_TYPE i = 0 ; i < view.numNonZeros( row ) ; ++i )
+          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( view.empty( row, COL_TYPE( 2 * i )), "Row should contain even columns." );
             LVARRAY_ERROR_IF( !view.empty( row, COL_TYPE( 2 * i + 1 )), "Row should not contain odd columns." );
@@ -1135,7 +1135,7 @@ TYPED_TEST( SparsityPatternCudaTest, insertDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertDeviceTest( MAX_INSERTS );
   }
@@ -1145,7 +1145,7 @@ TYPED_TEST( SparsityPatternCudaTest, insertMultipleDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertMultipleDeviceTest( MAX_INSERTS );
   }
@@ -1155,7 +1155,7 @@ TYPED_TEST( SparsityPatternCudaTest, insertSortedDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertSortedDeviceTest( MAX_INSERTS );
   }
@@ -1165,7 +1165,7 @@ TYPED_TEST( SparsityPatternCudaTest, removeDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertSortedDeviceTest( MAX_INSERTS );
     this->removeDeviceTest( MAX_INSERTS );
@@ -1176,7 +1176,7 @@ TYPED_TEST( SparsityPatternCudaTest, removeMultipleDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertSortedDeviceTest( MAX_INSERTS );
     this->removeMultipleDeviceTest( MAX_INSERTS );
@@ -1187,7 +1187,7 @@ TYPED_TEST( SparsityPatternCudaTest, removeSortedDevice )
 {
   this->resize( NROWS, NCOLS );
 
-  for( int i = 0 ; i < 2 ; ++i )
+  for( int i = 0; i < 2; ++i )
   {
     this->insertSortedDeviceTest( MAX_INSERTS );
     this->removeSortedDeviceTest( MAX_INSERTS );

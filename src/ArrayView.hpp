@@ -117,7 +117,7 @@ public:
     m_dataBuffer{ source.m_dataBuffer },
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = source.m_dims[ i ];
       m_strides[ i ] = source.m_strides[ i ];
@@ -136,7 +136,7 @@ public:
     m_dataBuffer( std::move( source.m_dataBuffer ) ),
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = source.m_dims[ i ];
       m_strides[ i ] = source.m_strides[ i ];
@@ -156,7 +156,7 @@ public:
   {
     m_dataBuffer = rhs.m_dataBuffer;
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
       m_strides[ i ] = rhs.m_strides[ i ];
@@ -175,7 +175,7 @@ public:
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
     m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
       m_strides[ i ] = rhs.m_strides[ i ];
@@ -197,7 +197,7 @@ public:
   {
     INDEX_TYPE const length = size();
     T * const data_ptr = data();
-    for( INDEX_TYPE a = 0 ; a < length ; ++a )
+    for( INDEX_TYPE a = 0; a < length; ++a )
     {
       data_ptr[a] = rhs;
     }
@@ -446,7 +446,7 @@ public:
                       "Insufficient storage space to copy source (size="<<source.size()<<
                       ") into current array at specified offset ("<<offset<<")."<<
                       " Available space is equal to this->size() - offset = "<<this->size() - offset );
-    for( INDEX_TYPE i=0 ; i<source.size() ; ++i )
+    for( INDEX_TYPE i=0; i<source.size(); ++i )
     {
       data()[offset+i] = source.data()[i];
     }

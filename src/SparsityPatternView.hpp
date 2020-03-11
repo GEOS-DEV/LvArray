@@ -132,7 +132,7 @@ public:
   INDEX_TYPE_NC numNonZeros() const LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE_NC nnz = 0;
-    for( INDEX_TYPE_NC row = 0 ; row < numRows() ; ++row )
+    for( INDEX_TYPE_NC row = 0; row < numRows(); ++row )
     {
       nnz += numNonZeros( row );
     }
@@ -245,7 +245,7 @@ public:
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
     LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
@@ -272,7 +272,7 @@ public:
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
     LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
@@ -311,7 +311,7 @@ public:
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
     LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
@@ -333,7 +333,7 @@ public:
     LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
     LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0 ; i < ncols ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
     {
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }

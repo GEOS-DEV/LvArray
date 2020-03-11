@@ -257,11 +257,11 @@ public:
   isContiguous() const
   {
     bool rval = true;
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       if( i == _USD ) continue;
       INDEX_TYPE prod = 1;
-      for( int j = 0 ; j < NDIM ; ++j )
+      for( int j = 0; j < NDIM; ++j )
       {
         if( j != i ) prod *= m_dims[j];
       }
@@ -357,7 +357,7 @@ template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
 LVARRAY_HOST_DEVICE
 void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAMBDA && f )
 {
-  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
     forValuesInSlice( slice[ i ], f );
   }
@@ -399,7 +399,7 @@ void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const &
                                   LAMBDA && f,
                                   INDICES const ... indices )
 {
-  for( INDEX_TYPE i = 0 ; i < slice.size( 0 ) ; ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
     forValuesInSliceWithIndices( slice[ i ], f, indices ..., i );
   }

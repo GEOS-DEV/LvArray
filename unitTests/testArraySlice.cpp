@@ -78,7 +78,7 @@ TYPED_TEST( PermutedSliceTest, IsContiguous )
   // Create a permuted array and resize with nontrivial sizes
   Array< int, NDIM, PERMUTATION, int > a;
   std::array< int, NDIM > dims{};
-  for( int i = 0 ; i < NDIM ; ++i )
+  for( int i = 0; i < NDIM; ++i )
   {
     dims[i] = 2+i;
   }
@@ -89,7 +89,7 @@ TYPED_TEST( PermutedSliceTest, IsContiguous )
   bool const contiguous = RAJA::as_array< PERMUTATION >::get()[0] == 0;
 
   // There's no need to test all slices, but we might as well
-  for( int i = 0 ; i < dims[0] ; ++i )
+  for( int i = 0; i < dims[0]; ++i )
   {
     EXPECT_EQ( a[i].isContiguous(), contiguous );
   }

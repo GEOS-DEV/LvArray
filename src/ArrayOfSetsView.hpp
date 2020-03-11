@@ -157,7 +157,7 @@ public:
   void consistencyCheck() const LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const numSets = size();
-    for( INDEX_TYPE_NC i = 0 ; i < numSets ; ++i )
+    for( INDEX_TYPE_NC i = 0; i < numSets; ++i )
     {
       LVARRAY_ERROR_IF_GT( sizeOfSet( i ), capacityOfSet( i ));
 

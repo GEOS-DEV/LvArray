@@ -57,7 +57,8 @@ static const bool SET_TERMINATE = std::set_terminate( my_terminate );
    } sig_ucontext_t;
  */
 
-void crit_err_hdlr( int sig_num, siginfo_t * info, void * ucontext_inp ) {
+void crit_err_hdlr( int sig_num, siginfo_t * info, void * ucontext_inp )
+{
 
   //sig_ucontext_t * uc = (sig_ucontext_t *)ucontext;
   __darwin_ucontext64 * uc = (__darwin_ucontext64 *)ucontext_inp;
@@ -82,7 +83,7 @@ void crit_err_hdlr( int sig_num, siginfo_t * info, void * ucontext_inp ) {
   char * * messages = backtrace_symbols( array, size );
 
   // skip first stack frame (points here)
-  for( int i = 1 ; i < size && messages != NULL ; ++i )
+  for( int i = 1; i < size && messages != NULL; ++i )
   {
     std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
   }
@@ -93,7 +94,8 @@ void crit_err_hdlr( int sig_num, siginfo_t * info, void * ucontext_inp ) {
   exit( EXIT_FAILURE );
 }
 
-void my_terminate() {
+void my_terminate()
+{
   static bool tried_throw = false;
 
   try
@@ -121,7 +123,7 @@ void my_terminate() {
 
   char * * messages = backtrace_symbols( array, size );
 
-  for( int i = 0 ; i < size && messages != NULL ; ++i )
+  for( int i = 0; i < size && messages != NULL; ++i )
   {
     std::cerr << "[bt]: (" << i << ") " << messages[i] << std::endl;
   }
@@ -132,23 +134,27 @@ void my_terminate() {
   abort();
 }
 
-int throw_exception() {
+int throw_exception()
+{
   // throw an unhandled runtime error
   throw std::runtime_error( "RUNTIME ERROR!" );
   return 0;
 }
 
-int foo2() {
+int foo2()
+{
   throw_exception();
   return 0;
 }
 
-int foo1() {
+int foo1()
+{
   foo2();
   return 0;
 }
 
-int main( int argc, char * * argv ) {
+int main( int argc, char * * argv )
+{
   struct sigaction sigact;
 
   sigact.sa_sigaction = crit_err_hdlr;

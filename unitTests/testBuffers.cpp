@@ -55,7 +55,7 @@ void compareToReference( BUFFER_TYPE const & buffer,
   ASSERT_GE( buffer.capacity(), size );
 
   typename BUFFER_TYPE::value_type const * const ptr = buffer.data();
-  for( std::ptrdiff_t i = 0 ; i < size ; ++i )
+  for( std::ptrdiff_t i = 0; i < size; ++i )
   {
     ASSERT_EQ( &buffer[ i ], ptr + i );
     EXPECT_EQ( buffer[ i ], ref[ i ] );
@@ -213,7 +213,7 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0 ; i < size() ; ++i )
+    for( std::ptrdiff_t i = 0; i < size(); ++i )
     {
       T const v( randInt() );
       m_buffer[ i ] = v;
@@ -231,7 +231,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 0; i < nVals; ++i )
     {
       T const val( randInt() );
       bufferManipulation::pushBack( m_buffer, size(), val );
@@ -249,7 +249,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0 ; i < nVals ; ++i )
+    for( std::ptrdiff_t i = 0; i < nVals; ++i )
     {
       std::ptrdiff_t const seed = randInt();
       bufferManipulation::pushBack( m_buffer, size(), T( seed ) );
@@ -269,7 +269,7 @@ public:
 
     LVARRAY_ERROR_IF_GT( nToPop, size() );
 
-    for( std::ptrdiff_t i = 0 ; i < nToPop ; ++i )
+    for( std::ptrdiff_t i = 0; i < nToPop; ++i )
     {
       bufferManipulation::popBack( m_buffer, size() );
       m_ref.pop_back();
@@ -286,7 +286,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0 ; i < nToInsert ; ++i )
+    for( std::ptrdiff_t i = 0; i < nToInsert; ++i )
     {
       T const val( randInt() );
       std::ptrdiff_t const position = randInt( size() );
@@ -305,7 +305,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0 ; i < nToInsert ; ++i )
+    for( std::ptrdiff_t i = 0; i < nToInsert; ++i )
     {
       std::ptrdiff_t const seed = randInt();
       std::ptrdiff_t const position = randInt( size() );
@@ -333,7 +333,7 @@ public:
       std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
       std::ptrdiff_t const position = randInt( size() );
 
-      for( std::ptrdiff_t i = 0 ; i < nToInsertThisIter ; ++i )
+      for( std::ptrdiff_t i = 0; i < nToInsertThisIter; ++i )
       {
         valsToInsert[ i ] = T( randInt() );
       }
@@ -358,7 +358,7 @@ public:
 
     LVARRAY_ERROR_IF_GT( nToErase, size() );
 
-    for( std::ptrdiff_t i = 0 ; i < nToErase ; ++i )
+    for( std::ptrdiff_t i = 0; i < nToErase; ++i )
     {
       std::ptrdiff_t const position = randInt( size() - 1 );
       bufferManipulation::erase( m_buffer, size(), position );

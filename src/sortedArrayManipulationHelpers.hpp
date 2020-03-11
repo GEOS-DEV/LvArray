@@ -577,7 +577,7 @@ DISABLE_HD_WARNING
 template< class RandomAccessIterator, class Compare >
 LVARRAY_HOST_DEVICE inline void insertionSort( RandomAccessIterator first, std::ptrdiff_t const n, Compare comp )
 {
-  for( std::ptrdiff_t i = 1 ; i < n ; ++i )
+  for( std::ptrdiff_t i = 1; i < n; ++i )
   {
     if( comp( *(first + i), *first ))
     {

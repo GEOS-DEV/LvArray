@@ -194,7 +194,7 @@ public:
   {
     bufferManipulation::copyInto( m_dataBuffer, size(), rhs.m_dataBuffer, rhs.size() );
 
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
       m_strides[ i ] = rhs.m_strides[ i ];
@@ -212,7 +212,7 @@ public:
   Array & operator=( T const & rhs )
   {
     INDEX_TYPE const length = size();
-    for( INDEX_TYPE a = 0 ; a < length ; ++a )
+    for( INDEX_TYPE a = 0; a < length; ++a )
     {
       this->data()[a] = rhs;
     }
@@ -233,7 +233,7 @@ public:
     LVARRAY_ERROR_IF_NE( numDims, NDIM );
 
     INDEX_TYPE const oldSize = size();
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = dims[ i ];
     }
@@ -565,16 +565,16 @@ private:
     constexpr std::array< camp::idx_t, NDIM > permutation = RAJA::as_array< PERMUTATION >::get();
     std::array< INDEX_TYPE, NDIM > foldedStrides;
 
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       foldedStrides[ i ] = 1;
-      for( int j = i + 1 ; j < NDIM ; ++j )
+      for( int j = i + 1; j < NDIM; ++j )
       {
         foldedStrides[ i ] *= m_dims[ permutation[ j ] ];
       }
     }
 
-    for( int i = 0 ; i < NDIM ; ++i )
+    for( int i = 0; i < NDIM; ++i )
     {
       m_strides[ permutation[ i ] ] = foldedStrides[ i ];
     }
@@ -618,7 +618,7 @@ private:
       INDEX_TYPE const numIterations = ( newSize - curSize ) / valuesToAddPerIteration;
 
       // Iterate backwards over the iterations.
-      for( INDEX_TYPE i = numIterations - 1 ; i >= 0 ; --i )
+      for( INDEX_TYPE i = numIterations - 1; i >= 0; --i )
       {
         // First shift the values up to make remove for the values of subsequent iterations.
         // This step is a no-op on the last iteration (i=0).
@@ -628,7 +628,7 @@ private:
 
         // Initialize the new values.
         T * const startOfNewValues = startOfShift + valuesToShiftPerIteration + valuesLeftToInsert;
-        for( INDEX_TYPE j = 0 ; j < valuesToAddPerIteration ; ++j )
+        for( INDEX_TYPE j = 0; j < valuesToAddPerIteration; ++j )
         {
           new ( startOfNewValues + j ) T( std::forward< ARGS >( args )... );
         }
@@ -645,7 +645,7 @@ private:
       INDEX_TYPE const numIterations = ( curSize - newSize ) / valuesToRemovePerIteration;
 
       // Iterate over the iterations, skipping the first.
-      for( INDEX_TYPE i = 1 ; i < numIterations ; ++i )
+      for( INDEX_TYPE i = 1; i < numIterations; ++i )
       {
         INDEX_TYPE const amountToShift = valuesToRemovePerIteration * i;
         T * const startOfShift = ptr + valuesToShiftPerIteration * i;
@@ -655,7 +655,7 @@ private:
       // After the iterations are complete all the values to remove have been moved to the end of the array.
       // We destroy them here.
       INDEX_TYPE const totalValuesToRemove = valuesToRemovePerIteration * numIterations;
-      for( INDEX_TYPE i = 0 ; i < totalValuesToRemove ; ++i )
+      for( INDEX_TYPE i = 0; i < totalValuesToRemove; ++i )
       {
         ptr[ newSize + i ].~T();
       }

@@ -92,7 +92,7 @@ public:
     m_pointer_record->m_size = 0;
     setName( "" );
 
-    for( int space = chai::CPU ; space < chai::NUM_EXECUTION_SPACES ; ++space )
+    for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
     {
       m_pointer_record->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ));
     }
@@ -157,7 +157,7 @@ public:
     newRecord->m_size = newCapacity * sizeof( T );
     newRecord->m_user_callback = m_pointer_record->m_user_callback;
 
-    for( int space = chai::CPU ; space < chai::NUM_EXECUTION_SPACES ; ++space )
+    for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
     {
       newRecord->m_allocators[ space ] = m_pointer_record->m_allocators[ space ];
     }
@@ -300,7 +300,7 @@ private:
     chai::ExecutionSpace const prevSpace = internal::getArrayManager().getExecutionSpace();
     internal::getArrayManager().setExecutionSpace( space );
 
-    for( std::ptrdiff_t i = 0 ; i < m_capacity ; ++i )
+    for( std::ptrdiff_t i = 0; i < m_capacity; ++i )
     {
       const_cast< T_non_const * >( m_pointer )[ i ] = T( m_pointer[ i ] );
     }

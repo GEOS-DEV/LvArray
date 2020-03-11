@@ -56,7 +56,7 @@ std::string demangle( char * backtraceString, int frame )
    * character */
   constexpr int APPLE_OFFSET = 58;
   mangledName = backtraceString + APPLE_OFFSET;
-  for( char * p = backtraceString ; *p ; ++p )
+  for( char * p = backtraceString; *p; ++p )
   {
     if( *p == '+' )
     {
@@ -65,7 +65,7 @@ std::string demangle( char * backtraceString, int frame )
     returnOffset = p;
   }
 #else
-  for( char * p = backtraceString ; *p ; ++p )
+  for( char * p = backtraceString; *p; ++p )
   {
     if( *p == '(' )
     {
@@ -137,7 +137,7 @@ std::string stackTrace( )
   // skip first stack frame (points here)
   std::ostringstream oss;
   oss << "\n** StackTrace of " << size - 1 << " frames **\n";
-  for( int i = 1 ; i < size && strings != nullptr ; ++i )
+  for( int i = 1; i < size && strings != nullptr; ++i )
   {
     oss << internal::demangle( strings[ i ], i );
   }

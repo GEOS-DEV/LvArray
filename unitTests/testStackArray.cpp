@@ -32,7 +32,7 @@ TEST( StackArray, allocate1d )
   stackArray< int, 1, 100 > array1d;
   array1d.resize( 10 );
 
-  for( int i=0 ; i<10 ; ++i )
+  for( int i=0; i<10; ++i )
   {
     array1d[i] = i;
     ASSERT_TRUE( array1d.data()[i] == i );
@@ -45,9 +45,9 @@ TEST( StackArray, allocate2d )
 {
   stackArray< int, 2, 100 > array2d( 10, 10 );
 
-  for( int i=0 ; i<10 ; ++i )
+  for( int i=0; i<10; ++i )
   {
-    for( int j=0 ; j<10 ; ++j )
+    for( int j=0; j<10; ++j )
     {
       array2d[i][j] = 10*i+j;
 
@@ -63,9 +63,9 @@ TEST( StackArray, BoundsCheck2d )
 {
   stackArray< int, 2, 100 > array2d( 10, 10 );
 
-  for( int i=0 ; i<10 ; ++i )
+  for( int i=0; i<10; ++i )
   {
-    for( int j=0 ; j<10 ; ++j )
+    for( int j=0; j<10; ++j )
     {
       array2d[i][j] = 10*i+j;
     }

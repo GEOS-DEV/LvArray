@@ -40,9 +40,9 @@ void outerProduct( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
   LVARRAY_ASSERT_EQ( b.size(), 3 );
   LVARRAY_ASSERT_EQ( c.size(), 3 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < 3 ; ++j )
+    for( INDEX_TYPE j = 0; j < 3; ++j )
     {
       a( i, j ) = b( i ) * c( j );
     }
@@ -60,9 +60,9 @@ void outerProductPE( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
   LVARRAY_ASSERT_EQ( b.size(), 3 );
   LVARRAY_ASSERT_EQ( c.size(), 3 );
 
-  for( INDEX_TYPE i = 0 ; i < 3 ; ++i )
+  for( INDEX_TYPE i = 0; i < 3; ++i )
   {
-    for( INDEX_TYPE j = 0 ; j < 3 ; ++j )
+    for( INDEX_TYPE j = 0; j < 3; ++j )
     {
       a( i, j ) = a( i, j ) + b( i ) * c( j );
     }
