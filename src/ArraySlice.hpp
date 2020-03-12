@@ -167,8 +167,8 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, USD >::multiply( index,
-                                                                                                         m_strides[ 0 ] ), m_dims + 1,
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ),
+                                                       m_dims + 1,
                                                        m_strides + 1 );
   }
 
@@ -244,6 +244,55 @@ public:
   bool operator==( T const * const ptr ) const
   {
     return m_data == ptr;
+  }
+
+  /**
+   * @brief Check if the slice is contiguous in memory
+   * @tparam _USD dummy template parameter equal to USD; do not replace
+   * @return @p true if represented slice is contiguous in memory
+   */
+  template< int _USD = USD >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  std::enable_if_t< ( _USD >= 0), bool >
+  isContiguous() const
+  {
+    bool rval = true;
+    for( int i = 0 ; i < NDIM ; ++i )
+    {
+      if( i == _USD ) continue;
+      INDEX_TYPE prod = 1;
+      for( int j = 0 ; j < NDIM ; ++j )
+      {
+        if( j != i ) prod *= m_dims[j];
+      }
+      rval &= (m_strides[i] <= prod);
+    }
+    return rval;
+  }
+
+  /**
+   * @brief Check if the slice is contiguous in memory
+   * @tparam USD_ dummy template parameter equal to USD; do not replace
+   * @return @p false, this overload is enabled for slices that
+   *         have already lost its unit stride dimension
+   */
+  template< int USD_ = USD >
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  std::enable_if_t< (USD_ < 0), bool >
+  isContiguous() const
+  {
+    return false;
+  }
+
+  /**
+   * @brief Return a pointer to the values.
+   * @pre The slice must be contiguous
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  T * dataIfContiguous() const
+  {
+    LVARRAY_ERROR_IF( !isContiguous(), "The slice must be contiguous for direct data access" );
+    return m_data;
   }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
