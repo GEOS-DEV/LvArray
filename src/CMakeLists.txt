@@ -28,7 +28,6 @@ set(cxx-utilities_headers
     totalview/tv_data_display.h
     Permutation.hpp
     bufferManipulation.hpp
-    ChaiBuffer.hpp
     NewChaiBuffer.hpp
     MallocBuffer.hpp
     tensorOps.hpp

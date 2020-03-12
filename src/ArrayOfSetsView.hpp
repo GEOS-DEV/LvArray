@@ -268,6 +268,15 @@ public:
   INDEX_TYPE_NC removeSortedFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
   { return removeSortedFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
 
+  /**
+   * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch If true touch the values, sizes and offsets in the new space.
+   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true )
+  { return ParentClass::move( space, touch ); }
+
 protected:
 
   /**

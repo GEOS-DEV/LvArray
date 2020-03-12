@@ -39,19 +39,22 @@ class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
 public:
 
+  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
+
   // Aliasing public methods of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::toViewConst;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numRows;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numColumns;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numNonZeros;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::empty;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getColumns;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getOffsets;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertNonZero;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertNonZeros;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeNonZero;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeNonZeros;
+  using ParentClass::toViewConst;
+  using ParentClass::numRows;
+  using ParentClass::numColumns;
+  using ParentClass::numNonZeros;
+  using ParentClass::nonZeroCapacity;
+  using ParentClass::empty;
+  using ParentClass::getColumns;
+  using ParentClass::getOffsets;
+  using ParentClass::insertNonZero;
+  using ParentClass::insertNonZeros;
+  using ParentClass::removeNonZero;
+  using ParentClass::removeNonZeros;
+  using ParentClass::move;
 
   /**
    * @brief Constructor.
@@ -90,7 +93,7 @@ public:
    */
   inline
   ~SparsityPattern() LVARRAY_RESTRICT_THIS
-  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::free(); }
+  { ParentClass::free(); }
 
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE, INDEX_TYPE const>.
@@ -126,11 +129,11 @@ public:
   SparsityPattern & operator=( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS
   {
     m_numCols = src.m_numCols;
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setEqualTo( src.m_numArrays,
-                                                             src.m_offsets[ src.m_numArrays ],
-                                                             src.m_offsets,
-                                                             src.m_sizes,
-                                                             src.m_values );
+    ParentClass::setEqualTo( src.m_numArrays,
+                             src.m_offsets[ src.m_numArrays ],
+                             src.m_offsets,
+                             src.m_sizes,
+                             src.m_values );
     return *this;
   }
 
@@ -147,11 +150,11 @@ public:
    * @param [in] touch whether to touch the memory in the space or not.
    */
   void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
-  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::move( space, touch ); }
+  { ParentClass::move( space, touch ); }
 
 
   void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
-  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::registerTouch( space ); }
+  { ParentClass::registerTouch( space ); }
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
@@ -159,7 +162,7 @@ public:
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
-  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::reserveValues( nnz ); }
+  { ParentClass::reserveValues( nnz ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
@@ -188,7 +191,7 @@ public:
   void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::setCapacityOfArray( row, newCapacity );
+    ParentClass::setCapacityOfArray( row, newCapacity );
   }
 
   /**
@@ -198,7 +201,7 @@ public:
    */
   inline
   void compress() LVARRAY_RESTRICT_THIS
-  { SparsityPatternView< COL_TYPE, INDEX_TYPE >::compress(); }
+  { ParentClass::compress(); }
 
   /**
    * @brief Set the dimensions of the matrix.
@@ -213,7 +216,7 @@ public:
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
   {
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::resize( nRows, nCols, initialRowCapacity );
+    ParentClass::resize( nRows, nCols, initialRowCapacity );
   }
 
   /**
@@ -224,7 +227,7 @@ public:
    */
   inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
+  { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -238,7 +241,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
+  { return ParentClass::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
    * @brief Insert non zeros in the given columns of the given row.
@@ -249,7 +252,7 @@ public:
    */
   inline
   INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
+  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
 
   /**
    * @brief Set the name associated with this SparsityPattern which is used in the chai callback.
@@ -257,7 +260,7 @@ public:
    */
   void setName( std::string const & name )
   {
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::template setName< decltype( *this ) >( name );
+    ParentClass::template setName< decltype( *this ) >( name );
   }
 
 private:
@@ -318,11 +321,11 @@ private:
   };
 
   // Aliasing protected members of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_numArrays;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_numCols;
+  using ParentClass::m_numArrays;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
+  using ParentClass::m_numCols;
 };
 
 } /* namespace LvArray */

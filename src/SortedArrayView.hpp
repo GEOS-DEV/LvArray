@@ -23,7 +23,7 @@
 #ifndef SRC_COMMON_SORTEDARRAYVIEW
 #define SRC_COMMON_SORTEDARRAYVIEW
 
-#include "ChaiBuffer.hpp"
+#include "NewChaiBuffer.hpp"
 #include "bufferManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 
@@ -57,9 +57,6 @@ namespace LvArray
  */
 template< class T, class INDEX_TYPE=std::ptrdiff_t >
 class SortedArrayView
-#ifdef USE_CHAI
-  : public chai::CHAICopyable
-#endif
 {
 public:
 
@@ -68,7 +65,6 @@ public:
    *        chai::ManagedArray copy constructor.
    * @param [in] src the SortedArray to copy.
    */
-  inline
   SortedArrayView( SortedArrayView const & src ) = default;
 
   /**
@@ -170,6 +166,22 @@ public:
   bool count( const T & value ) const
   { return contains( value ); }
 
+  /**
+   * @brief Moves the SortedArrayView to the given execution space.
+   * @param [in] space the space to move to.
+   * @param [in] touch If the values will be modified in the new space.
+   * @note Since the SortedArrayView can't be modified on device when moving
+   *       to the GPU @p touch is set to false.
+   */
+  inline
+  void move( chai::ExecutionSpace const space, bool touch=true ) LVARRAY_RESTRICT_THIS
+  {
+  #if defined(USE_CUDA)
+    if( space == chai::GPU ) touch = false;
+  #endif
+    m_values.move( space, size(), touch );
+  }
+
   friend std::ostream & operator<< ( std::ostream & stream, SortedArrayView const & array )
   {
     if( array.size() == 0 )
@@ -199,7 +211,7 @@ protected:
   {}
 
   // Holds the array of values.
-  ChaiBuffer< T > m_values;
+  NewChaiBuffer< T > m_values;
 
   // The number of values
   INDEX_TYPE m_size = 0;

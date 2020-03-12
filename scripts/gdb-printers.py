@@ -67,17 +67,7 @@ class StackBufferPrinter(BufferPrinter):
         return self.val['m_data']
 
 
-class ChaiBufferPrinter(BufferPrinter):
-    """Pretty-print a ChaiBuffer"""
-
-    def size(self):
-        return self.val['m_array']['m_elems']
-
-    def data(self):
-        return self.val['m_array']['m_active_pointer']
-
-
-class NewChaiBufferPrinter(ChaiBufferPrinter):
+class NewChaiBufferPrinter(BufferPrinter):
     """Pretty-print a NewChaiBuffer"""
 
     def size(self):

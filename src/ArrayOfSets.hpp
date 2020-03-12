@@ -43,21 +43,24 @@ class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE >
 {
 public:
 
-  // Aliasing public methods of ArrayOfSetsView.
-  using ArrayOfSetsView< T, INDEX_TYPE >::toViewConst;
-  using ArrayOfSetsView< T, INDEX_TYPE >::toArrayOfArraysView;
-  using ArrayOfSetsView< T, INDEX_TYPE >::capacity;
-  using ArrayOfSetsView< T, INDEX_TYPE >::sizeOfSet;
-  using ArrayOfSetsView< T, INDEX_TYPE >::capacityOfSet;
-  using ArrayOfSetsView< T, INDEX_TYPE >::operator();
-  using ArrayOfSetsView< T, INDEX_TYPE >::operator[];
-  using ArrayOfSetsView< T, INDEX_TYPE >::getSetValues;
+  using ParentClass = ArrayOfSetsView< T, INDEX_TYPE >;
 
-  using ArrayOfSetsView< T, INDEX_TYPE >::getIterableSet;
-  using ArrayOfSetsView< T, INDEX_TYPE >::removeFromSet;
-  using ArrayOfSetsView< T, INDEX_TYPE >::removeSortedFromSet;
-  using ArrayOfSetsView< T, INDEX_TYPE >::contains;
-  using ArrayOfSetsView< T, INDEX_TYPE >::consistencyCheck;
+  // Aliasing public methods of ArrayOfSetsView.
+  using ParentClass::toViewConst;
+  using ParentClass::toArrayOfArraysView;
+  using ParentClass::capacity;
+  using ParentClass::sizeOfSet;
+  using ParentClass::capacityOfSet;
+  using ParentClass::operator();
+  using ParentClass::operator[];
+  using ParentClass::getSetValues;
+
+  using ParentClass::getIterableSet;
+  using ParentClass::removeFromSet;
+  using ParentClass::removeSortedFromSet;
+  using ParentClass::contains;
+  using ParentClass::consistencyCheck;
+  using ParentClass::move;
 
   /**
    * @brief Return the number sets.
@@ -65,7 +68,7 @@ public:
    */
   inline
   INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< T, INDEX_TYPE >::size(); }
+  { return ParentClass::size(); }
 
   /**
    * @brief Constructor.
@@ -101,7 +104,7 @@ public:
    */
   inline
   ~ArrayOfSets() LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::free(); }
+  { ParentClass::free(); }
 
   /**
    * @brief Conversion operator to an ArrayOfArraysView.
@@ -142,11 +145,11 @@ public:
   inline
   ArrayOfSets & operator=( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS
   {
-    ArrayOfSetsView< T, INDEX_TYPE >::setEqualTo( src.m_numArrays,
-                                                  src.m_offsets[ src.m_numArrays ],
-                                                  src.m_offsets,
-                                                  src.m_sizes,
-                                                  src.m_values );
+    ParentClass::setEqualTo( src.m_numArrays,
+                             src.m_offsets[ src.m_numArrays ],
+                             src.m_offsets,
+                             src.m_sizes,
+                             src.m_values );
     return *this;
   }
 
@@ -166,7 +169,7 @@ public:
   inline
   void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
   {
-    ArrayOfSetsView< T, INDEX_TYPE >::free();
+    ParentClass::free();
 
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfArrays.hpp.
     ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
@@ -234,29 +237,12 @@ public:
   }
 
   /**
-   * @brief Move to the given memory space, optionally touching it.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch whether to touch the memory in the space or not.
-   */
-  inline
-  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::move( space, touch ); }
-
-  /**
-   * @brief Touch in the given memory space.
-   * @param [in] space the memory space to touch.
-   */
-  inline
-  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::registerTouch( space ); }
-
-  /**
    * @brief Reserve space for the given number of sets.
    * @param [in] newCapacity the new minimum capacity for the number of sets.
    */
   inline
   void reserve( INDEX_TYPE const newCapacity ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::reserve( newCapacity ); }
+  { ParentClass::reserve( newCapacity ); }
 
   /**
    * @brief Reserve space for the given number of values.
@@ -264,7 +250,7 @@ public:
    */
   inline
   void reserveValues( INDEX_TYPE const newValueCapacity ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::reserveValues( newValueCapacity ); }
+  { ParentClass::reserveValues( newValueCapacity ); }
 
   /**
    * @brief Set the capacity of a set.
@@ -273,7 +259,7 @@ public:
    */
   inline
   void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::setCapacityOfArray( i, newCapacity ); }
+  { ParentClass::setCapacityOfArray( i, newCapacity ); }
 
   /**
    * @brief Reserve space in a set.
@@ -293,7 +279,7 @@ public:
    */
   inline
   void compress() LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::compress(); }
+  { ParentClass::compress(); }
 
   /**
    * @brief Set the number of sets.
@@ -301,7 +287,7 @@ public:
    * @note We need this method in addition to the following resize method because of SFINAE requirements.
    */
   void resize( INDEX_TYPE const numSets ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::resize( numSets, 0 ); }
+  { ParentClass::resize( numSets, 0 ); }
 
   /**
    * @brief Set the number of sets.
@@ -309,7 +295,7 @@ public:
    * @param [in] defaultSetCapacity the default capacity for each new array.
    */
   void resize( INDEX_TYPE const numSets, INDEX_TYPE const defaultSetCapacity ) LVARRAY_RESTRICT_THIS
-  { ArrayOfSetsView< T, INDEX_TYPE >::resize( numSets, defaultSetCapacity ); }
+  { ParentClass::resize( numSets, defaultSetCapacity ); }
 
   /**
    * @brief Append an set with the given capacity.
@@ -370,7 +356,7 @@ public:
    */
   inline
   bool insertIntoSet( INDEX_TYPE const i, T const & val ) LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< T, INDEX_TYPE >::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
+  { return ParentClass::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
 
   /**
    * @brief Insert values into the given set.
@@ -381,7 +367,7 @@ public:
    */
   inline
   INDEX_TYPE insertIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< T, INDEX_TYPE >::insertIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
+  { return ParentClass::insertIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
   /**
    * @brief Insert values into the given set.
@@ -392,7 +378,7 @@ public:
    */
   inline
   INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< T, INDEX_TYPE >::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
+  { return ParentClass::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
 
   void setName( std::string const & name )
   {
@@ -447,10 +433,10 @@ private:
   };
 
   // Aliasing protected members of ArrayOfSetsView.
-  using ArrayOfSetsView< T, INDEX_TYPE >::m_numArrays;
-  using ArrayOfSetsView< T, INDEX_TYPE >::m_offsets;
-  using ArrayOfSetsView< T, INDEX_TYPE >::m_sizes;
-  using ArrayOfSetsView< T, INDEX_TYPE >::m_values;
+  using ParentClass::m_numArrays;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
 };
 
 } /* namespace LvArray */

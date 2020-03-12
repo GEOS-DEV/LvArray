@@ -23,7 +23,6 @@
 // Source includes
 #include "testUtils.hpp"
 #include "bufferManipulation.hpp"
-#include "ChaiBuffer.hpp"
 #include "NewChaiBuffer.hpp"
 #include "StackBuffer.hpp"
 #include "MallocBuffer.hpp"
@@ -76,9 +75,7 @@ class BufferAPITest : public ::testing::Test
 {};
 
 /// The list of types to instantiate BufferAPITest with, should contain at least one instance of every buffer class.
-using BufferAPITestTypes = ::testing::Types< ChaiBuffer< int >,
-                                             ChaiBuffer< TestString >,
-                                             NewChaiBuffer< int >,
+using BufferAPITestTypes = ::testing::Types< NewChaiBuffer< int >,
                                              NewChaiBuffer< TestString >,
                                              StackBuffer< int, NO_REALLOC_CAPACITY >,
                                              MallocBuffer< int >,
@@ -129,7 +126,7 @@ TYPED_TEST( BufferAPITest, move )
 {
   TypeParam buffer( true );
 
-  buffer.move( chai::CPU );
+  buffer.move( chai::CPU, 0, true );
   buffer.move( chai::CPU, true );
 
   bufferManipulation::free( buffer, 0 );
@@ -415,19 +412,27 @@ TYPED_TEST( BufferTestNoRealloc, pushBack )
 TYPED_TEST( BufferTestNoRealloc, CopyConstructor )
 {
   this->pushBack( 100 );
-  TypeParam copy( this->m_buffer );
+  TypeParam copy( this->m_buffer, 100 );
+  TypeParam copy2( copy );
+
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
+  EXPECT_EQ( this->m_buffer.capacity(), copy2.capacity() );
+
 
   if( TypeParam::hasShallowCopy )
   {
     EXPECT_EQ( this->m_buffer.data(), copy.data() );
+    EXPECT_EQ( this->m_buffer.data(), copy2.data() );
   }
   else
   {
     EXPECT_NE( this->m_buffer.data(), copy.data() );
+    EXPECT_NE( this->m_buffer.data(), copy2.data() );
   }
 
   COMPARE_TO_REFERENCE( copy, this->m_ref );
+  COMPARE_TO_REFERENCE( copy2, this->m_ref );
+
 }
 
 /**
@@ -555,7 +560,6 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
     COMPARE_TO_REFERENCE( copy, this->m_ref );
     bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
   },
-    ChaiBuffer< typename TypeParam::value_type >( true ),
     NewChaiBuffer< typename TypeParam::value_type >( true ),
     MallocBuffer< typename TypeParam::value_type >( true )
     // I would like to copInto a StackBuffer but that doesn't work with std::string.
@@ -647,8 +651,8 @@ public:
 
 /// The list of types to instantiate BufferTestWithRealloc with,
 /// should contain at least one instance of every dynamically reallocatable buffer class.
-using BufferTestWithReallocTypes = ::testing::Types< ChaiBuffer< int >,
-                                                     ChaiBuffer< TestString >,
+using BufferTestWithReallocTypes = ::testing::Types< NewChaiBuffer< int >,
+                                                     NewChaiBuffer< TestString >,
                                                      MallocBuffer< int >,
                                                      MallocBuffer< TestString >
                                                      >;
@@ -741,8 +745,8 @@ TYPED_TEST( BufferTestWithRealloc, combination )
 
 // TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
-// Move tests with ChaiBuffer
-// Copy-capture tests with ChaiBuffer
+// Move tests with NewChaiBuffer
+// Copy-capture tests with NewChaiBuffer
 
 } // namespace testing
 } // namespace LvArray

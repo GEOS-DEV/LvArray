@@ -42,17 +42,20 @@ class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE >
 {
 public:
 
+  using ParentClass = ArrayOfArraysView< T, INDEX_TYPE >;
+
   // Aliasing public methods of ArrayOfArraysView.
-  using ArrayOfArraysView< T, INDEX_TYPE >::toViewSemiConst;
-  using ArrayOfArraysView< T, INDEX_TYPE >::toViewConst;
-  using ArrayOfArraysView< T, INDEX_TYPE >::sizeOfArray;
-  using ArrayOfArraysView< T, INDEX_TYPE >::capacity;
-  using ArrayOfArraysView< T, INDEX_TYPE >::capacityOfArray;
-  using ArrayOfArraysView< T, INDEX_TYPE >::operator[];
-  using ArrayOfArraysView< T, INDEX_TYPE >::operator();
-  using ArrayOfArraysView< T, INDEX_TYPE >::getIterableArray;
-  using ArrayOfArraysView< T, INDEX_TYPE >::atomicAppendToArray;
-  using ArrayOfArraysView< T, INDEX_TYPE >::eraseFromArray;
+  using ParentClass::toViewSemiConst;
+  using ParentClass::toViewConst;
+  using ParentClass::sizeOfArray;
+  using ParentClass::capacity;
+  using ParentClass::capacityOfArray;
+  using ParentClass::operator[];
+  using ParentClass::operator();
+  using ParentClass::getIterableArray;
+  using ParentClass::atomicAppendToArray;
+  using ParentClass::eraseFromArray;
+  using ParentClass::move;
 
   /**
    * @brief Return the number of arrays.
@@ -69,7 +72,7 @@ public:
    */
   inline
   ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    ArrayOfArraysView< T, INDEX_TYPE >()
+    ParentClass()
   {
     resize( numArrays, defaultArrayCapacity );
     setName( "" );
@@ -81,7 +84,7 @@ public:
    */
   inline
   ArrayOfArrays( ArrayOfArrays const & src ):
-    ArrayOfArraysView< T, INDEX_TYPE >()
+    ParentClass()
   { *this = src; }
 
   /**
@@ -95,7 +98,7 @@ public:
    * @brief Destructor, frees the values, sizes and offsets buffers.
    */
   ~ArrayOfArrays()
-  { ArrayOfArraysView< T, INDEX_TYPE >::free(); }
+  { ParentClass::free(); }
 
   /**
    * @brief Conversion operator to ArrayOfArraysView<T, INDEX_TYPE const>.
@@ -140,11 +143,11 @@ public:
   inline
   ArrayOfArrays & operator=( ArrayOfArrays const & src ) LVARRAY_RESTRICT_THIS
   {
-    ArrayOfArraysView< T, INDEX_TYPE >::setEqualTo( src.m_numArrays,
-                                                    src.m_offsets[ src.m_numArrays ],
-                                                    src.m_offsets,
-                                                    src.m_sizes,
-                                                    src.m_values );
+    ParentClass::setEqualTo( src.m_numArrays,
+                             src.m_offsets[ src.m_numArrays ],
+                             src.m_offsets,
+                             src.m_sizes,
+                             src.m_values );
     return *this;
   }
 
@@ -162,10 +165,10 @@ public:
   inline
   void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
   {
-    ArrayOfArraysView< T, INDEX_TYPE >::free();
+    ParentClass::free();
 
     // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfSets.hpp.
-    ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
+    ParentClass && srcView = reinterpret_cast< ParentClass && >( src );
 
     m_numArrays = srcView.m_numArrays;
     srcView.m_numArrays = 0;
@@ -176,33 +179,18 @@ public:
   }
 
   /**
-   * @brief Move to the given memory space, optionally touching it.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch whether to touch the memory in the space or not.
-   */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
-  { ArrayOfArraysView< T, INDEX_TYPE >::move( space, touch ); }
-
-  /**
-   * @brief Touch in the given memory space.
-   * @param [in] space the memory space to touch.
-   */
-  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
-  { ArrayOfArraysView< T, INDEX_TYPE >::registerTouch( space ); }
-
-  /**
    * @brief Reserve space for the given number of arrays.
    * @param [in] newCapacity the new minimum capacity for the number of arrays.
    */
   void reserve( INDEX_TYPE const newCapacity )
-  { ArrayOfArraysView< T, INDEX_TYPE >::reserve( newCapacity ); }
+  { ParentClass::reserve( newCapacity ); }
 
   /**
    * @brief Reserve space for the given number of values.
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
    */
   void reserveValues( INDEX_TYPE const newValueCapacity )
-  { ArrayOfArraysView< T, INDEX_TYPE >::reserveValues( newValueCapacity ); }
+  { ParentClass::reserveValues( newValueCapacity ); }
 
   /**
    * @brief Set the number of arrays.
@@ -210,7 +198,7 @@ public:
    * @note We need this method in addition to the following resize method because of SFINAE requirements.
    */
   void resize( INDEX_TYPE const numArrays )
-  { ArrayOfArraysView< T, INDEX_TYPE >::resize( numArrays, 0 ); }
+  { ParentClass::resize( numArrays, 0 ); }
 
   /**
    * @brief Set the number of arrays.
@@ -218,7 +206,7 @@ public:
    * @param [in] defaultArrayCapacity the default capacity for each new array.
    */
   void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity )
-  { ArrayOfArraysView< T, INDEX_TYPE >::resize( numArrays, defaultArrayCapacity ); }
+  { ParentClass::resize( numArrays, defaultArrayCapacity ); }
 
   /**
    * @brief Append an array.
@@ -292,7 +280,7 @@ public:
    * @note This method doesn't free any memory.
    */
   void compress()
-  { ArrayOfArraysView< T, INDEX_TYPE >::compress(); }
+  { ParentClass::compress(); }
 
   /**
    * @brief Append a value to an array.
@@ -302,7 +290,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T const & value ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, value );
+    ParentClass::appendToArray( i, value );
   }
 
   /**
@@ -313,7 +301,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T && value ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, std::move( value ) );
+    ParentClass::appendToArray( i, std::move( value ) );
   }
 
   /**
@@ -325,7 +313,7 @@ public:
   void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, n );
-    ArrayOfArraysView< T, INDEX_TYPE >::appendToArray( i, values, n );
+    ParentClass::appendToArray( i, values, n );
   }
 
   /**
@@ -337,7 +325,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value )
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, value );
+    ParentClass::insertIntoArray( i, j, value );
   }
 
   /**
@@ -349,7 +337,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value )
   {
     dynamicallyGrowArray( i, 1 );
-    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, std::move( value ) );
+    ParentClass::insertIntoArray( i, j, std::move( value ) );
   }
 
   /**
@@ -362,7 +350,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n )
   {
     dynamicallyGrowArray( i, n );
-    ArrayOfArraysView< T, INDEX_TYPE >::insertIntoArray( i, j, values, n );
+    ParentClass::insertIntoArray( i, j, values, n );
   }
 
   /**
@@ -402,11 +390,11 @@ public:
    * @param [in] newCapacity the value to set the capacity of the array to.
    */
   void setCapacityOfArray( INDEX_TYPE const i, INDEX_TYPE const newCapacity )
-  { ArrayOfArraysView< T, INDEX_TYPE >::setCapacityOfArray( i, newCapacity ); }
+  { ParentClass::setCapacityOfArray( i, newCapacity ); }
 
   void setName( std::string const & name )
   {
-    ArrayOfArraysView< T, INDEX_TYPE >::template setName< decltype( *this ) >( name );
+    ParentClass::template setName< decltype( *this ) >( name );
   }
 
 private:
@@ -427,10 +415,10 @@ private:
     }
   }
 
-  using ArrayOfArraysView< T, INDEX_TYPE >::m_numArrays;
-  using ArrayOfArraysView< T, INDEX_TYPE >::m_offsets;
-  using ArrayOfArraysView< T, INDEX_TYPE >::m_sizes;
-  using ArrayOfArraysView< T, INDEX_TYPE >::m_values;
+  using ParentClass::m_numArrays;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
 };
 
 } /* namespace LvArray */

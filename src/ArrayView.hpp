@@ -57,7 +57,7 @@ namespace LvArray
  * copy will trigger the desired data motion onto the appropriate memory space.
  *
  * Key features:
- * 1) When using a ChaiBuffer as the BUFFER_TYPE the ArrayView copy constructor will move the data
+ * 1) When using a NewChaiBuffer as the BUFFER_TYPE the ArrayView copy constructor will move the data
  *    to the current execution space.
  * 2) Defines a slicing operator[].
  * 3) Defines operator() array accessor.
@@ -76,9 +76,6 @@ template< typename T,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
 class ArrayView
-#ifdef USE_CHAI
-  : public chai::CHAICopyable
-#endif
 {
 public:
 
@@ -105,7 +102,7 @@ public:
    * @return *this
    *
    * @note The copy constructor will trigger the copy constructor for DATA_VECTOR_TYPE. When using
-   * the ChaiBuffer this will trigger CHAI::ManagedArray copy construction, and thus may copy
+   * the NewChaiBuffer this will trigger CHAI::ManagedArray copy construction, and thus may copy
    * the memory to the memory space associated with the copy. I.e. if passed into a
    * lambda which is used to execute a cuda kernel, the data will be allocated and copied
    * to the device (if it doesn't already exist).
@@ -114,7 +111,7 @@ public:
   ArrayView( ArrayView const & source ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },
-    m_dataBuffer{ source.m_dataBuffer },
+    m_dataBuffer{ source.m_dataBuffer, source.size() },
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {
     for( int i = 0; i < NDIM; ++i )
@@ -469,6 +466,15 @@ public:
   {
     return m_strides;
   }
+
+  /**
+   * @brief Move the Array to the given execution space, optionally touching it.
+   * @param space the space to move the Array to.
+   * @param touch whether the Array should be touched in the new space or not.
+   * @note Not all Buffers support memory movement.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true )
+  { m_dataBuffer.move( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**

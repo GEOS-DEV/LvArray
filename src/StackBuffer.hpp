@@ -48,8 +48,6 @@ class StackBuffer : public bufferManipulation::VoidBuffer
 {
 public:
   static_assert( std::is_trivially_destructible< T >::value, "The StackBuffer can only hold trivially copyable and destructable types." );
-  // static_assert( std::is_trivially_copyable< int >::value, "The StackBuffer can only hold trivially copyable and
-  // destructable types." );
 
   using value_type = T;
   constexpr static bool hasShallowCopy = false;
@@ -59,6 +57,11 @@ public:
    *        an uninitialized buffer is equivalent to an empty buffer.
    */
   StackBuffer( bool=true )
+  {}
+
+  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  StackBuffer( StackBuffer const & src, std::ptrdiff_t ):
+    StackBuffer( src )
   {}
 
   /**
