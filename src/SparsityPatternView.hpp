@@ -64,6 +64,8 @@ public:
 
   using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
 
+  using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE >;
+
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *        chai::ManagedArray copy constructor.
@@ -116,7 +118,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::size(); }
+  { return ParentClass::size(); }
 
   /**
    * @brief Return the number of columns in the matrix.
@@ -146,7 +148,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::sizeOfSet( row ); }
+  { return ParentClass::sizeOfSet( row ); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored without a reallocation.
@@ -162,7 +164,7 @@ public:
    */
   LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
   INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
-  { return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::capacityOfSet( row ); }
+  { return ParentClass::capacityOfSet( row ); }
 
   /**
    * @brief Return true iff the matrix is all zeros.
@@ -186,7 +188,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool empty( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
-  { return !ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::contains( row, col ); }
+  { return !ParentClass::contains( row, col ); }
 
   /**
    * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
@@ -221,7 +223,7 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertIntoSet( row, col );
+    return ParentClass::insertIntoSet( row, col );
   }
 
   /**
@@ -250,7 +252,7 @@ public:
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertIntoSet( row, cols, ncols );
+    return ParentClass::insertIntoSet( row, cols, ncols );
   }
 
   /**
@@ -277,7 +279,7 @@ public:
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSet( row, cols, ncols );
+    return ParentClass::insertSortedIntoSet( row, cols, ncols );
   }
 
   /**
@@ -291,7 +293,7 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeFromSet( row, col );
+    return ParentClass::removeFromSet( row, col );
   }
 
   /**
@@ -316,7 +318,7 @@ public:
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeFromSet( row, cols, ncols );
+    return ParentClass::removeFromSet( row, cols, ncols );
   }
 
   /**
@@ -338,8 +340,17 @@ public:
       SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
     }
 
-    return ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::removeSortedFromSet( row, cols, ncols );
+    return ParentClass::removeSortedFromSet( row, cols, ncols );
   }
+
+  /**
+   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch If true touch the values, sizes and offsets in the new space.
+   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true )
+  { return ParentClass::move( space, touch ); }
 
 protected:
 
@@ -364,13 +375,13 @@ protected:
     }
 
     m_numCols = ncols;
-    ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::resize( nrows, initialRowCapacity, vectors ... );
+    ParentClass::resize( nrows, initialRowCapacity, vectors ... );
   }
 
   // Aliasing protected members in ArrayOfSetsView
-  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_offsets;
-  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_sizes;
-  using ArrayOfSetsView< COL_TYPE, INDEX_TYPE >::m_values;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
 
   // The number of columns in the matrix.
   INDEX_TYPE m_numCols;

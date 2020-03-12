@@ -22,7 +22,7 @@
 // Source includes
 #include "CXX_UtilsConfig.hpp"
 #include "Macros.hpp"
-#include "ChaiBuffer.hpp"
+#include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 #include "StringUtilities.hpp"
 
@@ -39,26 +39,50 @@ namespace LvArray
 namespace internal
 {
 
+IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
+
 inline chai::ArrayManager & getArrayManager()
 {
   static chai::ArrayManager & arrayManager = *chai::ArrayManager::getInstance();
   return arrayManager;
 }
 
+// CHAI is not threadsafe so we use a lock to serialize access.
+static std::mutex chaiLock;
+
+/**
+ * @brief Return a string representing the given size in bytes converted to either
+ *        KB or MB.
+ */
+inline std::string calculateSize( size_t const bytes )
+{
+  std::string size;
+  if( bytes >> 20 != 0 )
+  {
+    size = std::to_string( bytes >> 20 ) + "MB";
+  }
+  else
+  {
+    size = std::to_string( bytes >> 10 ) + "KB";
+  }
+
+  // return a space padded size
+  return std::string( 7 - size.length(), ' ' ) + size;
+}
+
 } // namespace internal
 
 /**
- * @class ChaiBuffer
+ * @class NewChaiBuffer
  * @brief This class implements the Buffer interface using CHAI and allows classes built on top
  *        of it to exist in multiple memory spaces.
  * @tparam T type of data that is contained in the buffer.
  * @note Both the copy constructor and copy assignment constructor perform a shallow copy
  *       of the source. Similarly the destructor does not free the allocation. This is
  *       the standard behavior of the Buffer classes.
- * @note The parent class chai::CHAICopyable allows for the movement of nested ChaiBuffers.
  */
 template< typename T >
-class NewChaiBuffer : public chai::CHAICopyable
+class NewChaiBuffer
 {
 public:
 
@@ -99,13 +123,26 @@ public:
   }
 
   LVARRAY_HOST_DEVICE RAJA_INLINE
+  NewChaiBuffer( NewChaiBuffer const & src, std::ptrdiff_t const size ):
+    m_pointer( src.m_pointer ),
+    m_capacity( src.m_capacity ),
+    m_pointer_record( src.m_pointer_record )
+  {
+  #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
+    move( internal::getArrayManager().getExecutionSpace(), size, true );
+  #else
+    LVARRAY_UNUSED_VARIABLE( size );
+  #endif
+  }
+
+  LVARRAY_HOST_DEVICE RAJA_INLINE
   NewChaiBuffer( NewChaiBuffer const & src ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
   {
   #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
-    move( internal::getArrayManager().getExecutionSpace() );
+    move( internal::getArrayManager().getExecutionSpace(), true );
   #endif
   }
 
@@ -220,11 +257,12 @@ public:
 
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
-   * @param space the space to move the Array to.
-   * @param touch whether the Array should be touched in the new space or not.
+   * @param space the space to move the buffer to.
+   * @param size the size of the buffer.
+   * @param touch whether the buffer should be touched in the new space or not.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
   {
   #if defined(USE_CUDA)
     if( m_pointer_record == nullptr ||
@@ -233,7 +271,7 @@ public:
 
     chai::ExecutionSpace const prevSpace = m_pointer_record->m_last_space;
 
-    if( prevSpace == chai::CPU ) moveInnerData( space );
+    if( prevSpace == chai::CPU ) moveInnerData( space, size, touch );
 
     m_pointer = static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
                                                                       m_pointer_record,
@@ -242,12 +280,22 @@ public:
     if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
 
-    if( prevSpace == chai::GPU ) moveInnerData( space );
+    if( prevSpace == chai::GPU ) moveInnerData( space, size, touch );
 
   #else
     LVARRAY_ERROR_IF_NE( space, chai::CPU );
+    LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
+  }
+
+  template< typename U=T_non_const >
+  std::enable_if_t< !internal::HasMemberFunction_move< U > >
+  move( chai::ExecutionSpace const space, bool const touch )
+  {
+    static_assert( !internal::HasMemberFunction_move< U >,
+                   "The template type T is chai movable, therefore you need to pass the size parameter to the move method." );
+    move( space, capacity(), touch );
   }
 
   /**
@@ -286,23 +334,23 @@ public:
 
 private:
 
-  template< typename U=T >
-  std::enable_if_t< !std::is_base_of< CHAICopyable, U >::value >
-  moveInnerData( chai::ExecutionSpace const LVARRAY_UNUSED_ARG( space ) )
+  template< typename U=T_non_const >
+  std::enable_if_t< !internal::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const )
   {}
 
-  template< typename U=T >
-  std::enable_if_t< std::is_base_of< CHAICopyable, U >::value >
-  moveInnerData( chai::ExecutionSpace const space )
+  template< typename U=T_non_const >
+  std::enable_if_t< internal::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
   {
     if( space == chai::NONE ) return;
 
     chai::ExecutionSpace const prevSpace = internal::getArrayManager().getExecutionSpace();
     internal::getArrayManager().setExecutionSpace( space );
 
-    for( std::ptrdiff_t i = 0; i < m_capacity; ++i )
+    for( std::ptrdiff_t i = 0; i < size; ++i )
     {
-      const_cast< T_non_const * >( m_pointer )[ i ] = T( m_pointer[ i ] );
+      const_cast< T_non_const * >( m_pointer )[ i ].move( space, touch );
     }
 
     internal::getArrayManager().setExecutionSpace( prevSpace );

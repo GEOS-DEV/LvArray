@@ -46,13 +46,28 @@ struct VoidBuffer
 {
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
-   * @param space the space to move the Array to.
-   * @param touch whether the Array should be touched in the new space or not.
+   * @param space the space to move the buffer to.
+   * @param size the size of the buffer.
+   * @param touch whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *       occurs if you try to move it to a different space.
    */
   void move( chai::ExecutionSpace const space,
-             bool const LVARRAY_UNUSED_ARG( touch )=true )
+             std::ptrdiff_t const LVARRAY_UNUSED_ARG( size ),
+             bool const LVARRAY_UNUSED_ARG( touch ) )
+  {
+    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
+  }
+
+  /**
+   * @brief Move the buffer to the given execution space, optionally touching it.
+   * @param space the space to move the buffer to.
+   * @param touch whether the buffer should be touched in the new space or not.
+   * @note The default behavior is that the Buffer can only exist on the CPU and an error
+   *       occurs if you try to move it to a different space.
+   */
+  void move( chai::ExecutionSpace const space,
+             bool const LVARRAY_UNUSED_ARG( touch ) )
   {
     LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
   }

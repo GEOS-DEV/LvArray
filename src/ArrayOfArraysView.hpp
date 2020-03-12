@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "ChaiBuffer.hpp"
+#include "NewChaiBuffer.hpp"
 #include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
@@ -83,7 +83,7 @@ namespace LvArray
 namespace internal
 {
 template< class U >
-using PairOfBuffers = std::pair< ChaiBuffer< U > &, ChaiBuffer< U > const & >;
+using PairOfBuffers = std::pair< NewChaiBuffer< U > &, NewChaiBuffer< U > const & >;
 }
 
 /**
@@ -123,7 +123,6 @@ public:
    *        chai::ManagedArray copy constructor.
    * @param [in] src the ArrayOfArraysView to be copied.
    */
-  inline
   ArrayOfArraysView( ArrayOfArraysView const & src ) = default;
 
   /**
@@ -458,6 +457,23 @@ private:
     return stream;
   }
 
+  /**
+   * @brief Move this ArrayOfArrays to the given memory space.
+   * @param [in] space The memory space to move to.
+   * @param [in] touch If true touch the values, sizes and offsets in the new space.
+   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   */
+  void move( chai::ExecutionSpace const space, bool touch=true )
+  {
+    m_values.move( space, touch );
+    m_sizes.move( space, touch );
+
+  #if defined(USE_CUDA)
+    if( space == chai::GPU ) touch = false;
+  #endif
+    m_offsets.move( space, touch );
+  }
+
 protected:
 
   /**
@@ -472,10 +488,10 @@ protected:
 
   /**
    * @brief Set the number of arrays.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
    * @param [in] newSize the new number of arrays.
    * @param [in] defaultArrayCapacity the default capacity for each new array.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
@@ -525,8 +541,8 @@ protected:
 
   /**
    * @brief Destroy all the objects held by this array and free all associated memory.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
@@ -559,9 +575,9 @@ protected:
   template< class ... PAIRS_OF_BUFFERS >
   void setEqualTo( INDEX_TYPE const srcNumArrays,
                    INDEX_TYPE const srcMaxOffset,
-                   ChaiBuffer< INDEX_TYPE > const & srcOffsets,
-                   ChaiBuffer< INDEX_TYPE > const & srcSizes,
-                   ChaiBuffer< T > const & srcValues,
+                   NewChaiBuffer< INDEX_TYPE > const & srcOffsets,
+                   NewChaiBuffer< INDEX_TYPE > const & srcSizes,
+                   NewChaiBuffer< T > const & srcValues,
                    PAIRS_OF_BUFFERS & ... pairs )
   {
     destroyValues( 0, m_numArrays, pairs.first ... );
@@ -602,49 +618,9 @@ protected:
   }
 
   /**
-   * @brief Move this ArrayOfArrays view to the given memory space.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
-   * @param [in] space the memory space to move to.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
-   *        similarly to m_values.
-   * @note this is to be use by the non-view derived classes.
-   */
-  template< class ... BUFFERS >
-  void move( chai::ExecutionSpace const space, bool const touch, BUFFERS & ... buffers )
-  {
-    for_each_arg(
-      [space, touch]( auto & buffer )
-    {
-      buffer.move( space, touch );
-    },
-      m_values, m_sizes, m_offsets, buffers ...
-      );
-  }
-
-  /**
-   * @brief Touch this ArrayOfArrays view in the given memory space.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
-   * @param [in] space the memory space to touch.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
-   *        similarly to m_values.
-   * @note this is to be use by the non-view derived classes.
-   */
-  template< class ... BUFFERS >
-  void registerTouch( chai::ExecutionSpace const space, BUFFERS & ... buffers )
-  {
-    for_each_arg(
-      [space]( auto & buffer )
-    {
-      buffer.registerTouch( space );
-    },
-      m_values, m_sizes, m_offsets, buffers ...
-      );
-  }
-
-  /**
    * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note This method doesn't free any memory.
@@ -687,9 +663,9 @@ protected:
 
   /**
    * @brief Reserve space for the given number of values.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
    * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    */
   template< class ... BUFFERS >
@@ -707,10 +683,10 @@ protected:
 
   /**
    * @brief Set the capacity of the given array.
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
    * @param [in] i the array to set the capacity of.
    * @param [in] newCapacity the value to set the capacity of the given array to.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    */
@@ -795,21 +771,21 @@ protected:
 
   // Holds the offset of each array, of length size() + 1. Array i begins at
   // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
-  ChaiBuffer< INDEX_TYPE > m_offsets;
+  NewChaiBuffer< INDEX_TYPE > m_offsets;
 
-  ChaiBuffer< SIZE_TYPE > m_sizes;
+  NewChaiBuffer< SIZE_TYPE > m_sizes;
 
   // Holds the values of each array, of length numValues().
-  ChaiBuffer< T > m_values;
+  NewChaiBuffer< T > m_values;
 
 private:
 
   /**
    * @brief Destroy the values in arrays in the range [begin, end).
-   * @tparam BUFFERS variadic template where each type is a ChaiBuffer.
+   * @tparam BUFFERS variadic template where each type is a NewChaiBuffer.
    * @param [in] begin the array to start with.
    * @param [in] end where to stop destroying values.
-   * @param [in/out] buffers variadic parameter pack where each argument is a ChaiBuffer that should be treated
+   * @param [in/out] buffers variadic parameter pack where each argument is a NewChaiBuffer that should be treated
    *        similarly to m_values.
    * @note this is to be use by the non-view derived classes.
    * @note this method doesn't free any memory.

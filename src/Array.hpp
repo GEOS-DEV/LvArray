@@ -495,35 +495,6 @@ public:
     m_dataBuffer.template setName< decltype(*this) >( name );
   }
 
-  /**
-   * @brief Move the Array to the given execution space, optionally touching it.
-   * @param space the space to move the Array to.
-   * @param touch whether the Array should be touched in the new space or not.
-   * @note This particular method is for when T is not itself an Array.
-   * @note Not all Buffers support memory movement.
-   */
-  template< typename U = T >
-  std::enable_if_t< !isArray< U > >
-  move( chai::ExecutionSpace const space, bool const touch=true )
-  {
-    m_dataBuffer.move( space, touch );
-  }
-
-  /**
-   * @brief Move the Array to the given execution space, optionally touching it.
-   * @param space the space to move the Array to.
-   * @param touch whether the Array should be touched in the new space or not.
-   * @note This particular method is for when T is itself an Array, and it also
-   *       moves the inner Arrays. Not sure if the touch gets propagated correctly.
-   * @note Not all Buffers support memory movement.
-   */
-  template< typename U = T >
-  std::enable_if_t< isArray< U > >
-  move( chai::ExecutionSpace const space, bool const touch=true )
-  {
-    reinterpret_cast< BUFFER_TYPE< typename std::remove_const< typename T::ViewType >::type > & >( m_dataBuffer ).move( space, touch );
-  }
-
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.

@@ -73,25 +73,26 @@ public:
                  (std::is_const< COL_TYPE >::value && std::is_const< INDEX_TYPE >::value),
                  "When T is const COL_TYPE and INDEX_TYPE must also be const." );
 
+  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
+
   // Aliasing public typedefs of SparsityPatternView.
-  using typename SparsityPatternView< COL_TYPE, INDEX_TYPE >::INDEX_TYPE_NC;
+  using typename ParentClass::INDEX_TYPE_NC;
 
   // Aliasing public methods of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numRows;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numColumns;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::numNonZeros;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::nonZeroCapacity;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::empty;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getColumns;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::getOffsets;
+  using ParentClass::numRows;
+  using ParentClass::numColumns;
+  using ParentClass::numNonZeros;
+  using ParentClass::nonZeroCapacity;
+  using ParentClass::empty;
+  using ParentClass::getColumns;
+  using ParentClass::getOffsets;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *        chai::ManagedArray copy constructor.
    * @param [in] src the CRSMatrixView to be copied.
    */
-  inline
-  CRSMatrixView( CRSMatrixView const & ) = default;
+  CRSMatrixView( CRSMatrixView const & src ) = default;
 
   /**
    * @brief Default move constructor.
@@ -177,7 +178,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
+  { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -220,7 +221,7 @@ public:
                                       COL_TYPE const * const LVARRAY_RESTRICT cols,
                                       T const * const LVARRAY_RESTRICT entriesToInsert,
                                       INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
+  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
    * @brief Remove a non-zero entry at the given position.
@@ -230,7 +231,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
-  { return SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
+  { return ParentClass::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
 
   /**
    * @brief Remove non-zero entries from the given row.
@@ -250,7 +251,7 @@ public:
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
+    INDEX_TYPE const nRemoved = ParentClass::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
 
     for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
     {
@@ -275,7 +276,7 @@ public:
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = SparsityPatternView< COL_TYPE, INDEX_TYPE >::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
+    INDEX_TYPE const nRemoved = ParentClass::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
 
     for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
     {
@@ -412,6 +413,18 @@ public:
     }
   }
 
+  /**
+   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
+   * @param [in] space the memory space to move to.
+   * @param [in] touch If true touch the values, sizes and offsets in the new space.
+   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true )
+  {
+    ParentClass::move( space, touch );
+    m_entries.move( space, touch );
+  }
+
 
 protected:
 
@@ -420,7 +433,7 @@ protected:
    *        either be the base of a CRSMatrix or copied from another CRSMatrixView.
    */
   CRSMatrixView():
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >(),
+    ParentClass(),
     m_entries( true )
   {}
 
@@ -463,18 +476,18 @@ protected:
   template< typename U >
   void setName( std::string const & name )
   {
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::template setName< U >( name );
+    ParentClass::template setName< U >( name );
     m_entries.template setName< U >( name + "/entries" );
   }
 
   // Aliasing protected members of SparsityPatternView.
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_numCols;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_offsets;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_sizes;
-  using SparsityPatternView< COL_TYPE, INDEX_TYPE >::m_values;
+  using ParentClass::m_numCols;
+  using ParentClass::m_offsets;
+  using ParentClass::m_sizes;
+  using ParentClass::m_values;
 
   // Holds the entries of the matrix, of length numNonZeros().
-  ChaiBuffer< T > m_entries;
+  NewChaiBuffer< T > m_entries;
 
 private:
 

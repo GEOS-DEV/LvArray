@@ -21,6 +21,54 @@
 #include <initializer_list>
 #include <utility>
 
+namespace LvArray
+{
+
+/**
+ * @brief Macro that expands to a static constexpr bool with one template argument
+ *        which is true only if the expression @p __VA_ARGS__ is valid.
+ * @param NAME The name to give the boolean variable.
+ * @param T Name of the template argument in the expression.
+ * @param __VA_ARGS__ The expresion to check for validity.
+ */
+#define IS_VALID_EXPRESSION( NAME, T, ... ) \
+  template< typename _T > \
+  struct NAME ## _impl \
+  { \
+private: \
+    template< typename T > static constexpr auto test( int )->decltype( __VA_ARGS__, bool() ) \
+    { return true; } \
+    template< typename T > static constexpr auto test( ... )->bool \
+    { return false; } \
+public: \
+    static constexpr bool value = test< _T >( 0 ); \
+  }; \
+  template< typename T > \
+  static constexpr bool NAME = NAME ## _impl< T >::value
+
+/**
+ * @brief Macro that expands to a static constexpr bool with two template arguments
+ *        which is true only if the expression @p __VA_ARGS__ is valid.
+ * @param NAME The name to give the boolean variable.
+ * @param T Name of the first template argument in the expression.
+ * @param U Name of the second template argument in the expression.
+ * @param __VA_ARGS__ The expresion to check for validity.
+ */
+#define IS_VALID_EXPRESSION_2( NAME, T, U, ... ) \
+  template< typename _T, typename _U > \
+  struct NAME ## _impl \
+  { \
+private: \
+    template< typename T, typename U > static constexpr auto test( int )->decltype( __VA_ARGS__, bool() ) \
+    { return true; } \
+    template< typename T, typename U > static constexpr auto test( ... )->bool \
+    { return false; } \
+public: \
+    static constexpr bool value = test< _T, _U >( 0 ); \
+  }; \
+  template< typename T, typename U > \
+  static constexpr bool NAME = NAME ## _impl< T, U >::value
+
 /**
  * @brief return the max of the two values.
  */
@@ -71,10 +119,19 @@ template< template< typename ... > class Template,
 constexpr bool is_instantiation_of< Template, Template< Args... > > = true;
 
 
+} // namespace LvArray
+
+namespace std
+{
+
+/// Implementation of std::is_same_v, replace when upgrading to C++17.
 template< typename T, typename U >
 constexpr bool is_same_v = std::is_same< T, U >::value;
 
+/// Implementation of std::is_base_of_v, replace when upgrading to C++17.
 template< class T, class U >
 constexpr bool is_base_of_v = std::is_base_of< T, U >::value;
+
+} // namespace std
 
 #endif // TEMPLATEHELPERS_HPP_

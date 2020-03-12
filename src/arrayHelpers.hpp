@@ -26,7 +26,6 @@
 // Source includes
 #include "Macros.hpp"
 #include "Permutation.hpp"
-#include "ChaiBuffer.hpp"
 #include "NewChaiBuffer.hpp"
 #include "templateHelpers.hpp"
 

@@ -63,10 +63,10 @@ public:
     m_capacity( 0 )
   {}
 
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-  MallocBuffer( MallocBuffer const & src ):
-    m_data( src.m_data ),
-    m_capacity( src.m_capacity )
+  MallocBuffer( MallocBuffer const & src ) = default;
+
+  MallocBuffer( MallocBuffer const & src, std::ptrdiff_t const ):
+    MallocBuffer( src )
   {}
 
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr

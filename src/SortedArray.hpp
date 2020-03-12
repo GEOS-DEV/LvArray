@@ -75,6 +75,7 @@ public:
 
   using SortedArrayView< T, INDEX_TYPE >::contains;
   using SortedArrayView< T, INDEX_TYPE >::count;
+  using SortedArrayView< T, INDEX_TYPE >::move;
 
   using ViewType = SortedArrayView< T const, INDEX_TYPE >;
   using ViewTypeConst = ViewType;
@@ -85,7 +86,9 @@ public:
   inline
   SortedArray():
     SortedArrayView< T, INDEX_TYPE >()
-  {}
+  {
+    setName( "" );
+  }
 
   /**
    * @brief The copy constructor, performs a deep copy.
@@ -267,14 +270,6 @@ public:
     m_values.template setName< decltype( *this ) >( name );
   }
 
-  /**
-   * @brief Moves the SortedArray to the given execution space.
-   * @param [in] space the space to move to.
-   */
-  inline
-  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
-  { m_values.move( space, touch ); }
-
   friend std::ostream & operator<< ( std::ostream & stream, SortedArray const & array )
   {
     stream << array.toView();
@@ -293,10 +288,10 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] cv the ChaiBuffer associated with the SortedArray.
+     * @param [in/out] cv the NewChaiBuffer associated with the SortedArray.
      */
     inline
-    CallBacks( ChaiBuffer< T > & cb, INDEX_TYPE const size ):
+    CallBacks( NewChaiBuffer< T > & cb, INDEX_TYPE const size ):
       m_cb( cb ),
       m_size( size )
     {}
@@ -317,7 +312,7 @@ public:
     }
 
 private:
-    ChaiBuffer< T > & m_cb;
+    NewChaiBuffer< T > & m_cb;
     INDEX_TYPE const m_size;
   };
 
