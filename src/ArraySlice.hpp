@@ -288,7 +288,7 @@ public:
    * @brief Return a pointer to the values.
    * @pre The slice must be contiguous
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline
   T * dataIfContiguous() const
   {
     LVARRAY_ERROR_IF( !isContiguous(), "The slice must be contiguous for direct data access" );
