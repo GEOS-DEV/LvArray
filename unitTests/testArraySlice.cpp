@@ -35,9 +35,42 @@ void resizeArray( Array< T, NDIM, PERM, INDEX_TYPE > & a, DIMS const & newdims,
 template< typename PERMUTATION >
 class PermutedSliceTest : public ::testing::Test {};
 
-TYPED_TEST_CASE_P( PermutedSliceTest );
+using Permutations = ::testing::Types< RAJA::PERM_IJ,
+                                       RAJA::PERM_JI,
+                                       RAJA::PERM_IJK,
+                                       RAJA::PERM_JIK,
+                                       RAJA::PERM_IKJ,
+                                       RAJA::PERM_KIJ,
+                                       RAJA::PERM_KJI,
+                                       RAJA::PERM_JKI,
+                                       RAJA::PERM_IJKL,
+                                       RAJA::PERM_JIKL,
+                                       RAJA::PERM_IKJL,
+                                       RAJA::PERM_KIJL,
+                                       RAJA::PERM_JKIL,
+                                       RAJA::PERM_KJIL,
+                                       RAJA::PERM_IJLK,
+                                       RAJA::PERM_JILK,
+                                       RAJA::PERM_ILJK,
+                                       RAJA::PERM_LIJK,
+                                       RAJA::PERM_JLIK,
+                                       RAJA::PERM_LJIK,
+                                       RAJA::PERM_IKLJ,
+                                       RAJA::PERM_KILJ,
+                                       RAJA::PERM_ILKJ,
+                                       RAJA::PERM_LIKJ,
+                                       RAJA::PERM_KLIJ,
+                                       RAJA::PERM_LKIJ,
+                                       RAJA::PERM_JKLI,
+                                       RAJA::PERM_KJLI,
+                                       RAJA::PERM_JLKI,
+                                       RAJA::PERM_LJKI,
+                                       RAJA::PERM_KLJI,
+                                       RAJA::PERM_LKJI >;
 
-TYPED_TEST_P( PermutedSliceTest, IsContiguous )
+TYPED_TEST_CASE( PermutedSliceTest, Permutations );
+
+TYPED_TEST( PermutedSliceTest, IsContiguous )
 {
   using PERMUTATION = TypeParam;
   constexpr int NDIM = getDimension( PERMUTATION {} );
@@ -61,47 +94,6 @@ TYPED_TEST_P( PermutedSliceTest, IsContiguous )
     EXPECT_EQ( a[i].isContiguous(), contiguous );
   }
 }
-
-REGISTER_TYPED_TEST_CASE_P( PermutedSliceTest, IsContiguous );
-
-using Permutations2D = ::testing::Types< RAJA::PERM_IJ,
-                                         RAJA::PERM_JI >;
-
-using Permutations3D = ::testing::Types< RAJA::PERM_IJK,
-                                         RAJA::PERM_JIK,
-                                         RAJA::PERM_IKJ,
-                                         RAJA::PERM_KIJ,
-                                         RAJA::PERM_KJI,
-                                         RAJA::PERM_JKI >;
-
-using Permutations4D = ::testing::Types< RAJA::PERM_IJKL,
-                                         RAJA::PERM_JIKL,
-                                         RAJA::PERM_IKJL,
-                                         RAJA::PERM_KIJL,
-                                         RAJA::PERM_JKIL,
-                                         RAJA::PERM_KJIL,
-                                         RAJA::PERM_IJLK,
-                                         RAJA::PERM_JILK,
-                                         RAJA::PERM_ILJK,
-                                         RAJA::PERM_LIJK,
-                                         RAJA::PERM_JLIK,
-                                         RAJA::PERM_LJIK,
-                                         RAJA::PERM_IKLJ,
-                                         RAJA::PERM_KILJ,
-                                         RAJA::PERM_ILKJ,
-                                         RAJA::PERM_LIKJ,
-                                         RAJA::PERM_KLIJ,
-                                         RAJA::PERM_LKIJ,
-                                         RAJA::PERM_JKLI,
-                                         RAJA::PERM_KJLI,
-                                         RAJA::PERM_JLKI,
-                                         RAJA::PERM_LJKI,
-                                         RAJA::PERM_KLJI,
-                                         RAJA::PERM_LKJI >;
-
-INSTANTIATE_TYPED_TEST_CASE_P( 2D, PermutedSliceTest, Permutations2D );
-INSTANTIATE_TYPED_TEST_CASE_P( 3D, PermutedSliceTest, Permutations3D );
-INSTANTIATE_TYPED_TEST_CASE_P( 4D, PermutedSliceTest, Permutations4D );
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )

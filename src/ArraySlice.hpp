@@ -289,9 +289,9 @@ public:
    * @pre The slice must be contiguous
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
-  T * data() const
+  T * dataIfContiguous() const
   {
-    LVARRAY_ASSERT( isContiguous() );
+    LVARRAY_ERROR_IF( !isContiguous(), "The slice must be contiguous for direct data access" );
     return m_data;
   }
 
