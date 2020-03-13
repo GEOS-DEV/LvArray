@@ -1,25 +1,23 @@
-set(CONFIG_NAME "lassen-gcc@upstream" CACHE PATH "") 
+set(CONFIG_NAME "lassen-gcc@8.3.1" CACHE PATH "") 
 
 # Set up the tpls
 # These were probably built with clang (no guarantee that they would work)
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-02-09/install-lassen-clang@upstream-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-03-13/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(CMAKE_C_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gcc CACHE PATH "")
 set(CMAKE_CXX_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/g++ CACHE PATH "")
 set(CMAKE_Fortran_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gfortran CACHE PATH "")
 
-# These flags should be set for the TPL build but they break some of our numerically sensative code.
+# These flags should be set for the TPL build but they break some of our numerically sensitive code.
 # This needs to be fixed.
-set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" CACHE STRING "")
-# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -mtune=native" CACHE STRING "")
-set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -qarch=pwr9 -qtune=pwr9" CACHE STRING "")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
+set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
 set(FORTRAN_MANGLE_NO_UNDERSCORE ON CACHE BOOL "")
 
 # OpenMP options
 set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
-set(OpenMP_Fortran_FLAGS "-qsmp=omp" CACHE STRING "")
-set(OpenMP_Fortran_LIB_NAMES "" CACHE STRING "")
 
 # MPI options
 set(ENABLE_MPI ON CACHE BOOL "")
