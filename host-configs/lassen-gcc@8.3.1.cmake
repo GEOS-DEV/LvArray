@@ -14,7 +14,7 @@ set(CMAKE_Fortran_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gfortran CACHE PA
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
 set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
-set(FORTRAN_MANGLE_NO_UNDERSCORE ON CACHE BOOL "")
+set(FORTRAN_MANGLE_NO_UNDERSCORE OFF CACHE BOOL "")
 
 # OpenMP options
 set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
