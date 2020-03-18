@@ -80,7 +80,6 @@ class NewChaiBufferPrinter(BufferPrinter):
 def build_buffer_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-buffers")
     pp.add_printer('LvArray::StackBuffer', 'LvArray::StackBuffer<.*>', StackBufferPrinter)
-    pp.add_printer('LvArray::ChaiBuffer', 'LvArray::ChaiBuffer<.*>', ChaiBufferPrinter)
     pp.add_printer('LvArray::NewChaiBuffer', 'LvArray::NewChaiBuffer<.*>', NewChaiBufferPrinter)
     return pp
 
@@ -93,8 +92,36 @@ except ImportError:
     pass
 
 
+class ArraySlicePrinter(CxxUtilsPrinter):
+    """Pretty-print an ArraySlice"""
+
+    def value_type(self):
+        return self.val.type.template_argument(0)
+
+    def ndim(self):
+        return self.val.type.template_argument(1)
+
+    def dims(self):
+        return self.val['m_dims']
+
+    def strides(self):
+        return self.val['m_strides']
+
+    def data(self):
+        return self.val['m_data']
+
+    def to_string(self):
+        return '%s of size %s' % (self.real_type().name, format_array(self.dims()))
+
+    def children(self):
+        array_type = self.value_type()
+        for i in range(self.ndim()):
+            array_type = array_type.array(self.dims()[self.ndim() - i - 1] - 1)
+        return [('gdb_view', self.data().dereference().cast(array_type))] + CxxUtilsPrinter.children(self)
+
+
 class ArrayViewPrinter(CxxUtilsPrinter):
-    """Pretty-print an ArrayView/Slice"""
+    """Pretty-print an ArrayView"""
 
     def value_type(self):
         return self.val.type.template_argument(0)
@@ -158,7 +185,8 @@ class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
 
 def build_array_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-arrays")
-    pp.add_printer('LvArray::ArrayView', '^LvArray::Array(View|Slice)<.*>$', ArrayViewPrinter)
+    pp.add_printer('LvArray::ArraySlice', '^LvArray::ArraySlice<.*>$', ArraySlicePrinter)
+    pp.add_printer('LvArray::ArrayView', '^LvArray::ArrayView<.*>$', ArrayViewPrinter)
     pp.add_printer('LvArray::ArrayOfArraysView', '^LvArray::ArrayOfArraysView<.*>$', ArrayOfArraysViewPrinter)
     return pp
 
