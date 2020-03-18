@@ -103,7 +103,7 @@ public:
   /**
    * @brief Conversion operator to ArrayOfArraysView<T, INDEX_TYPE const>.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator ArrayOfArraysView< T, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >(*this); }
@@ -112,7 +112,7 @@ public:
    * @brief Method to convert to ArrayOfArraysView<T, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -121,7 +121,7 @@ public:
    *        Although ArrayOfArraysView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator ArrayOfArraysView< T, INDEX_TYPE const, true > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewSemiConst(); }
@@ -131,7 +131,7 @@ public:
    *        Although ArrayOfArraysView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator ArrayOfArraysView< T const, INDEX_TYPE const, true > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewConst(); }

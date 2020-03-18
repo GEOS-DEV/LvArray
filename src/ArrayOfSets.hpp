@@ -109,7 +109,7 @@ public:
   /**
    * @brief Conversion operator to an ArrayOfArraysView.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator ArrayOfSetsView< T, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const > const & >(*this); }
@@ -124,7 +124,7 @@ public:
   /**
    * @brief Method to convert to an immutable ArrayOfSetsView.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator ArrayOfSetsView< T const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewConst(); }
@@ -133,7 +133,7 @@ public:
    * @brief Conversion operator to an immutable ArrayOfArraysView.
    */
   template< class U=T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator ArrayOfArraysView< T const, INDEX_TYPE const, true >
   () const LVARRAY_RESTRICT_THIS
   { return toArrayOfArraysView(); }

@@ -48,11 +48,11 @@ enum Description
   UNSORTED_WITH_DUPLICATES
 };
 
-LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+LVARRAY_HOST_DEVICE constexpr inline
 bool isSorted( Description const desc )
 { return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
 
-LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+LVARRAY_HOST_DEVICE constexpr inline
 bool isUnique( Description const desc )
 { return desc == SORTED_UNIQUE || desc == UNSORTED_NO_DUPLICATES; }
 
@@ -146,7 +146,8 @@ struct less
    * @brief Return true iff lhs < rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  constexpr LVARRAY_HOST_DEVICE inline
+  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
   { return lhs < rhs; }
 };
 
@@ -162,7 +163,8 @@ struct greater
    * @brief Return true iff lhs > rhs.
    */
   DISABLE_HD_WARNING
-  CONSTEXPRFUNC LVARRAY_HOST_DEVICE inline bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  constexpr LVARRAY_HOST_DEVICE inline
+  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
   { return lhs > rhs; }
 };
 

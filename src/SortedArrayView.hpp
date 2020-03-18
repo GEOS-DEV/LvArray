@@ -29,9 +29,6 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
-#undef CONSTEXPRFUNC
-#define CONSTEXPRFUNC
-
 #define SORTEDARRAY_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= size(), \
                     "Array Bounds Check Failed: index=" << index << " size()=" << size())
@@ -105,7 +102,7 @@ public:
    * @note The pointer is of type T const * because it would be unsafe to modify
    *        the values of the set.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   T const * data() const
   { return m_values.data(); }
 
@@ -123,28 +120,28 @@ public:
   /**
    * @brief Return a pointer to the beginning of the array.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   T const * begin() const
   { return data(); }
 
   /**
    * @brief Return a pointer to the end of the array.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   T const * end() const
   { return data() + size(); }
 
   /**
    * @brief Return true if the array holds no values.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   bool empty() const
   { return size() == 0; }
 
   /**
    * @brief Return the number of values in the array.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE size() const
   { return m_size; }
 

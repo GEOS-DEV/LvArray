@@ -615,6 +615,7 @@ protected:
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
 TYPED_TEST_CASE( ArrayOfArraysTest, TestTypes );
 
+
 TYPED_TEST( ArrayOfArraysTest, emptyConstruction )
 {
   ArrayOfArrays< TypeParam > a;
@@ -654,6 +655,7 @@ TYPED_TEST( ArrayOfArraysTest, appendArray )
   this->appendArray( 100, 10 );
 }
 
+
 TYPED_TEST( ArrayOfArraysTest, appendArray2 )
 {
   this->appendArray2( 100, 10 );
@@ -665,6 +667,50 @@ TYPED_TEST( ArrayOfArraysTest, insertArray )
   {
     this->insertArray( 100, 10 );
   }
+}
+
+TYPED_TEST( ArrayOfArraysTest, copyConstruction )
+{
+  this->appendArray( 100, 10 );
+  ArrayOfArrays< TypeParam > a( this->m_array );
+
+  ASSERT_NE( &a( 0, 0 ), &this->m_array( 0, 0 ) );
+
+  COMPARE_TO_REFERENCE( this->m_array.toViewConst(), this->m_ref );
+  COMPARE_TO_REFERENCE( a.toViewConst(), this->m_ref );
+}
+
+TYPED_TEST( ArrayOfArraysTest, copyAssignment )
+{
+  this->appendArray( 100, 10 );
+  ArrayOfArrays< TypeParam > a;
+  ASSERT_EQ( a.size(), 0 );
+  a = this->m_array;
+
+  ASSERT_NE( &a( 0, 0 ), &this->m_array( 0, 0 ) );
+
+  COMPARE_TO_REFERENCE( this->m_array.toViewConst(), this->m_ref );
+  COMPARE_TO_REFERENCE( a.toViewConst(), this->m_ref );
+}
+
+TYPED_TEST( ArrayOfArraysTest, moveConstruction )
+{
+  this->appendArray( 100, 10 );
+  ArrayOfArrays< TypeParam > a( std::move( this->m_array ) );
+  ASSERT_EQ( this->m_array.size(), 0 );
+
+  COMPARE_TO_REFERENCE( a.toViewConst(), this->m_ref );
+}
+
+TYPED_TEST( ArrayOfArraysTest, moveAssignment )
+{
+  this->appendArray( 100, 10 );
+  ArrayOfArrays< TypeParam > a;
+  ASSERT_EQ( a.size(), 0 );
+  a = std::move( this->m_array );
+  ASSERT_EQ( this->m_array.size(), 0 );
+
+  COMPARE_TO_REFERENCE( a.toViewConst(), this->m_ref );
 }
 
 TYPED_TEST( ArrayOfArraysTest, eraseArray )

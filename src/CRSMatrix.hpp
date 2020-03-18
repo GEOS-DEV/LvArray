@@ -104,7 +104,7 @@ public:
   /**
    * @brief Conversion operator to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >(*this); }
@@ -113,7 +113,7 @@ public:
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -122,7 +122,7 @@ public:
    *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewSemiConst(); }
@@ -132,7 +132,7 @@ public:
    *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewConst(); }
@@ -142,7 +142,7 @@ public:
    *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return toSparsityPatternView(); }

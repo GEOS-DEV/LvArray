@@ -56,7 +56,7 @@ namespace arrayManipulation
  * @param [in] i the value to check.
  */
 template< typename INDEX_TYPE >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+LVARRAY_HOST_DEVICE inline constexpr
 typename std::enable_if< std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const i )
 { return i >= 0; }
@@ -66,7 +66,7 @@ isPositive( INDEX_TYPE const i )
  * @brief Returns true. This specialization for unsigned types avoids compiler warnings.
  */
 template< typename INDEX_TYPE >
-LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+LVARRAY_HOST_DEVICE inline constexpr
 typename std::enable_if< !std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE const )
 { return true; }

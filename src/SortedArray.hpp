@@ -64,12 +64,12 @@ public:
   // Duplicating these next two methods because SFINAE macros don't seem to pick them up otherwise.
 
   // using SortedArrayView<T, INDEX_TYPE>::empty;
-  CONSTEXPRFUNC inline
+  constexpr inline
   bool empty() const
   { return SortedArrayView< T, INDEX_TYPE >::empty(); }
 
   // using SortedArrayView<T, INDEX_TYPE>::size;
-  CONSTEXPRFUNC inline
+  constexpr inline
   INDEX_TYPE size() const
   { return SortedArrayView< T, INDEX_TYPE >::size(); }
 
@@ -138,7 +138,7 @@ public:
    * @brief User defined conversion to SortedArrayView<T const> const.
    */
   template< typename U = T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator ViewType const & () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ViewType const & >( *this ); }
 

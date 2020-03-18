@@ -107,7 +107,7 @@ public:
    * lambda which is used to execute a cuda kernel, the data will be allocated and copied
    * to the device (if it doesn't already exist).
    */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView const & source ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },
@@ -126,7 +126,7 @@ public:
    * @param source object to move
    * @return *this
    */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView && source ):
     m_dims{ 0 },
     m_strides{ 0 },
@@ -148,7 +148,7 @@ public:
    * @param rhs object to copy.
    * @return *this
    */
-  inline CONSTEXPRFUNC
+  inline constexpr
   ArrayView & operator=( ArrayView const & rhs ) noexcept
   {
     m_dataBuffer = rhs.m_dataBuffer;
@@ -167,7 +167,7 @@ public:
    * @param rhs object to copy.
    * @return *this
    */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   ArrayView & operator=( ArrayView && rhs )
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
@@ -188,7 +188,7 @@ public:
    */
   DISABLE_HD_WARNING
   template< typename U = T >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   std::enable_if_t< !(std::is_const< U >::value), ArrayView const & >
   operator=( T const & rhs ) const noexcept
   {
@@ -206,12 +206,10 @@ public:
    *        In addition the data held by the innermost array will be const.
    */
   template< typename U = T >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   std::enable_if_t< !std::is_const< U >::value, ViewTypeConst & >
   toViewConst() const
-  {
-    return reinterpret_cast< ViewTypeConst & >( *this );
-  }
+  { return reinterpret_cast< ViewTypeConst & >( *this ); }
 
   /**
    * @brief User Defined Conversion operator to move from an ArrayView<T> const to
@@ -221,7 +219,7 @@ public:
    *       const specifier on the template parameter T.
    */
   template< typename U = T >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< U >::value,
                              ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & >
     () const noexcept
@@ -232,55 +230,45 @@ public:
   /**
    * @brief Return an ArraySlice representing this ArrayView.
    */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T, NDIM, USD, INDEX_TYPE >
   toSlice() const noexcept
-  {
-    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides );
-  }
+  { return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
 
   /**
    * @brief Return an immutable ArraySlice representing this ArrayView.
    */
   template< typename U=T >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const noexcept
-  {
-    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides );
-  }
+  { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
 
   /**
    * @brief User defined conversion to an ArraySlice representing this ArrayView.
    */
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const noexcept
-  {
-    return toSlice();
-  }
+  { return toSlice(); }
 
   /**
    * @brief User defined conversion to an immutable ArraySlice representing this ArrayView.
    */
   template< typename U=T >
-  inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+  inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< U >::value,
                              ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >
     () const noexcept
-  {
-    return toSliceConst();
-  }
+  { return toSliceConst(); }
 
   /**
    * @brief User defined conversion to convert a ArraySlice< T, 1, 0 > to a raw pointer.
    */
   template< int _NDIM=NDIM, int _USD=USD >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
     () const noexcept LVARRAY_RESTRICT_THIS
-  {
-    return data();
-  }
+  { return data(); }
 
   /**
    * @brief Return the allocated size.
@@ -311,14 +299,14 @@ public:
   /**
    * @brief Return a pointer to the begining of the data.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T * begin() const
   { return data(); }
 
   /**
    * @brief Return a pointer to the end of the data (one past the last value).
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T * end() const
   { return data() + size(); }
 

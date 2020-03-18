@@ -31,23 +31,20 @@ namespace LvArray
 {
 
 // Wrapper around RAJA::atomicAdd that allows for non primitive types with RAJA::seq_atomic
-// TODO: Can be removed after updating RAJA.
 namespace
 {
+
 template< typename POLICY, typename T >
 LVARRAY_HOST_DEVICE inline
 void atomicAdd( POLICY, T * const acc, T const & val )
-{
-  RAJA::atomicAdd< POLICY >( acc, val );
-}
+{ RAJA::atomicAdd< POLICY >( acc, val ); }
 
 DISABLE_HD_WARNING
 template< typename T >
-LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+LVARRAY_HOST_DEVICE constexpr inline
 void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
-{
-  *acc += val;
-}
+{ *acc += val; }
+
 }
 
 /**
@@ -106,7 +103,7 @@ public:
    *        This prevents you from inserting or removing but still allows modification of the matrix entries.
    */
   template< class U=T, class CTYPE=COL_TYPE >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !std::is_const< U >::value && !std::is_const< CTYPE >::value,
                                     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >::type
     () const LVARRAY_RESTRICT_THIS
@@ -116,7 +113,7 @@ public:
    * @brief Method to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>. Use this method
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewSemiConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -125,7 +122,7 @@ public:
    *        This prevents you from inserting, removing or modifying the matrix entries.
    */
   template< class U=T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !std::is_const< U >::value, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >::type
     () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
@@ -134,14 +131,14 @@ public:
    * @brief Method to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>. Use this method
    *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief Method to convert to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
   { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
