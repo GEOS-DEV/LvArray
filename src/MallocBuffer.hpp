@@ -138,18 +138,14 @@ public:
   /**
    * @brief Return a pointer to the beginning of the buffer.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
-  {
-    return m_data;
-  }
+  { return m_data; }
 
   template< typename INDEX_TYPE >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T & operator[]( INDEX_TYPE const i ) const
-  {
-    return m_data[ i ];
-  }
+  { return m_data[ i ]; }
 
 private:
   T * LVARRAY_RESTRICT m_data = nullptr;

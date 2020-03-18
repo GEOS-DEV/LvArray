@@ -85,7 +85,7 @@ public:
    * @brief User defined conversion to move from COL_TYPE to COL_TYPE const.
    */
   template< class CTYPE=COL_TYPE >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !std::is_const< CTYPE >::value,
                                     SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >::type
     () const LVARRAY_RESTRICT_THIS
@@ -95,7 +95,7 @@ public:
    * @brief Method to convert COL_TYPE to COL_TYPE const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -116,14 +116,14 @@ public:
   /**
    * @brief Return the number of rows in the matrix.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
   { return ParentClass::size(); }
 
   /**
    * @brief Return the number of columns in the matrix.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numColumns() const LVARRAY_RESTRICT_THIS
   { return m_numCols; }
 
@@ -146,14 +146,14 @@ public:
    * @brief Return the total number of non zero entries in the given row.
    * @param [in] row the row to query.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::sizeOfSet( row ); }
 
   /**
    * @brief Return the total number of non zero entries able to be stored without a reallocation.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC nonZeroCapacity() const LVARRAY_RESTRICT_THIS
   { return m_values.capacity(); }
 
@@ -162,7 +162,7 @@ public:
    *        subsequent rows and possibly reallocating.
    * @param [in] row the row to query.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::capacityOfSet( row ); }
 
@@ -177,7 +177,7 @@ public:
    * @brief Return true iff the given row is all zeros.
    * @param [in] row the row to query.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   bool empty( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return numNonZeros( row ) == 0; }
 
@@ -195,7 +195,7 @@ public:
    *        This array has length numNonZeros(row).
    * @param [in] row the row to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return (*this)[row]; }
 
@@ -203,7 +203,7 @@ public:
    * @brief Return a pointer to the array of offsets.
    *        This array has length numRows() + 1.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
   { return m_offsets.data(); }
 

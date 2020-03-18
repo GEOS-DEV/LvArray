@@ -128,30 +128,26 @@ public:
    * @brief Return a new immutable slice.
    */
   template< typename U=T >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const LVARRAY_RESTRICT_THIS noexcept
-  {
-    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides );
-  }
+  { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides ); }
 
   /**
    * @brief User defined conversion to return a new immutable slice.
    */
   template< typename U=T >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   operator std::enable_if_t< !std::is_const< U >::value,
                              ArraySlice< T const, NDIM, USD, INDEX_TYPE > >
     () const LVARRAY_RESTRICT_THIS noexcept
-  {
-    return toSliceConst();
-  }
+  { return toSliceConst(); }
 
   /**
    * @brief User defined conversion to convert an ArraySlice<T,1,0> to a raw pointer.
    */
   template< int _NDIM=NDIM, int _USD=USD >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
     () const noexcept LVARRAY_RESTRICT_THIS
   { return m_data; }
@@ -193,7 +189,7 @@ public:
    * @note This is a standard fortran like parentheses interface to array access.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -219,7 +215,7 @@ public:
   /**
    * @brief Return the allocated size.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
   { return multiplyAll< NDIM >( m_dims ); }
 
@@ -240,11 +236,9 @@ public:
    * @brief Return true iff the given pointer matches the data pointer of this ArraySlice.
    * @param ptr the pointer to check.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   bool operator==( T const * const ptr ) const
-  {
-    return m_data == ptr;
-  }
+  { return m_data == ptr; }
 
   /**
    * @brief Check if the slice is contiguous in memory
@@ -252,7 +246,7 @@ public:
    * @return @p true if represented slice is contiguous in memory
    */
   template< int _USD = USD >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   std::enable_if_t< ( _USD >= 0), bool >
   isContiguous() const
   {
@@ -277,12 +271,10 @@ public:
    *         have already lost its unit stride dimension
    */
   template< int USD_ = USD >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   std::enable_if_t< (USD_ < 0), bool >
   isContiguous() const
-  {
-    return false;
-  }
+  { return false; }
 
   /**
    * @brief Return a pointer to the values.

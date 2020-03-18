@@ -98,7 +98,7 @@ public:
   /**
    * @brief Conversion operator to SparsityPatternView<COL_TYPE, INDEX_TYPE const>.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator SparsityPatternView< COL_TYPE, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >(*this); }
@@ -107,7 +107,7 @@ public:
    * @brief Method to convert to SparsityPatternView<COL_TYPE, INDEX_TYPE const>. Use this method when
    *        the above UDC isn't invoked, this usually occurs with template argument deduction.
    */
-  inline
+  constexpr inline
   SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -116,7 +116,7 @@ public:
    *        Although SparsityPatternView defines this operator nvcc won't let us alias it so
    *        it is redefined here.
    */
-  CONSTEXPRFUNC inline
+  constexpr inline
   operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
   () const LVARRAY_RESTRICT_THIS
   { return toViewConst(); }

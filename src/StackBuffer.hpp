@@ -59,7 +59,7 @@ public:
   StackBuffer( bool=true )
   {}
 
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   StackBuffer( StackBuffer const & src, std::ptrdiff_t ):
     StackBuffer( src )
   {}
@@ -86,27 +86,21 @@ public:
   /**
    * @brief Return the capacity of the buffer.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   std::ptrdiff_t capacity() const
-  {
-    return LENGTH;
-  }
+  { return LENGTH; }
 
   /**
    * @brief Return a pointer to the beginning of the buffer.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
-  {
-    return const_cast< T * >( m_data );
-  }
+  { return const_cast< T * >( m_data ); }
 
   template< typename INDEX_TYPE >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline constexpr
   T & operator[]( INDEX_TYPE const i ) const
-  {
-    return const_cast< T * >( m_data )[ i ];
-  }
+  { return const_cast< T * >( m_data )[ i ]; }
 
 private:
   T m_data[ LENGTH ];

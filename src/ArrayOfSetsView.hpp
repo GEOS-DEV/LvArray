@@ -77,7 +77,7 @@ public:
    * @brief User defined conversion to move from T to T const.
    */
   template< class U=T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !std::is_const< U >::value,
                                     ArrayOfSetsView< T const, INDEX_TYPE const > const & >::type
     () const LVARRAY_RESTRICT_THIS
@@ -87,14 +87,14 @@ public:
    * @brief Method to convert T to T const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief Method to convert to an immutable ArrayOfArraysView.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -117,7 +117,7 @@ public:
    * @brief Return an object provides an iterable interface to the given set.
    * @param [in] i the set to get an iterator for.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::getIterableArray( i ); }
 
@@ -125,7 +125,7 @@ public:
    * @brief Return the size of the given set.
    * @param [in] i the set to querry.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::sizeOfArray( i ); }
 
@@ -133,7 +133,7 @@ public:
    * @brief Return the capacity of the given set.
    * @param [in] i the set to querry.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::capacityOfArray( i ); }
 
@@ -141,7 +141,7 @@ public:
    * @brief Return an ArraySlice1d<T const> (pointer to const) to the values of the given array.
    * @param [in] i the array to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator[]( i ); }
 
@@ -150,7 +150,7 @@ public:
    * @param [in] i the array to access.
    * @param [in] j the index within the array to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator()( i, j ); }
 
@@ -290,7 +290,7 @@ protected:
    * @param [in] i the array to access.
    * @note This method is protected because it returns a non-const pointer.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator[]( i ); }
 

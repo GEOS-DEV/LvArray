@@ -31,9 +31,6 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
-#undef CONSTEXPRFUNC
-#define CONSTEXPRFUNC
-
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size(), \
                     "Bounds Check Failed: i=" << i << " size()=" << this->size() )
@@ -129,14 +126,21 @@ public:
    * @brief Default move constructor.
    * @param [in/out] src the ArrayOfArraysView to be moved from.
    */
-  inline
-  ArrayOfArraysView( ArrayOfArraysView && src ) = default;
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView( ArrayOfArraysView && src ):
+    m_numArrays( src.m_numArrays ),
+    m_offsets( std::move( src.m_offsets ) ),
+    m_sizes( std::move( src.m_sizes ) ),
+    m_values( std::move( src.m_values ) )
+  {
+    src.m_numArrays = 0;
+  }
 
   /**
    * @brief User defined conversion to make CONST_SIZES true.
    */
   template< bool SIZES_ARE_CONST=CONST_SIZES >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !SIZES_ARE_CONST,
                                     ArrayOfArraysView< T, INDEX_TYPE const, true > const & >::type
     () const LVARRAY_RESTRICT_THIS
@@ -146,7 +150,7 @@ public:
    * @brief Method to make CONST_SIZES true. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewSemiConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -154,7 +158,7 @@ public:
    * @brief User defined conversion to move from T to T const.
    */
   template< class U=T >
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   operator typename std::enable_if< !std::is_const< U >::value,
                                     ArrayOfArraysView< T const, INDEX_TYPE const, true > const & >::type
     () const LVARRAY_RESTRICT_THIS
@@ -164,7 +168,7 @@ public:
    * @brief Method to convert T to T const. Use this method when the above UDC
    *        isn't invoked, this usually occurs with template argument deduction.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
@@ -180,12 +184,20 @@ public:
    * @param [in/out] src the SparsityPatternView to be moved from.
    */
   inline
-  ArrayOfArraysView & operator=( ArrayOfArraysView && src ) = default;
+  ArrayOfArraysView & operator=( ArrayOfArraysView && src )
+  {
+    m_numArrays = src.m_numArrays;
+    src.m_numArrays = 0;
+    m_offsets = std::move( src.m_offsets );
+    m_sizes = std::move( src.m_sizes );
+    m_values = std::move( src.m_values );
+    return *this;
+  }
 
   /**
    * @brief Return the number of arrays.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC size() const LVARRAY_RESTRICT_THIS
   { return m_numArrays; }
 
@@ -247,17 +259,17 @@ public:
   class IterableArray
   {
 public:
-    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    LVARRAY_HOST_DEVICE constexpr inline
     IterableArray( T * const data, INDEX_TYPE const size ):
       m_data( data ),
       m_size( size )
     {}
 
-    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    LVARRAY_HOST_DEVICE constexpr inline
     T * begin() const LVARRAY_RESTRICT_THIS
     { return m_data; }
 
-    LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+    LVARRAY_HOST_DEVICE constexpr inline
     T * end() const LVARRAY_RESTRICT_THIS
     { return m_data + m_size; }
 
@@ -526,13 +538,10 @@ protected:
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
 
         INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-        for_each_arg(
-          [totalSize, maxOffset]( auto & buffer )
+        for_each_arg( [totalSize, maxOffset]( auto & buffer )
         {
           bufferManipulation::reserve( buffer, maxOffset, totalSize );
-        },
-          m_values, buffers ...
-          );
+        }, m_values, buffers ... );
       }
     }
 
@@ -551,13 +560,10 @@ protected:
   {
     destroyValues( 0, m_numArrays, buffers ... );
 
-    for_each_arg(
-      []( auto & buffer )
+    for_each_arg( []( auto & buffer )
     {
       buffer.free();
-    },
-      m_sizes, m_offsets, m_values, buffers ...
-      );
+    }, m_sizes, m_offsets, m_values, buffers ... );
 
     m_numArrays = 0;
   }
@@ -767,15 +773,18 @@ protected:
     m_values.template setName< U >( name + "/m_values" );
   }
 
-  INDEX_TYPE m_numArrays = 0;
+  /// The number of arrays contained.
+  INDEX_TYPE_NC m_numArrays = 0;
 
-  // Holds the offset of each array, of length size() + 1. Array i begins at
-  // m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
+  /// Holds the offset of each array, of length m_numArrays + 1. Array i begins at
+  /// m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
   NewChaiBuffer< INDEX_TYPE > m_offsets;
 
+  /// Holds the size of each array.
   NewChaiBuffer< SIZE_TYPE > m_sizes;
 
-  // Holds the values of each array, of length numValues().
+  /// Holds the values of each array. Values in the range [m_offsets[i], m_offsets[i] + m_sizes[i])
+  /// are valid. All other entries contain uninitialized values.
   NewChaiBuffer< T > m_values;
 
 private:
