@@ -18,25 +18,54 @@
 
 
 #include "StringUtilities.hpp"
+
+// System includes
 #include <cxxabi.h>
 #include <cstring>
 #include <memory>
 
 namespace cxx_utilities
 {
+
+///////////////////////////////////////////////////////////////////////////////
 std::string demangle( const std::string & name )
 {
-
   int status = -4; // some arbitrary value to eliminate the compiler warning
+  char * const demangledName = abi::__cxa_demangle( name.c_str(), nullptr, nullptr, &status );
 
-  // enable c++11 by passing the flag -std=c++11 to g++
-  std::unique_ptr< char, void (*)( void * ) > res
+  std::string const result = (status == 0) ? demangledName : name;
+
+  std::free( demangledName );
+
+  return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+std::string calculateSize( size_t const bytes )
+{
+  char const * suffix;
+  uint shift;
+  if( bytes >> 30 != 0 )
   {
-    abi::__cxa_demangle( name.c_str(), nullptr, nullptr, &status ),
-    std::free
-  };
+    suffix = "GB";
+    shift = 30;
+  }
+  else if( bytes >> 20 != 0 )
+  {
+    suffix = "MB";
+    shift = 20;
+  }
+  else
+  {
+    suffix = "KB";
+    shift = 10;
+  }
 
-  return ( status == 0 ) ? res.get() : name;
+  double const units = double( bytes ) / ( 1 << shift );
+
+  char result[10];
+  std::snprintf( result, 10, "%.1f %s", units, suffix );
+  return result;
 }
 
-}
+} // namespace cxx_utilities

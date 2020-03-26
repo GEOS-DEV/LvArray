@@ -50,26 +50,6 @@ inline chai::ArrayManager & getArrayManager()
 // CHAI is not threadsafe so we use a lock to serialize access.
 static std::mutex chaiLock;
 
-/**
- * @brief Return a string representing the given size in bytes converted to either
- *        KB or MB.
- */
-inline std::string calculateSize( size_t const bytes )
-{
-  std::string size;
-  if( bytes >> 20 != 0 )
-  {
-    size = std::to_string( bytes >> 20 ) + "MB";
-  }
-  else
-  {
-    size = std::to_string( bytes >> 10 ) + "KB";
-  }
-
-  // return a space padded size
-  return std::string( 7 - size.length(), ' ' ) + size;
-}
-
 } // namespace internal
 
 /**
@@ -325,9 +305,10 @@ public:
     {
       if( act == chai::ACTION_MOVE )
       {
-        std::string const & size = internal::calculateSize( bytes );
+        std::string const size = cxx_utilities::calculateSize( bytes );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
-        LVARRAY_LOG( "Moved " << size << " to the " << spaceStr << ": " << typeString << " " << name );
+        LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
       }
     };
   }
