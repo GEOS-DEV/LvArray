@@ -32,16 +32,36 @@
 namespace cxx_utilities
 {
 
+/**
+ * @brief @return The demangled name corresponding to the given
+ *        mangled name @p name.
+ * @param name The mangled name.
+ */
 std::string demangle( std::string const & name );
 
+/**
+ * @brief @return A demangled type name corresponding to the type @tparam T.
+ * @tparam T The type to demangle.
+ */
 template< class T >
 inline std::string demangleType()
 { return demangle( typeid( T ).name() ); }
 
+/**
+ * @brief @return A demangled type name corresponding to the type @tparam T.
+ * @tparam T The type to demangle.
+ */
 template< class T >
 inline std::string demangleType( T const & )
 { return demangle( typeid( T ).name() ); }
 
-}
+/**
+ * @brief @return A string representing @p bytes converted to either
+ *        KB, MB, or GB.
+ * @param bytes The number of bytes.
+ */
+std::string calculateSize( size_t const bytes );
 
-#endif /* STRINGUTILITIES_HPP_ */
+} // namespace cxx_utilities
+
+#endif // CXX_UTILITIES_STRINGUTILITIES_HPP_
