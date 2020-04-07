@@ -475,7 +475,7 @@ private:
    * @param [in] touch If true touch the values, sizes and offsets in the new space.
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool touch=true )
+  void move( chai::ExecutionSpace const space, bool touch=true ) const
   {
     m_values.move( space, touch );
     m_sizes.move( space, touch );

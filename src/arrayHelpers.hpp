@@ -89,8 +89,25 @@ INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, IN
          getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
 
-template< typename INDEX_TYPE, typename INDEX, typename ... INDICES >
-std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDEX const index, INDICES... indices )
+inline
+std::string getIndexString()
+{ return "{}"; }
+
+template< typename INDEX_TYPE, typename ... INDICES >
+std::string getIndexString( INDEX_TYPE const index, INDICES const ... indices )
+{
+  std::ostringstream oss;
+  
+  oss << "{ " << index;
+  using expander = int[];
+  (void) expander{ 0, ( void (oss << ", " << indices ), 0 )... };
+  oss << " }";
+  
+  return oss.str();
+}
+
+template< typename INDEX_TYPE, typename ... INDICES >
+std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES) + 1;
   std::ostringstream oss;
@@ -99,11 +116,8 @@ std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims,
   {
     oss << ", " << dims[ i ];
   }
-  oss << " } indices = { " << index;
 
-  using expander = int[];
-  (void) expander{ 0, ( void (oss << ", " << indices ), 0 )... };
-  oss << " }";
+  oss << " } indices = " << getIndexString( indices ... );
 
   return oss.str();
 }
