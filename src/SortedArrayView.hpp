@@ -171,7 +171,7 @@ public:
    *       to the GPU @p touch is set to false.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool touch=true ) LVARRAY_RESTRICT_THIS
+  void move( chai::ExecutionSpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
   {
   #if defined(USE_CUDA)
     if( space == chai::GPU ) touch = false;

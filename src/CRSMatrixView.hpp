@@ -416,7 +416,7 @@ public:
    * @param [in] touch If true touch the values, sizes and offsets in the new space.
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
   {
     ParentClass::move( space, touch );
     m_entries.move( space, touch );

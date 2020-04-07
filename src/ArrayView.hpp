@@ -461,7 +461,7 @@ public:
    * @param touch whether the Array should be touched in the new space or not.
    * @note Not all Buffers support memory movement.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
   { m_dataBuffer.move( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)

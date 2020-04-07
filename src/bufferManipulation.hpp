@@ -54,10 +54,8 @@ struct VoidBuffer
    */
   void move( chai::ExecutionSpace const space,
              std::ptrdiff_t const LVARRAY_UNUSED_ARG( size ),
-             bool const LVARRAY_UNUSED_ARG( touch ) )
-  {
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
-  }
+             bool const LVARRAY_UNUSED_ARG( touch ) ) const
+  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
@@ -68,9 +66,7 @@ struct VoidBuffer
    */
   void move( chai::ExecutionSpace const space,
              bool const LVARRAY_UNUSED_ARG( touch ) )
-  {
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
-  }
+  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @brief Touch the buffer in the given space.
@@ -79,9 +75,7 @@ struct VoidBuffer
    *       occurs if you try to move it to a different space.
    */
   void registerTouch( chai::ExecutionSpace const space )
-  {
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
-  }
+  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @tparam The type of the owning object.

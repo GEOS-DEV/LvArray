@@ -242,7 +242,7 @@ public:
    * @param touch whether the buffer should be touched in the new space or not.
    */
   inline
-  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
+  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
   #if defined(USE_CUDA)
     if( m_pointer_record == nullptr ||
@@ -253,9 +253,10 @@ public:
 
     if( prevSpace == chai::CPU ) moveInnerData( space, size, touch );
 
-    m_pointer = static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
-                                                                      m_pointer_record,
-                                                                      space ) );
+    const_cast< T *& >( m_pointer ) =
+      static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
+                                                            m_pointer_record,
+                                                            space ) );
 
     if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
@@ -271,7 +272,7 @@ public:
 
   template< typename U=T_non_const >
   std::enable_if_t< !internal::HasMemberFunction_move< U > >
-  move( chai::ExecutionSpace const space, bool const touch )
+  move( chai::ExecutionSpace const space, bool const touch ) const
   {
     static_assert( !internal::HasMemberFunction_move< U >,
                    "The template type T is chai movable, therefore you need to pass the size parameter to the move method." );
@@ -286,7 +287,7 @@ public:
    *       This call therefore is not threadsafe, but that shouldn't be a problem.
    */
   RAJA_INLINE constexpr
-  void registerTouch( chai::ExecutionSpace const space )
+  void registerTouch( chai::ExecutionSpace const space ) const
   {
     m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
@@ -317,12 +318,12 @@ private:
 
   template< typename U=T_non_const >
   std::enable_if_t< !internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const )
+  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const ) const
   {}
 
   template< typename U=T_non_const >
   std::enable_if_t< internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
+  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
     if( space == chai::NONE ) return;
 
