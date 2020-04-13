@@ -703,14 +703,14 @@ public:
     // because we don't want to test the insert/remove methods on device yet.
     forall( gpu(), 0, numRows,
             [view = m_sp.toView()] __device__ ( INDEX_TYPE row )
-        {
-          COL_TYPE const * const columns = view.getColumns( row );
-          COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
-          {
-            columnsNC[i] *= columns[i];
-          }
-        }
+    {
+      COL_TYPE const * const columns = view.getColumns( row );
+      COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
+      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+      {
+        columnsNC[i] *= columns[i];
+      }
+    }
             );
 
     // Check that the columns have been updated.
@@ -750,14 +750,14 @@ public:
 
     forall( gpu(), 0, numRows,
             [=] __device__ ( INDEX_TYPE row )
-        {
-          COL_TYPE const * const columns = view.getColumns( row );
-          COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
-          {
-            columnsNC[i] *= columns[i];
-          }
-        }
+    {
+      COL_TYPE const * const columns = view.getColumns( row );
+      COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
+      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+      {
+        columnsNC[i] *= columns[i];
+      }
+    }
             );
 
     m_sp.move( chai::CPU );
@@ -784,13 +784,13 @@ public:
     // Create a view const and capture it on device.
     forall( gpu(), 0, numRows,
             [constView = m_sp.toViewConst(), numCols] __device__ ( INDEX_TYPE row )
-        {
-          COL_TYPE const * const columns = constView.getColumns( row );
-          for( INDEX_TYPE i = 0; i < constView.numNonZeros( row ); ++i )
-          {
-            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
-          }
-        }
+    {
+      COL_TYPE const * const columns = constView.getColumns( row );
+      for( INDEX_TYPE i = 0; i < constView.numNonZeros( row ); ++i )
+      {
+        LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
+      }
+    }
             );
 
     // Fill in the rows on host.
@@ -833,12 +833,12 @@ public:
     forall( gpu(), 0, numRows,
             [vView = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts]
             __device__ ( INDEX_TYPE row )
-        {
-          for( INDEX_TYPE i = 0; i < maxInserts; ++i )
-          {
-            vView.insertNonZero( row, insertView( row, i ));
-          }
-        }
+    {
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
+      {
+        vView.insertNonZero( row, insertView( row, i ));
+      }
+    }
             );
 
     // Insert the values into the reference.
@@ -881,9 +881,9 @@ public:
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts]
             __device__ ( INDEX_TYPE row )
-        {
-          view.insertNonZeros( row, insertView[row], maxInserts );
-        }
+    {
+      view.insertNonZeros( row, insertView[row], maxInserts );
+    }
             );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -925,9 +925,9 @@ public:
 
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), insertView = columnsToInsert.toViewConst(), maxInserts] __device__ ( INDEX_TYPE row )
-        {
-          view.insertNonZerosSorted( row, insertView[row], maxInserts );
-        }
+    {
+      view.insertNonZerosSorted( row, insertView[row], maxInserts );
+    }
             );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -965,12 +965,12 @@ public:
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), removeView = columnsToRemove.toViewConst(), maxRemoves]
             __device__ ( INDEX_TYPE row )
-        {
-          for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
-          {
-            view.removeNonZero( row, removeView( row, i ));
-          }
-        }
+    {
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
+      {
+        view.removeNonZero( row, removeView( row, i ));
+      }
+    }
             );
 
     // Remove the columns from m_ref
@@ -1009,9 +1009,9 @@ public:
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), removeView = columnsToRemove.toViewConst(), maxRemoves]
             __device__ ( INDEX_TYPE row )
-        {
-          view.removeNonZeros( row, removeView[row], maxRemoves );
-        }
+    {
+      view.removeNonZeros( row, removeView[row], maxRemoves );
+    }
             );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -1052,9 +1052,9 @@ public:
     forall( gpu(), 0, numRows,
             [view = m_sp.toView(), removeView = columnsToRemove.toViewConst(), maxRemoves]
             __device__ ( INDEX_TYPE row )
-        {
-          view.removeNonZerosSorted( row, removeView[row], maxRemoves );
-        }
+    {
+      view.removeNonZerosSorted( row, removeView[row], maxRemoves );
+    }
             );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -1091,13 +1091,13 @@ public:
     // Check that each row contains the even columns and no odd columns on device.
     forall( gpu(), 0, numRows,
             [view = m_sp.toViewConst()] __device__ ( INDEX_TYPE row )
-        {
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
-          {
-            LVARRAY_ERROR_IF( view.empty( row, COL_TYPE( 2 * i )), "Row should contain even columns." );
-            LVARRAY_ERROR_IF( !view.empty( row, COL_TYPE( 2 * i + 1 )), "Row should not contain odd columns." );
-          }
-        }
+    {
+      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+      {
+        LVARRAY_ERROR_IF( view.empty( row, COL_TYPE( 2 * i )), "Row should contain even columns." );
+        LVARRAY_ERROR_IF( !view.empty( row, COL_TYPE( 2 * i + 1 )), "Row should not contain odd columns." );
+      }
+    }
             );
   }
 

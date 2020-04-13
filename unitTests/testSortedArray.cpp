@@ -385,9 +385,9 @@ public:
     // Capture a view on the device.
     forall( gpu(), 0, size,
             [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-        {
-          LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
-        }
+    {
+      LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
+    }
             );
 
     // Change the values.
@@ -427,9 +427,9 @@ public:
     // Capture a view on the device.
     forall( gpu(), 0, size,
             [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-        {
-          LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
-        }
+    {
+      LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
+    }
             );
 
     // Change the values.
@@ -466,10 +466,10 @@ public:
 
     forall( gpu(), 0, size,
             [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-        {
-          LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );
-          LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "view should not contain odd numbers." );
-        }
+    {
+      LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );
+      LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "view should not contain odd numbers." );
+    }
             );
   }
 

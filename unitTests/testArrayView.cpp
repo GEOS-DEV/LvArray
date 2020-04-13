@@ -188,9 +188,9 @@ void testMemoryMotion( arrayView< T > & v )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += v[ i ];
-      }
+  {
+    v[ i ] += v[ i ];
+  }
           );
 
   forall( sequential(), 0, N,
@@ -219,9 +219,9 @@ void testMemoryMotionConst( array< T > & a )
   // Capture the view on the device.
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        assert( v[i] == T( i ));
-      }
+  {
+    assert( v[i] == T( i ));
+  }
           );
 
   // Change the values that the array holds.
@@ -257,9 +257,9 @@ void testMemoryMotionMove( array< T > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += v[ i ];
-      }
+  {
+    v[ i ] += v[ i ];
+  }
           );
 
   /* The copy construction shouldn't have changed the pointer since we moved it. */
@@ -286,16 +286,16 @@ void testMemoryMotionMultiple( arrayView< T > & v )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   forall( sequential(), 0, N,
@@ -307,9 +307,9 @@ void testMemoryMotionMultiple( arrayView< T > & v )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
 
@@ -340,16 +340,16 @@ void testMemoryMotionMultipleMove( array< T > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   a.move( chai::CPU );
@@ -360,9 +360,9 @@ void testMemoryMotionMultipleMove( array< T > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        v[ i ] += T( 2 );
-      }
+  {
+    v[ i ] += T( 2 );
+  }
           );
 
   a.move( chai::CPU );
@@ -395,12 +395,12 @@ void testMemoryMotionArray( array< array< T > > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          v[ i ][ j ] += v[ i ][ j ];
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      v[ i ][ j ] += v[ i ][ j ];
+    }
+  }
           );
 
   forall( sequential(), 0, N,
@@ -438,12 +438,12 @@ void testMemoryMotionArrayConst( array< array< T > > & a )
   arrayView< arrayView< T const > > & v = a.toViewConst();
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          assert( v[ i ][ j ] == T( N * i + j ));
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      assert( v[ i ][ j ] == T( N * i + j ));
+    }
+  }
           );
 
   // Modify a_copy. We can't use a directly since the inner arrays
@@ -486,12 +486,12 @@ void testMemoryMotionArrayMove( array< array< T > > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          v[ i ][ j ] += v[ i ][ j ];
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      v[ i ][ j ] += v[ i ][ j ];
+    }
+  }
           );
 
   a.move( chai::CPU );
@@ -527,15 +527,15 @@ void testMemoryMotionArray2( array< array< array< T > > > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < N; ++k )
       {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          for( INDEX_TYPE k = 0; k < N; ++k )
-          {
-            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
-          }
-        }
+        v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
       }
+    }
+  }
           );
 
   forall( sequential(), 0, N,
@@ -573,15 +573,15 @@ void testMemoryMotionArray2Const( array< array< array< T > > > & a )
   arrayView< arrayView< arrayView< T const > const > const > const & v = a.toViewConst();
   forall( gpu(), 0, N,
           [v, N] __device__ ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < N; ++k )
       {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          for( INDEX_TYPE k = 0; k < N; ++k )
-          {
-            const_cast< T & >( v[ i ][ j ][ k ] ) = T( N * N * i + N * j + k + 1 );
-          }
-        }
+        const_cast< T & >( v[ i ][ j ][ k ] ) = T( N * N * i + N * j + k + 1 );
       }
+    }
+  }
           );
 
   forall( sequential(), 0, N,
@@ -619,15 +619,15 @@ void testMemoryMotionArrayMove2( array< array< array< T > > > & a )
 
   forall( gpu(), 0, N,
           [=] __device__ ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0; j < N; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < N; ++k )
       {
-        for( INDEX_TYPE j = 0; j < N; ++j )
-        {
-          for( INDEX_TYPE k = 0; k < N; ++k )
-          {
-            v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
-          }
-        }
+        v[ i ][ j ][ k ] += v[ i ][ j ][ k ];
       }
+    }
+  }
           );
 
   a.move( chai::CPU );
@@ -662,13 +662,13 @@ void test2DAccessorsDevice( arrayView2D< T > & v )
 
   forall( gpu(), 0, I,
           [=] __device__ ( INDEX_TYPE i )
-      {
-        for( INDEX_TYPE j = 0; j < J; ++j )
-        {
-          v( i, j ) += T( 2 );
-          v[ i ][ j ] += T( 2 );
-        }
-      }
+  {
+    for( INDEX_TYPE j = 0; j < J; ++j )
+    {
+      v( i, j ) += T( 2 );
+      v[ i ][ j ] += T( 2 );
+    }
+  }
           );
 
   forall( sequential(), 0, I,
@@ -706,16 +706,16 @@ void test3DAccessorsDevice( arrayView3D< T > & v )
 
   forall( gpu(), 0, I,
           [=] __device__ ( INDEX_TYPE i )
+  {
+    for( INDEX_TYPE j = 0; j < J; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < K; ++k )
       {
-        for( INDEX_TYPE j = 0; j < J; ++j )
-        {
-          for( INDEX_TYPE k = 0; k < K; ++k )
-          {
-            v( i, j, k ) += T( 2 );
-            v[ i ][ j ][ k ] += T( 2 );
-          }
-        }
+        v( i, j, k ) += T( 2 );
+        v[ i ][ j ][ k ] += T( 2 );
       }
+    }
+  }
           );
 
   forall( sequential(), 0, I,
@@ -741,18 +741,18 @@ void testSizeOnDevice( arrayView3D< T > & v )
 
   forall( gpu(), 0, v.size( 0 ),
           [=] __device__ ( INDEX_TYPE i )
+  {
+    const INDEX_TYPE I = v.size( 0 );
+    const INDEX_TYPE J = v.size( 1 );
+    const INDEX_TYPE K = v.size( 2 );
+    for( INDEX_TYPE j = 0; j < J; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < K; ++k )
       {
-        const INDEX_TYPE I = v.size( 0 );
-        const INDEX_TYPE J = v.size( 1 );
-        const INDEX_TYPE K = v.size( 2 );
-        for( INDEX_TYPE j = 0; j < J; ++j )
-        {
-          for( INDEX_TYPE k = 0; k < K; ++k )
-          {
-            v( i, j, k ) = T( J * K * i + K * j + k );
-          }
-        }
+        v( i, j, k ) = T( J * K * i + K * j + k );
       }
+    }
+  }
           );
 
   const INDEX_TYPE I = v.size( 0 );

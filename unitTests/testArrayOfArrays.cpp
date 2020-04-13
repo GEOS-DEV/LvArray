@@ -894,15 +894,15 @@ public:
     // Update the view on the device.
     forall( gpu(), 0, nArrays,
             [view = m_array.toView()] __device__ ( INDEX_TYPE i )
-        {
-          INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
-          for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
-          {
-            LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
-            view[i][j] += T( 1 );
-            view( i, j ) += T( 1 );
-          }
-        }
+    {
+      INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
+      for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
+      {
+        LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
+        view[i][j] += T( 1 );
+        view( i, j ) += T( 1 );
+      }
+    }
             );
 
     // Update the reference.
@@ -933,15 +933,15 @@ public:
     // Update the view on the device.
     forall( gpu(), 0, nArrays,
             [view=m_array.toViewSemiConst()] __device__ ( INDEX_TYPE i )
-        {
-          INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
-          for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
-          {
-            LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
-            view[i][j] += T( 1 );
-            view( i, j ) += T( 1 );
-          }
-        }
+    {
+      INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
+      for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
+      {
+        LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
+        view[i][j] += T( 1 );
+        view( i, j ) += T( 1 );
+      }
+    }
             );
 
     // Update the reference.
@@ -986,12 +986,12 @@ public:
     // Append to the view on the device.
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), toAppend=valuesToAppend.toViewConst()] __device__ ( INDEX_TYPE i )
-        {
-          for( INDEX_TYPE j = 0; j < toAppend[i].size(); ++j )
-          {
-            view.appendToArray( i, toAppend[i][j] );
-          }
-        }
+    {
+      for( INDEX_TYPE j = 0; j < toAppend[i].size(); ++j )
+      {
+        view.appendToArray( i, toAppend[i][j] );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -1010,16 +1010,16 @@ public:
 
     forall( gpu(), 0, numThreads,
             [view=m_array.toView(), nArrays, appendsPerArrayPerThread] __device__ ( INDEX_TYPE const threadNum )
+    {
+      for( INDEX_TYPE i = 0; i < nArrays; ++i )
+      {
+        for( INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j )
         {
-          for( INDEX_TYPE i = 0; i < nArrays; ++i )
-          {
-            for( INDEX_TYPE j = 0; j < appendsPerArrayPerThread; ++j )
-            {
-              T const value = T( i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j );
-              view.atomicAppendToArray( RAJA::auto_atomic{}, i, value );
-            }
-          }
+          T const value = T( i * LARGE_NUMBER + threadNum * appendsPerArrayPerThread + j );
+          view.atomicAppendToArray( RAJA::auto_atomic{}, i, value );
         }
+      }
+    }
             );
 
     // Now sort each array and check that the values are as expected.
@@ -1067,9 +1067,9 @@ public:
     // Append to the view on the device.
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), toAppend=valuesToAppend.toViewConst()] __device__ ( INDEX_TYPE i )
-        {
-          view.appendToArray( i, toAppend[i].data(), toAppend[i].size());
-        }
+    {
+      view.appendToArray( i, toAppend[i].data(), toAppend[i].size());
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -1109,12 +1109,12 @@ public:
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), positions=positionsToInsert.toViewConst(), values=valuesToInsert.toViewConst()]
             __device__ ( INDEX_TYPE i )
-        {
-          for( INDEX_TYPE j = 0; j < values[i].size(); ++j )
-          {
-            view.insertIntoArray( i, positions[i][j], values[i][j] );
-          }
-        }
+    {
+      for( INDEX_TYPE j = 0; j < values[i].size(); ++j )
+      {
+        view.insertIntoArray( i, positions[i][j], values[i][j] );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -1154,9 +1154,9 @@ public:
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), positions=positionsToInsert.toViewConst(), values=valuesToInsert.toViewConst()]
             __device__ ( INDEX_TYPE i )
-        {
-          view.insertIntoArray( i, positions[i], values[i].data(), values[i].size());
-        }
+    {
+      view.insertIntoArray( i, positions[i], values[i].data(), values[i].size());
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -1190,12 +1190,12 @@ public:
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), positions=positionsToRemove.toViewConst()]
             __device__ ( INDEX_TYPE i )
-        {
-          for( INDEX_TYPE j = 0; j < positions[i].size(); ++j )
-          {
-            view.eraseFromArray( i, positions[i][j] );
-          }
-        }
+    {
+      for( INDEX_TYPE j = 0; j < positions[i].size(); ++j )
+      {
+        view.eraseFromArray( i, positions[i][j] );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -1228,10 +1228,10 @@ public:
     forall( gpu(), 0, nArrays,
             [view=m_array.toView(), removals=removals.toViewConst()]
             __device__ ( INDEX_TYPE i )
-        {
-          if( view.sizeOfArray( i ) == 0 ) return;
-          view.eraseFromArray( i, removals[i][0], removals[i][1] );
-        }
+    {
+      if( view.sizeOfArray( i ) == 0 ) return;
+      view.eraseFromArray( i, removals[i][0], removals[i][1] );
+    }
             );
 
     // Move the view back to the host and compare with the reference.
