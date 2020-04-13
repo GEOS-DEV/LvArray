@@ -323,9 +323,9 @@ void correctnessDeviceTest()
     ArrayView1d< T > & aView = a;
     forall( gpu(), 0, 1,
             [=] __device__ ( INDEX_TYPE i )
-          {
-            makeSorted( aView.begin(), aView.end(), Compare());
-          }
+    {
+      makeSorted( aView.begin(), aView.end(), Compare());
+    }
             );
 
     a.move( chai::CPU );
@@ -351,9 +351,9 @@ void dualCorrectnessDeviceTest()
     ArrayView1d< T > & bView = b;
     forall( gpu(), 0, 1,
             [=] __device__ ( INDEX_TYPE i )
-          {
-            dualSort( aView.begin(), aView.end(), bView.begin(), Compare());
-          }
+    {
+      dualSort( aView.begin(), aView.end(), bView.begin(), Compare());
+    }
             );
 
     a.move( chai::CPU );
@@ -389,10 +389,10 @@ void removeDuplicatesCorrectnessDeviceTest()
 
     forall( gpu(), 0, 1,
             [valuesView=values.toView(), numUniqueValuesView=numUniqueValues.toView()] __device__ ( INDEX_TYPE i )
-          {
-            numUniqueValuesView[0] = sortedArrayManipulation::removeDuplicates( valuesView.data(), valuesView.size());
-            LVARRAY_ERROR_IF( !sortedArrayManipulation::allUnique( valuesView.data(), numUniqueValuesView[0] ), "Values should be unique!" );
-          }
+    {
+      numUniqueValuesView[0] = sortedArrayManipulation::removeDuplicates( valuesView.data(), valuesView.size());
+      LVARRAY_ERROR_IF( !sortedArrayManipulation::allUnique( valuesView.data(), numUniqueValuesView[0] ), "Values should be unique!" );
+    }
             );
 
     values.move( chai::CPU );

@@ -734,18 +734,18 @@ public:
     // Update the view on the device.
     forall( gpu(), 0, nSets,
             [view = m_array.toView()] __device__ ( INDEX_TYPE i )
-        {
-          INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
-          for( INDEX_TYPE j = 0; j < sizeOfSet; ++j )
-          {
-            LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
-          }
+    {
+      INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
+      for( INDEX_TYPE j = 0; j < sizeOfSet; ++j )
+      {
+        LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
+      }
 
-          for( T const & val : view.getIterableSet( i ))
-          {
-            LVARRAY_ERROR_IF( !view.contains( i, val ), "Set should contain the value" );
-          }
-        }
+      for( T const & val : view.getIterableSet( i ))
+      {
+        LVARRAY_ERROR_IF( !view.contains( i, val ), "Set should contain the value" );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -767,18 +767,18 @@ public:
     m_array.move( chai::GPU );
     forall( gpu(), 0, nSets,
             [view=m_array.toView()] __device__ ( INDEX_TYPE i )
-        {
-          INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
-          for( INDEX_TYPE j = 0; j < sizeOfSet; ++j )
-          {
-            LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
-          }
+    {
+      INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
+      for( INDEX_TYPE j = 0; j < sizeOfSet; ++j )
+      {
+        LVARRAY_ERROR_IF( &(view[i][j]) != &(view( i, j )), "Value mismatch!" );
+      }
 
-          for( T const & val : view.getIterableSet( i ))
-          {
-            LVARRAY_ERROR_IF( !view.contains( i, val ), "Set should contain the value" );
-          }
-        }
+      for( T const & val : view.getIterableSet( i ))
+      {
+        LVARRAY_ERROR_IF( !view.contains( i, val ), "Set should contain the value" );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -799,12 +799,12 @@ public:
     // Append to the view on the device.
     forall( gpu(), 0, nSets,
             [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ ( INDEX_TYPE const i )
-        {
-          for( INDEX_TYPE j = 0; j < toInsert[i].size(); ++j )
-          {
-            view.insertIntoSet( i, toInsert[i][j] );
-          }
-        }
+    {
+      for( INDEX_TYPE j = 0; j < toInsert[i].size(); ++j )
+      {
+        view.insertIntoSet( i, toInsert[i][j] );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -827,18 +827,18 @@ public:
     {
       forall( gpu(), 0, nSets,
               [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ ( INDEX_TYPE const i )
-          {
-            view.insertSortedIntoSet( i, toInsert[i].data(), toInsert[i].size());
-          }
+      {
+        view.insertSortedIntoSet( i, toInsert[i].data(), toInsert[i].size());
+      }
               );
     }
     else
     {
       forall( gpu(), 0, nSets,
               [view=m_array.toView(), toInsert=valuesToInsert.toViewConst()] __device__ ( INDEX_TYPE const i )
-          {
-            view.insertIntoSet( i, toInsert[i].data(), toInsert[i].size());
-          }
+      {
+        view.insertIntoSet( i, toInsert[i].data(), toInsert[i].size());
+      }
               );
     }
 
@@ -860,12 +860,12 @@ public:
     // Append to the view on the device.
     forall( gpu(), 0, nSets,
             [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ ( INDEX_TYPE const i )
-        {
-          for( INDEX_TYPE j = 0; j < toRemove[i].size(); ++j )
-          {
-            view.removeFromSet( i, toRemove[i][j] );
-          }
-        }
+    {
+      for( INDEX_TYPE j = 0; j < toRemove[i].size(); ++j )
+      {
+        view.removeFromSet( i, toRemove[i][j] );
+      }
+    }
             );
 
     // Move the view back to the host and compare with the reference.
@@ -888,18 +888,18 @@ public:
     {
       forall( gpu(), 0, nSets,
               [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ ( INDEX_TYPE const i )
-          {
-            view.removeSortedFromSet( i, toRemove[i].data(), toRemove[i].size());
-          }
+      {
+        view.removeSortedFromSet( i, toRemove[i].data(), toRemove[i].size());
+      }
               );
     }
     else
     {
       forall( gpu(), 0, nSets,
               [view=m_array.toView(), toRemove=valuesToRemove.toViewConst()] __device__ ( INDEX_TYPE const i )
-          {
-            view.removeFromSet( i, toRemove[i].data(), toRemove[i].size());
-          }
+      {
+        view.removeFromSet( i, toRemove[i].data(), toRemove[i].size());
+      }
               );
     }
 
