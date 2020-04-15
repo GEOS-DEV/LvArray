@@ -23,15 +23,16 @@
 #ifndef ARRAYVIEW_HPP_
 #define ARRAYVIEW_HPP_
 
-// Source includes
+/// Source includes
 #include "Permutation.hpp"
 #include "ArraySlice.hpp"
 #include "Macros.hpp"
 #include "arrayHelpers.hpp"
 #include "IntegerConversion.hpp"
 #include "ArrayUtilities.hpp"
+#include "sliceHelpers.hpp"
 
-// System includes
+/// System includes
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
 #include "totalview/tv_helpers.hpp"
 #include "totalview/tv_data_display.h"

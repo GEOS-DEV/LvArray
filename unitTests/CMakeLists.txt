@@ -19,6 +19,7 @@ set(testSources
     testStringUtilities.cpp
     testPermutation.cpp
     testBuffers.cpp
+    testSliceHelpers.cpp
    )
 
 #
