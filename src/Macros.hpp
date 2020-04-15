@@ -17,15 +17,15 @@
  */
 
 /**
- * @file macros.hpp
+ * @file Macros.hpp
  */
 
 #pragma once
 
-// Source includes
+/// Source includes
 #include "stackTrace.hpp"
 
-// System includes
+/// System includes
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -35,55 +35,81 @@
   #include <cassert>
 #endif
 
-// This will interpret A as a string
+/**
+ * @brief Convert @p A into a string.
+ * @param A the token to convert to a string.
+ */
 #define STRINGIZE_NX( A ) #A
 
-// This will macro expand A and then interpret that as a string.
+/**
+ * @brief Convert the macro expansion of @p A into a string.
+ * @param A the token to convert to a string.
+ */
 #define STRINGIZE( A ) STRINGIZE_NX( A )
 
-// Use this to mark an unused argument and silence compiler warnings
+/**
+ * @brief Mark @p X as an unused argument, used to silence compiler warnings.
+ * @param X the unused argument.
+ */
 #define LVARRAY_UNUSED_ARG( X )
 
-// Use this to mark an unused variable and silence compiler warnings.
+/**
+ * @brief Mark @p X as an unused variable, used to silence compiler warnings.
+ * @param X the unused variable.
+ */
 #define LVARRAY_UNUSED_VARIABLE( X ) ( ( void ) X )
 
-// Use this to mark a debug variable and silence compiler warnings
+/**
+ * @brief Mark @p X as an debug variable, used to silence compiler warnings.
+ * @param X the debug variable.
+ */
 #define LVARRAY_DEBUG_VAR( X ) LVARRAY_UNUSED_VARIABLE( X )
 
+/// Expands to a string representing the current file and line.
 #define LOCATION __FILE__ ":" STRINGIZE( __LINE__ )
 
-#define VA_LIST( ... ) __VA_ARGS__
+/**
+ * @brief Given an expression @p X that evaluates to a pointer, expands to the type pointed to.
+ * @param X The expression to evaluate.
+ */
+#define TYPEOFPTR( X ) std::remove_pointer_t< decltype( X ) >
 
-#define TYPEOFPTR( x ) typename std::remove_pointer< decltype( x ) >::type
-#define TYPEOFREF( x ) typename std::remove_reference< decltype( x ) >::type
+/**
+ * @brief Given an expression @p X that evaluates to a reference, expands to the type referred to.
+ * @param X The expression to evaluate.
+ */
+#define TYPEOFREF( X ) std::remove_reference_t< decltype( X ) >
 
+/**
+ * @brief Print the expression @p MSG.
+ * @param MSG The expression to print, may be anything that can be streamed to std::out.
+ */
+#define LVARRAY_LOG( MSG ) std::cout << MSG << std::endl
 
-#define LVARRAY_LOG( msg ) \
-  do \
-  { \
-    std::ostringstream oss; \
-    oss << msg; \
-    std::cout << oss.str() << std::endl; \
-  } while( false )
+/**
+ * @brief Print the name of the variable @p VAR along with its value.
+ * @param VAR The variable to print.
+ */
+#define LVARRAY_LOG_VAR( VAR ) LVARRAY_LOG( #VAR << " = " << VAR )
 
-#define LVARRAY_LOG_VAR( var ) LVARRAY_LOG( #var << " = " << var )
-
-#if defined(__CUDA_ARCH__) && !defined(NDEBUG)
-    #define LVARRAY_ERROR_IF( EXP, msg ) assert( !(EXP) )
-    #define LVARRAY_ERROR( msg ) assert( false )
-    #define LVARRAY_ASSERT_MSG( EXP, msg ) assert( EXP )
-    #define LVARRAY_ASSERT( EXP ) assert( EXP );
-#endif
-
-#if defined(__CUDA_ARCH__) && defined(NDEBUG)
-  #define LVARRAY_ERROR_IF( EXP, msg ) if( EXP ) asm ( "trap;" )
-  #define LVARRAY_ERROR( msg ) LVARRAY_ERROR_IF( true, msg )
-  #define LVARRAY_ASSERT_MSG( EXP, msg ) ((void) 0)
-  #define LVARRAY_ASSERT( EXP ) ((void) 0)
-#endif
-
-#if !defined(__CUDA_ARCH__)
-  #define LVARRAY_ERROR_IF( EXP, msg ) \
+/**
+ * @brief Abort execution if @p EXP is true.
+ * @param EXP The expression to check.
+ * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ * @note This macro can be used in both host and device code.
+ * @note Tries to provide as much information about the location of the error
+ *       as possible. On host this should result in the file and line of the error
+ *       and a stack trace along with the provided message. On device none of this is
+ *       guaranteed. In fact it is only guaranteed to abort the current kernel.
+ */
+#if defined(__CUDA_ARCH__)
+  #if !defined(NDEBUG)
+    #define LVARRAY_ERROR_IF( EXP, MSG ) assert( !(EXP) )
+  #else
+    #define LVARRAY_ERROR_IF( EXP, MSG ) if( EXP ) asm ( "trap;" )
+  #endif
+#else
+  #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
     if( EXP ) \
@@ -91,24 +117,44 @@
       std::cout << "***** ERROR" << std::endl; \
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
       std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
-      std::cout << msg << std::endl; \
+      std::cout << MSG << std::endl; \
       cxx_utilities::handler1( EXIT_FAILURE ); \
     } \
   } while( false )
-
-  #define LVARRAY_ERROR( msg ) LVARRAY_ERROR_IF( true, msg )
-
-  #if !defined(NDEBUG)
-    #define LVARRAY_ASSERT_MSG( EXP, msg ) LVARRAY_ERROR_IF( !(EXP), msg )
-    #define LVARRAY_ASSERT( EXP ) LVARRAY_ASSERT_MSG( EXP, "" )
-  #else
-    #define LVARRAY_ASSERT_MSG( EXP, msg ) ((void) 0)
-    #define LVARRAY_ASSERT( EXP ) ((void) 0)
-  #endif
-
 #endif
 
-#define LVARRAY_WARNING_IF( EXP, msg ) \
+/**
+ * @brief Abort execution.
+ * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ */
+#define LVARRAY_ERROR( MSG ) LVARRAY_ERROR_IF( true, MSG )
+
+/**
+ * @brief Abort execution if @p EXP is false but only when
+ *        NDEBUG is not defined..
+ * @param EXP The expression to check.
+ * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ * @note This macro can be used in both host and device code.
+ * @note Tries to provide as much information about the location of the error
+ *       as possible. On host this should result in the file and line of the error
+ *       and a stack trace along with the provided message. On device none of this is
+ *       guaranteed. In fact it is only guaranteed to abort the current kernel.
+ */
+#if !defined(NDEBUG)
+  #define LVARRAY_ASSERT_MSG( EXP, MSG ) LVARRAY_ERROR_IF( !(EXP), MSG )
+#else
+  #define LVARRAY_ASSERT_MSG( EXP, MSG ) ((void) 0)
+#endif
+
+/// Assert @p EXP is true with no message.
+#define LVARRAY_ASSERT( EXP ) LVARRAY_ASSERT_MSG( EXP, "" )
+
+/**
+ * @brief Print a warning if @p EXP is true.
+ * @param EXP The expression to check.
+ * @param MSG The message to associate with the warning, can be anything streamable to std::cout.
+ */
+#define LVARRAY_WARNING_IF( EXP, MSG ) \
   do \
   { \
     if( EXP ) \
@@ -116,11 +162,12 @@
       std::cout << "***** WARNING" << std::endl; \
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
       std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
-      std::cout << msg << std::endl; \
+      std::cout << MSG << std::endl; \
     } \
   } while( false )
 
-#define LVARRAY_WARNING( msg ) LVARRAY_WARNING_IF( true, msg )
+/// Print a warning with the message @p MSG.
+#define LVARRAY_WARNING( MSG ) LVARRAY_WARNING_IF( true, MSG )
 
 #define LVARRAY_INFO_IF( EXP, msg ) \
   do \
@@ -135,12 +182,6 @@
   } while( false )
 
 #define LVARRAY_INFO( msg ) LVARRAY_INFO_IF( true, msg )
-
-#if !defined(NDEBUG)
-  #define LVARRAY_CHECK( EXP, msg ) LVARRAY_WARNING_IF( !(EXP), msg )
-#else
-  #define LVARRAY_CHECK( EXP, msg ) ((void) 0)
-#endif
 
 #define LVARRAY_ERROR_IF_OP_MSG( lhs, OP, NOP, rhs, msg ) \
   LVARRAY_ERROR_IF( lhs OP rhs, \

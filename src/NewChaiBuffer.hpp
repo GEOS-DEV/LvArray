@@ -253,7 +253,7 @@ public:
 
     if( prevSpace == chai::CPU ) moveInnerData( space, size, touch );
 
-    const_cast< T *& >( m_pointer ) =
+    const_cast< T * & >( m_pointer ) =
       static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
                                                             m_pointer_record,
                                                             space ) );

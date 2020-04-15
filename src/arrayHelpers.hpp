@@ -97,12 +97,12 @@ template< typename INDEX_TYPE, typename ... INDICES >
 std::string getIndexString( INDEX_TYPE const index, INDICES const ... indices )
 {
   std::ostringstream oss;
-  
+
   oss << "{ " << index;
   using expander = int[];
   (void) expander{ 0, ( void (oss << ", " << indices ), 0 )... };
   oss << " }";
-  
+
   return oss.str();
 }
 
