@@ -178,7 +178,7 @@
 #define LVARRAY_ASSERT_EQ( lhs, rhs ) LVARRAY_ASSERT_EQ_MSG( lhs, rhs, "" )
 
 #define LVARRAY_ASSERT_NE_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, !=, rhs, msg )
-#define LVARRAY_ASSERT_NE( lhs, rhs ) LVARRAY_ASSERT_EQ_MSG( lhs, rhs, "" )
+#define LVARRAY_ASSERT_NE( lhs, rhs ) LVARRAY_ASSERT_NE_MSG( lhs, rhs, "" )
 
 #define LVARRAY_ASSERT_GT_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, >, rhs, msg )
 #define LVARRAY_ASSERT_GT( lhs, rhs ) LVARRAY_ASSERT_GT_MSG( lhs, rhs, "" )
