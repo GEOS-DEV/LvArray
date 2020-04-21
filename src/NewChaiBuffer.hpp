@@ -25,6 +25,7 @@
 #include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 #include "StringUtilities.hpp"
+#include "bufferManipulation.hpp"
 
 // TPL includes
 #include <chai/ArrayManager.hpp>
@@ -38,8 +39,6 @@ namespace LvArray
 
 namespace internal
 {
-
-IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
 
 inline chai::ArrayManager & getArrayManager()
 {
@@ -251,7 +250,7 @@ public:
 
     chai::ExecutionSpace const prevSpace = m_pointer_record->m_last_space;
 
-    if( prevSpace == chai::CPU ) moveInnerData( space, size, touch );
+    if( prevSpace == chai::CPU && prevSpace != space ) moveInnerData( space, size, touch );
 
     const_cast< T * & >( m_pointer ) =
       static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
@@ -261,7 +260,7 @@ public:
     if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
 
-    if( prevSpace == chai::GPU ) moveInnerData( space, size, touch );
+    if( prevSpace == chai::GPU && prevSpace != space ) moveInnerData( space, size, touch );
 
   #else
     LVARRAY_ERROR_IF_NE( space, chai::CPU );
@@ -271,10 +270,10 @@ public:
   }
 
   template< typename U=T_non_const >
-  std::enable_if_t< !internal::HasMemberFunction_move< U > >
+  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
   move( chai::ExecutionSpace const space, bool const touch ) const
   {
-    static_assert( !internal::HasMemberFunction_move< U >,
+    static_assert( !bufferManipulation::HasMemberFunction_move< U >,
                    "The template type T is chai movable, therefore you need to pass the size parameter to the move method." );
     move( space, capacity(), touch );
   }
@@ -317,25 +316,20 @@ public:
 private:
 
   template< typename U=T_non_const >
-  std::enable_if_t< !internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const ) const
+  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const )
   {}
 
   template< typename U=T_non_const >
-  std::enable_if_t< internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
+  std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
   {
     if( space == chai::NONE ) return;
-
-    chai::ExecutionSpace const prevSpace = internal::getArrayManager().getExecutionSpace();
-    internal::getArrayManager().setExecutionSpace( space );
 
     for( std::ptrdiff_t i = 0; i < size; ++i )
     {
       const_cast< T_non_const * >( m_pointer )[ i ].move( space, touch );
     }
-
-    internal::getArrayManager().setExecutionSpace( prevSpace );
   }
 
   T * LVARRAY_RESTRICT m_pointer = nullptr;

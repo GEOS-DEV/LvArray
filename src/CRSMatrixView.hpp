@@ -170,35 +170,10 @@ public:
    *
    * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entry.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
-
-  /**
-   * @brief Insert a non-zero entries into the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert at, of length ncols.
-   * @param [in] entriesToInsert the entries to insert, of length ncols.
-   * @param [in] ncols the number of columns/entries to insert.
-   * @return The number of entries inserted.
-   *
-   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols +
-   * ncols, entriesToInsert)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const LVARRAY_RESTRICT cols,
-                                T const * const LVARRAY_RESTRICT entriesToInsert,
-                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  { return insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -208,17 +183,16 @@ public:
    * @param [in] ncols the number of columns/entries to insert.
    * @return The number of entries inserted.
    *
+   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
    * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const LVARRAY_RESTRICT cols,
-                                      T const * const LVARRAY_RESTRICT entriesToInsert,
-                                      INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert ) ); }
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
+                                COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                T const * const LVARRAY_RESTRICT entriesToInsert,
+                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+  { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
    * @brief Remove a non-zero entry at the given position.
@@ -237,8 +211,7 @@ public:
    * @param [in] ncols the number of columns to remove.
    * @return True iff the entry was removed (the entry was non-zero before).
    *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   *       and then call removeNonZerosSorted, this will be substantially faster.
+   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
@@ -248,37 +221,9 @@ public:
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = ParentClass::removeFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
+    INDEX_TYPE const nRemoved = ParentClass::removeFromSetImpl( row, cols, cols + ncols, CallBacks( *this, row, nullptr ) );
 
-    for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
-    {
-      entries[i].~T();
-    }
-
-    return nRemoved;
-  }
-
-  /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols. Must be sorted.
-   * @param [in] ncols the number of columns to remove.
-   * @return True iff the entry was removed (the entry was non-zero before).
-   */
-  DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row,
-                                      COL_TYPE const * const LVARRAY_RESTRICT cols,
-                                      INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  {
-    T * const entries = getEntries( row );
-    INDEX_TYPE const rowNNZ = numNonZeros( row );
-    INDEX_TYPE const nRemoved = ParentClass::removeSortedFromSetImpl( row, cols, ncols, CallBacks( *this, row, nullptr ));
-
-    for( INDEX_TYPE_NC i = rowNNZ - nRemoved; i < rowNNZ; ++i )
-    {
-      entries[i].~T();
-    }
+    arrayManipulation::destroy( entries + rowNNZ - nRemoved, nRemoved );
 
     return nRemoved;
   }
@@ -349,8 +294,7 @@ public:
                              T const * const LVARRAY_RESTRICT vals,
                              INDEX_TYPE const nCols ) const
   {
-    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
-    LVARRAY_ASSERT( sortedArrayManipulation::allUnique( cols, nCols ) );
+    LVARRAY_ASSERT( sortedArrayManipulation::isSortedUnique( cols, cols + nCols ) );
 
     INDEX_TYPE const nnz = numNonZeros( row );
     COL_TYPE const * const columns = getColumns( row );
@@ -386,8 +330,7 @@ public:
                              T const * const LVARRAY_RESTRICT vals,
                              INDEX_TYPE const nCols ) const
   {
-    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( cols, nCols ) );
-    LVARRAY_ASSERT( sortedArrayManipulation::allUnique( cols, nCols ) );
+    LVARRAY_ASSERT( sortedArrayManipulation::isSortedUnique( cols, cols + nCols ) );
 
     INDEX_TYPE const nnz = numNonZeros( row );
     COL_TYPE const * const columns = getColumns( row );
@@ -433,42 +376,6 @@ protected:
     ParentClass(),
     m_entries( true )
   {}
-
-  /**
-   * @brief Helper function to insert non zeros into the given row.
-   * @tparam DERIVED type of the class this method is called from, must be a derived class of CRSMatrixView.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert.
-   * @param [in] entriesToInsert the entries to insert.
-   * @param [in] ncols the number of columns to insert.
-   * @param [in/out] obj the derived object this method is being called from.
-   * @return The number of entries inserted.
-   */
-  DISABLE_HD_WARNING
-  template< class DERIVED >
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosImpl( INDEX_TYPE const row,
-                                    COL_TYPE const * const cols,
-                                    T const * const entriesToInsert,
-                                    INDEX_TYPE const ncols,
-                                    DERIVED & obj ) const LVARRAY_RESTRICT_THIS
-  {
-    static_assert( std::is_base_of< CRSMatrixView, DERIVED >::value, "DERIVED must be derived from CRSMatrixView!" );
-
-    constexpr int LOCAL_SIZE = 16;
-    COL_TYPE localColumnBuffer[LOCAL_SIZE];
-    T localEntryBuffer[LOCAL_SIZE];
-
-    COL_TYPE * const columnBuffer = sortedArrayManipulation::createTemporaryBuffer( cols, ncols, localColumnBuffer );
-    T * const entryBuffer = sortedArrayManipulation::createTemporaryBuffer( entriesToInsert, ncols, localEntryBuffer );
-    sortedArrayManipulation::dualSort( columnBuffer, columnBuffer + ncols, entryBuffer );
-
-    INDEX_TYPE const nInserted = obj.insertNonZerosSorted( row, columnBuffer, entryBuffer, ncols );
-
-    sortedArrayManipulation::freeTemporaryBuffer( columnBuffer, ncols, localColumnBuffer );
-    sortedArrayManipulation::freeTemporaryBuffer( entryBuffer, ncols, localEntryBuffer );
-    return nInserted;
-  }
 
   template< typename U >
   void setName( std::string const & name )

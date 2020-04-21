@@ -215,9 +215,7 @@ public:
    * TODO: Add tests.
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
-  {
-    ParentClass::resize( nRows, nCols, initialRowCapacity );
-  }
+  { ParentClass::resize( nRows, nCols, initialRowCapacity ); }
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).
@@ -230,29 +228,19 @@ public:
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
-   * @brief Insert non zeros in the given columns of the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert.
-   * @param [in] ncols the number of columns to insert.
-   * @return The number of columns actually inserted.
+   * @tparam ITER An iterator type.
+   * @brief Inserts multiple non-zero entries into the given row.
+   * @param row The row to insert into.
+   * @param first An iterator to the first column to insert.
+   * @param last An iterator to the end of the columns to insert.
+   * @return The number of columns inserted.
    *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, ncols)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
+   * @note The columns to insert [ @p first, @p last ) must be sorted and contain no duplicates.
    */
+  template< typename ITER >
   inline
-  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
-
-  /**
-   * @brief Insert non zeros in the given columns of the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert, must be sorted.
-   * @param [in] ncols the number of columns to insert.
-   * @return The number of columns actually inserted.
-   */
-  inline
-  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row ) ); }
+  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  { return ParentClass::insertIntoSetImpl( row, first, last, CallBacks( *this, row ) ); }
 
   /**
    * @brief Set the name associated with this SparsityPattern which is used in the chai callback.

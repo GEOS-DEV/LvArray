@@ -40,6 +40,10 @@ namespace LvArray
 namespace sortedArrayManipulation
 {
 
+/**
+ * @enum Description
+ * @brief Describes an as some combination of sorted/unsorted and unique/with duplicates.
+ */
 enum Description
 {
   SORTED_UNIQUE,
@@ -48,10 +52,18 @@ enum Description
   UNSORTED_WITH_DUPLICATES
 };
 
+/**
+ * @brief @return True if @p desc describes an array that is sorted.
+ * @p desc the Description to query.
+ */
 LVARRAY_HOST_DEVICE constexpr inline
 bool isSorted( Description const desc )
 { return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
 
+/**
+ * @brief @return True if @p desc describes an contains no duplicates.
+ * @p desc the Description to query.
+ */
 LVARRAY_HOST_DEVICE constexpr inline
 bool isUnique( Description const desc )
 { return desc == SORTED_UNIQUE || desc == UNSORTED_NO_DUPLICATES; }
@@ -172,15 +184,15 @@ struct greater
  * @tparam RandomAccessIterator an iterator type that provides random access.
  * @tparam Compare the type of the comparison function.
  * @brief Sort the given values in place using the given comparator.
- * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] comp a function that does the comparison between two objects.
- *
+ * @param [in/out] first An iterator to the beginning of the values to sort.
+ * @param [in/out] last An iterator to the end of the values to sort.
+ * @param [in/out] comp A function that does the comparison between two objects.
  * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
-template< typename RandomAccessIterator, typename Compare >
-LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare && comp )
+template< typename RandomAccessIterator,
+          typename Compare=less< typename std::iterator_traits< RandomAccessIterator >::value_type > >
+LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare && comp=Compare() )
 {
 #ifdef __CUDA_ARCH__
   if( last - first > internal::INTROSORT_THRESHOLD )
@@ -195,33 +207,22 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAc
 }
 
 /**
- * @tparam RandomAccessIterator an iterator type that provides random access.
- * @brief Sort the given values in place from least to greatest.
- * @param [in/out] first a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] last a RandomAccessIterator to the end of the values to sort.
- *
- * @note should be equivalent to std::sort(first, last).
- */
-DISABLE_HD_WARNING
-template< typename RandomAccessIterator >
-LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last )
-{ return makeSorted( first, last, less< typename std::remove_reference< decltype(*first) >::type >() ); }
-
-/**
  * @tparam RandomAccessIteratorA an iterator type that provides random access.
  * @tparam RandomAccessIteratorB an iterator type that provides random access.
  * @tparam Compare the type of the comparison function.
  * @brief Sort the given values in place using the given comparator and perform the same operations
  *        on the data array thus preserving the mapping between values[i] and data[i].
- * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
- * @param [in/out] comp a function that does the comparison between two objects.
+ * @param valueFirst An iterator to the beginning of the values to sort.
+ * @param valueLast An iterator to the end of the values to sort.
+ * @param dataFirst An iterator to the beginning of the data.
+ * @param comp a function that does the comparison between two objects.
  */
 DISABLE_HD_WARNING
-template< typename RandomAccessIteratorA, typename RandomAccessIteratorB, typename Compare >
+template< typename RandomAccessIteratorA,
+          typename RandomAccessIteratorB,
+          typename Compare=less< typename std::iterator_traits< RandomAccessIteratorA >::value_type > >
 LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, RandomAccessIteratorA valueLast,
-                                          RandomAccessIteratorB dataFirst, Compare && comp )
+                                          RandomAccessIteratorB dataFirst, Compare && comp=Compare() )
 {
   std::ptrdiff_t const size = valueLast - valueFirst;
   internal::DualIterator< RandomAccessIteratorA, RandomAccessIteratorB > dualIter( valueFirst, dataFirst );
@@ -236,196 +237,147 @@ LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, Rand
   internal::insertionSort( dualIter, size, dualCompare );
 }
 
-
 /**
- * @tparam RandomAccessIteratorA an iterator type that provides random access.
- * @tparam RandomAccessIteratorB an iterator type that provides random access.
- * @brief Sort the given values in place from least to greatest and perform the same operations
- *        on the data array thus preserving the mapping between values[i] and data[i].
- * @param [in/out] valueFirst a RandomAccessIterator to the beginning of the values to sort.
- * @param [in/out] valueLast a RandomAccessIterator to the end of the values to sort.
- * @param [in/out] dataFirst a RandomAccessIterator to the beginning of the data.
- */
-DISABLE_HD_WARNING
-template< typename RandomAccessIteratorA, typename RandomAccessIteratorB >
-LVARRAY_HOST_DEVICE inline
-void dualSort( RandomAccessIteratorA valueFirst,
-               RandomAccessIteratorA valueLast,
-               RandomAccessIteratorB dataFirst )
-{ return dualSort( valueFirst, valueLast, dataFirst, less< typename std::remove_reference< decltype(*valueFirst) >::type >() ); }
-
-/**
- * @tparam T the type of the values stored in the buffer.
- * @tparam N the size of the local buffer.
- * @brief Create a copy of the values array in localBuffer if possible. If not an allocation is
- *        made and the values are copied into that.
- * @param [in] values pointer to the values to copy.
- * @param [in] nVals the number of values to copy.
- * @param [in/out] localBuffer a reference to an array T[N].
- * @return A pointer to the buffer containing a copy of the values array.
- *
- * @note freeTemporaryBuffer must be called with the pointer returned from this method, nVals, and localBuffer to
- *       deallocate the created buffer.
- */
-DISABLE_HD_WARNING
-template< typename T, int N >
-LVARRAY_HOST_DEVICE inline
-T * createTemporaryBuffer( T const * const LVARRAY_RESTRICT values,
-                           std::ptrdiff_t const nVals,
-                           T (& localBuffer)[N] )
-{
-  T * buffer = localBuffer;
-  if( nVals <= N )
-  {
-    for( std::ptrdiff_t i = 0; i < nVals; ++i )
-    {
-      localBuffer[i] = values[i];
-    }
-  }
-  else
-  {
-    buffer = static_cast< T * >( std::malloc( sizeof( T ) * nVals ) );
-
-    for( std::ptrdiff_t i = 0; i < nVals; ++i )
-    {
-      new ( buffer + i ) T( values[i] );
-    }
-  }
-
-  return buffer;
-}
-
-/**
- * @tparam T the type of the values stored in the buffer.
- * @tparam N the size of the local buffer.
- * @brief Deallocate a buffer created from createTemporaryBuffer.
- * @param [in] buffer the buffer returned by createTemporaryBuffer.
- * @param [in] nVals the number of values in the buffer.
- * @param [in] localBuffer a reference to an array T[N].
- */
-DISABLE_HD_WARNING
-template< typename T, int N >
-LVARRAY_HOST_DEVICE inline
-void freeTemporaryBuffer( T * const LVARRAY_RESTRICT buffer,
-                          std::ptrdiff_t const nVals,
-                          T const (&localBuffer)[N] )
-{
-  if( buffer == localBuffer )
-  {
-    return;
-  }
-
-  for( std::ptrdiff_t i = 0; i < nVals; ++i )
-  {
-    buffer[i].~T();
-  }
-  std::free( buffer );
-}
-
-/**
- * @tparam T the type of values in the array.
- * @tparam Compare the type of the comparison function, defaults to less<T>.
+ * @tparam ITER The type of the iterator to the values to check.
+ * @tparam Compare The type of the comparison function, defaults to less.
  * @brief Return true if the given array is sorted using comp.
- * @param [in] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in/out] the comparison method to use.
- *
- * @note Should be equivalent to std::is_sorted(ptr, ptr + size, comp).
+ * @param first Iterator to the beginning of the values to check.
+ * @param last Iterator to the end of the values to check.
+ * @param comp The comparison method to use.
+ * @note Should be equivalent to std::is_sorted(first, last, comp).
  */
 DISABLE_HD_WARNING
-template< typename T, typename Compare=less< T > >
+template< typename ITER, typename Compare=less< typename std::iterator_traits< ITER >::value_type > >
 LVARRAY_HOST_DEVICE inline
-bool isSorted( T const * const LVARRAY_RESTRICT ptr,
-               std::ptrdiff_t const size,
-               Compare && comp=Compare() )
+bool isSorted( ITER first, ITER const last, Compare && comp=Compare() )
 {
-  LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-
-  for( std::ptrdiff_t i = 0; i < size - 1; ++i )
+  if( first == last )
   {
-    if( comp( ptr[i + 1], ptr[i] ) )
+    return true;
+  }
+
+  ITER next = first;
+  ++next;
+  while( next != last )
+  {
+    if( comp( *next, *first ) )
     {
       return false;
     }
+
+    first = next;
+    ++next;
   }
 
   return true;
 }
 
 /**
- * @tparam T the type of the values stored in the array.
- * @brief Return true if the array contains no duplicates.
- * @param [in/out] ptr a pointer to the values.
- * @param [in] size the number of values.
- * @note The array must be sorted such that values that compare equal are adjacent.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-bool allUnique( T const * const LVARRAY_RESTRICT ptr, std::ptrdiff_t const size )
-{
-  for( std::ptrdiff_t i = 0; i < size - 1; ++i )
-  {
-    if( ptr[i] == ptr[i + 1] )
-      return false;
-  }
-
-  return true;
-}
-
-/**
- * @tparam T the type of the values stored in the array.
+ * @tparam ITER An iterator type.
+ * @tparam Compare The type of the comparison function, defaults to less.
  * @brief Remove duplicates from the array, duplicates aren't destroyed but they're moved out of.
- * @return The number of unique elements, such that ptr[0, returnValue) contains the unique elements.
- * @param [in/out] ptr a pointer to the values.
- * @param [in] size the number of values.
- * @note The array must be sorted such that values that compare equal are adjacent.
+ * @param first Iterator to the beginning of the values.
+ * @param last Iterator to the end of the values.
+ * @param comp The comparison method to use.
+ * @return The number of unique elements, such that [first, first + returnValue) contains the unique elements.
+ * @note The range [ @p first, @p last ) must be sorted under @p comp.
  * @note If you are using this and would like the duplicates to remain intact at the end of the array
  *       change the std::move to a portable implementation of std::swap.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename ITER, typename Compare=less< typename std::iterator_traits< ITER >::value_type > >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeDuplicates( T * const LVARRAY_RESTRICT ptr, std::ptrdiff_t const size )
+std::ptrdiff_t removeDuplicates( ITER first, ITER last, Compare && comp=Compare() )
 {
-  LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
+  LVARRAY_ASSERT( isSorted( first, last, comp ) );
 
-  // Note it doesn't have to be sorted under less<T>, so this assert is a bit too restrictive.
-  LVARRAY_ASSERT( isSorted( ptr, size ) );
-
-  if( size == 0 )
-    return 0;
-
-  std::ptrdiff_t shiftAmount = 0;
-  std::ptrdiff_t curPos = 0;
-  while( curPos + shiftAmount + 1 < size )
+  if( first == last )
   {
-    if( ptr[curPos] != ptr[curPos + shiftAmount + 1] )
-    {
-      ++curPos;
-      if( shiftAmount != 0 )
-      {
-        ptr[curPos] = std::move( ptr[curPos + shiftAmount] );
-      }
-    }
-    else
-      ++shiftAmount;
+    return 0;
   }
 
-  return curPos + 1;
+  std::ptrdiff_t numUnique = 1;
+  ITER next = first;
+  ++next;
+  while( next != last )
+  {
+    if( comp( *first, *next ) )
+    {
+      ++numUnique;
+      ++first;
+      if( first != next )
+      {
+        *first = std::move( *next );
+      }
+    }
+
+    ++next;
+  }
+
+  return numUnique;
+}
+
+/**
+ * @tparam ITER An iterator type.
+ * @tparam Compare The type of the comparison function, defaults to less.
+ * @brief Sort and remove duplicates from the array, duplicates aren't destroyed but they're moved out of.
+ * @param first Iterator to the beginning of the values.
+ * @param last Iterator to the end of the values.
+ * @param comp The comparison method to use.
+ * @return The number of unique elements, such that [first, first + returnValue) contains the unique elements.
+ */
+DISABLE_HD_WARNING
+template< typename ITER, typename Compare=less< typename std::iterator_traits< ITER >::value_type > >
+LVARRAY_HOST_DEVICE inline
+std::ptrdiff_t makeSortedUnique( ITER const first, ITER const last, Compare && comp=Compare() )
+{
+  makeSorted( first, last, comp );
+  return removeDuplicates( first, last, comp );
+}
+
+/**
+ * @tparam ITER An iterator type.
+ * @tparam Compare The type of the comparison function, defaults to less.
+ * @brief @return Return true iff [ @p first, @p last ) is sorted under @p comp and contains no values which compare equal.
+ * @param first Iterator to the beginning of the values.
+ * @param last Iterator to the end of the values.
+ * @param comp The comparison method to use.
+ */
+DISABLE_HD_WARNING
+template< typename ITER, typename Compare=less< typename std::iterator_traits< ITER >::value_type > >
+LVARRAY_HOST_DEVICE inline
+bool isSortedUnique( ITER first, ITER const last, Compare && comp=Compare() )
+{
+  if( first == last )
+  {
+    return true;
+  }
+
+  ITER next = first;
+  ++next;
+  while( next != last )
+  {
+    if( comp( *next, *first ) || !comp( *first, *next ) )
+    {
+      return false;
+    }
+
+    first = next;
+    ++next;
+  }
+
+  return true;
 }
 
 /**
  * @tparam T the type of values in the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
- * @brief Return the index of the first value in the array greater than or equal to value.
- * @param [in] ptr pointer to the array, must be sorted under comp.
- * @param [in] size the size of the array.
- * @param [in] value the value to find.
- * @param [in/out] comp the comparison method to use.
- *
+ * @brief @return Return the index of the first value in the array that compares not less 
+ *   than @p value or @p size if no such element can be found.
+ * @param ptr Pointer to the array, must be sorted under comp.
+ * @param size The size of the array.
+ * @param value The value to find.
+ * @param comp The comparison method to use.
  * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
@@ -438,7 +390,7 @@ std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-  LVARRAY_ASSERT( isSorted( ptr, size, comp ) );
+  LVARRAY_ASSERT( isSorted( ptr, ptr + size, comp ) );
 
   std::ptrdiff_t lower = 0;
   std::ptrdiff_t upper = size;
@@ -461,13 +413,12 @@ std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the type of values in the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
- * @brief Return true if the array contains value.
- * @param [in] ptr pointer to the array, must be sorted under comp.
- * @param [in] size the size of the array.
- * @param [in] value the value to find.
- * @param [in/out] comp the comparison method to use.
- *
- * @note Should be equivalent to std::binary_search(ptr, ptr + size, value, comp).
+ * @brief @return Return true if @p value is contained in the array.
+ * @param ptr Pointer to the array, must be sorted under comp.
+ * @param size The size of the array.
+ * @param value The value to find.
+ * @param comp The comparison method to use.
+ * @note Should be equivalent to std::lower_bound(ptr, ptr + size, value, comp).
  */
 DISABLE_HD_WARNING
 template< typename T, typename Compare=less< T > >
@@ -485,10 +436,10 @@ bool contains( T const * const LVARRAY_RESTRICT ptr,
  * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given value from the array if it exists.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] value the value to remove.
- * @param [in/out] callBacks class which must define a method equivalent to CallBacks::remove(std::ptrdiff_t).
+ * @param ptr pointer to the array, must be sorted under less<T>.
+ * @param size the size of the array.
+ * @param value the value to remove.
+ * @param callBacks class which must define a method equivalent to CallBacks::remove(std::ptrdiff_t).
  * @return True iff the value was removed.
  */
 DISABLE_HD_WARNING
@@ -519,119 +470,109 @@ bool remove( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @brief Remove the given value from the array if it exists.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] value the value to remove.
- * @return True iff the value was removed.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-bool remove( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             T const & value )
-{ return remove( ptr, size, value, CallBacks< T > {} ); }
-
-/**
- * @tparam T the type of values in the array.
+ * @tparam ITER An iterator type.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to remove, must be sorted under less<T>.
- * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define methods equivalent to
- *                 CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
+ * @param ptr pointer to the array, must be sorted under less<T>.
+ * @param size the size of the array.
+ * @param first An iterator to the first value to insert.
+ * @param last An iterator to the end of the values to insert.
+ * @param callBacks class which must define methods equivalent to
+ *   CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
+ * @note The values to insert [ @p first, @p last ) must be sorted and contain no duplicates.
  * @return The number of values removed.
  */
 DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
+template< typename T, typename ITER, typename CALLBACKS=CallBacks< T > >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
-                             std::ptrdiff_t const size,
-                             T const * const LVARRAY_RESTRICT values,
-                             std::ptrdiff_t const nVals,
-                             CALLBACKS && callBacks )
+std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
+                       std::ptrdiff_t const size,
+                       ITER const first,
+                       ITER const last,
+                       CALLBACKS && callBacks=CALLBACKS() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-  LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ) );
-  LVARRAY_ASSERT( isSorted( values, nVals ) );
+  LVARRAY_ASSERT( isSortedUnique( ptr, ptr + size ) );
 
-  // If there are no values to remove we can return.
-  if( nVals == 0 )
-    return 0;
+  LVARRAY_ASSERT( isSortedUnique( first, last ) );
 
   // Find the position of the first value to remove and the position it's at in the array.
-  std::ptrdiff_t firstValuePos = nVals;
-  std::ptrdiff_t curPos = size;
-  for( std::ptrdiff_t i = 0; i < nVals; ++i )
+  ITER valueToRemove = first;
+  std::ptrdiff_t removalPosition = 0;
+  for(; valueToRemove != last; ++valueToRemove )
   {
-    curPos = find( ptr, size, values[i] );
+    removalPosition += find( ptr + removalPosition, size - removalPosition, *valueToRemove );
 
     // If the current value is larger than the largest value in the array we can return.
-    if( curPos == size )
-      return 0;
-
-    if( ptr[curPos] == values[i] )
+    if( removalPosition == size )
     {
-      firstValuePos = i;
+      return 0;
+    }
+
+    if( ptr[ removalPosition ] == *valueToRemove )
+    {
       break;
     }
   }
 
   // If we didn't find a value to remove we can return.
-  if( firstValuePos == nVals )
+  if( valueToRemove == last )
+  {
     return 0;
+  }
 
   // Loop over the values
   std::ptrdiff_t nRemoved = 0;
-  for( std::ptrdiff_t curValuePos = firstValuePos; curValuePos < nVals; )
+  for(; valueToRemove != last; )
   {
     // Find the next value to remove
-    std::ptrdiff_t nextValuePos = nVals;
-    std::ptrdiff_t nextPos = size;
-    for( std::ptrdiff_t j = curValuePos + 1; j < nVals; ++j )
+    ITER nextValueToRemove = valueToRemove;
+    ++nextValueToRemove;
+    std::ptrdiff_t nextRemovalPosition = removalPosition;
+    for(; nextValueToRemove != last; ++nextValueToRemove )
     {
-      // Skip over duplicate values
-      if( values[j] == values[j - 1] )
-        continue;
-
       // Find the position
-      std::ptrdiff_t const pos = find( ptr + curPos, size - curPos, values[j] ) + curPos;
+      nextRemovalPosition += find( ptr + nextRemovalPosition, size - nextRemovalPosition, *nextValueToRemove );
 
       // If it's not in the array then neither are any of the rest of the values.
-      if( pos == size )
+      if( nextRemovalPosition == size )
+      {
+        nextValueToRemove = last;
         break;
+      }
 
       // If it's in the array then we can exit this loop.
-      if( ptr[pos] == values[j] )
+      if( ptr[ nextRemovalPosition ] == *nextValueToRemove )
       {
-        nextValuePos = j;
-        nextPos = pos;
         break;
       }
     }
 
+    if( nextValueToRemove == last )
+    {
+      nextRemovalPosition = size;
+    }
+
     // Shift the values down and call the callback.
     nRemoved += 1;
-    arrayManipulation::shiftDown( ptr, nextPos, curPos + 1, nRemoved );
-    callBacks.remove( nRemoved, curPos, nextPos );
+    arrayManipulation::shiftDown( ptr, nextRemovalPosition, removalPosition + 1, nRemoved );
+    callBacks.remove( nRemoved, removalPosition, nextRemovalPosition );
 
-    curValuePos = nextValuePos;
-    curPos = nextPos;
+    valueToRemove = nextValueToRemove;
+    removalPosition = nextRemovalPosition;
 
     // If we've reached the end of the array we can exit the loop.
-    if( curPos == size )
+    if( removalPosition == size )
+    {
       break;
+    }
   }
 
   // Destroy the values moved out of at the end of the array.
   for( std::ptrdiff_t i = size - nRemoved; i < size; ++i )
   {
-    ptr[i].~T();
+    ptr[ i ].~T();
   }
 
   return nRemoved;
@@ -639,98 +580,26 @@ std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to remove, must be sorted under less<T>.
- * @param [in] nVals the number of values to remove.
- * @return The number of values removed.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeSorted( T * const LVARRAY_RESTRICT ptr,
-                             std::ptrdiff_t const size,
-                             T const * const LVARRAY_RESTRICT values,
-                             std::ptrdiff_t const nVals )
-{ return removeSorted( ptr, size, values, nVals, CallBacks< T > {} ); }
-
-/**
- * @tparam T the type of values in the array.
- * @tparam CALLBACKS the type of the callBacks class.
- * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to remove.
- * @param [in] nVals the number of values to remove.
- * @param [in/out] callBacks class which must define a method similar to
- *                 CallBacks::remove(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t).
- * @return The number of values removed.
- */
-DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
-                       std::ptrdiff_t const size,
-                       T const * const values,
-                       std::ptrdiff_t const nVals,
-                       CALLBACKS && callBacks )
-{
-  LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-  LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( nVals ) );
-
-  constexpr std::ptrdiff_t LOCAL_SIZE = 16;
-  T localBuffer[LOCAL_SIZE];
-  T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
-  makeSorted( buffer, buffer + nVals );
-
-  std::ptrdiff_t const nInserted = removeSorted( ptr, size, buffer, nVals, std::move( callBacks ) );
-
-  freeTemporaryBuffer( buffer, nVals, localBuffer );
-  return nInserted;
-}
-
-/**
- * @tparam T the type of values in the array.
- * @brief Remove the given values from the array if they exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to remove.
- * @param [in] nVals the number of values to remove.
- * @return The number of values removed.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
-                       std::ptrdiff_t const size,
-                       T const * const values,
-                       std::ptrdiff_t const nVals )
-{ return remove( ptr, size, values, nVals, CallBacks< T > {} ); }
-
-/**
- * @tparam T the type of values in the array.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given value into the array if it doesn't already exist.
- * @param [in/out] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] value the value to insert.
- * @param [in/out] callBacks class which must define methods similar to
- *                 CallBacks::incrementSize(std::ptrdiff_t) and CallBacks::insert(std::ptrdiff_t).
+ * @param ptr pointer to the array, must be sorted under less<T>.
+ * @param size the size of the array.
+ * @param value the value to insert.
+ * @param callBacks class which must define methods similar to
+ *   CallBacks::incrementSize(std::ptrdiff_t) and CallBacks::insert(std::ptrdiff_t).
  * @return True iff the value was inserted.
  */
 DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
+template< typename T, typename CALLBACKS=CallBacks< T > >
 LVARRAY_HOST_DEVICE inline
 bool insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              T const & value,
-             CALLBACKS && callBacks )
+             CALLBACKS && callBacks=CALLBACKS() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
+  LVARRAY_ASSERT( isSortedUnique( ptr, ptr + size ) );
 
   std::ptrdiff_t insertPos = std::ptrdiff_t( -1 );
   if( size == 0 || value < ptr[0] ) // Take care of the case of an empty array or inserting at the beginning.
@@ -763,120 +632,64 @@ bool insert( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the type of values in the array.
- * @brief Insert the given value into the array if it doesn't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] value the value to insert.
- * @return True iff the value was inserted.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-bool insert( T const * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             T const & value )
-{ return insert( ptr, size, value, CallBacks< T > {} ); }
-
-/**
- * @tparam T the type of values in the array.
+ * @tparam ITER An iterator class.
  * @tparam CALLBACKS the type of the callBacks class.
  * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to insert, must be sorted under less<T>.
- * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define methods similar to
- *                 CallBacks::incrementSize(std::ptrdiff_t), CallBacks::set(std::ptrdiff_t, std::ptrdiff_t)
- *                 and CallBacks::insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, * std::ptrdiff_t).
+ * @param ptr pointer to the array, must be sorted under less<T>.
+ * @param size the size of the array.
+ * @param first An iterator to the first value to insert.
+ * @param last An iterator to the end of the values to insert.
+ * @param callBacks class which must define methods similar to
+ *   CallBacks::incrementSize(std::ptrdiff_t), CallBacks::set(std::ptrdiff_t, std::ptrdiff_t)
+ *   and CallBacks::insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t, * std::ptrdiff_t).
+ * @note The values to insert [ @p first, @p last ) must be sorted and contain no duplicates.
  * @return The number of values inserted.
  */
 DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
+template< typename T, typename ITER, typename CALLBACKS=CallBacks< T > >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
-                             std::ptrdiff_t const size,
-                             T const * const LVARRAY_RESTRICT values,
-                             std::ptrdiff_t const nVals,
-                             CALLBACKS && callBacks )
+std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
+                       std::ptrdiff_t const size,
+                       ITER const first,
+                       ITER const last,
+                       CALLBACKS && callBacks=CALLBACKS() )
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-  LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( nVals >= 0 );
-  LVARRAY_ASSERT( isSorted( values, nVals ) );
+  LVARRAY_ASSERT( isSortedUnique( ptr, ptr + size ) );
 
-  // If there are no values to insert.
-  if( nVals == 0 )
-  {
-    callBacks.incrementSize( ptr, 0 );
-    return 0;
-  }
-
-  std::ptrdiff_t nToInsert = 0; // The number of values that will actually be inserted.
+  LVARRAY_ASSERT( isSortedUnique( first, last ) );
 
   // Special case for inserting into an empty array.
   if( size == 0 )
   {
-    // Count up the number of unique values.
-    nToInsert = 1;
-    for( std::ptrdiff_t i = 1; i < nVals; ++i )
+    std::ptrdiff_t numInserted = iterDistance( first, last );
+    T * const newPtr = callBacks.incrementSize( ptr, numInserted );
+
+    numInserted = 0;
+    for( ITER iter = first; iter != last; ++iter )
     {
-      if( values[i] != values[i - 1] )
-        ++nToInsert;
+      new ( newPtr + numInserted ) T( *iter );
+      callBacks.set( numInserted, numInserted );
+      ++numInserted;
     }
 
-    // Call callBack with the number to insert and get a new pointer back.
-    T * const newPtr = callBacks.incrementSize( ptr, nToInsert );
-
-    // Insert the first value.
-    new ( newPtr ) T( values[0] );
-    callBacks.set( 0, 0 );
-
-    // Insert the remaining values, checking for duplicates.
-    std::ptrdiff_t curInsertPos = 1;
-    for( std::ptrdiff_t i = 1; i < nVals; ++i )
-    {
-      if( values[i] != values[i - 1] )
-      {
-        new ( newPtr + curInsertPos ) T( values[i] );
-        callBacks.set( curInsertPos, i );
-        ++curInsertPos;
-      }
-    }
-
-    return nToInsert;
+    return numInserted;
   }
 
-  // We need to count up the number of values that will actually be inserted.
-  // Doing so involves finding the position the value will be inserted at.
-  // Below we store the first MAX_PRE_CALCULATED positions so that we don't need
-  // to find them again.
-
-  constexpr int MAX_PRE_CALCULATED = 32;
-  std::ptrdiff_t valuePositions[MAX_PRE_CALCULATED];  // Positions of the first 32 values to insert.
-  std::ptrdiff_t insertPositions[MAX_PRE_CALCULATED]; // Position at which to insert the first 32 values.
-
-  // Loop over the values in reverse (from largest to smallest).
-  std::ptrdiff_t curPos = size;
-  for( std::ptrdiff_t i = nVals - 1; i >= 0; --i )
+  // Count up the number of values that will actually be inserted.
+  std::ptrdiff_t nVals = 0;
+  std::ptrdiff_t nToInsert = 0;
+  std::ptrdiff_t upperBound = size;
+  ITER iter = last;
+  while( iter != first )
   {
-    // Skip duplicate values.
-    if( i != 0 && values[i] == values[i - 1] )
-      continue;
-
-    curPos = find( ptr, curPos, values[i] );
-
-    // If values[i] isn't in the array.
-    if( curPos == size || ptr[curPos] != values[i] )
+    --iter;
+    ++nVals;
+    upperBound = find( ptr, upperBound, *iter );
+    if( upperBound == size || ptr[upperBound] != *iter )
     {
-      // Store the value position and insert position if there is space left.
-      if( nToInsert < MAX_PRE_CALCULATED )
-      {
-        valuePositions[nToInsert] = i;
-        insertPositions[nToInsert] = curPos;
-      }
-
-      nToInsert += 1;
+      ++nToInsert;
     }
   }
 
@@ -885,143 +698,39 @@ std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
 
   // If there are no values to insert we can return.
   if( nToInsert == 0 )
-    return 0;
-
-  //
-  std::ptrdiff_t const nPreCalculated = (nToInsert < MAX_PRE_CALCULATED) ?
-                                        nToInsert : MAX_PRE_CALCULATED;
-
-  // Insert pre-calculated values.
-  std::ptrdiff_t prevInsertPos = size;
-  for( std::ptrdiff_t i = 0; i < nPreCalculated; ++i )
   {
-    // Shift the values up...
-    arrayManipulation::shiftUp( newPtr, prevInsertPos, insertPositions[i], std::ptrdiff_t( nToInsert - i ) );
-
-    // and insert.
-    std::ptrdiff_t const curValuePos = valuePositions[i];
-    new ( newPtr + insertPositions[ i ] + nToInsert - i - 1 ) T( values[curValuePos] );
-    callBacks.insert( nToInsert - i, curValuePos, insertPositions[i], prevInsertPos );
-
-    prevInsertPos = insertPositions[i];
+    return 0;
   }
-
-  // If all the values to insert were pre-calculated we can return.
-  if( nToInsert <= MAX_PRE_CALCULATED )
-    return nToInsert;
 
   // Insert the rest of the values.
-  std::ptrdiff_t const prevValuePos = valuePositions[MAX_PRE_CALCULATED - 1];
-  std::ptrdiff_t nInserted = MAX_PRE_CALCULATED;
-  for( std::ptrdiff_t i = prevValuePos - 1; i >= 0; --i )
+  std::ptrdiff_t currentIndex = nVals - 1;
+  std::ptrdiff_t nLeftToInsert = nToInsert;
+  upperBound = size;
+  iter = last;
+  while( iter != first )
   {
-    // Skip duplicates
-    if( values[i] == values[i + 1] )
-      continue;
+    --iter;
+    std::ptrdiff_t const pos = find( newPtr, upperBound, *iter );
 
-    std::ptrdiff_t const pos = find( newPtr, prevInsertPos, values[i] );
-
-    // If values[i] is already in the array skip it.
-    if( pos != prevInsertPos && newPtr[pos] == values[i] )
+    // If *iter is already in the array skip it.
+    if( pos != upperBound && newPtr[pos] == *iter )
+    {
+      --currentIndex;
       continue;
+    }
 
     // Else shift the values up and insert.
-    arrayManipulation::shiftUp( newPtr, prevInsertPos, pos, std::ptrdiff_t( nToInsert - nInserted ) );
-    new ( newPtr + pos + nToInsert - nInserted - 1 ) T( values[i] );
-    callBacks.insert( nToInsert - nInserted, i, pos, prevInsertPos );
+    arrayManipulation::shiftUp( newPtr, upperBound, pos, nLeftToInsert );
+    new ( newPtr + pos + nLeftToInsert - 1 ) T( *iter );
+    callBacks.insert( nLeftToInsert, currentIndex, pos, upperBound );
 
-    nInserted += 1;
-    prevInsertPos = pos;
-
-    // If all the values have been inserted then exit the loop.
-    if( nInserted == nToInsert )
-      break;
+    --currentIndex;
+    --nLeftToInsert;
+    upperBound = pos;
   }
-
-  LVARRAY_ASSERT_MSG( nInserted == nToInsert, nInserted << " " << nToInsert );
 
   return nToInsert;
 }
-
-/**
- * @tparam T the type of values in the array.
- * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to insert, must be sorted under less<T>.
- * @param [in] nVals the number of values to insert.
- * @return The number of values inserted.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insertSorted( T * const LVARRAY_RESTRICT ptr,
-                             std::ptrdiff_t const size,
-                             T const * const LVARRAY_RESTRICT values,
-                             std::ptrdiff_t const nVals )
-{ return insertSorted( ptr, size, values, nVals, CallBacks< T > {} ); }
-
-/**
- * @tparam T the type of values in the array.
- * @tparam CALLBACKS the type of the callBacks class.
- * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to insert.
- * @param [in] nVals the number of values to insert.
- * @param [in/out] callBacks class which must define at least a method T * incrementSize(std::ptrdiff_t),
- *                 set(std::ptrdiff_t, std::ptrdiff_t) and insert(std::ptrdiff_t, std::ptrdiff_t, std::ptrdiff_t,
- * std::ptrdiff_t).
- *                 incrementSize is called with the number of values to insert and returns a new pointer to the array.
- *                 After an insert has occurred insert is called with the number of values left to insert, the
- *                 index of the value inserted, the index at which it was inserted and the index at
- *                 which the the previous value was inserted or size if it is the first value inserted.
- *                 set is called when the array is empty and it takes a position in the array and the position of the
- *                 value that will occupy that position.
- * @return The number of values inserted.
- */
-DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
-                       std::ptrdiff_t const size,
-                       T const * const LVARRAY_RESTRICT values,
-                       std::ptrdiff_t const nVals,
-                       CALLBACKS && callBacks )
-{
-  LVARRAY_ASSERT( ptr != nullptr || size == 0 );
-  LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
-  LVARRAY_ASSERT( values != nullptr || nVals == 0 );
-  LVARRAY_ASSERT( nVals >= 0 );
-
-  constexpr std::ptrdiff_t LOCAL_SIZE = 16;
-  T localBuffer[LOCAL_SIZE];
-  T * const buffer = createTemporaryBuffer( values, nVals, localBuffer );
-  makeSorted( buffer, buffer + nVals );
-
-  std::ptrdiff_t const nInserted = insertSorted( ptr, size, buffer, nVals, std::move( callBacks ) );
-
-  freeTemporaryBuffer( buffer, nVals, localBuffer );
-  return nInserted;
-}
-
-/**
- * @tparam T the type of values in the array.
- * @brief Insert the given values into the array if they don't already exist.
- * @param [in] ptr pointer to the array, must be sorted under less<T>.
- * @param [in] size the size of the array.
- * @param [in] values the values to insert.
- * @param [in] nVals the number of values to insert.
- * @return The number of values inserted.
- */
-DISABLE_HD_WARNING
-template< typename T, typename CALLBACKS >
-LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
-                       std::ptrdiff_t const size,
-                       T const * const LVARRAY_RESTRICT values,
-                       std::ptrdiff_t const nVals )
-{ return insert( ptr, size, values, nVals, CallBacks< T > {} ); }
 
 } // namespace sortedArrayManipulation
 } // namespace LvArray

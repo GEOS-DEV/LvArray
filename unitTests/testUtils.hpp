@@ -102,14 +102,14 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 #endif
 
 // Comparator that compares a std::pair by it's first object.
-template< class A, class B, class COMP=std::less< B > >
+template< class A, class B, class COMP=std::less< A > >
 struct PairComp
 {
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   constexpr bool operator()( const std::pair< A, B > & lhs, const std::pair< A, B > & rhs ) const
   {
-    return COMP()( lhs.second, rhs.second );
+    return COMP()( lhs.first, rhs.first );
   }
 };
 

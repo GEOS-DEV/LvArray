@@ -92,26 +92,27 @@ void destroy( T * const LVARRAY_RESTRICT ptr,
 }
 
 /**
+ * @tparam ITER An iterator type.
  * @tparam T the storage type of the array.
  * @brief Copy construct values from the source to the destination.
- * @param [in/out] dst pointer to the destination array, must be uninitialized memory.
- * @param [in] size the number of values to copy.
- * @param [in] src pointer to the source array.
+ * @param first Iterator to the first value to copy.
+ * @param last Iterator to the end of the values to copy.
+ * @param dst Pointer to the destination array, must be uninitialized memory.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename ITER, typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedCopy( T * const LVARRAY_RESTRICT dst,
-                        std::ptrdiff_t const size,
-                        T const * const LVARRAY_RESTRICT src )
+void uninitializedCopy( ITER first,
+                        ITER const & last,
+                        T * LVARRAY_RESTRICT dst )
 {
-  LVARRAY_ASSERT( dst != nullptr || size == 0 );
-  LVARRAY_ASSERT( isPositive( size ) );
-  LVARRAY_ASSERT( src != nullptr || size == 0 );
+  LVARRAY_ASSERT( dst != nullptr || first == last );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  while( first != last )
   {
-    new (dst + i) T( src[ i ] );
+    new ( dst ) T( *first );
+    ++dst;
+    ++first;
   }
 }
 

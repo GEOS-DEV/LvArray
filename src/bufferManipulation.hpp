@@ -22,6 +22,7 @@
 // Source includes
 #include "CXX_UtilsConfig.hpp"
 #include "Macros.hpp"
+#include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 
 // TPL includes
@@ -35,6 +36,13 @@ namespace LvArray
 {
 namespace bufferManipulation
 {
+
+/**
+ * @brief Defines a static constexpr bool HasMemberFunction_move< @p CLASS >
+ *        that is true iff the method @p CLASS ::move(chai::ExecutionSpace, bool) exists.
+ * @tparam CLASS The type to test.
+ */
+IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
 
 /**
  * @class VoidBuffer
@@ -148,9 +156,16 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
 template< typename BUFFER >
 void free( BUFFER & buf, std::ptrdiff_t const size )
 {
+  using T = typename BUFFER::value_type;
+
   check( buf, size );
 
-  using T = typename BUFFER::value_type;
+  /// If the values contained can themselves be moved then they need to be moved back to the host.
+  if( HasMemberFunction_move< T > )
+  {
+    buf.move( chai::CPU, size, true );
+  }
+
   T * const LVARRAY_RESTRICT data = buf.data();
   for( std::ptrdiff_t i = 0; i < size; ++i )
   {

@@ -24,10 +24,6 @@
 // TPL inclues
 #include <gtest/gtest.h>
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
-  #include <chai/util/forall.hpp>
-#endif
-
 // System includes
 #include <chrono>
 #include <random>
@@ -38,450 +34,276 @@
 
 namespace LvArray
 {
-namespace sortedArrayManipulation
-{
 namespace testing
 {
 
-using namespace LvArray::testing;
-
-using INDEX_TYPE = std::ptrdiff_t;
-
-template< class T >
-using Array1d = LvArray::Array< T, 1 >;
-
-template< class T >
-using ArrayView1d = LvArray::ArrayView< T, 1 > const;
-
-
-// A static random number generator is used so that subsequent calls to the same test method will
-// do different things. This initializes the generator with the default seed so the test behavior will
-// be uniform across runs and platforms. However the behavior of an individual method will depend on the state
-// of the generator and hence on the calls before it.
-static std::mt19937_64 gen;
-
-template< class T >
-void checkEqual( Array1d< T > const & a, std::vector< T > const & b )
+template< class T_COMP_POLICY >
+class SingleArrayTest : public ::testing::Test
 {
-  for( INDEX_TYPE i = 0; i < a.size(); ++i )
+public:
+  using T = std::tuple_element_t< 0, T_COMP_POLICY >;
+  using COMP = std::tuple_element_t< 1, T_COMP_POLICY >;
+  using POLICY = std::tuple_element_t< 2, T_COMP_POLICY >;
+
+  void testMakeSorted( std::ptrdiff_t const maxSize )
   {
-    EXPECT_EQ( a[i], b[i] );
-  }
-}
-
-template< class SORTINGTYPE, class T >
-void checkEqual( Array1d< SORTINGTYPE > const & a, Array1d< T > const & b, std::vector< std::pair< T, SORTINGTYPE > > const & c )
-{
-  for( INDEX_TYPE i = 0; i < a.size(); ++i )
-  {
-    EXPECT_EQ( a[i], c[i].second );
-    EXPECT_EQ( b[i], c[i].first );
-  }
-}
-
-template< class T, class Compare >
-void check( Array1d< T > & a, std::vector< T > & b, Compare comp )
-{
-  makeSorted( a.begin(), a.end(), comp );
-  std::sort( b.begin(), b.end(), comp );
-  checkEqual( a, b );
-}
-
-template< class SORTINGTYPE, class T, class Compare >
-void check( Array1d< SORTINGTYPE > & a, Array1d< T > & b, std::vector< std::pair< T, SORTINGTYPE > > & c, Compare comp )
-{
-  dualSort( a.begin(), a.end(), b.begin(), comp );
-  std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
-  checkEqual( a, b, c );
-}
-
-template< class T >
-void fillArrays( INDEX_TYPE size, Array1d< T > & a, std::vector< T > & b )
-{
-  std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size );
-
-  a.resize( size );
-  b.resize( size );
-  for( INDEX_TYPE i = 0; i < size; ++i )
-  {
-    T const val = T( valueDist( gen ));
-    a[i] = val;
-    b[i] = val;
-  }
-}
-
-template< class SORTINGTYPE, class T >
-void fillArrays( INDEX_TYPE size, Array1d< SORTINGTYPE > & a, Array1d< T > & b, std::vector< std::pair< T, SORTINGTYPE > > & c )
-{
-  std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size );
-
-  a.resize( size );
-  b.resize( size );
-  c.resize( size );
-  for( INDEX_TYPE i = 0; i < size; ++i )
-  {
-    INDEX_TYPE const seed = valueDist( gen );
-    SORTINGTYPE const sortingVal = SORTINGTYPE( seed );
-    T const val = T( seed * (seed + 1 - size));
-    a[i] = sortingVal;
-    b[i] = val;
-    c[i] = std::pair< T, SORTINGTYPE >( val, sortingVal );
-  }
-}
-
-
-template< class T, class Compare >
-void correctnessTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 2000;
-  Array1d< T > a( MAX_SIZE );
-  std::vector< T > b( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    fillArrays( size, a, b );
-    check( a, b, Compare());
-  }
-}
-
-template< class SORTINGTYPE, class T, class Compare >
-void dualCorrectnessTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 2000;
-  Array1d< SORTINGTYPE > a( MAX_SIZE );
-  Array1d< T > b( MAX_SIZE );
-  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    fillArrays( size, a, b, c );
-    check( a, b, c, Compare());
-  }
-}
-
-template< class T, class Compare >
-void performanceTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024 * 8;
-
-  std::cout << std::setiosflags( std::ios::fixed ) << std::setprecision( 5 );
-
-  Array1d< T > a( MAX_SIZE );
-  std::vector< T > b( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    std::chrono::duration< double > sortingTime {};
-    std::chrono::duration< double > stdTime {};
-    for( INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter )
+    for( std::ptrdiff_t size = 0; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ))
     {
-      fillArrays( size, a, b );
+      fill( size );
 
-      auto start = std::chrono::high_resolution_clock::now();
-      makeSorted( a.begin(), a.end(), Compare());
-      auto end = std::chrono::high_resolution_clock::now();
-      sortingTime += end - start;
+      bool const isInitiallySorted = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp );
+      std::sort( m_ref.begin(), m_ref.end(), m_comp );
 
-      start = std::chrono::high_resolution_clock::now();
-      std::sort( b.begin(), b.end(), Compare());
-      end = std::chrono::high_resolution_clock::now();
-      stdTime += end - start;
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > resultOfFirstIsSorted( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > resultOfSecondIsSorted( 0 );
+      ArrayView< T, 1 > const & view = m_array;
+      COMP & comp = m_comp;
 
-      fillArrays( size, a, b );
+      forall< POLICY >( 1, [resultOfFirstIsSorted, resultOfSecondIsSorted, view, comp]
+                        LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+          {
+            resultOfFirstIsSorted += sortedArrayManipulation::isSorted( view.begin(), view.end(), comp );
+            sortedArrayManipulation::makeSorted( view.begin(), view.end(), comp );
+            resultOfSecondIsSorted += sortedArrayManipulation::isSorted( view.begin(), view.end(), comp );
+          } );
 
-      start = std::chrono::high_resolution_clock::now();
-      std::sort( b.begin(), b.end(), Compare());
-      end = std::chrono::high_resolution_clock::now();
-      stdTime += end - start;
+      EXPECT_EQ( resultOfFirstIsSorted.get(), isInitiallySorted );
+      EXPECT_TRUE( resultOfSecondIsSorted.get() );
 
-      start = std::chrono::high_resolution_clock::now();
-      makeSorted( a.begin(), a.end(), Compare());
-      end = std::chrono::high_resolution_clock::now();
-      sortingTime += end - start;
-
-      checkEqual( a, b );
-    }
-
-    if( sortingTime.count() > stdTime.count())
-    {
-      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-        ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
-    }
-    else
-    {
-      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-        ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
+      m_array.move( chai::CPU );
+      checkEquality();
     }
   }
-}
 
-template< class SORTINGTYPE, class T, class Compare >
-void dualPerformanceTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 1024 * 1024 * 8;
-
-  std::cout << std::setiosflags( std::ios::fixed ) << std::setprecision( 5 );
-
-  Array1d< SORTINGTYPE > a( MAX_SIZE );
-  Array1d< T > b( MAX_SIZE );
-  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size <= MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
+  void testRemoveDuplicates( std::ptrdiff_t const maxSize )
   {
-    std::chrono::duration< double > sortingTime {};
-    std::chrono::duration< double > stdTime {};
-    for( INDEX_TYPE iter = 0; iter < MAX_SIZE / (size + 1) + 1; ++iter )
+    for( std::ptrdiff_t size = 1; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ) )
     {
-      fillArrays( size, a, b, c );
+      fill( size );
 
-      auto start = std::chrono::high_resolution_clock::now();
-      dualSort( a.begin(), a.end(), b.begin(), Compare());
-      auto end = std::chrono::high_resolution_clock::now();
-      sortingTime += end - start;
+      bool isInitiallySortedUnique;
+      {
+        std::set< T, COMP > refSet( m_ref.begin(), m_ref.end(), m_comp );
+        isInitiallySortedUnique = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp ) &&
+                                  ( m_ref.size() == refSet.size() );
+        m_ref.clear();
+        m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
+      }
 
-      start = std::chrono::high_resolution_clock::now();
-      std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
-      end = std::chrono::high_resolution_clock::now();
-      stdTime += end - start;
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > firstIsSortedUnique( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > secondIsSortedUnique( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > numUniqueValues( 0 );
+      ArrayView< T, 1 > const & view = m_array;
+      COMP & comp = m_comp;
 
-      fillArrays( size, a, b, c );
+      forall< POLICY >( 1, [firstIsSortedUnique, secondIsSortedUnique, numUniqueValues, view, comp]
+                        LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+          {
+            firstIsSortedUnique += sortedArrayManipulation::isSortedUnique( view.begin(), view.end(), comp );
+            sortedArrayManipulation::makeSorted( view.begin(), view.end(), comp );
 
-      start = std::chrono::high_resolution_clock::now();
-      std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
-      end = std::chrono::high_resolution_clock::now();
-      stdTime += end - start;
+            std::ptrdiff_t const numUnique = sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
+            numUniqueValues += numUnique;
+            secondIsSortedUnique += sortedArrayManipulation::isSortedUnique( view.begin(), view.begin() + numUnique, comp );
+          } );
 
-      start = std::chrono::high_resolution_clock::now();
-      dualSort( a.begin(), a.end(), b.begin(), Compare());
-      end = std::chrono::high_resolution_clock::now();
-      sortingTime += end - start;
+      EXPECT_EQ( firstIsSortedUnique.get(), isInitiallySortedUnique );
+      EXPECT_TRUE( secondIsSortedUnique.get() );
 
-      checkEqual( a, b, c );
-    }
+      m_array.move( chai::CPU );
 
-    if( sortingTime.count() > stdTime.count())
-    {
-      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-        ", std::sort : " << stdTime.count() << ", slower by : " << (sortingTime.count() / stdTime.count()) * 100.0 - 100.0 << "%" << std::endl;
-    }
-    else
-    {
-      std::cout << "size = " << size << ",\tmakeSorted : " << sortingTime.count() <<
-        ", std::sort : " << stdTime.count() << ", FASTER!!!" << std::endl;
+      EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
+      m_array.resize( numUniqueValues.get() );
+
+      checkEquality();
     }
   }
-}
 
-template< class T >
-void removeDuplicatesCorrectnessTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 2000;
-  std::vector< T > values( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
+  void testMakeSortedUnique( std::ptrdiff_t const maxSize )
   {
-    values.resize( size );
-
-    std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size * 2 );
-
-    for( T & val : values )
+    for( std::ptrdiff_t size = 1; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ) )
     {
-      val = T( valueDist( gen ));
-    }
+      fill( size );
 
-    std::set< T > ref( values.begin(), values.end());
+      {
+        std::set< T, COMP > refSet( m_ref.begin(), m_ref.end(), m_comp );
+        m_ref.clear();
+        m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
+      }
 
-    std::sort( values.begin(), values.end());
-    ASSERT_TRUE( sortedArrayManipulation::isSorted( values.data(), values.size()));
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > numUniqueValues( 0 );
+      ArrayView< T, 1 > const & view = m_array;
+      COMP & comp = m_comp;
 
-    INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( values.data(), values.size());
-    EXPECT_EQ( numUniqueValues, ref.size());
+      forall< POLICY >( 1, [numUniqueValues, view, comp] LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+          {
+            numUniqueValues += sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
+          } );
 
-    EXPECT_TRUE( sortedArrayManipulation::allUnique( values.data(), numUniqueValues ));
+      m_array.move( chai::CPU );
 
-    INDEX_TYPE i = 0;
-    for( T const & refVal : ref )
-    {
-      EXPECT_EQ( refVal, values[i] );
-      ++i;
+      EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
+      m_array.resize( numUniqueValues.get() );
+
+      checkEquality();
     }
   }
-}
+
+protected:
+
+  void fill( std::ptrdiff_t const size )
+  {
+    std::uniform_int_distribution< std::ptrdiff_t > valueDist( 0, 2 * size );
+
+    m_array.resize( size );
+    m_ref.resize( size );
+    for( std::ptrdiff_t i = 0; i < size; ++i )
+    {
+      T const val = T( valueDist( m_gen ) );
+      m_array[ i ] = val;
+      m_ref[ i ] = val;
+    }
+  }
+
+  void checkEquality() const
+  {
+    for( std::ptrdiff_t i = 0; i < m_array.size(); ++i )
+    {
+      EXPECT_EQ( m_array[ i ], m_ref[ i ] );
+    }
+  }
+
+  Array< T, 1 > m_array;
+  std::vector< T > m_ref;
+  COMP m_comp;
+  std::mt19937_64 m_gen;
+};
+
+using SingleArrayTestTypes = ::testing::Types<
+  std::tuple< int, sortedArrayManipulation::less< int >, serialPolicy >
+  , std::tuple< int, sortedArrayManipulation::greater< int >, serialPolicy >
+  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, serialPolicy >
+  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, serialPolicy >
+  , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
+  , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
 #ifdef USE_CUDA
-
-template< class T, class Compare >
-void correctnessDeviceTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 100;
-  Array1d< T > a( MAX_SIZE );
-  std::vector< T > b( MAX_SIZE );
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    fillArrays( size, a, b );
-
-    ArrayView1d< T > & aView = a;
-    forall( gpu(), 0, 1,
-            [=] __device__ ( INDEX_TYPE i )
-    {
-      makeSorted( aView.begin(), aView.end(), Compare());
-    }
-            );
-
-    a.move( chai::CPU );
-
-    std::sort( b.begin(), b.end(), Compare());
-    checkEqual( a, b );
-  }
-}
-
-template< class SORTINGTYPE, class T, class Compare >
-void dualCorrectnessDeviceTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 100;
-  Array1d< SORTINGTYPE > a( MAX_SIZE );
-  Array1d< T > b( MAX_SIZE );
-  std::vector< std::pair< T, SORTINGTYPE > > c( MAX_SIZE );
-
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    fillArrays( size, a, b, c );
-
-    ArrayView1d< SORTINGTYPE > & aView = a;
-    ArrayView1d< T > & bView = b;
-    forall( gpu(), 0, 1,
-            [=] __device__ ( INDEX_TYPE i )
-    {
-      dualSort( aView.begin(), aView.end(), bView.begin(), Compare());
-    }
-            );
-
-    a.move( chai::CPU );
-    b.move( chai::CPU );
-
-    std::sort( c.begin(), c.end(), PairComp< T, SORTINGTYPE, Compare >());
-    checkEqual( a, b, c );
-  }
-}
-
-template< class T >
-void removeDuplicatesCorrectnessDeviceTest()
-{
-  constexpr INDEX_TYPE MAX_SIZE = 2000;
-  Array1d< T > values( MAX_SIZE );
-  Array1d< INDEX_TYPE > numUniqueValues( 1 );
-
-  for( INDEX_TYPE size = 0; size < MAX_SIZE; size = INDEX_TYPE( size * 1.5 + 1 ))
-  {
-    values.resize( size );
-
-    std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, size * 2 );
-
-    for( T & val : values )
-    {
-      val = T( valueDist( gen ));
-    }
-
-    std::set< T > ref( values.begin(), values.end());
-
-    std::sort( values.begin(), values.end());
-    ASSERT_TRUE( sortedArrayManipulation::isSorted( values.data(), values.size()));
-
-    forall( gpu(), 0, 1,
-            [valuesView=values.toView(), numUniqueValuesView=numUniqueValues.toView()] __device__ ( INDEX_TYPE i )
-    {
-      numUniqueValuesView[0] = sortedArrayManipulation::removeDuplicates( valuesView.data(), valuesView.size());
-      LVARRAY_ERROR_IF( !sortedArrayManipulation::allUnique( valuesView.data(), numUniqueValuesView[0] ), "Values should be unique!" );
-    }
-            );
-
-    values.move( chai::CPU );
-    numUniqueValues.move( chai::CPU );
-    EXPECT_EQ( numUniqueValues[0], ref.size());
-
-    INDEX_TYPE i = 0;
-    for( T const & refVal : ref )
-    {
-      EXPECT_EQ( refVal, values[i] );
-      ++i;
-    }
-  }
-}
-
+  , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy >
+  , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy >
+  , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy >
+  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
 #endif
+  >;
+TYPED_TEST_CASE( SingleArrayTest, SingleArrayTestTypes );
 
-TEST( sort, correctness )
+TYPED_TEST( SingleArrayTest, makeSorted )
 {
-  correctnessTest< int, less< int > >();
-  correctnessTest< int, greater< int > >();
-
-  correctnessTest< Tensor, less< Tensor > >();
-  correctnessTest< Tensor, greater< Tensor > >();
-
-  correctnessTest< TestString, less< TestString > >();
-  correctnessTest< TestString, greater< TestString > >();
+  this->testMakeSorted( 500 );
 }
 
-TEST( dualSort, correctness )
+TYPED_TEST( SingleArrayTest, removeDuplicates )
 {
-  dualCorrectnessTest< int, int, less< int > >();
-  dualCorrectnessTest< int, Tensor, greater< int > >();
-
-  dualCorrectnessTest< Tensor, int, less< Tensor > >();
-  dualCorrectnessTest< Tensor, TestString, greater< Tensor > >();
-
-  dualCorrectnessTest< TestString, int, less< TestString > >();
-  dualCorrectnessTest< TestString, Tensor, greater< TestString > >();
+  this->testRemoveDuplicates( 500 );
 }
 
-TEST( sort, performance )
+TYPED_TEST( SingleArrayTest, makeSortedUnique )
 {
-  // performanceTest<int, less<int>>();
-  SUCCEED();
+  this->testMakeSortedUnique( 500 );
 }
 
-TEST( dualSort, performance )
+template< class KEY_T_COMP_POLICY >
+class DualArrayTest : public ::testing::Test
 {
-  // dualPerformanceTest<int, int, less<int>>();
-  SUCCEED();
-}
+public:
+  using KEY = std::tuple_element_t< 0, KEY_T_COMP_POLICY >;
+  using T = std::tuple_element_t< 1, KEY_T_COMP_POLICY >;
+  using COMP = std::tuple_element_t< 2, KEY_T_COMP_POLICY >;
+  using POLICY = std::tuple_element_t< 3, KEY_T_COMP_POLICY >;
 
-TEST( removeDuplicates, correctness )
-{
-  removeDuplicatesCorrectnessTest< int >();
-  removeDuplicatesCorrectnessTest< Tensor >();
-  removeDuplicatesCorrectnessTest< TestString >();
-}
+  void testMakeSorted( std::ptrdiff_t maxSize )
+  {
+    for( std::ptrdiff_t size = 0; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ))
+    {
+      fillArrays( size );
+      std::sort( m_ref.begin(), m_ref.end(), PairComp< KEY, T, COMP >());
+
+      ArrayView< KEY, 1 > const & keys = m_keys;
+      ArrayView< T, 1 > const & values = m_values;
+      COMP & comp = m_comp;
+      forall< POLICY >( 1, [keys, values, comp] LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+          {
+            dualSort( keys.begin(), keys.end(), values.begin(), comp );
+          } );
+
+      m_keys.move( chai::CPU );
+      m_values.move( chai::CPU );
+      checkEquality();
+    }
+  }
+
+private:
+
+  void fillArrays( std::ptrdiff_t const size )
+  {
+    std::uniform_int_distribution< std::ptrdiff_t > valueDist( 0, 2 * size );
+
+    m_keys.resize( size );
+    m_values.resize( size );
+    m_ref.resize( size );
+    for( std::ptrdiff_t i = 0; i < size; ++i )
+    {
+      std::ptrdiff_t const seed = valueDist( m_gen );
+      KEY const key = KEY( seed );
+      T const val = T( seed * ( seed - size ) );
+      m_keys[ i ] = key;
+      m_values[ i ] = val;
+      m_ref[ i ] = std::pair< KEY, T >( key, val );
+    }
+  }
+
+  void checkEquality()
+  {
+    for( std::ptrdiff_t i = 0; i < m_keys.size(); ++i )
+    {
+      EXPECT_EQ( m_keys[ i ], m_ref[ i ].first );
+      EXPECT_EQ( m_values[ i ], m_ref[ i ].second );
+    }
+  }
+
+  Array< KEY, 1 > m_keys;
+  Array< T, 1 > m_values;
+  std::vector< std::pair< KEY, T > > m_ref;
+  COMP m_comp;
+  std::mt19937_64 m_gen;
+};
+
+using DualArrayTestTypes = ::testing::Types<
+  std::tuple< int, int, sortedArrayManipulation::less< int >, serialPolicy >
+  , std::tuple< int, int, sortedArrayManipulation::greater< int >, serialPolicy >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, serialPolicy >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::greater< Tensor >, serialPolicy >
+  , std::tuple< int, Tensor, sortedArrayManipulation::less< int >, serialPolicy >
+  , std::tuple< Tensor, int, sortedArrayManipulation::greater< Tensor >, serialPolicy >
+  , std::tuple< TestString, TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
+  , std::tuple< TestString, TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
 #ifdef USE_CUDA
-
-CUDA_TEST( sort, correctnessDevice )
-{
-  correctnessDeviceTest< int, less< int > >();
-  correctnessDeviceTest< int, greater< int > >();
-
-  correctnessDeviceTest< Tensor, less< Tensor > >();
-  correctnessDeviceTest< Tensor, greater< Tensor > >();
-}
-
-CUDA_TEST( dualSort, correctnessDevice )
-{
-  dualCorrectnessDeviceTest< int, int, less< int > >();
-  dualCorrectnessDeviceTest< int, Tensor, greater< int > >();
-
-  dualCorrectnessDeviceTest< Tensor, int, less< Tensor > >();
-  dualCorrectnessDeviceTest< Tensor, Tensor, greater< Tensor > >();
-}
-
-CUDA_TEST( removeDuplicates, correctnessDevice )
-{
-  removeDuplicatesCorrectnessDeviceTest< int >();
-  removeDuplicatesCorrectnessDeviceTest< Tensor >();
-}
-
-
+  , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy >
+  , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
+  , std::tuple< int, Tensor, sortedArrayManipulation::less< int >, parallelDevicePolicy >
+  , std::tuple< Tensor, int, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
 #endif
+  >;
+TYPED_TEST_CASE( DualArrayTest, DualArrayTestTypes );
+
+TYPED_TEST( DualArrayTest, makeSorted )
+{
+  this->testMakeSorted( 250 );
+}
 
 } // namespace testing
-} // namespace sortedArrayManipulation
 } // namespace LvArray

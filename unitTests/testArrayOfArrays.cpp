@@ -196,7 +196,28 @@ public:
   {
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
 
+    std::vector< INDEX_TYPE > oldSizes;
+    std::vector< INDEX_TYPE > oldCapacities;
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
+    {
+      oldSizes.push_back( m_array.sizeOfArray( i ) );
+      oldCapacities.push_back( m_array.capacityOfArray( i ) );
+    }
+
     m_array.resize( newSize, capacityPerArray );
+
+    for( INDEX_TYPE i = 0; i < std::min( newSize, INDEX_TYPE( oldSizes.size() ) ); ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), oldSizes[ i ] );
+      EXPECT_EQ( m_array.capacityOfArray( i ), oldCapacities[ i ] );
+    }
+
+    for( INDEX_TYPE i = INDEX_TYPE( oldSizes.size() ); i < newSize; ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), 0 );
+      EXPECT_EQ( m_array.capacityOfArray( i ), capacityPerArray );
+    }
+
     m_ref.resize( newSize );
 
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
@@ -728,6 +749,17 @@ TYPED_TEST( ArrayOfArraysTest, resize )
   {
     this->insertArray( 100, 10 );
     this->resize();
+  }
+}
+
+TYPED_TEST( ArrayOfArraysTest, resizeWithCapacity )
+{
+  for( INDEX_TYPE i = 0; i < 3; ++i )
+  {
+    this->resize( 100, 10 );
+    this->insertIntoArray( 5 );
+    this->resize( 150, 10 );
+    this->insertIntoArray( 5 );
   }
 }
 

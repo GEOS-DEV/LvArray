@@ -49,6 +49,7 @@ public:
   using ParentClass::toViewConst;
   using ParentClass::toArrayOfArraysView;
   using ParentClass::capacity;
+  using ParentClass::valueCapacity;
   using ParentClass::sizeOfSet;
   using ParentClass::capacityOfSet;
   using ParentClass::operator();
@@ -57,7 +58,6 @@ public:
 
   using ParentClass::getIterableSet;
   using ParentClass::removeFromSet;
-  using ParentClass::removeSortedFromSet;
   using ParentClass::contains;
   using ParentClass::consistencyCheck;
   using ParentClass::move;
@@ -198,7 +198,7 @@ public:
         T * const setValues = getSetValues( i );
         INDEX_TYPE const numValues = sizeOfSet( i );
 
-        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues, numValues );
+        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues, setValues + numValues );
         arrayManipulation::resize( setValues, numValues, numUniqueValues );
         m_sizes[ i ] = numUniqueValues;
       }
@@ -209,9 +209,8 @@ public:
       {
         T * const setValues = getSetValues( i );
         INDEX_TYPE const numValues = sizeOfSet( i );
-        std::sort( setValues, setValues + numValues );
 
-        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues, numValues );
+        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( setValues, setValues + numValues );
         arrayManipulation::resize( setValues, numValues, numUniqueValues );
         m_sizes[ i ] = numUniqueValues;
       }
@@ -359,31 +358,22 @@ public:
   { return ParentClass::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
 
   /**
-   * @brief Insert values into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] vals the values to insert.
-   * @param [in] n the number of values to insert.
+   * @tparam ITER An iterator type.
+   * @brief Inserts multiple values into the given set.
+   * @param i The set to insert into.
+   * @param first An iterator to the first value to insert.
+   * @param last An iterator to the end of the values to insert.
    * @return The number of values inserted.
+   *
+   * @note The values to insert [first, last) must be sorted and contain no duplicates.
    */
+  template< typename ITER >
   inline
-  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
-
-  /**
-   * @brief Insert values into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] vals the values to insert. Must be sorted
-   * @param [in] n the number of values to insert.
-   * @return The number of values inserted.
-   */
-  inline
-  INDEX_TYPE insertSortedIntoSet( INDEX_TYPE const i, T const * const vals, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertSortedIntoSetImpl( i, vals, n, CallBacks( *this, i ) ); }
+  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  { return ParentClass::insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   void setName( std::string const & name )
-  {
-    ArrayOfArraysView< T, INDEX_TYPE >::template setName< decltype( *this ) >( name );
-  }
+  { ArrayOfArraysView< T, INDEX_TYPE >::template setName< decltype( *this ) >( name ); }
 
 private:
 

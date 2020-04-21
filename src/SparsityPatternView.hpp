@@ -215,8 +215,6 @@ public:
    *
    * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
@@ -227,59 +225,29 @@ public:
   }
 
   /**
-   * @brief Insert non-zero entries into the given row.
-   * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert, of length ncols.
-   * @param [in] ncols the number of columns to insert.
+   * @tparam ITER An iterator type.
+   * @brief Inserts multiple non-zero entries into the given row.
+   * @param row The row to insert into.
+   * @param first An iterator to the first column to insert.
+   * @param last An iterator to the end of the columns to insert.
    * @return The number of columns inserted.
    *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
-   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
+   * @note The columns to insert [ @p first, @p last ) must be sorted and contain no duplicates.
+   * @note Since the SparsityPatternview can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given row has enough space for the new entries.
    */
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( ITER iter = first; iter != last; ++iter )
+    { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
+  #endif
 
-    return ParentClass::insertIntoSet( row, cols, ncols );
-  }
-
-  /**
-   * @brief Insert non-zero entries into the given row.
-   * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert, of length ncols. Must be sorted.
-   * @param [in] ncols the number of columns to insert.
-   * @return The number of columns inserted.
-   *
-   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
-
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
-
-    return ParentClass::insertSortedIntoSet( row, cols, ncols );
+    return ParentClass::insertIntoSet( row, first, last );
   }
 
   /**
@@ -297,50 +265,28 @@ public:
   }
 
   /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols.
-   * @param [in] ncols the number of columns to remove.
+   * @tparam ITER An iterator type.
+   * @brief Remove multiple non-zero entries from the given row.
+   * @param row The row to remove from.
+   * @param first An iterator to the first column to remove.
+   * @param last An iterator to the end of the columns to remove.
    * @return The number of columns removed.
    *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   *       and then call removeNonZerosSorted, this will be substantially faster.
+   * @note The columns to remove [ @p first, @p last ) must be sorted and contain no duplicates.
    */
+  DISABLE_HD_WARNING
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( ITER iter = first; iter != last; ++iter )
+    { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
+  #endif
 
-    return ParentClass::removeFromSet( row, cols, ncols );
-  }
-
-  /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols.
-   * @param [in] ncols the number of columns to remove.
-   * @return The number of columns removed.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
-
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
-
-    return ParentClass::removeSortedFromSet( row, cols, ncols );
+    return ParentClass::removeFromSet( row, first, last );
   }
 
   /**

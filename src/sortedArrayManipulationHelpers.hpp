@@ -207,6 +207,7 @@ struct DualIteratorComparator
                                               DualIteratorAccessor< A, B > const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_compare( lhs.m_a, rhs.m_a ); }
 
+private:
   Compare m_compare;
 };
 
@@ -307,7 +308,7 @@ public:
   LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
   {
     std::ptrdiff_t const distance = m_itA - rhs.m_itA;
-    LVARRAY_ASSERT( distance == (m_itB - rhs.m_itB));
+    LVARRAY_ASSERT_EQ( distance, m_itB - rhs.m_itB );
     return distance;
   }
 
