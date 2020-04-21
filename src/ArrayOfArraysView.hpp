@@ -212,6 +212,13 @@ public:
   }
 
   /**
+   * @brief Return the total number values that can be stored before reallocation.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  INDEX_TYPE_NC valueCapacity() const LVARRAY_RESTRICT_THIS
+  { return m_values.capacity(); }
+
+  /**
    * @brief Return the size of the given array.
    * @param [in] i the array to querry.
    */
@@ -530,9 +537,9 @@ protected:
 
       if( defaultArrayCapacity > 0 )
       {
-        for( INDEX_TYPE i = m_numArrays + 1; i < newSize + 1; ++i )
+        for( INDEX_TYPE i = 1; i < newSize + 1 - m_numArrays; ++i )
         {
-          m_offsets[i] = originalOffset + i * defaultArrayCapacity;
+          m_offsets[ m_numArrays + i ] = originalOffset + i * defaultArrayCapacity;
         }
 
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
@@ -616,7 +623,7 @@ protected:
       {
         INDEX_TYPE const offset = m_offsets[i];
         INDEX_TYPE const arraySize = sizeOfArray( i );
-        arrayManipulation::uninitializedCopy( &dstBuffer[ offset ], arraySize, &srcBuffer[ offset ] );
+        arrayManipulation::uninitializedCopy( &srcBuffer[ offset ], &srcBuffer[ offset ] + arraySize, &dstBuffer[ offset ] );
       }
     },
       valuesPair, pairs ...

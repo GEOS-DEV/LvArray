@@ -20,6 +20,7 @@
 #include "Array.hpp"
 #include "ArrayOfArrays.hpp"
 #include "ArrayOfSets.hpp"
+#include "ArrayUtilities.hpp"
 #include "testUtils.hpp"
 
 // TPL includes
@@ -96,13 +97,6 @@ void compareToReference( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE cons
 #define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); \
 }
 
-enum class ModificationType
-{
-  SINGLE,
-  MULTIPLE,
-  SORTED
-};
-
 enum class AddType
 {
   BINARY_SEARCH,
@@ -128,14 +122,14 @@ public:
   /**
    * @brief Test the insert multiple method of the CRSMatrix.
    * @param [in] maxInserts the number of entries to insert at a time.
-   * @param [in] type whether to use the singular, non-sorted, or sorted insert.
+   * @param [in] oneAtATime If true the entries are inserted one at at time.
    */
-  void insert( INDEX_TYPE const maxInserts, ModificationType const type )
+  void insert( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, type == ModificationType::SORTED );
+    ArrayOfArrays< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, oneAtATime );
     ArrayOfArrays< T > const valuesToInsert = createArrayOfValues( columnsToInsert );
 
     // Insert the entries into the reference.
@@ -145,21 +139,25 @@ public:
     {
       INDEX_TYPE const initialNNZ = m_matrix.numNonZeros( row );
       INDEX_TYPE nInserted = 0;
-      if( type == ModificationType::SINGLE )
+
+      // LVARRAY_LOG_VAR( m_matrix.getColumns( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( m_matrix.getEntries( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( columnsToInsert[ row ].toSliceConst() );
+      // LVARRAY_LOG_VAR( valuesToInsert[ row ].toSliceConst() );
+
+      if( oneAtATime )
       {
         for( INDEX_TYPE i = 0; i < columnsToInsert.sizeOfArray( row ); ++i )
         {
           nInserted += m_matrix.insertNonZero( row, columnsToInsert( row, i ), valuesToInsert( row, i ) );
         }
       }
-      if( type == ModificationType::MULTIPLE )
-      {
-        nInserted = m_matrix.insertNonZeros( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) );
-      }
-      if( type == ModificationType::SORTED )
-      {
-        nInserted = m_matrix.insertNonZerosSorted( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) );
-      }
+      else
+      { nInserted = m_matrix.insertNonZeros( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) ); }
+
+      // LVARRAY_LOG_VAR( m_matrix.getColumns( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( m_matrix.getEntries( row ).toSliceConst() );
+      // LVARRAY_LOG( "" );
 
       ASSERT_EQ( m_matrix.numNonZeros( row ) - initialNNZ, nInserted );
       ASSERT_EQ( m_matrix.numNonZeros( row ), m_ref[ row ].size());
@@ -206,7 +204,7 @@ public:
     COL_TYPE const * const columns0 = m_matrix.getColumns( 0 );
     T const * const entries0 = m_matrix.getEntries( 0 );
 
-    this->insert( maxInserts, ModificationType::SORTED );
+    this->insert( maxInserts );
 
     ASSERT_EQ( m_matrix.getColumns( 0 ), columns0 );
     ASSERT_EQ( m_matrix.getEntries( 0 ), entries0 );
@@ -366,7 +364,7 @@ public:
     COL_TYPE const * const columns = m_matrix.getColumns( 0 );
     T const * const entries = m_matrix.getEntries( 0 );
 
-    insert( capacityPerRow / 2, ModificationType::SORTED );
+    insert( capacityPerRow / 2 );
 
     COL_TYPE const * const newColumns = m_matrix.getColumns( 0 );
     T const * const newEntries = m_matrix.getEntries( 0 );
@@ -424,7 +422,7 @@ public:
 
 protected:
 
-  ArrayOfArrays< COL_TYPE > createArrayOfColumns( INDEX_TYPE const maxCols, bool const sorted )
+  ArrayOfArrays< COL_TYPE > createArrayOfColumns( INDEX_TYPE const maxCols, bool const oneAtATime )
   {
     INDEX_TYPE const numRows = m_matrix.numRows();
 
@@ -440,9 +438,10 @@ protected:
         columns( row, i ) = rand( m_matrix.numColumns() - 1 );
       }
 
-      if( sorted && nCols != 0 )
+      if( !oneAtATime && nCols != 0 )
       {
-        std::sort( &columns( row, 0 ), &columns( row, 0 ) + nCols );
+        INDEX_TYPE const numUnique = sortedArrayManipulation::makeSortedUnique( &columns( row, 0 ), &columns( row, 0 ) + nCols );
+        columns.resizeArray( row, numUnique );
       }
     }
 
@@ -553,7 +552,7 @@ TYPED_TEST( CRSMatrixTest, insert )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insert( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -563,17 +562,7 @@ TYPED_TEST( CRSMatrixTest, insertMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixTest, insertSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+    this->insert( DEFAULT_MAX_INSERTS );
   }
 }
 
@@ -592,28 +581,28 @@ TYPED_TEST( CRSMatrixTest, rowCapacity )
 TYPED_TEST( CRSMatrixTest, deepCopy )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->deepCopyTest();
 }
 
 TYPED_TEST( CRSMatrixTest, shallowCopy )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->deepCopyTest();
 }
 
 TYPED_TEST( CRSMatrixTest, setValues )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->setValues();
 }
 
 TYPED_TEST( CRSMatrixTest, compress )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->compress();
 }
 
@@ -729,7 +718,7 @@ public:
                       );
 
     // Insert entries, this will modify the offsets, sizes, columns and entries.
-    this->insert( maxInserts, ModificationType::SORTED );
+    this->insert( maxInserts );
 
     // Move the matrix back to the host, this should copy nothing.
     this->m_matrix.move( chai::CPU );
@@ -741,14 +730,14 @@ public:
   /**
    * @brief Test the CRSMatrixView insert methods.
    * @param [in] maxInserts the maximum number of inserts.
-   * @param [in] type whether to use the singular, non-sorted, or sorted insert.
+   * @param [in] oneAtATime If true the entries are inserted one at a time.
    */
-  void insertIntoView( INDEX_TYPE const maxInserts, ModificationType const type )
+  void insertIntoView( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = this->m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, type == ModificationType::SORTED );
+    ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, oneAtATime );
     ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert );
 
     // Reserve space for the inserts
@@ -763,7 +752,7 @@ public:
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
     ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToInsert;
     ArrayOfArraysView< T const, INDEX_TYPE const, true > const & valuesView = valuesToInsert;
-    if( type == ModificationType::SINGLE )
+    if( oneAtATime )
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
@@ -780,7 +769,7 @@ public:
           }
                         );
     }
-    if( type == ModificationType::MULTIPLE )
+    else
     {
       forall< Policy >( numRows,
                         [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
@@ -794,20 +783,6 @@ public:
           }
                         );
     }
-    if( type == ModificationType::SORTED )
-    {
-      forall< Policy >( numRows,
-                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-          {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nInserted = view.insertNonZerosSorted( row,
-                                                                    columnsView[row],
-                                                                    valuesView[row],
-                                                                    columnsView.sizeOfArray( row ) );
-            PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
-          }
-                        );
-    }
 
     this->m_matrix.move( chai::CPU );
     COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
@@ -816,14 +791,14 @@ public:
   /**
    * @brief Test the CRSMatrixView remove method.
    * @param [in] maxRemoves the maximum number of removes.
-   * @param [in] type whether to use the singular, non-sorted, or sorted remove.
+   * @param [in] oneAtATime If true the columns are removed one at a time.
    */
-  void removeFromView( INDEX_TYPE const maxRemoves, ModificationType const type )
+  void removeFromView( INDEX_TYPE const maxRemoves, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = m_view.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, type == ModificationType::SORTED );
+    ArrayOfArrays< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, oneAtATime );
 
     // Insert the entries into the reference.
     for( INDEX_TYPE i = 0; i < columnsToRemove.size(); ++i )
@@ -837,7 +812,7 @@ public:
 
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
     ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToRemove;
-    if( type == ModificationType::SINGLE )
+    if( oneAtATime )
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
@@ -853,24 +828,13 @@ public:
           }
                         );
     }
-    if( type == ModificationType::MULTIPLE )
+    else
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
           {
             INDEX_TYPE const initialNNZ = view.numNonZeros( row );
             INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
-            PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
-    }
-    if( type == ModificationType::SORTED )
-    {
-      forall< Policy >( numRows,
-                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-          {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nRemoved = view.removeNonZerosSorted( row, columnsView[row], columnsView.sizeOfArray( row ) );
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
           }
                         );
@@ -1019,28 +983,28 @@ TYPED_TEST_CASE( CRSMatrixViewTest, ViewTestTypes );
 TYPED_TEST( CRSMatrixViewTest, memoryMotion )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionMove )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionMoveTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionConst )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionConstTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionConstConst )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionConstConstTest( DEFAULT_MAX_INSERTS );
 }
 
@@ -1050,7 +1014,7 @@ TYPED_TEST( CRSMatrixViewTest, insert )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insertIntoView( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -1060,17 +1024,7 @@ TYPED_TEST( CRSMatrixViewTest, insertMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixViewTest, insertSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+    this->insertIntoView( DEFAULT_MAX_INSERTS );
   }
 }
 
@@ -1080,8 +1034,8 @@ TYPED_TEST( CRSMatrixViewTest, remove )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insert( DEFAULT_MAX_INSERTS );
+    this->removeFromView( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -1091,33 +1045,22 @@ TYPED_TEST( CRSMatrixViewTest, removeMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixViewTest, removeSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
+    this->insert( DEFAULT_MAX_INSERTS );
+    this->removeFromView( DEFAULT_MAX_INSERTS );
   }
 }
 
 TYPED_TEST( CRSMatrixViewTest, empty )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->emptyTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, sparsityPatternView )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->sparsityPatternViewTest();
 }
 
@@ -1224,21 +1167,21 @@ TYPED_TEST_CASE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes );
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRowLinearSearch )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::LINEAR_SEARCH, 10 );
 }
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRowBinarySearch )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::BINARY_SEARCH, 10 );
 }
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRow )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::HYBRID, 10 );
 }
 

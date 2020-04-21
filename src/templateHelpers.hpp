@@ -84,6 +84,8 @@ constexpr U const & min( const U & a, const U & b )
 { return (a < b) ? a : b; }
 
 /**
+ * @tparam F The type of the function to apply.
+ * @tparam ARGS the type of the arguments to pass to the function.
  * @brief Apply the given function to each argument.
  * @note Taken from
  * https://www.fluentcpp.com/2019/03/05/for_each_arg-applying-a-function-to-each-argument-of-a-function-in-cpp/
@@ -106,8 +108,7 @@ template< bool B >
 struct conjunction< B > : std::integral_constant< bool, B > {};
 
 /**
- * @class is_instantiation_of
- * @brief usage :  static_assert(is_instantiation_of_v<LvArray::Array, LvArray::Array<int, 1, int>>)
+ * @brief usage : static_assert(is_instantiation_of_v<LvArray::Array, LvArray::Array<int, 1, int>>)
  * @note Taken from https://cukic.co/2019/03/15/template-meta-functions-for-detecting-template-instantiation/
  */
 template< template< typename ... > class Template,
@@ -118,6 +119,53 @@ template< template< typename ... > class Template,
           typename ... Args >
 constexpr bool is_instantiation_of< Template, Template< Args... > > = true;
 
+/**
+ * @tparam ITER An iterator type.
+ * @brief @return The distance between two non-random access iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename ITER >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< ITER >::difference_type
+iterDistance( ITER first, ITER const last, std::input_iterator_tag )
+{
+  typename std::iterator_traits< ITER >::difference_type n = 0;
+  while( first != last )
+  {
+    ++first;
+    ++n;
+  }
+
+  return n;
+}
+
+/**
+ * @tparam ITER An iterator type.
+ * @brief @return The distance between two random access iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename RandomAccessIterator >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< RandomAccessIterator >::difference_type
+iterDistance( RandomAccessIterator first, RandomAccessIterator last, std::random_access_iterator_tag )
+{ return last - first; }
+
+/**
+ * @tparam ITER An iterator type.
+ * @brief @return The distance between two iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename ITER >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< ITER >::difference_type
+iterDistance( ITER const first, ITER const last )
+{ return iterDistance( first, last, typename std::iterator_traits< ITER >::iterator_category() ); }
 
 } // namespace LvArray
 

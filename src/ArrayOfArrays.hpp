@@ -49,6 +49,7 @@ public:
   using ParentClass::toViewConst;
   using ParentClass::sizeOfArray;
   using ParentClass::capacity;
+  using ParentClass::valueCapacity;
   using ParentClass::capacityOfArray;
   using ParentClass::operator[];
   using ParentClass::operator();

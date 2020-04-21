@@ -968,6 +968,18 @@ CUDA_TEST( ArrayView, memoryMotionArray )
   }
 }
 
+CUDA_TEST( ArrayView, memoryMotionEmpty )
+{
+  array< INDEX_TYPE > a;
+  a.move( chai::GPU );
+}
+
+CUDA_TEST( ArrayView, memoryMotionArrayEmpty )
+{
+  array< array< INDEX_TYPE > > a( 1 );
+  a.move( chai::GPU );
+}
+
 CUDA_TEST( ArrayView, memoryMotionArrayConst )
 {
   constexpr INDEX_TYPE N = 10;

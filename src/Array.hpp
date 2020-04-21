@@ -269,7 +269,7 @@ public:
     static_assert( check_dim_type< INDEX_TYPE, DIMS... >::value, "arguments to Array::resize(DIMS...newDims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldSize = size();
-    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims ... );
+    dimUnpack( m_dims, newDims ... );
     CalculateStrides();
 
     bufferManipulation::resize( m_dataBuffer, oldSize, size() );
@@ -290,7 +290,7 @@ public:
                    "arguments to Array::resizeWithoutInitializationOrDestruction(DIMS...newDims) are incompatible with INDEX_TYPE" );
 
     INDEX_TYPE const oldSize = size();
-    dimUnpack( const_cast< INDEX_TYPE * >( m_dims ), newDims ... );
+    dimUnpack( m_dims, newDims ... );
     CalculateStrides();
 
     bufferManipulation::reserve( m_dataBuffer, oldSize, size() );
@@ -313,7 +313,7 @@ public:
     static_assert( check_dim_indices< INDEX_TYPE, NDIM, INDICES... >::value, "invalid dimension indices in Array::resizeDimension(DIMS...newDims)" );
 
     INDEX_TYPE const oldSize = size();
-    dim_index_unpack< INDEX_TYPE, NDIM >( const_cast< INDEX_TYPE * >(m_dims),
+    dim_index_unpack< INDEX_TYPE, NDIM >( m_dims,
                                           std::integer_sequence< INDEX_TYPE, INDICES... >(),
                                           newDims ... );
     CalculateStrides();
@@ -365,7 +365,7 @@ public:
   {
     bufferManipulation::resize( m_dataBuffer, size(), 0 );
 
-    const_cast< INDEX_TYPE * >( m_dims )[ getSingleParameterResizeIndex() ] = 0;
+    m_dims[ getSingleParameterResizeIndex() ] = 0;
 
     CalculateStrides();
   }
@@ -380,7 +380,7 @@ public:
   push_back( T const & value )
   {
     bufferManipulation::pushBack( m_dataBuffer, size(), value );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
+    ++m_dims[ 0 ];
   }
 
   /**
@@ -393,7 +393,7 @@ public:
   push_back( T && value )
   {
     bufferManipulation::pushBack( m_dataBuffer, size(), std::move( value ) );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
+    ++m_dims[ 0 ];
   }
 
   /**
@@ -405,7 +405,7 @@ public:
   pop_back()
   {
     bufferManipulation::popBack( m_dataBuffer, size() );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]--;
+    --m_dims[ 0 ];
   }
 
   /**
@@ -420,7 +420,7 @@ public:
   insert( INDEX_TYPE const pos, T const & value )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, value );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
+    ++m_dims[ 0 ];
   }
 
   /**
@@ -435,7 +435,7 @@ public:
   insert( INDEX_TYPE const pos, T && value )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, std::move( value ) );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]++;
+    ++m_dims[ 0 ];
   }
 
   /**
@@ -451,7 +451,7 @@ public:
   insert( INDEX_TYPE const pos, T const * const values, INDEX_TYPE const n )
   {
     bufferManipulation::insert( m_dataBuffer, size(), pos, values, n );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ] += n;
+    m_dims[ 0 ] += n;
   }
 
   /**
@@ -465,7 +465,7 @@ public:
   erase( INDEX_TYPE pos )
   {
     bufferManipulation::erase( m_dataBuffer, size(), pos );
-    const_cast< INDEX_TYPE * >( m_dims )[ 0 ]--;
+    --m_dims[ 0 ];
   }
 
   /**
@@ -556,7 +556,7 @@ private:
     INDEX_TYPE const curSize = size();
 
     // Set the size of the dimension, recalculate the strides and get the new total size.
-    const_cast< INDEX_TYPE * >( m_dims )[ m_singleParameterResizeIndex ] = newDimLength;
+    m_dims[ m_singleParameterResizeIndex ] = newDimLength;
     CalculateStrides();
     INDEX_TYPE const newSize = size();
 

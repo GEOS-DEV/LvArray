@@ -59,7 +59,6 @@ public:
   using ParentClass::insertNonZeros;
   using ParentClass::removeNonZero;
   using ParentClass::removeNonZeros;
-  using ParentClass::removeNonZerosSorted;
   using ParentClass::setValues;
   using ParentClass::addToRow;
   using ParentClass::move;
@@ -213,31 +212,14 @@ public:
    * @param [in] ncols the number of columns/entries to insert.
    * @return The number of entries inserted.
    *
-   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols +
-   * ncols, entriesToInsert)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
+   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
                              COL_TYPE const * const cols,
                              T const * const entriesToInsert,
                              INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
-
-  /**
-   * @brief Insert a non-zero entries into the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert at, of length ncols. Must be sorted.
-   * @param [in] entriesToInsert the entries to insert, of length ncols.
-   * @param [in] ncols the number of columns/entries to insert.
-   * @return The number of entries inserted.
-   */
-  inline
-  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row,
-                                   COL_TYPE const * const cols,
-                                   T const * const entriesToInsert,
-                                   INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert )); }
+  { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
    * @brief Set the non zero capacity of the given row.

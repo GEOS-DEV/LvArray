@@ -86,9 +86,7 @@ public:
   inline
   SortedArray():
     SortedArrayView< T, INDEX_TYPE >()
-  {
-    setName( "" );
-  }
+  { setName( "" ); }
 
   /**
    * @brief The copy constructor, performs a deep copy.
@@ -111,9 +109,7 @@ public:
    */
   inline
   ~SortedArray() LVARRAY_RESTRICT_THIS
-  {
-    bufferManipulation::free( m_values, size() );
-  }
+  { bufferManipulation::free( m_values, size() ); }
 
   /**
    * @brief Copy assignment operator, performs a deep copy.
@@ -173,9 +169,7 @@ public:
    */
   inline
   void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
-  {
-    bufferManipulation::reserve( m_values, size(), nVals );
-  }
+  { bufferManipulation::reserve( m_values, size(), nVals ); }
 
   /**
    * @brief Insert the given value into the array if it doesn't already exist.
@@ -191,32 +185,17 @@ public:
   }
 
   /**
-   * @brief Insert the given values into the array if they don't already exist.
-   * @param [in] vals the values to insert.
-   * @param [in] nVals the number of values to insert.
+   * @tparam ITER The type of the iterator to use.
+   * @brief Insert the values in [ @p first, @p last ) into the array if they don't already exist.
+   * @param [in] first Iterator to the first value to insert.
+   * @param [in] last Iterator to the end of the values to insert.
    * @return The number of values actually inserted.
-   *
-   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
-   *       and then call insertSorted, this will be substantially faster.
+   * @note [ @p first, @p last ) must be sorted and unique.
    */
-  inline
-  INDEX_TYPE insert( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
+  template< typename ITER >
+  INDEX_TYPE insert( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
-    m_size += nInserted;
-    return nInserted;
-  }
-
-  /**
-   * @brief Insert the given values into the array if they don't already exist.
-   * @param [in] vals the values to insert, must be sorted.
-   * @param [in] nVals the number of values to insert.
-   * @return The number of values actually inserted.
-   */
-  inline
-  INDEX_TYPE insertSorted( T const * const vals, INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
-  {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( m_values.data(), size(), first, last, CallBacks( m_values, size() ) );
     m_size += nInserted;
     return nInserted;
   }
@@ -227,7 +206,7 @@ public:
    * @return True iff the value was actually removed.
    */
   inline
-  bool erase( T const & value ) LVARRAY_RESTRICT_THIS
+  bool remove( T const & value ) LVARRAY_RESTRICT_THIS
   {
     bool const success = sortedArrayManipulation::remove( m_values.data(), size(), value, CallBacks( m_values, size() ) );
     m_size -= success;
@@ -235,32 +214,17 @@ public:
   }
 
   /**
-   * @brief Remove the given values from the array if they exist.
-   * @param [in] vals the values to remove.
-   * @param [in] nVals the number of values to remove.
+   * @tparam ITER The type of the iterator to use.
+   * @brief Remove the values in [ @p first, @p last ) from the array if they exist.
+   * @param [in] first Iterator to the first value to remove.
+   * @param [in] last Iterator to the end of the values to remove.
    * @return The number of values actually removed.
-   *
-   * @note If possible sort vals first by calling sortedArrayManipulation::makeSorted(vals, nVals)
-   *       and then call eraseSorted, this will be substantially faster.
+   * @note [ @p first, @p last ) must be sorted and unique.
    */
-  inline
-  INDEX_TYPE erase( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
+  template< typename ITER >
+  INDEX_TYPE remove( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
-    m_size -= nRemoved;
-    return nRemoved;
-  }
-
-  /**
-   * @brief Remove the given values from the array if they exist.
-   * @param [in] vals the values to remove, must be sorted.
-   * @param [in] nVals the number of values to remove.
-   * @return The number of values actually removed.
-   */
-  inline
-  INDEX_TYPE eraseSorted( T const * const vals, INDEX_TYPE nVals ) LVARRAY_RESTRICT_THIS
-  {
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( m_values.data(), size(), vals, nVals, CallBacks( m_values, size() ) );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( m_values.data(), size(), first, last, CallBacks( m_values, size() ) );
     m_size -= nRemoved;
     return nRemoved;
   }
