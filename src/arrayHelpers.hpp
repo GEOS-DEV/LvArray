@@ -235,6 +235,16 @@ template< typename T,
           template< typename > class DATA_VECTOR_TYPE >
 constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
 
+template< typename >
+constexpr bool isArrayView = false;
+
+template< typename T,
+          int NDIM,
+          int USD,
+          typename INDEX_TYPE,
+          template< typename > class DATA_VECTOR_TYPE >
+constexpr bool isArrayView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
+
 
 template< typename T >
 struct AsView
