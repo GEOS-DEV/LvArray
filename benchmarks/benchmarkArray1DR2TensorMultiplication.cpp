@@ -41,7 +41,7 @@ namespace benchmarking
   Array< VALUE_TYPE, PERMUTATION > b; \
   b.resizeWithoutInitializationOrDestruction( N, 3, 3 ); \
   initialize( b, iter ); \
-  Array< VALUE_TYPE, PERMUTATION > c( N, 3, 3 ); \
+  Array< VALUE_TYPE, PERMUTATION > c( N, 3, 3 )
 
 
 #define RAJA_INIT \
@@ -238,46 +238,44 @@ void pointerRaja( benchmark::State & state )
 
 
 
-int const NUM_REPETITIONS = 10;
-#define SERIAL_SIZE { (2 << 16) - 87 \
-}
+int const NUM_REPETITIONS = 3;
+#define SERIAL_SIZE ( (2 << 20) - 87 )
 
 FIVE_BENCHMARK_TEMPLATES_ONE_TYPE( fortranNative, subscriptNative, tensorAbstractionNative, rajaViewNative,
-                                   pointerNative, RAJA::PERM_IJK, SERIAL_SIZE, NUM_REPETITIONS );
+                                   pointerNative, RAJA::PERM_IJK, { SERIAL_SIZE }, NUM_REPETITIONS );
 
 FIVE_BENCHMARK_TEMPLATES_ONE_TYPE( fortranNative, subscriptNative, tensorAbstractionNative, rajaViewNative, pointerNative,
-                                   RAJA::PERM_KJI, SERIAL_SIZE, NUM_REPETITIONS );
+                                   RAJA::PERM_KJI, { SERIAL_SIZE }, NUM_REPETITIONS );
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
-                                    pointerRaja, RAJA::PERM_IJK, serialPolicy, SERIAL_SIZE, NUM_REPETITIONS );
+                                    pointerRaja, RAJA::PERM_IJK, serialPolicy, { SERIAL_SIZE }, NUM_REPETITIONS );
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
-                                    pointerRaja, RAJA::PERM_KJI, serialPolicy, SERIAL_SIZE, NUM_REPETITIONS );
+                                    pointerRaja, RAJA::PERM_KJI, serialPolicy, { SERIAL_SIZE }, NUM_REPETITIONS );
 
 #if defined(USE_OPENMP)
 
-#define OMP_SIZE SERIAL_SIZE
+#define OMP_SIZE ( (2 << 22) - 87 )
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
-                                    pointerRaja, RAJA::PERM_IJK, parallelHostPolicy, OMP_SIZE, NUM_REPETITIONS );
+                                    pointerRaja, RAJA::PERM_IJK, parallelHostPolicy, { OMP_SIZE }, NUM_REPETITIONS );
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
-                                    pointerRaja, RAJA::PERM_KJI, parallelHostPolicy, OMP_SIZE, NUM_REPETITIONS );
+                                    pointerRaja, RAJA::PERM_KJI, parallelHostPolicy, { OMP_SIZE }, NUM_REPETITIONS );
 
 #endif
 
 #if defined(USE_CUDA)
 
-// #define CUDA_SIZE { (2 << 23) - 87 }
-#define CUDA_SIZE SERIAL_SIZE
+#define CUDA_SIZE ( (2 << 24) - 87 )
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
                                     pointerRaja, RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK >,
-                                    CUDA_SIZE, NUM_REPETITIONS );
+                                    { CUDA_SIZE }, NUM_REPETITIONS );
 
 FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( fortranRaja, subscriptRaja, tensorAbstractionRaja, rajaViewRaja,
                                     pointerRaja, RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK >,
-                                    CUDA_SIZE, NUM_REPETITIONS );
+                                    { CUDA_SIZE }, NUM_REPETITIONS );
 
 #endif
 
@@ -289,6 +287,17 @@ int main( int argc, char * * argv )
   ::benchmark::Initialize( &argc, argv );
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
+
+  LVARRAY_LOG( "VALUE_TYPE = " << cxx_utilities::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
+  LVARRAY_LOG( "Serial problems of size ( " << SERIAL_SIZE << ", 3, 3 )." );
+
+#if defined(USE_OPENMP)
+  LVARRAY_LOG( "OMP problems of size ( " << OMP_SIZE << ", 3, 3 )." );
+#endif
+
+#if defined(USE_CUDA)
+  LVARRAY_LOG( "CUDA problems of size ( " << CUDA_SIZE << ", 3, 3 )." );
+#endif
 
   ::benchmark::RunSpecifiedBenchmarks();
 

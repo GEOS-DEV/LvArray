@@ -317,12 +317,12 @@ private:
 
   template< typename U=T_non_const >
   std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const )
+  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const ) const
   {}
 
   template< typename U=T_non_const >
   std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
+  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
     if( space == chai::NONE ) return;
 

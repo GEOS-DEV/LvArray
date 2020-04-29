@@ -338,7 +338,8 @@ std::ptrdiff_t makeSortedUnique( ITER const first, ITER const last, Compare && c
 /**
  * @tparam ITER An iterator type.
  * @tparam Compare The type of the comparison function, defaults to less.
- * @brief @return Return true iff [ @p first, @p last ) is sorted under @p comp and contains no values which compare equal.
+ * @brief @return Return true iff [ @p first, @p last ) is sorted under @p comp and contains no values which compare
+ * equal.
  * @param first Iterator to the beginning of the values.
  * @param last Iterator to the end of the values.
  * @param comp The comparison method to use.
@@ -372,7 +373,7 @@ bool isSortedUnique( ITER first, ITER const last, Compare && comp=Compare() )
 /**
  * @tparam T the type of values in the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
- * @brief @return Return the index of the first value in the array that compares not less 
+ * @brief @return Return the index of the first value in the array that compares not less
  *   than @p value or @p size if no such element can be found.
  * @param ptr Pointer to the array, must be sorted under comp.
  * @param size The size of the array.

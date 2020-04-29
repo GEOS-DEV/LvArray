@@ -38,8 +38,7 @@ namespace benchmarking
                           [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i ) \
   { \
     BODY \
-  } \
-                          ); \
+  } ); \
   return
 
 

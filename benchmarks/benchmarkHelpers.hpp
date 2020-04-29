@@ -110,14 +110,15 @@ void initialize( Array< VALUE_TYPE, PERMUTATION > const & array, int & iter )
   ++iter;
   std::mt19937_64 gen( iter * getSeed() );
 
-  std::uniform_int_distribution< VALUE_TYPE > dis( -100, 100 );
+  // This is used to generate a random real number between -100, 100.
+  // std::unifor_real_distribution is not used because it is really slow on Lassen.
+  std::uniform_int_distribution< std::int64_t > dis( -1e18, 1e18 );
 
-  forValuesInSlice( array.toSlice(),
-                    [&dis, &gen]( VALUE_TYPE & value )
-      {
-        value = dis( gen );
-      }
-                    );
+  forValuesInSlice( array.toSlice(), [&dis, &gen]( VALUE_TYPE & value )
+  {
+    double const valueFP = dis( gen ) / 1e16;
+    value = valueFP;
+  } );
 }
 
 
@@ -156,6 +157,21 @@ INDEX_TYPE reduce( Array< VALUE_TYPE, PERMUTATION > const & array )
 template< unsigned long N >
 using ResultsMap = std::map< std::array< INDEX_TYPE, N >, std::map< std::string, VALUE_TYPE > >;
 
+template< typename T >
+std::enable_if_t< std::is_integral< T >::value, bool >
+equal( T const a, T const b )
+{ return a == b; }
+
+template< typename T >
+std::enable_if_t< std::is_floating_point< T >::value, bool >
+equal( T const a, T const b )
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+  return a == b;
+#pragma GCC diagnostic pop
+}
+
 
 template< unsigned long N >
 void registerResult( ResultsMap< N > & resultsMap,
@@ -164,7 +180,7 @@ void registerResult( ResultsMap< N > & resultsMap,
                      char const * const functionName )
 {
   auto const ret = resultsMap[ args ].insert( { std::string( functionName ), result } );
-  if( !ret.second && result != ret.first->second )
+  if( !ret.second && !equal( result, ret.first->second ) )
   {
     LVARRAY_LOG( "### " << functionName );
     LVARRAY_LOG( "###\t Produced different results than the previous run! "
@@ -186,7 +202,7 @@ inline int verifyResults( ResultsMap< N > const & benchmarkResults )
     bool allResultsEqual = true;
     for( auto const & funcAndResult : results )
     {
-      allResultsEqual = allResultsEqual && funcAndResult.second == firstResult;
+      allResultsEqual = allResultsEqual && equal( funcAndResult.second, firstResult );
     }
 
     if( !allResultsEqual )
