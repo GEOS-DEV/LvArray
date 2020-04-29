@@ -231,7 +231,7 @@ public:
    * @param first An iterator to the first value to remove.
    * @param last An iterator to the end of the values to remove.
    * @return The number of values removed.
-   * 
+   *
    * @note The values to remove [ @p first, @p last ) must be sorted and contain no duplicates.
    */
   template< typename ITER >
@@ -243,7 +243,7 @@ public:
    * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
    * @param [in] space the memory space to move to.
    * @param [in] touch If true touch the values, sizes and offsets in the new space.
-   * 
+   *
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
   void move( chai::ExecutionSpace const space, bool const touch=true ) const
@@ -260,7 +260,7 @@ protected:
   /**
    * @brief Return an ArraySlice1d (pointer) to the values of the given array.
    * @param [in] i the array to access.
-   * 
+   *
    * @note This method is protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE constexpr inline

@@ -33,7 +33,7 @@ namespace benchmarking
 #define ACCESS_KJI( N, M, P, i, j, k ) M * N * k + N * j + i
 
 using INDEX_TYPE = std::ptrdiff_t;
-using VALUE_TYPE = std::ptrdiff_t;
+using VALUE_TYPE = double;
 
 template< typename T, typename PERMUTATION >
 using Array = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE >;
