@@ -483,7 +483,7 @@ protected:
 };
 
 using TestTypes = ::testing::Types< int, unsigned int >;
-TYPED_TEST_CASE( SparsityPatternTest, TestTypes );
+TYPED_TEST_SUITE( SparsityPatternTest, TestTypes, );
 
 INDEX_TYPE const NROWS = 100;
 INDEX_TYPE const NCOLS = 150;
@@ -928,7 +928,7 @@ using SparsityPatternViewTestTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_CASE( SparsityPatternViewTest, SparsityPatternViewTestTypes );
+TYPED_TEST_SUITE( SparsityPatternViewTest, SparsityPatternViewTestTypes );
 
 TYPED_TEST( SparsityPatternViewTest, memoryMotion )
 {

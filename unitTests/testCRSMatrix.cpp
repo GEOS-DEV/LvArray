@@ -495,7 +495,7 @@ using TestTypes = ::testing::Types<
   , Tensor
   , TestString
   >;
-TYPED_TEST_CASE( CRSMatrixTest, TestTypes );
+TYPED_TEST_SUITE( CRSMatrixTest, TestTypes, );
 
 const int DEFAULT_NROWS = 25;
 const int DEFAULT_NCOLS = 40;
@@ -978,7 +978,7 @@ using ViewTestTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_CASE( CRSMatrixViewTest, ViewTestTypes );
+TYPED_TEST_SUITE( CRSMatrixViewTest, ViewTestTypes, );
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotion )
 {
@@ -1162,7 +1162,7 @@ using ViewAtomicTestTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_CASE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes );
+TYPED_TEST_SUITE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes, );
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRowLinearSearch )
 {

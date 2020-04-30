@@ -634,7 +634,7 @@ protected:
 };
 
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
-TYPED_TEST_CASE( ArrayOfArraysTest, TestTypes );
+TYPED_TEST_SUITE( ArrayOfArraysTest, TestTypes, );
 
 
 TYPED_TEST( ArrayOfArraysTest, emptyConstruction )
@@ -1280,7 +1280,7 @@ protected:
 };
 
 using CudaTestTypes = ::testing::Types< INDEX_TYPE, Tensor >;
-TYPED_TEST_CASE( ArrayOfArraysCudaTest, CudaTestTypes );
+TYPED_TEST_SUITE( ArrayOfArraysCudaTest, CudaTestTypes );
 
 TYPED_TEST( ArrayOfArraysCudaTest, memoryMotion )
 {

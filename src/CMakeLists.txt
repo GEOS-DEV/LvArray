@@ -47,7 +47,6 @@ message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
-                 HEADERS_OUTPUT_SUBDIR cxx-utilities
                  DEPENDS_ON       ${cxx_dependencies}
                  )
 

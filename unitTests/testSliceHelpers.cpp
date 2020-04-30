@@ -151,7 +151,7 @@ using ForValuesInSliceTypes = ::testing::Types<
   , Array< int, 4, RAJA::PERM_KLIJ >
   >;
 
-TYPED_TEST_CASE( ForValuesInSlice, ForValuesInSliceTypes );
+TYPED_TEST_SUITE( ForValuesInSlice, ForValuesInSliceTypes, );
 
 TYPED_TEST( ForValuesInSlice, test )
 {
@@ -281,7 +281,7 @@ using SumOverFirstDimensionTypes = ::testing::Types<
   , std::pair< Array< int, 4, RAJA::PERM_ILJK >, RAJA::PERM_IJK >
   >;
 
-TYPED_TEST_CASE( SumOverFirstDimension, SumOverFirstDimensionTypes );
+TYPED_TEST_SUITE( SumOverFirstDimension, SumOverFirstDimensionTypes, );
 
 TYPED_TEST( SumOverFirstDimension, test )
 {
