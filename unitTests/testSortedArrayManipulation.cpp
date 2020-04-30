@@ -196,7 +196,7 @@ using SingleArrayTestTypes = ::testing::Types<
   , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
 #endif
   >;
-TYPED_TEST_CASE( SingleArrayTest, SingleArrayTestTypes );
+TYPED_TEST_SUITE( SingleArrayTest, SingleArrayTestTypes, );
 
 TYPED_TEST( SingleArrayTest, makeSorted )
 {
@@ -298,7 +298,7 @@ using DualArrayTestTypes = ::testing::Types<
   , std::tuple< Tensor, int, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
 #endif
   >;
-TYPED_TEST_CASE( DualArrayTest, DualArrayTestTypes );
+TYPED_TEST_SUITE( DualArrayTest, DualArrayTestTypes, );
 
 TYPED_TEST( DualArrayTest, makeSorted )
 {

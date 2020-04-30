@@ -68,7 +68,7 @@ using Permutations = ::testing::Types< RAJA::PERM_IJ,
                                        RAJA::PERM_KLJI,
                                        RAJA::PERM_LKJI >;
 
-TYPED_TEST_CASE( PermutedSliceTest, Permutations );
+TYPED_TEST_SUITE( PermutedSliceTest, Permutations, );
 
 TYPED_TEST( PermutedSliceTest, IsContiguous )
 {

@@ -1388,7 +1388,7 @@ private:
 };
 
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
-TYPED_TEST_CASE( ArrayResizeTest, TestTypes );
+TYPED_TEST_SUITE( ArrayResizeTest, TestTypes, );
 
 TYPED_TEST( ArrayResizeTest, resize1D )
 {

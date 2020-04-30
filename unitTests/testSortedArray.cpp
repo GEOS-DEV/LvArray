@@ -256,7 +256,7 @@ protected:
 };
 
 using TestTypes = ::testing::Types< int, Tensor, TestString >;
-TYPED_TEST_CASE( SortedArrayTest, TestTypes );
+TYPED_TEST_SUITE( SortedArrayTest, TestTypes, );
 
 INDEX_TYPE const DEFAULT_MAX_INSERTS = 200;
 INDEX_TYPE const DEFAULT_MAX_VAL = 1000;
@@ -440,7 +440,7 @@ protected:
 };
 
 using CudaTestTypes = ::testing::Types< int, Tensor >;
-TYPED_TEST_CASE( SortedArrayCudaTest, CudaTestTypes );
+TYPED_TEST_SUITE( SortedArrayCudaTest, CudaTestTypes );
 
 TYPED_TEST( SortedArrayCudaTest, memoryMotion )
 {

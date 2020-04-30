@@ -530,7 +530,7 @@ using TestTypes = ::testing::Types<
   , Tensor
   , TestString
   >;
-TYPED_TEST_CASE( ArrayOfSetsTest, TestTypes );
+TYPED_TEST_SUITE( ArrayOfSetsTest, TestTypes, );
 
 INDEX_TYPE const DEFAULT_MAX_INSERTS = 25;
 INDEX_TYPE const DEFAULT_MAX_VALUE = 2 * DEFAULT_MAX_INSERTS;
@@ -920,7 +920,7 @@ using ArrayOfSetsViewTestTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_CASE( ArrayOfSetsViewTest, ArrayOfSetsViewTestTypes );
+TYPED_TEST_SUITE( ArrayOfSetsViewTest, ArrayOfSetsViewTestTypes, );
 
 TYPED_TEST( ArrayOfSetsViewTest, memoryMotion )
 {
