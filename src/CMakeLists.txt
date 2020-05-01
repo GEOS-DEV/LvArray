@@ -1,4 +1,7 @@
-set(lvarray_headers
+add_subdirectory(docs)
+
+    
+        set(lvarray_headers
     templateHelpers.hpp
     Array.hpp
     ArraySlice.hpp

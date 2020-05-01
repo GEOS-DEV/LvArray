@@ -11,11 +11,17 @@ simulation code.
    :numbered:
    :maxdepth: 1
 
-   LvArray
-
+   docs/sphinx/LvArray
+   
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Doxygen
+========================
+.. raw:: html
+
+   <a href="doxygen_output/html/index.html">Link to Doxygen</a>

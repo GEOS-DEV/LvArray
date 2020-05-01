@@ -23,7 +23,6 @@ if read_the_docs_build:
 
     # Make sure directory exists
     cwd = os.getcwd()
-    print cwd
 
     build_path = os.path.join(cwd, "_build")
     if not os.path.isdir(build_path):
@@ -33,15 +32,15 @@ if read_the_docs_build:
     if not os.path.isdir(html_path):
         os.mkdir(html_path)
 
-    docs_path = os.path.join(cwd, "..", "doxygen")
-    common_path = os.path.join(cwd, "..","..","src")
+    docs_path = os.path.join(cwd, "docs", "doxygen")
+    common_path = cwd
 
     doxyfile_src = os.path.join(docs_path, "Doxyfile.in")
     doxyfile_dst = os.path.join(build_path, "Doxyfile")
     config_src = os.path.join(docs_path, "LvArrayConfig.hpp")
     config_dst = os.path.join(common_path, "LvArrayConfig.hpp")
 
-    input_dirs = ["src"]
+    input_dirs = ["."]
 
     # Write correct ReadtheDocs path and input directories
     shutil.copy(doxyfile_src, doxyfile_dst)

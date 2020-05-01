@@ -2,7 +2,7 @@
 # documentation targets
 ################################
 
-add_subdirectory(sphinx)
+#add_subdirectory(sphinx)
 
 if(DOXYGEN_FOUND)
     add_subdirectory(doxygen)
