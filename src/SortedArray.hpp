@@ -46,42 +46,22 @@ class SortedArray : protected SortedArrayView< T, INDEX_TYPE >
 {
 public:
 
-  // These are needed by Wrapper.
-  using value_type = T;
-  using pointer = T const *;
-  using const_pointer = T const *;
-
-  // The iterators are defined for compatibility with std::set.
-  using iterator = const_pointer;
-  using const_iterator = const_pointer;
+  // Alias public typedefs of SortedArrayView.
+  using typename SortedArrayView< T, INDEX_TYPE >::value_type;
+  using typename SortedArrayView< T, INDEX_TYPE >::iterator;
+  using typename SortedArrayView< T, INDEX_TYPE >::const_iterator;
+  using typename SortedArrayView< T, INDEX_TYPE >::pointer;
+  using typename SortedArrayView< T, INDEX_TYPE >::const_pointer;
 
   // Alias public methods of SortedArrayView.
-  using SortedArrayView< T, INDEX_TYPE >::data;
   using SortedArrayView< T, INDEX_TYPE >::operator[];
   using SortedArrayView< T, INDEX_TYPE >::begin;
   using SortedArrayView< T, INDEX_TYPE >::end;
-
-  // Duplicating these next two methods because SFINAE macros don't seem to pick them up otherwise.
-
-  // using SortedArrayView<T, INDEX_TYPE>::empty;
-  constexpr inline
-  bool empty() const
-  { return SortedArrayView< T, INDEX_TYPE >::empty(); }
-
-  // using SortedArrayView<T, INDEX_TYPE>::size;
-  constexpr inline
-  INDEX_TYPE size() const
-  { return SortedArrayView< T, INDEX_TYPE >::size(); }
-
   using SortedArrayView< T, INDEX_TYPE >::contains;
   using SortedArrayView< T, INDEX_TYPE >::count;
-  using SortedArrayView< T, INDEX_TYPE >::move;
-
-  using ViewType = SortedArrayView< T const, INDEX_TYPE >;
-  using ViewTypeConst = ViewType;
 
   /**
-   * @brief Default constructor, the array is empty.
+   * @brief Default constructor.
    */
   inline
   SortedArray():
@@ -90,7 +70,7 @@ public:
 
   /**
    * @brief The copy constructor, performs a deep copy.
-   * @param [in] src the SortedArray to copy.
+   * @param src The SortedArray to copy.
    */
   inline
   SortedArray( SortedArray const & src ):
@@ -99,7 +79,7 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the SortedArray to be moved from.
+   * @param src the SortedArray to be moved from.
    */
   inline
   SortedArray( SortedArray && src ) = default;
@@ -113,7 +93,8 @@ public:
 
   /**
    * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the SortedArray to copy.
+   * @param src the SortedArray to copy.
+   * @return *this.
    */
   inline
   SortedArray & operator=( SortedArray const & src ) LVARRAY_RESTRICT_THIS
@@ -125,33 +106,49 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in/out] src the SortedArray to be moved from.
+   * @param src the SortedArray to be moved from.
+   * @return *this.
    */
   inline
   SortedArray & operator=( SortedArray && src ) = default;
 
   /**
-   * @brief User defined conversion to SortedArrayView<T const> const.
+   * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
    */
-  template< typename U = T >
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  { return SortedArrayView< T, INDEX_TYPE >::toViewConst(); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
+   */
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const, INDEX_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return SortedArrayView< T, INDEX_TYPE >::toViewConst(); }
+
+  /**
+   * @brief @return Return true iff the SortedArray contains not values.
+   * @note Duplicated for SFINAE needs.
+   */
+  constexpr inline
+  bool empty() const
+  { return SortedArrayView< T, INDEX_TYPE >::empty(); }
+
+  /**
+   * @brief @return Return the number of values in the SortedArray.
+   * @note Duplicated for SFINAE needs.
+   */
+  constexpr inline
+  INDEX_TYPE size() const
+  { return SortedArrayView< T, INDEX_TYPE >::size(); }
+
+  /**
+   * @brief @return Return a pointer to the values.
+   * @note Duplicated for SFINAE needs.
+   */
   LVARRAY_HOST_DEVICE constexpr inline
-  operator ViewType const & () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ViewType const & >( *this ); }
-
-  /**
-   * @brief Method to convert to SortedArrayView<T const> const. Use this method when
-   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
-   */
-  LVARRAY_HOST_DEVICE inline
-  ViewType const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Duplicate method to placate Wrapper's SFINAE.
-   */
-  LVARRAY_HOST_DEVICE inline
-  ViewType const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  T const * data() const
+  { return SortedArrayView< T, INDEX_TYPE >::data(); }
 
   /**
    * @brief Remove all the values from the array.
@@ -165,7 +162,7 @@ public:
 
   /**
    * @brief Reserve space to store the given number of values without resizing.
-   * @param [in] nVals the number of values to reserve space for.
+   * @param nVals the number of values to reserve space for.
    */
   inline
   void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
@@ -173,7 +170,7 @@ public:
 
   /**
    * @brief Insert the given value into the array if it doesn't already exist.
-   * @param [in] value the value to insert.
+   * @param value the value to insert.
    * @return True iff the value was actually inserted.
    */
   inline
@@ -187,8 +184,8 @@ public:
   /**
    * @tparam ITER The type of the iterator to use.
    * @brief Insert the values in [ @p first, @p last ) into the array if they don't already exist.
-   * @param [in] first Iterator to the first value to insert.
-   * @param [in] last Iterator to the end of the values to insert.
+   * @param first Iterator to the first value to insert.
+   * @param last Iterator to the end of the values to insert.
    * @return The number of values actually inserted.
    * @note [ @p first, @p last ) must be sorted and unique.
    */
@@ -202,7 +199,7 @@ public:
 
   /**
    * @brief Remove the given value from the array if it exists.
-   * @param [in] value the value to remove.
+   * @param value the value to remove.
    * @return True iff the value was actually removed.
    */
   inline
@@ -216,8 +213,8 @@ public:
   /**
    * @tparam ITER The type of the iterator to use.
    * @brief Remove the values in [ @p first, @p last ) from the array if they exist.
-   * @param [in] first Iterator to the first value to remove.
-   * @param [in] last Iterator to the end of the values to remove.
+   * @param first Iterator to the first value to remove.
+   * @param last Iterator to the end of the values to remove.
    * @return The number of values actually removed.
    * @note [ @p first, @p last ) must be sorted and unique.
    */
@@ -229,16 +226,24 @@ public:
     return nRemoved;
   }
 
+  /**
+   * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
+   * @param name The name to associate with this SortedArray.
+   */
   void setName( std::string const & name )
-  {
-    m_values.template setName< decltype( *this ) >( name );
-  }
+  { m_values.template setName< decltype( *this ) >( name ); }
 
-  friend std::ostream & operator<< ( std::ostream & stream, SortedArray const & array )
-  {
-    stream << array.toView();
-    return stream;
-  }
+  /**
+   * @brief Moves the SortedArrayView to the given execution space.
+   * @param space the space to move to.
+   * @param touch If the values will be modified in the new space.
+   * @note Since the SortedArrayView can't be modified on device when moving
+   *       to the GPU @p touch is set to false.
+   * @note Duplicated for SFINAE needs.
+   */
+  inline
+  void move( chai::ExecutionSpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
+  { return SortedArrayView< T, INDEX_TYPE >::move( space, touch ); }
 
 private:
 
@@ -252,7 +257,7 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] cv the NewChaiBuffer associated with the SortedArray.
+     * @param cv the NewChaiBuffer associated with the SortedArray.
      */
     inline
     CallBacks( NewChaiBuffer< T > & cb, INDEX_TYPE const size ):
@@ -262,10 +267,10 @@ public:
 
     /**
      * @brief Callback signaling that the size of the array has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the increase in the size.
+     * @param curPtr The current pointer to the array.
+     * @param nToAdd The increase in the size.
      * @note This method doesn't actually change the size but it can do reallocation.
-     * @return a pointer to the new array.
+     * @return A pointer to the new array.
      */
     inline
     T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
@@ -276,7 +281,10 @@ public:
     }
 
 private:
+    /// The buffer associated with the callback.
     NewChaiBuffer< T > & m_cb;
+
+    /// The number of values in the buffer.
     INDEX_TYPE const m_size;
   };
 

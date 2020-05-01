@@ -33,29 +33,27 @@ namespace LvArray
 
 /**
  * @class MallocBuffer
- * @brief This class implements the Buffer interface using the standard library
- *        functions malloc and free. It also serves as a reference for the standard
- *        functionality of the Buffer classes.
+ * @brief Implements the Buffer interface using malloc and free.
  * @tparam T type of data that is contained in the buffer.
- * @note Both the copy constructor and copy assignment constructor perform a shallow copy
- *       of the source. Similarly the destructor does not free the allocation. This is
- *       the standard behavior of the Buffer classes.
- * @note The parent class provides the default execution space related methods.
+ * @details Both the copy constructor and copy assignment constructor perform a shallow copy
+ *   of the source. Similarly the destructor does not free the allocation.
+ * @note The parent class bufferManipulation::VoidBuffer provides the default execution space related methods.
  */
 template< typename T >
 class MallocBuffer : public bufferManipulation::VoidBuffer
 {
 public:
 
-  // Alias used in the bufferManipulation functions.
+  /// Alias used in the bufferManipulation functions.
   using value_type = T;
 
-  // member that signifies that this Buffer implementation supports shallow copies.
+  /// Signifies that the MallocBuffer's copy semantics are shallow.
   static constexpr bool hasShallowCopy = true;
 
   /**
-   * @brief Constructor for creating an empty/uninitialized buffer. For the MallocBuffer
-   *        an uninitialized buffer is equivalent to an empty buffer.
+   * @brief Constructor for creating an empty or uninitialized buffer.
+   * @note An uninitialized MallocBuffer is equivalent to an empty MallocBuffer and does
+   *   not need to be free'd.
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( bool=true ):
@@ -63,12 +61,23 @@ public:
     m_capacity( 0 )
   {}
 
-  MallocBuffer( MallocBuffer const & src ) = default;
+  /**
+   * @brief Copy constructor, creates a shallow copy.
+   */
+  MallocBuffer( MallocBuffer const & ) = default;
 
-  MallocBuffer( MallocBuffer const & src, std::ptrdiff_t const ):
+  /**
+   * @brief Sized copy constructor, creates a shallow copy.
+   * @param src The buffer to be coppied.
+   */
+  MallocBuffer( MallocBuffer const & src, std::ptrdiff_t ):
     MallocBuffer( src )
   {}
 
+  /**
+   * @brief Move constructor, creates a shallow copy.
+   * @param src The buffer to be moved from, is empty after the move.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer( MallocBuffer && src ):
     m_data( src.m_data ),
@@ -78,6 +87,11 @@ public:
     src.m_data = nullptr;
   }
 
+  /**
+   * @brief Copy assignment operator, creates a shallow copy.
+   * @param src The buffer to be copied.
+   * @return *this.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer & operator=( MallocBuffer const & src )
   {
@@ -86,6 +100,11 @@ public:
     return *this;
   }
 
+  /**
+   * @brief Move assignment operator, creates a shallow copy.
+   * @param src The buffer to be moved from, is empty after the move.
+   * @return *this.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   MallocBuffer & operator=( MallocBuffer && src )
   {
@@ -98,13 +117,12 @@ public:
 
   /**
    * @brief Reallocate the buffer to the new capacity.
-   * @param size the number of values that are initialized in the buffer.
-   *        values between [0, size) are destroyed.
-   * @param newCapacity the new capacity of the buffer.
+   * @param size The number of values that are initialized in the buffer.
+   * @param newCapacity The new capacity of the buffer.
    */
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
-    // Note: If std::is_trivially_copyable_v< T > then we could use std::realloc.
+    // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
     T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );
 
     std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
@@ -117,8 +135,8 @@ public:
   }
 
   /**
-   * @brief Free the data in the buffer but does not destroy any values. To
-   *        properly destroy the values and free the data call bufferManipulation::free.
+   * @brief Free the data in the buffer but does not destroy any values.
+   * @note To destroy the values and free the data call bufferManipulation::free.
    */
   LVARRAY_HOST_DEVICE inline
   void free()
@@ -129,26 +147,36 @@ public:
   }
 
   /**
-   * @brief Return the capacity of the buffer.
+   * @brief @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline
   std::ptrdiff_t capacity() const
   { return m_capacity; }
 
   /**
-   * @brief Return a pointer to the beginning of the buffer.
+   * @brief @return Return a pointer to the beginning of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
   { return m_data; }
 
+  /**
+   * @tparam INDEX_TYPE the type used to index into the values.
+   * @brief @return The value at position @p i .
+   * @param i The position of the value to access.
+   * @note No bounds checks are performed.
+   */
   template< typename INDEX_TYPE >
   LVARRAY_HOST_DEVICE inline constexpr
   T & operator[]( INDEX_TYPE const i ) const
   { return m_data[ i ]; }
 
 private:
+
+  /// A pointer to the data.
   T * LVARRAY_RESTRICT m_data = nullptr;
+
+  /// The size of the allocation.
   std::ptrdiff_t m_capacity = 0;
 };
 

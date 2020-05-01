@@ -35,11 +35,11 @@ TEST( IntegerConversion, unsignedToSigned )
   int32 compare0 = std::numeric_limits< int32 >::max();
   int64 compare2 = std::numeric_limits< int64 >::max();
 
-  ASSERT_TRUE( compare0 == integer_conversion< int32 >( source0 ) );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< int32 >( source1 ), "" );
+  ASSERT_TRUE( compare0 == LvArray::integerConversion< int32 >( source0 ) );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< int32 >( source1 ), "" );
 
-  ASSERT_TRUE( compare2 == integer_conversion< int64 >( source2 ) );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< int64 >( source3 ), "" );
+  ASSERT_TRUE( compare2 == LvArray::integerConversion< int64 >( source2 ) );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< int64 >( source3 ), "" );
 }
 
 
@@ -49,9 +49,9 @@ TEST( IntegerConversion, signedToUnsigned )
   int64 source1 = -1;
   int64 source3 = std::numeric_limits< int64 >::max();
 
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< uint32 >( source0 ), "" );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< uint64 >( source1 ), "" );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< uint32 >( source3 ), "" );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< uint32 >( source0 ), "" );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< uint64 >( source1 ), "" );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< uint32 >( source3 ), "" );
 }
 
 
@@ -60,20 +60,20 @@ TEST( IntegerConversion, sameSign )
   int64 source0 = std::numeric_limits< int32 >::lowest();
   int64 source1 = std::numeric_limits< int64 >::lowest();
 
-  ASSERT_TRUE( std::numeric_limits< int32 >::lowest() == integer_conversion< int32 >( source0 ) );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< int32 >( source1 ), "" );
+  ASSERT_EQ( std::numeric_limits< int32 >::lowest(), LvArray::integerConversion< int32 >( source0 ) );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< int32 >( source1 ), "" );
 
 
   int64 source2 = std::numeric_limits< int32 >::max();
   int64 source3 = std::numeric_limits< int64 >::max();
 
-  ASSERT_TRUE( std::numeric_limits< int32 >::max() == integer_conversion< int32 >( source2 ) );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< int32 >( source3 ), "" );
+  ASSERT_EQ( std::numeric_limits< int32 >::max(), LvArray::integerConversion< int32 >( source2 ) );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< int32 >( source3 ), "" );
 
 
   uint64 source4 = std::numeric_limits< uint32 >::max();
   uint64 source5 = std::numeric_limits< uint64 >::max();
 
-  ASSERT_TRUE( std::numeric_limits< uint32 >::max() == integer_conversion< uint32 >( source4 ) );
-  ASSERT_DEATH_IF_SUPPORTED( integer_conversion< uint32 >( source5 ), "" );
+  ASSERT_EQ( std::numeric_limits< uint32 >::max(), LvArray::integerConversion< uint32 >( source4 ) );
+  ASSERT_DEATH_IF_SUPPORTED( LvArray::integerConversion< uint32 >( source5 ), "" );
 }

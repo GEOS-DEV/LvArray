@@ -23,24 +23,28 @@
 #ifndef ARRAY_SLICE_HPP_
 #define ARRAY_SLICE_HPP_
 
-// Add GDB pretty printers
 #ifndef NDEBUG
-
   #ifndef __APPLE__
-/* From: https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html */
+/**
+ * @brief Add GDB pretty printers the given script.
+ * @param script_name The python script that contains the gdb hooks.
+ * @note Taken from https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html
+ */
     #define DEFINE_GDB_PY_SCRIPT( script_name ) \
-  asm ("\
-    .pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n\
-    .byte 1 /* Python */\n\
-    .asciz \"" script_name "\"\n\
-    .popsection \n\
-    ")
+  asm (".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n \
+              .byte 1 /* Python */\n \
+              .asciz \"" script_name "\"\n \
+              .popsection \n" )
   #else
+/**
+ * @brief Add GDB pretty printers for OSX. This hasn't been done yet.
+ * @param script_name The python script that contains the gdb hooks.
+ */
     #define DEFINE_GDB_PY_SCRIPT( script_name )
   #endif
 
+/// Point GDB at the scripts/gdb-printers.py
 DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
-
 #endif
 
 // Source includes
@@ -64,12 +68,22 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 #undef CONSTEXPRFUNC
 #define CONSTEXPRFUNC
 
+/**
+ * @brief Check that @p index is a valid index into the first dimension.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAY_SLICE_CHECK_BOUNDS( index ) \
-  LVARRAY_ERROR_IF( index < 0 || index >= m_dims[0], \
+  LVARRAY_ERROR_IF( index < 0 || index >= m_dims[ 0 ], \
                     "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p index is a valid index into the first dimension.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAY_SLICE_CHECK_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
@@ -125,7 +139,7 @@ public:
   }
 
   /**
-   * @brief Return a new immutable slice.
+   * @brief @return Return a new immutable slice.
    */
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
@@ -134,7 +148,7 @@ public:
   { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides ); }
 
   /**
-   * @brief User defined conversion to return a new immutable slice.
+   * @brief @return Return a new immutable slice.
    */
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
@@ -144,7 +158,8 @@ public:
   { return toSliceConst(); }
 
   /**
-   * @brief User defined conversion to convert an ArraySlice<T,1,0> to a raw pointer.
+   * @brief @return A raw pointer.
+   * @note This method is only active when NDIM == 0 and USD == 0.
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE constexpr inline
@@ -153,8 +168,8 @@ public:
   { return m_data; }
 
   /**
-   * @brief Return a lower dimensionsal slice of this ArrayView.
-   * @param index the index of the slice to create.
+   * @brief @return Return a lower dimensionsal slice of this ArrayView.
+   * @param index The index of the slice to create.
    * @note This method is only active when NDIM > 1.
    */
   template< int U=NDIM >
@@ -163,14 +178,14 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ),
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
                                                        m_dims + 1,
                                                        m_strides + 1 );
   }
 
   /**
-   * @brief Return a reference to the value at the given index.
-   * @param index index of the element in array to access.
+   * @brief @return Return a reference to the value at the given index.
+   * @param index The index of the value to access.
    * @note This method is only active when NDIM == 1.
    */
   template< int U=NDIM >
@@ -179,14 +194,13 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];
+    return m_data[ ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
   }
 
   /**
-   * @brief Return a reference to the value at the given multidimensional index.
-   * @tparam INDICES variadic template parameters to serve as index arguments.
-   * @param indices the indices of access request.
-   * @note This is a standard fortran like parentheses interface to array access.
+   * @tparam INDICES A variadic pack of integral types.
+   * @brief @return Return a reference to the value at the given multidimensional index.
+   * @param indices The indices of the value to access.
    */
   template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline constexpr
@@ -197,9 +211,9 @@ public:
   }
 
   /**
-   * @brief Calculates the linear index from a multidimensional index.
-   * @tparam INDICES variadic template parameters to serve as index arguments.
-   * @param indices the indices of access request.
+   * @tparam INDICES A variadic pack of integral types.
+   * @brief @return Return the linear index from a multidimensional index.
+   * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
@@ -213,14 +227,14 @@ public:
   }
 
   /**
-   * @brief Return the allocated size.
+   * @brief @return Return the total size of the slice.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
   { return multiplyAll< NDIM >( m_dims ); }
 
   /**
-   * @brief Return the length of the given dimension.
+   * @brief @return Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
@@ -233,8 +247,8 @@ public:
   }
 
   /**
-   * @brief Return true iff the given pointer matches the data pointer of this ArraySlice.
-   * @param ptr the pointer to check.
+   * @brief @return Return true iff the @p ptr matches the data pointer of this ArraySlice.
+   * @param ptr The pointer to check.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   bool operator==( T const * const ptr ) const
@@ -277,7 +291,7 @@ public:
   { return false; }
 
   /**
-   * @brief Return a pointer to the values.
+   * @brief @return Return a pointer to the values.
    * @pre The slice must be contiguous
    */
   LVARRAY_HOST_DEVICE inline

@@ -69,7 +69,7 @@ struct DualIteratorAccessor
 
     /**
      * @brief Move constructor, moves the values from src..
-     * @param [in] src Temporary to move the values from.
+     * @param src Temporary to move the values from.
      */
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline Temporary( Temporary && src ):
@@ -79,7 +79,7 @@ struct DualIteratorAccessor
 
     /**
      * @brief Move the values pointed at by src into a temporary location.
-     * @param [in] src DualIteratorAccessor to the values to move.
+     * @param src DualIteratorAccessor to the values to move.
      */
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline Temporary( DualIteratorAccessor && src ):
@@ -114,8 +114,8 @@ struct DualIteratorAccessor
 
   /**
    * @brief Constructor to wrap the two given values.
-   * @param [in/out] a the first value.
-   * @param [in/out] b the second value.
+   * @param a the first value.
+   * @param b the second value.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIteratorAccessor( A & a, B & b ):
@@ -141,7 +141,7 @@ struct DualIteratorAccessor
 
   /**
    * @brief Move assignment operator that moves the values of src into the values of this.
-   * @param [in/out] src the DualIteratorAccessor to move from.
+   * @param src the DualIteratorAccessor to move from.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=( DualIteratorAccessor && src ) LVARRAY_RESTRICT_THIS
@@ -153,7 +153,7 @@ struct DualIteratorAccessor
 
   /**
    * @brief Move assignment operator that moves the values of src into the values of this.
-   * @param [in/out] src the Temporary to move from.
+   * @param src the Temporary to move from.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=( Temporary && src ) LVARRAY_RESTRICT_THIS
@@ -180,7 +180,7 @@ struct DualIteratorComparator
 {
   /**
    * @brief Constructor that takes in a comparison method.
-   * @param [in/out] comp the comparison method to wrap.
+   * @param comp the comparison method to wrap.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIteratorComparator( Compare comp ):
@@ -189,8 +189,8 @@ struct DualIteratorComparator
 
   /**
    * @brief Compare lhs with rhs using their first values.
-   * @param [in] lhs a DualIteratorAccessor of the first object to compare.
-   * @param [in] rhs a DualIteratorAccessor of the second object to compare.
+   * @param lhs a DualIteratorAccessor of the first object to compare.
+   * @param rhs a DualIteratorAccessor of the second object to compare.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( DualIteratorAccessor< A, B > const & lhs,
@@ -199,8 +199,8 @@ struct DualIteratorComparator
 
   /**
    * @brief Compare lhs with rhs using their first values.
-   * @param [in] lhs a DualIteratorAccessor::Temporary of the first object to compare.
-   * @param [in] rhs a DualIteratorAccessor of the second object to compare.
+   * @param lhs a DualIteratorAccessor::Temporary of the first object to compare.
+   * @param rhs a DualIteratorAccessor of the second object to compare.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( typename DualIteratorAccessor< A, B >::Temporary const & lhs,
@@ -236,8 +236,8 @@ public:
 
   /**
    * @brief Constructor taking the two iterators to wrap.
-   * @param [in] itA the first iterator to wrap.
-   * @param [in] itB the second iterator to wrap.
+   * @param itA the first iterator to wrap.
+   * @param itB the second iterator to wrap.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator( RandomAccessIteratorA const itA, RandomAccessIteratorB const itB ):
@@ -271,7 +271,7 @@ public:
 
   /**
    * @brief Return a new DualIterator where both of the underlying iterators have been incremented by offset.
-   * @param [in] offset the value to increment the iterators by.
+   * @param offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator operator+( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
@@ -279,7 +279,7 @@ public:
 
   /**
    * @brief Increment the underlying iterators by offset and return a reference to *this.
-   * @param [in] offset the value to increment the iterators by.
+   * @param offset the value to increment the iterators by.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator+=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
@@ -302,7 +302,7 @@ public:
 
   /**
    * @brief Return the distance between *this and the given DualIterator.
-   * @param [in] rhs the DualIterator to find the distance between.
+   * @param rhs the DualIterator to find the distance between.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
@@ -314,7 +314,7 @@ public:
 
   /**
    * @brief Return a new DualIterator where both of the underlying iterators have been decrement by offset.
-   * @param [in] offset the value to decrement the iterators by.
+   * @param offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator operator-( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
@@ -322,7 +322,7 @@ public:
 
   /**
    * @brief Decrement the underlying iterators by offset and return a reference to *this.
-   * @param [in] offset the value to decrement the iterators by.
+   * @param offset the value to decrement the iterators by.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator-=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
@@ -341,7 +341,7 @@ public:
 
   /**
    * @brief Return true if rhs does not point to the same values.
-   * @param [in] rhs the DualIterator to compare against.
+   * @param rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator!=( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
@@ -349,7 +349,7 @@ public:
 
   /**
    * @brief Return true if is less than this.
-   * @param [in] rhs the DualIterator to compare against.
+   * @param rhs the DualIterator to compare against.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator<( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
@@ -365,7 +365,7 @@ public:
   /**
    * @tparam Compare the type of the comparison method.
    * @brief Return a new Comparator which will compare two DualIteratorAccessors using the given comparison.
-   * @param [in] comp the comparison to wrap.
+   * @param comp the comparison to wrap.
    */
   DISABLE_HD_WARNING
   template< class Compare >
@@ -376,7 +376,7 @@ public:
 /**
  * @tparam T the type of the value to create.
  * @brief Return a temporary object holding the value of a.
- * @param [in/out] a the value to move.
+ * @param a the value to move.
  */
 DISABLE_HD_WARNING
 template< class T >
@@ -389,7 +389,7 @@ LVARRAY_HOST_DEVICE inline T && createTemporary( T & a )
  * @tparam A the type of the first value in the DualIteratorAccessor.
  * @tparam B the type of the second value in the DualIteratorAccessor.
  * @brief Return a temporary object holding the values held in the DualIteratorAccessor.
- * @param [in/out] it the DualIteratorAccessor to move from.
+ * @param it the DualIteratorAccessor to move from.
  */
 DISABLE_HD_WARNING
 template< class A, class B >
@@ -399,8 +399,8 @@ inline LVARRAY_HOST_DEVICE typename DualIteratorAccessor< A, B >::Temporary crea
 /**
  * @tparam Iterator an iterator type.
  * @brief Exchange the values pointed at by the two iterators.
- * @param [in/out] a the first iterator.
- * @param [in/out] b the second iterator.
+ * @param a the first iterator.
+ * @param b the second iterator.
  */
 DISABLE_HD_WARNING
 template< class Iterator >
@@ -415,9 +415,9 @@ LVARRAY_HOST_DEVICE inline void exchange( Iterator a, Iterator b )
  * @tparam BidirIt1 a bidirectional iterator type.
  * @tparam BidirIt2 a bidirectional iterator type.
  * @brief Move the elements in [first, last) to another range ending in d_last. The elements are moved in reverse order.
- * @param [in/out] first iterator to the beginning of the values to move.
- * @param [in/out] last iterator to the end of the values to move.
- * @param [in/out] d_last iterator to the end of the values to move to.
+ * @param first iterator to the beginning of the values to move.
+ * @param last iterator to the end of the values to move.
+ * @param d_last iterator to the end of the values to move to.
  *
  * @note This should be equivalent to std::move_backward and this implementation was gotten from
  *       https://en.cppreference.com/w/cpp/algorithm/move_backward.
@@ -436,11 +436,11 @@ LVARRAY_HOST_DEVICE inline void moveBackward( BidirIt1 first, BidirIt1 last, Bid
  * @tparam Iterator an iterator type.
  * @tparam Compare the type of the comparison method.
  * @brief Compute the median of *a, *b and *c and place it in *result.
- * @param [out] result iterator to the place to store the result.
- * @param [in] a iterator to the first value to compare
- * @param [in] b iterator to the first value to compare.
- * @param [in] c iterator to the first value to compare.
- * @param [in/out] comp the comparison method to use.
+ * @param result iterator to the place to store the result.
+ * @param a iterator to the first value to compare
+ * @param b iterator to the first value to compare.
+ * @param c iterator to the first value to compare.
+ * @param comp the comparison method to use.
  *
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
@@ -482,10 +482,10 @@ LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iter
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
  * @brief Partition the range [first, last) with regards to *pivot.
- * @param [in/out] first iterator to the beginning of the range to partition.
- * @param [in/out] last iterator to the end of the range to partition.
- * @param [in] pivot iterator to the value to use as a pivot.
- * @param [in/out] comp the comparison method to use.
+ * @param first iterator to the beginning of the range to partition.
+ * @param last iterator to the end of the range to partition.
+ * @param pivot iterator to the value to use as a pivot.
+ * @param comp the comparison method to use.
  * @return a RandomAccessIterator.
  *
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
@@ -523,9 +523,9 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition( RandomAccess
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
  * @brief Partition the range [first, last).
- * @param [in/out] first iterator to the beginning of the range to partition.
- * @param [in/out] last iterator to the end of the range to partition.
- * @param [in/out] comp the comparison method to use.
+ * @param first iterator to the beginning of the range to partition.
+ * @param last iterator to the end of the range to partition.
+ * @param comp the comparison method to use.
  *
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
@@ -542,8 +542,8 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartitionPivot( RandomA
 /**
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
- * @param [in/out] last iterator to the end of the range.
- * @param [in/out] comp the comparison method to use.
+ * @param last iterator to the end of the range.
+ * @param comp the comparison method to use.
  *
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
@@ -567,9 +567,9 @@ LVARRAY_HOST_DEVICE inline void unguardedLinearInsert( RandomAccessIterator last
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
  * @brief sort the range [first, first + n) under comp using insertions sort.
- * @param [in/out] first iterator to the beginning of the range.
- * @param [in] n the size of the range.
- * @param [in/out] comp the comparison method to use.
+ * @param first iterator to the beginning of the range.
+ * @param n the size of the range.
+ * @param comp the comparison method to use.
  *
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
@@ -597,9 +597,9 @@ LVARRAY_HOST_DEVICE inline void insertionSort( RandomAccessIterator first, std::
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
  * @brief Partially sort the range [first, last) under comp.
- * @param [in/out] first iterator to the beginning of the range.
- * @param [in/out] last iterator to the end of the range.
- * @param [in/out] comp the comparison method to use.
+ * @param first iterator to the beginning of the range.
+ * @param last iterator to the end of the range.
+ * @param comp the comparison method to use.
  *
  * @note This method was heavily modified to get rid of recursion. As a result
  *       it no-longer does a heap-sort when the recursion depth reaches a limit.

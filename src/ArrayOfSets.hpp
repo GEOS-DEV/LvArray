@@ -41,13 +41,13 @@ class ArrayOfArrays;
 template< class T, class INDEX_TYPE=std::ptrdiff_t >
 class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE >
 {
-public:
 
+  /// An alias for the parent class.
   using ParentClass = ArrayOfSetsView< T, INDEX_TYPE >;
 
+public:
+
   // Aliasing public methods of ArrayOfSetsView.
-  using ParentClass::toViewConst;
-  using ParentClass::toArrayOfArraysView;
   using ParentClass::capacity;
   using ParentClass::valueCapacity;
   using ParentClass::sizeOfSet;
@@ -60,20 +60,11 @@ public:
   using ParentClass::removeFromSet;
   using ParentClass::contains;
   using ParentClass::consistencyCheck;
-  using ParentClass::move;
-
-  /**
-   * @brief Return the number sets.
-   * @note This needs is duplicated here for the intel compiler on cori.
-   */
-  inline
-  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::size(); }
 
   /**
    * @brief Constructor.
-   * @param [in] nsets the number of sets.
-   * @param [in] defaultSetCapacity the initial capacity of each set.
+   * @param nsets the number of sets.
+   * @param defaultSetCapacity the initial capacity of each set.
    */
   inline
   ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS:
@@ -85,7 +76,7 @@ public:
 
   /**
    * @brief Copy constructor, performs a deep copy.
-   * @param [in] src the ArrayOfSets to copy.
+   * @param src the ArrayOfSets to copy.
    */
   inline
   ArrayOfSets( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS:
@@ -94,10 +85,10 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the ArrayOfSets to be moved from.
+   * @return *this.
    */
   inline
-  ArrayOfSets( ArrayOfSets && src ) = default;
+  ArrayOfSets( ArrayOfSets && ) = default;
 
   /**
    * @brief Destructor, frees the values, sizes and offsets Buffers.
@@ -107,40 +98,9 @@ public:
   { ParentClass::free(); }
 
   /**
-   * @brief Conversion operator to an ArrayOfArraysView.
-   */
-  constexpr inline
-  operator ArrayOfSetsView< T, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Conversion operator to an ArrayOfArraysView.
-   */
-  inline
-  ArrayOfSetsView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Method to convert to an immutable ArrayOfSetsView.
-   */
-  constexpr inline
-  operator ArrayOfSetsView< T const, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewConst(); }
-
-  /**
-   * @brief Conversion operator to an immutable ArrayOfArraysView.
-   */
-  template< class U=T >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator ArrayOfArraysView< T const, INDEX_TYPE const, true >
-  () const LVARRAY_RESTRICT_THIS
-  { return toArrayOfArraysView(); }
-
-  /**
    * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the ArrayOfSets to copy.
+   * @param src the ArrayOfSets to copy.
+   * @return *this.
    */
   inline
   ArrayOfSets & operator=( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS
@@ -155,31 +115,53 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in] src the ArrayOfSets to be moved from.
+   * @return *this.
    */
   inline
-  ArrayOfSets & operator=( ArrayOfSets && src ) = default;
+  ArrayOfSets & operator=( ArrayOfSets && ) = default;
+
+  /**
+   * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T, INDEX_TYPE const >.
+   */
+  inline
+  ArrayOfSetsView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const > const & >(*this); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T const, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as an ArrayOfArraysView< T const, INDEX_TYPE const, true >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toArrayOfArraysView(); }
+
+  /**
+   * @brief @return Return the number sets.
+   * @note Duplicated for SFINAE needs.
+   */
+  inline
+  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::size(); }
 
   /**
    * @brief Steal the resources from an ArrayOfArrays and convert it to an ArrayOfSets.
-   * @param [in/out] src the ArrayOfArrays to convert.
-   * @param [in] desc describes the type of data in the source.
+   * @param src the ArrayOfArrays to convert.
+   * @param desc describes the type of data in the source.
    * @note This would be prime for omp parallelism.
    */
   inline
   void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
   {
     ParentClass::free();
-
-    // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfArrays.hpp.
-    ArrayOfArraysView< T, INDEX_TYPE > && srcView = reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src );
-
-    m_numArrays = srcView.m_numArrays;
-    srcView.m_numArrays = 0;
-
-    m_offsets = std::move( srcView.m_offsets );
-    m_sizes = std::move( srcView.m_sizes );
-    m_values = std::move( srcView.m_values );
+    ParentClass::stealFrom( reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src ) );
 
     INDEX_TYPE const numSets = size();
     if( desc == sortedArrayManipulation::UNSORTED_NO_DUPLICATES )
@@ -223,7 +205,7 @@ public:
 
   /**
    * @brief Clear a set.
-   * @param[in] i the index of the set to clear.
+   * @param i the index of the set to clear.
    */
   void clearSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
   {
@@ -237,7 +219,7 @@ public:
 
   /**
    * @brief Reserve space for the given number of sets.
-   * @param [in] newCapacity the new minimum capacity for the number of sets.
+   * @param newCapacity the new minimum capacity for the number of sets.
    */
   inline
   void reserve( INDEX_TYPE const newCapacity ) LVARRAY_RESTRICT_THIS
@@ -245,7 +227,7 @@ public:
 
   /**
    * @brief Reserve space for the given number of values.
-   * @param [in] newValueCapacity the new minimum capacity for the number of values across all sets.
+   * @param newValueCapacity the new minimum capacity for the number of values across all sets.
    */
   inline
   void reserveValues( INDEX_TYPE const newValueCapacity ) LVARRAY_RESTRICT_THIS
@@ -253,8 +235,8 @@ public:
 
   /**
    * @brief Set the capacity of a set.
-   * @param [in] i the set to set the capacity of.
-   * @param [in] newCapacity the value to set the capacity of the set to.
+   * @param i the set to set the capacity of.
+   * @param newCapacity the value to set the capacity of the set to.
    */
   inline
   void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
@@ -262,8 +244,8 @@ public:
 
   /**
    * @brief Reserve space in a set.
-   * @param [in] i the set to reserve space in.
-   * @param [in] newCapacity the number of values to reserve space for.
+   * @param i the set to reserve space in.
+   * @param newCapacity the number of values to reserve space for.
    */
   inline
   void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
@@ -282,23 +264,15 @@ public:
 
   /**
    * @brief Set the number of sets.
-   * @param [in] numSets the new number of sets.
-   * @note We need this method in addition to the following resize method because of SFINAE requirements.
+   * @param numSubSets The new number of sets.
+   * @param defaultSetCapacity The default capacity for each new array.
    */
-  void resize( INDEX_TYPE const numSets ) LVARRAY_RESTRICT_THIS
-  { ParentClass::resize( numSets, 0 ); }
-
-  /**
-   * @brief Set the number of sets.
-   * @param [in] newSize the new number of sets.
-   * @param [in] defaultSetCapacity the default capacity for each new array.
-   */
-  void resize( INDEX_TYPE const numSets, INDEX_TYPE const defaultSetCapacity ) LVARRAY_RESTRICT_THIS
-  { ParentClass::resize( numSets, defaultSetCapacity ); }
+  void resize( INDEX_TYPE const numSubSets, INDEX_TYPE const defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS
+  { ParentClass::resize( numSubSets, defaultSetCapacity ); }
 
   /**
    * @brief Append an set with the given capacity.
-   * @param [in] n the capacity of the set.
+   * @param n the capacity of the set.
    */
   inline
   void appendSet( INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
@@ -313,8 +287,8 @@ public:
 
   /**
    * @brief Insert a set with the given capacity.
-   * @param [in] i the position to insert the set.
-   * @param [in] n the capacity of the set.
+   * @param i the position to insert the set.
+   * @param n the capacity of the set.
    */
   inline
   void insertSet( INDEX_TYPE const i, INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
@@ -334,7 +308,7 @@ public:
 
   /**
    * @brief Erase a set.
-   * @param [in] i the position of the set to erase.
+   * @param i the position of the set to erase.
    */
   inline
   void eraseSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
@@ -349,8 +323,8 @@ public:
 
   /**
    * @brief Insert a value into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] val the value to insert.
+   * @param i the set to insert into.
+   * @param val the value to insert.
    * @return True iff the value was inserted (the set did not already contain the value).
    */
   inline
@@ -364,16 +338,29 @@ public:
    * @param first An iterator to the first value to insert.
    * @param last An iterator to the end of the values to insert.
    * @return The number of values inserted.
-   *
-   * @note The values to insert [first, last) must be sorted and contain no duplicates.
+   * @pre The values to insert [first, last) must be sorted and contain no duplicates.
    */
   template< typename ITER >
   inline
   INDEX_TYPE insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   { return ParentClass::insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
+  /**
+   * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
+   * @param name the name to display.
+   */
   void setName( std::string const & name )
   { ArrayOfArraysView< T, INDEX_TYPE >::template setName< decltype( *this ) >( name ); }
+
+  /**
+   * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @note Duplicated for SFINAE needs.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  { return ParentClass::move( space, touch ); }
 
 private:
 
@@ -387,8 +374,8 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] aos the ArrayOfSets this CallBacks is associated with.
-     * @param [in] i the set this CallBacks is associated with.
+     * @param aos the ArrayOfSets this CallBacks is associated with.
+     * @param i the set this CallBacks is associated with.
      */
     inline
     CallBacks( ArrayOfSets< T, INDEX_TYPE > & sp, INDEX_TYPE const i ):
@@ -398,8 +385,8 @@ public:
 
     /**
      * @brief Callback signaling that the size of the set has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the increase in the size.
+     * @param curPtr the current pointer to the array.
+     * @param nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks if the new size
      *       exceeds the capacity of the set and if so reserves more space.
      * @return a pointer to the sets values.
@@ -418,7 +405,10 @@ public:
     }
 
 private:
+    /// A reference to the associated ArrayOfSets.
     ArrayOfSets< T, INDEX_TYPE > & m_aos;
+
+    /// The index of the associated set.
     INDEX_TYPE const m_i;
   };
 

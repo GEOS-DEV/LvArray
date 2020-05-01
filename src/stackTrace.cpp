@@ -180,7 +180,7 @@ std::string getFpeDetails()
   return oss.str();
 }
 
-void handler( int sig, int exitFlag, int LVARRAY_UNUSED_ARG( exitCode ) )
+void stackTraceHandler( int const sig, bool const exit )
 {
   std::ostringstream oss;
 
@@ -197,7 +197,7 @@ void handler( int sig, int exitFlag, int LVARRAY_UNUSED_ARG( exitCode ) )
   oss << stackTrace() << std::endl;
   std::cout << oss.str();
 
-  if( exitFlag == 1 )
+  if( exit )
   {
 #ifdef USE_MPI
     int mpi = 0;
@@ -208,8 +208,6 @@ void handler( int sig, int exitFlag, int LVARRAY_UNUSED_ARG( exitCode ) )
     }
 #endif
     abort();
-//    exit(exitFlag);
-
   }
 }
 

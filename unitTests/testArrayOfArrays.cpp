@@ -629,8 +629,72 @@ protected:
 
   std::vector< std::vector< T > > m_ref;
 
-
   std::mt19937_64 m_gen;
+
+
+  /// Check that the move, toView, and toViewConst methods of ArrayOfArrays< T > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T, INDEX_TYPE const, false > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T, INDEX_TYPE const, true > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T const, INDEX_TYPE const, true > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a toViewConst method." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArrays< T >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArrays< T > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, false > const >,
+                 "The view type of ArrayOfArrays< T > is ArrayOfArraysView< T, INDEX_TYPE const, false > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArrays< T > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArrays< T > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T, INDEX_TYPE const, false >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T, INDEX_TYPE const, false > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, false > const >,
+                 "The view type of ArrayOfArraysView< T, INDEX_TYPE const, false > is ArrayOfArraysView< T, INDEX_TYPE const, false > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T, INDEX_TYPE const, false > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T, INDEX_TYPE const, false > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T, INDEX_TYPE const, true >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, true > const >,
+                 "The view type of ArrayOfArraysView< T, INDEX_TYPE const, true > is ArrayOfArraysView< T, INDEX_TYPE const, true > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T const, INDEX_TYPE const, true >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T const, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The view type of ArrayOfArraysView< T const, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T const, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T const, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
 };
 
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
@@ -964,7 +1028,7 @@ public:
 
     // Update the view on the device.
     forall( gpu(), 0, nArrays,
-            [view=m_array.toViewSemiConst()] __device__ ( INDEX_TYPE i )
+            [view=m_array.toViewConstSizes()] __device__ ( INDEX_TYPE i )
     {
       INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
       for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )

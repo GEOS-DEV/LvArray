@@ -75,6 +75,7 @@ inline int fedisableexcept( unsigned int excepts )
 namespace cxx_utilities
 {
 
+/// Set the floating point environment.
 void SetFPE();
 
 }

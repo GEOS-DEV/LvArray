@@ -17,7 +17,7 @@
  */
 
 /**
- * @file sortedArrayManipulator.hpp
+ * @file sortedArrayManipulation.hpp
  * This file contains common sorted array manipulation routines.
  * Aside from the functions that take a callback every function assumes that
  * the array has a capacity large enough for the given operation.
@@ -54,21 +54,22 @@ enum Description
 
 /**
  * @brief @return True if @p desc describes an array that is sorted.
- * @p desc the Description to query.
+ * @param desc The Description to query.
  */
 LVARRAY_HOST_DEVICE constexpr inline
 bool isSorted( Description const desc )
 { return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
 
 /**
- * @brief @return True if @p desc describes an contains no duplicates.
- * @p desc the Description to query.
+ * @brief @return True if @p desc describes an array that contains no duplicates.
+ * @param desc the Description to query.
  */
 LVARRAY_HOST_DEVICE constexpr inline
 bool isUnique( Description const desc )
 { return desc == SORTED_UNIQUE || desc == UNSORTED_NO_DUPLICATES; }
 
 /**
+ * @tparam T The type of the values contained in the array.
  * @class CallBacks
  * @brief This class provides a no-op callbacks interface for the ArrayManipulation sorted routines.
  */
@@ -79,71 +80,86 @@ public:
 
   /**
    * @brief Callback signaling that the size of the array has increased.
-   * @param [in] curPtr the current pointer to the array.
-   * @param [in] nToAdd the increase in the size of the array.
+   * @param curPtr the current pointer to the array.
+   * @param nToAdd the increase in the size of the array.
    * @return a pointer to the array.
    */
   LVARRAY_HOST_DEVICE inline
   T * incrementSize( T * const curPtr,
-                     std::ptrdiff_t const LVARRAY_UNUSED_ARG( nToAdd ) ) LVARRAY_RESTRICT_THIS
-  { return curPtr; }
+                     std::ptrdiff_t const nToAdd ) LVARRAY_RESTRICT_THIS
+  {
+    LVARRAY_UNUSED_VARIABLE( nToAdd );
+    return curPtr;
+  }
 
   /**
    * @brief Callback signaling that a value was inserted at the given position.
-   * @param [in] pos the position the value was inserted at.
+   * @param pos the position the value was inserted at.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) LVARRAY_RESTRICT_THIS
-  {}
+  void insert( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
    * @brief Callback signaling that the entry of the array at the first position was set to the value
    *        at the second position.
-   * @param [in] pos the position in the array that was set.
-   * @param [in] valuePos the position of the value that the entry in the array was set to.
+   * @param pos the position in the array that was set.
+   * @param valuePos the position of the value that the entry in the array was set to.
    */
   LVARRAY_HOST_DEVICE inline
-  void set( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ),
-            std::ptrdiff_t const LVARRAY_UNUSED_ARG( valuePos ) ) LVARRAY_RESTRICT_THIS
-  {}
+  void set( std::ptrdiff_t const pos,
+            std::ptrdiff_t const valuePos ) LVARRAY_RESTRICT_THIS
+  {
+    LVARRAY_UNUSED_VARIABLE( pos );
+    LVARRAY_UNUSED_VARIABLE( valuePos );
+  }
 
   /**
    * @brief Callback signaling that the that the given value was inserted at the given position.
    *        Further information is provided in order to make the insertion efficient.
-   * @param [in] nLeftToInsert the number of insertions that occur after this one.
-   * @param [in] valuePos the position of the value that was inserted.
-   * @param [in] pos the position in the array the value was inserted at.
-   * @param [in] prevPos the position the previous value was inserted at or the size of the array
+   * @param nLeftToInsert the number of insertions that occur after this one.
+   * @param valuePos the position of the value that was inserted.
+   * @param pos the position in the array the value was inserted at.
+   * @param prevPos the position the previous value was inserted at or the size of the array
    *             if it is the first insertion.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nLeftToInsert ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( valuePos ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( prevPos ) ) LVARRAY_RESTRICT_THIS
-  {}
+  void insert( std::ptrdiff_t const nLeftToInsert,
+               std::ptrdiff_t const valuePos,
+               std::ptrdiff_t const pos,
+               std::ptrdiff_t const prevPos ) LVARRAY_RESTRICT_THIS
+  {
+    LVARRAY_UNUSED_VARIABLE( nLeftToInsert );
+    LVARRAY_UNUSED_VARIABLE( valuePos );
+    LVARRAY_UNUSED_VARIABLE( pos );
+    LVARRAY_UNUSED_VARIABLE( prevPos );
+  }
 
   /**
    * @brief Callback signaling that an entry was removed from the array at given position.
-   * @param [in] pos the position of the entry that was removed.
+   * @param pos The position of the entry that was removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( std::ptrdiff_t const LVARRAY_UNUSED_ARG( pos ) ) LVARRAY_RESTRICT_THIS
-  {}
+  void remove( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
    * @brief Callback signaling that the given entry was removed from the given position. Further information
    *        is provided in order to make the removal efficient.
-   * @param [in] nRemoved the number of entries removed, starts at 1.
-   * @param [in] curPos the position in the array the entry was removed at.
-   * @param [in] nextPos the position the next entry will be removed at or the original size of the array
+   * @param nRemoved the number of entries removed, starts at 1.
+   * @param curPos the position in the array the entry was removed at.
+   * @param nextPos the position the next entry will be removed at or the original size of the array
    *             if this was the last entry removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( std::ptrdiff_t const LVARRAY_UNUSED_ARG( nRemoved ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( curPos ),
-               std::ptrdiff_t const LVARRAY_UNUSED_ARG( nextPos ) ) LVARRAY_RESTRICT_THIS
-  {}
+  void remove( std::ptrdiff_t const nRemoved,
+               std::ptrdiff_t const curPos,
+               std::ptrdiff_t const nextPos ) LVARRAY_RESTRICT_THIS
+  {
+    LVARRAY_UNUSED_VARIABLE( nRemoved );
+    LVARRAY_UNUSED_VARIABLE( curPos );
+    LVARRAY_UNUSED_VARIABLE( nextPos );
+  }
 };
 
 /**
@@ -155,7 +171,9 @@ template< typename T >
 struct less
 {
   /**
-   * @brief Return true iff lhs < rhs.
+   * @brief @return Return @p lhs < @p rhs.
+   * @param lhs The left side of the comparison.
+   * @param rhs The right side of the comparison.
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
@@ -165,14 +183,16 @@ struct less
 
 /**
  * @tparam T the type of the values to compare.
- * @class less
+ * @class greater
  * @brief This class operates as functor similar to std::greater.
  */
 template< typename T >
 struct greater
 {
   /**
-   * @brief Return true iff lhs > rhs.
+   * @brief @return Return @p lhs > @p rhs.
+   * @param lhs The left side of the comparison.
+   * @param rhs The right side of the comparison.
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
@@ -184,9 +204,9 @@ struct greater
  * @tparam RandomAccessIterator an iterator type that provides random access.
  * @tparam Compare the type of the comparison function.
  * @brief Sort the given values in place using the given comparator.
- * @param [in/out] first An iterator to the beginning of the values to sort.
- * @param [in/out] last An iterator to the end of the values to sort.
- * @param [in/out] comp A function that does the comparison between two objects.
+ * @param first An iterator to the beginning of the values to sort.
+ * @param last An iterator to the end of the values to sort.
+ * @param comp A function that does the comparison between two objects.
  * @note should be equivalent to std::sort(first, last, comp).
  */
 DISABLE_HD_WARNING
@@ -211,7 +231,7 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAc
  * @tparam RandomAccessIteratorB an iterator type that provides random access.
  * @tparam Compare the type of the comparison function.
  * @brief Sort the given values in place using the given comparator and perform the same operations
- *        on the data array thus preserving the mapping between values[i] and data[i].
+ *   on the data array thus preserving the mapping between values[i] and data[i].
  * @param valueFirst An iterator to the beginning of the values to sort.
  * @param valueLast An iterator to the end of the values to sort.
  * @param dataFirst An iterator to the beginning of the data.
@@ -240,7 +260,7 @@ LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, Rand
 /**
  * @tparam ITER The type of the iterator to the values to check.
  * @tparam Compare The type of the comparison function, defaults to less.
- * @brief Return true if the given array is sorted using comp.
+ * @brief @return Return true if the given array is sorted using comp.
  * @param first Iterator to the beginning of the values to check.
  * @param last Iterator to the end of the values to check.
  * @param comp The comparison method to use.

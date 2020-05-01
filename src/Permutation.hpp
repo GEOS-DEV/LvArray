@@ -44,10 +44,18 @@ constexpr bool isValidPermutation( PERMUTATION, camp::idx_seq< INDICES... > )
 
 } // namespace internal
 
+/**
+ * @tparam INDICES A variadic list of indices.
+ * @brief @return The number of indices.
+ */
 template< camp::idx_t... INDICES >
 constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
 { return sizeof...( INDICES ); }
 
+/**
+ * @tparam INDICES A variadic list of indices.
+ * @brief @return The unit stride dimension, the last index in the sequence.
+ */
 template< camp::idx_t... INDICES >
 constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
 {
@@ -57,6 +65,10 @@ constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
   return dimension;
 }
 
+/**
+ * @tparam PERMUTATION A camp::idx_seq.
+ * @brief @return True iff @tparam PERMUTATION is a permutation of [0, N] for some N.
+ */
 template< typename PERMUTATION >
 constexpr bool isValidPermutation( PERMUTATION )
 {

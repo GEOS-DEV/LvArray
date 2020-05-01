@@ -523,6 +523,55 @@ protected:
   std::vector< std::set< T > > m_ref;
 
   std::mt19937_64 m_gen;
+
+
+  /// Check that the move, toView, and toViewConst methods of ArrayOfSets< T > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSets< T > >,
+                 "ArrayOfSets< T > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfSets< T > >,
+                 "ArrayOfSets< T > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfSets< T > >,
+                 "ArrayOfSets< T > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfSetsView< T, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSetsView< T, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfSetsView< T, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfSetsView< T, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfSetsView< T const, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSetsView< T const, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfSetsView< T const, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfSetsView< T const, INDEX_TYPE const > >,
+                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSets< T >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfSets< T > >::type,
+                                 ArrayOfSetsView< T, INDEX_TYPE const > const >,
+                 "The view type of ArrayOfSets< T > is ArrayOfSetsView< T, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSets< T > >::type,
+                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
+                 "The const view type of ArrayOfSets< T > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSetsView< T, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfSetsView< T, INDEX_TYPE const > >::type,
+                                 ArrayOfSetsView< T, INDEX_TYPE const > const >,
+                 "The view type of ArrayOfSetsView< T, INDEX_TYPE const > is ArrayOfSetsView< T, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSetsView< T, INDEX_TYPE const > >::type,
+                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
+                 "The const view type of ArrayOfSetsView< T, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSetsView< T const, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfSetsView< T const, INDEX_TYPE const > >::type,
+                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
+                 "The view type of ArrayOfSetsView< T const, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSetsView< T const, INDEX_TYPE const > >::type,
+                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
+                 "The const view type of ArrayOfSetsView< T const, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
 };
 
 using TestTypes = ::testing::Types<

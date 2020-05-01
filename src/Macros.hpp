@@ -81,16 +81,14 @@
 #define TYPEOFREF( X ) std::remove_reference_t< decltype( X ) >
 
 /**
- * @brief Print the expression @p MSG.
- * @param MSG The expression to print, may be anything that can be streamed to std::out.
+ * @brief Print the expression.
  */
-#define LVARRAY_LOG( MSG ) std::cout << MSG << std::endl
+#define LVARRAY_LOG( ... ) std::cout << __VA_ARGS__ << std::endl
 
 /**
- * @brief Print the name of the variable @p VAR along with its value.
- * @param VAR The variable to print.
+ * @brief Print the expression string along with its value.
  */
-#define LVARRAY_LOG_VAR( VAR ) LVARRAY_LOG( #VAR << " = " << VAR )
+#define LVARRAY_LOG_VAR( ... ) LVARRAY_LOG( STRINGIZE( __VA_ARGS__ ) << " = " << __VA_ARGS__ )
 
 /**
  * @brief Abort execution if @p EXP is true.
@@ -118,7 +116,7 @@
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
       std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
       std::cout << MSG << std::endl; \
-      cxx_utilities::handler1( EXIT_FAILURE ); \
+      cxx_utilities::stackTraceHandler( SIGKILL, true ); \
     } \
   } while( false )
 #endif
@@ -169,6 +167,11 @@
 /// Print a warning with the message @p MSG.
 #define LVARRAY_WARNING( MSG ) LVARRAY_WARNING_IF( true, MSG )
 
+/**
+ * @brief Print @p msg along with the location if @p EXP is true.
+ * @param EXP The expression to test.
+ * @param msg The message to print.
+ */
 #define LVARRAY_INFO_IF( EXP, msg ) \
   do \
   { \
@@ -181,8 +184,20 @@
     } \
   } while( false )
 
+/**
+ * @brief Print @p msg along with the location.
+ * @param msg The message to print.
+ */
 #define LVARRAY_INFO( msg ) LVARRAY_INFO_IF( true, msg )
 
+/**
+ * @brief Abort execution if @p lhs @p OP @p rhs.
+ * @param lhs The left side of the operation.
+ * @param OP The operation to apply.
+ * @param NOP The opposite of @p OP, used in the message.
+ * @param rhs The right side of the operation.
+ * @param msg The message to diplay.
+ */
 #define LVARRAY_ERROR_IF_OP_MSG( lhs, OP, NOP, rhs, msg ) \
   LVARRAY_ERROR_IF( lhs OP rhs, \
                     msg << "\n" << \
@@ -190,59 +205,198 @@
                     "  " << #lhs << " = " << lhs << "\n" << \
                     "  " << #rhs << " = " << rhs << "\n" )
 
+/**
+ * @brief Raise a hard error if two values are equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, ==, !=, rhs, msg )
+
+/**
+ * @brief Raise a hard error if two values are equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Raise a hard error if two values are not equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, !=, ==, rhs, msg )
+
+/**
+ * @brief Raise a hard error if two values are not equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ERROR_IF_NE( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Raise a hard error if one value compares greater than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >, <=, rhs, msg )
+
+/**
+ * @brief Raise a hard error if one value compares greater than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ERROR_IF_GT( lhs, rhs ) LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Raise a hard error if one value compares greater than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >=, <, rhs, msg )
+
+/**
+ * @brief Raise a hard error if one value compares greater than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ERROR_IF_GE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Raise a hard error if one value compares less than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <, >=, rhs, msg )
-#define LVARRAY_ERROR_IF_LT( lhs, rhs ) LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Raise a hard error if one value compares less than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
+#define LVARRAY_ERROR_IF_LT( lhs, rhs ) LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, "" )
+
+/**
+ * @brief Raise a hard error if one value compares less than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ERROR_IF_LE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <=, >, rhs, msg )
+
+/**
+ * @brief Raise a hard error if one value compares less than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ERROR_IF_LE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
 
-
+/**
+ * @brief Abort execution if @p lhs @p OP @p rhs is false.
+ * @param lhs The left side of the operation.
+ * @param OP The operation to apply.
+ * @param rhs The right side of the operation.
+ * @param msg The message to diplay.
+ */
 #define LVARRAY_ASSERT_OP_MSG( lhs, OP, rhs, msg ) \
   LVARRAY_ASSERT_MSG( lhs OP rhs, \
                       msg << "\n" << \
                       "  " << #lhs << " = " << lhs << "\n" << \
                       "  " << #rhs << " = " << rhs << "\n" )
 
+/**
+ * @brief Assert that two values compare equal in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ASSERT_EQ_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, ==, rhs, msg )
+
+/**
+ * @brief Assert that two values compare equal in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ASSERT_EQ( lhs, rhs ) LVARRAY_ASSERT_EQ_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Assert that two values compare not equal in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ASSERT_NE_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, !=, rhs, msg )
+
+/**
+ * @brief Assert that two values compare not equal in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ASSERT_NE( lhs, rhs ) LVARRAY_ASSERT_NE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Assert that one value compares greater than the other in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ASSERT_GT_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, >, rhs, msg )
+
+/**
+ * @brief Assert that one value compares greater than the other in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ASSERT_GT( lhs, rhs ) LVARRAY_ASSERT_GT_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Assert that one value compares greater than or equal to the other in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ */
 #define LVARRAY_ASSERT_GE_MSG( lhs, rhs, msg ) LVARRAY_ASSERT_OP_MSG( lhs, >=, rhs, msg )
+
+/**
+ * @brief Assert that one value compares greater than or equal to the other in debug builds.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-
-
 #if defined(USE_CUDA) && defined(__CUDACC__)
+/// Mark a function for both host and device usage.
   #define LVARRAY_HOST_DEVICE __host__ __device__
+
+/// Mark a function for only device usage.
   #define LVARRY_DEVICE __device__
 
-// This pragma disables nvcc warnings about calling a host function from a host-device
-// function. This is used on templated host-device functions where some template instantiations
-// call host only code. This is safe as long as the host only instantiations are only called on
-// the host. Furthermore it seems like trying to call a host only instantiation on the device leads
-// to other compiler errors/warnings.
-// To use place directly above a function declaration.
+/**
+ * @brief Disable host device warnings.
+ * @details This pragma disables nvcc warnings about calling a host function from a host-device
+ *   function. This is used on templated host-device functions where some template instantiations
+ *   call host only code. This is safe as long as the host only instantiations are only called on
+ *   the host. To use place directly above a the template.
+ */
   #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
 #else
+/// Mark a function for both host and device usage.
   #define LVARRAY_HOST_DEVICE
+
+/// Mark a function for only device usage.
   #define LVARRY_DEVICE
+
+/**
+ * @brief Disable host device warnings.
+ * @details This pragma disables nvcc warnings about calling a host function from a host-device
+ *   function. This is used on templated host-device functions where some template instantiations
+ *   call host only code. This is safe as long as the host only instantiations are only called on
+ *   the host. To use place directly above a the template.
+ */
   #define DISABLE_HD_WARNING
 #endif
 
