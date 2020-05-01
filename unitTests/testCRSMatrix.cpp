@@ -130,10 +130,10 @@ public:
 
     // Create an Array of the columns and values to insert into each row.
     ArrayOfArrays< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, oneAtATime );
-    ArrayOfArrays< T > const valuesToInsert = createArrayOfValues( columnsToInsert );
+    ArrayOfArrays< T > const valuesToInsert = createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Insert the entries into the reference.
-    insertIntoRef( columnsToInsert );
+    insertIntoRef( columnsToInsert.toViewConst() );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
@@ -488,6 +488,72 @@ protected:
   CRSMatrix< T > m_matrix;
 
   REF_TYPE< T > m_ref;
+
+  /// Check that the move, toView, and toViewConst methods of CRSMatrix< T > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > are
+  /// detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrix< T >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrix< T > >::type,
+                                 CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrix< T > is CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrix< T > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrix< T > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > is CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE
+  /// const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
 };
 
 using TestTypes = ::testing::Types<
@@ -616,7 +682,7 @@ public:
 
   CRSMatrixViewTest():
     CRSMatrixTest< T >(),
-    m_view( this->m_matrix )
+    m_view( this->m_matrix.toView() )
   {};
 
   /**
@@ -632,9 +698,8 @@ public:
     forall< serialPolicy >( m_view.numRows(),
                             [view, &curIndex]( INDEX_TYPE row )
     {
-      memoryMotionCheckRow( view, row, curIndex );
-    }
-                            );
+      memoryMotionCheckRow( view.toViewConst(), row, curIndex );
+    } );
   }
 
   /**
@@ -661,7 +726,7 @@ public:
     INDEX_TYPE const numCols = m_view.numColumns();
 
     // Capture a view with const columns on device and update the entries.
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConstSizes();
     forall< Policy >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -672,8 +737,7 @@ public:
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
             entries[i] = T( 2 * i + 7 );
           }
-        }
-                      );
+        } );
 
     // This should copy back the entries but not the columns.
     this->m_matrix.move( chai::CPU );
@@ -703,7 +767,7 @@ public:
     INDEX_TYPE const numCols = m_view.numColumns();
 
     // Capture a view with const columns and const values on device.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -738,7 +802,7 @@ public:
 
     // Create an Array of the columns and values to insert into each row.
     ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, oneAtATime );
-    ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert );
+    ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Reserve space for the inserts
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -747,11 +811,11 @@ public:
     }
 
     // Insert the entries into the reference.
-    this->insertIntoRef( columnsToInsert );
+    this->insertIntoRef( columnsToInsert.toViewConst() );
 
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
-    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToInsert;
-    ArrayOfArraysView< T const, INDEX_TYPE const, true > const & valuesView = valuesToInsert;
+    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToInsert.toViewConst();
+    ArrayOfArraysView< T const, INDEX_TYPE const, true > const & valuesView = valuesToInsert.toViewConst();
     if( oneAtATime )
     {
       forall< Policy >( numRows,
@@ -811,7 +875,7 @@ public:
     }
 
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
-    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToRemove;
+    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToRemove.toViewConst();
     if( oneAtATime )
     {
       forall< Policy >( numRows,
@@ -825,8 +889,7 @@ public:
             }
 
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
+          } );
     }
     else
     {
@@ -836,8 +899,7 @@ public:
             INDEX_TYPE const initialNNZ = view.numNonZeros( row );
             INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
+          } );
     }
 
     this->m_matrix.move( chai::CPU );
@@ -863,7 +925,7 @@ public:
     }
 
     // Check that each row contains the even columns and no odd columns.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -872,8 +934,7 @@ public:
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
           }
-        }
-                      );
+        } );
   }
 
   /**
@@ -886,7 +947,7 @@ public:
     SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & spView = m_view.toSparsityPatternView();
 
     // Check that each row contains the even columns and no odd columns on device.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [spView, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -903,8 +964,7 @@ public:
             PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( i ) ), spView.empty( row, COL_TYPE( i ) ) );
           }
-        }
-                      );
+        } );
   }
 
   // This should be private but you can't have device lambdas need to be in public methods :(
@@ -1109,9 +1169,9 @@ public:
         }
       }
 
-      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
-      ArrayOfSetsView< COL_TYPE const, INDEX_TYPE const > colView = columns;
-      ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values;
+      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConstSizes();
+      ArrayOfSetsView< COL_TYPE const, INDEX_TYPE const > colView = columns.toViewConst();
+      ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values.toViewConst();
 
       if( type == AddType::LINEAR_SEARCH )
       {

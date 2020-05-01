@@ -65,14 +65,13 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAM
 }
 
 /**
- * @tparam T The type of values stored in @p slice.
+ * @tparam T The type of @p value.
  * @tparam INDICES variadic pack of indices.
  * @tparam LAMBDA the type of the function @p f to apply.
- * @brief Apply the funtion @p f to the value @p value also
- *        passing @p f any indices used to reach @p value.
- * @param slice the slice to iterate over.
- * @param f the lambda to apply to each value.
- * @param indices the previous sliced off indices.
+ * @brief Apply the function @p f to the value @p value also passing @p f any indices used to reach @p value.
+ * @param value The value to apply @p f to.
+ * @param f The function to apply to each value.
+ * @param indices The previous sliced off indices.
  */
 DISABLE_HD_WARNING
 template< typename T, typename LAMBDA, typename ... INDICES >
@@ -87,11 +86,11 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
  * @tparam INDEX_TYPE the integer used to index into @p slice.
  * @tparam INDICES variadic pack of indices.
  * @tparam LAMBDA the type of the function @p f to apply.
- * @brief Iterate over the values in the slice in lexicographic order, passing the indices as
- *        well as the value to the lambda.
- * @param slice the slice to iterate over.
- * @param f the lambda to apply to each value.
- * @param indices the previous sliced off indices.
+ * @brief Iterate over the values in the slice in lexicographic order, passing the indices as well as the value to the
+ * lambda.
+ * @param slice The slice to iterate over.
+ * @param f The lambda to apply to each value.
+ * @param indices The previous sliced off indices.
  */
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >

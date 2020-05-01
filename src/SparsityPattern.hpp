@@ -37,12 +37,13 @@ namespace LvArray
 template< class COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
 class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
-public:
 
+  /// An alias for the parent class.
   using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
 
+public:
+
   // Aliasing public methods of SparsityPatternView.
-  using ParentClass::toViewConst;
   using ParentClass::numRows;
   using ParentClass::numColumns;
   using ParentClass::numNonZeros;
@@ -54,13 +55,12 @@ public:
   using ParentClass::insertNonZeros;
   using ParentClass::removeNonZero;
   using ParentClass::removeNonZeros;
-  using ParentClass::move;
 
   /**
    * @brief Constructor.
-   * @param [in] nrows the number of rows in the matrix.
-   * @param [in] ncols the number of columns in the matrix.
-   * @param [in] initialRowCapacity the initial non zero capacity of each row.
+   * @param nrows the number of rows in the matrix.
+   * @param ncols the number of columns in the matrix.
+   * @param initialRowCapacity the initial non zero capacity of each row.
    */
   inline
   SparsityPattern( INDEX_TYPE const nrows=0,
@@ -74,7 +74,7 @@ public:
 
   /**
    * @brief Copy constructor, performs a deep copy.
-   * @param [in] src the SparsityPattern to copy.
+   * @param src the SparsityPattern to copy.
    */
   inline
   SparsityPattern( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS:
@@ -83,10 +83,9 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the SparsityPattern to be moved from.
    */
   inline
-  SparsityPattern( SparsityPattern && src ) = default;
+  SparsityPattern( SparsityPattern && ) = default;
 
   /**
    * @brief Destructor, frees the values, sizes and offsets Buffers.
@@ -96,34 +95,9 @@ public:
   { ParentClass::free(); }
 
   /**
-   * @brief Conversion operator to SparsityPatternView<COL_TYPE, INDEX_TYPE const>.
-   */
-  constexpr inline
-  operator SparsityPatternView< COL_TYPE, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Method to convert to SparsityPatternView<COL_TYPE, INDEX_TYPE const>. Use this method when
-   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
-   */
-  constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   *        Although SparsityPatternView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewConst(); }
-
-  /**
    * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the SparsityPattern to copy.
+   * @param src the SparsityPattern to copy.
+   * @return *this.
    */
   inline
   SparsityPattern & operator=( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS
@@ -139,26 +113,30 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in] src the SparsityPattern to be moved from.
+   * @return *this.
    */
   inline
-  SparsityPattern & operator=( SparsityPattern && src ) = default;
+  SparsityPattern & operator=( SparsityPattern && ) = default;
 
   /**
-   * @brief Move to the given memory space, optionally touching it.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch whether to touch the memory in the space or not.
+   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) LVARRAY_RESTRICT_THIS
-  { ParentClass::move( space, touch ); }
+  constexpr inline
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >( *this ); }
 
-
-  void registerTouch( chai::ExecutionSpace const space ) LVARRAY_RESTRICT_THIS
-  { ParentClass::registerTouch( space ); }
+  /**
+   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
-   * @param [in] nnz the number of no zero entries to reserve space for.
+   * @param nnz the number of no zero entries to reserve space for.
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
@@ -167,8 +145,8 @@ public:
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row without
    *        either reallocation or shifting the row offsets.
-   * @param [in] row the row to reserve space in.
-   * @param [in] nnz the number of no zero entries to reserve space for.
+   * @param row the row to reserve space in.
+   * @param nnz the number of no zero entries to reserve space for.
    */
   inline
   void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
@@ -179,8 +157,8 @@ public:
 
   /**
    * @brief Set the non zero capacity of the given row.
-   * @param [in] row the row to modify.
-   * @param [in] newCapacity the new capacity of the row.
+   * @param row the row to modify.
+   * @param newCapacity the new capacity of the row.
    *
    * @note If the given capacity is less than the current number of non zero entries
    *       the entries are truncated.
@@ -205,22 +183,21 @@ public:
 
   /**
    * @brief Set the dimensions of the matrix.
-   * @param [in] nRows the new number of rows.
-   * @param [in] nCols the new number of columns.
-   * @param [in] defaultSetCapacity the default capacity for each new array.
+   * @param nRows the new number of rows.
+   * @param nCols the new number of columns.
+   * @param initialRowCapacity the default capacity for each new array.
    * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
-   *       This can leave the matrix in an invalid state where a row has more columns than the matrix
-   *       or where a specific column is greater than the number of columns in the matrix.
-   *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
-   * TODO: Add tests.
+   *   This can leave the matrix in an invalid state where a row has more columns than the matrix
+   *   or where a specific column is greater than the number of columns in the matrix.
+   *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
   { ParentClass::resize( nRows, nCols, initialRowCapacity ); }
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).
-   * @param [in] row the row of the entry to insert.
-   * @param [in] col the column of the entry to insert.
+   * @param row the row of the entry to insert.
+   * @param col the column of the entry to insert.
    * @return True iff the entry was previously empty.
    */
   inline
@@ -234,7 +211,6 @@ public:
    * @param first An iterator to the first column to insert.
    * @param last An iterator to the end of the columns to insert.
    * @return The number of columns inserted.
-   *
    * @note The columns to insert [ @p first, @p last ) must be sorted and contain no duplicates.
    */
   template< typename ITER >
@@ -247,17 +223,25 @@ public:
    * @param name the of the SparsityPattern.
    */
   void setName( std::string const & name )
-  {
-    ParentClass::template setName< decltype( *this ) >( name );
-  }
+  { ParentClass::template setName< decltype( *this ) >( name ); }
+
+  /**
+   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @note Duplicated for SFINAE needs.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  { return ParentClass::move( space, touch ); }
 
 private:
 
   /**
    * @brief Increase the capacity of a row to accommodate at least the given number of
    *        non zero entries.
-   * @param [in] row the row to increase the capacity of.
-   * @param [in] newNNZ the new number of non zero entries.
+   * @param row the row to increase the capacity of.
+   * @param newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
   inline
@@ -274,8 +258,8 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] sp the SparsityPattern this CallBacks is associated with.
-     * @param [in] row the row in the SparsityPattern this CallBacks is associated with.
+     * @param sp the SparsityPattern this CallBacks is associated with.
+     * @param row the row in the SparsityPattern this CallBacks is associated with.
      */
     inline
     CallBacks( SparsityPattern< COL_TYPE, INDEX_TYPE > & sp, INDEX_TYPE const row ):
@@ -285,8 +269,8 @@ public:
 
     /**
      * @brief Callback signaling that the number of non zeros of the associated row has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the number of non zeros added.
+     * @param curPtr the current pointer to the array.
+     * @param nToAdd the number of non zeros added.
      * @note This method doesn't actually change the size but it can do reallocation.
      * @return a pointer to the columns of the associated row.
      */

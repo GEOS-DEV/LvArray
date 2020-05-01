@@ -417,7 +417,7 @@ public:
    */
   void shallowCopyTest() const
   {
-    ViewType< COL_TYPE > const & view = m_sp;
+    ViewType< COL_TYPE > const & view = m_sp.toView();
     ViewType< COL_TYPE > copy( view );
 
     ASSERT_EQ( m_sp.numRows(), copy.numRows());
@@ -480,6 +480,56 @@ protected:
 
   SparsityPattern< COL_TYPE > m_sp;
   std::vector< std::set< COL_TYPE > > m_ref;
+
+  /// Check that the move, toView, and toViewConst methods of SparsityPattern< COL_TYPE > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPattern< COL_TYPE > >,
+                 "SparsityPattern< COL_TYPE > has a move method." );
+  static_assert( HasMemberFunction_toView< SparsityPattern< COL_TYPE > >,
+                 "SparsityPattern< COL_TYPE > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< SparsityPattern< COL_TYPE > >,
+                 "SparsityPattern< COL_TYPE > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of SparsityPatternView< COL_TYPE, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > are
+  /// detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
+                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+
+  // /// Check that GetViewType and GetViewTypeConst are correct for SparsityPattern< COL_TYPE >
+  static_assert( std::is_same_v< typename GetViewType< SparsityPattern< COL_TYPE > >::type,
+                                 SparsityPatternView< COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of SparsityPattern< COL_TYPE > is SparsityPatternView< COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPattern< COL_TYPE > >::type,
+                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of SparsityPattern< COL_TYPE > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for SparsityPatternView< COL_TYPE, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >::type,
+                                 SparsityPatternView< COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of SparsityPatternView< COL_TYPE, INDEX_TYPE const > is SparsityPatternView< COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >::type,
+                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of SparsityPatternView< COL_TYPE, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for SparsityPatternView< COL_TYPE const, INDEX_TYPE const
+  /// >
+  static_assert( std::is_same_v< typename GetViewType< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >::type,
+                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
+                 "The view type of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >::type,
+                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
 };
 
 using TestTypes = ::testing::Types< int, unsigned int >;
@@ -856,7 +906,7 @@ public:
     }
 
     // Check that each row contains the even columns and no odd columns on device.
-    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & view = m_sp.toView();
+    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & view = m_sp.toViewConst();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {

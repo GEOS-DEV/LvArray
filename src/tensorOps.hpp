@@ -29,51 +29,72 @@ namespace LvArray
 namespace tensorOps
 {
 
-template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
+/**
+ * @tparam A The type of the matrix @p a.
+ * @tparam B The type of the matrix @p b.
+ * @tparam C The type of the matrix @p c.
+ * @brief Take the outer product of vectors @p b and @p c and write the results to the matrix @p a.
+ * @param a A 3x3 matrix to write the results to.
+ * @param b A vector of length 3 that is the left operand of the outer product.
+ * @param c A vector of length 3 that is the right operand of the outer product.
+ */
+template< typename A, typename B, typename C >
 LVARRAY_HOST_DEVICE constexpr inline
-void outerProduct( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
-                   ArraySlice< T const, 1, USD1, INDEX_TYPE > const & b,
-                   ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
+void outerProduct( A const & a, B const & b, C const & c )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );
   LVARRAY_ASSERT_EQ( b.size(), 3 );
   LVARRAY_ASSERT_EQ( c.size(), 3 );
 
-  for( INDEX_TYPE i = 0; i < 3; ++i )
+  for( int i = 0; i < 3; ++i )
   {
-    for( INDEX_TYPE j = 0; j < 3; ++j )
+    for( int j = 0; j < 3; ++j )
     {
       a( i, j ) = b( i ) * c( j );
     }
   }
 }
 
-template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
+/**
+ * @tparam A The type of the matrix @p a.
+ * @tparam B The type of the matrix @p b.
+ * @tparam C The type of the matrix @p c.
+ * @brief Take the outer product of vectors @p b and @p c and add the results to the matrix @p a.
+ * @param a A 3x3 matrix to add the results to.
+ * @param b A vector of length 3 that is the left operand of the outer product.
+ * @param c A vector of length 3 that is the right operand of the outer product.
+ */
+template< typename A, typename B, typename C >
 LVARRAY_HOST_DEVICE constexpr inline
-void outerProductPE( ArraySlice< T, 2, USD0, INDEX_TYPE > const & a,
-                     ArraySlice< T const, 1, USD1, INDEX_TYPE > const & b,
-                     ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
+void outerProductPE( A const & a, B const & b, C const & c )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );
   LVARRAY_ASSERT_EQ( b.size(), 3 );
   LVARRAY_ASSERT_EQ( c.size(), 3 );
 
-  for( INDEX_TYPE i = 0; i < 3; ++i )
+  for( int i = 0; i < 3; ++i )
   {
-    for( INDEX_TYPE j = 0; j < 3; ++j )
+    for( int j = 0; j < 3; ++j )
     {
       a( i, j ) = a( i, j ) + b( i ) * c( j );
     }
   }
 }
 
-template< typename T, int USD0, int USD1, int USD2, typename INDEX_TYPE >
+/**
+ * @tparam A The type of the vector @p a.
+ * @tparam B The type of the matrix @p b.
+ * @tparam C The type of the vector @p c.
+ * @brief Multiply the vector @p c by the transpose of matrix @p b and write the results to the vector @p a.
+ * @param a A vector of length 3 to write the results to.
+ * @param b A 3x3 matrix.
+ * @param c A vector of length 3 that is the multiplied by @p b.
+ */
+template< typename A, typename B, typename C >
 LVARRAY_HOST_DEVICE constexpr inline
-void matTVec( ArraySlice< T, 1, USD0, INDEX_TYPE > const & a,
-              ArraySlice< T const, 2, USD1, INDEX_TYPE > const & b,
-              ArraySlice< T const, 1, USD2, INDEX_TYPE > const & c )
+void matTVec( A const & a, B const & b, C const & c )
 {
   LVARRAY_ASSERT_EQ( a.size(), 3 );
   LVARRAY_ASSERT_EQ( b.size( 0 ), 3 );
@@ -85,25 +106,30 @@ void matTVec( ArraySlice< T, 1, USD0, INDEX_TYPE > const & a,
   a( 2 ) = b( 0, 2 ) * c( 0 ) + b( 1, 2 ) * c( 1 ) + b( 2, 2 ) * c( 2 );
 }
 
-template< typename T, int USD, typename INDEX_TYPE >
+/**
+ * @tparam A The type of the matrix @p a.
+ * @brief Invert the matrix @p a and @return the determinant.
+ * @param a The 3x3 matrix to invert.
+ */
+template< typename A >
 LVARRAY_HOST_DEVICE constexpr inline
-T invert( ArraySlice< T, 2, USD, INDEX_TYPE > const & a )
+auto invert( A const & a )
 {
   LVARRAY_ASSERT_EQ( a.size( 0 ), 3 );
   LVARRAY_ASSERT_EQ( a.size( 1 ), 3 );
 
-  T const temp00 = a( 1, 1 ) * a( 2, 2 ) - a( 1, 2 ) * a( 2, 1 );
-  T const temp01 = a( 0, 2 ) * a( 2, 1 ) - a( 0, 1 ) * a( 2, 2 );
-  T const temp02 = a( 0, 1 ) * a( 1, 2 ) - a( 0, 2 ) * a( 1, 1 );
-  T const temp10 = a( 1, 2 ) * a( 2, 0 ) - a( 1, 0 ) * a( 2, 2 );
-  T const temp11 = a( 0, 0 ) * a( 2, 2 ) - a( 0, 2 ) * a( 2, 0 );
-  T const temp12 = a( 0, 2 ) * a( 1, 0 ) - a( 0, 0 ) * a( 1, 2 );
-  T const temp20 = a( 1, 0 ) * a( 2, 1 ) - a( 1, 1 ) * a( 2, 0 );
-  T const temp21 = a( 0, 1 ) * a( 2, 0 ) - a( 0, 0 ) * a( 2, 1 );
-  T const temp22 = a( 0, 0 ) * a( 1, 1 ) - a( 0, 1 ) * a( 1, 0 );
+  auto const temp00 = a( 1, 1 ) * a( 2, 2 ) - a( 1, 2 ) * a( 2, 1 );
+  auto const temp01 = a( 0, 2 ) * a( 2, 1 ) - a( 0, 1 ) * a( 2, 2 );
+  auto const temp02 = a( 0, 1 ) * a( 1, 2 ) - a( 0, 2 ) * a( 1, 1 );
+  auto const temp10 = a( 1, 2 ) * a( 2, 0 ) - a( 1, 0 ) * a( 2, 2 );
+  auto const temp11 = a( 0, 0 ) * a( 2, 2 ) - a( 0, 2 ) * a( 2, 0 );
+  auto const temp12 = a( 0, 2 ) * a( 1, 0 ) - a( 0, 0 ) * a( 1, 2 );
+  auto const temp20 = a( 1, 0 ) * a( 2, 1 ) - a( 1, 1 ) * a( 2, 0 );
+  auto const temp21 = a( 0, 1 ) * a( 2, 0 ) - a( 0, 0 ) * a( 2, 1 );
+  auto const temp22 = a( 0, 0 ) * a( 1, 1 ) - a( 0, 1 ) * a( 1, 0 );
 
-  T const det = a( 0, 0 ) * temp00 + a( 1, 0 ) * temp01 + a( 2, 0 ) * temp02;
-  T const invDet = 1.0 / det;
+  auto const det = a( 0, 0 ) * temp00 + a( 1, 0 ) * temp01 + a( 2, 0 ) * temp02;
+  auto const invDet = 1.0 / det;
 
   a( 0, 0 ) = temp00 * invDet;
   a( 0, 1 ) = temp01 * invDet;

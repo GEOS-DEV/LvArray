@@ -553,7 +553,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
 {
   this->pushBack( NO_REALLOC_CAPACITY );
 
-  for_each_arg(
+  forEachArg(
     [this]( auto && copy )
   {
     bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );

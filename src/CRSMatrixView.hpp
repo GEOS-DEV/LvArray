@@ -65,14 +65,16 @@ void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
 template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
 class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
 {
+
+  /// An alias for the parent class.
+  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
+
 public:
   static_assert( !std::is_const< T >::value ||
                  (std::is_const< COL_TYPE >::value && std::is_const< INDEX_TYPE >::value),
                  "When T is const COL_TYPE and INDEX_TYPE must also be const." );
 
-  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
-
-  // Aliasing public typedefs of SparsityPatternView.
+  /// An alias for the non const index type.
   using typename ParentClass::INDEX_TYPE_NC;
 
   // Aliasing public methods of SparsityPatternView.
@@ -87,72 +89,54 @@ public:
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *        chai::ManagedArray copy constructor.
-   * @param [in] src the CRSMatrixView to be copied.
    */
-  CRSMatrixView( CRSMatrixView const & src ) = default;
+  CRSMatrixView( CRSMatrixView const & ) = default;
 
   /**
    * @brief Default move constructor.
-   * @param [in/out] src the CRSMatrixView to be moved from.
    */
   inline
   CRSMatrixView( CRSMatrixView && ) = default;
 
   /**
-   * @brief User defined conversion to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
-   *        This prevents you from inserting or removing but still allows modification of the matrix entries.
+   * @brief Default copy assignment operator, this does a shallow copy.
+   * @return *this.
    */
-  template< class U=T, class CTYPE=COL_TYPE >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator typename std::enable_if< !std::is_const< U >::value && !std::is_const< CTYPE >::value,
-                                    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
+  inline
+  CRSMatrixView & operator=( CRSMatrixView const & ) = default;
 
   /**
-   * @brief Method to convert to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>. Use this method
-   *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
+   * @brief @return Return *this.
+   * @brief This is included for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewSemiConst() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
-   * @brief User defined conversion to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
-   *        This prevents you from inserting, removing or modifying the matrix entries.
+   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
    */
-  template< class U=T >
   LVARRAY_HOST_DEVICE constexpr inline
-  operator typename std::enable_if< !std::is_const< U >::value, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >( *this ); }
 
   /**
-   * @brief Method to convert to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>. Use this method
-   *        when the above UDC isn't invoked, this usually occurs with template argument deduction.
+   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
-   * @brief Method to convert to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
+   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
   { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
 
   /**
-   * @brief Default copy assignment operator, this does a shallow copy.
-   * @param [in] src the CRSMatrixView to be copied from.
-   */
-  inline
-  CRSMatrixView & operator=( CRSMatrixView const & src ) = default;
-
-  /**
-   * @brief Return an ArraySlice1d (pointer) to the matrix entries of the given row.
-   *        This array has length numNonZeros(row).
-   * @param [in] row the row to access.
+   * @brief @return Return an ArraySlice1d to the matrix entries of the given row.
+   * @param row The row to access.
    */
   LVARRAY_HOST_DEVICE inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
@@ -163,13 +147,12 @@ public:
 
   /**
    * @brief Insert a non-zero entry at the given position.
-   * @param [in] row the row to insert in.
-   * @param [in] col the column to insert at.
-   * @param [in] entry the entry to insert.
+   * @param row The row to insert in.
+   * @param col The column to insert at.
+   * @param entry The entry to insert.
    * @return True iff the entry was inserted (the entry was zero before).
-   *
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entry.
+   * @pre Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given row has enough space for the new entry.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const LVARRAY_RESTRICT_THIS
@@ -177,15 +160,14 @@ public:
 
   /**
    * @brief Insert a non-zero entries into the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert at, of length ncols. Must be sorted.
-   * @param [in] entriesToInsert the entries to insert, of length ncols.
-   * @param [in] ncols the number of columns/entries to insert.
+   * @param row The row to insert into.
+   * @param cols The columns to insert at, of length ncols. Must be sorted.
+   * @param entriesToInsert The entries to insert, of length ncols.
+   * @param ncols The number of columns/entries to insert.
    * @return The number of entries inserted.
-   *
-   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
-   * @note Since the CRSMatrixView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
+   * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
+   * @pre Since the CRSMatrixView can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given row has enough space for the new entries.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
@@ -196,8 +178,8 @@ public:
 
   /**
    * @brief Remove a non-zero entry at the given position.
-   * @param [in] row the row to remove from.
-   * @param [in] col the column to remove.
+   * @param row The row to remove from.
+   * @param col The column to remove.
    * @return True iff the entry was removed (the entry was non-zero before).
    */
   LVARRAY_HOST_DEVICE inline
@@ -206,12 +188,11 @@ public:
 
   /**
    * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols.
-   * @param [in] ncols the number of columns to remove.
+   * @param row The row to remove from.
+   * @param cols The columns to remove, of length ncols.
+   * @param ncols The number of columns to remove.
    * @return True iff the entry was removed (the entry was non-zero before).
-   *
-   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
+   * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
@@ -230,7 +211,7 @@ public:
 
   /**
    * @brief Set all the values in the matrix to the given value.
-   * @param [in] value the value to set values in the matrix to.
+   * @param value the value to set values in the matrix to.
    */
   inline
   void setValues( T const & value ) const
@@ -247,14 +228,19 @@ public:
     }
   }
 
+  /// @cond DO_NOT_DOCUMENT
+  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
+  // else it works just fine.
+
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.
    *        The columns must be sorted.
    * @tparam AtomicPolicy the policy to use when adding to the values.
-   * @param [in] row the row to access.
-   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
-   * @param [in] vals the values to add, of length nCols.
-   * @param [in] nCols the number of columns to add to.
+   * @param row The row to access.
+   * @param cols The columns to add to, must be sorted, unique and of length nCols.
+   * @param vals The values to add, of length nCols.
+   * @param nCols The number of columns to add to.
+   * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    * TODO: Use benchmarks of addToRowBinarySearch and addToRowLinearSearch
    *       to develop a better heuristic.
    */
@@ -276,16 +262,19 @@ public:
     }
   }
 
+  /// @endcond DO_NOT_DOCUMENT
+
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.
-   *        The columns must be sorted and this method uses a binary search to find
-   *        the entries in the row to add to. This makes the method O( nCols * log( numNonZeros( row ) ) )
-   *        and is therefore best to use when nCols is much less than numNonZeros( row ).
+   * @details This method uses a binary search to find the entries in the row to add to.
+   *   This makes the method O( nCols * log( numNonZeros( @p row ) ) ) and is therefore best
+   *   to use when @p nCols is much less than numNonZeros( @p row ).
    * @tparam AtomicPolicy the policy to use when adding to the values.
-   * @param [in] row the row to access.
-   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
-   * @param [in] vals the values to add, of length nCols.
-   * @param [in] nCols the number of columns to add to.
+   * @param row The row to access.
+   * @param cols The columns to add to, must be sorted, unique and of length @p nCols.
+   * @param vals The values to add, of length @p nCols.
+   * @param nCols The number of columns to add to.
+   * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    */
   template< typename AtomicPolicy=RAJA::seq_atomic >
   LVARRAY_HOST_DEVICE inline
@@ -314,14 +303,15 @@ public:
 
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.
-   *        The columns must be sorted and this method uses a linear search to find
-   *        the entries in the row to add to. This makes the method O( numNonZeros( row ) )
-   *        and is therefore best to use when nCols is similar to numNonZeros( row ).
+   * @brief This method uses a linear search to find the entries in the row to add to.
+   *   This makes the method O( numNonZeros( @p row ) ) and is therefore best to use when
+   *   @p nCols is similar to numNonZeros( @p row ).
    * @tparam AtomicPolicy the policy to use when adding to the values.
-   * @param [in] row the row to access.
-   * @param [in] cols the columns to add to, must be sorted, unique and of length nCols.
-   * @param [in] vals the values to add, of length nCols.
-   * @param [in] nCols the number of columns to add to.
+   * @param row The row to access.
+   * @param cols The columns to add to, must be sorted, unique and of length @p nCols.
+   * @param vals The values to add, of length @p nCols.
+   * @param nCols The number of columns to add to.
+   * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    */
   template< typename AtomicPolicy=RAJA::seq_atomic >
   LVARRAY_HOST_DEVICE inline
@@ -355,8 +345,8 @@ public:
 
   /**
    * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch If true touch the values, sizes and offsets in the new space.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
   void move( chai::ExecutionSpace const space, bool const touch=true ) const
@@ -377,6 +367,11 @@ protected:
     m_entries( true )
   {}
 
+  /**
+   * @tparam U The type of the owning object.
+   * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
+   * @param name the name to display.
+   */
   template< typename U >
   void setName( std::string const & name )
   {
@@ -390,7 +385,7 @@ protected:
   using ParentClass::m_sizes;
   using ParentClass::m_values;
 
-  // Holds the entries of the matrix, of length numNonZeros().
+  /// Holds the entries of the matrix, of length numNonZeros().
   NewChaiBuffer< T > m_entries;
 
 private:
@@ -405,9 +400,9 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] crsMV the CRSMatrixView this CallBacks is associated with.
-     * @param [in] row the row this CallBacks is associated with.
-     * @param [in] entriesToInsert pointer to the entries to insert.
+     * @param crsMV the CRSMatrixView this CallBacks is associated with.
+     * @param row the row this CallBacks is associated with.
+     * @param entriesToInsert pointer to the entries to insert.
      */
     LVARRAY_HOST_DEVICE inline
     CallBacks( CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & crsMV,
@@ -422,8 +417,8 @@ public:
 
     /**
      * @brief Callback signaling that the size of the row has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the increase in the size.
+     * @param curPtr the current pointer to the array.
+     * @param nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
      *       size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
@@ -444,7 +439,7 @@ public:
      * @brief Used with sortedArrayManipulation::insert routine this callback signals
      *        that the column was inserted at the given position. This means we also need to insert
      *        the entry at the same position.
-     * @param [in] insertPos the position the column was inserted at.
+     * @param insertPos the position the column was inserted at.
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE const insertPos ) const
@@ -454,8 +449,8 @@ public:
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      *        signals that the given position was set to the column at the other position.
      *        This means we need to perform the same operation on the entries.
-     * @param [in] pos the position that was set.
-     * @param [in] colPos the position of the column.
+     * @param pos the position that was set.
+     * @param colPos the position of the column.
      */
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
@@ -467,10 +462,10 @@ public:
      *        signals that the given column was inserted at the given position. Further information
      *        is provided in order to make the insertion efficient. This means that we need to perform
      *        the same operation on the entries.
-     * @param [in] nLeftToInsert the number of insertions that occur after this one.
-     * @param [in] colPos the position of the column that was inserted.
-     * @param [in] insertPos the position the column was inserted at.
-     * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ
+     * @param nLeftToInsert the number of insertions that occur after this one.
+     * @param colPos the position of the column that was inserted.
+     * @param insertPos the position the column was inserted at.
+     * @param prevPos the position the previous column was inserted at or m_rowNNZ
      *             if it is the first insertion.
      */
     DISABLE_HD_WARNING
@@ -488,7 +483,7 @@ public:
      * @brief Used with sortedArrayManipulation::remove routine this callback signals
      *        that the column was removed from the given position. This means we also need to remove
      *        the entry from the same position.
-     * @param [in] removePos the position the column was removed from.
+     * @param removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE_NC removePos ) const
@@ -499,9 +494,9 @@ public:
      *        signals that the given column was removed from the given position. Further information
      *        is provided in order to make the removal efficient. This means that we need to perform
      *        the same operation on the entries.
-     * @param [in] nRemoved the number of columns removed, starts at 1.
-     * @param [in] curPos the position the column was removed at.
-     * @param [in] nextPos the position the next column will be removed at or m_rowNNZ
+     * @param nRemoved the number of columns removed, starts at 1.
+     * @param curPos the position the column was removed at.
+     * @param nextPos the position the next column will be removed at or m_rowNNZ
      *             if this was the last column removed.
      */
     LVARRAY_HOST_DEVICE inline
@@ -511,11 +506,22 @@ public:
     { arrayManipulation::shiftDown( m_entries, nextPos, curPos + 1, nRemoved ); }
 
 private:
+    /// A reference to the associated CRSMatrixView.
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & m_crsMV;
+
+    /// The associated row.
     INDEX_TYPE const m_row;
+
+    /// The number of non zero entries in the row.
     INDEX_TYPE const m_rowNNZ;
+
+    /// The non zero capacity of the row.
     INDEX_TYPE const m_rowCapacity;
+
+    /// A pointer to the entries in the row.
     T * const m_entries;
+
+    /// A pointer to the entries to insert.
     T const * const m_entriesToInsert;
   };
 

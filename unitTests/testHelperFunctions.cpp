@@ -50,7 +50,7 @@ void func0( double divisor )
 
 void testStackTrace( double divisor )
 {
-  cxx_utilities::setSignalHandling( cxx_utilities::handler1 );
+  cxx_utilities::setSignalHandling( []( int const signal ) { cxx_utilities::stackTraceHandler( signal, true ); } );
   func0( divisor );
 }
 

@@ -24,127 +24,103 @@
 #define INTEGERCONVERSION_HPP_
 
 // Source includes
-#include "StringUtilities.hpp"
 #include "Macros.hpp"
 
 // System includes
 #include <limits>
-#include <typeinfo>
 
 /**
  * @file IntegerConversion.hpp
  */
 
-/**
- * @brief function to take an unsigned integer and convert to a signed integer
- * @tparam RTYPE the type of signed integer to convert into
- * @tparam T     the type of the unsigned integer provided
- * @param input  the integer to convert
- * @return the converted integer
- *
- * This function takes in an unsigned integer and converts it to a signed integer. There is a check
- * to make sure that no data is lost as a result of this conversion.
- */
-template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_unsigned< T >::value && std::is_signed< RTYPE >::value,
-                                RTYPE >::type
-integer_conversion( T input )
+namespace LvArray
 {
-  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
 
-  LVARRAY_ERROR_IF( input > std::numeric_limits< RTYPE >::max(),
-                    "conversion of \"("
-                    <<cxx_utilities::demangle( typeid(T).name() )
-                    <<")"<<input<<"\" to ("
-                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                    <<") loses information! ("<<input<<">"
-                    <<std::numeric_limits< RTYPE >::max()<<")" );
+namespace internal
+{
 
-  return static_cast< RTYPE >(input);
+/**
+ * @tparam T The first type to check.
+ * @tparam U The second type to check.
+ * @brief True iff @tparam T and @tparam U are both signed or both unsigned.
+ */
+template< typename T, typename U >
+constexpr bool sameSignedness = ( std::is_signed< T >::value && std::is_signed< U >::value ) ||
+                                ( std::is_unsigned< T >::value && std::is_unsigned< U >::value );
+
+/**
+ * @tparam INPUT The input type.
+ * @tparam OUTPUT The output type.
+ * @brief True iff @tparam OUTPUT can hold every possible value of @tparam INPUT.
+ */
+template< typename INPUT, typename OUTPUT >
+constexpr bool canEasilyConvert = sizeof( INPUT ) < sizeof( OUTPUT ) ||
+                                  ( sizeof( INPUT ) == sizeof( OUTPUT ) && sameSignedness< INPUT, OUTPUT > );
+
+} // namespace internal
+
+/**
+ * @tparam INPUT The input integer type.
+ * @tparam OUTPUT The output integer type.
+ * @brief @return Return @p input to type @tparam OUTPUT, aborting execution if the conversion can't be performed.
+ * @param input The value to convert.
+ */
+template< typename OUTPUT, typename INPUT >
+std::enable_if_t< internal::canEasilyConvert< INPUT, OUTPUT >, OUTPUT >
+inline constexpr LVARRAY_HOST_DEVICE
+integerConversion( INPUT input )
+{
+  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
+
+  return OUTPUT{ input };
 }
 
 /**
- * @brief function to take a signed integer and convert to an unsigned integer
- * @tparam RTYPE the type of unsigned integer to convert into
- * @tparam T     the type of signed the integer provided
- * @param input  the integer value to convert
- * @return the converted integer
- *
- * This function takes in a signed integer and converts it to an unsigned integer. There is a check
- * to make sure that no data is lost as a result of this conversion.
+ * @tparam INPUT The input integer type.
+ * @tparam OUTPUT The output integer type.
+ * @brief @return Return @p input to type @tparam OUTPUT, aborting execution if the conversion can't be performed.
+ * @param input The value to convert.
  */
-template< typename RTYPE, typename T >
-inline typename std::enable_if< std::is_signed< T >::value && std::is_unsigned< RTYPE >::value,
-                                RTYPE >::type
-integer_conversion( T input )
+template< typename OUTPUT, typename INPUT >
+std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
+                  std::is_unsigned< INPUT >::value,
+                  OUTPUT >
+integerConversion( INPUT input )
 {
-  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
+  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  LVARRAY_ERROR_IF( input < 0,
-                    "conversion of integer \"("
-                    <<cxx_utilities::demangle( typeid(T).name() )
-                    <<")"<<input<<"\" to type ("
-                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                    <<") loses information! ("<<input<<"<0)" );
+  LVARRAY_ERROR_IF_GT( input, std::numeric_limits< OUTPUT >::max() );
 
-  LVARRAY_ERROR_IF( static_cast< typename std::make_unsigned< T >::type >(input) > std::numeric_limits< RTYPE >::max(),
-                    "conversion of integer \"("
-                    <<cxx_utilities::demangle( typeid(T).name() )
-                    <<")"<<input<<"\" to type ("
-                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                    <<") loses information! ("<<input<<">"
-                    <<std::numeric_limits< RTYPE >::max()<<")" );
-
-  return static_cast< RTYPE >(input);
+  return static_cast< OUTPUT >( input );
 }
-
 
 /**
- * @brief function to take an integer and convert to an integer with the same signedness
- * @tparam RTYPE the type of integer to convert into
- * @tparam T     the type of the integer provided
- * @param input  the integer value to convert
- * @return the converted integer
- *
- * This function takes in an integer and converts it to an integer of different type. There is a check
- * to make sure that no data is lost as a result of this conversion.
+ * @tparam INPUT The input integer type.
+ * @tparam OUTPUT The output integer type.
+ * @brief @return Return @p input to type @tparam OUTPUT, aborting execution if the conversion can't be performed.
+ * @param input The value to convert.
  */
-template< typename RTYPE, typename T >
-inline typename std::enable_if< ( std::is_signed< T >::value && std::is_signed< RTYPE >::value ) ||
-                                ( std::is_unsigned< T >::value && std::is_unsigned< RTYPE >::value ),
-                                RTYPE >::type
-integer_conversion( T input )
+template< typename OUTPUT, typename INPUT >
+std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
+                  !std::is_unsigned< INPUT >::value,
+                  OUTPUT >
+integerConversion( INPUT input )
 {
-  static_assert( std::numeric_limits< T >::is_integer, "input is not an integer type" );
-  static_assert( std::numeric_limits< RTYPE >::is_integer, "requested conversion is not an integer type" );
+  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-//  if( input > std::numeric_limits<RTYPE>::max() ||
-//      input < std::numeric_limits<RTYPE>::lowest() )
-//  {
-//    abort();
-//  }
+  LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ std::numeric_limits< OUTPUT >::min() } );
 
-  LVARRAY_ERROR_IF( input > std::numeric_limits< RTYPE >::max(),
-                    "conversion of integer \"("
-                    <<cxx_utilities::demangle( typeid(T).name() )
-                    <<")"<<input<<"\" to type "
-                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                    <<" loses information! ("<<input<<">"
-                    <<std::numeric_limits< RTYPE >::max()<<")" );
+  // If OUTPUT is unsigned we convert input to an unsigned type. This is safe because it must be
+  // positive due to the check above.
+  using ConditionallyUnsigned = std::conditional_t< std::is_unsigned< OUTPUT >::value, std::make_unsigned_t< INPUT >, INPUT >;
+  LVARRAY_ERROR_IF_GT( ConditionallyUnsigned( input ), std::numeric_limits< OUTPUT >::max() );
 
-  LVARRAY_ERROR_IF( std::is_signed< T >::value && input < std::numeric_limits< RTYPE >::lowest(),
-                    "conversion of integer \"("
-                    <<cxx_utilities::demangle( typeid(T).name() )
-                    <<")"<<input<<"\" to type ("
-                    <<cxx_utilities::demangle( typeid(RTYPE).name() )
-                    <<") loses information! ("<<input<<"<"
-                    <<std::numeric_limits< RTYPE >::lowest()<<")" );
-
-  return static_cast< RTYPE >(input);
+  return static_cast< OUTPUT >( input );
 }
 
-
+} // namespace LvArray
 
 #endif /* SRC_SRC_INTEGERCONVERSION_HPP_ */

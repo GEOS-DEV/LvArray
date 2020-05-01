@@ -39,7 +39,7 @@ namespace bufferManipulation
 
 /**
  * @brief Defines a static constexpr bool HasMemberFunction_move< @p CLASS >
- *        that is true iff the method @p CLASS ::move(chai::ExecutionSpace, bool) exists.
+ *   that is true iff the method @p CLASS ::move(chai::ExecutionSpace, bool) exists.
  * @tparam CLASS The type to test.
  */
 IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
@@ -47,8 +47,8 @@ IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move
 /**
  * @class VoidBuffer
  * @brief This class implements the default behavior for the Buffer methods related
- *        to execution space. This class is not intended to be used directly, instead derive
- *        from it if you would like to inherit the default behavior.
+ *   to execution space. This class is not intended to be used directly, instead derive
+ *   from it if you would like to inherit the default behavior.
  */
 struct VoidBuffer
 {
@@ -58,29 +58,33 @@ struct VoidBuffer
    * @param size the size of the buffer.
    * @param touch whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space,
-             std::ptrdiff_t const LVARRAY_UNUSED_ARG( size ),
-             bool const LVARRAY_UNUSED_ARG( touch ) ) const
-  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
+  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
+  {
+    LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( touch );
+    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
+  }
 
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
    * @param space the space to move the buffer to.
    * @param touch whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space,
-             bool const LVARRAY_UNUSED_ARG( touch ) )
-  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
+  void move( chai::ExecutionSpace const space, bool const touch )
+  {
+    LVARRAY_UNUSED_VARIABLE( touch );
+    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
+  }
 
   /**
    * @brief Touch the buffer in the given space.
    * @param space the space to touch.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
   void registerTouch( chai::ExecutionSpace const space )
   { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
@@ -91,8 +95,8 @@ struct VoidBuffer
    * @param name the name of the buffer.
    */
   template< typename=VoidBuffer >
-  void setName( std::string const & LVARRAY_UNUSED_ARG( name ) )
-  {}
+  void setName( std::string const & name )
+  { LVARRAY_UNUSED_VARIABLE( name ); }
 };
 
 /**
