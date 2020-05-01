@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <string>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /// @brief @return Return a demangled stack trace of the last 25 frames.

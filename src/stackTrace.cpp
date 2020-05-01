@@ -39,7 +39,7 @@
 
 constexpr int MAX_FRAMES = 25;
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 namespace internal
@@ -211,4 +211,4 @@ void stackTraceHandler( int const sig, bool const exit )
   }
 }
 
-} // namespace cxx_utilities
+} // namespace LvArray

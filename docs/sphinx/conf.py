@@ -34,12 +34,12 @@ if read_the_docs_build:
         os.mkdir(html_path)
 
     docs_path = os.path.join(cwd, "..", "doxygen")
-#    common_path = os.path.join(cwd, "coreComponents", "common")
+    common_path = os.path.join(cwd, "..","..","src")
 
     doxyfile_src = os.path.join(docs_path, "Doxyfile.in")
     doxyfile_dst = os.path.join(build_path, "Doxyfile")
-#    config_src = os.path.join(docs_path, "GeosxConfig.hpp")
-#    config_dst = os.path.join(common_path, "GeosxConfig.hpp")
+    config_src = os.path.join(docs_path, "LvArrayConfig.hpp")
+    config_dst = os.path.join(common_path, "LvArrayConfig.hpp")
 
     input_dirs = ["src"]
 
@@ -50,7 +50,7 @@ if read_the_docs_build:
         f.write("\nOUTPUT_DIRECTORY = %s/doxygen_output" % html_path)
         f.write("\nHAVE_DOT = YES")
 
-    # Make a symlink to GeosxConfig.hpp in common
+    # Make a symlink to LvArrayConfig.hpp in src
     if not os.path.exists(config_dst):
         os.symlink(config_src, config_dst)
 

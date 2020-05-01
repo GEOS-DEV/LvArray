@@ -2,34 +2,34 @@
 #define LVARRAYCONFIG_HPP
 
 
-#cmakedefine USE_ARRAY_BOUNDS_CHECK
+#define USE_ARRAY_BOUNDS_CHECK
 
 #ifndef USE_ATK
-#cmakedefine USE_ATK
+#define USE_ATK
 #endif
 
 #ifndef USE_CHAI
-#cmakedefine USE_CHAI
+#define USE_CHAI
 #endif
 
 #ifndef USE_RAJA
-#cmakedefine USE_RAJA
+#define USE_RAJA
 #endif
 
 #ifndef USE_MPI
-#cmakedefine USE_MPI
+#define USE_MPI
 #endif
 
 #ifndef USE_CUDA
-#cmakedefine USE_CUDA
+#define USE_CUDA
 #endif
 
 #ifndef USE_TOTALVIEW_OUTPUT
-#cmakedefine USE_TOTALVIEW_OUTPUT
+#define USE_TOTALVIEW_OUTPUT
 #endif
 
 #ifndef USE_OPENMP
-#cmakedefine USE_OPENMP
+#define USE_OPENMP
 #endif
 
 

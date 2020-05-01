@@ -116,7 +116,7 @@
       std::cout << "***** LOCATION: " << LOCATION << std::endl; \
       std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
       std::cout << MSG << std::endl; \
-      cxx_utilities::stackTraceHandler( SIGKILL, true ); \
+      LvArray::stackTraceHandler( SIGKILL, true ); \
     } \
   } while( false )
 #endif

@@ -334,13 +334,13 @@ public:
   template< typename U=NewChaiBuffer< T > >
   void setName( std::string const & name )
   {
-    std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
+    std::string const typeString = LvArray::demangle( typeid( U ).name() );
     m_pointer_record->m_user_callback = \
       [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
     {
       if( act == chai::ACTION_MOVE )
       {
-        std::string const size = cxx_utilities::calculateSize( bytes );
+        std::string const size = LvArray::calculateSize( bytes );
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );

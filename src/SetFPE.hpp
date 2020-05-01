@@ -72,7 +72,7 @@ inline int fedisableexcept( unsigned int excepts )
 }
 #endif
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /// Set the floating point environment.

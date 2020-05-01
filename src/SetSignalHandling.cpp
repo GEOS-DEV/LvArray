@@ -24,7 +24,7 @@
 #include "stackTrace.hpp"
 
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 void setSignalHandling( void (* handler)( int ) )

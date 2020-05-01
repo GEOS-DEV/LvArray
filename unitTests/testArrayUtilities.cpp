@@ -32,7 +32,7 @@
 
 const char IGNORE_OUTPUT[] = ".*";
 
-using namespace cxx_utilities;
+using namespace LvArray;
 using namespace std;
 
 TEST( testArrayUtilities, stringToArrayErrors )

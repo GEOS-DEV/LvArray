@@ -43,7 +43,7 @@ TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
   EXPECT_DEATH_IF_SUPPORTED( uf_test( DBL_MIN, 2 ), IGNORE_OUTPUT );
   fedisableexcept( FE_UNDERFLOW );
 
-  cxx_utilities::SetFPE();
+  LvArray::SetFPE();
   double fpnum = uf_test( DBL_MIN, 2 );
   int fpclassification = std::fpclassify( fpnum );
   EXPECT_NE( fpclassification, FP_SUBNORMAL );
@@ -51,20 +51,20 @@ TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
 
 TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
 {
-  cxx_utilities::SetFPE();
+  LvArray::SetFPE();
   EXPECT_DEATH_IF_SUPPORTED( func3( 0.0 ), IGNORE_OUTPUT );
 }
 
 
 TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
 {
-  cxx_utilities::SetFPE();
+  LvArray::SetFPE();
   EXPECT_DEATH_IF_SUPPORTED( of_test( 2, DBL_MAX ), IGNORE_OUTPUT );
 }
 
 TEST( TestFloatingPointEnvironment, test_FE_INVALID )
 {
-  cxx_utilities::SetFPE();
+  LvArray::SetFPE();
   EXPECT_DEATH_IF_SUPPORTED( invalid_test( 0.0 ), IGNORE_OUTPUT );
 }
 

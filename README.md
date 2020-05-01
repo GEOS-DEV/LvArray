@@ -3,7 +3,7 @@
 Documentation
 ---------------------
 
-https://github.com/GEOSX/cxx-utilities/blob/develop/src/docs/sphinx/LvArray.rst
+https://github.com/GEOSX/lvarray/blob/develop/src/docs/sphinx/LvArray.rst
 
 Authors
 -------

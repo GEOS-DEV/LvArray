@@ -29,7 +29,7 @@
 #include <iostream>
 #include <typeinfo>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /**
@@ -62,6 +62,6 @@ inline std::string demangleType( T const & )
  */
 std::string calculateSize( size_t const bytes );
 
-} // namespace cxx_utilities
+} // namespace LvArray
 
 #endif // CXX_UTILITIES_STRINGUTILITIES_HPP_

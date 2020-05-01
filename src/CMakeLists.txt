@@ -1,4 +1,4 @@
-set(cxx-utilities_headers
+set(lvarray_headers
     templateHelpers.hpp
     Array.hpp
     ArraySlice.hpp
@@ -34,7 +34,7 @@ set(cxx-utilities_headers
     sliceHelpers.hpp
    )
 
-set(cxx-utilities_sources
+set(lvarray_sources
     SetFPE.cpp
     SetSignalHandling.cpp
     stackTrace.cpp
@@ -43,12 +43,12 @@ set(cxx-utilities_sources
     )
 
 
-message("adding cxx-utilities library")
-blt_add_library( NAME             cxx-utilities
-                 SOURCES          ${cxx-utilities_sources}
-                 HEADERS          ${cxx-utilities_headers}
+message("adding lvarray library")
+blt_add_library( NAME             lvarray
+                 SOURCES          ${lvarray_sources}
+                 HEADERS          ${lvarray_headers}
                  DEPENDS_ON       ${lvarray_dependencies}
                  )
 
-target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )
+target_include_directories( lvarray PUBLIC ${CMAKE_BINARY_DIR}/include )
 

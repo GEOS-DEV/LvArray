@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-# check if cxx-utilities is build as a submodule or a separate project
+# check if LvArray is build as a submodule or a separate project
 get_directory_property(parent_dir PARENT_DIRECTORY)
 if(parent_dir)
     set(is_submodule ON)
@@ -10,11 +10,12 @@ endif()
 
 if(NOT is_submodule)
 
-  project(LvArray LANGUAGES CXX)
+  project(LvArray LANGUAGES C CXX)
 
   set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
   set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
 
+  option(ENABLE_BENCHMARKS "Enables benchmarks" ON)
   include(cmake/blt/SetupBLT.cmake)
   include(cmake/CMakeBasics.cmake)
   include(cmake/SetupTPL.cmake)
@@ -55,5 +56,5 @@ add_subdirectory(benchmarks)
 add_subdirectory(src)
 add_subdirectory(docs)
 
-cxxutils_add_code_checks(PREFIX cxx-utilities
+lvarray_add_code_checks(PREFIX lvarray
                          EXCLUDES "blt/*" )

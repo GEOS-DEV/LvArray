@@ -11,7 +11,7 @@ def format_array(arr):
 
 
 class CxxUtilsPrinter(gdb.printing.PrettyPrinter):
-    """Base printer for cxx-utilities classes"""
+    """Base printer for LvArray classes"""
 
     def __init__(self, val):
         self.val = val
@@ -78,7 +78,7 @@ class NewChaiBufferPrinter(BufferPrinter):
 
 
 def build_buffer_printer():
-    pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-buffers")
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("LvArray-buffers")
     pp.add_printer('LvArray::StackBuffer', 'LvArray::StackBuffer<.*>', StackBufferPrinter)
     pp.add_printer('LvArray::NewChaiBuffer', 'LvArray::NewChaiBuffer<.*>', NewChaiBufferPrinter)
     return pp
@@ -184,7 +184,7 @@ class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
 
 
 def build_array_printer():
-    pp = gdb.printing.RegexpCollectionPrettyPrinter("cxx-utilities-arrays")
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("LvArray-arrays")
     pp.add_printer('LvArray::ArraySlice', '^LvArray::ArraySlice<.*>$', ArraySlicePrinter)
     pp.add_printer('LvArray::ArrayView', '^LvArray::ArrayView<.*>$', ArrayViewPrinter)
     pp.add_printer('LvArray::ArrayOfArraysView', '^LvArray::ArrayOfArraysView<.*>$', ArrayOfArraysViewPrinter)
