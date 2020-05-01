@@ -20,7 +20,7 @@
 #define NEW_CHAI_BUFFER_HPP
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 #include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"

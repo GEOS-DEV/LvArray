@@ -22,7 +22,7 @@ foreach(benchmark ${benchmarkSources})
     blt_add_executable( NAME ${benchmark_name}
                         SOURCES ${benchmark} ${benchmark_name}Kernels.cpp
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON gbenchmark gtest cxx-utilities ${cxx_dependencies} )
+                        DEPENDS_ON gbenchmark gtest cxx-utilities ${lvarray_dependencies} )
 
     target_include_directories( ${benchmark_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
     

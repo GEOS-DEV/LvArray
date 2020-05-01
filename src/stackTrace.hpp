@@ -23,7 +23,7 @@
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
 #define SRC_CODINGUTILITIES_STACKTRACE_HPP_
 
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 
 #include <signal.h>
 #include <string>

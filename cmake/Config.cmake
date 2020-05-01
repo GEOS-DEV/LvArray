@@ -17,8 +17,8 @@ foreach( DEP in ${PREPROCESSOR_DEFINES})
 endforeach()
 
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CXX_UtilsConfig.hpp.in
-    ${CMAKE_BINARY_DIR}/include/CXX_UtilsConfig.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
+    ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp
 )
 
 

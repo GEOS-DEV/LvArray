@@ -34,12 +34,12 @@ if read_the_docs_build:
         os.mkdir(html_path)
 
     docs_path = os.path.join(cwd, "..", "doxygen")
-    common_path = os.path.join(cwd, "coreComponents", "common")
+#    common_path = os.path.join(cwd, "coreComponents", "common")
 
     doxyfile_src = os.path.join(docs_path, "Doxyfile.in")
     doxyfile_dst = os.path.join(build_path, "Doxyfile")
-    config_src = os.path.join(docs_path, "GeosxConfig.hpp")
-    config_dst = os.path.join(common_path, "GeosxConfig.hpp")
+#    config_src = os.path.join(docs_path, "GeosxConfig.hpp")
+#    config_dst = os.path.join(common_path, "GeosxConfig.hpp")
 
     input_dirs = ["src"]
 

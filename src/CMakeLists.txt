@@ -47,7 +47,7 @@ message("adding cxx-utilities library")
 blt_add_library( NAME             cxx-utilities
                  SOURCES          ${cxx-utilities_sources}
                  HEADERS          ${cxx-utilities_headers}
-                 DEPENDS_ON       ${cxx_dependencies}
+                 DEPENDS_ON       ${lvarray_dependencies}
                  )
 
 target_include_directories( cxx-utilities PUBLIC ${CMAKE_BINARY_DIR}/include )

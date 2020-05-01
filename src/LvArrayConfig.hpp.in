@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef LVARRAYCONFIG_HPP
+#define LVARRAYCONFIG_HPP
 
 
 #cmakedefine USE_ARRAY_BOUNDS_CHECK
@@ -30,5 +30,5 @@
 
 
 
-#endif  /* GEOSX_CONFIG_HPP */
+#endif  /* LVARRAYCONFIG_HPP */
 
