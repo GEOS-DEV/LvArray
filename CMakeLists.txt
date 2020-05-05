@@ -55,5 +55,3 @@ add_subdirectory(unitTests)
 add_subdirectory(benchmarks)
 add_subdirectory(src)
 
-lvarray_add_code_checks(PREFIX lvarray
-                         EXCLUDES "blt/*" )
