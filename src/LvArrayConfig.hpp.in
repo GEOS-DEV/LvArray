@@ -35,4 +35,3 @@
 
 
 #endif  /* LVARRAYCONFIG_HPP */
-
