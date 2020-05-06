@@ -28,7 +28,7 @@ function( make_full_config_file
     endforeach()
 
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
-                    ${CMAKE_SOURCE_DIR}/src/docs/doxygen/LvArrayConfig.hpp )
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/docs/doxygen/LvArrayConfig.hpp )
 endfunction()
 
 
