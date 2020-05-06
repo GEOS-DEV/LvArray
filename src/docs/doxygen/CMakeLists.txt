@@ -2,10 +2,4 @@
 # documentation targets
 ################################
 
-add_subdirectory(sphinx)
-
-if(DOXYGEN_FOUND)
-    add_subdirectory(doxygen)
-endif()
-
-
+blt_add_doxygen_target( LvArray_doxygen )

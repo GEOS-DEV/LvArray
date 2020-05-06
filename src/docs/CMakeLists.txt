@@ -2,4 +2,10 @@
 # documentation targets
 ################################
 
-blt_add_doxygen_target( cxx_utilities_doxygen )
+#add_subdirectory(sphinx)
+
+if(DOXYGEN_FOUND)
+    add_subdirectory(doxygen)
+endif()
+
+

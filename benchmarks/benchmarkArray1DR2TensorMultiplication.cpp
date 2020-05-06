@@ -288,7 +288,7 @@ int main( int argc, char * * argv )
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
 
-  LVARRAY_LOG( "VALUE_TYPE = " << cxx_utilities::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
+  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
   LVARRAY_LOG( "Serial problems of size ( " << SERIAL_SIZE << ", 3, 3 )." );
 
 #if defined(USE_OPENMP)

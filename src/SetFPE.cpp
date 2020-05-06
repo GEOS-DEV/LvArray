@@ -27,7 +27,7 @@
 #include <pmmintrin.h>
 #endif
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 

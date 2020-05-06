@@ -25,7 +25,7 @@
 
 #include <exception>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /**

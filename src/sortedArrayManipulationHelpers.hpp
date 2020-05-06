@@ -26,7 +26,7 @@
 #ifndef SORTEDARRAYMANIPULATIONHELPERS_HPP_
 #define SORTEDARRAYMANIPULATIONHELPERS_HPP_
 
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 
 #include <utility>

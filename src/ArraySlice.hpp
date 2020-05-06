@@ -48,7 +48,7 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 #endif
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "arrayHelpers.hpp"
 #include "Macros.hpp"
 

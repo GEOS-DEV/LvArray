@@ -20,7 +20,7 @@
 #define STACKBUFER_HPP_
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 #include "bufferManipulation.hpp"
 

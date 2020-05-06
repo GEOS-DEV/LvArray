@@ -1,4 +1,4 @@
-macro(cxxutils_add_code_checks)
+macro(lvarray_add_code_checks)
 
     set(options)
     set(singleValueArgs PREFIX UNCRUSTIFY_CFG_FILE )
@@ -37,4 +37,4 @@ macro(cxxutils_add_code_checks)
                          SOURCES   ${_sources}
                          UNCRUSTIFY_CFG_FILE ${PROJECT_SOURCE_DIR}/uncrustify.cfg
                        )
-endmacro(cxxutils_add_code_checks)
+endmacro(lvarray_add_code_checks)

@@ -23,12 +23,12 @@
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
 #define SRC_CODINGUTILITIES_STACKTRACE_HPP_
 
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 
 #include <signal.h>
 #include <string>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 /// @brief @return Return a demangled stack trace of the last 25 frames.

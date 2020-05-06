@@ -12,9 +12,52 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+import os
+import sys
+import shutil
 # sys.path.insert(0, os.path.abspath('.'))
+
+##### Call doxygen in ReadtheDocs #########################################################################
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs_build:
+
+    # Make sure directory exists
+    cwd = os.getcwd()
+
+    build_path = os.path.join(cwd, "_build")
+    if not os.path.isdir(build_path):
+        os.mkdir(build_path)
+
+    html_path = os.path.join(build_path, "html")
+    if not os.path.isdir(html_path):
+        os.mkdir(html_path)
+
+    docs_path = os.path.join(cwd, "docs", "doxygen")
+    common_path = cwd
+
+    doxyfile_src = os.path.join(docs_path, "Doxyfile.in")
+    doxyfile_dst = os.path.join(build_path, "Doxyfile")
+    config_src = os.path.join(docs_path, "LvArrayConfig.hpp")
+    config_dst = os.path.join(common_path, "LvArrayConfig.hpp")
+
+    input_dirs = ["."]
+
+    # Write correct ReadtheDocs path and input directories
+    shutil.copy(doxyfile_src, doxyfile_dst)
+    with open(doxyfile_dst, "a") as f:
+        f.write("\nINPUT = %s" % " ".join(input_dirs))
+        f.write("\nOUTPUT_DIRECTORY = %s/doxygen_output" % html_path)
+        f.write("\nHAVE_DOT = YES")
+
+    # Make a symlink to LvArrayConfig.hpp in src
+    if not os.path.exists(config_dst):
+        os.symlink(config_src, config_dst)
+
+    # Call doxygen
+    from subprocess import call
+    call(['doxygen', doxyfile_dst])
+###########################################################################################################
+
 
 
 # -- Project information -----------------------------------------------------

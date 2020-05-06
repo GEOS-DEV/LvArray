@@ -20,7 +20,7 @@
 #define TEST_UTILS_HPP_
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Array.hpp"
 #include "Macros.hpp"
 

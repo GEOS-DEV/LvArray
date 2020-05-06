@@ -482,7 +482,7 @@ public:
       // TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 0, av->m_dims ).c_str(), (av->m_data) );
       TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
       TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
-      TV_ttf_add_row( "m_dataBuffer", cxx_utilities::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
+      TV_ttf_add_row( "m_dataBuffer", LvArray::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
       TV_ttf_add_row( "m_singleParameterResizeIndex", "int", &(av->m_singleParameterResizeIndex) );
     }
     return 0;

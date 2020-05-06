@@ -20,7 +20,7 @@
 #define BUFFER_MANIPULATION_HPP_
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 #include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
