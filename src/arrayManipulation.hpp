@@ -228,7 +228,7 @@ void uninitializedShiftUp( T * const LVARRAY_RESTRICT ptr,
  */
 DISABLE_HD_WARNING
 template< typename T, typename ... ARGS >
-inline
+LVARRAY_HOST_DEVICE inline
 void resize( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const newSize,

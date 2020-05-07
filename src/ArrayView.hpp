@@ -495,7 +495,8 @@ protected:
    * @brief Protected constructor to be used by the Array class.
    * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  inline explicit CONSTEXPRFUNC
+  DISABLE_HD_WARNING
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
   ArrayView( bool ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },

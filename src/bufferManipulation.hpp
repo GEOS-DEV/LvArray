@@ -95,6 +95,7 @@ struct VoidBuffer
    * @param name the name of the buffer.
    */
   template< typename=VoidBuffer >
+  LVARRAY_HOST_DEVICE
   void setName( std::string const & name )
   { LVARRAY_UNUSED_VARIABLE( name ); }
 };
@@ -108,15 +109,10 @@ struct VoidBuffer
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
-inline
+inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
 void check( BUFFER const & buf, std::ptrdiff_t const size )
 {
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  if( size > buf.capacity() )
-  {
-    LVARRAY_LOG( "ERROR" );
-  }
-
   LVARRAY_ERROR_IF_GT( 0, buf.capacity() );
   LVARRAY_ERROR_IF_GT( 0, size );
   LVARRAY_ERROR_IF_GT( size, buf.capacity() );
@@ -157,7 +153,9 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
  * @param size the size of the buffer.
  * @note See MallocBuffer for the standard buffer interface.
  */
+DISABLE_HD_WARNING
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void free( BUFFER & buf, std::ptrdiff_t const size )
 {
   using T = typename BUFFER::value_type;
@@ -165,10 +163,12 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
   check( buf, size );
 
   /// If the values contained can themselves be moved then they need to be moved back to the host.
+#if !defined(__CUDA_ARCH__ )
   if( HasMemberFunction_move< T > )
   {
     buf.move( chai::CPU, size, true );
   }
+#endif
 
   T * const LVARRAY_RESTRICT data = buf.data();
   for( std::ptrdiff_t i = 0; i < size; ++i )
@@ -187,7 +187,9 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
  * @param newCapacity the new capacity of the buffer.
  * @note See MallocBuffer for the standard buffer interface.
  */
+DISABLE_HD_WARNING
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
@@ -203,6 +205,7 @@ void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const 
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
@@ -248,6 +251,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER, typename ... ARGS >
+LVARRAY_HOST_DEVICE
 void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSize, ARGS && ... args )
 {
   check( buf, size );
@@ -256,10 +260,12 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 
+#if !defined(__CUDA_ARCH__)
   if( newSize > 0 )
   {
     buf.registerTouch( chai::CPU );
   }
+#endif
 }
 
 /**
@@ -400,7 +406,9 @@ void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
  * @param src the source buffer.
  * @param srcSize the size of the source buffer.
  */
+DISABLE_HD_WARNING
 template< typename DST_BUFFER, typename SRC_BUFFER >
+LVARRAY_HOST_DEVICE
 void copyInto( DST_BUFFER & dst,
                std::ptrdiff_t const dstSize,
                SRC_BUFFER const & src,

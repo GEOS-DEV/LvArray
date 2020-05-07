@@ -58,6 +58,7 @@ public:
    * @brief Constructor for creating an empty/uninitialized buffer.
    * @note For the StackBuffer an uninitialized buffer is equivalent to an empty buffer.
    */
+  LVARRAY_HOST_DEVICE inline constexpr
   StackBuffer( bool=true )
   {}
 
@@ -76,6 +77,7 @@ public:
    * @param size The current size of the buffer, not used.
    * @param newCapacity the new capacity of the buffer.
    */
+  LVARRAY_HOST_DEVICE inline
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
     LVARRAY_UNUSED_VARIABLE( size );
@@ -85,6 +87,7 @@ public:
    * @brief Free the data in the buffer but does not destroy any values.
    * @note For this class this is a no-op since T must be trivially destructable.
    */
+  LVARRAY_HOST_DEVICE inline constexpr
   void free()
   {}
 
