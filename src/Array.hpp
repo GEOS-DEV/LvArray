@@ -108,11 +108,14 @@ public:
   /**
    * @brief default constructor
    */
+  LVARRAY_HOST_DEVICE
   inline Array():
     ParentType( true )
   {
-    setName( "" );
     CalculateStrides();
+#if !defined(__CUDA_ARCH__)
+    setName( "" );
+#endif
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
     Array::TV_ttf_display_type( nullptr );
 #endif
@@ -123,6 +126,7 @@ public:
    * @param dims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
    */
   template< typename ... DIMS >
+  LVARRAY_HOST_DEVICE
   inline explicit Array( DIMS... dims ):
     Array()
   {
@@ -138,6 +142,7 @@ public:
    * @note Performs a deep copy of source
    * @return *this.
    */
+  LVARRAY_HOST_DEVICE
   Array( Array const & source ):
     Array()
   { *this = source; }
@@ -154,18 +159,21 @@ public:
   /**
    * @brief Destructor, free's the data.
    */
+  LVARRAY_HOST_DEVICE
   ~Array()
   { bufferManipulation::free( m_dataBuffer, size() ); }
 
   /**
    * @brief @return Return a reference to *this after converting any nested arrays to const views to mutable values.
    */
+  LVARRAY_HOST_DEVICE
   ViewType & toView() const
   { return reinterpret_cast< ViewType & >(*this); }
 
   /**
    * @brief @return Return a reference to *this after converting any nested arrays to const views to const values.
    */
+  LVARRAY_HOST_DEVICE
   ViewTypeConst & toViewConst() const
   { return reinterpret_cast< ViewTypeConst & >( *this ); }
 
@@ -174,6 +182,7 @@ public:
    * @param rhs Source for the assignment.
    * @return *this.
    */
+  LVARRAY_HOST_DEVICE
   Array & operator=( Array const & rhs )
   {
     bufferManipulation::copyInto( m_dataBuffer, size(), rhs.m_dataBuffer, rhs.size() );
@@ -211,6 +220,7 @@ public:
    *   is used.
    */
   template< typename DIMS_TYPE >
+  LVARRAY_HOST_DEVICE
   void resize( int const numDims, DIMS_TYPE const * const dims )
   {
     LVARRAY_ERROR_IF_NE( numDims, NDIM );
@@ -235,6 +245,7 @@ public:
    *       parameter pack template<typename ... DIMS> resize( DIMS... newDims )
    */
   template< typename DIMS_TYPE >
+  LVARRAY_HOST_DEVICE
   void resize( int const numDims, DIMS_TYPE * const dims )
   { resize( numDims, const_cast< DIMS_TYPE const * >(dims) ); }
 
@@ -245,6 +256,7 @@ public:
    * @note This does not preserve the values in the Array unless the default permutation is used.
    */
   template< typename ... DIMS >
+  LVARRAY_HOST_DEVICE
   void resize( DIMS... newDims )
   {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
@@ -269,6 +281,7 @@ public:
    * @note This does not preserve the values in the Array unless the default permutation is used.
    */
   template< typename ... DIMS >
+  LVARRAY_HOST_DEVICE
   void resizeWithoutInitializationOrDestruction( DIMS const ... newDims )
   {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
@@ -294,6 +307,7 @@ public:
    * @note This does not preserve the values in the Array.
    */
   template< INDEX_TYPE... INDICES, typename ... DIMS >
+  LVARRAY_HOST_DEVICE
   void resizeDimension( DIMS const ... newDims )
   {
     static_assert( sizeof ... (INDICES) <= NDIM, "Too many arguments provided." );
@@ -305,8 +319,8 @@ public:
 
     forEachArg( [&]( auto const & pair )
     {
-      m_dims[ pair.first ] = LvArray::integerConversion< INDEX_TYPE >( pair.second );
-    }, std::make_pair( INDICES, newDims )... );
+      m_dims[ camp::get< 0 >( pair ) ] = LvArray::integerConversion< INDEX_TYPE >( camp::get< 1 >( pair ) );
+    }, camp::make_tuple( INDICES, newDims )... );
 
     CalculateStrides();
 
@@ -319,6 +333,7 @@ public:
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
+  LVARRAY_HOST_DEVICE
   void resize( INDEX_TYPE const newdim )
   { resizeDefaultDimension( newdim ); }
 
@@ -329,6 +344,7 @@ public:
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
+  LVARRAY_HOST_DEVICE
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
   { resizeDefaultDimension( newdim, defaultValue ); }
 
@@ -338,13 +354,12 @@ public:
    *        capacity() >= newCapacity.
    */
   void reserve( INDEX_TYPE const newCapacity )
-  {
-    bufferManipulation::reserve( m_dataBuffer, size(), newCapacity );
-  }
+  { bufferManipulation::reserve( m_dataBuffer, size(), newCapacity ); }
 
   /**
    * @brief @return Return the maximum number of values the Array can hold without reallocation.
    */
+  LVARRAY_HOST_DEVICE
   INDEX_TYPE capacity() const
   { return LvArray::integerConversion< INDEX_TYPE >( m_dataBuffer.capacity() ); }
 
@@ -467,15 +482,15 @@ public:
   /**
    * @brief @return Return the default resize dimension.
    */
-  inline int getSingleParameterResizeIndex() const
-  {
-    return m_singleParameterResizeIndex;
-  }
+  LVARRAY_HOST_DEVICE inline constexpr
+  int getSingleParameterResizeIndex() const
+  { return m_singleParameterResizeIndex; }
 
   /**
    * @brief Set the default resize dimension.
    * @param index The new default dimension.
    */
+  LVARRAY_HOST_DEVICE
   inline void setSingleParameterResizeIndex( int const index )
   {
     LVARRAY_ERROR_IF_LT( index, 0 );
@@ -514,10 +529,11 @@ private:
    * @brief Calculate the strides given the dimensions and permutation.
    * @note Adapted from RAJA::make_permuted_layout.
    */
+  LVARRAY_HOST_DEVICE
   void CalculateStrides()
   {
-    constexpr std::array< camp::idx_t, NDIM > permutation = RAJA::as_array< PERMUTATION >::get();
-    std::array< INDEX_TYPE, NDIM > foldedStrides;
+    constexpr CArray< camp::idx_t, NDIM > permutation = asArray( PERMUTATION {} );
+    INDEX_TYPE foldedStrides[ NDIM ];
 
     for( int i = 0; i < NDIM; ++i )
     {
@@ -542,7 +558,9 @@ private:
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
+  DISABLE_HD_WARNING
   template< typename ... ARGS >
+  LVARRAY_HOST_DEVICE
   void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS && ... args )
   {
     // Get the current length and stride of the dimension as well as the size of the whole Array.

@@ -39,6 +39,13 @@ namespace LvArray
 namespace internal
 {
 
+template< typename INTEGER >
+struct IntegerTraits
+{
+  static constexpr INTEGER min = std::numeric_limits< INTEGER >::min();
+  static constexpr INTEGER max = std::numeric_limits< INTEGER >::max();
+};
+
 /**
  * @tparam T The first type to check.
  * @tparam U The second type to check.
@@ -86,12 +93,13 @@ template< typename OUTPUT, typename INPUT >
 std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
                   std::is_unsigned< INPUT >::value,
                   OUTPUT >
+inline LVARRAY_HOST_DEVICE
 integerConversion( INPUT input )
 {
   static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  LVARRAY_ERROR_IF_GT( input, std::numeric_limits< OUTPUT >::max() );
+  LVARRAY_ERROR_IF_GT( input, internal::IntegerTraits< OUTPUT >::max );
 
   return static_cast< OUTPUT >( input );
 }
@@ -106,17 +114,18 @@ template< typename OUTPUT, typename INPUT >
 std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
                   !std::is_unsigned< INPUT >::value,
                   OUTPUT >
+inline LVARRAY_HOST_DEVICE
 integerConversion( INPUT input )
 {
   static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ std::numeric_limits< OUTPUT >::min() } );
+  LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ internal::IntegerTraits< OUTPUT >::min } );
 
   // If OUTPUT is unsigned we convert input to an unsigned type. This is safe because it must be
   // positive due to the check above.
   using ConditionallyUnsigned = std::conditional_t< std::is_unsigned< OUTPUT >::value, std::make_unsigned_t< INPUT >, INPUT >;
-  LVARRAY_ERROR_IF_GT( ConditionallyUnsigned( input ), std::numeric_limits< OUTPUT >::max() );
+  LVARRAY_ERROR_IF_GT( ConditionallyUnsigned( input ), internal::IntegerTraits< OUTPUT >::max );
 
   return static_cast< OUTPUT >( input );
 }

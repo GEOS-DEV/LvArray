@@ -373,7 +373,7 @@
   #define LVARRAY_HOST_DEVICE __host__ __device__
 
 /// Mark a function for only device usage.
-  #define LVARRY_DEVICE __device__
+  #define LVARRAY_DEVICE __device__
 
 /**
  * @brief Disable host device warnings.
@@ -388,7 +388,7 @@
   #define LVARRAY_HOST_DEVICE
 
 /// Mark a function for only device usage.
-  #define LVARRY_DEVICE
+  #define LVARRAY_DEVICE
 
 /**
  * @brief Disable host device warnings.

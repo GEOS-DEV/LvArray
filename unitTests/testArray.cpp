@@ -475,7 +475,7 @@ void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
     data_ptr[ i ] = val;
   }
 
-  /* No reallocation should have occured. */
+  // No reallocation should have occurred.
   ASSERT_EQ( data_ptr, v.data() );
 
   v.resizeWithoutInitializationOrDestruction( n / 4 );
