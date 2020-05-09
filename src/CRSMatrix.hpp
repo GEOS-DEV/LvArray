@@ -29,6 +29,9 @@
 namespace LvArray
 {
 
+template< typename COL_TYPE, typename INDEX_TYPE >
+class SparsityPattern;
+
 /**
  * @tparam T the type of the entries in the matrix.
  * @tparam COL_TYPE the integer used to enumerate the columns.
@@ -36,7 +39,7 @@ namespace LvArray
  * @class CRSMatrix
  * @brief This class implements a compressed row storage matrix.
  */
-template< class T, class COL_TYPE=int, class INDEX_TYPE=std::ptrdiff_t >
+template< typename T, typename COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
 class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE >
 {
 
@@ -119,10 +122,48 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
+   * @param src The CRSMatrix to be moved from.
    * @return *this.
    */
   inline
-  CRSMatrix & operator=( CRSMatrix && ) = default;
+  CRSMatrix & operator=( CRSMatrix && src )
+  {
+    ParentClass::free( m_entries );
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
+
+  /**
+   * @brief Steal the resources from a SparsityPattern.
+   * @param src the SparsityPattern to convert.
+   */
+  inline
+  void stealFrom( SparsityPattern< COL_TYPE, INDEX_TYPE > && src )
+  {
+    // Destroy the current entries.
+    for( INDEX_TYPE row = 0; row < numRows(); ++row )
+    {
+      INDEX_TYPE const offset = m_offsets[ row ];
+      INDEX_TYPE const nnz = numNonZeros( row );
+      arrayManipulation::destroy( &m_entries[ offset ], nnz );
+    }
+
+    // Reallocate to the appropriate length
+    bufferManipulation::reserve( m_entries, 0, src.nonZeroCapacity() );
+
+    ParentClass::stealFrom( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE > && >( src ) );
+
+    for( INDEX_TYPE row = 0; row < numRows(); ++row )
+    {
+      T * const rowEntries = getEntries( row );
+      for( INDEX_TYPE i = 0; i < numNonZeros( row ); ++i )
+      {
+        new ( rowEntries + i ) T();
+      }
+    }
+
+    setName( "" );
+  }
 
   /**
    * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.

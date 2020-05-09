@@ -964,8 +964,8 @@ using ArrayOfSetsViewTestTypes = ::testing::Types<
 #endif
 
 #ifdef USE_CUDA
-  , std::pair< INDEX_TYPE, parallelDevicePolicy >
-  , std::pair< Tensor, parallelDevicePolicy >
+  , std::pair< INDEX_TYPE, parallelDevicePolicy< 256 > >
+  , std::pair< Tensor, parallelDevicePolicy< 256 > >
 #endif
   >;
 

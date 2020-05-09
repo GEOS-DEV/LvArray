@@ -101,7 +101,8 @@ enum class AddType
 {
   BINARY_SEARCH,
   LINEAR_SEARCH,
-  HYBRID
+  HYBRID,
+  UNSORTED_BINARY
 };
 
 template< typename T >
@@ -1033,8 +1034,8 @@ using ViewTestTypes = ::testing::Types<
   , std::pair< parallelHostPolicy, TestString >
 #endif
 #if defined(USE_CUDA)
-  , std::pair< parallelDevicePolicy, int >
-  , std::pair< parallelDevicePolicy, Tensor >
+  , std::pair< parallelDevicePolicy< 256 >, int >
+  , std::pair< parallelDevicePolicy< 256 >, Tensor >
 #endif
   >;
 
@@ -1141,16 +1142,26 @@ public:
       INDEX_TYPE const nColsInRow = m_view.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
-      ArrayOfSets< COL_TYPE > columns;
+      ArrayOfArrays< COL_TYPE > columns;
       for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = this->rand( nColsInRow );
-        columns.appendSet( nColsToAddTo );
+        columns.appendArray( nColsToAddTo );
 
         for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
         {
           INDEX_TYPE const pos = this->rand( nColsInRow - 1 );
-          columns.insertIntoSet( threadID, m_view.getColumns( row )[ pos ] );
+          columns( threadID, i ) = m_view.getColumns( row )[ pos ];
+        }
+      }
+
+      if( type != AddType::UNSORTED_BINARY )
+      {
+        for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+        {
+          INDEX_TYPE const numUniqueCols =
+            sortedArrayManipulation::makeSortedUnique( columns.getIterableArray( threadID ).begin(), columns.getIterableArray( threadID ).end() );
+          columns.resizeArray( threadID, numUniqueCols );
         }
       }
 
@@ -1158,7 +1169,7 @@ public:
       ArrayOfArrays< T > values;
       for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
-        INDEX_TYPE const nColsToAddTo = columns.sizeOfSet( threadID );
+        INDEX_TYPE const nColsToAddTo = columns.sizeOfArray( threadID );
         values.appendArray( nColsToAddTo );
 
         for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
@@ -1170,35 +1181,36 @@ public:
       }
 
       CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConstSizes();
-      ArrayOfSetsView< COL_TYPE const, INDEX_TYPE const > colView = columns.toViewConst();
+      ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > colView = columns.toViewConst();
       ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values.toViewConst();
 
       if( type == AddType::LINEAR_SEARCH )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
       if( type == AddType::BINARY_SEARCH )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
       if( type == AddType::HYBRID )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
+      }
+      if( type == AddType::UNSORTED_BINARY )
+      {
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+            {
+              view.template addToRowBinarySearchUnsorted< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
     }
 
@@ -1218,7 +1230,7 @@ using ViewAtomicTestTypes = ::testing::Types<
   , std::pair< parallelHostPolicy, int >
 #endif
 #if defined(USE_CUDA)
-  , std::pair< parallelDevicePolicy, int >
+  , std::pair< parallelDevicePolicy< 256 >, int >
 #endif
   >;
 
@@ -1243,6 +1255,13 @@ TYPED_TEST( CRSMatrixViewAtomicTest, addToRow )
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
   this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::HYBRID, 10 );
+}
+
+TYPED_TEST( CRSMatrixViewAtomicTest, addToRowBinarySearchUnsorted )
+{
+  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
+  this->insert( DEFAULT_MAX_INSERTS );
+  this->addToRow( AddType::UNSORTED_BINARY, 10 );
 }
 
 } // namespace testing

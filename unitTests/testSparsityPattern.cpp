@@ -18,6 +18,7 @@
 
 // Source includes
 #include "SparsityPattern.hpp"
+#include "CRSMatrix.hpp"
 #include "testUtils.hpp"
 #include "Array.hpp"
 
@@ -108,6 +109,36 @@ public:
   {
     m_sp.resize( nRows, nCols, initialRowCapacity );
     m_ref.resize( nRows );
+
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+  }
+
+  void appendRow( INDEX_TYPE const nRows, INDEX_TYPE const maxInserts )
+  {
+    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+
+    std::vector< COL_TYPE > columnsToAppend( maxInserts );
+
+    for( INDEX_TYPE i = 0; i < nRows; ++i )
+    {
+      INDEX_TYPE const nCols = randCol();
+      columnsToAppend.resize( nCols );
+
+      for( INDEX_TYPE j = 0; j < nCols; ++j )
+      {
+        columnsToAppend[ j ] = randCol();
+      }
+
+      m_sp.appendRow( nCols );
+      EXPECT_EQ( nCols, m_sp.nonZeroCapacity( m_sp.numRows() - 1 ) );
+
+      for( COL_TYPE const & col : columnsToAppend )
+      {
+        m_sp.insertNonZero( m_sp.numRows() - 1, col );
+      }
+
+      m_ref.push_back( std::set< COL_TYPE >( columnsToAppend.begin(), columnsToAppend.end() ) );
+    }
 
     COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
   }
@@ -532,8 +563,8 @@ protected:
                  "The const view type of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
 };
 
-using TestTypes = ::testing::Types< int, unsigned int >;
-TYPED_TEST_SUITE( SparsityPatternTest, TestTypes, );
+using SparsityPatternTestTypes = ::testing::Types< int, unsigned int >;
+TYPED_TEST_SUITE( SparsityPatternTest, SparsityPatternTestTypes, );
 
 INDEX_TYPE const NROWS = 100;
 INDEX_TYPE const NCOLS = 150;
@@ -577,6 +608,12 @@ TYPED_TEST( SparsityPatternTest, constructionWithHint )
     TypeParam const * const columns = sp.getColumns( row );
     ASSERT_NE( columns, nullptr );
   }
+}
+
+TYPED_TEST( SparsityPatternTest, appendRow )
+{
+  this->resize( 0, NCOLS );
+  this->appendRow( NROWS, MAX_INSERTS );
 }
 
 TYPED_TEST( SparsityPatternTest, insert )
@@ -679,8 +716,6 @@ TYPED_TEST( SparsityPatternTest, shallowCopy )
   this->insertTest( MAX_INSERTS );
   this->shallowCopyTest();
 }
-
-#ifdef USE_CUDA
 
 template< typename COL_POLICY_PAIR >
 class SparsityPatternViewTest : public SparsityPatternTest< typename COL_POLICY_PAIR::first_type >
@@ -973,12 +1008,12 @@ using SparsityPatternViewTestTypes = ::testing::Types<
 #endif
 
 #ifdef USE_CUDA
-  , std::pair< int, parallelDevicePolicy >
-  , std::pair< uint, parallelDevicePolicy >
+  , std::pair< int, parallelDevicePolicy< 256 > >
+  , std::pair< uint, parallelDevicePolicy< 256 > >
 #endif
   >;
 
-TYPED_TEST_SUITE( SparsityPatternViewTest, SparsityPatternViewTestTypes );
+TYPED_TEST_SUITE( SparsityPatternViewTest, SparsityPatternViewTestTypes, );
 
 TYPED_TEST( SparsityPatternViewTest, memoryMotion )
 {
@@ -1051,7 +1086,73 @@ TYPED_TEST( SparsityPatternViewTest, empty )
   this->emptyViewTest();
 }
 
-#endif
+template< typename T >
+class CRSMatrixTest : public SparsityPatternTest< int >
+{
+public:
+  using COL_TYPE = int;
+
+  void stealFrom()
+  {
+    CRSMatrix< T, COL_TYPE, INDEX_TYPE > matrix;
+    matrix.stealFrom( std::move( this->m_sp ) );
+    COMPARE_TO_REFERENCE( matrix.toSparsityPatternView(), this->m_ref );
+
+    EXPECT_EQ( this->m_sp.numRows(), 0 );
+    EXPECT_EQ( this->m_sp.numColumns(), 0 );
+    EXPECT_EQ( this->m_sp.numNonZeros(), 0 );
+
+    INDEX_TYPE const numRows = matrix.numRows();
+    ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size() ) );
+
+    INDEX_TYPE ref_nnz = 0;
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    {
+      INDEX_TYPE const rowNNZ = matrix.numNonZeros( row );
+      INDEX_TYPE const refRowNNZ = m_ref[row].size();
+      ref_nnz += refRowNNZ;
+
+      ASSERT_EQ( rowNNZ, refRowNNZ );
+
+      if( rowNNZ == 0 )
+      {
+        ASSERT_TRUE( matrix.empty( row ) );
+      }
+      else
+      {
+        ASSERT_FALSE( matrix.empty( row ) );
+      }
+
+      auto it = m_ref[ row ].begin();
+      COL_TYPE const * const columns = matrix.getColumns( row );
+      T const * const entries = matrix.getEntries( row );
+      for( INDEX_TYPE i = 0; i < matrix.numNonZeros( row ); ++i )
+      {
+        EXPECT_FALSE( matrix.empty( row, columns[ i ] ));
+        EXPECT_EQ( columns[ i ], *it );
+        EXPECT_EQ( entries[ i ], T() );
+        it++;
+      }
+    }
+  }
+};
+
+using CRSMatrixTestTypes = ::testing::Types<
+  int
+  , Tensor
+  , TestString
+  >;
+TYPED_TEST_SUITE( CRSMatrixTest, CRSMatrixTestTypes, );
+
+TYPED_TEST( CRSMatrixTest, stealFrom )
+{
+  this->resize( NROWS, NCOLS );
+  for( int i = 0; i < 2; ++i )
+  {
+    this->insertMultipleTest( MAX_INSERTS );
+  }
+  this->stealFrom();
+}
 
 } // namespace testing
 } // namespace LvArray

@@ -161,7 +161,14 @@ public:
    */
   LVARRAY_HOST_DEVICE
   ~Array()
-  { bufferManipulation::free( m_dataBuffer, size() ); }
+  {
+  #if !defined(__CUDA_ARCH__)
+    if( !std::is_trivially_destructible< T >::value )
+    { this->move( chai::CPU ); }
+  #endif
+
+    bufferManipulation::free( m_dataBuffer, size() );
+  }
 
   /**
    * @brief @return Return a reference to *this after converting any nested arrays to const views to mutable values.

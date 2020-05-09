@@ -190,10 +190,10 @@ using SingleArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
 #ifdef USE_CUDA
-  , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy >
-  , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy >
-  , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy >
-  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
+  , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
+  , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
+  , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >
+  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy< 256 > >
 #endif
   >;
 TYPED_TEST_SUITE( SingleArrayTest, SingleArrayTestTypes, );
@@ -290,12 +290,12 @@ using DualArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
 #ifdef USE_CUDA
-  , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy >
-  , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy >
-  , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy >
-  , std::tuple< Tensor, Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
-  , std::tuple< int, Tensor, sortedArrayManipulation::less< int >, parallelDevicePolicy >
-  , std::tuple< Tensor, int, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy >
+  , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
+  , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >
+  , std::tuple< Tensor, Tensor, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy< 256 > >
+  , std::tuple< int, Tensor, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
+  , std::tuple< Tensor, int, sortedArrayManipulation::greater< Tensor >, parallelDevicePolicy< 256 > >
 #endif
   >;
 TYPED_TEST_SUITE( DualArrayTest, DualArrayTestTypes, );

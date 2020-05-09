@@ -77,7 +77,8 @@ struct RAJAHelper< parallelHostPolicy >
 
 #if defined(USE_CUDA)
 
-using parallelDevicePolicy = RAJA::cuda_exec< 256 >;
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
 template< unsigned long N >
 struct RAJAHelper< RAJA::cuda_exec< N > >

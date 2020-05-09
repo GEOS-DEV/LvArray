@@ -26,7 +26,6 @@
 #include "arrayManipulation.hpp"
 
 // TPL includes
-#include <chai/ManagedArray.hpp>
 #include <chai/ArrayManager.hpp>
 
 // System includes

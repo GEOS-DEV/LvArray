@@ -189,7 +189,7 @@ public:
     { dims[ i ] = 8; }
 
     int const capacity = CAPACITY;
-    forall< parallelDevicePolicy >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
+    forall< parallelDevicePolicy< 32 > >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
         {
           stackArray< int, NDIM, CAPACITY > array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
@@ -229,7 +229,7 @@ void sizedConstructorInLambda1D()
 {
   int const SIZE = 8;
   constexpr int CAPACITY = SIZE;
-  forall< parallelDevicePolicy >( 10, [] LVARRAY_DEVICE ( int )
+  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
       {
         stackArray< int, 1, CAPACITY > array( SIZE );
         PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
@@ -242,7 +242,7 @@ void sizedConstructorInLambda2D()
 {
   constexpr int SIZE = 8;
   constexpr int CAPACITY = SIZE * SIZE;
-  forall< parallelDevicePolicy >( 10, [] LVARRAY_DEVICE ( int )
+  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
       {
         stackArray< int, 2, CAPACITY > array( SIZE - 1, SIZE );
         PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
@@ -256,7 +256,7 @@ void sizedConstructorInLambda3D()
 {
   constexpr int SIZE = 8;
   constexpr int CAPACITY = SIZE * SIZE * SIZE;
-  forall< parallelDevicePolicy >( 10, [] LVARRAY_DEVICE ( int )
+  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
       {
         stackArray< int, 3, CAPACITY > array( SIZE - 2, SIZE - 1, SIZE );
         PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
@@ -273,9 +273,9 @@ using StackArrayCaptureTestTypes = ::testing::Types<
   , std::pair< std::integral_constant< int, 2 >, serialPolicy >
   , std::pair< std::integral_constant< int, 3 >, serialPolicy >
 #if defined(USE_CUDA)
-  , std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy >
-  , std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy >
-  , std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy >
+  , std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy< 32 > >
+  , std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
+  , std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
 #endif
   >;
 
@@ -299,17 +299,17 @@ TYPED_TEST( StackArrayCaptureTest, resizeInLambda )
 #ifdef USE_CUDA
 TEST( StackArrayCaptureTest, resizeMultipleInLambda1D )
 {
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy > >::resizeMultipleInLambda();
+  StackArrayCaptureTest< std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
 }
 
 TEST( StackArrayCaptureTest, resizeMultipleInLambda2D )
 {
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy > >::resizeMultipleInLambda();
+  StackArrayCaptureTest< std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
 }
 
 TEST( StackArrayCaptureTest, resizeMultipleInLambda3D )
 {
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy > >::resizeMultipleInLambda();
+  StackArrayCaptureTest< std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
 }
 
 TEST( StackArrayCaptureTest, sizedConstructorInLambda1D )
