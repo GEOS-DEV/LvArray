@@ -32,6 +32,10 @@
 #cmakedefine USE_OPENMP
 #endif
 
+#ifndef USE_CALIPER
+#cmakedefine USE_CALIPER
+#endif
+
 
 
 #endif  /* LVARRAYCONFIG_HPP */

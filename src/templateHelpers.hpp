@@ -129,15 +129,32 @@ void forEachArg( F && f, ARG && arg, ARGS && ... args )
   forEachArg( std::forward< F >( f ), std::forward< ARGS >( args ) ... );
 }
 
-template< bool... B >
-struct conjunction {};
+/**
+ * @tparam FIRST The first argument.
+ * @tparam REST A variadic pack of the remaining arguments.
+ * @brief Evaluates to true iff all of the arguments are true.
+ */
+template< bool FIRST, bool ... REST >
+constexpr bool conjunction = FIRST && conjunction< REST ... >;
 
-template< bool Head, bool... Tail >
-struct conjunction< Head, Tail... >
-  : std::integral_constant< bool, Head && conjunction< Tail... >::value > {};
+/**
+ * @tparam FIRST The first argument.
+ * @brief Evaluates to true iff the argument is true.
+ */
+template< bool FIRST >
+constexpr bool conjunction< FIRST > = FIRST;
 
-template< bool B >
-struct conjunction< B > : std::integral_constant< bool, B > {};
+/**
+ * @tparam ARGS A variadic pack of bools.
+ * @struct Conjunction.
+ * @brief A helper struct since host variables can't be accessed in device code.
+ */
+template< bool ... ARGS >
+struct Conjunction
+{
+  /// Evaluates to true of all of ARGS are true.
+  static constexpr bool value = conjunction< ARGS ... >;
+};
 
 /**
  * @tparam TEMPLATE The template to check if @p TYPE is an instantiation of.

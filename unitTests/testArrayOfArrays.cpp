@@ -860,8 +860,10 @@ TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
     this->template resizeFromCapacities< serialPolicy >( 100, 10 );
     this->insertIntoArray( 10 );
 
+#if defined( USE_OPENMP )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
     this->insertIntoArray( 10 );
+#endif
   }
 }
 

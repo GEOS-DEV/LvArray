@@ -915,11 +915,17 @@ private:
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( begin );
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( end );
 
+    // If the values aren't trivially destructable then the data needs to be moved back to the host.
+    // This moves sizes, offsets and values. BUFFERS ... buffers are moved inside the loop.
+    if( !conjunction< std::is_trivially_destructible< T >::value,
+                      std::is_trivially_destructible< typename BUFFERS::value_type >::value ... > )
+    { move( chai::CPU, true ); }
+
     forEachArg( [this, begin, end] ( auto & buffer )
     {
       if( !std::is_trivially_destructible< decltype( buffer[ 0 ] ) >::value )
       {
-        move( chai::CPU, false );
+        buffer.move( chai::CPU, true );
         for( INDEX_TYPE i = begin; i < end; ++i )
         {
           INDEX_TYPE const offset = m_offsets[ i ];

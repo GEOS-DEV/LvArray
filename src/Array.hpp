@@ -319,8 +319,8 @@ public:
   {
     static_assert( sizeof ... (INDICES) <= NDIM, "Too many arguments provided." );
     static_assert( sizeof ... (INDICES) == sizeof ... (DIMS), "The number of indices must match the number of dimensions." );
-    static_assert( conjunction< ( 0 <= INDICES ) ... >::value, "INDICES must all be positive." );
-    static_assert( conjunction< ( INDICES < NDIM ) ... >::value, "INDICES must all be less than NDIM." );
+    static_assert( Conjunction< ( 0 <= INDICES ) ... >::value, "INDICES must all be positive." );
+    static_assert( Conjunction< ( INDICES < NDIM ) ... >::value, "INDICES must all be less than NDIM." );
 
     INDEX_TYPE const oldSize = size();
 

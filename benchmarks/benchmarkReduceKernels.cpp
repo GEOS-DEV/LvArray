@@ -24,7 +24,7 @@ namespace LvArray
 namespace benchmarking
 {
 
-#define REDUCE_KERNEL( a_i ) \
+#define REDUCE_KERNEL( N, a_i ) \
   VALUE_TYPE sum = 0; \
   for( INDEX_TYPE i = 0; i < N; ++i ) \
   { \
@@ -32,61 +32,76 @@ namespace benchmarking
   } \
   return sum
 
-#define REDUCE_KERNEL_RAJA( a_i ) \
+#define REDUCE_KERNEL_RAJA( N, a_i ) \
   RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, VALUE_TYPE > sum( 0 ); \
-  RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, N ), \
-                          [sum, a] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i ) { \
+  forall< POLICY >( N, [sum, a] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i ) \
+  { \
     sum += a_i; \
-  } \
-                          ); \
+  } ); \
   return sum.get()
 
+VALUE_TYPE ReduceNative::fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::fortran( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                  INDEX_TYPE const N )
-{ REDUCE_KERNEL( a( i ) ); }
+VALUE_TYPE ReduceNative::fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::subscript( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                    INDEX_TYPE const N )
-{ REDUCE_KERNEL( a[ i ] ); }
+VALUE_TYPE ReduceNative::fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+{ REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                   INDEX_TYPE const N )
-{ REDUCE_KERNEL( a( i ) ); }
+VALUE_TYPE ReduceNative::subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL( a.size(), a[ i ] ); }
 
-VALUE_TYPE ReduceNative::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-                                  INDEX_TYPE const N )
-{ REDUCE_KERNEL( a[ i ] ); }
+VALUE_TYPE ReduceNative::subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL( a.size(), a[ i ] ); }
 
-template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::fortran( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                          INDEX_TYPE const N )
-{ REDUCE_KERNEL_RAJA( a( i ) ); }
+VALUE_TYPE ReduceNative::subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+{ REDUCE_KERNEL( a.size(), a[ i ] ); }
 
-template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::subscript( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                            INDEX_TYPE const N )
-{ REDUCE_KERNEL_RAJA( a[ i ] ); }
+VALUE_TYPE ReduceNative::RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL( a.layout.sizes[ 0 ], a( i ) ); }
+
+VALUE_TYPE ReduceNative::pointerKernel( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                        INDEX_TYPE const N )
+{ REDUCE_KERNEL( N, a[ i ] ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                           INDEX_TYPE const N )
-{ REDUCE_KERNEL_RAJA( a( i ) ); }
+VALUE_TYPE ReduceRAJA< POLICY >::fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL_RAJA( a.size(), a( i ) ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-                                          INDEX_TYPE const N )
-{ REDUCE_KERNEL_RAJA( a[ i ] ); }
+VALUE_TYPE ReduceRAJA< POLICY >::fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+{ REDUCE_KERNEL_RAJA( a.size(), a( i ) ); }
 
-template struct ReduceRAJA< serialPolicy >;
+template< class POLICY >
+VALUE_TYPE ReduceRAJA< POLICY >::subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL_RAJA( a.size(), a[ i ] ); }
+
+template< class POLICY >
+VALUE_TYPE ReduceRAJA< POLICY >::subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+{ REDUCE_KERNEL_RAJA( a.size(), a[ i ] ); }
+
+template< class POLICY >
+VALUE_TYPE ReduceRAJA< POLICY >::RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+{ REDUCE_KERNEL_RAJA( a.layout.sizes[ 0 ], a( i ) ); }
+
+template< class POLICY >
+VALUE_TYPE ReduceRAJA< POLICY >::pointerKernel( VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                                INDEX_TYPE const N )
+{ REDUCE_KERNEL_RAJA( N, a[ i ] ); }
+
+template class ReduceRAJA< serialPolicy >;
 
 #if defined(USE_OPENMP)
-template struct ReduceRAJA< parallelHostPolicy >;
+template class ReduceRAJA< parallelHostPolicy >;
 #endif
 
 #if defined(USE_CUDA)
-template struct ReduceRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
+template class ReduceRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
+
+#undef REDUCE_KERNEL
+#undef REDUCE_KERNEL_RAJA
 
 } // namespace benchmarking
 } // namespace LvArray

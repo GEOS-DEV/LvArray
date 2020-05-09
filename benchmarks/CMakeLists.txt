@@ -8,6 +8,7 @@ set(benchmarkSources
     benchmarkMatrixVector.cpp
     benchmarkMatrixMatrix.cpp
     benchmarkArray1DR2TensorMultiplication.cpp
+    benchmarkSparsityGeneration.cpp
    )
 
 if (NOT ${ENABLE_BENCHMARKS})

@@ -28,185 +28,148 @@ namespace LvArray
 namespace benchmarking
 {
 
+ResultsMap< VALUE_TYPE, 1 > resultsMap;
 
-#define NATIVE_INIT \
-  INDEX_TYPE const N = state.range( 0 ); \
-  int iter = 0; \
-  Array< VALUE_TYPE, RAJA::PERM_I > a( N ); \
-  initialize( a, iter ); \
-  Array< VALUE_TYPE, RAJA::PERM_I > b( N ); \
-  initialize( b, iter ); \
-  VALUE_TYPE sum = 0
-
-
-#define RAJA_INIT \
-  NATIVE_INIT; \
-  a.move( RAJAHelper< POLICY >::space ); \
-  b.move( RAJAHelper< POLICY >::space )
-
-
-#define FINISH \
-  registerResult( resultsMap, { N }, sum / INDEX_TYPE( state.iterations() ), __PRETTY_FUNCTION__ ); \
-  state.SetBytesProcessed( INDEX_TYPE( state.iterations() ) * N * sizeof( VALUE_TYPE ) )
-
-
-ResultsMap< 1 > resultsMap;
-
-
-void fortranNative( benchmark::State & state )
+void fortranArrayNative( benchmark::State & state )
 {
-  NATIVE_INIT;
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & aView = a.toViewConst();
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & bView = b.toViewConst();
-  for( auto _ : state )
-  {
-    sum += InnerProductNative::fortran( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.fortranArray();
 }
 
-
-void subscriptNative( benchmark::State & state )
+void fortranViewNative( benchmark::State & state )
 {
-  NATIVE_INIT;
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & aView = a.toViewConst();
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & bView = b.toViewConst();
-  for( auto _ : state )
-  {
-    sum += InnerProductNative::subscript( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.fortranView();
 }
 
+void fortranSliceNative( benchmark::State & state )
+{
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.fortranSlice();
+}
+
+void subscriptArrayNative( benchmark::State & state )
+{
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptArray();
+}
+
+void subscriptViewNative( benchmark::State & state )
+{
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptView();
+}
+
+void subscriptSliceNative( benchmark::State & state )
+{
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptSlice();
+}
 
 void rajaViewNative( benchmark::State & state )
 {
-  NATIVE_INIT;
-  RajaView< VALUE_TYPE const, RAJA::PERM_I > const aView( a.data(), { a.size() } );
-  RajaView< VALUE_TYPE const, RAJA::PERM_I > const bView( b.data(), { a.size() } );
-  for( auto _ : state )
-  {
-    sum += InnerProductNative::rajaView( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.RAJAView();
 }
-
 
 void pointerNative( benchmark::State & state )
 {
-  NATIVE_INIT;
-  VALUE_TYPE const * const LVARRAY_RESTRICT aPtr = a.data();
-  VALUE_TYPE const * const LVARRAY_RESTRICT bPtr = b.data();
-  for( auto _ : state )
-  {
-    sum += InnerProductNative::pointer( aPtr, bPtr, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductNative kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.pointer();
 }
 
 
 template< typename POLICY >
-void fortranRAJA( benchmark::State & state )
+void fortranViewRAJA( benchmark::State & state )
 {
-  NATIVE_INIT;
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & aView = a.toViewConst();
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & bView = b.toViewConst();
-  for( auto _ : state )
-  {
-    sum += InnerProductRAJA< POLICY >::fortran( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.fortranView();
 }
-
 
 template< typename POLICY >
-void subscriptRAJA( benchmark::State & state )
+void fortranSliceRAJA( benchmark::State & state )
 {
-  NATIVE_INIT;
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & aView = a.toViewConst();
-  ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & bView = b.toViewConst();
-  for( auto _ : state )
-  {
-    sum += InnerProductRAJA< POLICY >::subscript( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.fortranSlice();
 }
 
+template< typename POLICY >
+void subscriptArrayRAJA( benchmark::State & state )
+{
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptArray();
+}
+
+template< typename POLICY >
+void subscriptViewRAJA( benchmark::State & state )
+{
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptView();
+}
+
+template< typename POLICY >
+void subscriptSliceRAJA( benchmark::State & state )
+{
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.subscriptSlice();
+}
 
 template< typename POLICY >
 void rajaViewRAJA( benchmark::State & state )
 {
-  NATIVE_INIT;
-  RajaView< VALUE_TYPE const, RAJA::PERM_I > const aView( a.data(), { a.size() } );
-  RajaView< VALUE_TYPE const, RAJA::PERM_I > const bView( b.data(), { a.size() } );
-  for( auto _ : state )
-  {
-    sum += InnerProductRAJA< POLICY >::rajaView( aView, bView, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.RAJAView();
 }
-
 
 template< typename POLICY >
 void pointerRAJA( benchmark::State & state )
 {
-  NATIVE_INIT;
-  VALUE_TYPE const * const LVARRAY_RESTRICT aPtr = a.data();
-  VALUE_TYPE const * const LVARRAY_RESTRICT bPtr = b.data();
-  for( auto _ : state )
-  {
-    sum += InnerProductRAJA< POLICY >::pointer( aPtr, bPtr, N );
-    benchmark::DoNotOptimize( sum );
-    benchmark::ClobberMemory();
-  }
-
-  FINISH;
+  InnerProductRAJA< POLICY > kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.pointer();
 }
 
-int const NUM_REPETITIONS = 3;
-#define SERIAL_SIZE { (2 << 20) + 573 \
-}
 
-DECLARE_BENCHMARK( fortranNative, SERIAL_SIZE, NUM_REPETITIONS );
-DECLARE_BENCHMARK( subscriptNative, SERIAL_SIZE, NUM_REPETITIONS );
-DECLARE_BENCHMARK( rajaViewNative, SERIAL_SIZE, NUM_REPETITIONS );
-DECLARE_BENCHMARK( pointerNative, SERIAL_SIZE, NUM_REPETITIONS );
-
-FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( fortranRAJA, subscriptRAJA, rajaViewRAJA, pointerRAJA,
-                                   serialPolicy, SERIAL_SIZE, NUM_REPETITIONS );
-
+INDEX_TYPE const SERIAL_SIZE = (2 << 20) + 573;
 #if defined(USE_OPENMP)
-#define OMP_SIZE SERIAL_SIZE
-FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( fortranRAJA, subscriptRAJA, rajaViewRAJA, pointerRAJA,
-                                   parallelHostPolicy, OMP_SIZE, NUM_REPETITIONS );
+INDEX_TYPE const OMP_SIZE = SERIAL_SIZE;
+#endif
+#if defined(USE_CUDA)
+INDEX_TYPE const CUDA_SIZE = SERIAL_SIZE;
 #endif
 
-#if defined(USE_CUDA)
-#define CUDA_SIZE SERIAL_SIZE
-FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( fortranRAJA, subscriptRAJA, rajaViewRAJA, pointerRAJA,
-                                   RAJA::cuda_exec< THREADS_PER_BLOCK >, SERIAL_SIZE, NUM_REPETITIONS );
-#endif
+void registerBenchmarks()
+{
+  // Register the native benchmarks.
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, fortranArrayNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, fortranViewNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, fortranSliceNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, subscriptArrayNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, subscriptViewNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, subscriptSliceNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, rajaViewNative );
+  REGISTER_BENCHMARK( { SERIAL_SIZE }, pointerNative );
+
+  // Register the RAJA benchmarks.
+  forEachArg( []( auto tuple )
+  {
+    INDEX_TYPE const size = std::get< 0 >( tuple );
+    using POLICY = std::tuple_element_t< 1, decltype( tuple ) >;
+    REGISTER_BENCHMARK_TEMPLATE( { size }, fortranViewRAJA, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, fortranSliceRAJA, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, subscriptViewRAJA, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, subscriptSliceRAJA, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, rajaViewRAJA, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, pointerRAJA, POLICY );
+  },
+              std::make_tuple( SERIAL_SIZE, serialPolicy {} )
+  #if defined(USE_OPENMP)
+              , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
+  #endif
+  #if defined(USE_CUDA)
+              , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+  #endif
+              );
+}
 
 } // namespace benchmarking
 } // namespace LvArray
@@ -214,9 +177,23 @@ FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( fortranRAJA, subscriptRAJA, rajaViewRAJA, poi
 
 int main( int argc, char * * argv )
 {
+  LvArray::benchmarking::registerBenchmarks();
   ::benchmark::Initialize( &argc, argv );
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
+
+  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
+  LVARRAY_LOG( "INDEX_TYPE = " << LvArray::demangleType< LvArray::benchmarking::INDEX_TYPE >() );
+
+  LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_SIZE << " )." );
+
+#if defined(USE_OPENMP)
+  LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_SIZE << " )." );
+#endif
+
+#if defined(USE_CUDA)
+  LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_SIZE << " )." );
+#endif
 
   ::benchmark::RunSpecifiedBenchmarks();
 
