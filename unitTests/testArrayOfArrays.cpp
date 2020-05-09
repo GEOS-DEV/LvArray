@@ -223,6 +223,32 @@ public:
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
   }
 
+  template< typename POLICY >
+  void resizeFromCapacities( INDEX_TYPE const newSize, INDEX_TYPE const maxCapacity )
+  {
+    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+
+    std::vector< INDEX_TYPE > newCapacities( newSize );
+
+    for( INDEX_TYPE & capacity : newCapacities )
+    {
+      capacity = rand( 0, maxCapacity );
+    }
+
+    m_array.template resizeFromCapacities< POLICY >( newSize, newCapacities.data() );
+
+    EXPECT_EQ( m_array.size(), newSize );
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), 0 );
+      EXPECT_EQ( m_array.capacityOfArray( i ), newCapacities[ i ] );
+    }
+
+    m_ref.clear();
+    m_ref.resize( newSize );
+    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+  }
+
   void resize()
   {
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
@@ -824,6 +850,18 @@ TYPED_TEST( ArrayOfArraysTest, resizeWithCapacity )
     this->insertIntoArray( 5 );
     this->resize( 150, 10 );
     this->insertIntoArray( 5 );
+  }
+}
+
+TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
+{
+  for( INDEX_TYPE i = 0; i < 3; ++i )
+  {
+    this->template resizeFromCapacities< serialPolicy >( 100, 10 );
+    this->insertIntoArray( 10 );
+
+    this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
+    this->insertIntoArray( 10 );
   }
 }
 

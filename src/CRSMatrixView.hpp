@@ -244,7 +244,7 @@ public:
    * TODO: Use benchmarks of addToRowBinarySearch and addToRowLinearSearch
    *       to develop a better heuristic.
    */
-  template< typename AtomicPolicy=RAJA::seq_atomic >
+  template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRow( INDEX_TYPE const row,
                  COL_TYPE const * const LVARRAY_RESTRICT cols,
@@ -276,7 +276,7 @@ public:
    * @param nCols The number of columns to add to.
    * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    */
-  template< typename AtomicPolicy=RAJA::seq_atomic >
+  template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRowBinarySearch( INDEX_TYPE const row,
                              COL_TYPE const * const LVARRAY_RESTRICT cols,
@@ -313,7 +313,7 @@ public:
    * @param nCols The number of columns to add to.
    * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    */
-  template< typename AtomicPolicy=RAJA::seq_atomic >
+  template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRowLinearSearch( INDEX_TYPE const row,
                              COL_TYPE const * const LVARRAY_RESTRICT cols,
@@ -340,6 +340,38 @@ public:
       LVARRAY_ASSERT_EQ( columns[ curPos ], cols[ i ] );
       atomicAdd( AtomicPolicy{}, entries + curPos, vals[ i ] );
       ++curPos;
+    }
+  }
+
+  /**
+   * @brief Add to the given entries, the entries must already exist in the matrix.
+   * @details This method uses a binary search to find the entries in the row to add to.
+   *   This makes the method O( nCols * log( numNonZeros( @p row ) ) ) and is therefore best
+   *   to use when @p nCols is much less than numNonZeros( @p row ).
+   * @tparam AtomicPolicy the policy to use when adding to the values.
+   * @param row The row to access.
+   * @param cols The columns to add to, must be sorted, unique and of length @p nCols.
+   * @param vals The values to add, of length @p nCols.
+   * @param nCols The number of columns to add to.
+   */
+  template< typename AtomicPolicy >
+  LVARRAY_HOST_DEVICE inline
+  void addToRowBinarySearchUnsorted( INDEX_TYPE const row,
+                                     COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                     T const * const LVARRAY_RESTRICT vals,
+                                     INDEX_TYPE const nCols ) const
+  {
+    INDEX_TYPE const nnz = numNonZeros( row );
+    COL_TYPE const * const columns = getColumns( row );
+    T * const entries = getEntries( row );
+
+    for( INDEX_TYPE_NC i = 0; i < nCols; ++i )
+    {
+      INDEX_TYPE const pos = sortedArrayManipulation::find( columns, nnz, cols[ i ] );
+      LVARRAY_ASSERT_GT( nnz, pos );
+      LVARRAY_ASSERT_EQ( columns[ pos ], cols[ i ] );
+
+      atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
     }
   }
 

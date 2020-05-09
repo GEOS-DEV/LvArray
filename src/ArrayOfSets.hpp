@@ -115,10 +115,16 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
+   * @param src The ArrayOfSets to be moved from.
    * @return *this.
    */
   inline
-  ArrayOfSets & operator=( ArrayOfSets && ) = default;
+  ArrayOfSets & operator=( ArrayOfSets && src )
+  {
+    ParentClass::free();
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
 
   /**
    * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T, INDEX_TYPE const >.
@@ -271,30 +277,30 @@ public:
   { ParentClass::resize( numSubSets, defaultSetCapacity ); }
 
   /**
-   * @brief Append an set with the given capacity.
-   * @param n the capacity of the set.
+   * @brief Append a set with capacity @p setCapacity.
+   * @param setCapacity The capacity of the set.
    */
   inline
-  void appendSet( INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
+  void appendSet( INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
     bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
     ++m_numArrays;
 
-    setCapacityOfSet( m_numArrays - 1, n );
+    setCapacityOfSet( m_numArrays - 1, setCapacity );
   }
 
   /**
-   * @brief Insert a set with the given capacity.
-   * @param i the position to insert the set.
-   * @param n the capacity of the set.
+   * @brief Insert a set at position @p i with capacity @p setCapacity.
+   * @param i The position to insert the set.
+   * @param setCapacity The capacity of the set.
    */
   inline
-  void insertSet( INDEX_TYPE const i, INDEX_TYPE const n=0 ) LVARRAY_RESTRICT_THIS
+  void insertSet( INDEX_TYPE const i, INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
+    LVARRAY_ASSERT( arrayManipulation::isPositive( setCapacity ) );
 
     // Insert an set of capacity zero at the given location
     INDEX_TYPE const offset = m_offsets[i];
@@ -303,7 +309,7 @@ public:
     ++m_numArrays;
 
     // Set the capacity of the new set
-    setCapacityOfSet( i, n );
+    setCapacityOfSet( i, setCapacity );
   }
 
   /**

@@ -22,12 +22,15 @@
 
 #pragma once
 
+// Source includes
 #include "NewChaiBuffer.hpp"
 #include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "templateHelpers.hpp"
-#include "RAJA/RAJA.hpp"
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -559,14 +562,7 @@ protected:
    * @param src The ArrayOfArraysView to steal from.
    */
   void stealFrom( ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES > && src )
-  {
-    m_numArrays = src.m_numArrays;
-    src.m_numArrays = 0;
-
-    m_offsets = std::move( src.m_offsets );
-    m_sizes = std::move( src.m_sizes );
-    m_values = std::move( src.m_values );
-  }
+  { *this = std::move( src ); }
 
   /**
    * @brief Set the number of arrays.
@@ -577,7 +573,7 @@ protected:
    *        similarly to m_values.
    * @note This is to be use by the non-view derived classes.
    */
-  template< class ... BUFFERS >
+  template< typename ... BUFFERS >
   void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ... buffers )
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( newSize ) );
@@ -617,6 +613,52 @@ protected:
 
     m_numArrays = newSize;
   }
+
+  /**
+   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
+   *   of each new sub array.
+   * @param buffers A variadic pack of buffers to treat similarly to m_values.
+   */
+  template< typename POLICY, typename ... BUFFERS >
+  void resizeFromCapacities( INDEX_TYPE const numSubArrays,
+                             INDEX_TYPE const * const capacities,
+                             BUFFERS & ... buffers )
+  {
+    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
+
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( INDEX_TYPE i = 0; i < numSubArrays; ++i )
+    {
+      LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );
+    }
+  #endif
+
+    destroyValues( 0, m_numArrays, buffers ... );
+
+    bufferManipulation::reserve( m_sizes, m_numArrays, numSubArrays );
+    memset( m_sizes.data(), 0, numSubArrays * sizeof( INDEX_TYPE ) );
+
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
+    bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
+
+    // const_cast needed until for RAJA bug.
+    m_offsets[ 0 ] = 0;
+    RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
+                                    const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+                                    m_offsets.data() + 1 );
+
+    m_numArrays = numSubArrays;
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    forEachArg( [ maxOffset] ( auto & buffer )
+    {
+      bufferManipulation::reserve( buffer, 0, maxOffset );
+    }, m_values, buffers ... );
+  }
+
 
   /**
    * @brief Destroy all the objects held by this array and free all associated memory.
@@ -744,13 +786,10 @@ protected:
   void reserveValues( INDEX_TYPE const newValueCapacity, BUFFERS & ... buffers )
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    forEachArg(
-      [newValueCapacity, maxOffset] ( auto & buffer )
+    forEachArg( [newValueCapacity, maxOffset] ( auto & buffer )
     {
       bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
-    },
-      m_values, buffers ...
-      );
+    }, m_values, buffers ... );
   }
 
   /**
@@ -878,11 +917,15 @@ private:
 
     forEachArg( [this, begin, end] ( auto & buffer )
     {
-      for( INDEX_TYPE i = begin; i < end; ++i )
+      if( !std::is_trivially_destructible< decltype( buffer[ 0 ] ) >::value )
       {
-        INDEX_TYPE const offset = m_offsets[ i ];
-        INDEX_TYPE const arraySize = sizeOfArray( i );
-        arrayManipulation::destroy( &buffer[ offset ], arraySize );
+        move( chai::CPU, false );
+        for( INDEX_TYPE i = begin; i < end; ++i )
+        {
+          INDEX_TYPE const offset = m_offsets[ i ];
+          INDEX_TYPE const arraySize = sizeOfArray( i );
+          arrayManipulation::destroy( &buffer[ offset ], arraySize );
+        }
       }
     }, m_values, buffers ... );
   }

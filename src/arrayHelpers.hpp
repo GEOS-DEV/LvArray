@@ -168,7 +168,7 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
 template< typename INDEX_TYPE, typename ... INDICES >
 std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
-  constexpr int NDIM = sizeof ... (INDICES) + 1;
+  constexpr int NDIM = sizeof ... (INDICES);
   std::ostringstream oss;
   oss << "dimensions = { " << dims[ 0 ];
   for( int i = 1; i < NDIM; ++i )

@@ -113,10 +113,16 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
+   * @param src The SparsityPattern to be moved from.
    * @return *this.
    */
   inline
-  SparsityPattern & operator=( SparsityPattern && ) = default;
+  SparsityPattern & operator=( SparsityPattern && src )
+  {
+    ParentClass::free();
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
 
   /**
    * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
@@ -133,6 +139,14 @@ public:
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief Reserve space for the given number of rows.
+   * @param rowCapacity The new minimum capacity for the number of rows.
+   */
+  inline
+  void reserveRows( INDEX_TYPE const rowCapacity ) LVARRAY_RESTRICT_THIS
+  { ParentClass::reserve( rowCapacity ); }
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries without reallocation.
@@ -193,6 +207,43 @@ public:
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
   { ParentClass::resize( nRows, nCols, initialRowCapacity ); }
+
+
+  /**
+   * @tparam POLICY The RAJA policy used to convert @p rowCapacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param nRows The new number of rows.
+   * @param nCols The new number of columns.
+   * @param rowCapacities A pointer to an array of length @p nRows containing the capacity
+   *   of each new sub array.
+   */
+  template< typename POLICY >
+  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
+  {
+    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
+    LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
+                      "COL_TYPE must be able to hold the range of columns: [0, " << nCols - 1 << "]." );
+
+    m_numCols = nCols;
+    ParentClass::template resizeFromCapacities< POLICY >( nRows, rowCapacities );
+  }
+
+
+  /**
+   * @brief Append a row with the given capacity.
+   * @param nzCapacity The non zero capacity of the row.
+   */
+  inline
+  void appendRow( INDEX_TYPE const nzCapacity=0 ) LVARRAY_RESTRICT_THIS
+  {
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    ++m_numArrays;
+
+    setRowCapacity( m_numArrays - 1, nzCapacity );
+  }
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).

@@ -87,10 +87,14 @@ public:
   SparsityPatternView( SparsityPatternView const & ) = default;
 
   /**
-   * @brief Default move constructor.
+   * @brief Move constructor.
+   * @param src The SparsityPatternView to move from.
    */
   inline
-  SparsityPatternView( SparsityPatternView && ) = default;
+  SparsityPatternView( SparsityPatternView && src ):
+    ParentClass( std::move( src ) ),
+    m_numCols( src.m_numCols )
+  { src.m_numCols = 0; }
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -100,11 +104,25 @@ public:
   SparsityPatternView & operator=( SparsityPatternView const & ) = default;
 
   /**
-   * @brief Default move assignment operator, this does a shallow copy.
+   * @brief Move assignment operator, this does a shallow copy.
+   * @param src The SparsityPatternView to move from.
    * @return *this.
    */
   inline
-  SparsityPatternView & operator=( SparsityPatternView && ) = default;
+  SparsityPatternView & operator=( SparsityPatternView && src )
+  {
+    ParentClass::operator=( std::move( src ) );
+    m_numCols = src.m_numCols;
+    src.m_numCols = 0;
+    return *this;
+  }
+
+  /**
+   * @brief Steal the resources of @p src, clearing it in the process.
+   * @param src The SparsityPatternView to steal from.
+   */
+  void stealFrom( SparsityPatternView && src )
+  { *this = std::move( src ); }
 
   /**
    * @brief @return Return *this.
@@ -338,12 +356,6 @@ protected:
     LVARRAY_ERROR_IF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
                       "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
-    if( initialRowCapacity > ncols )
-    {
-      LVARRAY_WARNING_IF( initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns." );
-      initialRowCapacity = ncols;
-    }
-
     m_numCols = ncols;
     ParentClass::resize( nrows, initialRowCapacity, buffers ... );
   }
@@ -354,7 +366,7 @@ protected:
   using ParentClass::m_values;
 
   /// The number of columns in the matrix.
-  INDEX_TYPE m_numCols;
+  INDEX_TYPE_NC m_numCols;
 };
 
 } /* namespace LvArray */

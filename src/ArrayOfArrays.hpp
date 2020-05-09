@@ -108,10 +108,16 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
+   * @param src The ArrayOfArrays to be moved from.
    * @return *this
    */
   inline
-  ArrayOfArrays & operator=( ArrayOfArrays && ) = default;
+  ArrayOfArrays & operator=( ArrayOfArrays && src )
+  {
+    ParentClass::free();
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
 
   /**
    * @brief Steal the resources from an ArrayOfSets and convert it to an ArrayOfArrays.
@@ -177,6 +183,18 @@ public:
    */
   void resize( INDEX_TYPE const numSubArrays, INDEX_TYPE const defaultArrayCapacity=0 )
   { ParentClass::resize( numSubArrays, defaultArrayCapacity ); }
+
+  /**
+   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
+   *   of each new sub array.
+   */
+  template< typename POLICY >
+  void resizeFromCapacities( INDEX_TYPE const numSubArrays, INDEX_TYPE const * const capacities )
+  { ParentClass::template resizeFromCapacities< POLICY >( numSubArrays, capacities ); }
 
   /**
    * @brief Append an array.
