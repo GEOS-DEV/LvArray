@@ -40,7 +40,7 @@ constexpr bool contains( camp::idx_seq< INDEX0, INDEX1, INDICES... > )
 
 template< typename PERMUTATION, camp::idx_t... INDICES >
 constexpr bool isValidPermutation( PERMUTATION, camp::idx_seq< INDICES... > )
-{ return conjunction< contains< INDICES >( PERMUTATION {} )... >::value; }
+{ return conjunction< contains< INDICES >( PERMUTATION {} )... >; }
 
 } // namespace internal
 

@@ -27,6 +27,19 @@
 #include <chrono>
 #include <unordered_map>
 
+#if defined(USE_CALIPER)
+
+#include <caliper/cali.h>
+#define LVARRAY_MARK_FUNCTION_TAG( name ) cali::Function __cali_ann##__LINE__( STRINGIZE_NX( name ) )
+#define LVARRAY_MARK_FUNCTION_TAG_STRING( string ) cali::Function __cali_ann##__LINE__( ( string ).data() )
+
+#else
+
+#define LVARRAY_MARK_FUNCTION_TAG( name )
+#define LVARRAY_MARK_FUNCTION_TAG_STRING( string )
+
+#endif
+
 namespace LvArray
 {
 
@@ -35,65 +48,59 @@ using namespace testing;
 namespace benchmarking
 {
 
-#define DECLARE_BENCHMARK( func, args, iter ) \
-  BENCHMARK( func ) \
-    ->Args( args ) \
-    ->Repetitions( iter ) \
-    ->UseRealTime() \
-    ->ComputeStatistics( "min", \
-                         []( std::vector< double > const & times ) \
-  { \
-    return *std::min_element( times.begin(), times.end() ); \
-  } \
-                         ) \
-    ->ComputeStatistics( "max", \
-                         []( std::vector< double > const & times ) \
-  { \
-    return *std::max_element( times.begin(), times.end() ); \
-  } \
-                         )
+namespace internal
+{
+
+template< typename T >
+std::string typeToString( T const & )
+{ return LvArray::demangleType< T >(); }
+
+inline std::string typeToString( RAJA::PERM_I const & ) { return "RAJA::PERM_I"; }
+
+inline std::string typeToString( RAJA::PERM_IJ const & ) { return "RAJA::PERM_IJ"; }
+inline std::string typeToString( RAJA::PERM_JI const & ) { return "RAJA::PERM_JI"; }
+
+inline std::string typeToString( RAJA::PERM_IJK const & ) { return "RAJA::PERM_IJK"; }
+inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_KJI"; }
+
+} // namespace internal
+
+template< typename ARG0 >
+std::string typeListToString()
+{ return internal::typeToString( ARG0 {} ); }
+
+template< typename ARG0, typename ARG1 >
+std::string typeListToString()
+{ return internal::typeToString( ARG0 {} ) + ", " + internal::typeToString( ARG1 {} ); }
 
 
-#define DECLARE_BENCHMARK_TEMPLATE( func, T, args, iter ) \
-  BENCHMARK_TEMPLATE( func, T ) \
+#define REGISTER_BENCHMARK( args, func ) \
+  { \
+    ::benchmark::RegisterBenchmark( STRINGIZE( func ), func ) \
     ->Args( args ) \
-    ->Repetitions( iter ) \
     ->UseRealTime() \
-    ->ComputeStatistics( "min", \
-                         []( std::vector< double > const & times ) \
+    ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
+      { return *std::min_element( times.begin(), times.end() ); } ) \
+    ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
+      { return *std::max_element( times.begin(), times.end() ); } ); \
+  }
+
+
+#define REGISTER_BENCHMARK_TEMPLATE( args, func, ... ) \
   { \
-    return *std::min_element( times.begin(), times.end() ); \
-  } \
-                         ) \
-    ->ComputeStatistics( "max", \
-                         []( std::vector< double > const & times ) \
-  { \
-    return *std::max_element( times.begin(), times.end() ); \
-  } \
-                         )
+    std::string functionName = STRINGIZE( func ) "< "; \
+    functionName += typeListToString< __VA_ARGS__ >() + " >"; \
+    ::benchmark::RegisterBenchmark( functionName.c_str(), func< __VA_ARGS__ > ) \
+    ->Args( args ) \
+    ->UseRealTime() \
+    ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
+      { return *std::min_element( times.begin(), times.end() ); } ) \
+    ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
+      { return *std::max_element( times.begin(), times.end() ); } ); \
+  }
 
 
 #define WRAP( ... ) __VA_ARGS__
-
-
-#define FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( B0, B1, B2, B3, T, ARGS, REPS ) \
-  DECLARE_BENCHMARK_TEMPLATE( B0, WRAP( T ), WRAP( ARGS ), REPS ); \
-  DECLARE_BENCHMARK_TEMPLATE( B1, WRAP( T ), WRAP( ARGS ), REPS ); \
-  DECLARE_BENCHMARK_TEMPLATE( B2, WRAP( T ), WRAP( ARGS ), REPS ); \
-  DECLARE_BENCHMARK_TEMPLATE( B3, WRAP( T ), WRAP( ARGS ), REPS )
-
-
-#define FIVE_BENCHMARK_TEMPLATES_ONE_TYPE( B0, B1, B2, B3, B4, T, ARGS, REPS ) \
-  FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( B0, B1, B2, B3, WRAP( T ), WRAP( ARGS ), REPS ); \
-  DECLARE_BENCHMARK_TEMPLATE( B4, WRAP( T ), WRAP( ARGS ), REPS )
-
-
-#define FOUR_BENCHMARK_TEMPLATES_TWO_TYPES( B0, B1, B2, B3, T0, T1, ARGS, REPS ) \
-  FOUR_BENCHMARK_TEMPLATES_ONE_TYPE( B0, B1, B2, B3, WRAP( std::pair< T0, T1 > ), WRAP( ARGS ), REPS )
-
-
-#define FIVE_BENCHMARK_TEMPLATES_TWO_TYPES( B0, B1, B2, B3, B4, T0, T1, ARGS, REPS ) \
-  FIVE_BENCHMARK_TEMPLATES_ONE_TYPE( B0, B1, B2, B3, B4, WRAP( std::pair< T0, T1 > ), WRAP( ARGS ), REPS )
 
 
 inline std::uint_fast64_t getSeed()
@@ -104,8 +111,8 @@ inline std::uint_fast64_t getSeed()
 }
 
 
-template< typename PERMUTATION >
-void initialize( Array< VALUE_TYPE, PERMUTATION > const & array, int & iter )
+template< typename T, typename PERMUTATION >
+void initialize( Array< T, PERMUTATION > const & array, int & iter )
 {
   ++iter;
   std::mt19937_64 gen( iter * getSeed() );
@@ -114,7 +121,7 @@ void initialize( Array< VALUE_TYPE, PERMUTATION > const & array, int & iter )
   // std::unifor_real_distribution is not used because it is really slow on Lassen.
   std::uniform_int_distribution< std::int64_t > dis( -1e18, 1e18 );
 
-  forValuesInSlice( array.toSlice(), [&dis, &gen]( VALUE_TYPE & value )
+  forValuesInSlice( array.toSlice(), [&dis, &gen]( T & value )
   {
     double const valueFP = dis( gen ) / 1e16;
     value = valueFP;
@@ -122,8 +129,8 @@ void initialize( Array< VALUE_TYPE, PERMUTATION > const & array, int & iter )
 }
 
 
-template< typename PERMUTATION >
-RajaView< VALUE_TYPE, PERMUTATION > makeRajaView( Array< VALUE_TYPE, PERMUTATION > const & array )
+template< typename T, typename PERMUTATION >
+RajaView< T, PERMUTATION > makeRajaView( Array< T, PERMUTATION > const & array )
 {
   constexpr int NDIM = getDimension( PERMUTATION {} );
   std::array< INDEX_TYPE, NDIM > sizes;
@@ -134,28 +141,27 @@ RajaView< VALUE_TYPE, PERMUTATION > makeRajaView( Array< VALUE_TYPE, PERMUTATION
   }
 
   constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();
-  return RajaView< VALUE_TYPE, PERMUTATION >( array.data(), RAJA::make_permuted_layout( sizes, permutation ) );
+  return RajaView< T, PERMUTATION >( array.data(), RAJA::make_permuted_layout( sizes, permutation ) );
 }
 
 
-template< typename PERMUTATION >
-INDEX_TYPE reduce( Array< VALUE_TYPE, PERMUTATION > const & array )
+template< typename T, typename PERMUTATION >
+INDEX_TYPE reduce( Array< T, PERMUTATION > const & array )
 {
-  VALUE_TYPE result = 0;
+  T result = 0;
 
   forValuesInSlice( array.toSlice(),
-                    [&result]( VALUE_TYPE const & value )
-      {
-        result += value;
-      }
-                    );
+                    [&result]( T const & value )
+  {
+    result += value;
+  } );
 
   return result;
 }
 
 
-template< unsigned long N >
-using ResultsMap = std::map< std::array< INDEX_TYPE, N >, std::map< std::string, VALUE_TYPE > >;
+template< typename T, unsigned long N >
+using ResultsMap = std::map< std::array< INDEX_TYPE, N >, std::map< std::string, T > >;
 
 template< typename T >
 std::enable_if_t< std::is_integral< T >::value, bool >
@@ -166,18 +172,16 @@ template< typename T >
 std::enable_if_t< std::is_floating_point< T >::value, bool >
 equal( T const a, T const b )
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-  return a == b;
-#pragma GCC diagnostic pop
+  T const diff = std::abs( a - b );
+  return diff < 1e-15 || diff / a < 1e-10;
 }
 
 
-template< unsigned long N >
-void registerResult( ResultsMap< N > & resultsMap,
+template< typename T, unsigned long N >
+void registerResult( ResultsMap< T, N > & resultsMap,
                      std::array< INDEX_TYPE, N > const & args,
-                     VALUE_TYPE const result,
-                     char const * const functionName )
+                     T const result,
+                     std::string const & functionName )
 {
   auto const ret = resultsMap[ args ].insert( { std::string( functionName ), result } );
   if( !ret.second && !equal( result, ret.first->second ) )
@@ -189,15 +193,15 @@ void registerResult( ResultsMap< N > & resultsMap,
 }
 
 
-template< unsigned long N >
-inline int verifyResults( ResultsMap< N > const & benchmarkResults )
+template< typename T, unsigned long N >
+inline int verifyResults( ResultsMap< T, N > const & benchmarkResults )
 {
   bool success = true;
   for( auto const & run : benchmarkResults )
   {
     std::array< INDEX_TYPE, N > const & args = run.first;
-    std::map< std::string, VALUE_TYPE > const & results = run.second;
-    VALUE_TYPE const firstResult = results.begin()->second;
+    std::map< std::string, T > const & results = run.second;
+    T const firstResult = results.begin()->second;
 
     bool allResultsEqual = true;
     for( auto const & funcAndResult : results )
@@ -217,7 +221,7 @@ inline int verifyResults( ResultsMap< N > const & benchmarkResults )
       }
       std::cout << std::endl;
 
-      std::map< VALUE_TYPE, std::vector< std::string > > functionsByResult;
+      std::map< T, std::vector< std::string > > functionsByResult;
 
       for( auto const & funcAndResult : results )
       {

@@ -16,7 +16,6 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-// Source includes
 #include "benchmarkArray1DR2TensorMultiplicationKernels.hpp"
 
 namespace LvArray
@@ -24,8 +23,7 @@ namespace LvArray
 namespace benchmarking
 {
 
-
-#define OUTER_LOOP( BODY ) \
+#define OUTER_LOOP( N, BODY ) \
   for( INDEX_TYPE i = 0; i < N; ++i ) \
   { \
     BODY \
@@ -33,7 +31,7 @@ namespace benchmarking
   return
 
 
-#define RAJA_OUTER_LOOP( BODY ) \
+#define RAJA_OUTER_LOOP( N, BODY ) \
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, N ), \
                           [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i ) \
   { \
@@ -50,135 +48,184 @@ namespace benchmarking
       VALUE_TYPE dot = 0; \
       for( INDEX_TYPE l = 0; l < 3; ++l ) \
       { \
-        dot += a_ijl * b_ilk; \
+        dot = dot + a_ijl * b_ilk; \
       } \
       c_ijk += dot; \
     } \
   }
 
 
-#define KERNEL( a_ijl, b_ilk, c_ijk ) \
-  OUTER_LOOP( INNER_LOOP( a_ijl, b_ilk, c_ijk ) )
+#define KERNEL( N, a_ijl, b_ilk, c_ijk ) \
+  OUTER_LOOP( N, INNER_LOOP( a_ijl, b_ilk, c_ijk ) )
 
 
-#define RAJA_KERNEL( a_ijl, b_ilk, c_ijk ) \
-  RAJA_OUTER_LOOP( INNER_LOOP( a_ijl, b_ilk, c_ijk ) )
+#define RAJA_KERNEL( N, a_ijl, b_ilk, c_ijk ) \
+  RAJA_OUTER_LOOP( N, INNER_LOOP( a_ijl, b_ilk, c_ijk ) )
 
 
-template< int USD >
+template< typename VALUE_TYPE_CONST, int USD >
 RAJA_INLINE LVARRAY_HOST_DEVICE constexpr
-void R2TensorMultiply( ArraySlice< VALUE_TYPE const, 2, USD > const & a,
-                       ArraySlice< VALUE_TYPE const, 2, USD > const & b,
-                       ArraySlice< VALUE_TYPE, 2, USD > const & c )
+void R2TensorMultiply( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD > const & a,
+                       LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD > const & b,
+                       LvArray::ArraySlice< VALUE_TYPE, 2, USD > const & c )
 { INNER_LOOP( a( j, l ), b( l, k ), c( j, k ) ) }
 
 
-template< typename PERMUTATION >
-void Array1DR2TensorMultiplicationNative< PERMUTATION >::
-fortran( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-         ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-         ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-         INDEX_TYPE const N )
-{ KERNEL( a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
-
 
 template< typename PERMUTATION >
-void Array1DR2TensorMultiplicationNative< PERMUTATION >::
-subscript( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-           ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-           ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-           INDEX_TYPE const N )
-{ KERNEL( a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
-
+void ArrayOfR2TensorsNative< PERMUTATION >::
+fortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
+                    Array< VALUE_TYPE, PERMUTATION > const & b,
+                    Array< VALUE_TYPE, PERMUTATION > const & c )
+{ KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION >
-void Array1DR2TensorMultiplicationNative< PERMUTATION >::
-tensorAbstraction( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+void ArrayOfR2TensorsNative< PERMUTATION >::
+fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-                   INDEX_TYPE const N )
-{ OUTER_LOOP( R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
-
+                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION >
-void Array1DR2TensorMultiplicationNative< PERMUTATION >::
-rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
-          RajaView< VALUE_TYPE const, PERMUTATION > const & b,
-          RajaView< VALUE_TYPE, PERMUTATION > const & c,
-          INDEX_TYPE const N )
-{ KERNEL( a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
+void ArrayOfR2TensorsNative< PERMUTATION >::
+fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+subscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
+                      Array< VALUE_TYPE, PERMUTATION > const & b,
+                      Array< VALUE_TYPE, PERMUTATION > const & c )
+{ KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+tensorAbstractionArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
+                              Array< VALUE_TYPE, PERMUTATION > const & b,
+                              Array< VALUE_TYPE, PERMUTATION > const & c )
+{ OUTER_LOOP( a.size( 0 ), R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+tensorAbstractionViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                             ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                             ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ OUTER_LOOP( a.size( 0 ), R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+tensorAbstractionSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                              ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                              ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ OUTER_LOOP( a.size( 0 ), R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
+
+template< typename PERMUTATION >
+void ArrayOfR2TensorsNative< PERMUTATION >::
+RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
+                RajaView< VALUE_TYPE const, PERMUTATION > const & b,
+                RajaView< VALUE_TYPE, PERMUTATION > const & c )
+{ KERNEL( a.layout.sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template<>
-void Array1DR2TensorMultiplicationNative< RAJA::PERM_IJK >::
-pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-         VALUE_TYPE const * const LVARRAY_RESTRICT b,
-         VALUE_TYPE * const LVARRAY_RESTRICT c,
-         INDEX_TYPE const N )
+void ArrayOfR2TensorsNative< RAJA::PERM_IJK >::
+pointerKernel( INDEX_TYPE const N,
+               VALUE_TYPE const * const LVARRAY_RESTRICT a,
+               VALUE_TYPE const * const LVARRAY_RESTRICT b,
+               VALUE_TYPE * const LVARRAY_RESTRICT c )
 {
-  KERNEL( a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
+  KERNEL( N,
+          a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
           b[ ACCESS_IJK( N, 3, 3, i, l, k ) ],
           c[ ACCESS_IJK( N, 3, 3, i, j, k ) ] );
 }
 
-
 template<>
-void Array1DR2TensorMultiplicationNative< RAJA::PERM_KJI >::
-pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-         VALUE_TYPE const * const LVARRAY_RESTRICT b,
-         VALUE_TYPE * const LVARRAY_RESTRICT c,
-         INDEX_TYPE const N )
+void ArrayOfR2TensorsNative< RAJA::PERM_KJI >::
+pointerKernel( INDEX_TYPE const N,
+               VALUE_TYPE const * const LVARRAY_RESTRICT a,
+               VALUE_TYPE const * const LVARRAY_RESTRICT b,
+               VALUE_TYPE * const LVARRAY_RESTRICT c )
 {
-  KERNEL( a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
+  KERNEL( N,
+          a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
           b[ ACCESS_KJI( N, 3, 3, i, l, k ) ],
           c[ ACCESS_KJI( N, 3, 3, i, j, k ) ] );
 }
 
-
 template< typename PERMUTATION, typename POLICY >
-void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-fortran( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-         ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-         ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-         INDEX_TYPE const N )
-{ RAJA_KERNEL( a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
-
-
-template< typename PERMUTATION, typename POLICY >
-void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-subscript( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-           ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-           ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-           INDEX_TYPE const N )
-{ RAJA_KERNEL( a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
-
-
-template< typename PERMUTATION, typename POLICY >
-void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-tensorAbstraction( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c,
-                   INDEX_TYPE const N )
-{ RAJA_OUTER_LOOP( R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
-
+                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ RAJA_KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION, typename POLICY >
-void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-rajaView( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
-          RajaView< VALUE_TYPE const, PERMUTATION > const & b,
-          RajaView< VALUE_TYPE, PERMUTATION > const & c,
-          INDEX_TYPE const N )
-{ RAJA_KERNEL( a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ RAJA_KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
+template< typename PERMUTATION, typename POLICY >
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ RAJA_KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
+
+template< typename PERMUTATION, typename POLICY >
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ RAJA_KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
+
+template< typename PERMUTATION, typename POLICY >
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+tensorAbstractionViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                             ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                             ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+{ RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
+
+template< typename PERMUTATION, typename POLICY >
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+tensorAbstractionSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                              ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                              ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+{ RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiply( a[ i ], b[ i ], c[ i ] ); ); }
+
+template< typename PERMUTATION, typename POLICY >
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
+                RajaView< VALUE_TYPE const, PERMUTATION > const & b,
+                RajaView< VALUE_TYPE, PERMUTATION > const & c )
+{ RAJA_KERNEL( a.layout.sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_IJK,
+                        INDEX_TYPE const N,
                         VALUE_TYPE const * const LVARRAY_RESTRICT a,
                         VALUE_TYPE const * const LVARRAY_RESTRICT b,
-                        VALUE_TYPE * const LVARRAY_RESTRICT c,
-                        INDEX_TYPE const N )
+                        VALUE_TYPE * const LVARRAY_RESTRICT c )
 {
-  RAJA_KERNEL( a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
+  RAJA_KERNEL( N,
+               a[ ACCESS_IJK( N, 3, 3, i, j, l ) ],
                b[ ACCESS_IJK( N, 3, 3, i, l, k ) ],
                c[ ACCESS_IJK( N, 3, 3, i, j, k ) ] );
 }
@@ -186,41 +233,49 @@ void pointerRajaHelper( RAJA::PERM_IJK,
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_KJI,
+                        INDEX_TYPE const N,
                         VALUE_TYPE const * const LVARRAY_RESTRICT a,
                         VALUE_TYPE const * const LVARRAY_RESTRICT b,
-                        VALUE_TYPE * const LVARRAY_RESTRICT c,
-                        INDEX_TYPE const N )
+                        VALUE_TYPE * const LVARRAY_RESTRICT c )
 {
-  RAJA_KERNEL( a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
+  RAJA_KERNEL( N,
+               a[ ACCESS_KJI( N, 3, 3, i, j, l ) ],
                b[ ACCESS_KJI( N, 3, 3, i, l, k ) ],
                c[ ACCESS_KJI( N, 3, 3, i, j, k ) ] );
 }
 
 
 template< typename PERMUTATION, typename POLICY >
-void Array1DR2TensorMultiplicationRaja< PERMUTATION, POLICY >::
-pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-         VALUE_TYPE const * const LVARRAY_RESTRICT b,
-         VALUE_TYPE * const LVARRAY_RESTRICT c,
-         INDEX_TYPE const N )
-{ return pointerRajaHelper< POLICY >( PERMUTATION {}, a, b, c, N ); }
+void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
+pointerKernel( INDEX_TYPE const N,
+               VALUE_TYPE const * const LVARRAY_RESTRICT a,
+               VALUE_TYPE const * const LVARRAY_RESTRICT b,
+               VALUE_TYPE * const LVARRAY_RESTRICT c )
+{ return pointerRajaHelper< POLICY >( PERMUTATION {}, N, a, b, c ); }
 
 
-template struct Array1DR2TensorMultiplicationNative< RAJA::PERM_IJK >;
-template struct Array1DR2TensorMultiplicationNative< RAJA::PERM_KJI >;
+template class ArrayOfR2TensorsNative< RAJA::PERM_IJK >;
+template class ArrayOfR2TensorsNative< RAJA::PERM_KJI >;
 
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_IJK, serialPolicy >;
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_KJI, serialPolicy >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, serialPolicy >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, serialPolicy >;
 
 #if defined(USE_OPENMP)
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_IJK, parallelHostPolicy >;
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_KJI, parallelHostPolicy >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, parallelHostPolicy >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, parallelHostPolicy >;
 #endif
 
 #if defined(USE_CUDA)
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
-template struct Array1DR2TensorMultiplicationRaja< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
+template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
+
+
+#undef OUTER_LOOP
+#undef RAJA_OUTER_LOOP
+#undef INNER_LOOP
+#undef KERNEL
+#undef RAJA_KERNEL
 
 } // namespace benchmarking
 } // namespace LvArray

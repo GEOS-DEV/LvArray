@@ -32,6 +32,10 @@
 #define USE_OPENMP
 #endif
 
+#ifndef USE_CALIPER
+/* #undef USE_CALIPER */
+#endif
+
 
 
 #endif  /* LVARRAYCONFIG_HPP */

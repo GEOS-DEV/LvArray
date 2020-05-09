@@ -33,22 +33,21 @@ namespace benchmarking
 #define ACCESS_KJI( N, M, P, i, j, k ) M * N * k + N * j + i
 
 using INDEX_TYPE = std::ptrdiff_t;
-using VALUE_TYPE = double;
 
 template< typename T, typename PERMUTATION >
-using Array = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE >;
+using Array = LvArray::Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE >;
+
+template< typename T, typename PERMUTATION, int LENGTH >
+using StackArray = LvArray::StackArray< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, LENGTH >;
 
 template< typename T, typename PERMUTATION >
-using ArrayView = ArrayView< T, getDimension( PERMUTATION {} ), getStrideOneDimension( PERMUTATION {} ), INDEX_TYPE >;
+using ArrayView = LvArray::ArrayView< T, getDimension( PERMUTATION {} ), getStrideOneDimension( PERMUTATION {} ), INDEX_TYPE >;
+
+template< typename T, typename PERMUTATION >
+using ArraySlice = LvArray::ArraySlice< T, getDimension( PERMUTATION {} ), getStrideOneDimension( PERMUTATION {} ), INDEX_TYPE >;
 
 template< typename T, typename PERMUTATION >
 using RajaView = RAJA::View< T, RAJA::Layout< getDimension( PERMUTATION {} ), INDEX_TYPE, getStrideOneDimension( PERMUTATION {} ) >>;
-
-using serialPolicy = RAJA::loop_exec;
-
-#if defined(USE_OPENMP)
-using parallelHostPolicy = RAJA::omp_parallel_for_exec;
-#endif
 
 } // namespace benchmarking
 } // namespace LvArray

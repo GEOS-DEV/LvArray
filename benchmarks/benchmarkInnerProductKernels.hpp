@@ -21,51 +21,211 @@
 // Source includes
 #include "benchmarkHelpers.hpp"
 
+// TPL includes
+#include <benchmark/benchmark.h>
+
 namespace LvArray
 {
 namespace benchmarking
 {
 
+using VALUE_TYPE = double;
 constexpr unsigned long THREADS_PER_BLOCK = 256;
 
-struct InnerProductNative
+#define TIMING_LOOP( KERNEL ) \
+  for( auto _ : m_state ) \
+  { \
+    LVARRAY_UNUSED_VARIABLE( _ ); \
+    m_sum += KERNEL; \
+    ::benchmark::DoNotOptimize( m_sum ); \
+    ::benchmark::ClobberMemory(); \
+  } \
+
+class InnerProductNative
 {
-  static VALUE_TYPE fortran( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                             ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                             INDEX_TYPE const N );
+public:
 
-  static VALUE_TYPE subscript( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                               ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                               INDEX_TYPE const N );
+  InnerProductNative( ::benchmark::State & state,
+                      char const * const callingFunction,
+                      ResultsMap< VALUE_TYPE, 1 > & results ):
+    m_state( state ),
+    m_callingFunction( callingFunction ),
+    m_results( results ),
+    m_a( state.range( 0 ) ),
+    m_b( state.range( 0 ) ),
+    m_sum( 0 )
+  {
+    int iter = 0;
+    initialize( m_a, iter );
+    initialize( m_b, iter );
+  }
 
-  static VALUE_TYPE rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                              RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                              INDEX_TYPE const N );
+  ~InnerProductNative()
+  {
+    registerResult( m_results, { m_a.size() }, m_sum / INDEX_TYPE( m_state.iterations() ), m_callingFunction );
+    m_state.counters[ "OPS "] = ::benchmark::Counter( 2 * m_a.size(), ::benchmark::Counter::kIsIterationInvariantRate, ::benchmark::Counter::OneK::kIs1000 );
+  }
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-                             VALUE_TYPE const * const LVARRAY_RESTRICT b,
-                             INDEX_TYPE const N );
+  void fortranArray()
+  { TIMING_LOOP( fortranArrayKernel( m_a, m_b ) ); }
+
+  void fortranView()
+  {
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    TIMING_LOOP( fortranViewKernel( a, b ) );
+  }
+
+  void fortranSlice()
+  {
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    TIMING_LOOP( fortranSliceKernel( a, b ) );
+  }
+
+  void subscriptArray()
+  { TIMING_LOOP( subscriptArrayKernel( m_a, m_b ) ); }
+
+  void subscriptView()
+  {
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    TIMING_LOOP( subscriptViewKernel( a, b ) );
+  }
+
+  void subscriptSlice()
+  {
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    TIMING_LOOP( subscriptSliceKernel( a, b ) );
+  }
+
+  void RAJAView()
+  {
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = makeRajaView( m_a );
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = makeRajaView( m_b );
+    TIMING_LOOP( RAJAViewKernel( a, b ) );
+  }
+
+  void pointer()
+  {
+    VALUE_TYPE const * const LVARRAY_RESTRICT a = m_a.data();
+    VALUE_TYPE const * const LVARRAY_RESTRICT b = m_b.data();
+    TIMING_LOOP( pointerKernel( m_a.size(), a, b ) );
+  }
+
+protected:
+
+  ::benchmark::State & m_state;
+  std::string const m_callingFunction;
+  ResultsMap< VALUE_TYPE, 1 > & m_results;
+  Array< VALUE_TYPE, RAJA::PERM_I > m_a;
+  Array< VALUE_TYPE, RAJA::PERM_I > m_b;
+  VALUE_TYPE m_sum = 0;
+
+private:
+  static VALUE_TYPE fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
+                                        Array< VALUE_TYPE, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                       ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                        ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+
+  static VALUE_TYPE subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
+                                          Array< VALUE_TYPE, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                         ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                          ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+
+  static VALUE_TYPE RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                    RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE pointerKernel( INDEX_TYPE const N,
+                                   VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                   VALUE_TYPE const * const LVARRAY_RESTRICT b );
 };
 
 template< typename POLICY >
-struct InnerProductRAJA
+class InnerProductRAJA : public InnerProductNative
 {
-  static VALUE_TYPE fortran( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                             ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                             INDEX_TYPE const N );
+public:
 
-  static VALUE_TYPE subscript( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                               ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                               INDEX_TYPE const N );
+  InnerProductRAJA( ::benchmark::State & state,
+                    char const * const callingFunction,
+                    ResultsMap< VALUE_TYPE, 1 > & results ):
+    InnerProductNative( state, callingFunction, results )
+  {}
 
-  static VALUE_TYPE rajaView( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                              RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                              INDEX_TYPE const N );
+  void fortranView()
+  {
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    TIMING_LOOP( fortranViewKernel( a, b ) );
+  }
 
-  static VALUE_TYPE pointer( VALUE_TYPE const * const LVARRAY_RESTRICT a,
-                             VALUE_TYPE const * const LVARRAY_RESTRICT b,
-                             INDEX_TYPE const N );
+  void fortranSlice()
+  {
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    TIMING_LOOP( fortranSliceKernel( a, b ) );
+  }
+
+  void subscriptView()
+  {
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    TIMING_LOOP( subscriptViewKernel( a, b ) );
+  }
+
+  void subscriptSlice()
+  {
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    TIMING_LOOP( subscriptSliceKernel( a, b ) );
+  }
+
+  void RAJAView()
+  {
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = makeRajaView( m_a );
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = makeRajaView( m_b );
+    TIMING_LOOP( RAJAViewKernel( a, b ) );
+  }
+
+  void pointer()
+  {
+    VALUE_TYPE const * const LVARRAY_RESTRICT a = m_a.data();
+    VALUE_TYPE const * const LVARRAY_RESTRICT b = m_b.data();
+    TIMING_LOOP( pointerKernel( m_a.size(), a, b ) );
+  }
+
+// Should be private but nvcc demands they're public.
+public:
+  static VALUE_TYPE fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                       ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                        ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+
+  static VALUE_TYPE subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                         ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                          ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+
+  static VALUE_TYPE RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                    RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+
+  static VALUE_TYPE pointerKernel( INDEX_TYPE const N,
+                                   VALUE_TYPE const * const LVARRAY_RESTRICT a,
+                                   VALUE_TYPE const * const LVARRAY_RESTRICT b );
 };
+
+#undef TIMING_LOOP
 
 } // namespace benchmarking
 } // namespace LvArray
