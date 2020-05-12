@@ -372,7 +372,7 @@ public:
   void setValues()
   {
     T const val = T( rand( 100 ) );
-    m_matrix.setValues( val );
+    m_matrix.template setValues< serialPolicy >( val );
 
     for( auto & row : m_ref )
     {
