@@ -413,19 +413,31 @@
 
 
 #if defined(__clang__)
-#define LVARRAY_RESTRICT __restrict__
-#define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
+  #define LVARRAY_RESTRICT __restrict__
+  #define LVARRAY_RESTRICT_REF __restrict__
+  #define LVARRAY_RESTRICT_THIS
 #elif defined(__GNUC__)
   #if defined(__INTEL_COMPILER)
-#define LVARRAY_RESTRICT __restrict__
-#define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
+    #define LVARRAY_RESTRICT __restrict__
+    #define LVARRAY_RESTRICT_REF __restrict__
+    #define LVARRAY_RESTRICT_THIS
   #else
-#define LVARRAY_RESTRICT __restrict__
-#define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
+    #define LVARRAY_RESTRICT __restrict__
+    #define LVARRAY_RESTRICT_REF __restrict__
+    #define LVARRAY_RESTRICT_THIS
   #endif
+#endif
+
+#if !defined(USE_ARRAY_BOUNDS_CHECK)
+#define CONSTEXPR_WITHOUT_BOUNDS_CHECK constexpr
+#else
+#define CONSTEXPR_WITHOUT_BOUNDS_CHECK
+#endif
+
+#if defined(NDEBUG)
+#define CONSTEXPR_WITH_NDEBUG constexpr
+#else
+#define CONSTEXPR_WITH_NDEBUG
 #endif
 
 #if !defined(USE_ARRAY_BOUNDS_CHECK)

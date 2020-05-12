@@ -220,19 +220,20 @@ public:
    * @brief Set all the values in the matrix to the given value.
    * @param value the value to set values in the matrix to.
    */
+  template< typename POLICY >
   inline
   void setValues( T const & value ) const
   {
-    for( INDEX_TYPE_NC row = 0; row < numRows(); ++row )
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
+    [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
     {
-      INDEX_TYPE const nnz = numNonZeros( row );
-      T * const entries = getEntries( row );
+      INDEX_TYPE const nnz = view.numNonZeros( row );
+      ArraySlice< T, 1 > const entries = view.getEntries( row );
 
       for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
-      {
-        entries[ i ] = value;
-      }
-    }
+      { entries[ i ] = value; }
+    } );
   }
 
   /// @cond DO_NOT_DOCUMENT

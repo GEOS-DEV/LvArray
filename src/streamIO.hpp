@@ -27,6 +27,7 @@
 #include "Array.hpp"
 #include "SortedArray.hpp"
 #include "ArrayOfArrays.hpp"
+#include "CRSMatrix.hpp"
 
 // System includes
 #include <string>
@@ -436,6 +437,30 @@ template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYP
 std::ostream & operator<< ( std::ostream & stream,
                             ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > const & array )
 { return stream << array.toViewConst(); }
+
+/**
+ * @tparam T The type of the values in @p view.
+ * @tparam INDEX_TYPE The integer used by @p view.
+ * @brief This function outputs the contents of @p view to an output stream.
+ * @param stream The output stream to write to.
+ * @param view The ArrayOfArraysView to output.
+ * @return @p stream .
+ */
+template< typename T, typename COL_TYPE, typename INDEX_TYPE >
+std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view )
+{
+  stream << "{" << std::endl;
+
+  for( INDEX_TYPE row = 0; row < view.numRows(); ++row )
+  {
+    stream << "row " << row << std::endl;
+    stream << "\tcolumns: " << view.getEntries( row ) << std::endl;
+    stream << "\tvalues: " << view.getEntries( row ) << std::endl;
+  }
+
+  stream << "}" << std::endl;
+  return stream;
+}
 
 /**
  * @brief Output a c-array to a stream.

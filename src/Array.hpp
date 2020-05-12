@@ -219,6 +219,16 @@ public:
     return *this;
   }
 
+  template< typename POLICY >
+  void setValues( T const & rhs )
+  {
+    ViewType const & view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    {
+      view.data()[ i ] = rhs;
+    } );
+  }
+
   /**
    * @brief Resize the dimensions of the Array to match the given dimensions.
    * @param numDims must equal NDIMS.

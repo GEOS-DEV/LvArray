@@ -323,7 +323,8 @@ public:
   /**
    * @brief @return Return true if the array is empty.
    */
-  inline bool empty() const
+  LVARRAY_HOST_DEVICE inline constexpr
+  bool empty() const
   { return size() == 0; }
 
   /**
@@ -486,7 +487,7 @@ protected:
     m_strides{ 0 },
     m_dataBuffer( true )
   {
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }
