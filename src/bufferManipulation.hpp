@@ -88,7 +88,7 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
-  void move( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
+  void moveNested( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
@@ -187,18 +187,10 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 
   check( buf, size );
 
-  /// If the values contained can themselves be moved then they need to be moved back to the host.
-#if !defined(__CUDA_ARCH__ )
-  if( HasMemberFunction_move< T > )
+  if( !std::is_trivially_destructible< T >::value )
   {
-    buf.move( MemorySpace::CPU, size, true );
-  }
-#endif
-
-  T * const LVARRAY_RESTRICT data = buf.data();
-  for( std::ptrdiff_t i = 0; i < size; ++i )
-  {
-    data[ i ].~T();
+    buf.move( MemorySpace::CPU, true );
+    arrayManipulation::destroy( buf.data(), size );
   }
 
   buf.free();

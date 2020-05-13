@@ -147,16 +147,16 @@ public:
   void assimilate( SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && src )
   {
     // Destroy the current entries.
-    if ( !std::is_trivially_destructible< T >::value )
+    if( !std::is_trivially_destructible< T >::value )
     {
       CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
-      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-      {
-        INDEX_TYPE const nnz = view.numNonZeros( row );
-        T * const entries = view.getEntries( row );
-        arrayManipulation::destroy( entries, nnz );
-      } );
+                              [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+        {
+          INDEX_TYPE const nnz = view.numNonZeros( row );
+          T * const entries = view.getEntries( row );
+          arrayManipulation::destroy( entries, nnz );
+        } );
     }
 
     // Reallocate to the appropriate length
@@ -166,14 +166,14 @@ public:
 
     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
-    [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-    {
-      T * const rowEntries = view.getEntries( row );
-      for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+                            [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
-        new ( rowEntries + i ) T();
-      }
-    } );
+        T * const rowEntries = view.getEntries( row );
+        for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+        {
+          new ( rowEntries + i ) T();
+        }
+      } );
 
     setName( "" );
   }

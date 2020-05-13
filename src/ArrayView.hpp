@@ -243,6 +243,16 @@ public:
     return *this;
   }
 
+  template< typename POLICY >
+  void setValues( T const & rhs )
+  {
+    ViewType const & view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+      {
+        view.data()[ i ] = rhs;
+      } );
+  }
+
   /**
    * @brief @return Return *this after converting any nested arrays to const views.
    */
@@ -448,7 +458,7 @@ public:
    * @note Not all Buffers support memory movement.
    */
   void move( MemorySpace const space, bool const touch=true ) const
-  { m_dataBuffer.move( space, size(), touch ); }
+  { m_dataBuffer.moveNested( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
