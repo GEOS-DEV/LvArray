@@ -128,7 +128,7 @@ TYPED_TEST( BufferAPITest, move )
 {
   TypeParam buffer( true );
 
-  buffer.move( MemorySpace::CPU, 0, true );
+  buffer.moveNested( MemorySpace::CPU, 0, true );
   buffer.move( MemorySpace::CPU, true );
 
   bufferManipulation::free( buffer, 0 );

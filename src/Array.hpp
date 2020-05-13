@@ -153,14 +153,7 @@ public:
    */
   LVARRAY_HOST_DEVICE
   ~Array()
-  {
-  #if !defined(__CUDA_ARCH__)
-    if( !std::is_trivially_destructible< T >::value )
-    { this->move( MemorySpace::CPU ); }
-  #endif
-
-    bufferManipulation::free( m_dataBuffer, size() );
-  }
+  { bufferManipulation::free( m_dataBuffer, size() ); }
 
   /**
    * @brief @return Return a reference to *this after converting any nested arrays to const views to mutable values.
@@ -217,16 +210,6 @@ public:
   {
     ParentClass::operator=( rhs );
     return *this;
-  }
-
-  template< typename POLICY >
-  void setValues( T const & rhs )
-  {
-    ViewType const & view = toView();
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
-    {
-      view.data()[ i ] = rhs;
-    } );
   }
 
   /**
