@@ -34,6 +34,9 @@ namespace LvArray
 /// @brief @return Return a demangled stack trace of the last 25 frames.
 std::string stackTrace();
 
+/**
+ * @brief Abort the program, correctly finalizing MPI.
+ */
 void abort();
 
 /**
