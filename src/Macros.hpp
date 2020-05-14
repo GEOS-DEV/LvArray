@@ -429,14 +429,26 @@
 #endif
 
 #if !defined(USE_ARRAY_BOUNDS_CHECK)
+/**
+ * @brief Expands to constexpr when array bound checking is disabled.
+ */
 #define CONSTEXPR_WITHOUT_BOUNDS_CHECK constexpr
 #else
+/**
+ * @brief Expands to constexpr when array bound checking is disabled.
+ */
 #define CONSTEXPR_WITHOUT_BOUNDS_CHECK
 #endif
 
 #if defined(NDEBUG)
+/**
+ * @brief Expands to constexpr in release builds (when NDEBUG is defined).
+ */
 #define CONSTEXPR_WITH_NDEBUG constexpr
 #else
+/**
+ * @brief Expands to constexpr in release builds (when NDEBUG is defined).
+ */
 #define CONSTEXPR_WITH_NDEBUG
 #endif
 
