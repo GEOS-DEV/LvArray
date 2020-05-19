@@ -198,16 +198,16 @@ private:
                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
   static void tensorAbstractionFortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                                            Array< VALUE_TYPE, PERMUTATION > const & b,
-                                            Array< VALUE_TYPE, PERMUTATION > const & c );
+                                                   Array< VALUE_TYPE, PERMUTATION > const & b,
+                                                   Array< VALUE_TYPE, PERMUTATION > const & c );
 
   static void tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                           ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                           ArrayView< VALUE_TYPE, PERMUTATION > const & c );
+                                                  ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                                  ArrayView< VALUE_TYPE, PERMUTATION > const & c );
 
   static void tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                            ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                            ArraySlice< VALUE_TYPE, PERMUTATION > const c );
+                                                   ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                                   ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
   static void tensorAbstractionSubscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
                                                      Array< VALUE_TYPE, PERMUTATION > const & b,
