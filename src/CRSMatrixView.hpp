@@ -218,14 +218,12 @@ public:
 
   /**
    * @brief Set all the entries in the matrix to the given value.
-   * @tparam POLICY the kernel launch policy to use
-   * @tparam U dummy type to invoke SFINAE, do not specify
+   * @tparam POLICY the kernel launch policy to use.
    * @param value the value to set entries in the matrix to.
    */
-  template< typename POLICY, typename U = T >
+  template< typename POLICY >
   inline
-  std::enable_if_t< !std::is_const< U >::value, void >
-  setValues( T const & value ) const
+  void setValues( T const & value ) const
   {
     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),

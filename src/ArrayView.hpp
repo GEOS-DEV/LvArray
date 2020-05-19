@@ -249,9 +249,8 @@ public:
    * @tparam U dummy type to invoke SFINAE, do not specify
    * @param rhs the value to set entries to
    */
-  template< typename POLICY, typename U = T >
-  std::enable_if_t< !std::is_const< U >::value, void >
-  setValues( T const & rhs ) const
+  template< typename POLICY >
+  void setValues( T const & rhs ) const
   {
     ViewType const & view = toView();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
@@ -265,13 +264,10 @@ public:
    * @tparam POLICY kernel launch policy to use
    * @tparam U dummy type to invoke SFINAE, do not specify
    * @param rhs the source array view
-   *
    * @note Use this instead of copy assignment for deep copy semantics.
-   *       Note that it is only defined for trivially copy assignable @p T.
    */
-  template< typename POLICY, typename U = T >
-  std::enable_if_t< !std::is_const< U >::value && std::is_trivially_copy_assignable< T >::value, void >
-  setValues( ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & rhs ) const
+  template< typename POLICY >
+  void setValues( ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & rhs ) const
   {
     ViewType const & view = toView();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )

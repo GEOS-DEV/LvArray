@@ -226,15 +226,15 @@ subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
 tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                             ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                             ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+                                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                    ArrayView< VALUE_TYPE, PERMUTATION > const & c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
 tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                              ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                              ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >
