@@ -83,26 +83,50 @@ void subscriptSliceNative( benchmark::State & state )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename PERMUTATION >
-void tensorAbstractionArrayNative( benchmark::State & state )
+void tensorAbstractionFortranArrayNative( benchmark::State & state )
 {
   ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
-  kernels.tensorAbstractionArray();
+  kernels.tensorAbstractionFortranArray();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename PERMUTATION >
-void tensorAbstractionViewNative( benchmark::State & state )
+void tensorAbstractionFortranViewNative( benchmark::State & state )
 {
   ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
-  kernels.tensorAbstractionView();
+  kernels.tensorAbstractionFortranView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename PERMUTATION >
-void tensorAbstractionSliceNative( benchmark::State & state )
+void tensorAbstractionFortranSliceNative( benchmark::State & state )
 {
   ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
-  kernels.tensorAbstractionSlice();
+  kernels.tensorAbstractionFortranSlice();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename PERMUTATION >
+void tensorAbstractionSubscriptArrayNative( benchmark::State & state )
+{
+  ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.tensorAbstractionSubscriptArray();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename PERMUTATION >
+void tensorAbstractionSubscriptViewNative( benchmark::State & state )
+{
+  ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.tensorAbstractionSubscriptView();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename PERMUTATION >
+void tensorAbstractionSubscriptSliceNative( benchmark::State & state )
+{
+  ArrayOfR2TensorsNative< PERMUTATION > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.tensorAbstractionSubscriptSlice();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,18 +179,34 @@ void subscriptSliceRAJA( benchmark::State & state )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename PERMUTATION, typename POLICY >
-void tensorAbstractionViewRAJA( benchmark::State & state )
+void tensorAbstractionFortranViewRAJA( benchmark::State & state )
 {
   ArrayOfR2TensorsRAJA< PERMUTATION, POLICY > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
-  kernels.tensorAbstractionView();
+  kernels.tensorAbstractionFortranView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename PERMUTATION, typename POLICY >
-void tensorAbstractionSliceRAJA( benchmark::State & state )
+void tensorAbstractionFortranSliceRAJA( benchmark::State & state )
 {
   ArrayOfR2TensorsRAJA< PERMUTATION, POLICY > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
-  kernels.tensorAbstractionSlice();
+  kernels.tensorAbstractionFortranSlice();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename PERMUTATION, typename POLICY >
+void tensorAbstractionSubscriptViewRAJA( benchmark::State & state )
+{
+  ArrayOfR2TensorsRAJA< PERMUTATION, POLICY > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.tensorAbstractionSubscriptView();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename PERMUTATION, typename POLICY >
+void tensorAbstractionSubscriptSliceRAJA( benchmark::State & state )
+{
+  ArrayOfR2TensorsRAJA< PERMUTATION, POLICY > const kernels( state, __PRETTY_FUNCTION__, resultsMap );
+  kernels.tensorAbstractionSubscriptSlice();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,9 +250,12 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, subscriptArrayNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, subscriptViewNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, subscriptSliceNative, PERMUTATION );
-    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionArrayNative, PERMUTATION );
-    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionViewNative, PERMUTATION );
-    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionSliceNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionFortranArrayNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionFortranViewNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionFortranSliceNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionSubscriptArrayNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionSubscriptViewNative, PERMUTATION );
+    REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, tensorAbstractionSubscriptSliceNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, RAJAViewNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, pointerNative, PERMUTATION );
   },
@@ -230,8 +273,10 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { size }, fortranSliceRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, subscriptViewRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, subscriptSliceRAJA, PERMUTATION, POLICY );
-    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionViewRAJA, PERMUTATION, POLICY );
-    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionSliceRAJA, PERMUTATION, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionFortranViewRAJA, PERMUTATION, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionFortranSliceRAJA, PERMUTATION, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionSubscriptViewRAJA, PERMUTATION, POLICY );
+    REGISTER_BENCHMARK_TEMPLATE( { size }, tensorAbstractionSubscriptSliceRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, RAJAViewRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, pointerRAJA, PERMUTATION, POLICY );
   },
