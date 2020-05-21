@@ -65,9 +65,6 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
-#undef CONSTEXPRFUNC
-#define CONSTEXPRFUNC
-
 /**
  * @brief Check that @p index is a valid index into the first dimension.
  * @param index The index to check.
@@ -116,6 +113,9 @@ public:
 
   static_assert( USD < NDIM, "USD must be less than NDIM." );
 
+  /// The number of dimensions.
+  static constexpr int ndim = NDIM;
+
   /// deleted default constructor
   ArraySlice() = delete;
 
@@ -125,7 +125,7 @@ public:
    * @param inputDimensions pointer to the beginning of the dimensions for this slice.
    * @param inputStrides pointer to the beginning of the strides for this slice
    */
-  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
   ArraySlice( T * const LVARRAY_RESTRICT inputData,
               INDEX_TYPE const * const LVARRAY_RESTRICT inputDimensions,
               INDEX_TYPE const * const LVARRAY_RESTRICT inputStrides ) noexcept:
@@ -173,7 +173,7 @@ public:
    * @note This method is only active when NDIM > 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -189,7 +189,7 @@ public:
    * @note This method is only active when NDIM == 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< U == 1, T & >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -216,7 +216,7 @@ public:
    * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -237,7 +237,7 @@ public:
    * @brief @return Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int dim ) const noexcept
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK

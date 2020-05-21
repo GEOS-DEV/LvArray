@@ -22,7 +22,7 @@
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
-#include "testHelperFunctions.hpp"
+#include "testFloatingPointExceptionsHelpers.hpp"
 
 namespace testFloatingPointExceptionsHelpers
 {

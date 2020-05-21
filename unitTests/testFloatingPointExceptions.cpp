@@ -17,7 +17,7 @@
  */
 
 // Source includes
-#include "testHelperFunctions.hpp"
+#include "testFloatingPointExceptionsHelpers.hpp"
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"

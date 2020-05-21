@@ -148,7 +148,7 @@ public:
    * @brief @return Return the value at position @p i .
    * @param i the index of the value to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   T const & operator[]( INDEX_TYPE const i ) const
   {
     SORTEDARRAY_CHECK_BOUNDS( i );
@@ -213,7 +213,7 @@ public:
   #if defined(USE_CUDA)
     if( space == chai::GPU ) touch = false;
   #endif
-    m_values.move( space, size(), touch );
+    m_values.move( space, touch );
   }
 
 protected:

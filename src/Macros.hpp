@@ -23,6 +23,7 @@
 #pragma once
 
 /// Source includes
+#include "LvArrayConfig.hpp"
 #include "stackTrace.hpp"
 
 /// System includes
@@ -112,11 +113,14 @@
   { \
     if( EXP ) \
     { \
-      std::cout << "***** ERROR" << std::endl; \
-      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-      std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
-      std::cout << MSG << std::endl; \
-      LvArray::stackTraceHandler( SIGKILL, true ); \
+      std::ostringstream __oss; \
+      __oss << "***** ERROR\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG << "\n"; \
+      __oss << LvArray::stackTrace(); \
+      std::cout << __oss.str() << std::endl; \
+      LvArray::abort(); \
     } \
   } while( false )
 #endif
@@ -157,30 +161,37 @@
   { \
     if( EXP ) \
     { \
-      std::cout << "***** WARNING" << std::endl; \
-      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-      std::cout << "***** Controlling expression (should be false): " << STRINGIZE( EXP ) << std::endl; \
-      std::cout << MSG << std::endl; \
+      std::ostringstream __oss; \
+      __oss << "***** WARNING\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG; \
+      std::cout << __oss.str() << std::endl; \
     } \
   } while( false )
 
-/// Print a warning with the message @p MSG.
+/**
+ * @brief Print a warning with a message.
+ * @param MSG The message to print.
+ */
 #define LVARRAY_WARNING( MSG ) LVARRAY_WARNING_IF( true, MSG )
 
 /**
  * @brief Print @p msg along with the location if @p EXP is true.
  * @param EXP The expression to test.
- * @param msg The message to print.
+ * @param MSG The message to print.
  */
-#define LVARRAY_INFO_IF( EXP, msg ) \
+#define LVARRAY_INFO_IF( EXP, MSG ) \
   do \
   { \
     if( EXP ) \
     { \
-      std::cout << "***** INFO " << std::endl; \
-      std::cout << "***** LOCATION: " << LOCATION << std::endl; \
-      std::cout << "***** Controlling expression: " << STRINGIZE( EXP ) << std::endl; \
-      std::cout << msg << std::endl; \
+      std::ostringstream __oss; \
+      __oss << "***** INFO\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression: " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG; \
+      std::cout << __oss.str() << std::endl; \
     } \
   } while( false )
 
@@ -403,13 +414,40 @@
 
 #if defined(__clang__)
 #define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_REF __restrict__
 #define LVARRAY_RESTRICT_THIS
 #elif defined(__GNUC__)
   #if defined(__INTEL_COMPILER)
 #define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_REF __restrict__
 #define LVARRAY_RESTRICT_THIS
   #else
 #define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_REF __restrict__
 #define LVARRAY_RESTRICT_THIS
   #endif
+#endif
+
+#if !defined(USE_ARRAY_BOUNDS_CHECK)
+/**
+ * @brief Expands to constexpr when array bound checking is disabled.
+ */
+#define CONSTEXPR_WITHOUT_BOUNDS_CHECK constexpr
+#else
+/**
+ * @brief Expands to constexpr when array bound checking is disabled.
+ */
+#define CONSTEXPR_WITHOUT_BOUNDS_CHECK
+#endif
+
+#if defined(NDEBUG)
+/**
+ * @brief Expands to constexpr in release builds (when NDEBUG is defined).
+ */
+#define CONSTEXPR_WITH_NDEBUG constexpr
+#else
+/**
+ * @brief Expands to constexpr in release builds (when NDEBUG is defined).
+ */
+#define CONSTEXPR_WITH_NDEBUG
 #endif

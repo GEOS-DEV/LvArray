@@ -108,7 +108,7 @@ struct VoidBuffer
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
-inline LVARRAY_HOST_DEVICE CONSTEXPRFUNC
+inline LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
 void check( BUFFER const & buf, std::ptrdiff_t const size )
 {
 #ifdef USE_ARRAY_BOUNDS_CHECK

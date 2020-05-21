@@ -86,7 +86,8 @@ public: \
  * @param b The second value.
  */
 template< typename U >
-constexpr U const & max( const U & a, const U & b )
+LVARRAY_HOST_DEVICE constexpr
+U const & max( const U & a, const U & b )
 { return (a > b) ? a : b; }
 
 /**
@@ -95,7 +96,8 @@ constexpr U const & max( const U & a, const U & b )
  * @param b The second value.
  */
 template< typename U >
-constexpr U const & min( const U & a, const U & b )
+LVARRAY_HOST_DEVICE constexpr
+U const & min( const U & a, const U & b )
 { return (a < b) ? a : b; }
 
 /**
