@@ -144,7 +144,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
       {
         if( valueOnLeft && spaceOnLeft )
         {
-          LVARRAY_ERROR( "Array value sequence specified without ',' delimeter: "<<valueString );
+          LVARRAY_ERROR( "Array value sequence specified without ',' delimiter: "<<valueString );
         }
       }
 
