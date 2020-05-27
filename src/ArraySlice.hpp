@@ -30,7 +30,7 @@
  * @param script_name The python script that contains the gdb hooks.
  * @note Taken from https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html
  */
-    #define DEFINE_GDB_PY_SCRIPT( script_name ) \
+#define DEFINE_GDB_PY_SCRIPT( script_name ) \
   asm (".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n \
               .byte 1 /* Python */\n \
               .asciz \"" script_name "\"\n \
@@ -40,7 +40,7 @@
  * @brief Add GDB pretty printers for OSX. This hasn't been done yet.
  * @param script_name The python script that contains the gdb hooks.
  */
-    #define DEFINE_GDB_PY_SCRIPT( script_name )
+#define DEFINE_GDB_PY_SCRIPT( script_name )
   #endif
 
 /// Point GDB at the scripts/gdb-printers.py

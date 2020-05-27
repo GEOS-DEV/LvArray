@@ -102,12 +102,12 @@
  */
 #if defined(__CUDA_ARCH__)
   #if !defined(NDEBUG)
-    #define LVARRAY_ERROR_IF( EXP, MSG ) assert( !(EXP) )
+#define LVARRAY_ERROR_IF( EXP, MSG ) assert( !(EXP) )
   #else
-    #define LVARRAY_ERROR_IF( EXP, MSG ) if( EXP ) asm ( "trap;" )
+#define LVARRAY_ERROR_IF( EXP, MSG ) if( EXP ) asm ( "trap;" )
   #endif
 #else
-  #define LVARRAY_ERROR_IF( EXP, MSG ) \
+#define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
     if( EXP ) \
@@ -139,9 +139,9 @@
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
 #if !defined(NDEBUG)
-  #define LVARRAY_ASSERT_MSG( EXP, MSG ) LVARRAY_ERROR_IF( !(EXP), MSG )
+#define LVARRAY_ASSERT_MSG( EXP, MSG ) LVARRAY_ERROR_IF( !(EXP), MSG )
 #else
-  #define LVARRAY_ASSERT_MSG( EXP, MSG ) ((void) 0)
+#define LVARRAY_ASSERT_MSG( EXP, MSG ) ((void) 0)
 #endif
 
 /// Assert @p EXP is true with no message.
@@ -370,10 +370,10 @@
 
 #if defined(USE_CUDA) && defined(__CUDACC__)
 /// Mark a function for both host and device usage.
-  #define LVARRAY_HOST_DEVICE __host__ __device__
+#define LVARRAY_HOST_DEVICE __host__ __device__
 
 /// Mark a function for only device usage.
-  #define LVARRAY_DEVICE __device__
+#define LVARRAY_DEVICE __device__
 
 /**
  * @brief Disable host device warnings.
@@ -382,13 +382,13 @@
  *   call host only code. This is safe as long as the host only instantiations are only called on
  *   the host. To use place directly above a the template.
  */
-  #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
+#define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
 #else
 /// Mark a function for both host and device usage.
-  #define LVARRAY_HOST_DEVICE
+#define LVARRAY_HOST_DEVICE
 
 /// Mark a function for only device usage.
-  #define LVARRAY_DEVICE
+#define LVARRAY_DEVICE
 
 /**
  * @brief Disable host device warnings.
@@ -397,22 +397,19 @@
  *   call host only code. This is safe as long as the host only instantiations are only called on
  *   the host. To use place directly above a the template.
  */
-  #define DISABLE_HD_WARNING
+#define DISABLE_HD_WARNING
 #endif
 
 
 #if defined(__clang__)
-  #define LVARRAY_RESTRICT __restrict__
-  #define LVARRAY_RESTRICT_THIS
-  #define CONSTEXPRFUNC constexpr
+#define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_THIS
 #elif defined(__GNUC__)
   #if defined(__INTEL_COMPILER)
-    #define LVARRAY_RESTRICT __restrict__
-    #define LVARRAY_RESTRICT_THIS
-    #define CONSTEXPRFUNC
+#define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_THIS
   #else
-    #define LVARRAY_RESTRICT __restrict__
-    #define LVARRAY_RESTRICT_THIS
-    #define CONSTEXPRFUNC constexpr
+#define LVARRAY_RESTRICT __restrict__
+#define LVARRAY_RESTRICT_THIS
   #endif
 #endif

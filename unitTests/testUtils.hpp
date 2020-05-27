@@ -97,9 +97,9 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 }
 
 #ifndef __CUDA_ARCH__
-  #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
 #else
-  #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
+#define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #endif
 
 // Comparator that compares a std::pair by it's first object.
