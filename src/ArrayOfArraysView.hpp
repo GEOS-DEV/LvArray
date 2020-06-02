@@ -577,11 +577,15 @@ protected:
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
     bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
 
-    // const_cast needed until for RAJA bug.
     m_offsets[ 0 ] = 0;
-    RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                    const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
-                                    m_offsets.data() + 1 );
+    // RAJA::inclusive_scan fails on empty input range
+    if( numSubArrays > 0 )
+    {
+      // const_cast needed until for RAJA bug.
+      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
+                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+                                      m_offsets.data() + 1 );
+    }
 
     m_numArrays = numSubArrays;
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
@@ -672,6 +676,8 @@ protected:
   template< class ... BUFFERS >
   void compress( BUFFERS & ... buffers )
   {
+    if( m_numArrays == 0 ) return;
+
     for( INDEX_TYPE i = 0; i < m_numArrays - 1; ++i )
     {
       INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
