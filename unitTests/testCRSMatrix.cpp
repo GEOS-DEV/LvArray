@@ -20,7 +20,7 @@
 #include "Array.hpp"
 #include "ArrayOfArrays.hpp"
 #include "ArrayOfSets.hpp"
-#include "ArrayUtilities.hpp"
+#include "streamIO.hpp"
 #include "testUtils.hpp"
 
 // TPL includes

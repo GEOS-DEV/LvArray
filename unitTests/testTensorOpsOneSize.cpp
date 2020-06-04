@@ -20,7 +20,7 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "ArrayUtilities.hpp"
+#include "streamIO.hpp"
 #include "testTensorOpsCommon.hpp"
 
 // TPL includes

@@ -17,7 +17,7 @@
  */
 
 /**
- * @file ArrayUtilities.hpp
+ * @file streamIO.hpp
  */
 
 #ifndef ARRAYUTILITIES_HPP_

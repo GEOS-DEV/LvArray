@@ -5,7 +5,7 @@ add_subdirectory(docs)
     templateHelpers.hpp
     Array.hpp
     ArraySlice.hpp
-    ArrayUtilities.hpp
+    streamIO.hpp
     ArrayView.hpp
     arrayManipulation.hpp
     sortedArrayManipulation.hpp

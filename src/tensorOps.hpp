@@ -26,7 +26,7 @@
 
 #pragma once
 
-/** 
+/**
  * @brief Forward declaration of R1Tensor
  * TODO: Remove this.
  */
