@@ -26,6 +26,13 @@
 
 #pragma once
 
+/** 
+ * @brief Forward declaration of R1Tensor
+ * TODO: Remove this.
+ */
+template< int T_dim >
+class R1TensorT;
+
 /**
  * @name Initialization macros.
  * @brief Macros that expand to initializer lists for common vector and matrix sizes.
@@ -94,6 +101,20 @@ namespace internal
 
 template< int M >
 constexpr std::ptrdiff_t SYM_SIZE = ( M * ( M + 1 ) ) / 2;
+
+/**
+ * @brief Verify at compile time that the size of the R1Tensor is as expected.
+ * @tparam PROVIDED_SIZE The size the R1Tensor should be.
+ * @tparam INFERRED_SIZE The size of the R1Tensor.
+ * TODO: Remove this.
+ */
+template< std::ptrdiff_t PROVIDED_SIZE, int INFERRED_SIZE >
+LVARRAY_HOST_DEVICE inline constexpr
+void checkSizes( R1TensorT< INFERRED_SIZE > const & )
+{
+  static_assert( PROVIDED_SIZE == INFERRED_SIZE,
+                 "Expected the first dimension of size PROVIDED_N, got an array of size INFERRED_N." );
+}
 
 /**
  * @brief Verify at compile time that the size of the c-array is as expected.
