@@ -87,7 +87,7 @@ public: \
  */
 template< typename U >
 LVARRAY_HOST_DEVICE constexpr
-U const & max( const U & a, const U & b )
+U const & max( U const & a, U const & b )
 { return (a > b) ? a : b; }
 
 /**
@@ -97,7 +97,7 @@ U const & max( const U & a, const U & b )
  */
 template< typename U >
 LVARRAY_HOST_DEVICE constexpr
-U const & min( const U & a, const U & b )
+U const & min( U const & a, U const & b )
 { return (a < b) ? a : b; }
 
 /**
