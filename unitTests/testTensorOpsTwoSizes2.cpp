@@ -16,37 +16,28 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/**
- * @file stackTrace.hpp
- */
-
-#ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
-#define SRC_CODINGUTILITIES_STACKTRACE_HPP_
-
-#include "LvArrayConfig.hpp"
-
-#include <signal.h>
-#include <string>
+// Source includes
+#include "testTensorOpsTwoSizes.hpp"
 
 namespace LvArray
 {
+namespace testing
+{
 
-/// @brief @return Return a demangled stack trace of the last 25 frames.
-std::string stackTrace();
-
-/**
- * @brief Abort the program, correctly finalizing MPI.
- */
-void abort();
-
-/**
- * @brief Print signal information and a stack trace to standard out, optionally aborting.
- * @param sig The signal received.
- * @param exit If true abort execution.
- */
-void stackTraceHandler( int const sig, bool const exit );
-
+TYPED_TEST( TwoSizesTest, plusAiBj )
+{
+  this->testPlusAiBj();
 }
 
+TYPED_TEST( TwoSizesTest, AijBj )
+{
+  this->testAijBj();
+}
 
-#endif /* SRC_CODINGUTILITIES_STACKTRACE_HPP_ */
+TYPED_TEST( TwoSizesTest, plusAijBj )
+{
+  this->testPlusAijBj();
+}
+
+} // namespace testing
+} // namespace LvArray

@@ -30,7 +30,7 @@
  * @param script_name The python script that contains the gdb hooks.
  * @note Taken from https://sourceware.org/gdb/onlinedocs/gdb/dotdebug_005fgdb_005fscripts-section.html
  */
-    #define DEFINE_GDB_PY_SCRIPT( script_name ) \
+#define DEFINE_GDB_PY_SCRIPT( script_name ) \
   asm (".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n \
               .byte 1 /* Python */\n \
               .asciz \"" script_name "\"\n \
@@ -40,7 +40,7 @@
  * @brief Add GDB pretty printers for OSX. This hasn't been done yet.
  * @param script_name The python script that contains the gdb hooks.
  */
-    #define DEFINE_GDB_PY_SCRIPT( script_name )
+#define DEFINE_GDB_PY_SCRIPT( script_name )
   #endif
 
 /// Point GDB at the scripts/gdb-printers.py
@@ -64,9 +64,6 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 #endif
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
-
-#undef CONSTEXPRFUNC
-#define CONSTEXPRFUNC
 
 /**
  * @brief Check that @p index is a valid index into the first dimension.
@@ -116,6 +113,9 @@ public:
 
   static_assert( USD < NDIM, "USD must be less than NDIM." );
 
+  /// The number of dimensions.
+  static constexpr int ndim = NDIM;
+
   /// deleted default constructor
   ArraySlice() = delete;
 
@@ -125,7 +125,7 @@ public:
    * @param inputDimensions pointer to the beginning of the dimensions for this slice.
    * @param inputStrides pointer to the beginning of the strides for this slice
    */
-  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
   ArraySlice( T * const LVARRAY_RESTRICT inputData,
               INDEX_TYPE const * const LVARRAY_RESTRICT inputDimensions,
               INDEX_TYPE const * const LVARRAY_RESTRICT inputStrides ) noexcept:
@@ -173,7 +173,7 @@ public:
    * @note This method is only active when NDIM > 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -189,7 +189,7 @@ public:
    * @note This method is only active when NDIM == 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< U == 1, T & >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -216,7 +216,7 @@ public:
    * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -237,7 +237,7 @@ public:
    * @brief @return Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int dim ) const noexcept
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK

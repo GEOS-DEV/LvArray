@@ -82,6 +82,9 @@ public:
   static_assert( USD >= 0, "USD must be positive." );
   static_assert( USD < NDIM, "USD must be less than NDIM." );
 
+  /// The number of dimensions.
+  static constexpr int ndim = NDIM;
+
   /// The type when all inner array classes are converted to const views.
   using ViewType = ArrayView< typename GetViewType< T >::type, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
 
@@ -341,7 +344,7 @@ public:
    * @note This method is only active when NDIM > 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -357,7 +360,7 @@ public:
    * @note This method is only active when NDIM == 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< U == 1, T & >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
@@ -384,7 +387,7 @@ public:
    * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -496,7 +499,7 @@ protected:
    * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
   DISABLE_HD_WARNING
-  LVARRAY_HOST_DEVICE inline explicit CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
   ArrayView( bool ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },

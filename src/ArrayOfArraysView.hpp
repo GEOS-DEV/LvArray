@@ -263,7 +263,7 @@ public:
   /**
    * @brief @return Return the number of (zero length) arrays that can be stored before reallocation.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITH_NDEBUG inline
   INDEX_TYPE_NC capacity() const LVARRAY_RESTRICT_THIS
   {
     LVARRAY_ASSERT( m_sizes.capacity() < m_offsets.capacity());
@@ -281,7 +281,7 @@ public:
    * @brief @return Return the size of the given array.
    * @param i the array to querry.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
@@ -292,7 +292,7 @@ public:
    * @brief @return Return the capacity of the given array.
    * @param i the array to querry.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
@@ -303,7 +303,7 @@ public:
    * @brief @return Return an ArraySlice1d to the values of the given array.
    * @param i the array to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
@@ -315,7 +315,7 @@ public:
    * @param i the array to access.
    * @param j the index within the array to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
@@ -369,7 +369,7 @@ private:
    * @brief @return Return an iterable object representing array @p i.
    * @param i The array to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   IterableArray getIterableArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );

@@ -17,7 +17,7 @@
  */
 
 /**
- * @file ArrayUtilities.hpp
+ * @file streamIO.hpp
  */
 
 #ifndef ARRAYUTILITIES_HPP_
@@ -310,7 +310,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
  */
 template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ArraySlice< T const, NDIM, USD, INDEX_TYPE > const & slice )
+                           ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice )
 {
   stream << "{ ";
 
@@ -433,6 +433,48 @@ std::ostream & operator<< ( std::ostream & stream, ArrayOfArraysView< T const, I
 template< typename T, typename INDEX_TYPE, bool CONST_SIZES >
 std::ostream & operator<< ( std::ostream & stream, ArrayOfArrays< T, INDEX_TYPE > const & array )
 { return stream << array.toViewConst(); }
+
+/**
+ * @brief Output a c-array to a stream.
+ * @tparam T The type contained in the array.
+ * @tparam N The size of the array.
+ * @param stream The output stream to write to.
+ * @param array The c-array to output.
+ * @return @p stream.
+ */
+template< typename T, int N >
+std::enable_if_t< !std::is_same_v< T, char >, std::ostream & >
+operator<< ( std::ostream & stream, T const ( &array )[ N ] )
+{
+  stream << "{ " << array[ 0 ];
+  for( int i = 1; i < N; ++i )
+  {
+    stream << ", " << array[ i ];
+  }
+  stream << " }";
+  return stream;
+}
+
+/**
+ * @brief Output a 2D c-array to a stream.
+ * @tparam T The type contained in the array.
+ * @tparam M The size of the first dimension.
+ * @tparam N The size of the second dimension.
+ * @param stream The output stream to write to.
+ * @param array The 2D c-array to output.
+ * @return @p stream.
+ */
+template< typename T, int M, int N >
+std::ostream & operator<< ( std::ostream & stream, T const ( &array )[ M ][ N ] )
+{
+  stream << "{ " << array[ 0 ];
+  for( int i = 1; i < M; ++i )
+  {
+    stream << ", " << array[ i ];
+  }
+  stream << " }";
+  return stream;
+}
 
 } // namespace LvArray
 

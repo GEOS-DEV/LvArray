@@ -28,7 +28,7 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#include "ArrayUtilities.hpp"
+#include "streamIO.hpp"
 
 const char IGNORE_OUTPUT[] = ".*";
 
