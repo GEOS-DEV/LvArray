@@ -16,8 +16,7 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifndef BUFFER_MANIPULATION_HPP_
-#define BUFFER_MANIPULATION_HPP_
+#pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
@@ -25,23 +24,53 @@
 #include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 
-// TPL includes
-#include <chai/ArrayManager.hpp>
-
 // System includes
 #include <utility>
 
 namespace LvArray
 {
+
+/**
+ * @enum MemorySpace
+ * @brief An enum containing the available memory spaces.
+ */
+enum class MemorySpace
+{
+  NONE
+  , CPU
+#if defined(USE_CUDA)
+  , GPU
+#endif
+};
+
+/**
+ * @brief Output a MemorySpace enum to a stream.
+ * @param os The output stream to write to.
+ * @param space The MemorySpace to output.
+ * @return @p os.
+ */
+inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
+{
+  if( space == MemorySpace::NONE )
+    os << "NONE";
+  if( space == MemorySpace::CPU )
+    os << "CPU";
+#if defined(USE_CUDA)
+  if( space == MemorySpace::GPU )
+    os << "GPU";
+#endif
+  return os;
+}
+
 namespace bufferManipulation
 {
 
 /**
  * @brief Defines a static constexpr bool HasMemberFunction_move< @p CLASS >
- *   that is true iff the method @p CLASS ::move(chai::ExecutionSpace, bool) exists.
+ *   that is true iff the method @p CLASS ::move(MemorySpace, bool) exists.
  * @tparam CLASS The type to test.
  */
-IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
+IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( MemorySpace::CPU, true ) );
 
 /**
  * @class VoidBuffer
@@ -59,11 +88,11 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
+  void move( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -73,10 +102,10 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space, bool const touch )
+  void move( MemorySpace const space, bool const touch ) const
   {
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -85,8 +114,8 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
-  void registerTouch( chai::ExecutionSpace const space )
-  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
+  void registerTouch( MemorySpace const space ) const
+  { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @tparam The type of the owning object.
@@ -105,7 +134,6 @@ struct VoidBuffer
  * @param buf the buffer to check.
  * @param size the size of the buffer.
  * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
- * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
 inline LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
@@ -128,7 +156,6 @@ void check( BUFFER const & buf, std::ptrdiff_t const size )
  * @param size the size of the buffer.
  * @param pos the insertion position.
  * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
- * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
 inline
@@ -150,7 +177,6 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
  * @tparam BUFFER the buffer type.
  * @param buf the buffer to free.
  * @param size the size of the buffer.
- * @note See MallocBuffer for the standard buffer interface.
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
@@ -165,7 +191,7 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 #if !defined(__CUDA_ARCH__ )
   if( HasMemberFunction_move< T > )
   {
-    buf.move( chai::CPU, size, true );
+    buf.move( MemorySpace::CPU, size, true );
   }
 #endif
 
@@ -184,7 +210,6 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
  * @param buf the buffer to set the capacity of.
  * @param size the size of the buffer.
  * @param newCapacity the new capacity of the buffer.
- * @note See MallocBuffer for the standard buffer interface.
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
@@ -201,7 +226,6 @@ void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const 
  * @param buf the buffer to reserve space in.
  * @param size the size of the buffer.
  * @param newCapacity the new minimum capacity of the buffer.
- * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
 LVARRAY_HOST_DEVICE
@@ -217,14 +241,13 @@ void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newC
 
 /**
  * @brief If the buffer's capacity is greater than newCapacity this is a no-op.
- *        Otherwise the buffer's capacity is increased to at least 2 * newCapacity.
+ *   Otherwise the buffer's capacity is increased to at least 2 * newCapacity.
  * @tparam BUFFER the buffer type.
  * @param buf the buffer to reserve space in.
  * @param size the size of the buffer.
  * @param newCapacity the new minimum capacity of the buffer.
  * @note Use this in methods which increase the size of the buffer to efficiently grow
- *       the capacity.
- * @note See MallocBuffer for the standard buffer interface.
+ *   the capacity.
  */
 template< typename BUFFER >
 void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
@@ -246,8 +269,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
  * @param newSize the new size of the buffer.
  * @param args the arguments to initialize the new values with.
  * @note Use this in methods which increase the size of the buffer to efficiently grow
- *       the capacity.
- * @note See MallocBuffer for the standard buffer interface.
+ *   the capacity.
  */
 template< typename BUFFER, typename ... ARGS >
 LVARRAY_HOST_DEVICE
@@ -262,98 +284,31 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 #if !defined(__CUDA_ARCH__)
   if( newSize > 0 )
   {
-    buf.registerTouch( chai::CPU );
+    buf.registerTouch( MemorySpace::CPU );
   }
 #endif
 }
 
-/**
- * @brief Append a value to the end of the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to append to.
- * @param size the current size of the buffer.
- * @param value the value to append via a copy.
- * @note See MallocBuffer for the standard buffer interface.
- */
-template< typename BUFFER >
-void pushBack( BUFFER & buf, std::ptrdiff_t const size, typename BUFFER::value_type const & value )
+
+template< typename BUFFER, typename ... ARGS >
+void emplaceBack( BUFFER & buf, std::ptrdiff_t const size, ARGS && ... args )
 {
   check( buf, size );
 
   dynamicReserve( buf, size, size + 1 );
-  arrayManipulation::append( buf.data(), size, value );
+  arrayManipulation::emplaceBack( buf.data(), size, std::forward< ARGS >( args ) ... );
 }
 
-/**
- * @brief Append a value to the end of the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to append to.
- * @param size the current size of the buffer.
- * @note See MallocBuffer for the standard buffer interface.
- */
-template< typename BUFFER >
-void pushBack( BUFFER & buf, std::ptrdiff_t const size, typename BUFFER::value_type && value )
-{
-  check( buf, size );
-
-  dynamicReserve( buf, size, size + 1 );
-  arrayManipulation::append( buf.data(), size, std::move( value ) );
-}
-
-/**
- * @brief Remove a value from the end of the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to remove from.
- * @param size the current size of the buffer.
- * @note See MallocBuffer for the standard buffer interface.
- */
-template< typename BUFFER >
-void popBack( BUFFER & buf, std::ptrdiff_t const size )
-{
-  check( buf, size );
-  arrayManipulation::popBack( buf.data(), size );
-}
-
-/**
- * @brief Insert a value into the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to insert into.
- * @param size the current size of the buffer.
- * @param pos the position to insert the value at.
- * @param value the value to insert via a copy.
- * @note See MallocBuffer for the standard buffer interface.
- */
-template< typename BUFFER >
-void insert( BUFFER & buf,
-             std::ptrdiff_t const size,
-             std::ptrdiff_t const pos,
-             typename BUFFER::value_type const & value )
+template< typename BUFFER, typename ... ARGS >
+void emplace( BUFFER & buf,
+              std::ptrdiff_t const size,
+              std::ptrdiff_t const pos,
+              ARGS && ... args )
 {
   checkInsert( buf, size, pos );
 
   dynamicReserve( buf, size, size + 1 );
-  arrayManipulation::insert( buf.data(), size, pos, value );
-}
-
-/**
- * @brief Insert a value into the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to insert into.
- * @param size the current size of the buffer.
- * @param pos the position to insert the value at.
- * @param value the value to insert via a move.
- * @note See MallocBuffer for the standard buffer interface.
- */
-template< typename BUFFER >
-void insert( BUFFER & buf,
-             std::ptrdiff_t const size,
-             std::ptrdiff_t const pos,
-             typename BUFFER::value_type && value )
-{
-  checkInsert( buf, size, pos );
-
-  dynamicReserve( buf, size, size + 1 );
-  arrayManipulation::insert( buf.data(), size, pos, std::move( value ) );
+  arrayManipulation::emplace( buf.data(), size, pos, std::forward< ARGS >( args ) ... );
 }
 
 /**
@@ -364,19 +319,34 @@ void insert( BUFFER & buf,
  * @param pos the position to insert the values at.
  * @param values a pointer to the values to insert via a copy.
  * @param nVals the number of values to insert.
- * @note See MallocBuffer for the standard buffer interface.
+ * @return The number of values inserted.
  */
-template< typename BUFFER >
-void insert( BUFFER & buf,
-             std::ptrdiff_t const size,
-             std::ptrdiff_t const pos,
-             typename BUFFER::value_type const * const values,
-             std::ptrdiff_t nVals )
+template< typename BUFFER, typename ITERATOR >
+std::ptrdiff_t insert( BUFFER & buf,
+                       std::ptrdiff_t const size,
+                       std::ptrdiff_t const pos,
+                       ITERATOR const first,
+                       ITERATOR const last )
 {
   checkInsert( buf, size, pos );
 
+  std::ptrdiff_t const nVals = iterDistance( first, last );
   dynamicReserve( buf, size, size + nVals );
-  arrayManipulation::insert( buf.data(), size, pos, values, nVals );
+  arrayManipulation::insert( buf.data(), size, pos, first, nVals );
+  return nVals;
+}
+
+/**
+ * @brief Remove a value from the end of the buffer.
+ * @tparam BUFFER the buffer type.
+ * @param buf the buffer to remove from.
+ * @param size the current size of the buffer.
+ */
+template< typename BUFFER >
+void popBack( BUFFER & buf, std::ptrdiff_t const size )
+{
+  check( buf, size );
+  arrayManipulation::popBack( buf.data(), size );
 }
 
 /**
@@ -385,7 +355,6 @@ void insert( BUFFER & buf,
  * @param buf the buffer to erase from.
  * @param size the current size of the buffer.
  * @param pos the position to erase.
- * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
 void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
@@ -430,5 +399,3 @@ void copyInto( DST_BUFFER & dst,
 
 } // namespace bufferManipulations
 } // namespace LvArray
-
-#endif /* BUFFER_MANIPULATION_HPP_ */

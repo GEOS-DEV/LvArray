@@ -16,10 +16,11 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/// Source includes
+// Source includes
 #include "Array.hpp"
+#include "testUtils.hpp"
 
-/// TPL inclues
+// TPL inclues
 #include <gtest/gtest.h>
 
 namespace LvArray
@@ -27,23 +28,28 @@ namespace LvArray
 namespace testing
 {
 
+using INDEX_TYPE = std::ptrdiff_t;
+
+template< typename T, typename PERMUTATION >
+using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+
 template< typename T >
-void check( ArraySlice< T const, 1, 0 > const & view )
+void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const & view )
 {
-  std::ptrdiff_t offset = 0;
-  for( std::ptrdiff_t i = 0; i < view.size( 0 ); ++i )
+  INDEX_TYPE offset = 0;
+  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
   {
     EXPECT_EQ( view( i ), offset++ );
   }
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 2, USD > const & view )
+void check( ArraySlice< T const, 2, USD, INDEX_TYPE > const & view )
 {
-  std::ptrdiff_t offset = 0;
-  for( std::ptrdiff_t i = 0; i < view.size( 0 ); ++i )
+  INDEX_TYPE offset = 0;
+  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
   {
-    for( std::ptrdiff_t j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
     {
       EXPECT_EQ( view( i, j ), offset++ );
     }
@@ -51,14 +57,14 @@ void check( ArraySlice< T const, 2, USD > const & view )
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 3, USD > const & view )
+void check( ArraySlice< T const, 3, USD, INDEX_TYPE > const & view )
 {
-  std::ptrdiff_t offset = 0;
-  for( std::ptrdiff_t i = 0; i < view.size( 0 ); ++i )
+  INDEX_TYPE offset = 0;
+  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
   {
-    for( std::ptrdiff_t j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
     {
-      for( std::ptrdiff_t k = 0; k < view.size( 2 ); ++k )
+      for( INDEX_TYPE k = 0; k < view.size( 2 ); ++k )
       {
         EXPECT_EQ( view( i, j, k ), offset++ );
       }
@@ -67,16 +73,16 @@ void check( ArraySlice< T const, 3, USD > const & view )
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 4, USD > const & view )
+void check( ArraySlice< T const, 4, USD, INDEX_TYPE > const & view )
 {
-  std::ptrdiff_t offset = 0;
-  for( std::ptrdiff_t i = 0; i < view.size( 0 ); ++i )
+  INDEX_TYPE offset = 0;
+  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
   {
-    for( std::ptrdiff_t j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
     {
-      for( std::ptrdiff_t k = 0; k < view.size( 2 ); ++k )
+      for( INDEX_TYPE k = 0; k < view.size( 2 ); ++k )
       {
-        for( std::ptrdiff_t l = 0; l < view.size( 3 ); ++l )
+        for( INDEX_TYPE l = 0; l < view.size( 3 ); ++l )
         {
           EXPECT_EQ( view( i, j, k, l ), offset++ );
         }
@@ -97,7 +103,7 @@ public:
 
     check( m_array.toSliceConst() );
 
-    std::ptrdiff_t offset = 0;
+    INDEX_TYPE offset = 0;
     forValuesInSlice( m_array.toSliceConst(), [&offset] ( auto const & val )
     {
       EXPECT_EQ( val, offset++ );
@@ -113,7 +119,7 @@ protected:
 
   void initialize()
   {
-    std::ptrdiff_t dims[ NDIM ];
+    INDEX_TYPE dims[ NDIM ];
     for( int dim = 0; dim < NDIM; ++dim )
     {
       dims[ dim ] = 10 + dim;
@@ -121,7 +127,7 @@ protected:
 
     m_array.resize( NDIM, dims );
 
-    std::ptrdiff_t offset = 0;
+    INDEX_TYPE offset = 0;
     forValuesInSlice( m_array.toSlice(), [&offset] ( auto & val )
     {
       val = offset++;
@@ -133,22 +139,22 @@ protected:
 
 using ForValuesInSliceTypes = ::testing::Types<
   // All 1D permutations
-  Array< int, 1 >
+  ArrayT< int, RAJA::PERM_I >
   // All 2D permutations
-  , Array< int, 2, RAJA::PERM_IJ >
-  , Array< int, 2, RAJA::PERM_JI >
+  , ArrayT< int, RAJA::PERM_IJ >
+  , ArrayT< int, RAJA::PERM_JI >
   // All 3D permutations
-  , Array< int, 3, RAJA::PERM_IJK >
-  , Array< int, 3, RAJA::PERM_IKJ >
-  , Array< int, 3, RAJA::PERM_JIK >
-  , Array< int, 3, RAJA::PERM_JKI >
-  , Array< int, 3, RAJA::PERM_KIJ >
-  , Array< int, 3, RAJA::PERM_KJI >
+  , ArrayT< int, RAJA::PERM_IJK >
+  , ArrayT< int, RAJA::PERM_IKJ >
+  , ArrayT< int, RAJA::PERM_JIK >
+  , ArrayT< int, RAJA::PERM_JKI >
+  , ArrayT< int, RAJA::PERM_KIJ >
+  , ArrayT< int, RAJA::PERM_KJI >
   // Some 4D permutations
-  , Array< int, 4, RAJA::PERM_IJKL >
-  , Array< int, 4, RAJA::PERM_LKJI >
-  , Array< int, 4, RAJA::PERM_IKLJ >
-  , Array< int, 4, RAJA::PERM_KLIJ >
+  , ArrayT< int, RAJA::PERM_IJKL >
+  , ArrayT< int, RAJA::PERM_LKJI >
+  , ArrayT< int, RAJA::PERM_IKLJ >
+  , ArrayT< int, RAJA::PERM_KLIJ >
   >;
 
 TYPED_TEST_SUITE( ForValuesInSlice, ForValuesInSliceTypes, );
@@ -171,12 +177,13 @@ TEST( ForValuesInSlice, scalar )
 
 
 template< typename T, int USD_SRC >
-void checkSums( ArraySlice< T const, 2, USD_SRC > const & src, ArraySlice< T const, 1, 0 > const & sums )
+void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const & src,
+                ArraySlice< T const, 1, 0, INDEX_TYPE > const & sums )
 {
-  for( std::ptrdiff_t j = 0; j < src.size( 1 ); ++j )
+  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {
     T sum {};
-    for( std::ptrdiff_t i = 0; i < src.size( 0 ); ++i )
+    for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
     {
       sum += src( i, j );
     }
@@ -186,14 +193,15 @@ void checkSums( ArraySlice< T const, 2, USD_SRC > const & src, ArraySlice< T con
 }
 
 template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 3, USD_SRC > const & src, ArraySlice< T const, 2, USD_SUMS > const & sums )
+void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const & src,
+                ArraySlice< T const, 2, USD_SUMS, INDEX_TYPE > const & sums )
 {
-  for( std::ptrdiff_t j = 0; j < src.size( 1 ); ++j )
+  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {
-    for( std::ptrdiff_t k = 0; k < src.size( 2 ); ++k )
+    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
     {
       T sum {};
-      for( std::ptrdiff_t i = 0; i < src.size( 0 ); ++i )
+      for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
       {
         sum += src( i, j, k );
       }
@@ -204,16 +212,17 @@ void checkSums( ArraySlice< T const, 3, USD_SRC > const & src, ArraySlice< T con
 }
 
 template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 4, USD_SRC > const & src, ArraySlice< T const, 3, USD_SUMS > const & sums )
+void checkSums( ArraySlice< T const, 4, USD_SRC, INDEX_TYPE > const & src,
+                ArraySlice< T const, 3, USD_SUMS, INDEX_TYPE > const & sums )
 {
-  for( std::ptrdiff_t j = 0; j < src.size( 1 ); ++j )
+  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {
-    for( std::ptrdiff_t k = 0; k < src.size( 2 ); ++k )
+    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
     {
-      for( std::ptrdiff_t l = 0; l < src.size( 3 ); ++l )
+      for( INDEX_TYPE l = 0; l < src.size( 3 ); ++l )
       {
         T sum {};
-        for( std::ptrdiff_t i = 0; i < src.size( 0 ); ++i )
+        for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
         {
           sum += src( i, j, k, l );
         }
@@ -237,8 +246,8 @@ public:
   void test()
   {
     this->initialize();
-    std::ptrdiff_t dims[ NDIM - 1 ];
-    for( std::ptrdiff_t dim = 0; dim < NDIM - 1; ++dim )
+    INDEX_TYPE dims[ NDIM - 1 ];
+    for( INDEX_TYPE dim = 0; dim < NDIM - 1; ++dim )
     {
       dims[ dim ] = this->m_array.size( dim + 1 );
     }
@@ -251,34 +260,34 @@ public:
   }
 
 private:
-  Array< T, NDIM - 1, PERM > m_sums;
+  ArrayT< T, PERM > m_sums;
 };
 
 using SumOverFirstDimensionTypes = ::testing::Types<
   // All 2D permutations by all 1D permutations
-  std::pair< Array< int, 2, RAJA::PERM_IJ >, RAJA::PERM_I >
-  , std::pair< Array< int, 2, RAJA::PERM_IJ >, RAJA::PERM_I >
+  std::pair< ArrayT< int, RAJA::PERM_IJ >, RAJA::PERM_I >
+  , std::pair< ArrayT< int, RAJA::PERM_IJ >, RAJA::PERM_I >
   // All 3D permutations by RAJA::PERM_IJ
-  , std::pair< Array< int, 3, RAJA::PERM_IJK >, RAJA::PERM_IJ >
-  , std::pair< Array< int, 3, RAJA::PERM_IKJ >, RAJA::PERM_IJ >
-  , std::pair< Array< int, 3, RAJA::PERM_JIK >, RAJA::PERM_IJ >
-  , std::pair< Array< int, 3, RAJA::PERM_JKI >, RAJA::PERM_IJ >
-  , std::pair< Array< int, 3, RAJA::PERM_KIJ >, RAJA::PERM_IJ >
-  , std::pair< Array< int, 3, RAJA::PERM_KJI >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_IJK >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_IKJ >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_JIK >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_JKI >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_KIJ >, RAJA::PERM_IJ >
+  , std::pair< ArrayT< int, RAJA::PERM_KJI >, RAJA::PERM_IJ >
   // All 3D permutations by RAJA::PERM_JI
-  , std::pair< Array< int, 3, RAJA::PERM_IJK >, RAJA::PERM_JI >
-  , std::pair< Array< int, 3, RAJA::PERM_IKJ >, RAJA::PERM_JI >
-  , std::pair< Array< int, 3, RAJA::PERM_JIK >, RAJA::PERM_JI >
-  , std::pair< Array< int, 3, RAJA::PERM_JKI >, RAJA::PERM_JI >
-  , std::pair< Array< int, 3, RAJA::PERM_KIJ >, RAJA::PERM_JI >
-  , std::pair< Array< int, 3, RAJA::PERM_KJI >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_IJK >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_IKJ >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_JIK >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_JKI >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_KIJ >, RAJA::PERM_JI >
+  , std::pair< ArrayT< int, RAJA::PERM_KJI >, RAJA::PERM_JI >
   // Some 4D permutations by some 3D permutations
-  , std::pair< Array< int, 4, RAJA::PERM_IJKL >, RAJA::PERM_IJK >
-  , std::pair< Array< int, 4, RAJA::PERM_LKJI >, RAJA::PERM_KJI >
-  , std::pair< Array< int, 4, RAJA::PERM_JKIL >, RAJA::PERM_JIK >
-  , std::pair< Array< int, 4, RAJA::PERM_KILJ >, RAJA::PERM_IKJ >
-  , std::pair< Array< int, 4, RAJA::PERM_LJIK >, RAJA::PERM_KIJ >
-  , std::pair< Array< int, 4, RAJA::PERM_ILJK >, RAJA::PERM_IJK >
+  , std::pair< ArrayT< int, RAJA::PERM_IJKL >, RAJA::PERM_IJK >
+  , std::pair< ArrayT< int, RAJA::PERM_LKJI >, RAJA::PERM_KJI >
+  , std::pair< ArrayT< int, RAJA::PERM_JKIL >, RAJA::PERM_JIK >
+  , std::pair< ArrayT< int, RAJA::PERM_KILJ >, RAJA::PERM_IKJ >
+  , std::pair< ArrayT< int, RAJA::PERM_LJIK >, RAJA::PERM_KIJ >
+  , std::pair< ArrayT< int, RAJA::PERM_ILJK >, RAJA::PERM_IJK >
   >;
 
 TYPED_TEST_SUITE( SumOverFirstDimension, SumOverFirstDimensionTypes, );
@@ -290,10 +299,10 @@ TYPED_TEST( SumOverFirstDimension, test )
 
 TEST( SumOverFirstDimension, OneDimensional )
 {
-  std::ptrdiff_t const size = 10;
-  Array< int, 1 > array( size );
+  INDEX_TYPE const size = 10;
+  ArrayT< int, RAJA::PERM_I > array( size );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  for( INDEX_TYPE i = 0; i < size; ++i )
   {
     array( i ) = i + 1;
   }

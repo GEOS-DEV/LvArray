@@ -64,10 +64,10 @@ namespace benchmarking
 
 
 template< typename VALUE_TYPE_CONST, int USD >
-RAJA_INLINE LVARRAY_HOST_DEVICE constexpr
-void R2TensorMultiply( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD > const & a,
-                       LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD > const & b,
-                       LvArray::ArraySlice< VALUE_TYPE, 2, USD > const & c )
+inline LVARRAY_HOST_DEVICE constexpr
+void R2TensorMultiply( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & a,
+                       LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & b,
+                       LvArray::ArraySlice< VALUE_TYPE, 2, USD, INDEX_TYPE > const & c )
 { INNER_LOOP( a( j, l ), b( l, k ), c( j, k ) ) }
 
 
@@ -265,7 +265,7 @@ template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, parallelHostPolicy >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif

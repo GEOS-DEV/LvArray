@@ -15,12 +15,12 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-/* *UNCRUSTIFY-OFF* */
+
 #pragma once
 
 // Source includes
-#include "benchmarkCommon.hpp"
 #include "../unitTests/testUtils.hpp"
+#include "StringUtilities.hpp"
 
 // System includes
 #include <random>
@@ -30,8 +30,8 @@
 #if defined(USE_CALIPER)
 
 #include <caliper/cali.h>
-#define LVARRAY_MARK_FUNCTION_TAG( name ) cali::Function __cali_ann##__LINE__( STRINGIZE_NX( name ) )
-#define LVARRAY_MARK_FUNCTION_TAG_STRING( string ) cali::Function __cali_ann##__LINE__( ( string ).data() )
+#define LVARRAY_MARK_FUNCTION_TAG( name ) cali::Function __cali_ann ## __LINE__( STRINGIZE_NX( name ) )
+#define LVARRAY_MARK_FUNCTION_TAG_STRING( string ) cali::Function __cali_ann ## __LINE__( ( string ).data() )
 
 #else
 
@@ -44,6 +44,12 @@ namespace LvArray
 {
 
 using namespace testing;
+
+
+#if defined(USE_CHAI)
+static_assert( std::is_same< DEFAULT_BUFFER< int >, NewChaiBuffer< int > >::value,
+               "The default buffer should be NewChaiBuffer when chai is enabled." );
+#endif
 
 namespace benchmarking
 {
@@ -65,6 +71,36 @@ inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_K
 
 } // namespace internal
 
+#define ACCESS_IJ( N, M, i, j ) M * i + j
+#define ACCESS_JI( N, M, i, j ) N * j + i
+
+#define ACCESS_IJK( N, M, P, i, j, k ) M * P * i + P * j + k
+#define ACCESS_KJI( N, M, P, i, j, k ) M * N * k + N * j + i
+
+using INDEX_TYPE = std::ptrdiff_t;
+
+template< typename T, typename PERMUTATION >
+using Array = LvArray::Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+
+template< typename T, typename PERMUTATION >
+using ArrayView = LvArray::ArrayView< T,
+getDimension( PERMUTATION {} ),
+getStrideOneDimension( PERMUTATION {} ),
+INDEX_TYPE,
+DEFAULT_BUFFER >;
+
+template< typename T, typename PERMUTATION >
+using ArraySlice = LvArray::ArraySlice< T,
+getDimension( PERMUTATION {} ),
+getStrideOneDimension( PERMUTATION {} ),
+INDEX_TYPE >;
+
+template< typename T, typename PERMUTATION >
+using RajaView = RAJA::View< T,
+RAJA::Layout< getDimension( PERMUTATION {} ),
+INDEX_TYPE,
+getStrideOneDimension( PERMUTATION {} ) >>;
+
 template< typename ARG0 >
 std::string typeListToString()
 { return internal::typeToString( ARG0 {} ); }
@@ -77,12 +113,12 @@ std::string typeListToString()
 #define REGISTER_BENCHMARK( args, func ) \
   { \
     ::benchmark::RegisterBenchmark( STRINGIZE( func ), func ) \
-    ->Args( args ) \
-    ->UseRealTime() \
-    ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
-      { return *std::min_element( times.begin(), times.end() ); } ) \
-    ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
-      { return *std::max_element( times.begin(), times.end() ); } ); \
+      ->Args( args ) \
+      ->UseRealTime() \
+      ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
+{ return *std::min_element( times.begin(), times.end() ); } ) \
+      ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
+{ return *std::max_element( times.begin(), times.end() ); } ); \
   }
 
 
@@ -91,12 +127,12 @@ std::string typeListToString()
     std::string functionName = STRINGIZE( func ) "< "; \
     functionName += typeListToString< __VA_ARGS__ >() + " >"; \
     ::benchmark::RegisterBenchmark( functionName.c_str(), func< __VA_ARGS__ > ) \
-    ->Args( args ) \
-    ->UseRealTime() \
-    ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
-      { return *std::min_element( times.begin(), times.end() ); } ) \
-    ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
-      { return *std::max_element( times.begin(), times.end() ); } ); \
+      ->Args( args ) \
+      ->UseRealTime() \
+      ->ComputeStatistics( "min", []( std::vector< double > const & times ) \
+{ return *std::min_element( times.begin(), times.end() ); } ) \
+      ->ComputeStatistics( "max", []( std::vector< double > const & times ) \
+{ return *std::max_element( times.begin(), times.end() ); } ); \
   }
 
 
@@ -135,7 +171,7 @@ RajaView< T, PERMUTATION > makeRajaView( Array< T, PERMUTATION > const & array )
   constexpr int NDIM = getDimension( PERMUTATION {} );
   std::array< INDEX_TYPE, NDIM > sizes;
 
-  for( int i = 0 ; i < NDIM ; ++i )
+  for( int i = 0; i < NDIM; ++i )
   {
     sizes[ i ] = array.dims()[ i ];
   }
@@ -215,7 +251,7 @@ inline int verifyResults( ResultsMap< T, N > const & benchmarkResults )
 
       std::cout << "### The benchmarks produced different results with arguments ";
       std::cout << args[ 0 ];
-      for( unsigned long i = 1 ; i < N ; ++i )
+      for( unsigned long i = 1; i < N; ++i )
       {
         std::cout << ", " << args[ i ];
       }
@@ -261,4 +297,3 @@ inline int verifyResults( ResultsMap< T, N > const & benchmarkResults )
 
 } // namespace benchmarking
 } // namespace LvArray
-/* *UNCRUSITIFY-ON* */

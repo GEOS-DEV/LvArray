@@ -19,13 +19,10 @@
 // Source includes
 #include "SortedArray.hpp"
 #include "testUtils.hpp"
+#include "MallocBuffer.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
-
-#if defined(USE_CHAI) && defined(USE_CUDA)
-  #include <chai/util/forall.hpp>
-#endif
 
 // System includes
 #include <vector>
@@ -39,40 +36,39 @@ namespace testing
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-/**
- * @brief Check that the SortedArrayView is equivalent to the std::set. Checks equality using the
- *        operator[] and the raw pointer.
- * @param [in] set the SortedArrayView to check.
- * @param [in] ref the std::set to check against.
- */
-template< class T >
-void compareToReference( SortedArrayView< T const > const & set, const std::set< T > & ref )
-{
-  ASSERT_EQ( set.size(), ref.size() );
-  ASSERT_EQ( set.empty(), ref.empty() );
-  if( set.empty() )
-  {
-    ASSERT_EQ( set.size(), 0 );
-    return;
-  }
-
-  T const * ptr = set.data();
-  typename std::set< T >::const_iterator it = ref.begin();
-  for( int i = 0; i < set.size(); ++i )
-  {
-    ASSERT_EQ( set[ i ], *it );
-    ASSERT_EQ( ptr[ i ], *it );
-    ++it;
-  }
-}
-
-#define COMPARE_TO_REFERENCE( set, ref ) { SCOPED_TRACE( "" ); compareToReference( set, ref ); \
-}
-
-template< typename T >
+template< typename SORTED_ARRAY >
 class SortedArrayTest : public ::testing::Test
 {
 public:
+
+  using T = typename SORTED_ARRAY::value_type;
+
+  /**
+   * @brief Check that the SortedArrayView is equivalent to the std::set. Checks equality using the
+   *   operator[] and the raw pointer.
+   */
+  void compareToReference() const
+  {
+    ASSERT_EQ( m_set.size(), m_ref.size() );
+    ASSERT_EQ( m_set.empty(), m_ref.empty() );
+    if( m_set.empty() )
+    {
+      ASSERT_EQ( m_set.size(), 0 );
+      return;
+    }
+
+    T const * ptr = m_set.data();
+    typename std::set< T >::const_iterator it = m_ref.begin();
+    for( int i = 0; i < m_set.size(); ++i )
+    {
+      ASSERT_EQ( m_set[ i ], *it );
+      ASSERT_EQ( ptr[ i ], *it );
+      ++it;
+    }
+  }
+
+  #define COMPARE_TO_REFERENCE { SCOPED_TRACE( "" ); compareToReference(); \
+  }
 
   /**
    * @brief Test the insert method of the SortedArray.
@@ -81,7 +77,7 @@ public:
    */
   void insertTest( INDEX_TYPE const maxInserts, INDEX_TYPE const maxVal )
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     for( INDEX_TYPE i = 0; i < maxInserts; ++i )
     {
@@ -89,7 +85,7 @@ public:
       ASSERT_EQ( m_ref.insert( value ).second, m_set.insert( value ));
     }
 
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -99,17 +95,17 @@ public:
    */
   void insertMultipleTest( INDEX_TYPE maxInserts, INDEX_TYPE const maxVal )
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     // Divide maxInserts by two since we insert with both a std::vector and std::set.
-    maxInserts /= 2;
+      maxInserts /= 2;
 
     // Insert values from a std::vector
     {
       std::vector< T > values( maxInserts );
 
       for( INDEX_TYPE i = 0; i < maxInserts; ++i )
-      { values[i] = randVal( maxVal ); }
+      { values[ i ] = randVal( maxVal ); }
 
       m_ref.insert( values.begin(), values.end() );
 
@@ -117,7 +113,7 @@ public:
       values.resize( numUniqueValues );
 
       m_set.insert( values.begin(), values.end() );
-      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      COMPARE_TO_REFERENCE
     }
 
     // Insert values from a std::set
@@ -128,7 +124,7 @@ public:
 
       m_ref.insert( values.begin(), values.end() );
       m_set.insert( values.begin(), values.end() );
-      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      COMPARE_TO_REFERENCE
     }
   }
 
@@ -139,7 +135,7 @@ public:
    */
   void removeTest( INDEX_TYPE const maxRemoves, INDEX_TYPE const maxVal )
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
@@ -147,7 +143,7 @@ public:
       ASSERT_EQ( m_ref.erase( value ), m_set.remove( value ) );
     }
 
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -157,10 +153,10 @@ public:
    */
   void removeMultipleTest( INDEX_TYPE maxRemoves, INDEX_TYPE const maxVal )
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     // Divide maxInserts by two since we insert with both a std::vector and std::set.
-    maxRemoves /= 2;
+      maxRemoves /= 2;
 
     // Remove values from a std::vector
     {
@@ -177,7 +173,7 @@ public:
 
       m_set.remove( values.begin(), values.end() );
 
-      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      COMPARE_TO_REFERENCE
     }
 
     // Remove values from a std::set
@@ -192,7 +188,7 @@ public:
 
       m_set.remove( values.begin(), values.end() );
 
-      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      COMPARE_TO_REFERENCE
     }
   }
 
@@ -201,7 +197,7 @@ public:
    */
   void containsTest() const
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     auto it = m_ref.begin();
     for( INDEX_TYPE i = 0; i < m_set.size(); ++i )
@@ -218,11 +214,11 @@ public:
    */
   void deepCopyTest() const
   {
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const N = m_set.size();
 
-    SortedArray< T > v_cpy( m_set );
+    SORTED_ARRAY v_cpy( m_set );
     ASSERT_EQ( N, v_cpy.size());
 
     T const * const vals = m_set.data();
@@ -232,15 +228,15 @@ public:
     // Iterate backwards and erase entries from v_cpy.
     for( INDEX_TYPE i = N - 1; i >= 0; --i )
     {
-      EXPECT_EQ( vals[i], vals_cpy[i] );
-      v_cpy.remove( vals_cpy[i] );
+      EXPECT_EQ( vals[ i ], vals_cpy[ i ] );
+      v_cpy.remove( vals_cpy[ i ] );
     }
 
     EXPECT_EQ( v_cpy.size(), 0 );
     EXPECT_EQ( m_set.size(), N );
 
     // check that v is still the same as m_ref.
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
 protected:
@@ -248,14 +244,23 @@ protected:
   T randVal( INDEX_TYPE const max )
   { return T( std::uniform_int_distribution< INDEX_TYPE >( 0, max )( m_gen ) ); }
 
-  SortedArray< T > m_set;
+  SORTED_ARRAY m_set;
 
   std::set< T > m_ref;
 
   std::mt19937_64 m_gen;
 };
 
-using TestTypes = ::testing::Types< int, Tensor, TestString >;
+using TestTypes = ::testing::Types<
+  SortedArray< int, INDEX_TYPE, MallocBuffer >
+  , SortedArray< Tensor, INDEX_TYPE, MallocBuffer >
+  , SortedArray< TestString, INDEX_TYPE, MallocBuffer >
+#if defined(USE_CHAI)
+  , SortedArray< int, INDEX_TYPE, NewChaiBuffer >
+  , SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >
+  , SortedArray< TestString, INDEX_TYPE, NewChaiBuffer >
+#endif
+  >;
 TYPED_TEST_SUITE( SortedArrayTest, TestTypes, );
 
 INDEX_TYPE const DEFAULT_MAX_INSERTS = 200;
@@ -272,7 +277,7 @@ TYPED_TEST( SortedArrayTest, insert )
 TYPED_TEST( SortedArrayTest, reserve )
 {
   this->m_set.reserve( DEFAULT_MAX_VAL + 1 );
-  TypeParam const * const ptr = this->m_set.data();
+  auto const * const ptr = this->m_set.data();
 
   for( int i = 0; i < 4; ++i )
   {
@@ -320,12 +325,19 @@ TYPED_TEST( SortedArrayTest, deepCopy )
   this->deepCopyTest();
 }
 
-#ifdef USE_CUDA
 
-template< typename T >
-class SortedArrayCudaTest : public SortedArrayTest< T >
+template< typename SORTED_ARRAY_POLICY_PAIR >
+class SortedArrayViewTest : public SortedArrayTest< typename SORTED_ARRAY_POLICY_PAIR::first_type >
 {
 public:
+
+  using SORTED_ARRAY = typename SORTED_ARRAY_POLICY_PAIR::first_type;
+  using POLICY = typename SORTED_ARRAY_POLICY_PAIR::second_type;
+
+  using T = typename SORTED_ARRAY::value_type;
+  using ParentClass = SortedArrayTest< SORTED_ARRAY >;
+
+  using ViewType = std::remove_const_t< typename SORTED_ARRAY::ViewType >;
 
   /**
    * @brief Test the SortedArrayView copy constructor in regards to memory motion.
@@ -344,12 +356,11 @@ public:
     ASSERT_EQ( m_set.size(), size );
 
     // Capture a view on the device.
-    forall( gpu(), 0, size,
-            [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-    {
-      LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
-    }
-            );
+    ViewType const & view = m_set.toView();
+    forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          LVARRAY_ERROR_IF( view[ i ] != T( i ), "Values changed when moved." );
+        } );
 
     // Change the values.
     m_set.clear();
@@ -361,12 +372,10 @@ public:
     ASSERT_EQ( m_set.size(), size );
 
     // Capture the view on host and check that the values haven't been overwritten.
-    forall( sequential(), 0, size,
-            [view = m_set.toView()]( INDEX_TYPE i )
+    forall< serialPolicy >( size, [view] ( INDEX_TYPE const i )
     {
-      EXPECT_EQ( view[i], T( i * i ));
-    }
-            );
+      EXPECT_EQ( view[ i ], T( i * i ));
+    } );
   }
 
   /**
@@ -385,28 +394,26 @@ public:
 
     ASSERT_EQ( m_set.size(), size );
 
-    // Capture a view on the device.
-    forall( gpu(), 0, size,
-            [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-    {
-      LVARRAY_ERROR_IF( view[i] != T( i ), "Values changed when moved." );
-    }
-            );
+    T const * const hostPointer = m_set.data();
+    m_set.move( RAJAHelper< POLICY >::space, false );
+    T const * const devicePointer = m_set.data();
+    forall< POLICY >( size, [devicePointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          LVARRAY_ERROR_IF( devicePointer[ i ] != T( i ), "Values changed when moved." );
+        } );
 
     // Change the values.
-    m_set.clear();
     for( INDEX_TYPE i = 0; i < size; ++i )
-    {
-      m_set.insert( T( i * i ));
-    }
+    { const_cast< T & >( hostPointer[ i ] ) = T( 2 * i ); }
 
     ASSERT_EQ( m_set.size(), size );
 
     // Move the array back to the host and check that the values haven't been overwritten.
-    m_set.move( chai::CPU );
+    m_set.move( MemorySpace::CPU );
+    EXPECT_EQ( hostPointer, m_set.data() );
     for( INDEX_TYPE i = 0; i < size; ++i )
     {
-      EXPECT_EQ( m_set[i], T( i * i ));
+      EXPECT_EQ( m_set[ i ], T( 2 * i ));
     }
   }
 
@@ -425,39 +432,51 @@ public:
 
     ASSERT_EQ( m_set.size(), size );
 
-    forall( gpu(), 0, size,
-            [view = m_set.toView()] __device__ ( INDEX_TYPE i )
-    {
-      LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );
-      LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "view should not contain odd numbers." );
-    }
-            );
+    ViewType const & view = m_set.toView();
+    forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );
+          LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "view should not contain odd numbers." );
+        } );
   }
 
 protected:
-  using SortedArrayTest< T >::m_set;
-  using SortedArrayTest< T >::m_ref;
+  using ParentClass::m_set;
+  using ParentClass::m_ref;
 };
 
-using CudaTestTypes = ::testing::Types< int, Tensor >;
-TYPED_TEST_SUITE( SortedArrayCudaTest, CudaTestTypes );
+using SortedArrayViewTestTypes = ::testing::Types<
+  std::pair< SortedArray< int, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< SortedArray< Tensor, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< SortedArray< TestString, INDEX_TYPE, MallocBuffer >, serialPolicy >
 
-TYPED_TEST( SortedArrayCudaTest, memoryMotion )
+#if defined(USE_CHAI)
+  , std::pair< SortedArray< int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< SortedArray< TestString, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+#endif
+
+#if defined(USE_CUDA) && defined(USE_CHAI)
+  , std::pair< SortedArray< int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+#endif
+  >;
+TYPED_TEST_SUITE( SortedArrayViewTest, SortedArrayViewTestTypes, );
+
+TYPED_TEST( SortedArrayViewTest, memoryMotion )
 {
   this->memoryMotionTest( 1000 );
 }
 
-TYPED_TEST( SortedArrayCudaTest, memoryMotionMove )
+TYPED_TEST( SortedArrayViewTest, memoryMotionMove )
 {
   this->memoryMotionMoveTest( 1000 );
 }
 
-TYPED_TEST( SortedArrayCudaTest, containsDevice )
+TYPED_TEST( SortedArrayViewTest, containsDevice )
 {
   this->containsDeviceTest( 1000 );
 }
-
-#endif
 
 } // namespace testing
 } // namespace LvArray

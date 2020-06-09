@@ -189,7 +189,7 @@ template class MatrixVectorRAJA< RAJA::PERM_JI, parallelHostPolicy >;
 
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 
 template class MatrixVectorRAJA< RAJA::PERM_IJ, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;

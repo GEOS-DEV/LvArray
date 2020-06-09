@@ -2,11 +2,48 @@
 # Specify list of tests
 #
 set(testSources
-    testArray.cpp
+    testArray_defaultConstructor.cpp
+    testArray_sizedConstructor.cpp
+    testArray_copyConstructor.cpp
+    testArray_moveConstructor.cpp
+    testArray_toView.cpp
+    testArray_toViewConst.cpp
+    testArray_copyAssignmentOperator.cpp
+    testArray_moveAssignmentOperator.cpp
+    testArray_scalarAssignmentOperator.cpp
+    testArray_getSetSingleParameterResizeIndex.cpp
+    testArray_resizeFromPointer.cpp
+    testArray_resizeFromArgs.cpp
+    testArray_resizeDimension.cpp
+    testArray_resize.cpp
+    testArray_resizeDefault.cpp
+    testArray_reserveAndCapacity.cpp
+    testArray_clear.cpp
+    testArray_indexing.cpp
+    testArray_resizeWithoutInitializationOrDestruction.cpp
+    testArray1D.cpp
+    testArrayView_defaultConstructor.cpp
+    testArrayView_copyConstructor.cpp
+    testArrayView_copyAssignmentOperator.cpp
+    testArrayView_toView.cpp
+    testArrayView_toViewConst.cpp
+    testArrayView_udcToViewConst.cpp
+    testArrayView_toSlice.cpp
+    testArrayView_udcToSlice.cpp
+    testArrayView_toSliceConst.cpp
+    testArrayView_udcToSliceConst.cpp
+    testArrayView_modifyInKernel.cpp
+    testArrayView_readInKernel.cpp
+    testArrayView_move.cpp
+    testArrayView_moveNoTouch.cpp
+    testArrayView_modifyInMultipleKernels.cpp
+    testArrayView_moveMultipleTimes.cpp
+    testArrayView_emptyMove.cpp
+    testArray1DOfArray1D.cpp
+    testArray1DOfArray1DOfArray1D.cpp
     testArrayOfArrays.cpp
     testArrayOfSets.cpp
     testArrayUtilities.cpp
-    testArrayView.cpp
     testArraySlice.cpp
     testCRSMatrix.cpp
     testArrayHelpers.cpp
@@ -49,7 +86,7 @@ target_include_directories( testFloatingPointExceptions PUBLIC ${CMAKE_CURRENT_L
 blt_add_test( NAME testFloatingPointExceptions
               COMMAND testFloatingPointExceptions )
 
-# Add testTensorOpsThreeSizes which has multiple translation units to speed up compilation.
+# Add testTensorOps which has multiple translation units to speed up compilation.
 blt_add_executable( NAME testTensorOps
                     SOURCES testTensorOps.cpp
                             testTensorOpsNoSize.cpp
@@ -65,7 +102,6 @@ blt_add_executable( NAME testTensorOps
                             testTensorOpsThreeSizes4.cpp
                             testTensorOpsThreeSizes5.cpp
                             testTensorOpsThreeSizes6.cpp
-                            
                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
                     DEPENDS_ON gtest lvarray ${lvarray_dependencies} )
 

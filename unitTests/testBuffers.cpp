@@ -23,7 +23,6 @@
 // Source includes
 #include "testUtils.hpp"
 #include "bufferManipulation.hpp"
-#include "NewChaiBuffer.hpp"
 #include "StackBuffer.hpp"
 #include "MallocBuffer.hpp"
 
@@ -75,12 +74,15 @@ class BufferAPITest : public ::testing::Test
 {};
 
 /// The list of types to instantiate BufferAPITest with, should contain at least one instance of every buffer class.
-using BufferAPITestTypes = ::testing::Types< NewChaiBuffer< int >,
-                                             NewChaiBuffer< TestString >,
-                                             StackBuffer< int, NO_REALLOC_CAPACITY >,
-                                             MallocBuffer< int >,
-                                             MallocBuffer< TestString >
-                                             >;
+using BufferAPITestTypes = ::testing::Types<
+  StackBuffer< int, NO_REALLOC_CAPACITY >
+  , MallocBuffer< int >
+  , MallocBuffer< TestString >
+#if defined(USE_CHAI)
+  , NewChaiBuffer< int >
+  , NewChaiBuffer< TestString >
+#endif
+  >;
 
 TYPED_TEST_SUITE( BufferAPITest, BufferAPITestTypes, );
 
@@ -126,8 +128,8 @@ TYPED_TEST( BufferAPITest, move )
 {
   TypeParam buffer( true );
 
-  buffer.move( chai::CPU, 0, true );
-  buffer.move( chai::CPU, true );
+  buffer.move( MemorySpace::CPU, 0, true );
+  buffer.move( MemorySpace::CPU, true );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -139,7 +141,7 @@ TYPED_TEST( BufferAPITest, registerTouch )
 {
   TypeParam buffer( true );
 
-  buffer.registerTouch( chai::CPU );
+  buffer.registerTouch( MemorySpace::CPU );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -221,38 +223,103 @@ public:
   }
 
   /**
-   * @brief Test pushBack.
+   * @brief Test emplaceBack.
    * @param nVals the number of values to append.
    */
-  void pushBack( std::ptrdiff_t const nVals )
+  void emplaceBack( std::ptrdiff_t const nVals )
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0; i < nVals; ++i )
+    LVARRAY_ERROR_IF_NE( nVals % 2, 0 );
+
+    for( std::ptrdiff_t i = 0; i < nVals / 2; ++i )
     {
       T const val( randInt() );
-      bufferManipulation::pushBack( m_buffer, size(), val );
-      m_ref.push_back( val );
+      bufferManipulation::emplaceBack( m_buffer, size(), val );
+      m_ref.emplace_back( val );
+
+      std::ptrdiff_t const seed = randInt();
+      bufferManipulation::emplaceBack( m_buffer, size(), seed );
+      m_ref.emplace_back( seed );
     }
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
   }
 
   /**
-   * @brief Test pushBack which takes an r-value reference.
-   * @param nVals the number of values to append.
+   * @brief Test emplace.
+   * @param nToInsert the number of values to insert.
    */
-  void pushBackMove( std::ptrdiff_t const nVals )
+  void emplace( std::ptrdiff_t const nToInsert )
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    for( std::ptrdiff_t i = 0; i < nVals; ++i )
+    LVARRAY_ERROR_IF_NE( nToInsert % 2, 0 );
+
+    for( std::ptrdiff_t i = 0; i < nToInsert / 2; ++i )
     {
-      std::ptrdiff_t const seed = randInt();
-      bufferManipulation::pushBack( m_buffer, size(), T( seed ) );
-      m_ref.push_back( T( seed ) );
+      {
+        T const val( randInt() );
+        std::ptrdiff_t const position = randInt( size() );
+        bufferManipulation::emplace( m_buffer, size(), position, val );
+        m_ref.emplace( m_ref.begin() + position, val );
+      }
+
+      {
+        std::ptrdiff_t const seed = randInt();
+        std::ptrdiff_t const position = randInt( size() );
+        bufferManipulation::emplace( m_buffer, size(), position, seed );
+        m_ref.emplace( m_ref.begin() + position, seed );
+      }
     }
 
+    COMPARE_TO_REFERENCE( m_buffer, m_ref );
+  }
+
+  /**
+   * @brief Test insert which inserts multiple values.
+   * @param nToInsert the number of values to insert.
+   */
+  void insert( std::ptrdiff_t const nToInsert )
+  {
+    COMPARE_TO_REFERENCE( m_buffer, m_ref );
+
+    constexpr std::ptrdiff_t MAX_VALS_PER_INSERT = 20;
+
+    std::ptrdiff_t nInserted = 0;
+    while( nInserted < nToInsert )
+    {
+      // Insert from a std::vector
+      {
+        std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        std::vector< T > valsToInsert( nToInsertThisIter );
+
+        for( T & val : valsToInsert )
+        { val = T( randInt() ); }
+
+        std::ptrdiff_t const position = randInt( size() );
+        bufferManipulation::insert( m_buffer, size(), position, valsToInsert.begin(), valsToInsert.end() );
+        m_ref.insert( m_ref.begin() + position, valsToInsert.begin(), valsToInsert.end() );
+
+        nInserted += nToInsertThisIter;
+      }
+
+      // Insert from a std::list
+      {
+        std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        std::list< T > valsToInsert( nToInsertThisIter );
+        for( T & val : valsToInsert )
+        { val = T( randInt() ); }
+
+        std::ptrdiff_t const position = randInt( size() );
+        bufferManipulation::insert( m_buffer, size(), position, valsToInsert.begin(), valsToInsert.end() );
+        m_ref.insert( m_ref.begin() + position, valsToInsert.begin(), valsToInsert.end() );
+
+        nInserted += nToInsertThisIter;
+      }
+    }
+
+    LVARRAY_ERROR_IF_NE( nInserted, nToInsert );
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
   }
 
@@ -272,76 +339,6 @@ public:
       m_ref.pop_back();
     }
 
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-  }
-
-  /**
-   * @brief Test insert.
-   * @param nToInsert the number of values to insert.
-   */
-  void insert( std::ptrdiff_t const nToInsert )
-  {
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-
-    for( std::ptrdiff_t i = 0; i < nToInsert; ++i )
-    {
-      T const val( randInt() );
-      std::ptrdiff_t const position = randInt( size() );
-      bufferManipulation::insert( m_buffer, size(), position, val );
-      m_ref.insert( m_ref.begin() + position, val );
-    }
-
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-  }
-
-  /**
-   * @brief Test insert which takes an r-value reference.
-   * @param nToInsert the number of values to insert.
-   */
-  void insertMove( std::ptrdiff_t const nToInsert )
-  {
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-
-    for( std::ptrdiff_t i = 0; i < nToInsert; ++i )
-    {
-      std::ptrdiff_t const seed = randInt();
-      std::ptrdiff_t const position = randInt( size() );
-      bufferManipulation::insert( m_buffer, size(), position, T( seed ) );
-      m_ref.insert( m_ref.begin() + position, T( seed ) );
-    }
-
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-  }
-
-  /**
-   * @brief Test insert which inserts multiple values.
-   * @param nToInsert the number of values to insert.
-   */
-  void insertMultiple( std::ptrdiff_t const nToInsert )
-  {
-    COMPARE_TO_REFERENCE( m_buffer, m_ref );
-
-    constexpr std::ptrdiff_t MAX_VALS_PER_INSERT = 20;
-    std::vector< T > valsToInsert( MAX_VALS_PER_INSERT );
-
-    std::ptrdiff_t nInserted = 0;
-    while( nInserted < nToInsert )
-    {
-      std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
-      std::ptrdiff_t const position = randInt( size() );
-
-      for( std::ptrdiff_t i = 0; i < nToInsertThisIter; ++i )
-      {
-        valsToInsert[ i ] = T( randInt() );
-      }
-
-      bufferManipulation::insert( m_buffer, size(), position, valsToInsert.data(), nToInsertThisIter );
-      m_ref.insert( m_ref.begin() + position, valsToInsert.begin(), valsToInsert.begin() + nToInsertThisIter );
-
-      nInserted += nToInsertThisIter;
-    }
-
-    LVARRAY_ERROR_IF_NE( nInserted, nToInsert );
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
   }
 
@@ -399,11 +396,11 @@ TYPED_TEST( BufferTestNoRealloc, resize )
 }
 
 /**
- * @brief Test bufferManipulation::pushBack without reallocating.
+ * @brief Test bufferManipulation::emplaceBack without reallocating.
  */
-TYPED_TEST( BufferTestNoRealloc, pushBack )
+TYPED_TEST( BufferTestNoRealloc, emplaceBack )
 {
-  this->pushBack( NO_REALLOC_CAPACITY );
+  this->emplaceBack( NO_REALLOC_CAPACITY );
 }
 
 /**
@@ -411,7 +408,7 @@ TYPED_TEST( BufferTestNoRealloc, pushBack )
  */
 TYPED_TEST( BufferTestNoRealloc, CopyConstructor )
 {
-  this->pushBack( 100 );
+  this->emplaceBack( 100 );
   TypeParam copy( this->m_buffer, 100 );
   TypeParam copy2( copy );
 
@@ -440,7 +437,7 @@ TYPED_TEST( BufferTestNoRealloc, CopyConstructor )
  */
 TYPED_TEST( BufferTestNoRealloc, copyAssignmentOperator )
 {
-  this->pushBack( 100 );
+  this->emplaceBack( 100 );
   TypeParam copy;
   copy = this->m_buffer;
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
@@ -462,7 +459,7 @@ TYPED_TEST( BufferTestNoRealloc, copyAssignmentOperator )
  */
 TYPED_TEST( BufferTestNoRealloc, MoveConstructor )
 {
-  this->pushBack( 100 );
+  this->emplaceBack( 100 );
   TypeParam copy( std::move( this->m_buffer ) );
   COMPARE_TO_REFERENCE( copy, this->m_ref );
 
@@ -480,7 +477,7 @@ TYPED_TEST( BufferTestNoRealloc, MoveConstructor )
  */
 TYPED_TEST( BufferTestNoRealloc, moveAssignmentOperator )
 {
-  this->pushBack( 100 );
+  this->emplaceBack( 100 );
   TypeParam copy;
   copy = std::move( this->m_buffer );
   COMPARE_TO_REFERENCE( copy, this->m_ref );
@@ -495,25 +492,24 @@ TYPED_TEST( BufferTestNoRealloc, moveAssignmentOperator )
 }
 
 /**
- * @brief Test bufferManipulation::pushBack that takes an rvalue-reference
- *        without reallocating.
- */
-TYPED_TEST( BufferTestNoRealloc, pushBackMove )
-{
-  this->pushBackMove( NO_REALLOC_CAPACITY );
-}
-
-/**
  * @brief Test bufferManipulation::popBack without reallocating.
  */
 TYPED_TEST( BufferTestNoRealloc, popBack )
 {
-  this->pushBack( NO_REALLOC_CAPACITY );
+  this->emplaceBack( NO_REALLOC_CAPACITY );
   this->popBack( NO_REALLOC_CAPACITY / 2 );
 }
 
 /**
- * @brief Test bufferManipulation::insert without reallocating.
+ * @brief Test bufferManipulation::emplace without reallocating.
+ */
+TYPED_TEST( BufferTestNoRealloc, emplace )
+{
+  this->emplace( NO_REALLOC_CAPACITY );
+}
+
+/**
+ * @brief Test bufferManipulation::insert multiple function without reallocating.
  */
 TYPED_TEST( BufferTestNoRealloc, insert )
 {
@@ -521,28 +517,11 @@ TYPED_TEST( BufferTestNoRealloc, insert )
 }
 
 /**
- * @brief Test bufferManipulation::insert that takes an rvalue-reference
- *        without reallocating.
- */
-TYPED_TEST( BufferTestNoRealloc, insertMove )
-{
-  this->insertMove( NO_REALLOC_CAPACITY );
-}
-
-/**
- * @brief Test bufferManipulation::insert multiple function without reallocating.
- */
-TYPED_TEST( BufferTestNoRealloc, insertMultiple )
-{
-  this->insertMultiple( NO_REALLOC_CAPACITY );
-}
-
-/**
  * @brief Test bufferManipulation::erase without reallocating.
  */
 TYPED_TEST( BufferTestNoRealloc, erase )
 {
-  this->pushBack( NO_REALLOC_CAPACITY );
+  this->emplaceBack( NO_REALLOC_CAPACITY );
   this->erase( NO_REALLOC_CAPACITY / 2 );
 }
 
@@ -551,7 +530,7 @@ TYPED_TEST( BufferTestNoRealloc, erase )
  */
 TYPED_TEST( BufferTestNoRealloc, copyInto )
 {
-  this->pushBack( NO_REALLOC_CAPACITY );
+  this->emplaceBack( NO_REALLOC_CAPACITY );
 
   forEachArg(
     [this]( auto && copy )
@@ -560,7 +539,9 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
     COMPARE_TO_REFERENCE( copy, this->m_ref );
     bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
   },
+  #if defined(USE_CHAI)
     NewChaiBuffer< typename TypeParam::value_type >( true ),
+  #endif
     MallocBuffer< typename TypeParam::value_type >( true )
     // I would like to copInto a StackBuffer but that doesn't work with std::string.
     );
@@ -651,11 +632,14 @@ public:
 
 /// The list of types to instantiate BufferTestWithRealloc with,
 /// should contain at least one instance of every dynamically reallocatable buffer class.
-using BufferTestWithReallocTypes = ::testing::Types< NewChaiBuffer< int >,
-                                                     NewChaiBuffer< TestString >,
-                                                     MallocBuffer< int >,
-                                                     MallocBuffer< TestString >
-                                                     >;
+using BufferTestWithReallocTypes = ::testing::Types<
+  MallocBuffer< int >
+  , MallocBuffer< TestString >
+#if defined(USE_CHAI)
+  , NewChaiBuffer< int >
+  , NewChaiBuffer< TestString >
+#endif
+  >;
 
 TYPED_TEST_SUITE( BufferTestWithRealloc, BufferTestWithReallocTypes, );
 
@@ -676,27 +660,27 @@ TYPED_TEST( BufferTestWithRealloc, reserve )
 }
 
 /**
- * @brief Test bufferManipulation::pushBack.
+ * @brief Test bufferManipulation::emplaceBack.
  */
-TYPED_TEST( BufferTestWithRealloc, pushBack )
+TYPED_TEST( BufferTestWithRealloc, emplaceBack )
 {
-  this->pushBack( 100 );
-  this->pushBack( 100 );
-  this->pushBack( 100 );
+  this->emplaceBack( 100 );
+  this->emplaceBack( 100 );
+  this->emplaceBack( 100 );
 }
 
 /**
- * @brief Test bufferManipulation::pushBack that takes an r-value reference.
+ * @brief Test bufferManipulation::emplace.
  */
-TYPED_TEST( BufferTestWithRealloc, pushBackMove )
+TYPED_TEST( BufferTestWithRealloc, emplace )
 {
-  this->pushBackMove( 100 );
-  this->pushBackMove( 100 );
-  this->pushBackMove( 100 );
+  this->emplace( 100 );
+  this->emplace( 100 );
+  this->emplace( 100 );
 }
 
 /**
- * @brief Test bufferManipulation::insert.
+ * @brief Test bufferManipulation::insert that inserts multiple values.
  */
 TYPED_TEST( BufferTestWithRealloc, insert )
 {
@@ -706,39 +690,19 @@ TYPED_TEST( BufferTestWithRealloc, insert )
 }
 
 /**
- * @brief Test bufferManipulation::insert that takes an r-value reference.
- */
-TYPED_TEST( BufferTestWithRealloc, insertMove )
-{
-  this->insertMove( 100 );
-  this->insertMove( 100 );
-  this->insertMove( 100 );
-}
-
-/**
- * @brief Test bufferManipulation::insert that inserts multiple values.
- */
-TYPED_TEST( BufferTestWithRealloc, insertMultiple )
-{
-  this->insertMultiple( 100 );
-  this->insertMultiple( 100 );
-  this->insertMultiple( 100 );
-}
-
-/**
  * @brief Test multiple bufferManipulation methods chained together.
  */
 TYPED_TEST( BufferTestWithRealloc, combination )
 {
-  this->pushBack( 100 );
-  this->insert( 100 );
+  this->emplaceBack( 100 );
+  this->emplace( 100 );
   this->erase( 100 );
-  this->insertMultiple( 100 );
+  this->insert( 100 );
   this->popBack( 100 );
-  this->pushBack( 100 );
-  this->insert( 100 );
+  this->emplaceBack( 100 );
+  this->emplace( 100 );
   this->erase( 100 );
-  this->insertMultiple( 100 );
+  this->insert( 100 );
   this->popBack( 100 );
 }
 

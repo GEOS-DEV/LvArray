@@ -20,11 +20,9 @@
  * @file SortedArray.hpp
  */
 
-#ifndef SRC_COMMON_SORTEDARRAY
-#define SRC_COMMON_SORTEDARRAY
+#pragma once
 
 #include "SortedArrayView.hpp"
-#include "sortedArrayManipulation.hpp"
 
 namespace LvArray
 {
@@ -41,31 +39,43 @@ namespace LvArray
  * The derivation from SortedArrayView is protected to control the conversion to
  * SortedArrayView. Specifically only conversion to SortedArrayView<T const> is allowed.
  */
-template< class T, class INDEX_TYPE=std::ptrdiff_t >
-class SortedArray : protected SortedArrayView< T, INDEX_TYPE >
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class SortedArray : protected SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE >
 {
 public:
 
+  /// Alias for the parent class
+  using ParentClass = SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE >;
+
   // Alias public typedefs of SortedArrayView.
-  using typename SortedArrayView< T, INDEX_TYPE >::value_type;
-  using typename SortedArrayView< T, INDEX_TYPE >::iterator;
-  using typename SortedArrayView< T, INDEX_TYPE >::const_iterator;
-  using typename SortedArrayView< T, INDEX_TYPE >::pointer;
-  using typename SortedArrayView< T, INDEX_TYPE >::const_pointer;
+  using typename ParentClass::value_type;
+  using typename ParentClass::iterator;
+  using typename ParentClass::const_iterator;
+  using typename ParentClass::pointer;
+  using typename ParentClass::const_pointer;
+
+  /// The view type.
+  using ViewType = SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const;
+
+  /// The const view type, this is the same as the view type since SortedArrayView can't
+  /// modify the data.
+  using ViewTypeConst = SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const;
 
   // Alias public methods of SortedArrayView.
-  using SortedArrayView< T, INDEX_TYPE >::operator[];
-  using SortedArrayView< T, INDEX_TYPE >::begin;
-  using SortedArrayView< T, INDEX_TYPE >::end;
-  using SortedArrayView< T, INDEX_TYPE >::contains;
-  using SortedArrayView< T, INDEX_TYPE >::count;
+  using ParentClass::operator[];
+  using ParentClass::begin;
+  using ParentClass::end;
+  using ParentClass::contains;
+  using ParentClass::count;
 
   /**
    * @brief Default constructor.
    */
   inline
   SortedArray():
-    SortedArrayView< T, INDEX_TYPE >()
+    ParentClass()
   { setName( "" ); }
 
   /**
@@ -74,7 +84,7 @@ public:
    */
   inline
   SortedArray( SortedArray const & src ):
-    SortedArrayView< T, INDEX_TYPE >()
+    ParentClass()
   { *this = src; }
 
   /**
@@ -116,15 +126,15 @@ public:
    * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
-  { return SortedArrayView< T, INDEX_TYPE >::toViewConst(); }
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
 
   /**
    * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return SortedArrayView< T, INDEX_TYPE >::toViewConst(); }
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
 
   /**
    * @brief @return Return true iff the SortedArray contains not values.
@@ -132,7 +142,7 @@ public:
    */
   constexpr inline
   bool empty() const
-  { return SortedArrayView< T, INDEX_TYPE >::empty(); }
+  { return ParentClass::empty(); }
 
   /**
    * @brief @return Return the number of values in the SortedArray.
@@ -140,7 +150,7 @@ public:
    */
   constexpr inline
   INDEX_TYPE size() const
-  { return SortedArrayView< T, INDEX_TYPE >::size(); }
+  { return ParentClass::size(); }
 
   /**
    * @brief @return Return a pointer to the values.
@@ -148,7 +158,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   T const * data() const
-  { return SortedArrayView< T, INDEX_TYPE >::data(); }
+  { return ParentClass::data(); }
 
   /**
    * @brief Remove all the values from the array.
@@ -242,8 +252,8 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
-  { return SortedArrayView< T, INDEX_TYPE >::move( space, touch ); }
+  void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
+  { return ParentClass::move( space, touch ); }
 
 private:
 
@@ -257,11 +267,12 @@ public:
 
     /**
      * @brief Constructor.
-     * @param cv the NewChaiBuffer associated with the SortedArray.
+     * @param buffer The buffer associated with the SortedArray.
+     * @param size The size of the SortedArray.
      */
     inline
-    CallBacks( NewChaiBuffer< T > & cb, INDEX_TYPE const size ):
-      m_cb( cb ),
+    CallBacks( BUFFER_TYPE< T > & buffer, INDEX_TYPE const size ):
+      m_buffer( buffer ),
       m_size( size )
     {}
 
@@ -273,26 +284,25 @@ public:
      * @return A pointer to the new array.
      */
     inline
-    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
+    T * incrementSize( T * const curPtr,
                        INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
-      bufferManipulation::dynamicReserve( m_cb, m_size, m_size + nToAdd );
-      return m_cb.data();
+      LVARRAY_UNUSED_VARIABLE( curPtr );
+      bufferManipulation::dynamicReserve( m_buffer, m_size, m_size + nToAdd );
+      return m_buffer.data();
     }
 
 private:
     /// The buffer associated with the callback.
-    NewChaiBuffer< T > & m_cb;
+    BUFFER_TYPE< T > & m_buffer;
 
     /// The number of values in the buffer.
     INDEX_TYPE const m_size;
   };
 
   // Alias the protected members of SortedArrayView.
-  using SortedArrayView< T, INDEX_TYPE >::m_values;
-  using SortedArrayView< T, INDEX_TYPE >::m_size;
+  using ParentClass::m_values;
+  using ParentClass::m_size;
 };
 
 } // namespace LvArray
-
-#endif // SRC_COMMON_SORTEDARRAY

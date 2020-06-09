@@ -21,14 +21,10 @@
 #include "CRSMatrix.hpp"
 #include "testUtils.hpp"
 #include "Array.hpp"
-
+#include "MallocBuffer.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
-
-#if defined(USE_CHAI) && defined(USE_CUDA)
-  #include <chai/util/forall.hpp>
-#endif
 
 // System includes
 #include <vector>
@@ -42,66 +38,60 @@ namespace LvArray
 namespace testing
 {
 
-// Alias for SparsityPatternView
-template< class COL_TYPE, class INDEX_TYPE=std::ptrdiff_t >
-using ViewType = SparsityPatternView< COL_TYPE, INDEX_TYPE const >;
-
 using INDEX_TYPE = std::ptrdiff_t;
 
-/**
- * @brief Check that the SparsityPatternView is equivalent to the reference type.
- * @param [in] v the SparsityPatternView to check.
- * @param [in] m_ref the reference to check against.
- */
-template< class COL_TYPE >
-void compareToReference( ViewType< COL_TYPE const > const & v, std::vector< std::set< COL_TYPE > > const & m_ref )
-{
-  INDEX_TYPE const numRows = v.numRows();
-  ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
-
-  INDEX_TYPE ref_nnz = 0;
-  for( INDEX_TYPE row = 0; row < numRows; ++row )
-  {
-    INDEX_TYPE const rowNNZ = v.numNonZeros( row );
-    INDEX_TYPE const refRowNNZ = m_ref[row].size();
-    ref_nnz += refRowNNZ;
-
-    ASSERT_EQ( rowNNZ, refRowNNZ );
-
-    if( rowNNZ == 0 )
-    {
-      ASSERT_TRUE( v.empty( row ));
-    }
-    else
-    {
-      ASSERT_FALSE( v.empty( row ));
-    }
-
-    auto it = m_ref[row].begin();
-    COL_TYPE const * const columns = v.getColumns( row );
-    for( INDEX_TYPE i = 0; i < v.numNonZeros( row ); ++i )
-    {
-      EXPECT_FALSE( v.empty( row, columns[i] ));
-      EXPECT_EQ( columns[i], *it );
-      it++;
-    }
-  }
-
-  ASSERT_EQ( v.numNonZeros(), ref_nnz );
-
-  if( v.numNonZeros() == 0 )
-  {
-    ASSERT_TRUE( v.empty());
-  }
-}
-
-#define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); \
-}
-
-template< typename COL_TYPE >
+template< typename SPARSITY_PATTERN >
 class SparsityPatternTest : public ::testing::Test
 {
 public:
+  using COL_TYPE = typename SPARSITY_PATTERN::column_type;
+
+  using ViewType = std::remove_reference_t< decltype( std::declval< SPARSITY_PATTERN >().toView() ) >;
+  using ViewTypeConst = std::remove_reference_t< decltype( std::declval< SPARSITY_PATTERN >().toViewConst() ) >;
+
+  void compareToReference( ViewTypeConst const & v )
+  {
+    INDEX_TYPE const numRows = v.numRows();
+    ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size()));
+
+    INDEX_TYPE ref_nnz = 0;
+    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    {
+      INDEX_TYPE const rowNNZ = v.numNonZeros( row );
+      INDEX_TYPE const refRowNNZ = m_ref[row].size();
+      ref_nnz += refRowNNZ;
+
+      ASSERT_EQ( rowNNZ, refRowNNZ );
+
+      if( rowNNZ == 0 )
+      {
+        ASSERT_TRUE( v.empty( row ));
+      }
+      else
+      {
+        ASSERT_FALSE( v.empty( row ));
+      }
+
+      auto it = m_ref[row].begin();
+      COL_TYPE const * const columns = v.getColumns( row );
+      for( INDEX_TYPE i = 0; i < v.numNonZeros( row ); ++i )
+      {
+        EXPECT_FALSE( v.empty( row, columns[i] ));
+        EXPECT_EQ( columns[i], *it );
+        it++;
+      }
+    }
+
+    ASSERT_EQ( v.numNonZeros(), ref_nnz );
+
+    if( v.numNonZeros() == 0 )
+    {
+      ASSERT_TRUE( v.empty());
+    }
+  }
+
+  #define COMPARE_TO_REFERENCE { SCOPED_TRACE( "" ); this->compareToReference( m_sp.toViewConst() ); \
+  }
 
   void resize( INDEX_TYPE const nRows,
                INDEX_TYPE const nCols,
@@ -110,12 +100,12 @@ public:
     m_sp.resize( nRows, nCols, initialRowCapacity );
     m_ref.resize( nRows );
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void appendRow( INDEX_TYPE const nRows, INDEX_TYPE const maxInserts )
   {
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     std::vector< COL_TYPE > columnsToAppend( maxInserts );
 
@@ -140,7 +130,7 @@ public:
       m_ref.push_back( std::set< COL_TYPE >( columnsToAppend.begin(), columnsToAppend.end() ) );
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -164,7 +154,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -206,7 +196,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -230,7 +220,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -272,7 +262,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -372,7 +362,7 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -401,7 +391,7 @@ public:
       curOffset += m_sp.numNonZeros( row );
     }
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -409,7 +399,7 @@ public:
    */
   void deepCopyTest()
   {
-    SparsityPattern< COL_TYPE > copy( m_sp );
+    SPARSITY_PATTERN copy( m_sp );
 
     ASSERT_EQ( m_sp.numRows(), copy.numRows());
     ASSERT_EQ( m_sp.numColumns(), copy.numColumns());
@@ -440,7 +430,7 @@ public:
     EXPECT_EQ( copy.numNonZeros(), 0 );
     EXPECT_EQ( m_sp.numNonZeros(), totalNNZ );
 
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -448,8 +438,7 @@ public:
    */
   void shallowCopyTest() const
   {
-    ViewType< COL_TYPE > const & view = m_sp.toView();
-    ViewType< COL_TYPE > copy( view );
+    ViewType copy( m_sp.toView() );
 
     ASSERT_EQ( m_sp.numRows(), copy.numRows());
     ASSERT_EQ( m_sp.numColumns(), copy.numColumns());
@@ -509,61 +498,62 @@ protected:
 
   std::mt19937_64 m_gen;
 
-  SparsityPattern< COL_TYPE > m_sp;
+  SPARSITY_PATTERN m_sp;
   std::vector< std::set< COL_TYPE > > m_ref;
 
-  /// Check that the move, toView, and toViewConst methods of SparsityPattern< COL_TYPE > are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPattern< COL_TYPE > >,
-                 "SparsityPattern< COL_TYPE > has a move method." );
-  static_assert( HasMemberFunction_toView< SparsityPattern< COL_TYPE > >,
-                 "SparsityPattern< COL_TYPE > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< SparsityPattern< COL_TYPE > >,
-                 "SparsityPattern< COL_TYPE > has a toViewConst method." );
+  /// Check that the move, toView, and toViewConst methods of SPARSITY_PATTERN are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< SPARSITY_PATTERN >,
+                 "SPARSITY_PATTERN has a move method." );
+  static_assert( HasMemberFunction_toView< SPARSITY_PATTERN >,
+                 "SPARSITY_PATTERN has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< SPARSITY_PATTERN >,
+                 "SPARSITY_PATTERN has a toViewConst method." );
 
-  /// Check that the move and toViewConst methods of SparsityPatternView< COL_TYPE, INDEX_TYPE const > are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a move method." );
-  static_assert( HasMemberFunction_toView< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE, INDEX_TYPE const > has a toViewConst method." );
+  /// Check that the move and toViewConst methods of ViewType are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ViewType >,
+                 "ViewType has a move method." );
+  static_assert( HasMemberFunction_toView< ViewType >,
+                 "ViewType has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ViewType >,
+                 "ViewType has a toViewConst method." );
 
-  /// Check that the move and toViewConst methods of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > are
+  /// Check that the move and toViewConst methods of ViewTypeConst are
   /// detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a move method." );
-  static_assert( HasMemberFunction_toView< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >,
-                 "SparsityPatternView< COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+  static_assert( bufferManipulation::HasMemberFunction_move< ViewTypeConst >,
+                 "ViewTypeConst has a move method." );
+  static_assert( HasMemberFunction_toView< ViewTypeConst >,
+                 "ViewTypeConst has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ViewTypeConst >,
+                 "ViewTypeConst has a toViewConst method." );
 
-  // /// Check that GetViewType and GetViewTypeConst are correct for SparsityPattern< COL_TYPE >
-  static_assert( std::is_same_v< typename GetViewType< SparsityPattern< COL_TYPE > >::type,
-                                 SparsityPatternView< COL_TYPE, INDEX_TYPE const > const >,
-                 "The view type of SparsityPattern< COL_TYPE > is SparsityPatternView< COL_TYPE, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPattern< COL_TYPE > >::type,
-                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
-                 "The const view type of SparsityPattern< COL_TYPE > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+  // /// Check that GetViewType and GetViewTypeConst are correct for SPARSITY_PATTERN
+  static_assert( std::is_same< typename GetViewType< SPARSITY_PATTERN >::type, ViewType const >::value,
+                 "The view type of SPARSITY_PATTERN is ViewType const." );
+  static_assert( std::is_same< typename GetViewTypeConst< SPARSITY_PATTERN >::type, ViewTypeConst const >::value,
+                 "The const view type of SPARSITY_PATTERN is ViewTypeConst const." );
 
-  /// Check that GetViewType and GetViewTypeConst are correct for SparsityPatternView< COL_TYPE, INDEX_TYPE const >
-  static_assert( std::is_same_v< typename GetViewType< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >::type,
-                                 SparsityPatternView< COL_TYPE, INDEX_TYPE const > const >,
-                 "The view type of SparsityPatternView< COL_TYPE, INDEX_TYPE const > is SparsityPatternView< COL_TYPE, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPatternView< COL_TYPE, INDEX_TYPE const > >::type,
-                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
-                 "The const view type of SparsityPatternView< COL_TYPE, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+  /// Check that GetViewType and GetViewTypeConst are correct for ViewType
+  static_assert( std::is_same< typename GetViewType< ViewType >::type, ViewType const >::value,
+                 "The view type of ViewType is ViewType const." );
+  static_assert( std::is_same< typename GetViewTypeConst< ViewType >::type, ViewTypeConst const >::value,
+                 "The const view type of ViewType is ViewTypeConst const." );
 
   /// Check that GetViewType and GetViewTypeConst are correct for SparsityPatternView< COL_TYPE const, INDEX_TYPE const
   /// >
-  static_assert( std::is_same_v< typename GetViewType< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >::type,
-                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
-                 "The view type of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > >::type,
-                                 SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const >,
-                 "The const view type of SparsityPatternView< COL_TYPE const, INDEX_TYPE const > is SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same< typename GetViewType< ViewTypeConst >::type, ViewTypeConst const >::value,
+                 "The view type of ViewTypeConst is ViewTypeConst const." );
+  static_assert( std::is_same< typename GetViewTypeConst< ViewTypeConst >::type, ViewTypeConst const >::value,
+                 "The const view type of ViewTypeConst is ViewTypeConst const." );
 };
 
-using SparsityPatternTestTypes = ::testing::Types< int, unsigned int >;
+using SparsityPatternTestTypes = ::testing::Types<
+  SparsityPattern< int, INDEX_TYPE, MallocBuffer >
+  , SparsityPattern< uint, INDEX_TYPE, MallocBuffer >
+#if defined(USE_CHAI)
+  , SparsityPattern< int, INDEX_TYPE, NewChaiBuffer >
+  , SparsityPattern< uint, INDEX_TYPE, NewChaiBuffer >
+#endif
+  >;
 TYPED_TEST_SUITE( SparsityPatternTest, SparsityPatternTestTypes, );
 
 INDEX_TYPE const NROWS = 100;
@@ -572,7 +562,7 @@ INDEX_TYPE const MAX_INSERTS = 75;
 
 TYPED_TEST( SparsityPatternTest, constructionNoHint )
 {
-  SparsityPattern< TypeParam > sp( NROWS, NCOLS );
+  TypeParam sp( NROWS, NCOLS );
   EXPECT_EQ( sp.numRows(), NROWS );
   EXPECT_EQ( sp.numColumns(), NCOLS );
   EXPECT_EQ( sp.numNonZeros(), 0 );
@@ -583,7 +573,7 @@ TYPED_TEST( SparsityPatternTest, constructionNoHint )
     EXPECT_EQ( sp.numNonZeros( row ), 0 );
     EXPECT_EQ( sp.nonZeroCapacity( row ), 0 );
     EXPECT_EQ( sp.empty( row ), true );
-    TypeParam const * const columns = sp.getColumns( row );
+    auto const * const columns = sp.getColumns( row ).dataIfContiguous();
     EXPECT_EQ( columns, nullptr );
   }
 }
@@ -592,7 +582,7 @@ TYPED_TEST( SparsityPatternTest, constructionWithHint )
 {
   constexpr int SIZE_HINT = 5;
 
-  SparsityPattern< TypeParam > sp( NROWS, NCOLS, SIZE_HINT );
+  TypeParam sp( NROWS, NCOLS, SIZE_HINT );
   EXPECT_EQ( sp.numRows(), NROWS );
   EXPECT_EQ( sp.numColumns(), NCOLS );
   EXPECT_EQ( sp.numNonZeros(), 0 );
@@ -605,7 +595,7 @@ TYPED_TEST( SparsityPatternTest, constructionWithHint )
     EXPECT_EQ( sp.nonZeroCapacity( row ), SIZE_HINT );
     EXPECT_EQ( sp.empty( row ), true );
 
-    TypeParam const * const columns = sp.getColumns( row );
+    auto const * const columns = sp.getColumns( row ).dataIfContiguous();
     ASSERT_NE( columns, nullptr );
   }
 }
@@ -677,7 +667,7 @@ TYPED_TEST( SparsityPatternTest, capacity )
     ASSERT_EQ( this->m_sp.numNonZeros( row ), 0 );
   }
 
-  TypeParam const * const columns = this->m_sp.getColumns( 0 );
+  auto const * const columns = this->m_sp.getColumns( 0 ).dataIfContiguous();
   this->insertTest( MAX_INSERTS );
   ASSERT_EQ( this->m_sp.getColumns( 0 ), columns );
 }
@@ -686,7 +676,7 @@ TYPED_TEST( SparsityPatternTest, rowCapacity )
 {
   this->resize( NROWS, NCOLS, MAX_INSERTS );
 
-  TypeParam const * const columns = this->m_sp.getColumns( 0 );
+  auto const * const columns = this->m_sp.getColumns( 0 ).dataIfContiguous();
   this->insertTest( MAX_INSERTS );
   ASSERT_EQ( this->m_sp.getColumns( 0 ), columns );
 
@@ -717,12 +707,24 @@ TYPED_TEST( SparsityPatternTest, shallowCopy )
   this->shallowCopyTest();
 }
 
-template< typename COL_POLICY_PAIR >
-class SparsityPatternViewTest : public SparsityPatternTest< typename COL_POLICY_PAIR::first_type >
+template< typename SPARSITY_PATTERN_POLICY_PAIR >
+class SparsityPatternViewTest : public SparsityPatternTest< typename SPARSITY_PATTERN_POLICY_PAIR::first_type >
 {
 public:
-  using COL_TYPE = typename COL_POLICY_PAIR::first_type;
-  using POLICY = typename COL_POLICY_PAIR::second_type;
+  using SPARSITY_PATTERN = typename SPARSITY_PATTERN_POLICY_PAIR::first_type;
+  using POLICY = typename SPARSITY_PATTERN_POLICY_PAIR::second_type;
+
+  using ParentClass = SparsityPatternTest< SPARSITY_PATTERN >;
+
+  using typename ParentClass::COL_TYPE;
+  using typename ParentClass::ViewType;
+  using typename ParentClass::ViewTypeConst;
+
+  template< typename T >
+  using Array1D = typename ArrayConverter< SPARSITY_PATTERN >::template Array< T, 1, RAJA::PERM_I >;
+
+  template< typename T >
+  using ArrayView1D = typename ArrayConverter< SPARSITY_PATTERN >::template ArrayView< T, 1, 0 >;
 
   /**
    * @brief Test the SparsityPatternView copy constructor in regards to memory motion.
@@ -746,7 +748,7 @@ public:
 
     // Capture the view on device and set the values. Here the const cast is necessary
     // because we don't want to test the insert/remove methods on device yet.
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -779,7 +781,7 @@ public:
   {
     INDEX_TYPE const numRows = m_sp.numRows();
 
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
 
     INDEX_TYPE curIndex = 0;
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -803,7 +805,7 @@ public:
           }
         } );
 
-    m_sp.move( chai::CPU );
+    m_sp.move( MemorySpace::CPU );
     curIndex = 0;
     for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
@@ -825,7 +827,7 @@ public:
     INDEX_TYPE const numCols = m_sp.numColumns();
 
     // Create a view const and capture it on device.
-    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & constView = m_sp.toViewConst();
+    ViewTypeConst const & constView = m_sp.toViewConst();
     forall< POLICY >( numRows,
                       [constView, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -843,18 +845,18 @@ public:
     }
 
     // Move the SparsityPattern back from device, this should be a no-op.
-    m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    m_sp.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void insertViewTest()
   {
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< COL_TYPE, 1 >, 1 > toInsert = createColumns( true, false );
-    ArrayView< ArrayView< COL_TYPE const, 1 > const, 1 > const & toInsertView = toInsert.toViewConst();
+    Array1D< Array1D< COL_TYPE > > toInsert = createColumns( true, false );
+    ArrayView1D< ArrayView1D< COL_TYPE const > const > const & toInsertView = toInsert.toViewConst();
 
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
           for( INDEX_TYPE j = 0; j < toInsertView[ row ].size(); ++j )
@@ -863,35 +865,35 @@ public:
           }
         } );
 
-    m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    m_sp.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void insertMultipleViewTest()
   {
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< COL_TYPE, 1 >, 1 > const toInsert = createColumns( true, true );
-    ArrayView< ArrayView< COL_TYPE const, 1 > const, 1 > const & toInsertView = toInsert.toViewConst();
+    Array1D< Array1D< COL_TYPE > > const toInsert = createColumns( true, true );
+    ArrayView1D< ArrayView1D< COL_TYPE const > const > const & toInsertView = toInsert.toViewConst();
 
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
           view.insertNonZeros( row, toInsertView[ row ].begin(), toInsertView[ row ].end() );
         } );
 
-    m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    m_sp.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void removeViewTest()
   {
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< COL_TYPE, 1 >, 1 > const toRemove = createColumns( false, false );
-    ArrayView< ArrayView< COL_TYPE const, 1 > const, 1 > const & toRemoveView = toRemove.toViewConst();
+    Array1D< Array1D< COL_TYPE > > const toRemove = createColumns( false, false );
+    ArrayView1D< ArrayView1D< COL_TYPE const > const > const & toRemoveView = toRemove.toViewConst();
 
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
           for( INDEX_TYPE j = 0; j < toRemoveView[ row ].size(); ++j )
@@ -900,25 +902,25 @@ public:
           }
         } );
 
-    m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    m_sp.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void removeMultipleViewTest()
   {
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< COL_TYPE, 1 >, 1 > const toRemove = createColumns( false, true );
-    ArrayView< ArrayView< COL_TYPE const, 1 > const, 1 > const & toRemoveView = toRemove.toViewConst();
+    Array1D< Array1D< COL_TYPE > > const toRemove = createColumns( false, true );
+    ArrayView1D< ArrayView1D< COL_TYPE const > const > const & toRemoveView = toRemove.toViewConst();
 
-    SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & view = m_sp.toView();
+    ViewType const & view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
           view.removeNonZeros( row, toRemoveView[ row ].begin(), toRemoveView[ row ].end() );
         } );
 
-    m_sp.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_sp.toViewConst(), m_ref );
+    m_sp.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   /**
@@ -941,7 +943,7 @@ public:
     }
 
     // Check that each row contains the even columns and no odd columns on device.
-    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & view = m_sp.toViewConst();
+    ViewTypeConst const & view = m_sp.toViewConst();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -955,11 +957,11 @@ public:
 
 protected:
 
-  Array< Array< COL_TYPE, 1 >, 1 > createColumns( bool const insert, bool const sortedUnique )
+  Array1D< Array1D< COL_TYPE > > createColumns( bool const insert, bool const sortedUnique )
   {
     INDEX_TYPE const numRows = m_sp.numRows();
 
-    Array< Array< COL_TYPE, 1 >, 1 > columns( numRows );
+    Array1D< Array1D< COL_TYPE > > columns( numRows );
 
     for( INDEX_TYPE i = 0; i < numRows; ++i )
     {
@@ -992,24 +994,23 @@ protected:
     return columns;
   }
 
-  using SparsityPatternTest< COL_TYPE >::m_sp;
-  using SparsityPatternTest< COL_TYPE >::m_ref;
-  using SparsityPatternTest< COL_TYPE >::rand;
-  using SparsityPatternTest< COL_TYPE >::randCol;
+  using ParentClass::m_sp;
+  using ParentClass::m_ref;
+  using ParentClass::rand;
+  using ParentClass::randCol;
 };
 
 using SparsityPatternViewTestTypes = ::testing::Types<
-  std::pair< int, serialPolicy >
-  , std::pair< uint, serialPolicy >
-
-#ifdef USE_OPENMP
-  , std::pair< int, parallelHostPolicy >
-  , std::pair< uint, parallelHostPolicy >
+  std::pair< SparsityPattern< int, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< SparsityPattern< uint, INDEX_TYPE, MallocBuffer >, serialPolicy >
+#if defined(USE_CHAI)
+  , std::pair< SparsityPattern< int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< SparsityPattern< uint, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
 #endif
 
-#ifdef USE_CUDA
-  , std::pair< int, parallelDevicePolicy< 256 > >
-  , std::pair< uint, parallelDevicePolicy< 256 > >
+#if defined(USE_CUDA) && defined(USE_CHAI)
+  , std::pair< SparsityPattern< int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< SparsityPattern< uint, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 
@@ -1086,30 +1087,46 @@ TYPED_TEST( SparsityPatternViewTest, empty )
   this->emptyViewTest();
 }
 
-template< typename T >
-class CRSMatrixTest : public SparsityPatternTest< int >
+// TODO Get rid of this.
+template< typename >
+struct CRSMatrixToSparsityPattern;
+
+template< typename T,
+          typename COL_TYPE,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+struct CRSMatrixToSparsityPattern< CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >
+{
+  using type = SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
+};
+
+template< typename CRS_MATRIX >
+class CRSMatrixTest : public SparsityPatternTest< typename CRSMatrixToSparsityPattern< CRS_MATRIX >::type >
 {
 public:
-  using COL_TYPE = int;
+  using ParentClass = SparsityPatternTest< typename CRSMatrixToSparsityPattern< CRS_MATRIX >::type >;
 
-  void stealFrom()
+  using T = typename CRS_MATRIX::value_type;
+  using typename ParentClass::COL_TYPE;
+
+  void assimilate()
   {
-    CRSMatrix< T, COL_TYPE, INDEX_TYPE > matrix;
-    matrix.stealFrom( std::move( this->m_sp ) );
-    COMPARE_TO_REFERENCE( matrix.toSparsityPatternView(), this->m_ref );
+    CRS_MATRIX matrix;
+    matrix.assimilate( std::move( this->m_sp ) );
+    this->compareToReference( matrix.toSparsityPatternView() );
 
     EXPECT_EQ( this->m_sp.numRows(), 0 );
     EXPECT_EQ( this->m_sp.numColumns(), 0 );
     EXPECT_EQ( this->m_sp.numNonZeros(), 0 );
 
     INDEX_TYPE const numRows = matrix.numRows();
-    ASSERT_EQ( numRows, INDEX_TYPE( m_ref.size() ) );
+    ASSERT_EQ( numRows, INDEX_TYPE( this->m_ref.size() ) );
 
     INDEX_TYPE ref_nnz = 0;
     for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const rowNNZ = matrix.numNonZeros( row );
-      INDEX_TYPE const refRowNNZ = m_ref[row].size();
+      INDEX_TYPE const refRowNNZ = this->m_ref[row].size();
       ref_nnz += refRowNNZ;
 
       ASSERT_EQ( rowNNZ, refRowNNZ );
@@ -1123,7 +1140,7 @@ public:
         ASSERT_FALSE( matrix.empty( row ) );
       }
 
-      auto it = m_ref[ row ].begin();
+      auto it = this->m_ref[ row ].begin();
       COL_TYPE const * const columns = matrix.getColumns( row );
       T const * const entries = matrix.getEntries( row );
       for( INDEX_TYPE i = 0; i < matrix.numNonZeros( row ); ++i )
@@ -1138,20 +1155,25 @@ public:
 };
 
 using CRSMatrixTestTypes = ::testing::Types<
-  int
-  , Tensor
-  , TestString
+  CRSMatrix< int, int, INDEX_TYPE, MallocBuffer >
+  , CRSMatrix< Tensor, int, INDEX_TYPE, MallocBuffer >
+  , CRSMatrix< TestString, int, INDEX_TYPE, MallocBuffer >
+#if defined(USE_CHAI)
+  , CRSMatrix< int, int, INDEX_TYPE, NewChaiBuffer >
+  , CRSMatrix< Tensor, int, INDEX_TYPE, NewChaiBuffer >
+  , CRSMatrix< TestString, int, INDEX_TYPE, NewChaiBuffer >
+#endif
   >;
 TYPED_TEST_SUITE( CRSMatrixTest, CRSMatrixTestTypes, );
 
-TYPED_TEST( CRSMatrixTest, stealFrom )
+TYPED_TEST( CRSMatrixTest, assimilate )
 {
   this->resize( NROWS, NCOLS );
   for( int i = 0; i < 2; ++i )
   {
     this->insertMultipleTest( MAX_INSERTS );
   }
-  this->stealFrom();
+  this->assimilate();
 }
 
 } // namespace testing

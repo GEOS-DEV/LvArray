@@ -1,13 +1,6 @@
 set( thirdPartyLibs "")
 
 
-
-################################
-# CHAI
-################################
-include(${CMAKE_SOURCE_DIR}/cmake/FindCHAI.cmake)
-
-
 ################################
 # RAJA
 ################################
@@ -21,8 +14,8 @@ endif()
 include(${CMAKE_SOURCE_DIR}/cmake/FindRAJA.cmake)
 if (NOT RAJA_FOUND)
     message(FATAL_ERROR "RAJA not found in ${RAJA_DIR}. Maybe you need to build it")
-endif()    
-blt_register_library( NAME raja
+endif()
+blt_register_library( NAME RAJA
                       INCLUDES ${RAJA_INCLUDE_DIRS}
                       LIBRARIES ${RAJA_LIBRARY}
                       TREAT_INCLUDES_AS_SYSTEM ON )
@@ -30,6 +23,58 @@ blt_register_library( NAME raja
 set(ENABLE_RAJA ON CACHE BOOL "")
 
 set( thirdPartyLibs ${thirdPartyLibs} raja )
+
+
+###############################
+# UMPIRE
+###############################
+if(ENABLE_UMPIRE)
+    if(NOT EXISTS ${UMPIRE_DIR})
+        set(UMPIRE_DIR ${GEOSX_TPL_DIR}/chai)
+    endif()
+
+    message(STATUS "Using umpire at ${UMPIRE_DIR}")
+
+    find_package(umpire REQUIRED
+                 PATHS ${UMPIRE_DIR}/share/umpire/cmake/)
+    
+    set(thirdPartyLibs ${thirdPartyLibs} umpire)
+else()
+    message(STATUS "Not using umpire.")
+endif()
+
+################################
+# CHAI
+################################
+# include(cmake/FindCHAI.cmake)
+if(ENABLE_CHAI)
+    if(NOT ENABLE_UMPIRE)
+        message(FATAL_ERROR "umpire must be enabled to use chai.")
+    endif()
+
+    if(NOT ENABLE_RAJA)
+        message(FATAL_ERROR "RAJA must be enabled to use chai.")
+    endif()
+
+    if(NOT EXISTS ${CHAI_DIR})
+        set(CHAI_DIR ${GEOSX_TPL_DIR}/chai)
+    endif()
+
+    message(STATUS "Using chai at ${CHAI_DIR}")
+
+    find_package(chai REQUIRED
+                 PATHS ${CHAI_DIR}/share/chai/cmake/)
+
+    # If this isn't done chai will add -lRAJA to the link line, but we don't link to RAJA like that.
+    get_target_property(CHAI_LINK_LIBRARIES chai INTERFACE_LINK_LIBRARIES)
+    list(REMOVE_ITEM CHAI_LINK_LIBRARIES RAJA)
+    set_target_properties(chai
+                        PROPERTIES INTERFACE_LINK_LIBRARIES ${CHAI_LINK_LIBRARIES})
+
+    set(thirdPartyLibs ${thirdPartyLibs} chai)
+else()
+    message(STATUS "Not using chai.")
+endif()
 
 
 ################################

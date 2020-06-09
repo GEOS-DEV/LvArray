@@ -99,6 +99,7 @@ namespace tensorOps
 namespace internal
 {
 
+/// The size of a symmetric MxM matrix in Voigt notation.
 template< int M >
 constexpr std::ptrdiff_t SYM_SIZE = ( M * ( M + 1 ) ) / 2;
 
@@ -350,6 +351,10 @@ struct SquareMatrixOps
 
 };
 
+/**
+ * @struct SquareMatrixOps< 2 >
+ * @brief Performs operations on 2x2 square matrices.
+ */
 template<>
 struct SquareMatrixOps< 2 >
 {
@@ -537,6 +542,10 @@ struct SquareMatrixOps< 2 >
   }
 };
 
+/**
+ * @struct SquareMatrixOps< 3 >
+ * @brief Performs operations on 3x3 square matrices.
+ */
 template<>
 struct SquareMatrixOps< 3 >
 {

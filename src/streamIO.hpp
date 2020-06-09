@@ -67,7 +67,7 @@ struct stringToArrayHelper
                     INDEX_TYPE const *,
                     std::istringstream & inputStream )
   {
-    inputStream>>arrayValue;
+    inputStream >> arrayValue;
 
     LVARRAY_ERROR_IF( inputStream.fail(),
                       "Invalid value of type " << typeid(T).name() << " in: " <<
@@ -124,11 +124,10 @@ template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > & array,
+          template< typename > class BUFFER_TYPE >
+static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > & array,
                            std::string valueString )
 {
-
   // Check to make sure there are no space delimited values. The assumption is anything that is not
   // a '{' or '}' or ',' or ' ' is part of a value. Loope over the string and keep track of whether
   // or not there is a value on the left of the char. If there is a value to the left, with a space
@@ -354,8 +353,9 @@ std::ostream & operator<<( std::ostream & stream,
  * @param view The SortedArrayView to output.
  * @return @p stream .
  */
-template< typename T, typename INDEX_TYPE >
-std::ostream & operator<< ( std::ostream & stream, SortedArrayView< T const, INDEX_TYPE > const & view )
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::ostream & operator<< ( std::ostream & stream,
+                            SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & view )
 {
   if( view.size() == 0 )
   {
@@ -385,8 +385,9 @@ std::ostream & operator<< ( std::ostream & stream, SortedArrayView< T const, IND
  * @param array The SortedArray to output.
  * @return @p stream .
  */
-template< typename T, typename INDEX_TYPE >
-std::ostream & operator<< ( std::ostream & stream, SortedArray< T, INDEX_TYPE > const & array )
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::ostream & operator<< ( std::ostream & stream,
+                            SortedArray< T, INDEX_TYPE, BUFFER_TYPE > const & array )
 { return stream << array.toViewConst(); }
 
 /**
@@ -397,8 +398,9 @@ std::ostream & operator<< ( std::ostream & stream, SortedArray< T, INDEX_TYPE > 
  * @param view The ArrayOfArraysView to output.
  * @return @p stream .
  */
-template< typename T, typename INDEX_TYPE >
-std::ostream & operator<< ( std::ostream & stream, ArrayOfArraysView< T const, INDEX_TYPE const, true > const & view )
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::ostream & operator<< ( std::ostream & stream,
+                            ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & view )
 {
   stream << "{" << std::endl;
 
@@ -430,8 +432,9 @@ std::ostream & operator<< ( std::ostream & stream, ArrayOfArraysView< T const, I
  * @param array The ArrayOfArrays to output.
  * @return @p stream .
  */
-template< typename T, typename INDEX_TYPE, bool CONST_SIZES >
-std::ostream & operator<< ( std::ostream & stream, ArrayOfArrays< T, INDEX_TYPE > const & array )
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::ostream & operator<< ( std::ostream & stream,
+                            ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > const & array )
 { return stream << array.toViewConst(); }
 
 /**
@@ -443,7 +446,7 @@ std::ostream & operator<< ( std::ostream & stream, ArrayOfArrays< T, INDEX_TYPE 
  * @return @p stream.
  */
 template< typename T, int N >
-std::enable_if_t< !std::is_same_v< T, char >, std::ostream & >
+std::enable_if_t< !std::is_same< T, char >::value, std::ostream & >
 operator<< ( std::ostream & stream, T const ( &array )[ N ] )
 {
   stream << "{ " << array[ 0 ];

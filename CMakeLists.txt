@@ -31,7 +31,7 @@ if( ENABLE_CHAI )
     set( lvarray_dependencies ${lvarray_dependencies} chai umpire )
 endif()
 
-if( ${ENABLE_MPI} )
+if( ENABLE_MPI )
     set( lvarray_dependencies ${lvarray_dependencies} mpi )
 endif()
 

@@ -20,10 +20,9 @@
  * @file ArrayOfSetsView.hpp
  */
 
-#ifndef ARRAYOFSETSVIEW_HPP_
-#define ARRAYOFSETSVIEW_HPP_
+#pragma once
 
-#include <limits>
+// Source includes
 #include "ArrayOfArraysView.hpp"
 #include "arrayManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
@@ -45,11 +44,13 @@ namespace LvArray
  * When T is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or values are touched when copied between memory spaces.
  */
-template< typename T, typename INDEX_TYPE=std::ptrdiff_t >
-class ArrayOfSetsView : protected ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class ArrayOfSetsView : protected ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value, BUFFER_TYPE >
 {
-  // Alias for the parent class
-  using ParentClass = ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value >;
+  /// Alias for the parent class
+  using ParentClass = ArrayOfArraysView< T, INDEX_TYPE, std::is_const< T >::value, BUFFER_TYPE >;
 
 public:
 
@@ -91,31 +92,26 @@ public:
    * @brief This is included for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  ArrayOfSetsView< T, INDEX_TYPE, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief @return Return a reference to *this reinterpreted as an ArrayOfSetsView< T const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const > const & >(*this); }
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
   /**
    * @brief @return Return a reference to *this reinterpreted as an ArrayOfArraysView< T const, INDEX_TYPE const, true
    *>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true > const & >( *this ); }
-
-  /**
-   * @brief @return Return an object provides an iterable interface to the given set.
-   * @param i The set to get an iterator for.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
-  { return ParentClass::getIterableArray( i ); }
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return Return the size of the given set.
@@ -247,7 +243,7 @@ public:
    * @param touch If true touch the values, sizes and offsets in the new space.
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 protected:
@@ -398,7 +394,7 @@ public:
      * @param i the set this CallBacks is associated with.
      */
     LVARRAY_HOST_DEVICE inline
-    CallBacks( ArrayOfSetsView< T, INDEX_TYPE > const & aos, INDEX_TYPE const i ):
+    CallBacks( ArrayOfSetsView const & aos, INDEX_TYPE const i ):
       m_aos( aos ),
       m_indexOfSet( i )
     {}
@@ -412,9 +408,9 @@ public:
      * @return a pointer to the sets values.
      */
     LVARRAY_HOST_DEVICE inline
-    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
-                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
+      LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef USE_ARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF_GT_MSG( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd, m_aos.capacityOfSet( m_indexOfSet ),
                                "ArrayOfSetsView cannot do reallocation." );
@@ -425,11 +421,12 @@ public:
     }
 
 private:
-    ArrayOfSetsView< T, INDEX_TYPE > const & m_aos;
+    /// The ArrayOfSetsView the call back is associated with.
+    ArrayOfSetsView const & m_aos;
+
+    /// The index of the set the call back is associated with.
     INDEX_TYPE const m_indexOfSet;
   };
 };
 
-} /* namespace LvArray */
-
-#endif /* ARRAYOFSETSVIEW_HPP_ */
+} // namespace LvArray

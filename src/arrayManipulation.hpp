@@ -95,8 +95,8 @@ isPositive( INDEX_TYPE )
 /**
  * @tparam T the storage type of the array.
  * @brief Destory the values in the array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -141,7 +141,7 @@ void uninitializedCopy( ITER first,
  * @tparam T the storage type of the array.
  * @brief Move construct values from the source to the destination.
  * @param dst pointer to the destination array, must be uninitialized memory.
- * @param size the number of values to copy.
+ * @param size The number of values to copy.
  * @param src pointer to the source array.
  */
 DISABLE_HD_WARNING
@@ -164,7 +164,7 @@ void uninitializedMove( T * const LVARRAY_RESTRICT dst,
 /**
  * @tparam T the storage type of the array.
  * @brief Shift values down into uninitialized memory.
- * @param ptr pointer to the begining of the shift, values before this must be uninitialized.
+ * @param ptr Pointer to the begining of the shift, values before this must be uninitialized.
  * @param size number of values to shift.
  * @param amount the amount to shift by.
  */
@@ -192,7 +192,7 @@ void uninitializedShiftDown( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Shift values up into uninitialized memory.
- * @param ptr pointer to the begining of the shift.
+ * @param ptr Pointer to the begining of the shift.
  * @param size number of values to shift, values after this must be uninitialized.
  * @param amount the amount to shift by.
  */
@@ -221,8 +221,8 @@ void uninitializedShiftUp( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @tparam ARGS the types of the arguments to forward to the constructor.
  * @brief Resize the give array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  * @param newSize the new size.
  * @param args the arguments to forward to construct any new elements with.
  */
@@ -252,8 +252,8 @@ void resize( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New uninitialized values take their place.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  * @param index the index at which to begin the shift.
  * @param n the number of places to shift.
  */
@@ -287,40 +287,10 @@ void shiftUp( T * const LVARRAY_RESTRICT ptr,
 
 /**
  * @tparam T the storage type of the array.
- * @brief Shift the values in the array at or above the given position up by the given amount.
- *        New values take their place.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param index the index at which to begin the shift.
- * @param n the number of places to shift.
- * @param defaultValue the value to initialize the new entries with.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-void emplace( T * const LVARRAY_RESTRICT ptr,
-              std::ptrdiff_t const size,
-              std::ptrdiff_t const index,
-              std::ptrdiff_t const n=1,
-              T const & defaultValue=T() )
-{
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
-
-  shiftUp( ptr, size, index, n );
-
-  // Initialize the empty values to the default value.
-  for( std::ptrdiff_t i = index; i < index + n; ++i )
-  {
-    new( ptr + i ) T( defaultValue );
-  }
-}
-
-/**
- * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are not destroyed.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  * @param index the index at which to begin the shift.
  * @param n the number of places to shift.
  */
@@ -352,8 +322,8 @@ void shiftDown( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are then destroyed.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  * @param index the index at which to begin the shift.
  * @param n the number of places to shift.
  */
@@ -379,85 +349,73 @@ void erase( T * const LVARRAY_RESTRICT ptr,
 }
 
 /**
- * @tparam T the storage type of the array.
- * @brief Append the given value to the array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param value the value to append.
+ * @brief Append the to the array constructing the new value in place.
+ * @tparam T The storage type of the array.
+ * @tparam ARGS Variadic pack of types to construct T with, the types of @p args.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
+ * @param args The arguments to forward to construct the new value.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename T, typename ... ARGS >
 LVARRAY_HOST_DEVICE inline
-void append( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             T const & value )
+void emplaceBack( T * const LVARRAY_RESTRICT ptr,
+                  std::ptrdiff_t const size,
+                  ARGS && ... args )
 {
   LVARRAY_ASSERT( ptr != nullptr );
   LVARRAY_ASSERT( isPositive( size ) );
-  new ( ptr + size ) T( value );
+  new ( ptr + size ) T( std::forward< ARGS >( args ) ... );
 }
 
 /**
- * @tparam T the storage type of the array.
- * @brief Append the given value to the array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param value the value to append.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-void append( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             T && value )
-{
-  LVARRAY_ASSERT( ptr != nullptr );
-  LVARRAY_ASSERT( isPositive( size ) );
-  new ( ptr + size ) T( std::move( value ) );
-}
-
-/**
- * @tparam T the storage type of the array.
  * @brief Append the given values to the array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param values the values to append.
- * @param n the number of values to append.
+ * @tparam T The storage type of the array.
+ * @tparam ITER The type of the iterators @p first and @p last.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
+ * @param first An iterator to the first value to append.
+ * @param last An iterator to the end of the values to append.
+ * @return The number of values appended.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename T, typename ITER >
 LVARRAY_HOST_DEVICE inline
-void append( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             T const * const LVARRAY_RESTRICT values,
-             std::ptrdiff_t const n )
+std::ptrdiff_t append( T * const LVARRAY_RESTRICT ptr,
+                       std::ptrdiff_t const size,
+                       ITER first,
+                       ITER const last )
 {
-  LVARRAY_ASSERT( ptr != nullptr || (size == 0 && n == 0) );
+  LVARRAY_ASSERT( ptr != nullptr || (size == 0 && first == last) );
   LVARRAY_ASSERT( isPositive( size ) );
-  LVARRAY_ASSERT( isPositive( n ) );
-  LVARRAY_ASSERT( values != nullptr || n == 0 );
 
-  for( std::ptrdiff_t i = 0; i < n; ++i )
+  std::ptrdiff_t i = 0;
+  while( first != last )
   {
-    new ( ptr + size + i ) T( values[i] );
+    new( ptr + size + i ) T( *first );
+    ++first;
+    ++i;
   }
+
+  return i;
 }
 
 /**
- * @tparam T the storage type of the array.
- * @brief Insert the given value into the array at the given position.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param index the position to insert the value at.
- * @param value the value to insert.
+ * @brief Insert into the array constructing the new value in place.
+ * @tparam T The storage type of the array.
+ * @tparam ARGS Variadic pack of types to construct T with, the types of @p args.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
+ * @param index The position to insert at.
+ * @param args The arguments to forward to construct the new value.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename T, typename ... ARGS >
 LVARRAY_HOST_DEVICE inline
-void insert( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             std::ptrdiff_t const index,
-             T const & value )
+void emplace( T * const LVARRAY_RESTRICT ptr,
+              std::ptrdiff_t const size,
+              std::ptrdiff_t const index,
+              ARGS && ... args )
 {
   LVARRAY_ASSERT( ptr != nullptr );
   LVARRAY_ASSERT( isPositive( size ) );
@@ -465,49 +423,26 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 
   // Create space for the new value.
   shiftUp( ptr, size, index, std::ptrdiff_t( 1 ) );
-  new ( ptr + index ) T( value );
+  new ( ptr + index ) T( std::forward< ARGS >( args ) ... );
 }
 
 /**
- * @tparam T the storage type of the array.
- * @brief Insert the given value into the array at the given position.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param index the position to insert the value at.
- * @param value the value to insert.
- */
-DISABLE_HD_WARNING
-template< typename T >
-LVARRAY_HOST_DEVICE inline
-void insert( T * const LVARRAY_RESTRICT ptr,
-             std::ptrdiff_t const size,
-             std::ptrdiff_t const index,
-             T && value )
-{
-  LVARRAY_ASSERT( ptr != nullptr );
-  LVARRAY_ASSERT( isPositive( size ) );
-  ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index );
-
-  shiftUp( ptr, size, index, std::ptrdiff_t( 1 ) );
-  new ( ptr + index ) T( std::move( value ) );
-}
-
-/**
- * @tparam T the storage type of the array.
  * @brief Insert the given values into the array at the given position.
- * @param ptr pointer to the array.
- * @param size the size of the array.
- * @param index the position to insert the value at.
- * @param values the values to insert.
- * @param n the number of values to insert.
+ * @tparam T The storage type of the array.
+ * @tparam ITERATOR An iterator type, the type of @p first.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
+ * @param index The position to insert the value at.
+ * @param first Iterator to the first value to insert.
+ * @param n The number of values to insert.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename T, typename ITERATOR >
 LVARRAY_HOST_DEVICE inline
 void insert( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const index,
-             T const * const LVARRAY_RESTRICT values,
+             ITERATOR first,
              std::ptrdiff_t const n )
 {
   LVARRAY_ASSERT( ptr != nullptr );
@@ -518,15 +453,16 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 
   for( std::ptrdiff_t i = 0; i < n; ++i )
   {
-    new ( ptr + index + i ) T( values[ i ] );
+    new ( ptr + index + i ) T( *first );
+    ++first;
   }
 }
 
 /**
  * @tparam T the storage type of the array.
  * @brief Destroy the value at the end of the array.
- * @param ptr pointer to the array.
- * @param size the size of the array.
+ * @param ptr Pointer to the array.
+ * @param size The size of the array.
  */
 DISABLE_HD_WARNING
 template< typename T >
