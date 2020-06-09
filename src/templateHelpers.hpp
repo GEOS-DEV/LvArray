@@ -15,9 +15,13 @@
  * Free Software Foundation) version 2.1 dated February 1999.
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-#ifndef TEMPLATEHELPERS_HPP_
-#define TEMPLATEHELPERS_HPP_
 
+#pragma once
+
+// Source includes
+#include <camp/camp.hpp>
+
+// System includes
 #include <initializer_list>
 #include <utility>
 
@@ -132,38 +136,24 @@ void forEachArg( F && f, ARG && arg, ARGS && ... args )
 }
 
 /**
- * @tparam FIRST The first argument.
- * @tparam REST A variadic pack of the remaining arguments.
- * @brief Evaluates to true iff all of the arguments are true.
+ * @brief A struct that contains a static constexpr bool value that is true if all of BOOLS are true.
+ * @tparam BOOLS A variadic pack of bool.
  */
-template< bool FIRST, bool ... REST >
-constexpr bool conjunction = FIRST && conjunction< REST ... >;
+template< bool ... BOOLS >
+using all_of = camp::concepts::metalib::all_of< BOOLS ... >;
 
 /**
- * @tparam FIRST The first argument.
- * @brief Evaluates to true iff the argument is true.
+ * @brief A struct that contains a static constexpr bool value that is true if all of TYPES::value are true.
+ * @tparam TYPES A variadic pack of types all of which define a static constexpr bool value.
  */
-template< bool FIRST >
-constexpr bool conjunction< FIRST > = FIRST;
-
-/**
- * @tparam ARGS A variadic pack of bools.
- * @struct Conjunction.
- * @brief A helper struct since host variables can't be accessed in device code.
- */
-template< bool ... ARGS >
-struct Conjunction
-{
-  /// Evaluates to true of all of ARGS are true.
-  static constexpr bool value = conjunction< ARGS ... >;
-};
+template< typename ... TYPES >
+using all_of_t = camp::concepts::metalib::all_of_t< TYPES ... >;
 
 /**
  * @tparam TEMPLATE The template to check if @p TYPE is an instantiation of.
  * @tparam TYPE The type to check.
  * @brief Trait to detect if @tparam TYPE is an instantiation of @tparam Tempate.
  * @details Usage: @code is_instantiaton_of< std::vector, std::vector< int > > @endcode.
- * @note Taken from https://cukic.co/2019/03/15/template-meta-functions-for-detecting-template-instantiation/
  */
 template< template< typename ... > class TEMPLATE,
           typename TYPE >
@@ -174,7 +164,6 @@ constexpr bool is_instantiation_of = false;
  * @tparam ARGS The variadic pack of argument types used to instantiate TEMPLATE.
  * @brief Trait to detect if @tparam TYPE is an instantiation of @tparam Tempate.
  * @details Usage: @code is_instantiaton_of< std::vector, std::vector< int > > @endcode.
- * @note Taken from https://cukic.co/2019/03/15/template-meta-functions-for-detecting-template-instantiation/
  * @note Specialization for the true case.
  */
 template< template< typename ... > class TEMPLATE,
@@ -293,18 +282,3 @@ struct GetViewTypeConst< T, true >
 };
 
 } // namespace LvArray
-
-namespace std
-{
-
-/// Implementation of std::is_same_v, replace when upgrading to C++17.
-template< typename T, typename U >
-constexpr bool is_same_v = std::is_same< T, U >::value;
-
-/// Implementation of std::is_base_of_v, replace when upgrading to C++17.
-template< class T, class U >
-constexpr bool is_base_of_v = std::is_base_of< T, U >::value;
-
-} // namespace std
-
-#endif // TEMPLATEHELPERS_HPP_

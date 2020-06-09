@@ -220,7 +220,7 @@ public:
   }
 
   ~ArrayOfR2TensorsRAJA()
-  { this->m_c.move( chai::CPU ); }
+  { this->m_c.move( MemorySpace::CPU ); }
 
   void fortranView() const
   {

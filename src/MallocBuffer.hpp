@@ -16,8 +16,7 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifndef MALLOC_BUFFER_HPP_
-#define MALLOC_BUFFER_HPP_
+#pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
@@ -55,7 +54,7 @@ public:
    * @note An uninitialized MallocBuffer is equivalent to an empty MallocBuffer and does
    *   not need to be free'd.
    */
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  LVARRAY_HOST_DEVICE inline constexpr
   MallocBuffer( bool=true ):
     m_data( nullptr ),
     m_capacity( 0 )
@@ -78,7 +77,7 @@ public:
    * @brief Move constructor, creates a shallow copy.
    * @param src The buffer to be moved from, is empty after the move.
    */
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  LVARRAY_HOST_DEVICE inline constexpr
   MallocBuffer( MallocBuffer && src ):
     m_data( src.m_data ),
     m_capacity( src.m_capacity )
@@ -92,7 +91,7 @@ public:
    * @param src The buffer to be copied.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  LVARRAY_HOST_DEVICE inline constexpr
   MallocBuffer & operator=( MallocBuffer const & src )
   {
     m_capacity = src.m_capacity;
@@ -105,7 +104,7 @@ public:
    * @param src The buffer to be moved from, is empty after the move.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  LVARRAY_HOST_DEVICE inline constexpr
   MallocBuffer & operator=( MallocBuffer && src )
   {
     m_capacity = src.m_capacity;
@@ -181,5 +180,3 @@ private:
 };
 
 } // namespace LvArray
-
-#endif // MALLOC_BUFFER_HPP_

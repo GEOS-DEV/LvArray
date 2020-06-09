@@ -96,7 +96,7 @@ template class ReduceRAJA< serialPolicy >;
 template class ReduceRAJA< parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 template class ReduceRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
 

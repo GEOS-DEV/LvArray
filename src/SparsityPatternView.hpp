@@ -20,11 +20,13 @@
  * @file SparsityPatternView.hpp
  */
 
-#ifndef SPARSITYPATTERNVIEW_HPP_
-#define SPARSITYPATTERNVIEW_HPP_
+#pragma once
 
-#include <limits>
+// Source includes
 #include "ArrayOfSetsView.hpp"
+
+// System includes
+#include <limits>
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
@@ -63,12 +65,14 @@ namespace LvArray
  * When COL_TYPE is const and INDEX_TYPE is const you cannot insert or remove from the View
  * and neither the offsets, sizes, or columns are copied between memory spaces.
  */
-template< class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
-class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE >
+template< typename COL_TYPE,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
 
   /// An alias for the parent class.
-  using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE >;
+  using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
   static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
@@ -81,7 +85,7 @@ public:
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   *   chai::ManagedArray copy constructor.
+   *   BUFFER_TYPE copy constructor.
    */
   inline
   SparsityPatternView( SparsityPatternView const & ) = default;
@@ -121,7 +125,7 @@ public:
    * @brief Steal the resources of @p src, clearing it in the process.
    * @param src The SparsityPatternView to steal from.
    */
-  void stealFrom( SparsityPatternView && src )
+  void assimilate( SparsityPatternView && src )
   { *this = std::move( src ); }
 
   /**
@@ -129,15 +133,17 @@ public:
    * @brief This is included for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >( *this ); }
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return Return the number of rows in the matrix.
@@ -328,7 +334,7 @@ public:
    * @param touch If true touch the values, sizes and offsets in the new space.
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 protected:
@@ -349,7 +355,10 @@ protected:
    * @param buffers A variadic pack of buffers to resize along with the columns.
    */
   template< class ... BUFFERS >
-  void resize( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, BUFFERS & ... buffers )
+  void resize( INDEX_TYPE const nrows,
+               INDEX_TYPE const ncols,
+               INDEX_TYPE_NC initialRowCapacity,
+               BUFFERS & ... buffers )
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
@@ -369,6 +378,4 @@ protected:
   INDEX_TYPE_NC m_numCols;
 };
 
-} /* namespace LvArray */
-
-#endif /* SPARSITYPATTERNVIEW_HPP_ */
+} // namespace LvArray

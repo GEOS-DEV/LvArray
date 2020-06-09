@@ -149,6 +149,7 @@ std::string stackTrace( )
   return ( oss.str() );
 }
 
+/// @return Return a string representing the current floating point exception.
 std::string getFpeDetails()
 {
   std::ostringstream oss;

@@ -20,13 +20,11 @@
  * @file arrayHelpers.hpp
  */
 
-#ifndef SRC_SRC_ARRAY_HELPERS_HPP_
-#define SRC_SRC_ARRAY_HELPERS_HPP_
+#pragma once
 
 // Source includes
 #include "Macros.hpp"
 #include "Permutation.hpp"
-#include "NewChaiBuffer.hpp"
 #include "templateHelpers.hpp"
 #include "IntegerConversion.hpp"
 
@@ -81,7 +79,7 @@ struct ConditionalMultiply< true >
  * @param values A pointer to the values to multiply together.
  */
 template< int SIZE, typename T >
-LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+LVARRAY_HOST_DEVICE inline constexpr
 std::enable_if_t< (SIZE == 1), T >
 multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ]; }
@@ -93,7 +91,7 @@ multiplyAll( T const * const LVARRAY_RESTRICT values )
  * @param values A pointer to the values to multiply together.
  */
 template< int SIZE, typename T >
-LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+LVARRAY_HOST_DEVICE inline constexpr
 std::enable_if_t< (SIZE > 1), T >
 multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ] * multiplyAll< SIZE - 1 >( values + 1 ); }
@@ -109,7 +107,7 @@ multiplyAll( T const * const LVARRAY_RESTRICT values )
  * @return The product of index with strides[ 0 ].
  */
 template< int USD, typename INDEX_TYPE, typename INDEX >
-LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
 { return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ); }
 
@@ -126,7 +124,7 @@ INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, IN
  * @return The dot product of @p strides with ( @p index, @p indices ... ).
  */
 template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
-LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
   return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ) +
@@ -216,5 +214,3 @@ void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
 } /* namespace LvArray */
-
-#endif // SRC_SRC_ARRAY_HELPERS_HPP_

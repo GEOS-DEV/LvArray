@@ -30,6 +30,7 @@
 #include "arrayHelpers.hpp"
 #include "IntegerConversion.hpp"
 #include "sliceHelpers.hpp"
+#include "bufferManipulation.hpp"
 
 /// System includes
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -72,9 +73,9 @@ namespace LvArray
  */
 template< typename T,
           int NDIM,
-          int USD=NDIM-1,
-          typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class BUFFER_TYPE=NewChaiBuffer >
+          int USD,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
 class ArrayView
 {
 public:
@@ -92,6 +93,12 @@ public:
   /// const.
   using ViewTypeConst = ArrayView< typename GetViewTypeConst< T >::type const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
 
+  /// The type of the ArrayView when converted to an ArraySlice.
+  using SliceType = ArraySlice< T, NDIM, USD, INDEX_TYPE > const;
+
+  /// The type of the ArrayView when converted to an immutable ArraySlice.
+  using SliceTypeConst = ArraySlice< T const, NDIM, USD, INDEX_TYPE > const;
+
   /// The type of the value in the ArraySlice.
   using value_type = T;
 
@@ -100,12 +107,6 @@ public:
 
   /// The type of the const iterator used.
   using const_iterator = T const *;
-
-  /// The pointer type.
-  using pointer = T *;
-
-  /// The const_pointer type.
-  using const_pointer = T const *;
 
   /**
    * @brief A constructor to create an uninitialized ArrayView.
@@ -116,11 +117,11 @@ public:
   /**
    * @brief Copy Constructor.
    * @param source The object to copy.
-   * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE. When using
-   *   the NewChaiBuffer this can move the underlying buffer to a new memory space if the execution context
-   *   is set.
+   * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE. When using the
+   *   NewChaiBuffer this can move the underlying buffer to a new memory space if the execution context is set.
    * @return *this
    */
+  DISABLE_HD_WARNING
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView const & source ) noexcept:
     m_dims{ 0 },
@@ -137,8 +138,20 @@ public:
 
   /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
-   * @param source object to move
-   * @return *this
+   * @param source object to move.
+   * @return *this.
+   * @note Since this invalidates the source this should not be used when @p source is
+   *   the parent of an Array. Do not do this:
+   * @code
+   * Array< int, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array( 10 );
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view = std::move( array.toView() );
+   * @endcode
+   *   However this is ok:
+   * @code
+   * Array< int, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array( 10 );
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view = array.toView();
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > anotherView = std::move( view );
+   * @endcode
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView && source ):
@@ -155,6 +168,42 @@ public:
       source.m_dims[ i ] = 0;
       source.m_strides[ i ] = 0;
     }
+  }
+
+  /**
+   * @brief Move assignment operator, creates a shallow copy and invalidates the source.
+   * @param rhs The object to copy.
+   * @return *this.
+   * @note Since this invalidates the source this should not be used when @p rhs is
+   *   the parent of an Array. Do not do this:
+   * @code
+   * Array< int, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array( 10 );
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view;
+   * view = std::move( array.toView() );
+   * @endcode
+   *   However this is ok:
+   * @code
+   * Array< int, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array( 10 );
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view = array.toView();
+   * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > anotherView;
+   * anotherView = std::move( view );
+   * @endcode
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView & operator=( ArrayView && rhs )
+  {
+    m_dataBuffer = std::move( rhs.m_dataBuffer );
+    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
+    for( int i = 0; i < NDIM; ++i )
+    {
+      m_dims[ i ] = rhs.m_dims[ i ];
+      m_strides[ i ] = rhs.m_strides[ i ];
+
+      rhs.m_dims[ i ] = 0;
+      rhs.m_strides[ i ] = 0;
+    }
+
+    return *this;
   }
 
   /**
@@ -177,34 +226,13 @@ public:
   }
 
   /**
-   * @brief Move assignment operator, creates a shallow copy and invalidates the source.
-   * @param rhs The object to copy.
-   * @return *this
-   */
-  inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView & operator=( ArrayView && rhs )
-  {
-    m_dataBuffer = std::move( rhs.m_dataBuffer );
-    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
-    for( int i = 0; i < NDIM; ++i )
-    {
-      m_dims[ i ] = rhs.m_dims[ i ];
-      m_strides[ i ] = rhs.m_strides[ i ];
-    }
-
-    return *this;
-  }
-
-  /**
    * @brief Set all values of array to rhs.
    * @param rhs The value that array will be set to.
    * @return *this.
    */
   DISABLE_HD_WARNING
-  template< typename U = T >
   inline LVARRAY_HOST_DEVICE constexpr
-  std::enable_if_t< !(std::is_const< U >::value), ArrayView const & >
-  operator=( T const & rhs ) const noexcept
+  ArrayView const & operator=( T const & rhs ) const noexcept
   {
     INDEX_TYPE const length = size();
     T * const data_ptr = data();
@@ -272,16 +300,6 @@ public:
   { return toSliceConst(); }
 
   /**
-   * @brief @return A a raw pointer.
-   * @note This method is only active when NDIM == 1 and USD == 0.
-   */
-  template< int _NDIM=NDIM, int _USD=USD >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
-    () const noexcept LVARRAY_RESTRICT_THIS
-  { return data(); }
-
-  /**
    * @brief @return Return the allocated size.
    */
   LVARRAY_HOST_DEVICE inline
@@ -312,14 +330,14 @@ public:
    * @brief @return Return an iterator to the begining of the data.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  iterator begin() const
+  T * begin() const
   { return data(); }
 
   /**
    * @brief @return Return an iterator to the end of the data.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  iterator end() const
+  T * end() const
   { return data() + size(); }
 
   /**
@@ -388,7 +406,7 @@ public:
    */
   template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE linearIndex( INDICES... indices ) const
+  INDEX_TYPE linearIndex( INDICES const ... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef USE_ARRAY_BOUNDS_CHECK
@@ -407,43 +425,6 @@ public:
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
   { return m_dataBuffer.data(); }
-
-  /**
-   * @brief Copy the values from one slice in this array to another.
-   * @param destIndex The index of the slice to copy data into.
-   * @param sourceIndex The index of the slice to copy data from.
-   */
-  void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
-  {
-    forValuesInSliceWithIndices( (*this)[ sourceIndex ],
-                                 [destIndex, this]( T const & sourceVal, auto const ... indices )
-    {
-      (*this)( destIndex, indices ... ) = sourceVal;
-    } );
-  }
-
-  /**
-   * @brief function to copy values of another array to a location in this array
-   * @param destIndex the index where the source data is to be inserted
-   * @param source the source of the data
-   *
-   * This function will copy the data from source, to a location in *this. It is intended to allow
-   * for collection of multiple data arrays into a single array. All dims should be the same except
-   * for m_singleParameterResizeIndex;
-   */
-  void copy( INDEX_TYPE const destIndex, ViewTypeConst const & source )
-  {
-    INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
-
-    LVARRAY_ERROR_IF( source.size() > this->size() - offset,
-                      "Insufficient storage space to copy source (size="<<source.size()<<
-                      ") into current array at specified offset ("<<offset<<")."<<
-                      " Available space is equal to this->size() - offset = "<<this->size() - offset );
-    for( INDEX_TYPE i=0; i<source.size(); ++i )
-    {
-      data()[offset+i] = source.data()[i];
-    }
-  }
 
   /**
    * @brief @return A pointer to the array containing the size of each dimension.
@@ -465,7 +446,7 @@ public:
    * @param touch whether the Array should be touched in the new space or not.
    * @note Not all Buffers support memory movement.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { m_dataBuffer.move( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)

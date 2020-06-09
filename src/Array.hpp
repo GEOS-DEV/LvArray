@@ -29,14 +29,6 @@
 #include "bufferManipulation.hpp"
 #include "StackBuffer.hpp"
 
-// TPL includes
-#include <RAJA/RAJA.hpp>
-
-// System includes
-#include <iostream>
-#include <limits>
-
-
 namespace LvArray
 {
 
@@ -65,9 +57,9 @@ namespace LvArray
  */
 template< typename T,
           int NDIM,
-          typename PERMUTATION=camp::make_idx_seq_t< NDIM >,
-          typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class BUFFER_TYPE=NewChaiBuffer >
+          typename PERMUTATION,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
 class Array : public ArrayView< T,
                      NDIM,
   getStrideOneDimension( PERMUTATION {} ),
@@ -78,26 +70,29 @@ public:
 
   // Check that the template arguments are valid.
   static_assert( NDIM >= 0, "The dimension of the Array must be positive." );
-  static_assert( getDimension( PERMUTATION {} ) == NDIM, "The dimension of the permutation must match the dimension of the Array." );
   static_assert( isValidPermutation( PERMUTATION {} ), "The permutation must be valid." );
+  static_assert( getDimension( PERMUTATION {} ) == NDIM, "The dimension of the permutation must match the dimension of the Array." );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
 
   /// The dimensionality of the array.
   static constexpr int ndim = NDIM;
 
+  /// The permutation of the array.
+  using permutation = PERMUTATION;
+
   /// The dimension with unit stride.
   static constexpr int USD = getStrideOneDimension( PERMUTATION {} );
 
   /// Alias for the parent class.
-  using ParentType = ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
+  using ParentClass = ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
 
   // Aliasing public methods of ArrayView so we don't have to use this->size etc.
-  using ParentType::toSlice;
-  using ParentType::size;
-  using ParentType::empty;
-  using ParentType::data;
-  using ParentType::operator[];
-  using ParentType::operator();
+  using ParentClass::toSlice;
+  using ParentClass::size;
+  using ParentClass::empty;
+  using ParentClass::data;
+  using ParentClass::operator[];
+  using ParentClass::operator();
 
   /// The type when all nested arrays are converted to const views to mutable values.
   using ViewType = ArrayView< typename GetViewType< T >::type, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
@@ -110,7 +105,7 @@ public:
    */
   LVARRAY_HOST_DEVICE
   inline Array():
-    ParentType( true )
+    ParentClass( true )
   {
     CalculateStrides();
 #if !defined(__CUDA_ARCH__)
@@ -125,16 +120,13 @@ public:
    * @brief Constructor that takes in the dimensions as a variadic parameter list
    * @param dims the dimensions of the array in form ( n0, n1,..., n(NDIM-1) )
    */
-  template< typename ... DIMS >
+  template< typename ... DIMS,
+            typename=std::enable_if_t< sizeof ... ( DIMS ) == NDIM &&
+                                       all_of_t< std::is_integral< DIMS > ... >::value > >
   LVARRAY_HOST_DEVICE
-  inline explicit Array( DIMS... dims ):
+  inline explicit Array( DIMS const ... dims ):
     Array()
-  {
-    static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE needs to be integral." );
-    static_assert( sizeof ... (DIMS) == NDIM, "Calling Array::Array with incorrect number of arguments." );
-
-    resize( dims ... );
-  }
+  { resize( dims ... ); }
 
   /**
    * @brief Copy constructor.
@@ -164,7 +156,7 @@ public:
   {
   #if !defined(__CUDA_ARCH__)
     if( !std::is_trivially_destructible< T >::value )
-    { this->move( chai::CPU ); }
+    { this->move( MemorySpace::CPU ); }
   #endif
 
     bufferManipulation::free( m_dataBuffer, size() );
@@ -185,7 +177,7 @@ public:
   { return reinterpret_cast< ViewTypeConst & >( *this ); }
 
   /**
-   * @brief Assignment operator, performs a deep copy of rhs.
+   * @brief Copy assignment operator, performs a deep copy of rhs.
    * @param rhs Source for the assignment.
    * @return *this.
    */
@@ -205,17 +197,25 @@ public:
   }
 
   /**
+   * @brief Move assignment operator, performs a shallow copy of rhs.
+   * @param rhs Source for the assignment.
+   * @return *this.
+   */
+  LVARRAY_HOST_DEVICE
+  Array & operator=( Array && rhs )
+  {
+    ParentClass::operator=( std::move( rhs ) );
+    return *this;
+  }
+
+  /**
    * @brief Assignment operator to assign the entire array to single value.
    * @param rhs value to set array.
    * @return *this.
    */
   Array & operator=( T const & rhs )
   {
-    INDEX_TYPE const length = size();
-    for( INDEX_TYPE a = 0; a < length; ++a )
-    {
-      this->data()[a] = rhs;
-    }
+    ParentClass::operator=( rhs );
     return *this;
   }
 
@@ -223,8 +223,7 @@ public:
    * @brief Resize the dimensions of the Array to match the given dimensions.
    * @param numDims must equal NDIMS.
    * @param dims the new size of the dimensions, must be of length NDIM.
-   * @note This does not preserve the values in the Array unless the default permutation
-   *   is used.
+   * @note This does not preserve the values in the Array NDIM == 1.
    */
   template< typename DIMS_TYPE >
   LVARRAY_HOST_DEVICE
@@ -236,6 +235,7 @@ public:
     for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = LvArray::integerConversion< INDEX_TYPE >( dims[ i ] );
+      LVARRAY_ERROR_IF_LT( m_dims[ i ], 0 );
     }
 
     CalculateStrides();
@@ -244,27 +244,16 @@ public:
   }
 
   /**
-   * @brief Resize the dimensions of the Array to match the given dimensions.
-   * @param numDims must equal NDIMS.
-   * @param dims the new size of the dimensions, must be of length NDIM.
-   * @note This does not preserve the values in the Array unless the default permutation is used.
-   * @note this is required due to an issue where some compilers may prefer the full variadic
-   *       parameter pack template<typename ... DIMS> resize( DIMS... newDims )
-   */
-  template< typename DIMS_TYPE >
-  LVARRAY_HOST_DEVICE
-  void resize( int const numDims, DIMS_TYPE * const dims )
-  { resize( numDims, const_cast< DIMS_TYPE const * >(dims) ); }
-
-  /**
    * @brief function to resize the array.
    * @tparam DIMS Variadic list of integral types.
    * @param newDims The new dimensions, must be of length NDIM.
-   * @note This does not preserve the values in the Array unless the default permutation is used.
+   * @note This does not preserve the values in the Array unless NDIM == 1.
+   * @return void.
    */
   template< typename ... DIMS >
   LVARRAY_HOST_DEVICE
-  void resize( DIMS... newDims )
+  std::enable_if_t< sizeof ... ( DIMS ) == NDIM && all_of_t< std::is_integral< DIMS > ... >::value >
+  resize( DIMS... newDims )
   {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
     INDEX_TYPE const oldSize = size();
@@ -273,6 +262,7 @@ public:
     forEachArg( [&curDim, dims=m_dims]( auto const newDim )
     {
       dims[ curDim++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      LVARRAY_ERROR_IF_LT( dims[ curDim ], 0 );
     }, newDims ... );
 
     CalculateStrides();
@@ -282,22 +272,25 @@ public:
 
   /**
    * @brief Resize the array without initializing any new values or destroying any old values.
-   *        Only safe on POD data, however it is much faster for large allocations.
+   *   Only safe on POD data, however it is much faster for large allocations.
    * @tparam DIMS Variadic list of integral types.
    * @param newDims The new dimensions, must be of length NDIM.
-   * @note This does not preserve the values in the Array unless the default permutation is used.
+   * @note This does not preserve the values in the Array unless NDIM == 1.
    */
   template< typename ... DIMS >
   LVARRAY_HOST_DEVICE
   void resizeWithoutInitializationOrDestruction( DIMS const ... newDims )
   {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
+    static_assert( std::is_trivially_destructible< T >::value, "This function is only safe if T is trivially destructable." );
+
     INDEX_TYPE const oldSize = size();
 
     int i = 0;
     forEachArg( [&i, dims=m_dims]( auto const newDim )
     {
       dims[ i++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      LVARRAY_ERROR_IF_LT( dims[ i ], 0 );
     }, newDims ... );
 
     CalculateStrides();
@@ -307,11 +300,11 @@ public:
 
   /**
    * @brief Resize specific dimensions of the array.
-   * @tparam INDICES the indices of the dimensions to resize.
+   * @tparam INDICES the indices of the dimensions to resize, should be sorted an unique.
    * @tparam DIMS variadic pack containing the dimension types
    * @param newDims the new dimensions. newDims[ 0 ] will be the new size of
    *        dimensions INDICES[ 0 ].
-   * @note This does not preserve the values in the Array.
+   * @note This does not preserve the values in the Array unless NDIM == 1.
    */
   template< INDEX_TYPE... INDICES, typename ... DIMS >
   LVARRAY_HOST_DEVICE
@@ -319,14 +312,15 @@ public:
   {
     static_assert( sizeof ... (INDICES) <= NDIM, "Too many arguments provided." );
     static_assert( sizeof ... (INDICES) == sizeof ... (DIMS), "The number of indices must match the number of dimensions." );
-    static_assert( Conjunction< ( 0 <= INDICES ) ... >::value, "INDICES must all be positive." );
-    static_assert( Conjunction< ( INDICES < NDIM ) ... >::value, "INDICES must all be less than NDIM." );
+    static_assert( all_of< ( 0 <= INDICES ) ... >::value, "INDICES must all be positive." );
+    static_assert( all_of< ( INDICES < NDIM ) ... >::value, "INDICES must all be less than NDIM." );
 
     INDEX_TYPE const oldSize = size();
 
     forEachArg( [&]( auto const & pair )
     {
       m_dims[ camp::get< 0 >( pair ) ] = LvArray::integerConversion< INDEX_TYPE >( camp::get< 1 >( pair ) );
+      LVARRAY_ERROR_IF_LT( m_dims[ camp::get< 0 >( pair ) ], 0 );
     }, camp::make_tuple( INDICES, newDims )... );
 
     CalculateStrides();
@@ -385,91 +379,61 @@ public:
   }
 
   /**
-   * @brief Append a value to the end of the array.
-   * @param value the value to append via a copy.
+   * @brief Construct a value in place at the end of the array.
+   * @tparam ARGS A variadic pack of the types to construct the new value from.
+   * @param args A variadic pack of values to construct the new value from.
    * @note This method is only available on 1D arrays.
    * @return void.
    */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  push_back( T const & value )
+  template< typename ... ARGS, int _NDIM=NDIM >
+  std::enable_if_t< _NDIM == 1 >
+  emplace_back( ARGS && ... args )
   {
-    bufferManipulation::pushBack( m_dataBuffer, size(), value );
+    bufferManipulation::emplaceBack( m_dataBuffer, size(), std::forward< ARGS >( args ) ... );
     ++m_dims[ 0 ];
   }
 
   /**
-   * @brief Append a value to the end of the array.
-   * @param value the value to append via a move.
+   * @brief Insert a value into the array constructing it in place.
+   * @tparam ARGS A variadic pack of the types to construct the new value from.
+   * @param pos the position to insert at.
+   * @param args A variadic pack of values to construct the new value from.
    * @note This method is only available on 1D arrays.
    * @return void.
-   *
    */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  push_back( T && value )
+  template< typename ... ARGS, int _NDIM=NDIM >
+  std::enable_if_t< _NDIM == 1 >
+  emplace( INDEX_TYPE const pos, ARGS && ... args )
   {
-    bufferManipulation::pushBack( m_dataBuffer, size(), std::move( value ) );
+    bufferManipulation::emplace( m_dataBuffer, size(), pos, std::forward< ARGS >( args ) ... );
     ++m_dims[ 0 ];
   }
+
+  /**
+   * @brief Insert values into the array at the given position.
+   * @tparam ITER An iterator type, they type of @p first and @p last.
+   * @param pos The position to insert at.
+   * @param first An iterator to the first value to insert.
+   * @param last An iterator to the last value to insert.
+   * @note This method is only available on 1D arrays.
+   * @return None.
+   */
+  template< typename ITER, int _NDIM=NDIM >
+  std::enable_if_t< _NDIM == 1 >
+  insert( INDEX_TYPE const pos, ITER const first, ITER const last )
+  { m_dims[ 0 ] += bufferManipulation::insert( m_dataBuffer, size(), pos, first, last ); }
 
   /**
    * @brief Remove the last value in the array.
    * @note This method is only available on 1D arrays.
    * @return void.
    */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
+  template< int _NDIM=NDIM >
+  std::enable_if_t< _NDIM == 1 >
   pop_back()
   {
     bufferManipulation::popBack( m_dataBuffer, size() );
     --m_dims[ 0 ];
-  }
-
-  /**
-   * @brief Insert a value into the array at the given position.
-   * @param pos the position to insert at.
-   * @param value the value to insert via a copy.
-   * @note This method is only available on 1D arrays.
-   * @return void.
-   */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE const pos, T const & value )
-  {
-    bufferManipulation::insert( m_dataBuffer, size(), pos, value );
-    ++m_dims[ 0 ];
-  }
-
-  /**
-   * @brief Insert a value into the array at the given position.
-   * @param pos the position to insert at.
-   * @param value the value to insert via a move.
-   * @note This method is only available on 1D arrays.
-   * @return void.
-   */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE const pos, T && value )
-  {
-    bufferManipulation::insert( m_dataBuffer, size(), pos, std::move( value ) );
-    ++m_dims[ 0 ];
-  }
-
-  /**
-   * @brief Insert values into the array at the given position.
-   * @param pos the position to insert at.
-   * @param values a pointer to the values to insert via copies.
-   * @param n the number of values to insert.
-   * @note This method is only available on 1D arrays.
-   * @return void.
-   */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  insert( INDEX_TYPE const pos, T const * const values, INDEX_TYPE const n )
-  {
-    bufferManipulation::insert( m_dataBuffer, size(), pos, values, n );
-    m_dims[ 0 ] += n;
   }
 
   /**
@@ -478,9 +442,9 @@ public:
    * @note This method is only available on 1D arrays.
    * @return void.
    */
-  template< int N=NDIM >
-  std::enable_if_t< N == 1 >
-  erase( INDEX_TYPE pos )
+  template< int _NDIM=NDIM >
+  std::enable_if_t< _NDIM == 1 >
+  erase( INDEX_TYPE const pos )
   {
     bufferManipulation::erase( m_dataBuffer, size(), pos );
     --m_dims[ 0 ];
@@ -520,17 +484,17 @@ public:
    */
   static int TV_ttf_display_type( Array const * av )
   {
-    return ParentType::TV_ttf_display_type( av );
+    return ParentClass::TV_ttf_display_type( av );
   }
 #endif
 
 private:
 
   // Aliasing the protected members of ArrayView.
-  using ParentType::m_dataBuffer;
-  using ParentType::m_dims;
-  using ParentType::m_strides;
-  using ParentType::m_singleParameterResizeIndex;
+  using ParentClass::m_dataBuffer;
+  using ParentClass::m_dims;
+  using ParentClass::m_strides;
+  using ParentClass::m_singleParameterResizeIndex;
 
   /**
    * @brief Calculate the strides given the dimensions and permutation.
@@ -539,7 +503,7 @@ private:
   LVARRAY_HOST_DEVICE
   void CalculateStrides()
   {
-    constexpr CArray< camp::idx_t, NDIM > permutation = asArray( PERMUTATION {} );
+    constexpr CArray< camp::idx_t, NDIM > perm = asArray( PERMUTATION {} );
     INDEX_TYPE foldedStrides[ NDIM ];
 
     for( int i = 0; i < NDIM; ++i )
@@ -547,13 +511,13 @@ private:
       foldedStrides[ i ] = 1;
       for( int j = i + 1; j < NDIM; ++j )
       {
-        foldedStrides[ i ] *= m_dims[ permutation[ j ] ];
+        foldedStrides[ i ] *= m_dims[ perm[ j ] ];
       }
     }
 
     for( int i = 0; i < NDIM; ++i )
     {
-      m_strides[ permutation[ i ] ] = foldedStrides[ i ];
+      m_strides[ perm[ i ] ] = foldedStrides[ i ];
     }
   }
 
@@ -561,7 +525,7 @@ private:
    * @brief Resize the default dimension of the Array.
    * @tparam ARGS variadic pack containing the types to initialize the new values with.
    * @param newDimLength the new size of the default dimension.
-   * @param ARGS arguments to initialize the new values with.
+   * @param args arguments to initialize the new values with.
    * @note This preserves the values in the Array.
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
@@ -570,6 +534,19 @@ private:
   LVARRAY_HOST_DEVICE
   void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS && ... args )
   {
+    LVARRAY_ERROR_IF_LT( newDimLength, 0 );
+
+    // If m_singleParameterResizeIndex is the first dimension in memory than a simple 1D resizing is sufficient. The
+    // check if NDIM == 1 is to give the compiler compile time knowledge that this path is always taken for 1D arrays.
+    if( NDIM == 1 || asArray( PERMUTATION {} )[ 0 ] == m_singleParameterResizeIndex )
+    {
+      INDEX_TYPE const oldSize = size();
+      m_dims[ m_singleParameterResizeIndex ] = newDimLength;
+      CalculateStrides();
+      bufferManipulation::resize( m_dataBuffer, oldSize, size(), std::forward< ARGS >( args )... );
+      return;
+    }
+
     // Get the current length and stride of the dimension as well as the size of the whole Array.
     INDEX_TYPE const curDimLength = m_dims[ m_singleParameterResizeIndex ];
     INDEX_TYPE const curDimStride = m_strides[ m_singleParameterResizeIndex ];
@@ -609,7 +586,7 @@ private:
         T * const startOfNewValues = startOfShift + valuesToShiftPerIteration + valuesLeftToInsert;
         for( INDEX_TYPE j = 0; j < valuesToAddPerIteration; ++j )
         {
-          new ( startOfNewValues + j ) T( std::forward< ARGS >( args )... );
+          new ( startOfNewValues + j ) T( args ... );
         }
       }
     }
@@ -640,7 +617,6 @@ private:
       }
     }
   }
-
 };
 
 /**
@@ -651,24 +627,32 @@ constexpr bool isArray = false;
 
 /**
  * @tparam T The type contained in the Array.
- * @tparam NDIM The number of dimensions of the Array.
+ * @tparam NDIM The number of dimensions in the Array.
  * @tparam PERMUTATION The way that the data is layed out in memory.
  * @tparam INDEX_TYPE The integral type used as in index.
- * @tparam DATA_VECTOR_TYPE The type used to manage the underlying allocation.
+ * @tparam BUFFER_TYPE The type used to manage the underlying allocation.
  * @brief Specialization of isArray for the Array class.
  */
 template< typename T,
           int NDIM,
           typename PERMUTATION,
           typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
+          template< typename > class BUFFER_TYPE >
+constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 namespace internal
 {
 
 // Since Array expects the BUFFER to only except a single template parameter we need to
 // create an alias for a StackBuffer with a given length.
+/**
+ * @struct StackArrayHelper
+ * @tparam T The type stored in the Array.
+ * @tparam NDIM The number of dimensions in the Array.
+ * @tparam PERMUTATION The dimension and permutation of the Array.
+ * @tparam INDEX_TYPE The integer used to index the Array.
+ * @tparam LENGTH The capacity of the underlying StackBuffer.
+ */
 template< typename T,
           int NDIM,
           typename PERMUTATION,
@@ -676,9 +660,14 @@ template< typename T,
           int LENGTH >
 struct StackArrayHelper
 {
+  /**
+   * @brief An alias for a StackBuffer with the given length.
+   * @tparam U The type contained in the StackBuffer.
+   */
   template< typename U >
   using BufferType = StackBuffer< U, LENGTH >;
 
+  /// An alias for the Array type.
   using type = Array< T, NDIM, PERMUTATION, INDEX_TYPE, BufferType >;
 };
 

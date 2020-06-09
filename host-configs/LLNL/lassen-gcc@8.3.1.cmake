@@ -3,14 +3,15 @@ set(CONFIG_NAME "lassen-gcc@8.3.1" CACHE PATH "")
 # Set up the tpls
 # These were probably built with clang (no guarantee that they would work)
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-06-16/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-06-17/install-${CONFIG_NAME}-release CACHE PATH "")
+
+set(ENABLE_UMPIRE ON CACHE BOOL "")
+set(ENABLE_CHAI ON CACHE BOOL "")
 
 set(CMAKE_C_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gcc CACHE PATH "")
 set(CMAKE_CXX_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/g++ CACHE PATH "")
 set(CMAKE_Fortran_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gfortran CACHE PATH "")
 
-# These flags should be set for the TPL build but they break some of our numerically sensitive code.
-# This needs to be fixed.
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")
 set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRING "")

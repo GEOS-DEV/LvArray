@@ -124,7 +124,7 @@ template class InnerProductRAJA< serialPolicy >;
 template class InnerProductRAJA< parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 template class InnerProductRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
 

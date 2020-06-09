@@ -34,14 +34,19 @@ namespace LvArray
  * @tparam COL_TYPE the integer used to enumerate the columns.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template< class COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
-class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
+template< typename COL_TYPE,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
 
   /// An alias for the parent class.
-  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
+  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
+
+  /// An alias for the column type.
+  using column_type = COL_TYPE;
 
   // Aliasing public methods of SparsityPatternView.
   using ParentClass::numRows;
@@ -66,7 +71,7 @@ public:
   SparsityPattern( INDEX_TYPE const nrows=0,
                    INDEX_TYPE const ncols=0,
                    INDEX_TYPE initialRowCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >()
+    ParentClass()
   {
     resize( nrows, ncols, initialRowCapacity );
     setName( "" );
@@ -78,7 +83,7 @@ public:
    */
   inline
   SparsityPattern( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS:
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >()
+    ParentClass()
   { *this = src; }
 
   /**
@@ -129,15 +134,17 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const > const & >( *this ); }
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
   /**
@@ -238,8 +245,8 @@ public:
   void appendRow( INDEX_TYPE const nzCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
     ++m_numArrays;
 
     setRowCapacity( m_numArrays - 1, nzCapacity );
@@ -283,7 +290,7 @@ public:
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    * @note Duplicated for SFINAE needs.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 private:
@@ -313,7 +320,7 @@ public:
      * @param row the row in the SparsityPattern this CallBacks is associated with.
      */
     inline
-    CallBacks( SparsityPattern< COL_TYPE, INDEX_TYPE > & sp, INDEX_TYPE const row ):
+    CallBacks( SparsityPattern & sp, INDEX_TYPE const row ):
       m_sp( sp ),
       m_row( row )
     {}
@@ -326,9 +333,9 @@ public:
      * @return a pointer to the columns of the associated row.
      */
     inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
-                              INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
+      LVARRAY_UNUSED_VARIABLE( curPtr );
       INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;
       if( newNNZ > m_sp.nonZeroCapacity( m_row ) )
       {
@@ -339,7 +346,10 @@ public:
     }
 
 private:
-    SparsityPattern< COL_TYPE, INDEX_TYPE > & m_sp;
+    /// The SparsityPattern the call back is associated with.
+    SparsityPattern & m_sp;
+
+    /// The row the call back is associated with.
     INDEX_TYPE const m_row;
   };
 

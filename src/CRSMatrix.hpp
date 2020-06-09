@@ -29,7 +29,7 @@
 namespace LvArray
 {
 
-template< typename COL_TYPE, typename INDEX_TYPE >
+template< typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 class SparsityPattern;
 
 /**
@@ -39,14 +39,20 @@ class SparsityPattern;
  * @class CRSMatrix
  * @brief This class implements a compressed row storage matrix.
  */
-template< typename T, typename COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
-class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE >
+template< typename T,
+          typename COL_TYPE,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
 
   /// An alias for the parent class.
-  using ParentClass = CRSMatrixView< T, COL_TYPE, INDEX_TYPE >;
+  using ParentClass = CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
+
+  /// An alias for the type of the entries in the matrix.
+  using value_type = T;
 
   // Aliasing public methods of CRSMatrixView.
   using ParentClass::numRows;
@@ -110,13 +116,12 @@ public:
   CRSMatrix & operator=( CRSMatrix const & src ) LVARRAY_RESTRICT_THIS
   {
     m_numCols = src.m_numCols;
-    internal::PairOfBuffers< T > entriesPair( m_entries, src.m_entries );
     ParentClass::setEqualTo( src.m_numArrays,
                              src.m_offsets[ src.m_numArrays ],
                              src.m_offsets,
                              src.m_sizes,
                              src.m_values,
-                             entriesPair );
+                             typename ParentClass::template PairOfBuffers< T >( m_entries, src.m_entries ) );
     return *this;
   }
 
@@ -138,7 +143,7 @@ public:
    * @param src the SparsityPattern to convert.
    */
   inline
-  void stealFrom( SparsityPattern< COL_TYPE, INDEX_TYPE > && src )
+  void assimilate( SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && src )
   {
     // Destroy the current entries.
     for( INDEX_TYPE row = 0; row < numRows(); ++row )
@@ -151,7 +156,7 @@ public:
     // Reallocate to the appropriate length
     bufferManipulation::reserve( m_entries, 0, src.nonZeroCapacity() );
 
-    ParentClass::stealFrom( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE > && >( src ) );
+    ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
     for( INDEX_TYPE row = 0; row < numRows(); ++row )
     {
@@ -169,15 +174,17 @@ public:
    * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
    */
   constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >( *this ); }
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConstSizes() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConstSizes(); }
 
   /**
@@ -185,7 +192,8 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
   /**
@@ -193,7 +201,8 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toSparsityPatternView() const
   { return ParentClass::toSparsityPatternView(); }
 
   /**
@@ -202,9 +211,7 @@ public:
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
-  {
-    SparsityPatternView< COL_TYPE, INDEX_TYPE >::reserveValues( nnz, m_entries );
-  }
+  { ParentClass::reserveValues( nnz, m_entries ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row.
@@ -300,7 +307,7 @@ public:
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    * @note Duplicated for SFINAE needs.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { ParentClass::move( space, touch ); }
 
 private:
@@ -329,7 +336,7 @@ public:
      * @param row the row this CallBacks is associated with.
      * @param entriesToInsert pointer to the entries to insert.
      */
-    CallBacks( CRSMatrix< T, COL_TYPE, INDEX_TYPE > & crsM,
+    CallBacks( CRSMatrix & crsM,
                INDEX_TYPE const row, T const * const entriesToInsert ):
       m_crsM( crsM ),
       m_row( row ),
@@ -345,12 +352,12 @@ public:
      * @param nToAdd the increase in the size.
      * @return a pointer to the rows columns.
      * @note This method doesn't actually change the size, but it does potentially
-     *       do an allocation.
+     *   do an allocation.
      */
     inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
-                              INDEX_TYPE const nToAdd )
+    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd )
     {
+      LVARRAY_UNUSED_VARIABLE( curPtr );
       if( m_rowNNZ + nToAdd > m_rowCapacity )
       {
         m_crsM.dynamicallyGrowRow( m_row, m_rowNNZ + nToAdd );
@@ -368,7 +375,7 @@ public:
      */
     inline
     void insert( INDEX_TYPE const pos ) const
-    { arrayManipulation::insert( m_entries, m_rowNNZ, pos, m_entriesToInsert[0] ); }
+    { arrayManipulation::emplace( m_entries, m_rowNNZ, pos, m_entriesToInsert[0] ); }
 
     /**
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
@@ -403,11 +410,22 @@ public:
     }
 
 private:
-    CRSMatrix< T, COL_TYPE, INDEX_TYPE > & m_crsM;
+    /// The CRSMatrix the call back is associated with.
+    CRSMatrix & m_crsM;
+
+    /// The row the call back is assocated with.
     INDEX_TYPE const m_row;
+
+    /// The number of non zeros in the row.
     INDEX_TYPE const m_rowNNZ;
+
+    /// The non zero capacity of the row.
     INDEX_TYPE const m_rowCapacity;
+
+    /// A pointer to the entries of the row.
     T * m_entries;
+
+    /// A pointer to the entries to insert.
     T const * const m_entriesToInsert;
   };
 

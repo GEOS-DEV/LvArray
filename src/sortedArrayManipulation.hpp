@@ -646,7 +646,7 @@ bool insert( T * const LVARRAY_RESTRICT ptr,
 
   // Otherwise call the incrementSize callback, get the new pointer, insert and call the insert callback.
   T * const newPtr = callBacks.incrementSize( ptr, 1 );
-  arrayManipulation::insert( newPtr, size, insertPos, value );
+  arrayManipulation::emplace( newPtr, size, insertPos, value );
   callBacks.insert( insertPos );
   return true;
 }

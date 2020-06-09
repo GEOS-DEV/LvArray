@@ -193,7 +193,8 @@ INDEX_TYPE const SERIAL_SIZE = (2 << 18) - 87;
 INDEX_TYPE const OMP_SIZE = (2 << 22) - 87;
 #endif
 
-#if defined(USE_CUDA)
+// The non Array benchmarks could be run without chai, but then what's the point.
+#if defined(USE_CUDA) && defined(USE_CHAI)
 constexpr INDEX_TYPE CUDA_SIZE = (2 << 24) - 87;
 #endif
 
@@ -240,7 +241,7 @@ void registerBenchmarks()
               , std::make_tuple( OMP_SIZE, RAJA::PERM_IJK {}, parallelHostPolicy {} )
               , std::make_tuple( OMP_SIZE, RAJA::PERM_KJI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA)
+  #if defined(USE_CUDA) && defined(USE_CHAI)
               , std::make_tuple( CUDA_SIZE, RAJA::PERM_IJK {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
               , std::make_tuple( CUDA_SIZE, RAJA::PERM_KJI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
@@ -264,7 +265,7 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_SIZE << ", 3, 3 )." );
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_SIZE << ", 3, 3 )." );
 #endif
 
