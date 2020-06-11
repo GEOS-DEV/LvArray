@@ -23,15 +23,15 @@
 #ifndef ARRAYVIEW_HPP_
 #define ARRAYVIEW_HPP_
 
-// Source includes
+/// Source includes
 #include "Permutation.hpp"
 #include "ArraySlice.hpp"
 #include "Macros.hpp"
 #include "arrayHelpers.hpp"
 #include "IntegerConversion.hpp"
-#include "ArrayUtilities.hpp"
+#include "sliceHelpers.hpp"
 
-// System includes
+/// System includes
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
 #include "totalview/tv_helpers.hpp"
 #include "totalview/tv_data_display.h"
@@ -72,9 +72,9 @@ namespace LvArray
  */
 template< typename T,
           int NDIM,
-          int USD,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
+          int USD=NDIM-1,
+          typename INDEX_TYPE=std::ptrdiff_t,
+          template< typename > class BUFFER_TYPE=NewChaiBuffer >
 class ArrayView
 {
 public:
@@ -82,30 +82,44 @@ public:
   static_assert( USD >= 0, "USD must be positive." );
   static_assert( USD < NDIM, "USD must be less than NDIM." );
 
-  using ViewTypeConst = typename AsConstView< ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >::type;
+  /// The number of dimensions.
+  static constexpr int ndim = NDIM;
 
+  /// The type when all inner array classes are converted to const views.
+  using ViewType = ArrayView< typename GetViewType< T >::type, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
+
+  /// The type when all inner array classes are converted to const views and the inner most view's values are also
+  /// const.
+  using ViewTypeConst = ArrayView< typename GetViewTypeConst< T >::type const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
+
+  /// The type of the value in the ArraySlice.
   using value_type = T;
+
+  /// The type of the iterator used.
   using iterator = T *;
+
+  /// The type of the const iterator used.
   using const_iterator = T const *;
+
+  /// The pointer type.
   using pointer = T *;
+
+  /// The const_pointer type.
   using const_pointer = T const *;
 
   /**
-   * @brief A constructor to create an uninitialized ArrayView. An uninitialized may
-   *        not be used until it is assigned to.
+   * @brief A constructor to create an uninitialized ArrayView.
+   * @note An uninitialized ArrayView should not be used until it is assigned to.
    */
   ArrayView() = default;
 
   /**
-   * @brief Copy Constructor
-   * @param source the object to copy
+   * @brief Copy Constructor.
+   * @param source The object to copy.
+   * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE. When using
+   *   the NewChaiBuffer this can move the underlying buffer to a new memory space if the execution context
+   *   is set.
    * @return *this
-   *
-   * @note The copy constructor will trigger the copy constructor for DATA_VECTOR_TYPE. When using
-   * the NewChaiBuffer this will trigger CHAI::ManagedArray copy construction, and thus may copy
-   * the memory to the memory space associated with the copy. I.e. if passed into a
-   * lambda which is used to execute a cuda kernel, the data will be allocated and copied
-   * to the device (if it doesn't already exist).
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView const & source ) noexcept:
@@ -164,7 +178,7 @@ public:
 
   /**
    * @brief Move assignment operator, creates a shallow copy and invalidates the source.
-   * @param rhs object to copy.
+   * @param rhs The object to copy.
    * @return *this
    */
   inline LVARRAY_HOST_DEVICE constexpr
@@ -182,8 +196,8 @@ public:
   }
 
   /**
-   * @brief set all values of array to rhs.
-   * @param rhs value that array will be set to.
+   * @brief Set all values of array to rhs.
+   * @param rhs The value that array will be set to.
    * @return *this.
    */
   DISABLE_HD_WARNING
@@ -202,33 +216,29 @@ public:
   }
 
   /**
-   * @brief Convert this ArrayView and any nested Array to ArrayView const.
-   *        In addition the data held by the innermost array will be const.
+   * @brief @return Return *this after converting any nested arrays to const views.
    */
-  template< typename U = T >
   inline LVARRAY_HOST_DEVICE constexpr
-  std::enable_if_t< !std::is_const< U >::value, ViewTypeConst & >
-  toViewConst() const
+  ViewType & toView() const
+  { return reinterpret_cast< ViewType & >( *this ); }
+
+  /**
+   * @brief @return Return *this after converting any nested arrays to const views to const values.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ViewTypeConst & toViewConst() const
   { return reinterpret_cast< ViewTypeConst & >( *this ); }
 
   /**
-   * @brief User Defined Conversion operator to move from an ArrayView<T> const to
-   *        ArrayView<T const> const &.
-   * @note This is achieved by applying a reinterpret_cast to the this pointer,
-   *       which is a safe operation as the only difference between the types is a
-   *       const specifier on the template parameter T.
+   * @brief @return Return *this interpret as ArrayView<T const> const &.
    */
   template< typename U = T >
   inline LVARRAY_HOST_DEVICE constexpr
-  operator std::enable_if_t< !std::is_const< U >::value,
-                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & >
-    () const noexcept
-  {
-    return reinterpret_cast< ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & >(*this);
-  }
+  operator std::enable_if_t< !std::is_const< U >::value, ViewTypeConst & >() const noexcept
+  { return toViewConst(); }
 
   /**
-   * @brief Return an ArraySlice representing this ArrayView.
+   * @brief @return Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T, NDIM, USD, INDEX_TYPE >
@@ -236,7 +246,7 @@ public:
   { return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
 
   /**
-   * @brief Return an immutable ArraySlice representing this ArrayView.
+   * @brief @return Return an immutable ArraySlice representing this ArrayView.
    */
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE constexpr
@@ -245,14 +255,14 @@ public:
   { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
 
   /**
-   * @brief User defined conversion to an ArraySlice representing this ArrayView.
+   * @brief @return Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE constexpr
   operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const noexcept
   { return toSlice(); }
 
   /**
-   * @brief User defined conversion to an immutable ArraySlice representing this ArrayView.
+   * @brief @return Return an immutable ArraySlice representing this ArrayView.
    */
   template< typename U=T >
   inline LVARRAY_HOST_DEVICE constexpr
@@ -262,7 +272,8 @@ public:
   { return toSliceConst(); }
 
   /**
-   * @brief User defined conversion to convert a ArraySlice< T, 1, 0 > to a raw pointer.
+   * @brief @return A a raw pointer.
+   * @note This method is only active when NDIM == 1 and USD == 0.
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE constexpr inline
@@ -271,53 +282,54 @@ public:
   { return data(); }
 
   /**
-   * @brief Return the allocated size.
+   * @brief @return Return the allocated size.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE size() const noexcept
   { return multiplyAll< NDIM >( m_dims ); }
 
   /**
-   * @brief Return the length of the given dimension.
-   * @param dim the dimension to get the length of.
+   * @brief @return Return the length of the given dimension.
+   * @param dim The dimension to get the length of.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE size( int dim ) const noexcept
+  INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef USE_ARRAY_BOUNDS_CHECK
+    LVARRAY_ASSERT_GE( dim, 0 );
     LVARRAY_ASSERT_GT( NDIM, dim );
 #endif
     return m_dims[dim];
   }
 
   /**
-   * @brief Return true if the array is empty.
+   * @brief @return Return true if the array is empty.
    */
   inline bool empty() const
   { return size() == 0; }
 
   /**
-   * @brief Return a pointer to the begining of the data.
+   * @brief @return Return an iterator to the begining of the data.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  T * begin() const
+  iterator begin() const
   { return data(); }
 
   /**
-   * @brief Return a pointer to the end of the data (one past the last value).
+   * @brief @return Return an iterator to the end of the data.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  T * end() const
+  iterator end() const
   { return data() + size(); }
 
   /**
-   * @brief Return a reference to the first value.
+   * @brief @return Return a reference to the first value.
    */
   T & front() const
   { return data()[ 0 ]; }
 
   /**
-   * @brief Return a reference to the last value.
+   * @brief @return Return a reference to the last value.
    */
   T & back() const
   { return data()[size() - 1]; }
@@ -327,43 +339,42 @@ public:
   ///***********************************************************************************************
 
   /**
-   * @brief Return a lower dimensionsal slice of this ArrayView.
-   * @param index the index of the slice to create.
+   * @brief @return Return a lower dimensionsal slice of this ArrayView.
+   * @param index The index of the slice to create.
    * @note This method is only active when NDIM > 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ),
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
                                                        m_dims + 1,
                                                        m_strides + 1 );
   }
 
   /**
-   * @brief Return a reference to the value at the given index.
-   * @param index index of the element in array to access.
+   * @brief @return Return a reference to the value at the given index.
+   * @param index The index of the value to access.
    * @note This method is only active when NDIM == 1.
    */
   template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< U == 1, T & >
   operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    return data()[ ConditionalMultiply< 0, USD >::multiply( index, m_strides[ 0 ] ) ];
+    return data()[ ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
   }
 
   /**
-   * @brief Return a reference to the value at the given multidimensional index.
-   * @tparam INDICES variadic template parameters to serve as index arguments.
-   * @param indices the indices of access request.
-   * @note This is a standard fortran like parentheses interface to array access.
+   * @tparam INDICES A variadic pack of integral types.
+   * @brief @return Return a reference to the value at the given multidimensional index.
+   * @param indices The indices of the value to access.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
+  LVARRAY_HOST_DEVICE inline constexpr
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -371,12 +382,12 @@ public:
   }
 
   /**
-   * @brief Calculates the linear index from a multidimensional index.
-   * @tparam INDICES variadic template parameters to serve as index arguments.
-   * @param indices the indices of access request.
+   * @tparam INDICES A variadic pack of integral types.
+   * @brief @return Return the linear index from a multidimensional index.
+   * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPRFUNC
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
@@ -391,7 +402,7 @@ public:
   ///***********************************************************************************************
 
   /**
-   * @brief Return a pointer to the values.
+   * @brief @return Return a pointer to the values.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
@@ -399,8 +410,8 @@ public:
 
   /**
    * @brief Copy the values from one slice in this array to another.
-   * @param destIndex index for which to copy data into.
-   * @param sourceIndex index to copy data from.
+   * @param destIndex The index of the slice to copy data into.
+   * @param sourceIndex The index of the slice to copy data from.
    */
   void copy( INDEX_TYPE const destIndex, INDEX_TYPE const sourceIndex )
   {
@@ -408,8 +419,7 @@ public:
                                  [destIndex, this]( T const & sourceVal, auto const ... indices )
     {
       (*this)( destIndex, indices ... ) = sourceVal;
-    }
-                                 );
+    } );
   }
 
   /**
@@ -421,9 +431,7 @@ public:
    * for collection of multiple data arrays into a single array. All dims should be the same except
    * for m_singleParameterResizeIndex;
    */
-  template< typename U=T >
-  typename std::enable_if< !std::is_const< U >::value, void >::type
-  copy( INDEX_TYPE const destIndex, ViewTypeConst const & source )
+  void copy( INDEX_TYPE const destIndex, ViewTypeConst const & source )
   {
     INDEX_TYPE offset = destIndex * m_strides[m_singleParameterResizeIndex];
 
@@ -438,22 +446,18 @@ public:
   }
 
   /**
-   * @brief Return a pointer to the array containing the size of each dimension.
+   * @brief @return A pointer to the array containing the size of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * dims() const noexcept
-  {
-    return m_dims;
-  }
+  { return m_dims; }
 
   /**
-   * @brief Return a pointer to the array containing the stride of each dimension.
+   * @brief @return A pointer to the array containing the stride of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * strides() const noexcept
-  {
-    return m_strides;
-  }
+  { return m_strides; }
 
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
@@ -461,7 +465,7 @@ public:
    * @param touch whether the Array should be touched in the new space or not.
    * @note Not all Buffers support memory movement.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
   { m_dataBuffer.move( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -481,7 +485,7 @@ public:
       // TV_ttf_add_row( "m_data", totalview::format< T, INDEX_TYPE >( 0, av->m_dims ).c_str(), (av->m_data) );
       TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
       TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
-      TV_ttf_add_row( "m_dataBuffer", cxx_utilities::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
+      TV_ttf_add_row( "m_dataBuffer", LvArray::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
       TV_ttf_add_row( "m_singleParameterResizeIndex", "int", &(av->m_singleParameterResizeIndex) );
     }
     return 0;
@@ -494,7 +498,8 @@ protected:
    * @brief Protected constructor to be used by the Array class.
    * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  inline explicit CONSTEXPRFUNC
+  DISABLE_HD_WARNING
+  LVARRAY_HOST_DEVICE inline explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
   ArrayView( bool ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },
@@ -506,10 +511,10 @@ protected:
   }
 
   /// the dimensions of the array.
-  INDEX_TYPE m_dims[NDIM] = { 0 };
+  INDEX_TYPE m_dims[ NDIM ] = { 0 };
 
   /// the strides of the array.
-  INDEX_TYPE m_strides[NDIM] = { 0 };
+  INDEX_TYPE m_strides[ NDIM ] = { 0 };
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;
@@ -519,6 +524,6 @@ protected:
   int m_singleParameterResizeIndex = 0;
 };
 
-} /* namespace LvArray */
+} // namespace LvArray
 
-#endif /* ARRAYVIEW_HPP_ */
+#endif // ARRAYVIEW_HPP_

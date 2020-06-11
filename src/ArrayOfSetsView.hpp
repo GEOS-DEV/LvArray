@@ -53,125 +53,124 @@ class ArrayOfSetsView : protected ArrayOfArraysView< T, INDEX_TYPE, std::is_cons
 
 public:
 
-  using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
+  /// Since INDEX_TYPE should always be const we need an alias for the non const version.
+  using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
 
   // Aliasing public methods of ArrayOfArraysView.
   using ParentClass::size;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   *        chai::ManagedArray copy constructor.
-   * @param [in] src the ArrayOfArraysView to be copied.
+   *   chai::ManagedArray copy constructor.
    */
   inline
-  ArrayOfSetsView( ArrayOfSetsView const & src ) = default;
+  ArrayOfSetsView( ArrayOfSetsView const & ) = default;
 
   /**
    * @brief Default move constructor.
-   * @param [in/out] src the ArrayOfArraysView to be moved from.
    */
   inline
-  ArrayOfSetsView( ArrayOfSetsView && src ) = default;
-
-  /**
-   * @brief User defined conversion to move from T to T const.
-   */
-  template< class U=T >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator typename std::enable_if< !std::is_const< U >::value,
-                                    ArrayOfSetsView< T const, INDEX_TYPE const > const & >::type
-    () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Method to convert T to T const. Use this method when the above UDC
-   *        isn't invoked, this usually occurs with template argument deduction.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Method to convert to an immutable ArrayOfArraysView.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  ArrayOfSetsView( ArrayOfSetsView && ) = default;
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
-   * @param [in] src the ArrayOfSetsView to be copied from.
+   * @return *this.
    */
   inline
-  ArrayOfSetsView & operator=( ArrayOfSetsView const & src ) = default;
+  ArrayOfSetsView & operator=( ArrayOfSetsView const & ) = default;
 
   /**
    * @brief Default move assignment operator, this does a shallow copy.
-   * @param [in/out] src the ArrayOfSetsView to be moved from.
+   * @return *this.
    */
   inline
-  ArrayOfSetsView & operator=( ArrayOfSetsView && src ) = default;
-
+  ArrayOfSetsView & operator=( ArrayOfSetsView && ) = default;
 
   /**
-   * @brief Return an object provides an iterable interface to the given set.
-   * @param [in] i the set to get an iterator for.
+   * @brief @return Return *this.
+   * @brief This is included for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfSetsView< T, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  { return *this; }
+
+  /**
+   * @brief @return Return a reference to *this reinterpreted as an ArrayOfSetsView< T const, INDEX_TYPE const >.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const > const & >(*this); }
+
+  /**
+   * @brief @return Return a reference to *this reinterpreted as an ArrayOfArraysView< T const, INDEX_TYPE const, true
+   *>.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true > const & >( *this ); }
+
+  /**
+   * @brief @return Return an object provides an iterable interface to the given set.
+   * @param i The set to get an iterator for.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   typename ParentClass::IterableArray getIterableSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::getIterableArray( i ); }
 
   /**
-   * @brief Return the size of the given set.
-   * @param [in] i the set to querry.
+   * @brief @return Return the size of the given set.
+   * @param i The set to get the size of.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::sizeOfArray( i ); }
 
   /**
-   * @brief Return the capacity of the given set.
-   * @param [in] i the set to querry.
+   * @brief @return Return the capacity of the given set.
+   * @param i The set to get the capacity of.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::capacityOfArray( i ); }
 
   /**
-   * @brief Return an ArraySlice1d<T const> (pointer to const) to the values of the given array.
-   * @param [in] i the array to access.
+   * @brief @return Return an ArraySlice1d<T const> (pointer to const) to the values of the given array.
+   * @param i The set to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator[]( i ); }
 
   /**
-   * @brief Return a const reference to the value at the given position in the given array.
-   * @param [in] i the array to access.
-   * @param [in] j the index within the array to access.
+   * @brief @return Return a const reference to the value at the given position in the given array.
+   * @param i The set to access.
+   * @param j The index within the set to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::operator()( i, j ); }
 
+  /**
+   * @brief Verify that the capacity of each set is greater not less than the size and that each set is sorted unique.
+   */
   void consistencyCheck() const LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const numSets = size();
     for( INDEX_TYPE_NC i = 0; i < numSets; ++i )
     {
-      LVARRAY_ERROR_IF_GT( sizeOfSet( i ), capacityOfSet( i ));
+      LVARRAY_ERROR_IF_GT( sizeOfSet( i ), capacityOfSet( i ) );
 
       T * const setValues = getSetValues( i );
       INDEX_TYPE const numValues = sizeOfSet( i );
-      LVARRAY_ERROR_IF( !sortedArrayManipulation::isSorted( setValues, numValues ), "Values should be sorted!" );
-      LVARRAY_ERROR_IF( !sortedArrayManipulation::allUnique( setValues, numValues ), "Values should be unique!" );
+      LVARRAY_ERROR_IF( !sortedArrayManipulation::isSortedUnique( setValues, setValues + numValues ),
+                        "Values should be sorted and unique!" );
     }
   }
 
   /**
-   * @brief Return true iff the given set contains the given value.
-   * @param [in] i the set to search.
-   * @param [in] value the value to search for.
+   * @brief @return Return true iff the given set contains the given value.
+   * @param i the set to search.
+   * @param value the value to search for.
    */
   LVARRAY_HOST_DEVICE inline
   bool contains( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
@@ -186,109 +185,84 @@ public:
 
   /**
    * @brief Insert a value into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] value the value to insert.
+   * @param i the set to insert into.
+   * @param value the value to insert.
    * @return True iff the value was inserted (the set did not already contain the value).
-   *
-   * @note Since the ArrayOfSetsview can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
+   * @pre Since the ArrayOfSetsview can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given set has enough space for the new entries.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertIntoSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   { return insertIntoSetImpl( i, value, CallBacks( *this, i ) ); }
 
   /**
-   * @brief Insert values into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] values the values to insert.
-   * @param [in] n the number of values to insert.
+   * @tparam ITER An iterator type.
+   * @brief Inserts multiple values into the given set.
+   * @param i The set to insert into.
+   * @param first An iterator to the first value to insert.
+   * @param last An iterator to the end of the values to insert.
    * @return The number of values inserted.
-   *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(values, values + n)
-   *       and then call insertSortedIntoSet, this will be substantially faster.
-   * @note Since the ArrayOfSetsview can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
+   * @pre The values to insert [ @p first, @p last ) must be sorted and contain no duplicates.
+   * @pre Since the ArrayOfSetsView can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given set has enough space for the new entries.
    */
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
-  { return insertIntoSetImpl( i, values, n, CallBacks( *this, i ) ); }
-
-  /**
-   * @brief Insert values into the given set.
-   * @param [in] i the set to insert into.
-   * @param [in] values the values to insert. Must be sorted
-   * @param [in] n the number of values to insert.
-   * @return The number of values inserted.
-   *
-   * @note Since the ArrayOfSetsView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertSortedIntoSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
-  { return insertSortedIntoSetImpl( i, values, n, CallBacks( *this, i ) ); }
+  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  { return insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   /**
    * @brief Remove a value from the given set.
-   * @param [in] i the set to remove from.
-   * @param [in] value the value to remove.
+   * @param i The set to remove from.
+   * @param value The value to remove.
    * @return True iff the value was removed (the set previously contained the value).
    */
   LVARRAY_HOST_DEVICE inline
   bool removeFromSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
   { return removeFromSetImpl( i, value, CallBacks( *this, i ) ); }
 
-  /**
-   * @brief Remove values entries from the given set.
-   * @param [in] i the set to remove from.
-   * @param [in] values the values to remove.
-   * @param [in] n the number of values to remove.
-   * @return The number of values removed.
-   *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(values, values + n)
-   *       and then call removeSortedFromSet, this will be substantially faster.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
-  { return removeFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
+  /// @cond DO_NOT_DOCUMENT
+  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
+  // else it works just fine.
 
-/**
- * @brief Remove values entries from the given set.
- * @param [in] i the set to remove from.
- * @param [in] values the values to remove. Must be sorted.
- * @param [in] n the number of values to remove.
- * @return The number of values removed.
- */
+  /**
+   * @tparam ITER An iterator type.
+   * @brief Removes multiple values from the given set.
+   * @param i The set to remove from.
+   * @param first An iterator to the first value to remove.
+   * @param last An iterator to the end of the values to remove.
+   * @return The number of values removed.
+   * @pre The values to remove [ @p first, @p last ) must be sorted and contain no duplicates.
+   */
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeSortedFromSet( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) const LVARRAY_RESTRICT_THIS
-  { return removeSortedFromSetImpl( i, values, n, CallBacks( *this, i ) ); }
+  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  { return removeFromSetImpl( i, first, last, CallBacks( *this, i ) ); }
+
+  /// @endcond DO_NOT_DOCUMENT
 
   /**
    * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch If true touch the values, sizes and offsets in the new space.
-   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 protected:
 
   /**
-   * @brief Default constructor. Made protected since every ArrayOfSetsView should
-   *        either be the base of a ArrayOfSets or copied from another ArrayOfSetsView.
+   * @brief Default constructor.
+   * @note Protected since every ArrayOfSetsView should either be the base of a ArrayOfSets
+   *   or copied from another ArrayOfSetsView.
    */
   ArrayOfSetsView() = default;
 
   /**
-   * @brief Return an ArraySlice1d (pointer) to the values of the given array.
-   * @param [in] i the array to access.
-   * @note This method is protected because it returns a non-const pointer.
+   * @brief @return Return an ArraySlice1d to the values of the given array.
+   * @param i the array to access.
+   * @note Protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
@@ -297,12 +271,12 @@ protected:
   /**
    * @brief Helper function to insert a value into the given set.
    * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to insert into.
-   * @param [in] value the value to insert.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
+   * @param i the set to insert into.
+   * @param value the value to insert.
+   * @param cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return True iff the value was inserted (the set did not already contain the value).
    */
-  template< class CALLBACKS >
+  template< typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
@@ -317,58 +291,34 @@ protected:
   }
 
   /**
-   * @brief Helper function to insert values into the given set.
+   * @tparam ITER An iterator type.
    * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to insert into.
-   * @param [in] valuesToInsert the values to insert.
-   * @param [in] n the number of values to insert.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
+   * @brief Inserts multiple values into the given set.
+   * @param i The set to insert into.
+   * @param first An iterator to the first value to insert.
+   * @param last An iterator to the end of the values to insert.
+   * @param cbacks Helper class used with the sortedArrayManipulation routines.
    * @return The number of values inserted.
+   *
+   * @note The values to insert [ @p first, @p last ) must be sorted and contain no duplicates.
    */
-  template< class CALLBACKS >
+  template< typename ITER, typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertIntoSetImpl( INDEX_TYPE const i,
-                                   T const * const valuesToInsert,
-                                   INDEX_TYPE const n,
+                                   ITER const first,
+                                   ITER const last,
                                    CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
-    constexpr int LOCAL_SIZE = 16;
-    T localValueBuffer[LOCAL_SIZE];
-
-    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer( valuesToInsert, n, localValueBuffer );
-    sortedArrayManipulation::makeSorted( valueBuffer, valueBuffer + n );
-
-    INDEX_TYPE const nInserted = insertSortedIntoSetImpl( i, valueBuffer, n, std::move( cbacks ) );
-
-    sortedArrayManipulation::freeTemporaryBuffer( valueBuffer, n, localValueBuffer );
-    return nInserted;
-  }
-
-  /**
-   * @brief Helper function to insert values into the given set.
-   * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to insert into.
-   * @param [in] valuesToInsert the values to insert. Must be sorted.
-   * @param [in] n the number of values to insert.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
-   * @return The number of values inserted.
-   */
-  template< class CALLBACKS >
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertSortedIntoSetImpl( INDEX_TYPE const i,
-                                         T const * const valuesToInsert,
-                                         INDEX_TYPE const n,
-                                         CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
-  {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
-    LVARRAY_ASSERT( valuesToInsert != nullptr || n == 0 );
-    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( valuesToInsert, n ));
 
     INDEX_TYPE const setSize = sizeOfSet( i );
     T * const setValues = getSetValues( i );
 
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insertSorted( setValues, setSize, valuesToInsert, n, std::move( cbacks ) );
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( setValues,
+                                                                  setSize,
+                                                                  first,
+                                                                  last,
+                                                                  std::forward< CALLBACKS >( cbacks ) );
     m_sizes[i] += nInserted;
     return nInserted;
   }
@@ -376,12 +326,12 @@ protected:
   /**
    * @brief Helper function to remove a value from the given set.
    * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to remove from.
-   * @param [in] value the value to remove.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
+   * @param i the set to remove from.
+   * @param value the value to remove.
+   * @param cbacks call-back helper class used with the sortedArrayManipulation routines.
    * @return True iff the value was removed (the set contained the value).
    */
-  template< class CALLBACKS >
+  template< typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
   bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
@@ -396,57 +346,34 @@ protected:
   }
 
   /**
-   * @brief Helper function to remove values from the given set.
+   * @tparam ITER An iterator type.
    * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to remove from.
-   * @param [in] values the values to remove.
-   * @param [in] n the number of values to remove.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
+   * @brief Removes multiple values from the given set.
+   * @param i The set to remove from.
+   * @param first An iterator to the first value to remove.
+   * @param last An iterator to the end of the values to remove.
+   * @param cbacks Helper class used with the sortedArrayManipulation routines.
    * @return The number of values removed.
+   *
+   * @note The values to remove [ @p first, @p last ) must be sorted and contain no duplicates.
    */
-  template< class CALLBACKS >
+  template< typename ITER, typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i,
+                                   ITER const first,
+                                   ITER const last,
+                                   CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
-    LVARRAY_ASSERT( valuesToRemove != nullptr || n == 0 );
-
-    constexpr int LOCAL_SIZE = 16;
-    T localValueBuffer[LOCAL_SIZE];
-
-    T * const valueBuffer = sortedArrayManipulation::createTemporaryBuffer( valuesToRemove, n, localValueBuffer );
-    sortedArrayManipulation::makeSorted( valueBuffer, valueBuffer + n );
-
-    INDEX_TYPE const nRemoved = removeSortedFromSetImpl( i, valueBuffer, n, std::move( cbacks ) );
-
-    sortedArrayManipulation::freeTemporaryBuffer( valueBuffer, n, localValueBuffer );
-    return nRemoved;
-  }
-
-  /**
-   * @brief Helper function to remove values from the given set.
-   * @tparam CALLBACKS type of the call-back helper class.
-   * @param [in] i the set to remove from.
-   * @param [in] values the values to remove. Must be sorted.
-   * @param [in] n the number of values to remove.
-   * @param [in/out] cbacks call-back helper class used with the sortedArrayManipulation routines.
-   * @return The number of values removed.
-   */
-  template< class CALLBACKS >
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeSortedFromSetImpl( INDEX_TYPE const i, T const * const valuesToRemove, INDEX_TYPE const n,
-                                         CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
-    LVARRAY_ASSERT( valuesToRemove != nullptr || n == 0 );
-    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( valuesToRemove, n ));
 
     INDEX_TYPE const setSize = sizeOfSet( i );
     T * const setValues = getSetValues( i );
 
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::removeSorted( setValues, setSize, valuesToRemove, n, std::move( cbacks ) );
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( setValues,
+                                                                 setSize,
+                                                                 first,
+                                                                 last,
+                                                                 std::forward< CALLBACKS >( cbacks ) );
     m_sizes[i] -= nRemoved;
     return nRemoved;
   }
@@ -467,8 +394,8 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] aos the ArrayOfSetsView this CallBacks is associated with.
-     * @param [in] i the set this CallBacks is associated with.
+     * @param aos the ArrayOfSetsView this CallBacks is associated with.
+     * @param i the set this CallBacks is associated with.
      */
     LVARRAY_HOST_DEVICE inline
     CallBacks( ArrayOfSetsView< T, INDEX_TYPE > const & aos, INDEX_TYPE const i ):
@@ -478,8 +405,8 @@ public:
 
     /**
      * @brief Callback signaling that the size of the set has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the increase in the size.
+     * @param curPtr the current pointer to the array.
+     * @param nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
      *       size doesn't exceed the capacity since the ArrayOfSetsView can't do allocation.
      * @return a pointer to the sets values.
@@ -489,8 +416,8 @@ public:
                        INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
 #ifdef USE_ARRAY_BOUNDS_CHECK
-      LVARRAY_ERROR_IF( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd > m_aos.capacityOfSet( m_indexOfSet ),
-                        "ArrayOfSetsView cannot do reallocation." );
+      LVARRAY_ERROR_IF_GT_MSG( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd, m_aos.capacityOfSet( m_indexOfSet ),
+                               "ArrayOfSetsView cannot do reallocation." );
 #else
       LVARRAY_DEBUG_VAR( nToAdd );
 #endif

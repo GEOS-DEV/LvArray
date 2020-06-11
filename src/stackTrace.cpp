@@ -39,7 +39,7 @@
 
 constexpr int MAX_FRAMES = 25;
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 namespace internal
@@ -106,12 +106,12 @@ std::string demangle( char * backtraceString, int frame )
     // if demangling is successful, output the demangled function name
     if( status == 0 )
     {
-      oss << "Frame " << frame << ": " << realName << std::endl;
+      oss << "Frame " << frame << ": " << realName << "\n";
     }
     // otherwise, output the mangled function name
     else
     {
-      oss << "Frame " << frame << ": " << mangledName << std::endl;
+      oss << "Frame " << frame << ": " << mangledName << "\n";
     }
 
     free( realName );
@@ -119,7 +119,7 @@ std::string demangle( char * backtraceString, int frame )
   // otherwise, print the whole line
   else
   {
-    oss << "Frame " << frame << ": " << backtraceString << std::endl;
+    oss << "Frame " << frame << ": " << backtraceString << "\n";
   }
 
   return ( oss.str() );
@@ -180,37 +180,40 @@ std::string getFpeDetails()
   return oss.str();
 }
 
-void handler( int sig, int exitFlag, int LVARRAY_UNUSED_ARG( exitCode ) )
+void abort()
+{
+#ifdef USE_MPI
+  int mpi = 0;
+  MPI_Initialized( &mpi );
+  if( mpi )
+  {
+    MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
+  }
+#endif
+  std::abort();
+}
+
+void stackTraceHandler( int const sig, bool const exit )
 {
   std::ostringstream oss;
 
   if( sig >= 0 && sig < NSIG )
   {
     // sys_signame not available on linux, so just print the code; strsignal is POSIX
-    oss << "Received signal " << sig << ": " << strsignal( sig ) << std::endl;
+    oss << "Received signal " << sig << ": " << strsignal( sig ) << "\n";
 
     if( sig == SIGFPE )
     {
-      oss << getFpeDetails() << std::endl;
+      oss << getFpeDetails() << "\n";
     }
   }
   oss << stackTrace() << std::endl;
   std::cout << oss.str();
 
-  if( exitFlag == 1 )
+  if( exit )
   {
-#ifdef USE_MPI
-    int mpi = 0;
-    MPI_Initialized( &mpi );
-    if( mpi )
-    {
-      MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
-    }
-#endif
     abort();
-//    exit(exitFlag);
-
   }
 }
 
-} // namespace cxx_utilities
+} // namespace LvArray

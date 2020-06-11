@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef LVARRAYCONFIG_HPP
+#define LVARRAYCONFIG_HPP
 
 
 #cmakedefine USE_ARRAY_BOUNDS_CHECK
@@ -10,6 +10,10 @@
 
 #ifndef USE_CHAI
 #cmakedefine USE_CHAI
+#endif
+
+#ifndef USE_RAJA
+#cmakedefine USE_RAJA
 #endif
 
 #ifndef USE_MPI
@@ -28,7 +32,10 @@
 #cmakedefine USE_OPENMP
 #endif
 
+#ifndef USE_CALIPER
+#cmakedefine USE_CALIPER
+#endif
 
 
-#endif  /* GEOSX_CONFIG_HPP */
 
+#endif  /* LVARRAYCONFIG_HPP */

@@ -1,10 +1,10 @@
 #
-set( PREPROCESSOR_DEFINES 
-                          ARRAY_BOUNDS_CHECK
+set( PREPROCESSOR_DEFINES ARRAY_BOUNDS_CHECK
                           ATK
                           CHAI
                           CUDA
                           MPI
+                          RAJA
                           TOTALVIEW_OUTPUT
                           OPENMP
    )
@@ -16,9 +16,21 @@ foreach( DEP in ${PREPROCESSOR_DEFINES})
     endif()
 endforeach()
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CXX_UtilsConfig.hpp.in
-    ${CMAKE_BINARY_DIR}/include/CXX_UtilsConfig.hpp
-)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
+                ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp )
 
+function( make_full_config_file 
+          PREPROCESSOR_VARS )
+    foreach( DEP in ${PREPROCESSOR_VARS})
+        set(USE_${DEP} TRUE  )
+        set(GEOSX_USE_${DEP} TRUE  )
+        set(${DEP} TRUE  )
+    endforeach()
+
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/docs/doxygen/LvArrayConfig.hpp )
+endfunction()
+
+
+make_full_config_file( "${PREPROCESSOR_DEFINES}" )
 

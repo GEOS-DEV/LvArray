@@ -28,11 +28,11 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#include "ArrayUtilities.hpp"
+#include "streamIO.hpp"
 
 const char IGNORE_OUTPUT[] = ".*";
 
-using namespace cxx_utilities;
+using namespace LvArray;
 using namespace std;
 
 TEST( testArrayUtilities, stringToArrayErrors )

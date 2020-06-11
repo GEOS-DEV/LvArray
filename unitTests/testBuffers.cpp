@@ -82,7 +82,7 @@ using BufferAPITestTypes = ::testing::Types< NewChaiBuffer< int >,
                                              MallocBuffer< TestString >
                                              >;
 
-TYPED_TEST_CASE( BufferAPITest, BufferAPITestTypes );
+TYPED_TEST_SUITE( BufferAPITest, BufferAPITestTypes, );
 
 /**
  * @brief Test that the buffer has a static constexpr hasShallowCopy member.
@@ -386,7 +386,7 @@ protected:
 };
 
 
-TYPED_TEST_CASE( BufferTestNoRealloc, BufferAPITestTypes );
+TYPED_TEST_SUITE( BufferTestNoRealloc, BufferAPITestTypes, );
 
 /**
  * @brief Test bufferManipulation::resize without reallocating.
@@ -553,7 +553,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
 {
   this->pushBack( NO_REALLOC_CAPACITY );
 
-  for_each_arg(
+  forEachArg(
     [this]( auto && copy )
   {
     bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
@@ -657,7 +657,7 @@ using BufferTestWithReallocTypes = ::testing::Types< NewChaiBuffer< int >,
                                                      MallocBuffer< TestString >
                                                      >;
 
-TYPED_TEST_CASE( BufferTestWithRealloc, BufferTestWithReallocTypes );
+TYPED_TEST_SUITE( BufferTestWithRealloc, BufferTestWithReallocTypes, );
 
 /**
  * @brief Test bufferManipulation::setCapacity.

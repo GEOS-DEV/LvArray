@@ -20,11 +20,12 @@
 #define NEW_CHAI_BUFFER_HPP
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 #include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 #include "StringUtilities.hpp"
+#include "bufferManipulation.hpp"
 
 // TPL includes
 #include <chai/ArrayManager.hpp>
@@ -39,8 +40,6 @@ namespace LvArray
 namespace internal
 {
 
-IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
-
 inline chai::ArrayManager & getArrayManager()
 {
   static chai::ArrayManager & arrayManager = *chai::ArrayManager::getInstance();
@@ -53,28 +52,36 @@ static std::mutex chaiLock;
 } // namespace internal
 
 /**
- * @class NewChaiBuffer
- * @brief This class implements the Buffer interface using CHAI and allows classes built on top
- *        of it to exist in multiple memory spaces.
  * @tparam T type of data that is contained in the buffer.
+ * @class NewChaiBuffer
+ * @brief Implements the Buffer interface using CHAI.
+ * @details The NewChaiBuffer's allocation can exist in multiple memory spaces. If the chai
+ *   execution space is set the copy constructor will ensure that the newly constructed
+ *   NewChaiBuffer's pointer points to memory in that space. If the memory does
+ *   exist it will be allocated and the data copied over. If the memory exists but the data has been
+ *   touched (modified) in the current space it will be copied over. The data is touched in the
+ *   new space if T is non const and is not touched if T is const.
  * @note Both the copy constructor and copy assignment constructor perform a shallow copy
- *       of the source. Similarly the destructor does not free the allocation. This is
- *       the standard behavior of the Buffer classes.
+ *   of the source. Similarly the destructor does not free the allocation.
  */
 template< typename T >
 class NewChaiBuffer
 {
 public:
 
-  // Alias used in the bufferManipulation functions.
+  /// Alias for T used used in the bufferManipulation functions.
   using value_type = T;
-  using T_non_const = std::remove_const_t< T >;
+
+  /// A flag indicating that the NewChaiBuffer's copy semantics are shallow.
   constexpr static bool hasShallowCopy = true;
 
+  /// An alias for the non const version of T.
+  using T_non_const = std::remove_const_t< T >;
+
   /**
-   * @brief Default constructor. Creates an uninitialized Buffer. An uninitialized
-   *        buffer is an undefined state and may only be assigned to. An uninitialized
-   *        buffer holds no recources and does not need to be free'd.
+   * @brief Default constructor, creates an uninitialized NewChaiBuffer.
+   * @details An uninitialized NewChaiBuffer is an undefined state and may only be assigned to.
+   *   An uninitialized NewChaiBuffer holds no recources and does not need to be free'd.
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer():
@@ -84,8 +91,8 @@ public:
   {}
 
   /**
-   * @brief Constructor for creating an empty Buffer. An empty buffer may hold resources
-   *        and needs to be free'd.
+   * @brief Constructor for creating an empty Buffer.
+   * @details An empty buffer may hold resources and needs to be free'd.
    * @note The unused boolean parameter is to distinguish this from default constructor.
    */
   NewChaiBuffer( bool ):
@@ -102,6 +109,29 @@ public:
     }
   }
 
+  /**
+   * @brief Copy constructor.
+   * @param src The buffer to copy.
+   * @details In addition to performing a shallow copy of @p src if the chai execution space
+   *   is set *this will contain a pointer the the allocation in that space.
+   */
+  LVARRAY_HOST_DEVICE RAJA_INLINE
+  NewChaiBuffer( NewChaiBuffer const & src ):
+    m_pointer( src.m_pointer ),
+    m_capacity( src.m_capacity ),
+    m_pointer_record( src.m_pointer_record )
+  {
+  #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
+    move( internal::getArrayManager().getExecutionSpace(), true );
+  #endif
+  }
+
+  /**
+   * @copydoc NewChaiBuffer( NewChaiBuffer const & )
+   * @param size The number of values in the allocation.
+   * @note This method should be preffered over the copy constructor when the size information
+   *   is available.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE
   NewChaiBuffer( NewChaiBuffer const & src, std::ptrdiff_t const size ):
     m_pointer( src.m_pointer ),
@@ -115,17 +145,10 @@ public:
   #endif
   }
 
-  LVARRAY_HOST_DEVICE RAJA_INLINE
-  NewChaiBuffer( NewChaiBuffer const & src ):
-    m_pointer( src.m_pointer ),
-    m_capacity( src.m_capacity ),
-    m_pointer_record( src.m_pointer_record )
-  {
-  #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
-    move( internal::getArrayManager().getExecutionSpace(), true );
-  #endif
-  }
-
+  /**
+   * @brief Move constructor.
+   * @param src The NewChaiBuffer to be moved from, is uninitialized after this call.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer( NewChaiBuffer && src ):
     m_pointer( src.m_pointer ),
@@ -137,6 +160,11 @@ public:
     src.m_pointer_record = nullptr;
   }
 
+  /**
+   * @brief Copy assignment operator.
+   * @param src The NewChaiBuffer to be copied.
+   * @return *this.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer & operator=( NewChaiBuffer const & src )
   {
@@ -146,6 +174,11 @@ public:
     return *this;
   }
 
+  /**
+   * @brief Move assignment operator.
+   * @param src The NewChaiBuffer to be moved from, is uninitialized after this call.
+   * @return *this.
+   */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   NewChaiBuffer & operator=( NewChaiBuffer && src )
   {
@@ -163,10 +196,10 @@ public:
   /**
    * @brief Reallocate the buffer to the new capacity.
    * @param size the number of values that are initialized in the buffer.
-   *        values between [0, size) are destroyed.
+   *   Values between [0, size) are destroyed.
    * @param newCapacity the new capacity of the buffer.
    * @note This currently only reallocates the buffer on the CPU and it frees
-   *       the buffer in every other memory space.
+   *   the buffer in every other memory space.
    */
   void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
   {
@@ -197,8 +230,8 @@ public:
   }
 
   /**
-   * @brief Free the data in the buffer but does not destroy any values. To
-   *        properly destroy the values and free the data call bufferManipulation::free.
+   * @brief Free the data in the buffer but does not destroy any values.
+   * @note To destroy the values and free the data call bufferManipulation::free.
    */
   inline
   void free()
@@ -211,38 +244,38 @@ public:
   }
 
   /**
-   * @brief Return the capacity of the buffer.
+   * @brief @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   std::ptrdiff_t capacity() const
-  {
-    return m_capacity;
-  }
+  { return m_capacity; }
 
   /**
-   * @brief Return a pointer to the beginning of the buffer.
+   * @brief @return Return a pointer to the beginning of the buffer.
    */
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   T * data() const
-  {
-    return m_pointer;
-  }
+  { return m_pointer; }
 
+  /**
+   * @tparam INDEX_TYPE the type used to index into the values.
+   * @brief @return The value at position @p i .
+   * @param i The position of the value to access.
+   * @note No bounds checks are performed.
+   */
   template< typename INDEX_TYPE >
   LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
   T & operator[]( INDEX_TYPE const i ) const
-  {
-    return m_pointer[ i ];
-  }
+  { return m_pointer[ i ]; }
 
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
-   * @param space the space to move the buffer to.
-   * @param size the size of the buffer.
-   * @param touch whether the buffer should be touched in the new space or not.
+   * @param space The space to move the buffer to.
+   * @param size The size of the buffer.
+   * @param touch If the buffer should be touched in the new space or not.
    */
   inline
-  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
+  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
   #if defined(USE_CUDA)
     if( m_pointer_record == nullptr ||
@@ -251,16 +284,17 @@ public:
 
     chai::ExecutionSpace const prevSpace = m_pointer_record->m_last_space;
 
-    if( prevSpace == chai::CPU ) moveInnerData( space, size, touch );
+    if( prevSpace == chai::CPU && prevSpace != space ) moveInnerData( space, size, touch );
 
-    m_pointer = static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
-                                                                      m_pointer_record,
-                                                                      space ) );
+    const_cast< T * & >( m_pointer ) =
+      static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
+                                                            m_pointer_record,
+                                                            space ) );
 
     if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
 
-    if( prevSpace == chai::GPU ) moveInnerData( space, size, touch );
+    if( prevSpace == chai::GPU && prevSpace != space ) moveInnerData( space, size, touch );
 
   #else
     LVARRAY_ERROR_IF_NE( space, chai::CPU );
@@ -269,43 +303,44 @@ public:
   #endif
   }
 
+  /**
+   * @brief Move the buffer to the given execution space, optionally touching it.
+   * @param space The space to move the buffer to.
+   * @param touch If the buffer should be touched in the new space or not.
+   * @note This method is only active when the type T itself does not have a method move( chai::ExecutionSpace ).
+   * @return Nothing.
+   */
   template< typename U=T_non_const >
-  std::enable_if_t< !internal::HasMemberFunction_move< U > >
-  move( chai::ExecutionSpace const space, bool const touch )
-  {
-    static_assert( !internal::HasMemberFunction_move< U >,
-                   "The template type T is chai movable, therefore you need to pass the size parameter to the move method." );
-    move( space, capacity(), touch );
-  }
+  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
+  move( chai::ExecutionSpace const space, bool const touch ) const
+  { move( space, capacity(), touch ); }
 
   /**
    * @brief Touch the buffer in the given space.
    * @param space the space to touch.
-   * @note This is done manually instead of calling ManagedArray::registerTouch
-   *       to inline the method and avoid the std::lock used in ArrayManager::registerTouch.
-   *       This call therefore is not threadsafe, but that shouldn't be a problem.
    */
   RAJA_INLINE constexpr
-  void registerTouch( chai::ExecutionSpace const space )
+  void registerTouch( chai::ExecutionSpace const space ) const
   {
     m_pointer_record->m_touched[ space ] = true;
     m_pointer_record->m_last_space = space;
   }
 
   /**
+   * @tparam U The type of the owning class, will be displayed in the callback.
    * @brief Set the name associated with this buffer which is used in the chai callback.
    * @param name the of the buffer.
    */
   template< typename U=NewChaiBuffer< T > >
   void setName( std::string const & name )
   {
-    std::string const typeString = cxx_utilities::demangle( typeid( U ).name() );
+    std::string const typeString = LvArray::demangle( typeid( U ).name() );
     m_pointer_record->m_user_callback = \
       [name, typeString]( chai::Action act, chai::ExecutionSpace s, size_t bytes )
     {
       if( act == chai::ACTION_MOVE )
       {
-        std::string const size = cxx_utilities::calculateSize( bytes );
+        std::string const size = LvArray::calculateSize( bytes );
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
@@ -315,30 +350,43 @@ public:
 
 private:
 
+  /**
+   * @tparam U A dummy parameter to enable SFINAE, do not specify.
+   * @brief Move inner allocations to the memory space @p space.
+   * @param space The memory space to move to.
+   * @param size The number of values to move.
+   * @param touch If the inner values should be touched or not.
+   * @note This method is only active when T has a method move( chai::ExecutionSpace ).
+   */
   template< typename U=T_non_const >
-  std::enable_if_t< !internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const )
-  {}
-
-  template< typename U=T_non_const >
-  std::enable_if_t< internal::HasMemberFunction_move< U > >
-  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch )
+  std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
     if( space == chai::NONE ) return;
-
-    chai::ExecutionSpace const prevSpace = internal::getArrayManager().getExecutionSpace();
-    internal::getArrayManager().setExecutionSpace( space );
 
     for( std::ptrdiff_t i = 0; i < size; ++i )
     {
       const_cast< T_non_const * >( m_pointer )[ i ].move( space, touch );
     }
-
-    internal::getArrayManager().setExecutionSpace( prevSpace );
   }
 
+  /**
+   * @tparam U A dummy parameter to enable SFINAE, do not specify.
+   * @brief Move inner allocations to the memory space @p space.
+   * @note This method is only active when T does not have a method move( chai::ExecutionSpace ).
+   */
+  template< typename U=T_non_const >
+  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
+  moveInnerData( chai::ExecutionSpace const, std::ptrdiff_t const, bool const ) const
+  {}
+
+  /// A pointer to the data.
   T * LVARRAY_RESTRICT m_pointer = nullptr;
+
+  /// The size of the allocation.
   std::ptrdiff_t m_capacity = 0;
+
+  /// A pointer to the chai PointerRecord, keeps track of the memory space information.
   chai::PointerRecord * m_pointer_record = nullptr;
 };
 

@@ -17,7 +17,7 @@
  */
 
 /**
- * @file ArrayUtilities.hpp
+ * @file streamIO.hpp
  */
 
 #ifndef ARRAYUTILITIES_HPP_
@@ -25,6 +25,8 @@
 
 // SRC includes
 #include "Array.hpp"
+#include "SortedArray.hpp"
+#include "ArrayOfArrays.hpp"
 
 // System includes
 #include <string>
@@ -36,7 +38,7 @@ namespace LvArray
 
 /**
  * @struct stringToArrayHelper
- * This is a helper struct to recursively read an istringstream into an array.
+ * @brief A helper struct to recursively read an istringstream into an array.
  */
 template< typename T, typename INDEX_TYPE >
 struct stringToArrayHelper
@@ -58,13 +60,11 @@ struct stringToArrayHelper
   /**
    * @brief Reads a value of the array from the stream
    * @param arrayValue A reference to the array value to read in
-   * @param
    * @param inputStream the stream to read a value from
-   * @return
    */
   template< int NDIM >
   static void Read( T & arrayValue,
-                    INDEX_TYPE const * const,
+                    INDEX_TYPE const *,
                     std::istringstream & inputStream )
   {
     inputStream>>arrayValue;
@@ -75,11 +75,10 @@ struct stringToArrayHelper
   }
 
   /**
-   * @brief recursively read values from an istringstream into an array.
-   * @param arraySlice The arraySlice that provides the interface to write data into the array
-   * @param dims the dimensions of the array
-   * @param inputStream the stream to read from
-   * @return none
+   * @brief Recursively read values from an istringstream into an array.
+   * @param arraySlice The arraySlice that provides the interface to write data into the array.
+   * @param dims The dimensions of the array.
+   * @param inputStream The stream to read from.
    */
   template< int NDIM, int USD >
   static void
@@ -109,18 +108,17 @@ struct stringToArrayHelper
  * @param array Reference to the array that will receive the contents of the input.
  * @param valueString The string that contains the data to read into @p array.
  *
- * The contents of @p valueString are parsed and placed into @p array. @p array is resized to allow
- * space for receiving the contents of @p valueString. The required notation for array values in
- * @p valueString are similar to the requirements of initialization of a standard c-array:
+ * @details The contents of @p valueString are parsed and placed into @p array. @p array is resized to
+ *   allow space for receiving the contents of @p valueString. The required notation for array values in
+ *   @p valueString are similar to the requirements of initialization of a standard c-array:
+ * @code
+ *     Array<T,1> --> "{ val[0], val[1], val[2], ... }"
+ *     Array<T,2> --> "{ { val[0][0], val[0][1], val[0][2], ... },
+ *                       { val[1][0], val[1][1], val[1][2], ... }, ... } "
+ * @endcode
  *
- *   Array<T,1> --> "{ val[0], val[1], val[2], ... }"
- *   Array<T,2> --> "{ { val[0][0], val[0][1], val[0][2], ... },
- *                     { val[1][0], val[1][1], val[1][2], ... }, ... } "
- *
- * @note
- * A null initializer is allowed via "{}"
- * All values must be delimited with a ','. All spaces are stripped prior to processing.
- * Please don't use \t for anything...ever...thanks.
+ * @note * A null initializer is allowed via "{}". All values must be delimited with a ','.
+ *   All spaces are stripped prior to processing, please don't use tabs for anything.
  */
 template< typename T,
           int NDIM,
@@ -146,7 +144,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
       {
         if( valueOnLeft && spaceOnLeft )
         {
-          LVARRAY_ERROR( "Array value sequence specified without ',' delimeter: "<<valueString );
+          LVARRAY_ERROR( "Array value sequence specified without ',' delimiter: "<<valueString );
         }
       }
 
@@ -204,7 +202,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
                     "The input is"<<valueString );
 
   // get the number of dimensions from the number of { characters that begin the input string
-  int const ndims = integer_conversion< int >( valueString.find_first_not_of( '{' ));
+  int const ndims = LvArray::integerConversion< int >( valueString.find_first_not_of( '{' ));
   LVARRAY_ERROR_IF( ndims!=NDIM,
                     "number of dimensions in string ("<<ndims<<
                     ") does not match dimensions of array("<<NDIM<<
@@ -301,14 +299,18 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_
 }
 
 /**
+ * @tparam T The type of the values in @p slice.
+ * @tparam NDIM The number of dimensions of @p slice.
+ * @tparam USD The unit stride dimension of @p slice.
+ * @tparam INDEX_TYPE The integer used by @p slice.
  * @brief This function outputs the contents of an array slice to an output stream.
- * @param stream the output stream for which to apply operator<<.
- * @param slice the slice to output.
- * @return a reference to the ostream.
+ * @param stream The output stream to write to.
+ * @param slice The slice to output.
+ * @return @p stream .
  */
 template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ArraySlice< T const, NDIM, USD, INDEX_TYPE > const & slice )
+                           ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice )
 {
   stream << "{ ";
 
@@ -325,20 +327,153 @@ std::ostream & operator<<( std::ostream & stream,
 }
 
 /**
- * @brief This function outputs the contents of an array view to an output stream.
- * @param stream the output stream for which to apply operator<<.
- * @param view the view to output.
- * @return a reference to the ostream.
+ * @tparam T The type of the values in @p view.
+ * @tparam NDIM The number of dimensions of @p view.
+ * @tparam USD The unit stride dimension of @p view.
+ * @tparam INDEX_TYPE The integer used by @p view.
+ * @tparam BUFFER_TYPE The buffer type used by @p view.
+ * @brief This function outputs the contents of an ArrayView to an output stream.
+ * @param stream The output stream to write to.
+ * @param view The view to output.
+ * @return @p stream .
  */
 template< typename T,
           int NDIM,
           int USD,
           typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
+          template< typename > class BUFFER_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > const & view )
+                           ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & view )
+{ return stream << view.toSliceConst(); }
+
+/**
+ * @tparam T The type of the values in @p view.
+ * @tparam INDEX_TYPE The integer used by @p view.
+ * @brief This function outputs the contents of @p view to an output stream.
+ * @param stream The output stream to write to.
+ * @param view The SortedArrayView to output.
+ * @return @p stream .
+ */
+template< typename T, typename INDEX_TYPE >
+std::ostream & operator<< ( std::ostream & stream, SortedArrayView< T const, INDEX_TYPE > const & view )
 {
-  return stream << view.toSliceConst();
+  if( view.size() == 0 )
+  {
+    stream << "{}";
+    return stream;
+  }
+
+  stream << "{ " << view[ 0 ];
+
+  if( view.size() > 0 )
+    stream << view[ 0 ];
+
+  for( INDEX_TYPE i = 1; i < view.size(); ++i )
+  {
+    stream << ", " << view[ i ];
+  }
+
+  stream << " }";
+  return stream;
+}
+
+/**
+ * @tparam T The type of the values in @p array.
+ * @tparam INDEX_TYPE The integer used by @p array.
+ * @brief This function outputs the contents of @p array to an output stream.
+ * @param stream The output stream to write to.
+ * @param array The SortedArray to output.
+ * @return @p stream .
+ */
+template< typename T, typename INDEX_TYPE >
+std::ostream & operator<< ( std::ostream & stream, SortedArray< T, INDEX_TYPE > const & array )
+{ return stream << array.toViewConst(); }
+
+/**
+ * @tparam T The type of the values in @p view.
+ * @tparam INDEX_TYPE The integer used by @p view.
+ * @brief This function outputs the contents of @p view to an output stream.
+ * @param stream The output stream to write to.
+ * @param view The ArrayOfArraysView to output.
+ * @return @p stream .
+ */
+template< typename T, typename INDEX_TYPE >
+std::ostream & operator<< ( std::ostream & stream, ArrayOfArraysView< T const, INDEX_TYPE const, true > const & view )
+{
+  stream << "{" << std::endl;
+
+  for( INDEX_TYPE i = 0; i < view.size(); ++i )
+  {
+    stream << i << "\t{";
+    for( INDEX_TYPE j = 0; j < view.sizeOfArray( i ); ++j )
+    {
+      stream << view( i, j ) << ", ";
+    }
+
+    // for (INDEX_TYPE j = view.sizeOfArray(i); j < view.capacityOfArray(i); ++j)
+    // {
+    //   stream << "X" << ", ";
+    // }
+
+    stream << "}" << std::endl;
+  }
+
+  stream << "}" << std::endl;
+  return stream;
+}
+
+/**
+ * @tparam T The type of the values in @p array.
+ * @tparam INDEX_TYPE The integer used by @p array.
+ * @brief This function outputs the contents of @p array to an output stream.
+ * @param stream The output stream to write to.
+ * @param array The ArrayOfArrays to output.
+ * @return @p stream .
+ */
+template< typename T, typename INDEX_TYPE, bool CONST_SIZES >
+std::ostream & operator<< ( std::ostream & stream, ArrayOfArrays< T, INDEX_TYPE > const & array )
+{ return stream << array.toViewConst(); }
+
+/**
+ * @brief Output a c-array to a stream.
+ * @tparam T The type contained in the array.
+ * @tparam N The size of the array.
+ * @param stream The output stream to write to.
+ * @param array The c-array to output.
+ * @return @p stream.
+ */
+template< typename T, int N >
+std::enable_if_t< !std::is_same_v< T, char >, std::ostream & >
+operator<< ( std::ostream & stream, T const ( &array )[ N ] )
+{
+  stream << "{ " << array[ 0 ];
+  for( int i = 1; i < N; ++i )
+  {
+    stream << ", " << array[ i ];
+  }
+  stream << " }";
+  return stream;
+}
+
+/**
+ * @brief Output a 2D c-array to a stream.
+ * @tparam T The type contained in the array.
+ * @tparam M The size of the first dimension.
+ * @tparam N The size of the second dimension.
+ * @param stream The output stream to write to.
+ * @param array The 2D c-array to output.
+ * @return @p stream.
+ */
+template< typename T, int M, int N >
+std::ostream & operator<< ( std::ostream & stream, T const ( &array )[ M ][ N ] )
+{
+  stream << "{ " << array[ 0 ];
+  for( int i = 1; i < M; ++i )
+  {
+    stream << ", " << array[ i ];
+  }
+  stream << " }";
+  return stream;
 }
 
 } // namespace LvArray

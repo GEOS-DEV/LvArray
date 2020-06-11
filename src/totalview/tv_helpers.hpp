@@ -49,7 +49,7 @@ namespace totalview
 template< typename TYPE, typename INDEX_TYPE >
 std::string format( int NDIM, INDEX_TYPE const * const dims )
 {
-  std::string rval = cxx_utilities::demangleType< TYPE >();
+  std::string rval = LvArray::demangleType< TYPE >();
   for( int i=0; i<NDIM; ++i )
   {
     rval += "["+std::to_string( dims[i] )+"]";

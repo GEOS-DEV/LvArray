@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-# check if cxx-utilities is build as a submodule or a separate project
+# check if LvArray is build as a submodule or a separate project
 get_directory_property(parent_dir PARENT_DIRECTORY)
 if(parent_dir)
     set(is_submodule ON)
@@ -10,11 +10,12 @@ endif()
 
 if(NOT is_submodule)
 
-  project(cxx-utilities LANGUAGES CXX)
+  project(LvArray LANGUAGES C CXX)
 
   set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
   set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
 
+  option(ENABLE_BENCHMARKS "Enables benchmarks" ON)
   include(cmake/blt/SetupBLT.cmake)
   include(cmake/CMakeBasics.cmake)
   include(cmake/SetupTPL.cmake)
@@ -24,36 +25,33 @@ endif()
 include(cmake/Macros.cmake)
 include(cmake/Config.cmake)
 
-set( cxx_dependencies "" )
+set( lvarray_dependencies "" )
 
 if( ENABLE_CHAI )
-    set( cxx_dependencies ${cxx_dependencies} chai umpire )
+    set( lvarray_dependencies ${lvarray_dependencies} chai umpire )
 endif()
 
 if( ${ENABLE_MPI} )
-    set( cxx_dependencies ${cxx_dependencies} mpi )
+    set( lvarray_dependencies ${lvarray_dependencies} mpi )
 endif()
 
 if( ENABLE_CUDA )
-    set( cxx_dependencies ${cxx_dependencies} cuda )
+    set( lvarray_dependencies ${lvarray_dependencies} cuda )
 endif()
 
 if( ENABLE_OPENMP )
-    set( cxx_dependencies ${cxx_dependencies} openmp )
+    set( lvarray_dependencies ${lvarray_dependencies} openmp )
 endif()
 
 if( ENABLE_RAJA )
-    set( cxx_dependencies ${cxx_dependencies} raja )
+    set( lvarray_dependencies ${lvarray_dependencies} raja )
 endif()
 
 if( ENABLE_CALIPER )
-    set( cxx_dependencies ${cxx_dependencies} caliper )
+    set( lvarray_dependencies ${lvarray_dependencies} caliper )
 endif()
 
 add_subdirectory(unitTests)
 add_subdirectory(benchmarks)
 add_subdirectory(src)
-add_subdirectory(docs)
 
-cxxutils_add_code_checks(PREFIX cxx-utilities
-                         EXCLUDES "blt/*" )

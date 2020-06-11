@@ -24,17 +24,17 @@
 
 TEST( testStringUtilities, calculateSize )
 {
-  EXPECT_EQ( "0.0 KB", cxx_utilities::calculateSize( 0 ) );
-  EXPECT_EQ( "0.0 KB", cxx_utilities::calculateSize( 10 ) );
-  EXPECT_EQ( "0.5 KB", cxx_utilities::calculateSize( 1 << 9 ) );
-  EXPECT_EQ( "1.3 KB", cxx_utilities::calculateSize( 1.34 * (1 << 10) ) );
-  EXPECT_EQ( "1.4 KB", cxx_utilities::calculateSize( 1.39 * (1 << 10) ) );
+  EXPECT_EQ( "0.0 KB", LvArray::calculateSize( 0 ) );
+  EXPECT_EQ( "0.0 KB", LvArray::calculateSize( 10 ) );
+  EXPECT_EQ( "0.5 KB", LvArray::calculateSize( 1 << 9 ) );
+  EXPECT_EQ( "1.3 KB", LvArray::calculateSize( 1.34 * (1 << 10) ) );
+  EXPECT_EQ( "1.4 KB", LvArray::calculateSize( 1.39 * (1 << 10) ) );
 
-  EXPECT_EQ( "1.0 MB", cxx_utilities::calculateSize( 1 << 20 ) );
-  EXPECT_EQ( "105.4 MB", cxx_utilities::calculateSize( 105.4 * (1 << 20) ) );
-  EXPECT_EQ( "1000.3 MB", cxx_utilities::calculateSize( 1000.3 * (1 << 20) ) );
+  EXPECT_EQ( "1.0 MB", LvArray::calculateSize( 1 << 20 ) );
+  EXPECT_EQ( "105.4 MB", LvArray::calculateSize( 105.4 * (1 << 20) ) );
+  EXPECT_EQ( "1000.3 MB", LvArray::calculateSize( 1000.3 * (1 << 20) ) );
 
-  EXPECT_EQ( "53.5 GB", cxx_utilities::calculateSize( 53.5 * (1 << 30) ) );
-  EXPECT_EQ( "53.5 GB", cxx_utilities::calculateSize( 53.5 * (1 << 30) ) );
-  EXPECT_EQ( "789.7 GB", cxx_utilities::calculateSize( 789.74563 * (1 << 30) ) );
+  EXPECT_EQ( "53.5 GB", LvArray::calculateSize( 53.5 * (1 << 30) ) );
+  EXPECT_EQ( "53.5 GB", LvArray::calculateSize( 53.5 * (1 << 30) ) );
+  EXPECT_EQ( "789.7 GB", LvArray::calculateSize( 789.74563 * (1 << 30) ) );
 }

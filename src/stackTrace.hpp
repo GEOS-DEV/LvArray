@@ -23,29 +23,28 @@
 #ifndef SRC_CODINGUTILITIES_STACKTRACE_HPP_
 #define SRC_CODINGUTILITIES_STACKTRACE_HPP_
 
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 
 #include <signal.h>
 #include <string>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
-std::string stackTrace( );
+/// @brief @return Return a demangled stack trace of the last 25 frames.
+std::string stackTrace();
 
-void handler( int sig, int exitFlag=1, int exitCode=1 );
+/**
+ * @brief Abort the program, correctly finalizing MPI.
+ */
+void abort();
 
-
-inline void handler0( int sig )
-{
-  handler( sig, 0, 1 );
-}
-
-inline void handler1( int sig )
-{
-  handler( sig, 1, 1 );
-}
-
+/**
+ * @brief Print signal information and a stack trace to standard out, optionally aborting.
+ * @param sig The signal received.
+ * @param exit If true abort execution.
+ */
+void stackTraceHandler( int const sig, bool const exit );
 
 }
 

@@ -81,8 +81,7 @@ public:
    */
   void insertTest( INDEX_TYPE const maxInserts, INDEX_TYPE const maxVal )
   {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
+    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
 
     for( INDEX_TYPE i = 0; i < maxInserts; ++i )
     {
@@ -98,63 +97,54 @@ public:
    * @param [in] maxInserts the number of values to insert at a time.
    * @param [in] maxVal the largest value possibly generate.
    */
-  void insertMultipleSortedTest( INDEX_TYPE const maxInserts, INDEX_TYPE const maxVal )
+  void insertMultipleTest( INDEX_TYPE maxInserts, INDEX_TYPE const maxVal )
   {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
+    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
 
-    std::vector< T > values( maxInserts );
+    // Divide maxInserts by two since we insert with both a std::vector and std::set.
+    maxInserts /= 2;
 
-
-    for( INDEX_TYPE i = 0; i < maxInserts; ++i )
+    // Insert values from a std::vector
     {
-      values[i] = randVal( maxVal );
+      std::vector< T > values( maxInserts );
+
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
+      { values[i] = randVal( maxVal ); }
+
+      m_ref.insert( values.begin(), values.end() );
+
+      INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( values.begin(), values.end() );
+      values.resize( numUniqueValues );
+
+      m_set.insert( values.begin(), values.end() );
+      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
     }
 
-    std::sort( values.begin(), values.end());
-    m_set.insertSorted( values.data(), maxInserts );
-    m_ref.insert( values.begin(), values.end());
+    // Insert values from a std::set
+    {
+      std::set< T > values;
+      for( INDEX_TYPE i = 0; i < maxInserts; ++i )
+      { values.insert( randVal( maxVal ) ); }
 
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      m_ref.insert( values.begin(), values.end() );
+      m_set.insert( values.begin(), values.end() );
+      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    }
   }
 
   /**
-   * @brief Test the insert multiple method of the SortedArray.
-   * @param [in] maxInserts the number of values to insert at a time.
+   * @brief Test the remove method of the SortedArray.
+   * @param [in] maxRemoves the number of times to call remove.
    * @param [in] maxVal the largest value possibly generate.
    */
-  void insertMultipleTest( INDEX_TYPE const maxInserts, INDEX_TYPE const maxVal )
+  void removeTest( INDEX_TYPE const maxRemoves, INDEX_TYPE const maxVal )
   {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
-
-    std::vector< T > values( maxInserts );
-
-    for( INDEX_TYPE i = 0; i < maxInserts; ++i )
-    {
-      values[i] = randVal( maxVal );
-    }
-
-    m_set.insert( values.data(), maxInserts );
-    m_ref.insert( values.begin(), values.end());
-
     COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
-  }
-
-  /**
-   * @brief Test the erase method of the SortedArray.
-   * @param [in] maxRemoves the number of times to call erase.
-   * @param [in] maxVal the largest value possibly generate.
-   */
-  void eraseTest( INDEX_TYPE const maxRemoves, INDEX_TYPE const maxVal )
-  {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
 
     for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
     {
       T const value = randVal( maxVal );
-      ASSERT_EQ( m_ref.erase( value ), m_set.erase( value ));
+      ASSERT_EQ( m_ref.erase( value ), m_set.remove( value ) );
     }
 
     COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
@@ -165,54 +155,45 @@ public:
    * @param [in] maxInserts the number of values to erase at a time.
    * @param [in] maxVal the largest value possibly generate.
    */
-  void eraseMultipleSortedTest( INDEX_TYPE const maxRemoves, INDEX_TYPE const maxVal )
+  void removeMultipleTest( INDEX_TYPE maxRemoves, INDEX_TYPE const maxVal )
   {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
-
-    std::vector< T > values( maxRemoves );
-
-    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
-    {
-      values[i] = randVal( maxVal );
-    }
-
-    std::sort( values.begin(), values.end());
-    m_set.eraseSorted( values.data(), maxRemoves );
-
-    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
-    {
-      m_ref.erase( values[i] );
-    }
-
     COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
-  }
 
-  /**
-   * @brief Test the erase multiple method of the SortedArray.
-   * @param [in] maxInserts the number of values to erase at a time.
-   * @param [in] maxVal the largest value possibly generate.
-   */
-  void eraseMultipleTest( INDEX_TYPE const maxRemoves, INDEX_TYPE const maxVal )
-  {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
+    // Divide maxInserts by two since we insert with both a std::vector and std::set.
+    maxRemoves /= 2;
 
-    std::vector< T > values( maxRemoves );
-
-    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
+    // Remove values from a std::vector
     {
-      values[i] = randVal( maxVal );
+      std::vector< T > values( maxRemoves );
+
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
+      {
+        values[ i ] = randVal( maxVal );
+        m_ref.erase( values[ i ] );
+      }
+
+      INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( values.begin(), values.end() );
+      values.resize( numUniqueValues );
+
+      m_set.remove( values.begin(), values.end() );
+
+      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
     }
 
-    m_set.erase( values.data(), maxRemoves );
-
-    for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
+    // Remove values from a std::set
     {
-      m_ref.erase( values[i] );
-    }
+      std::set< T > values;
+      for( INDEX_TYPE i = 0; i < maxRemoves; ++i )
+      {
+        T const val = randVal( maxVal );
+        m_ref.erase( val );
+        values.insert( val );
+      }
 
-    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+      m_set.remove( values.begin(), values.end() );
+
+      COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+    }
   }
 
   /**
@@ -220,17 +201,14 @@ public:
    */
   void containsTest() const
   {
-    INDEX_TYPE const N = m_set.size();
-    ASSERT_EQ( N, m_ref.size());
-
     COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
 
-    typename std::set< T >::iterator it = m_ref.begin();
-    for( INDEX_TYPE i = 0; i < N; ++i )
+    auto it = m_ref.begin();
+    for( INDEX_TYPE i = 0; i < m_set.size(); ++i )
     {
       T const & value = *it;
-      EXPECT_TRUE( m_set.contains( value ));
-      EXPECT_EQ( m_set.contains( T( i )), m_ref.count( T( i )));
+      EXPECT_TRUE( m_set.contains( value ) );
+      EXPECT_EQ( m_set.contains( T( i ) ), m_ref.count( T( i ) ) );
       ++it;
     }
   }
@@ -240,6 +218,8 @@ public:
    */
   void deepCopyTest() const
   {
+    COMPARE_TO_REFERENCE( m_set.toView(), m_ref );
+
     INDEX_TYPE const N = m_set.size();
 
     SortedArray< T > v_cpy( m_set );
@@ -253,7 +233,7 @@ public:
     for( INDEX_TYPE i = N - 1; i >= 0; --i )
     {
       EXPECT_EQ( vals[i], vals_cpy[i] );
-      v_cpy.erase( vals_cpy[i] );
+      v_cpy.remove( vals_cpy[i] );
     }
 
     EXPECT_EQ( v_cpy.size(), 0 );
@@ -266,9 +246,7 @@ public:
 protected:
 
   T randVal( INDEX_TYPE const max )
-  {
-    return T( std::uniform_int_distribution< INDEX_TYPE >( 0, max )( m_gen ) );
-  }
+  { return T( std::uniform_int_distribution< INDEX_TYPE >( 0, max )( m_gen ) ); }
 
   SortedArray< T > m_set;
 
@@ -278,7 +256,7 @@ protected:
 };
 
 using TestTypes = ::testing::Types< int, Tensor, TestString >;
-TYPED_TEST_CASE( SortedArrayTest, TestTypes );
+TYPED_TEST_SUITE( SortedArrayTest, TestTypes, );
 
 INDEX_TYPE const DEFAULT_MAX_INSERTS = 200;
 INDEX_TYPE const DEFAULT_MAX_VAL = 1000;
@@ -304,14 +282,6 @@ TYPED_TEST( SortedArrayTest, reserve )
   EXPECT_EQ( ptr, this->m_set.data());
 }
 
-TYPED_TEST( SortedArrayTest, insertMultipleSorted )
-{
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insertMultipleSortedTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
-  }
-}
-
 TYPED_TEST( SortedArrayTest, insertMultiple )
 {
   for( int i = 0; i < 4; ++i )
@@ -325,25 +295,16 @@ TYPED_TEST( SortedArrayTest, erase )
   for( int i = 0; i < 2; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
-    this->eraseTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
+    this->removeTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
 }
 
-TYPED_TEST( SortedArrayTest, eraseMultipleSorted )
+TYPED_TEST( SortedArrayTest, removeMultiple )
 {
   for( int i = 0; i < 2; ++i )
   {
     this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
-    this->eraseMultipleSortedTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
-  }
-}
-
-TYPED_TEST( SortedArrayTest, eraseMultiple )
-{
-  for( int i = 0; i < 2; ++i )
-  {
-    this->insertTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
-    this->eraseMultipleTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
+    this->removeMultipleTest( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VAL );
   }
 }
 
@@ -479,7 +440,7 @@ protected:
 };
 
 using CudaTestTypes = ::testing::Types< int, Tensor >;
-TYPED_TEST_CASE( SortedArrayCudaTest, CudaTestTypes );
+TYPED_TEST_SUITE( SortedArrayCudaTest, CudaTestTypes );
 
 TYPED_TEST( SortedArrayCudaTest, memoryMotion )
 {

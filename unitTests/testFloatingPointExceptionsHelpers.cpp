@@ -22,7 +22,7 @@
 #include "SetFPE.hpp"
 #include "SetSignalHandling.hpp"
 #include "stackTrace.hpp"
-#include "testHelperFunctions.hpp"
+#include "testFloatingPointExceptionsHelpers.hpp"
 
 namespace testFloatingPointExceptionsHelpers
 {
@@ -50,7 +50,7 @@ void func0( double divisor )
 
 void testStackTrace( double divisor )
 {
-  cxx_utilities::setSignalHandling( cxx_utilities::handler1 );
+  LvArray::setSignalHandling( []( int const signal ) { LvArray::stackTraceHandler( signal, true ); } );
   func0( divisor );
 }
 

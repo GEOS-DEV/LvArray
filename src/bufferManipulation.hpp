@@ -20,12 +20,12 @@
 #define BUFFER_MANIPULATION_HPP_
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Macros.hpp"
+#include "templateHelpers.hpp"
 #include "arrayManipulation.hpp"
 
 // TPL includes
-#include <chai/ManagedArray.hpp>
 #include <chai/ArrayManager.hpp>
 
 // System includes
@@ -37,10 +37,17 @@ namespace bufferManipulation
 {
 
 /**
+ * @brief Defines a static constexpr bool HasMemberFunction_move< @p CLASS >
+ *   that is true iff the method @p CLASS ::move(chai::ExecutionSpace, bool) exists.
+ * @tparam CLASS The type to test.
+ */
+IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( chai::CPU, true ) );
+
+/**
  * @class VoidBuffer
  * @brief This class implements the default behavior for the Buffer methods related
- *        to execution space. This class is not intended to be used directly, instead derive
- *        from it if you would like to inherit the default behavior.
+ *   to execution space. This class is not intended to be used directly, instead derive
+ *   from it if you would like to inherit the default behavior.
  */
 struct VoidBuffer
 {
@@ -50,12 +57,12 @@ struct VoidBuffer
    * @param size the size of the buffer.
    * @param touch whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space,
-             std::ptrdiff_t const LVARRAY_UNUSED_ARG( size ),
-             bool const LVARRAY_UNUSED_ARG( touch ) )
+  void move( chai::ExecutionSpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
+    LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( touch );
     LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
   }
 
@@ -64,11 +71,11 @@ struct VoidBuffer
    * @param space the space to move the buffer to.
    * @param touch whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
-  void move( chai::ExecutionSpace const space,
-             bool const LVARRAY_UNUSED_ARG( touch ) )
+  void move( chai::ExecutionSpace const space, bool const touch )
   {
+    LVARRAY_UNUSED_VARIABLE( touch );
     LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
   }
 
@@ -76,12 +83,10 @@ struct VoidBuffer
    * @brief Touch the buffer in the given space.
    * @param space the space to touch.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
-   *       occurs if you try to move it to a different space.
+   *   occurs if you try to move it to a different space.
    */
   void registerTouch( chai::ExecutionSpace const space )
-  {
-    LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." );
-  }
+  { LVARRAY_ERROR_IF_NE_MSG( space, chai::CPU, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @tparam The type of the owning object.
@@ -89,8 +94,9 @@ struct VoidBuffer
    * @param name the name of the buffer.
    */
   template< typename=VoidBuffer >
-  void setName( std::string const & LVARRAY_UNUSED_ARG( name ) )
-  {}
+  LVARRAY_HOST_DEVICE
+  void setName( std::string const & name )
+  { LVARRAY_UNUSED_VARIABLE( name ); }
 };
 
 /**
@@ -102,15 +108,10 @@ struct VoidBuffer
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
-inline
+inline LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
 void check( BUFFER const & buf, std::ptrdiff_t const size )
 {
 #ifdef USE_ARRAY_BOUNDS_CHECK
-  if( size > buf.capacity() )
-  {
-    LVARRAY_LOG( "ERROR" );
-  }
-
   LVARRAY_ERROR_IF_GT( 0, buf.capacity() );
   LVARRAY_ERROR_IF_GT( 0, size );
   LVARRAY_ERROR_IF_GT( size, buf.capacity() );
@@ -151,12 +152,23 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
  * @param size the size of the buffer.
  * @note See MallocBuffer for the standard buffer interface.
  */
+DISABLE_HD_WARNING
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void free( BUFFER & buf, std::ptrdiff_t const size )
 {
+  using T = typename BUFFER::value_type;
+
   check( buf, size );
 
-  using T = typename BUFFER::value_type;
+  /// If the values contained can themselves be moved then they need to be moved back to the host.
+#if !defined(__CUDA_ARCH__ )
+  if( HasMemberFunction_move< T > )
+  {
+    buf.move( chai::CPU, size, true );
+  }
+#endif
+
   T * const LVARRAY_RESTRICT data = buf.data();
   for( std::ptrdiff_t i = 0; i < size; ++i )
   {
@@ -174,7 +186,9 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
  * @param newCapacity the new capacity of the buffer.
  * @note See MallocBuffer for the standard buffer interface.
  */
+DISABLE_HD_WARNING
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
@@ -190,6 +204,7 @@ void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const 
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER >
+LVARRAY_HOST_DEVICE
 void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
@@ -235,6 +250,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
  * @note See MallocBuffer for the standard buffer interface.
  */
 template< typename BUFFER, typename ... ARGS >
+LVARRAY_HOST_DEVICE
 void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSize, ARGS && ... args )
 {
   check( buf, size );
@@ -243,10 +259,12 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 
+#if !defined(__CUDA_ARCH__)
   if( newSize > 0 )
   {
     buf.registerTouch( chai::CPU );
   }
+#endif
 }
 
 /**
@@ -387,7 +405,9 @@ void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
  * @param src the source buffer.
  * @param srcSize the size of the source buffer.
  */
+DISABLE_HD_WARNING
 template< typename DST_BUFFER, typename SRC_BUFFER >
+LVARRAY_HOST_DEVICE
 void copyInto( DST_BUFFER & dst,
                std::ptrdiff_t const dstSize,
                SRC_BUFFER const & src,

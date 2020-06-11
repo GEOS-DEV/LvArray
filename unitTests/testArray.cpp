@@ -475,7 +475,7 @@ void resizeNoInitOrDestroy_test( array< T > & v, INDEX_TYPE n )
     data_ptr[ i ] = val;
   }
 
-  /* No reallocation should have occured. */
+  // No reallocation should have occurred.
   ASSERT_EQ( data_ptr, v.data() );
 
   v.resizeWithoutInitializationOrDestruction( n / 4 );
@@ -1388,7 +1388,7 @@ private:
 };
 
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
-TYPED_TEST_CASE( ArrayResizeTest, TestTypes );
+TYPED_TEST_SUITE( ArrayResizeTest, TestTypes, );
 
 TYPED_TEST( ArrayResizeTest, resize1D )
 {

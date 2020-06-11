@@ -28,6 +28,7 @@
 #include "Permutation.hpp"
 #include "NewChaiBuffer.hpp"
 #include "templateHelpers.hpp"
+#include "IntegerConversion.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
@@ -36,71 +37,120 @@ namespace LvArray
 {
 
 /**
- *
+ * @tparam B_IS_ONE If true the multiplication is skipped.
+ * @brief A helper struct to multiply two numbers.
  */
-template< std::ptrdiff_t i, std::ptrdiff_t exclude_i >
+template< bool B_IS_ONE >
 struct ConditionalMultiply
 {
-
+  /**
+   * @tparam A The type of @p a.
+   * @tparam B the type of @p b.
+   * @brief @return Return the product of @p a and @p b.
+   * @param a The left multiplication operand.
+   * @param b The right multiplication operand.
+   */
   template< typename A, typename B >
   static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const b )
-  {
-    // regular product term
-    return a * b;
-  }
+  { return a * b; }
 };
 
-template< std::ptrdiff_t i >
-struct ConditionalMultiply< i, i >
+/**
+ * @brief A specialization of ConditionalMultiply that skips the multiplication.
+ */
+template<>
+struct ConditionalMultiply< true >
 {
-  // Use a reference here for B so that you can do multiply( 5, *nullptr ), which is use by the ArrayOfArray classes.
+  /**
+   * @tparam A The type of @p a.
+   * @tparam B the type of @p b.
+   * @brief @return Return @p a since the second argument is assumed to be 1.
+   * @param a The value to return.
+   * @note The second argument is passed by reference so that you can do
+   * @code  ConditionalMultiply< true >( 5, *static_cast< int * >( nullptr ) ) @endcode.
+   */
   template< typename A, typename B >
-  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const & LVARRAY_UNUSED_ARG( b ) )
-  {
-    // assume b == 1
-    return a;
-  }
+  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const & )
+  { return a; }
 };
 
+/**
+ * @tparam SIZE The number of values to multiply together.
+ * @tparam T The type of the values.
+ * @brief @return The product of the values in [ @p values, @p values + SIZE )
+ * @param values A pointer to the values to multiply together.
+ */
 template< int SIZE, typename T >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-typename std::enable_if< (SIZE == 1), T >::type
+std::enable_if_t< (SIZE == 1), T >
 multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ]; }
 
+/**
+ * @tparam SIZE The number of values to multiply together.
+ * @tparam T The type of the values.
+ * @brief @return The product of the values in [ @p values, @p values + SIZE )
+ * @param values A pointer to the values to multiply together.
+ */
 template< int SIZE, typename T >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-typename std::enable_if< (SIZE > 1), T >::type
+std::enable_if_t< (SIZE > 1), T >
 multiplyAll( T const * const LVARRAY_RESTRICT values )
 { return values[ 0 ] * multiplyAll< SIZE - 1 >( values + 1 ); }
 
+/**
+ * @tparam USD The unit stride dimension of strides.
+ * @tparam INDEX_TYPE The integral type of the strides and the type to return.
+ * @tparam INDEX The integral type of the index.
+ * @brief Get the index into a one dimensional space.
+ * @param strides A pointer to the stride of the dimension.
+ * @param index The index into the dimension.
+ * @note If USD == 0 then strides[ 0 ] is assumed to equal 1.
+ * @return The product of index with strides[ 0 ].
+ */
 template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
-{
-  return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] );
-}
+{ return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ); }
 
+/**
+ * @tparam USD The unit stride dimension of strides.
+ * @tparam INDEX_TYPE The integral type of the strides and the type to return.
+ * @tparam INDEX The integral type of the first index.
+ * @tparam REMAINING_INDICES A variadic pack of the integral types of the remaining indices.
+ * @brief Get the index into a a multidimensional space.
+ * @param strides A pointer to the strides of the dimension.
+ * @param index The index into the first dimension.
+ * @param indices A variadic pack of the indices to the remaining dimensions.
+ * @note If 0 <= USD < the number of dimensions then strides[ USD ] is assumed to equal 1.
+ * @return The dot product of @p strides with ( @p index, @p indices ... ).
+ */
 template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
 LVARRAY_HOST_DEVICE RAJA_INLINE constexpr
-INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES... indices )
+INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
-  return ConditionalMultiply< 0, USD >::multiply( index, strides[ 0 ] ) +
+  return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ) +
          getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
 
-template< typename INDEX_TYPE, typename INDEX, typename ... INDICES >
-std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDEX const index, INDICES... indices )
-{
-  constexpr int NDIM = sizeof ... (INDICES) + 1;
-  std::ostringstream oss;
-  oss << "dimensions = { " << dims[ 0 ];
-  for( int i = 1; i < NDIM; ++i )
-  {
-    oss << ", " << dims[ i ];
-  }
-  oss << " } indices = { " << index;
+/// @brief @return A string representing an empty set of indices.
+inline
+std::string getIndexString()
+{ return "{}"; }
 
+/**
+ * @tparam INDEX The integral type of the first index.
+ * @tparam REMAINING_INDICES A variadic pack of the integral types of the remaining indices.
+ * @brief @return A string representing the indices.
+ * @param index The first index.
+ * @param indices A variadic pack of indices to the remaining dimensions.
+ */
+template< typename INDEX, typename ... REMAINING_INDICES >
+std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indices )
+{
+  std::ostringstream oss;
+
+  oss << "{ " << index;
   using expander = int[];
   (void) expander{ 0, ( void (oss << ", " << indices ), 0 )... };
   oss << " }";
@@ -108,212 +158,64 @@ std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims,
   return oss.str();
 }
 
+/**
+ * @tparam INDEX_TYPE The integral type of the dimensions.
+ * @tparam INDICES A variadic pack of the integral types of the indices.
+ * @brief @return A string representing the dimensions of the multidimensional space and the indices into it.
+ * @param dims A pointer to the dimensions of the space.
+ * @param indices A variadic pack of indices.
+ */
+template< typename INDEX_TYPE, typename ... INDICES >
+std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
+{
+  constexpr int NDIM = sizeof ... (INDICES);
+  std::ostringstream oss;
+  oss << "dimensions = { " << dims[ 0 ];
+  for( int i = 1; i < NDIM; ++i )
+  {
+    oss << ", " << dims[ i ];
+  }
 
-template< typename none = void >
+  oss << " } indices = " << getIndexString( indices ... );
+
+  return oss.str();
+}
+
+/**
+ * @tparam INDEX_TYPE The integral type used for the dimensions of the space.
+ * @tparam INDICES A variadic pack of the integral types of the indices.
+ * @brief @return If the indices into the multidimensional space are invalid.
+ * @param dims A pointer to the dimensions of the space.
+ * @param indices A variadic pack of the indices.
+ */
+template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndices( void const * const LVARRAY_RESTRICT LVARRAY_UNUSED_ARG( dims ) )
-{ return false; }
+bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
+{
+  int curDim = 0;
+  bool invalid = false;
+  forEachArg( [dims, &curDim, &invalid]( auto const index )
+  {
+    invalid = invalid || ( index < 0 ) || ( index >= dims[ curDim ] );
+    ++curDim;
+  }, indices ... );
 
+  return invalid;
+}
 
-template< typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
-LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDEX const index, REMAINING_INDICES... indices )
-{ return index < 0 || index >= dims[ 0 ] || invalidIndices( dims + 1, indices ... ); }
-
-
+/**
+ * @tparam INDEX_TYPE The integral type used for the dimensions of the space.
+ * @tparam INDICES A variadic pack of the integral types of the indices.
+ * @brief Check that the @p indices are with @p dims , if not the program is aborted.
+ * @param dims A pointer to the dimensions of the space.
+ * @param indices A variadic pack of the indices.
+ */
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
-void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES... indices )
+void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
 
-template< typename T >
-struct is_integer
-{
-  constexpr static bool value = std::is_same< T, int >::value ||
-                                std::is_same< T, unsigned int >::value ||
-                                std::is_same< T, long int >::value ||
-                                std::is_same< T, unsigned long int >::value ||
-                                std::is_same< T, long long int >::value ||
-                                std::is_same< T, unsigned long long int >::value;
-};
-
-template< typename INDEX_TYPE, typename CANDIDATE_INDEX_TYPE >
-struct is_valid_indexType
-{
-  constexpr static bool value = std::is_same< CANDIDATE_INDEX_TYPE, INDEX_TYPE >::value ||
-                                ( is_integer< CANDIDATE_INDEX_TYPE >::value &&
-                                  ( sizeof(CANDIDATE_INDEX_TYPE)<=sizeof(INDEX_TYPE) ) );
-};
-
-template< typename INDEX_TYPE, typename DIM0, typename ... DIMS >
-struct check_dim_type
-{
-  constexpr static bool value =  is_valid_indexType< INDEX_TYPE, DIM0 >::value && check_dim_type< INDEX_TYPE, DIMS... >::value;
-};
-
-template< typename INDEX_TYPE, typename DIM0 >
-struct check_dim_type< INDEX_TYPE, DIM0 >
-{
-  constexpr static bool value = is_valid_indexType< INDEX_TYPE, DIM0 >::value;
-};
-
-
-
-template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES >
-struct check_dim_indices
-{
-  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM) && check_dim_indices< INDEX_TYPE, NDIM, INDICES... >::value;
-};
-
-template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0 >
-struct check_dim_indices< INDEX_TYPE, NDIM, INDEX0 >
-{
-  constexpr static bool value = (INDEX0 >= 0) && (INDEX0 < NDIM);
-};
-
-template< typename INDEX_TYPE, typename ... DIMS >
-void dimUnpack( INDEX_TYPE * const dims, DIMS... newDims )
-{
-  int curDim = 0;
-  for_each_arg( [&]( INDEX_TYPE const size )
-  {
-    dims[ curDim ] = size;
-    curDim += 1;
-  }, newDims ... );
-}
-
-
-template< typename INDEX_TYPE, int NDIM, typename ... DIMS >
-LVARRAY_HOST_DEVICE
-constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                        std::integer_sequence< INDEX_TYPE > indices,
-                                        DIMS... dims );
-
-template< typename INDEX_TYPE, int NDIM, INDEX_TYPE INDEX0, INDEX_TYPE... INDICES, typename DIM0, typename ... DIMS >
-LVARRAY_HOST_DEVICE
-constexpr static void dim_index_unpack( INDEX_TYPE m_dims[NDIM],
-                                        std::integer_sequence< INDEX_TYPE, INDEX0, INDICES... > LVARRAY_UNUSED_ARG( indices ),
-                                        DIM0 dim0, DIMS... dims )
-{
-  m_dims[INDEX0] = dim0;
-  dim_index_unpack< INDEX_TYPE, NDIM >( m_dims, std::integer_sequence< INDEX_TYPE, INDICES... >(), dims ... );
-}
-
-template< typename INDEX_TYPE, int NDIM, typename ... DIMS >
-LVARRAY_HOST_DEVICE
-constexpr static void dim_index_unpack( INDEX_TYPE LVARRAY_UNUSED_ARG( m_dims )[NDIM],
-                                        std::integer_sequence< INDEX_TYPE > LVARRAY_UNUSED_ARG( indices ),
-                                        DIMS... LVARRAY_UNUSED_ARG( dims ) )
-{
-  // terminates recursion trivially
-}
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION=camp::make_idx_seq_t< NDIM >,
-          typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class DATA_VECTOR_TYPE=NewChaiBuffer >
-class Array;
-
-template< typename T,
-          int NDIM,
-          int USD=NDIM-1,
-          typename INDEX_TYPE=std::ptrdiff_t,
-          template< typename > class DATA_VECTOR_TYPE=NewChaiBuffer >
-class ArrayView;
-
-
-template< typename >
-constexpr bool isArray = false;
-
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-constexpr bool isArray< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
-
-template< typename >
-constexpr bool isArrayView = false;
-
-template< typename T,
-          int NDIM,
-          int USD,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-constexpr bool isArrayView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > > = true;
-
-
-template< typename T >
-struct AsView
-{
-  using type = T;
-};
-
-template< typename T,
-          int NDIM,
-          int USD,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-struct AsView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > >
-{
-  using type = ArrayView< typename AsView< T >::type,
-                          NDIM,
-                          USD,
-                          INDEX_TYPE,
-                          DATA_VECTOR_TYPE > const;
-};
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-struct AsView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
-{
-  using type = ArrayView< typename AsView< T >::type,
-  NDIM,
-  getStrideOneDimension( PERMUTATION {} ),
-  INDEX_TYPE,
-  DATA_VECTOR_TYPE > const;
-};
-
-template< typename T >
-struct AsConstView
-{
-  using type = T const;
-};
-
-template< typename T,
-          int NDIM,
-          int USD,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-struct AsConstView< ArrayView< T, NDIM, USD, INDEX_TYPE, DATA_VECTOR_TYPE > >
-{
-  using type = ArrayView< typename AsConstView< T >::type const,
-                          NDIM,
-                          USD,
-                          INDEX_TYPE,
-                          DATA_VECTOR_TYPE > const;
-};
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE,
-          template< typename > class DATA_VECTOR_TYPE >
-struct AsConstView< Array< T, NDIM, PERMUTATION, INDEX_TYPE, DATA_VECTOR_TYPE > >
-{
-  using type = ArrayView< typename AsConstView< T >::type const,
-  NDIM,
-  getStrideOneDimension( PERMUTATION {} ),
-  INDEX_TYPE,
-  DATA_VECTOR_TYPE > const;
-};
-
 } /* namespace LvArray */
 
-#endif /* SRC_SRC_ARRAY_HELPERS_HPP_ */
+#endif // SRC_SRC_ARRAY_HELPERS_HPP_

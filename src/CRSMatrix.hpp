@@ -29,6 +29,9 @@
 namespace LvArray
 {
 
+template< typename COL_TYPE, typename INDEX_TYPE >
+class SparsityPattern;
+
 /**
  * @tparam T the type of the entries in the matrix.
  * @tparam COL_TYPE the integer used to enumerate the columns.
@@ -36,12 +39,14 @@ namespace LvArray
  * @class CRSMatrix
  * @brief This class implements a compressed row storage matrix.
  */
-template< class T, class COL_TYPE=int, class INDEX_TYPE=std::ptrdiff_t >
+template< typename T, typename COL_TYPE=int, typename INDEX_TYPE=std::ptrdiff_t >
 class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE >
 {
-public:
 
+  /// An alias for the parent class.
   using ParentClass = CRSMatrixView< T, COL_TYPE, INDEX_TYPE >;
+
+public:
 
   // Aliasing public methods of CRSMatrixView.
   using ParentClass::numRows;
@@ -51,24 +56,20 @@ public:
   using ParentClass::empty;
   using ParentClass::getColumns;
   using ParentClass::getOffsets;
-  using ParentClass::toViewSemiConst;
-  using ParentClass::toViewConst;
   using ParentClass::toSparsityPatternView;
   using ParentClass::getEntries;
   using ParentClass::insertNonZero;
   using ParentClass::insertNonZeros;
   using ParentClass::removeNonZero;
   using ParentClass::removeNonZeros;
-  using ParentClass::removeNonZerosSorted;
   using ParentClass::setValues;
   using ParentClass::addToRow;
-  using ParentClass::move;
 
   /**
    * @brief Constructor.
-   * @param [in] nrows the number of rows in the matrix.
-   * @param [in] ncols the number of columns in the matrix.
-   * @param [in] initialRowCapacity the initial non zero capacity of each row.
+   * @param nrows the number of rows in the matrix.
+   * @param ncols the number of columns in the matrix.
+   * @param initialRowCapacity the initial non zero capacity of each row.
    */
   CRSMatrix( INDEX_TYPE const nrows=0,
              INDEX_TYPE const ncols=0,
@@ -81,7 +82,7 @@ public:
 
   /**
    * @brief Copy constructor, performs a deep copy.
-   * @param [in] src the CRSMatrix to copy.
+   * @param src the CRSMatrix to copy.
    */
   inline
   CRSMatrix( CRSMatrix const & src ):
@@ -90,7 +91,6 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the CRSMatrix to be moved from.
    */
   inline
   CRSMatrix( CRSMatrix && ) = default;
@@ -102,54 +102,9 @@ public:
   { ParentClass::free( m_entries ); }
 
   /**
-   * @brief Conversion operator to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>.
-   */
-  constexpr inline
-  operator CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Method to convert to CRSMatrixView<T, COL_TYPE, INDEX_TYPE const>. Use this method when
-   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
-   */
-  constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Conversion operator to CRSMatrixView<T, COL_TYPE const, INDEX_TYPE const>.
-   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewSemiConst(); }
-
-  /**
-   * @brief Conversion operator to CRSMatrixView<T const, COL_TYPE const, INDEX_TYPE const>.
-   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewConst(); }
-
-  /**
-   * @brief Conversion operator to SparsityPatternView<COL_TYPE const, INDEX_TYPE const>.
-   *        Although CRSMatrixView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toSparsityPatternView(); }
-
-  /**
    * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the CRSMatrix to copy.
+   * @param src the CRSMatrix to copy.
+   * @return *this.
    */
   inline
   CRSMatrix & operator=( CRSMatrix const & src ) LVARRAY_RESTRICT_THIS
@@ -167,14 +122,83 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in] src the CRSMatrix to be moved from.
+   * @param src The CRSMatrix to be moved from.
+   * @return *this.
    */
   inline
-  CRSMatrix & operator=( CRSMatrix && src ) = default;
+  CRSMatrix & operator=( CRSMatrix && src )
+  {
+    ParentClass::free( m_entries );
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
+
+  /**
+   * @brief Steal the resources from a SparsityPattern.
+   * @param src the SparsityPattern to convert.
+   */
+  inline
+  void stealFrom( SparsityPattern< COL_TYPE, INDEX_TYPE > && src )
+  {
+    // Destroy the current entries.
+    for( INDEX_TYPE row = 0; row < numRows(); ++row )
+    {
+      INDEX_TYPE const offset = m_offsets[ row ];
+      INDEX_TYPE const nnz = numNonZeros( row );
+      arrayManipulation::destroy( &m_entries[ offset ], nnz );
+    }
+
+    // Reallocate to the appropriate length
+    bufferManipulation::reserve( m_entries, 0, src.nonZeroCapacity() );
+
+    ParentClass::stealFrom( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE > && >( src ) );
+
+    for( INDEX_TYPE row = 0; row < numRows(); ++row )
+    {
+      T * const rowEntries = getEntries( row );
+      for( INDEX_TYPE i = 0; i < numNonZeros( row ); ++i )
+      {
+        new ( rowEntries + i ) T();
+      }
+    }
+
+    setName( "" );
+  }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
+   */
+  constexpr inline
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & >( *this ); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConstSizes(); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
+  { return ParentClass::toSparsityPatternView(); }
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries.
-   * @param [in] nnz the number of no zero entries to reserve space for.
+   * @param nnz the number of no zero entries to reserve space for.
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
@@ -184,8 +208,8 @@ public:
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row.
-   * @param [in] row the row to reserve space in.
-   * @param [in] nnz the number of no zero entries to reserve space for.
+   * @param row the row to reserve space in.
+   * @param nnz the number of no zero entries to reserve space for.
    */
   inline
   void reserveNonZeros( INDEX_TYPE row, INDEX_TYPE nnz ) LVARRAY_RESTRICT_THIS
@@ -196,9 +220,9 @@ public:
 
   /**
    * @brief Insert a non-zero entry at the given position.
-   * @param [in] row the row to insert in.
-   * @param [in] col the column to insert at.
-   * @param [in] entry the entry to insert.
+   * @param row the row to insert in.
+   * @param col the column to insert at.
+   * @param entry the entry to insert.
    * @return True iff the entry was inserted (the entry was zero before).
    */
   inline
@@ -207,42 +231,25 @@ public:
 
   /**
    * @brief Insert a non-zero entries into the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert at, of length ncols.
-   * @param [in] entriesToInsert the entries to insert, of length ncols.
-   * @param [in] ncols the number of columns/entries to insert.
+   * @param row the row to insert into.
+   * @param cols the columns to insert at, of length ncols.
+   * @param entriesToInsert the entries to insert, of length ncols.
+   * @param ncols the number of columns/entries to insert.
    * @return The number of entries inserted.
    *
-   * @note If possible sort cols and entriesToInsert first by calling sortedArrayManipulation::dualSort(cols, cols +
-   * ncols, entriesToInsert)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
+   * @note The range [ entriesToInsert, entriesToInsert + ncols ) must be sorted and contain no duplicates.
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
                              COL_TYPE const * const cols,
                              T const * const entriesToInsert,
                              INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertNonZerosImpl( row, cols, entriesToInsert, ncols, *this ); }
-
-  /**
-   * @brief Insert a non-zero entries into the given row.
-   * @param [in] row the row to insert into.
-   * @param [in] cols the columns to insert at, of length ncols. Must be sorted.
-   * @param [in] entriesToInsert the entries to insert, of length ncols.
-   * @param [in] ncols the number of columns/entries to insert.
-   * @return The number of entries inserted.
-   */
-  inline
-  INDEX_TYPE insertNonZerosSorted( INDEX_TYPE const row,
-                                   COL_TYPE const * const cols,
-                                   T const * const entriesToInsert,
-                                   INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertSortedIntoSetImpl( row, cols, ncols, CallBacks( *this, row, entriesToInsert )); }
+  { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
    * @brief Set the non zero capacity of the given row.
-   * @param [in] row the row to modify.
-   * @param [in] newCapacity the new capacity of the row.
+   * @param row the row to modify.
+   * @param newCapacity the new capacity of the row.
    *
    * @note If the given capacity is less than the current number of non zero entries
    *       the entries are truncated.
@@ -267,36 +274,42 @@ public:
 
   /**
    * @brief Set the dimensions of the matrix.
-   * @param [in] nRows the new number of rows.
-   * @param [in] nCols the new number of columns.
-   * @param [in] defaultSetCapacity the default capacity for each new array.
+   * @param nRows the new number of rows.
+   * @param nCols the new number of columns.
+   * @param initialRowCapacity the default capacity for each new array.
    * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
-   *       This can leave the matrix in an invalid state where a row has more columns than the matrix
-   *       or where a specific column is greater than the number of columns in the matrix.
-   *       If you will be constructing the matrix from scratch it is reccomended to clear it first.
+   *   This can leave the matrix in an invalid state where a row has more columns than the matrix
+   *   or where a specific column is greater than the number of columns in the matrix.
+   *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    * TODO: Add tests.
    */
   void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
-  {
-    ParentClass::resize( nRows, nCols, initialRowCapacity, m_entries );
-  }
+  { ParentClass::resize( nRows, nCols, initialRowCapacity, m_entries ); }
 
   /**
    * @brief Set the name associated with this CRSMatrix which is used in the chai callback.
    * @param name the of the CRSMatrix.
    */
   void setName( std::string const & name )
-  {
-    ParentClass::template setName< decltype( *this ) >( name );
-  }
+  { ParentClass::template setName< decltype( *this ) >( name ); }
+
+  /**
+   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @note Duplicated for SFINAE needs.
+   */
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  { ParentClass::move( space, touch ); }
 
 private:
 
   /**
    * @brief Increase the capacity of a row to accommodate at least the given number of
    *        non zero entries.
-   * @param [in] row the row to increase the capacity of.
-   * @param [in] newNNZ the new number of non zero entries.
+   * @param row the row to increase the capacity of.
+   * @param newNNZ the new number of non zero entries.
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
   void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ )
@@ -312,9 +325,9 @@ public:
 
     /**
      * @brief Constructor.
-     * @param [in/out] crsM the CRSMatrix this CallBacks is associated with.
-     * @param [in] row the row this CallBacks is associated with.
-     * @param [in] entriesToInsert pointer to the entries to insert.
+     * @param crsM the CRSMatrix this CallBacks is associated with.
+     * @param row the row this CallBacks is associated with.
+     * @param entriesToInsert pointer to the entries to insert.
      */
     CallBacks( CRSMatrix< T, COL_TYPE, INDEX_TYPE > & crsM,
                INDEX_TYPE const row, T const * const entriesToInsert ):
@@ -328,8 +341,8 @@ public:
 
     /**
      * @brief Callback signaling that the size of the row has increased.
-     * @param [in] curPtr the current pointer to the array.
-     * @param [in] nToAdd the increase in the size.
+     * @param curPtr the current pointer to the array.
+     * @param nToAdd the increase in the size.
      * @return a pointer to the rows columns.
      * @note This method doesn't actually change the size, but it does potentially
      *       do an allocation.
@@ -351,7 +364,7 @@ public:
      * @brief Used with sortedArrayManipulation::insert routine this callback signals
      *        that the column was inserted at the given position. This means we also
      *        need to insert the entry at the same position.
-     * @param [in] pos the position the column was inserted at.
+     * @param pos the position the column was inserted at.
      */
     inline
     void insert( INDEX_TYPE const pos ) const
@@ -361,8 +374,8 @@ public:
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
      *        signals that the given position was set to the column at the other position.
      *        This means we need to perform the same operation on the entries.
-     * @param [in] pos the position that was set.
-     * @param [in] colPos the position of the column.
+     * @param pos the position that was set.
+     * @param colPos the position of the column.
      */
     inline
     void set( INDEX_TYPE const pos, INDEX_TYPE const colPos ) const
@@ -373,10 +386,10 @@ public:
      *        signals that the given column was inserted at the given position. Further information
      *        is provided in order to make the insertion efficient. This means that we need to perform
      *        the same operation on the entries.
-     * @param [in] nLeftToInsert the number of insertions that occur after this one.
-     * @param [in] colPos the position of the column that was inserted.
-     * @param [in] pos the position the column was inserted at.
-     * @param [in] prevPos the position the previous column was inserted at or m_rowNNZ if it is
+     * @param nLeftToInsert the number of insertions that occur after this one.
+     * @param colPos the position of the column that was inserted.
+     * @param pos the position the column was inserted at.
+     * @param prevPos the position the previous column was inserted at or m_rowNNZ if it is
      *             the first insertion.
      */
     inline

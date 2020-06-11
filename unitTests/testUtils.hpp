@@ -20,7 +20,7 @@
 #define TEST_UTILS_HPP_
 
 // Source includes
-#include "CXX_UtilsConfig.hpp"
+#include "LvArrayConfig.hpp"
 #include "Array.hpp"
 #include "Macros.hpp"
 
@@ -77,7 +77,8 @@ struct RAJAHelper< parallelHostPolicy >
 
 #if defined(USE_CUDA)
 
-using parallelDevicePolicy = RAJA::cuda_exec< 256 >;
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
 template< unsigned long N >
 struct RAJAHelper< RAJA::cuda_exec< N > >
@@ -96,20 +97,20 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 }
 
 #ifndef __CUDA_ARCH__
-  #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
 #else
-  #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
+#define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #endif
 
 // Comparator that compares a std::pair by it's first object.
-template< class A, class B, class COMP=std::less< B > >
+template< class A, class B, class COMP=std::less< A > >
 struct PairComp
 {
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   constexpr bool operator()( const std::pair< A, B > & lhs, const std::pair< A, B > & rhs ) const
   {
-    return COMP()( lhs.second, rhs.second );
+    return COMP()( lhs.first, rhs.first );
   }
 };
 

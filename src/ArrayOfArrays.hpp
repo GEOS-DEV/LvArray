@@ -42,33 +42,24 @@ class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE >
 {
 public:
 
+  /// An alias for the parent class ArrayOfArraysView< T, INDEX_TYPE >.
   using ParentClass = ArrayOfArraysView< T, INDEX_TYPE >;
 
   // Aliasing public methods of ArrayOfArraysView.
-  using ParentClass::toViewSemiConst;
-  using ParentClass::toViewConst;
   using ParentClass::sizeOfArray;
   using ParentClass::capacity;
+  using ParentClass::valueCapacity;
   using ParentClass::capacityOfArray;
   using ParentClass::operator[];
   using ParentClass::operator();
   using ParentClass::getIterableArray;
   using ParentClass::atomicAppendToArray;
   using ParentClass::eraseFromArray;
-  using ParentClass::move;
-
-  /**
-   * @brief Return the number of arrays.
-   * @note This needs is duplicated here for the intel compiler on cori.
-   */
-  inline
-  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
-  { return m_numArrays; }
 
   /**
    * @brief Constructor.
-   * @param [in] numArrays the number of arrays.
-   * @param [in] defaultArrayCapacity the initial capacity of each array.
+   * @param numArrays the number of arrays.
+   * @param defaultArrayCapacity the initial capacity of each array.
    */
   inline
   ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) LVARRAY_RESTRICT_THIS:
@@ -80,7 +71,7 @@ public:
 
   /**
    * @brief Copy constructor, performs a deep copy.
-   * @param [in] src the ArrayOfArrays to copy.
+   * @param src the ArrayOfArrays to copy.
    */
   inline
   ArrayOfArrays( ArrayOfArrays const & src ):
@@ -89,7 +80,6 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the ArrayOfArrays to be moved from.
    */
   inline
   ArrayOfArrays( ArrayOfArrays && ) = default;
@@ -101,44 +91,9 @@ public:
   { ParentClass::free(); }
 
   /**
-   * @brief Conversion operator to ArrayOfArraysView<T, INDEX_TYPE const>.
-   */
-  constexpr inline
-  operator ArrayOfArraysView< T, INDEX_TYPE const > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Method to convert to ArrayOfArraysView<T, INDEX_TYPE const>. Use this method when
-   *        the above UDC isn't invoked, this usually occurs with template argument deduction.
-   */
-  constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
-
-  /**
-   * @brief Conversion operator to ArrayOfArraysView<T, INDEX_TYPE const, true>.
-   *        Although ArrayOfArraysView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator ArrayOfArraysView< T, INDEX_TYPE const, true > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewSemiConst(); }
-
-  /**
-   * @brief Conversion operator to ArrayOfArraysView<T const, INDEX_TYPE const, true>.
-   *        Although ArrayOfArraysView defines this operator nvcc won't let us alias it so
-   *        it is redefined here.
-   */
-  constexpr inline
-  operator ArrayOfArraysView< T const, INDEX_TYPE const, true > const &
-  () const LVARRAY_RESTRICT_THIS
-  { return toViewConst(); }
-
-  /**
    * @brief Copy assignment operator, performs a deep copy.
-   * @param [in] src the ArrayOfArrays to copy.
+   * @param src the ArrayOfArrays to copy.
+   * @return *this.
    */
   inline
   ArrayOfArrays & operator=( ArrayOfArrays const & src ) LVARRAY_RESTRICT_THIS
@@ -153,64 +108,97 @@ public:
 
   /**
    * @brief Default move assignment operator, performs a shallow copy.
-   * @param [in] src the ArrayOfArrays to be moved from.
+   * @param src The ArrayOfArrays to be moved from.
+   * @return *this
    */
   inline
-  ArrayOfArrays & operator=( ArrayOfArrays && src ) = default;
+  ArrayOfArrays & operator=( ArrayOfArrays && src )
+  {
+    ParentClass::free();
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
 
   /**
    * @brief Steal the resources from an ArrayOfSets and convert it to an ArrayOfArrays.
-   * @param [in/out] src the ArrayOfSets to convert.
+   * @param src the ArrayOfSets to convert.
    */
   inline
   void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
   {
     ParentClass::free();
-
-    // Reinterpret cast to ArrayOfArraysView so that we don't have to include ArrayOfSets.hpp.
-    ParentClass && srcView = reinterpret_cast< ParentClass && >( src );
-
-    m_numArrays = srcView.m_numArrays;
-    srcView.m_numArrays = 0;
-
-    m_offsets = std::move( srcView.m_offsets );
-    m_sizes = std::move( srcView.m_sizes );
-    m_values = std::move( srcView.m_values );
+    ParentClass::stealFrom( reinterpret_cast< ParentClass && >( src ) );
   }
 
   /**
+   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T, INDEX_TYPE const>.
+   * @note Duplicated for SFINAE needs.
+   */
+  constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >( *this ); }
+
+  /**
+   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T, INDEX_TYPE const, true>.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConstSizes(); }
+
+  /**
+   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T const, INDEX_TYPE const, true>.
+   * @note Duplicated for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief @return Return the number of arrays.
+   * @note Duplicated for SFINAE needs.
+   */
+  inline
+  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::size(); }
+
+  /**
    * @brief Reserve space for the given number of arrays.
-   * @param [in] newCapacity the new minimum capacity for the number of arrays.
+   * @param newCapacity the new minimum capacity for the number of arrays.
    */
   void reserve( INDEX_TYPE const newCapacity )
   { ParentClass::reserve( newCapacity ); }
 
   /**
    * @brief Reserve space for the given number of values.
-   * @param [in] newValueCapacity the new minimum capacity for the number of values across all arrays.
+   * @param newValueCapacity the new minimum capacity for the number of values across all arrays.
    */
   void reserveValues( INDEX_TYPE const newValueCapacity )
   { ParentClass::reserveValues( newValueCapacity ); }
 
   /**
    * @brief Set the number of arrays.
-   * @param [in] newSize the new number of arrays.
-   * @note We need this method in addition to the following resize method because of SFINAE requirements.
+   * @param numSubArrays The new number of arrays.
+   * @param defaultArrayCapacity The default capacity for each new array.
    */
-  void resize( INDEX_TYPE const numArrays )
-  { ParentClass::resize( numArrays, 0 ); }
+  void resize( INDEX_TYPE const numSubArrays, INDEX_TYPE const defaultArrayCapacity=0 )
+  { ParentClass::resize( numSubArrays, defaultArrayCapacity ); }
 
   /**
-   * @brief Set the number of arrays.
-   * @param [in] newSize the new number of arrays.
-   * @param [in] defaultArrayCapacity the default capacity for each new array.
+   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
+   *   of each new sub array.
    */
-  void resize( INDEX_TYPE const numArrays, INDEX_TYPE const defaultArrayCapacity )
-  { ParentClass::resize( numArrays, defaultArrayCapacity ); }
+  template< typename POLICY >
+  void resizeFromCapacities( INDEX_TYPE const numSubArrays, INDEX_TYPE const * const capacities )
+  { ParentClass::template resizeFromCapacities< POLICY >( numSubArrays, capacities ); }
 
   /**
    * @brief Append an array.
-   * @param [in] n the size of the array.
+   * @param n the size of the array.
    */
   void appendArray( INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
@@ -226,8 +214,8 @@ public:
 
   /**
    * @brief Append an array.
-   * @param [in] values the values of the array to append.
-   * @param [in] n the number of values.
+   * @param values the values of the array to append.
+   * @param n the number of values.
    */
   void appendArray( T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
@@ -241,9 +229,9 @@ public:
 
   /**
    * @brief Insert an array.
-   * @param [in] i the position to insert the array.
-   * @param [in] values the values of the array to insert.
-   * @param [in] n the number of values.
+   * @param i the position to insert the array.
+   * @param values the values of the array to insert.
+   * @param n the number of values.
    */
   void insertArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n )
   {
@@ -263,7 +251,7 @@ public:
 
   /**
    * @brief Erase an array.
-   * @param [in] i the position of the array to erase.
+   * @param i the position of the array to erase.
    */
   void eraseArray( INDEX_TYPE const i )
   {
@@ -284,8 +272,8 @@ public:
 
   /**
    * @brief Append a value to an array.
-   * @param [in] i the array to append to.
-   * @param [in] value the value to append.
+   * @param i the array to append to.
+   * @param value the value to append.
    */
   void appendToArray( INDEX_TYPE const i, T const & value ) LVARRAY_RESTRICT_THIS
   {
@@ -295,8 +283,8 @@ public:
 
   /**
    * @brief Append a value to an array.
-   * @param [in] i the array to append to.
-   * @param [in/out] value the value to append.
+   * @param i the array to append to.
+   * @param value the value to append.
    */
   void appendToArray( INDEX_TYPE const i, T && value ) LVARRAY_RESTRICT_THIS
   {
@@ -306,9 +294,9 @@ public:
 
   /**
    * @brief Append values to an array.
-   * @param [in] i the array to append to.
-   * @param [in] values the values to append.
-   * @param [in] n the number of values to append.
+   * @param i the array to append to.
+   * @param values the values to append.
+   * @param n the number of values to append.
    */
   void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
   {
@@ -318,9 +306,9 @@ public:
 
   /**
    * @brief Insert a value into an array.
-   * @param [in] i the array to insert into.
-   * @param [in] j the position at which to insert.
-   * @param [in] value the value to insert.
+   * @param i the array to insert into.
+   * @param j the position at which to insert.
+   * @param value the value to insert.
    */
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value )
   {
@@ -330,9 +318,9 @@ public:
 
   /**
    * @brief Insert a value into an array.
-   * @param [in] i the array to insert into.
-   * @param [in] j the position at which to insert.
-   * @param [in/out] value the value to insert.
+   * @param i the array to insert into.
+   * @param j the position at which to insert.
+   * @param value the value to insert.
    */
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value )
   {
@@ -342,10 +330,10 @@ public:
 
   /**
    * @brief Insert values into an array.
-   * @param [in] i the array to insert into.
-   * @param [in] j the position at which to insert.
-   * @param [in] values the values to insert.
-   * @param [in] n the number of values to insert.
+   * @param i the array to insert into.
+   * @param j the position at which to insert.
+   * @param values the values to insert.
+   * @param n the number of values to insert.
    */
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n )
   {
@@ -356,9 +344,9 @@ public:
   /**
    * @brief Set the number of values in an array.
    * @tparam ARGS variadic template parameter of the types used to initialize any new values with.
-   * @param [in] i the array to resize.
-   * @param [in] newSize the value to set the size of the array to.
-   * @param [in] args variadic parameter pack of the arguments used to initialize any new values with.
+   * @param i the array to resize.
+   * @param newSize the value to set the size of the array to.
+   * @param args variadic parameter pack of the arguments used to initialize any new values with.
    */
   template< class ... ARGS >
   void resizeArray( INDEX_TYPE const i, INDEX_TYPE const newSize, ARGS && ... args )
@@ -379,30 +367,42 @@ public:
 
   /**
    * @brief Clear the given array.
-   * @param[in] i the index of the array to clear.
+   * @param i The index of the array to clear.
    */
   void clearArray( INDEX_TYPE const i )
   { resizeArray( i, 0 ); }
 
   /**
    * @brief Set the capacity of an array.
-   * @param [in] i the array to set the capacity of.
-   * @param [in] newCapacity the value to set the capacity of the array to.
+   * @param i the array to set the capacity of.
+   * @param newCapacity the value to set the capacity of the array to.
    */
   void setCapacityOfArray( INDEX_TYPE const i, INDEX_TYPE const newCapacity )
   { ParentClass::setCapacityOfArray( i, newCapacity ); }
 
+  /**
+   * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
+   * @param name The name to display.
+   */
   void setName( std::string const & name )
-  {
-    ParentClass::template setName< decltype( *this ) >( name );
-  }
+  { ParentClass::template setName< decltype( *this ) >( name ); }
+
+  /**
+   * @brief Move this ArrayOfArrays to the given memory space.
+   * @param space The memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @note Duplicated for SFINAE needs.
+   */
+  void move( chai::ExecutionSpace const space, bool touch=true ) const
+  { ParentClass::move( space, touch ); }
 
 private:
 
   /**
    * @brief Dynamically grow the capacity of an array.
-   * @param [in] i the array to grow.
-   * @param [in] increase the increase in the size of the array.
+   * @param i the array to grow.
+   * @param increase the increase in the size of the array.
    */
   void dynamicallyGrowArray( INDEX_TYPE const i, INDEX_TYPE const increase )
   {

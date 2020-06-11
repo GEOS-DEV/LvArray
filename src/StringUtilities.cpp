@@ -24,7 +24,7 @@
 #include <cstring>
 #include <memory>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,4 +68,4 @@ std::string calculateSize( size_t const bytes )
   return result;
 }
 
-} // namespace cxx_utilities
+} // namespace LvArray

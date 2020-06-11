@@ -28,12 +28,22 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p col is a valid column in the matrix.
+ * @param col The column to check.
+ * @note This macro is only active with USE_ARRAY_BOUNDS_CHECK.
+ */
 #define SPARSITYPATTERN_COLUMN_CHECK( col ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
                     "Column Check Failed: col=" << col << " numColumns=" << this->numColumns() )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p col is a valid column in the matrix.
+ * @param col The column to check.
+ * @note This macro is only active with USE_ARRAY_BOUNDS_CHECK.
+ */
 #define SPARSITYPATTERN_COLUMN_CHECK( col )
 
 #endif
@@ -56,79 +66,95 @@ namespace LvArray
 template< class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
 class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE >
 {
+
+  /// An alias for the parent class.
+  using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE >;
+
 public:
   static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
   static_assert( std::numeric_limits< INDEX_TYPE >::max() >= std::numeric_limits< COL_TYPE >::max(),
                  "INDEX_TYPE must be able to hold values at least as large as COL_TYPE." );
 
-  using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
-
-  using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE >;
+  /// An alias for the non const index type.
+  using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
-   *        chai::ManagedArray copy constructor.
-   * @param [in] src the SparsityPatternView to be copied.
+   *   chai::ManagedArray copy constructor.
    */
   inline
-  SparsityPatternView( SparsityPatternView const & src ) = default;
+  SparsityPatternView( SparsityPatternView const & ) = default;
 
   /**
-   * @brief Default move constructor.
-   * @param [in/out] src the SparsityPatternView to be moved from.
+   * @brief Move constructor.
+   * @param src The SparsityPatternView to move from.
    */
   inline
-  SparsityPatternView( SparsityPatternView && src ) = default;
-
-  /**
-   * @brief User defined conversion to move from COL_TYPE to COL_TYPE const.
-   */
-  template< class CTYPE=COL_TYPE >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator typename std::enable_if< !std::is_const< CTYPE >::value,
-                                    SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >::type
-    () const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
-
-  /**
-   * @brief Method to convert COL_TYPE to COL_TYPE const. Use this method when the above UDC
-   *        isn't invoked, this usually occurs with template argument deduction.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  SparsityPatternView( SparsityPatternView && src ):
+    ParentClass( std::move( src ) ),
+    m_numCols( src.m_numCols )
+  { src.m_numCols = 0; }
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
-   * @param [in] src the SparsityPatternView to be copied from.
+   * @return *this.
    */
   inline
-  SparsityPatternView & operator=( SparsityPatternView const & src ) = default;
+  SparsityPatternView & operator=( SparsityPatternView const & ) = default;
 
   /**
-   * @brief Default move assignment operator, this does a shallow copy.
-   * @param [in/out] src the SparsityPatternView to be moved from.
+   * @brief Move assignment operator, this does a shallow copy.
+   * @param src The SparsityPatternView to move from.
+   * @return *this.
    */
   inline
-  SparsityPatternView & operator=( SparsityPatternView && src ) = default;
+  SparsityPatternView & operator=( SparsityPatternView && src )
+  {
+    ParentClass::operator=( std::move( src ) );
+    m_numCols = src.m_numCols;
+    src.m_numCols = 0;
+    return *this;
+  }
 
   /**
-   * @brief Return the number of rows in the matrix.
+   * @brief Steal the resources of @p src, clearing it in the process.
+   * @param src The SparsityPatternView to steal from.
+   */
+  void stealFrom( SparsityPatternView && src )
+  { *this = std::move( src ); }
+
+  /**
+   * @brief @return Return *this.
+   * @brief This is included for SFINAE needs.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  { return *this; }
+
+  /**
+   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >( *this ); }
+
+  /**
+   * @brief @return Return the number of rows in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
   { return ParentClass::size(); }
 
   /**
-   * @brief Return the number of columns in the matrix.
+   * @brief @return Return the number of columns in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numColumns() const LVARRAY_RESTRICT_THIS
   { return m_numCols; }
 
   /**
-   * @brief Return the total number of non zero entries in the matrix.
+   * @brief @return Return the total number of non zero entries in the matrix.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC numNonZeros() const LVARRAY_RESTRICT_THIS
@@ -143,65 +169,63 @@ public:
   }
 
   /**
-   * @brief Return the total number of non zero entries in the given row.
-   * @param [in] row the row to query.
+   * @brief @return Return the total number of non zero entries in the given row.
+   * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::sizeOfSet( row ); }
 
   /**
-   * @brief Return the total number of non zero entries able to be stored without a reallocation.
+   * @brief @return Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC nonZeroCapacity() const LVARRAY_RESTRICT_THIS
   { return m_values.capacity(); }
 
   /**
-   * @brief Return the total number of non zero entries able to be stored in a given row without shifting
-   *        subsequent rows and possibly reallocating.
-   * @param [in] row the row to query.
+   * @brief @return Return the total number of non zero entries able to be stored in a given row without increasing its
+   * capacity.
+   * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return ParentClass::capacityOfSet( row ); }
 
   /**
-   * @brief Return true iff the matrix is all zeros.
+   * @brief @return Return true iff the matrix is all zeros.
    */
   LVARRAY_HOST_DEVICE inline
   bool empty() const LVARRAY_RESTRICT_THIS
   { return numNonZeros() == 0; }
 
   /**
-   * @brief Return true iff the given row is all zeros.
-   * @param [in] row the row to query.
+   * @brief @return Return true iff the given row is all zeros.
+   * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   bool empty( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return numNonZeros( row ) == 0; }
 
   /**
-   * @brief Return true iff the given entry is zero.
-   * @param [in] row the row to query.
-   * @param [in] col the col to query.
+   * @brief @return Return true iff the given entry is zero.
+   * @param row the row to query.
+   * @param col the col to query.
    */
   LVARRAY_HOST_DEVICE inline
   bool empty( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   { return !ParentClass::contains( row, col ); }
 
   /**
-   * @brief Return an ArraySlice1d (pointer) to the columns of the given row.
-   *        This array has length numNonZeros(row).
-   * @param [in] row the row to access.
+   * @brief @return Return an ArraySlice1d to the columns of the given row.
+   * @param row the row to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return (*this)[row]; }
 
   /**
-   * @brief Return a pointer to the array of offsets.
-   *        This array has length numRows() + 1.
+   * @brief @return Return a pointer to the array of offsets, this array has length numRows() + 1.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
@@ -209,14 +233,11 @@ public:
 
   /**
    * @brief Insert a non-zero entry at the given position.
-   * @param [in] row the row to insert in.
-   * @param [in] col the column to insert.
+   * @param row the row to insert in.
+   * @param col the column to insert.
    * @return True iff the column was inserted (the entry was zero before).
-   *
-   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
+   * @pre Since the SparsityPatternView can't do reallocation or shift the offsets it is
    *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
    */
   LVARRAY_HOST_DEVICE inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
@@ -226,66 +247,41 @@ public:
     return ParentClass::insertIntoSet( row, col );
   }
 
-  /**
-   * @brief Insert non-zero entries into the given row.
-   * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert, of length ncols.
-   * @param [in] ncols the number of columns to insert.
-   * @return The number of columns inserted.
-   *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   *       and then call insertNonZerosSorted, this will be substantially faster.
-   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
-
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
-
-    return ParentClass::insertIntoSet( row, cols, ncols );
-  }
+  /// @cond DO_NOT_DOCUMENT
+  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
+  // else it works just fine.
 
   /**
-   * @brief Insert non-zero entries into the given row.
-   * @param [in] row the row to insert in.
-   * @param [in] cols the columns to insert, of length ncols. Must be sorted.
-   * @param [in] ncols the number of columns to insert.
+   * @tparam ITER An iterator type.
+   * @brief Inserts multiple non-zero entries into the given row.
+   * @param row The row to insert into.
+   * @param first An iterator to the first column to insert.
+   * @param last An iterator to the end of the columns to insert.
    * @return The number of columns inserted.
-   *
-   * @note Since the SparsityPatternView can't do reallocation or shift the offsets it is
-   *       up to the user to ensure that the given row has enough space for the new entries.
-   *       If USE_ARRAY_BOUNDS_CHECK is defined a lack of space will result in an error,
-   *       otherwise the values in the subsequent row will be overwritten.
+   * @pre The columns to insert [ @p first, @p last ) must be sorted and contain no duplicates.
+   * @pre Since the SparsityPatternview can't do reallocation or shift the offsets it is
+   *   up to the user to ensure that the given row has enough space for the new entries.
    */
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( ITER iter = first; iter != last; ++iter )
+    { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
+  #endif
 
-    return ParentClass::insertSortedIntoSet( row, cols, ncols );
+    return ParentClass::insertIntoSet( row, first, last );
   }
+
+  /// @endcond DO_NOT_DOCUMENT
 
   /**
    * @brief Remove a non-zero entry at the given position.
-   * @param [in] row the row to remove from.
-   * @param [in] col the column to remove.
+   * @param row the row to remove from.
+   * @param col the column to remove.
    * @return True iff the column was removed (the entry was non zero before).
    */
   LVARRAY_HOST_DEVICE inline
@@ -296,86 +292,72 @@ public:
     return ParentClass::removeFromSet( row, col );
   }
 
-  /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols.
-   * @param [in] ncols the number of columns to remove.
-   * @return The number of columns removed.
-   *
-   * @note If possible sort cols first by calling sortedArrayManipulation::makeSorted(cols, cols + ncols)
-   *       and then call removeNonZerosSorted, this will be substantially faster.
-   */
-  LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
-
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
-
-    return ParentClass::removeFromSet( row, cols, ncols );
-  }
+  /// @cond DO_NOT_DOCUMENT
+  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
+  // else it works just fine.
 
   /**
-   * @brief Remove non-zero entries from the given row.
-   * @param [in] row the row to remove from.
-   * @param [in] cols the columns to remove, of length ncols.
-   * @param [in] ncols the number of columns to remove.
+   * @tparam ITER An iterator type.
+   * @brief Remove multiple non-zero entries from the given row.
+   * @param row The row to remove from.
+   * @param first An iterator to the first column to remove.
+   * @param last An iterator to the end of the columns to remove.
    * @return The number of columns removed.
+   * @pre The columns to remove [ @p first, @p last ) must be sorted and contain no duplicates.
    */
+  DISABLE_HD_WARNING
+  template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZerosSorted( INDEX_TYPE const row, COL_TYPE const * const cols, INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    LVARRAY_ASSERT( cols != nullptr || ncols == 0 );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( ncols ) );
 
-    for( INDEX_TYPE_NC i = 0; i < ncols; ++i )
-    {
-      SPARSITYPATTERN_COLUMN_CHECK( cols[i] );
-    }
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( ITER iter = first; iter != last; ++iter )
+    { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
+  #endif
 
-    return ParentClass::removeSortedFromSet( row, cols, ncols );
+    return ParentClass::removeFromSet( row, first, last );
   }
+
+  /// @endcond DO_NOT_DOCUMENT
 
   /**
    * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
-   * @param [in] space the memory space to move to.
-   * @param [in] touch If true touch the values, sizes and offsets in the new space.
-   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @param space the memory space to move to.
+   * @param touch If true touch the values, sizes and offsets in the new space.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true )
+  void move( chai::ExecutionSpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 protected:
 
   /**
-   * @brief Default constructor. Made protected since every SparsityPatternView should
-   *        either be the base of a SparsityPattern or copied from another SparsityPatternView.
+   * @brief Default constructor.
+   * @note Protected since every SparsityPatternView should either be the base of a
+   *   SparsityPattern or copied from another SparsityPatternView.
    */
   SparsityPatternView() = default;
 
-  template< class ... VECTORS >
-  void resize( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, VECTORS & ... vectors )
+  /**
+   * @tparam BUFFERS A variadic pack of buffer types.
+   * @brief Resize the SparsityPattern to the given size.
+   * @param nrows The number of rows in the matrix.
+   * @param ncols The number of columns in the matrix.
+   * @param initialRowCapacity The initial capacity of any newly created rows.
+   * @param buffers A variadic pack of buffers to resize along with the columns.
+   */
+  template< class ... BUFFERS >
+  void resize( INDEX_TYPE const nrows, INDEX_TYPE const ncols, INDEX_TYPE_NC initialRowCapacity, BUFFERS & ... buffers )
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
     LVARRAY_ERROR_IF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
                       "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
-    if( initialRowCapacity > ncols )
-    {
-      LVARRAY_WARNING_IF( initialRowCapacity > ncols, "Number of non-zeros per row cannot exceed the the number of columns." );
-      initialRowCapacity = ncols;
-    }
-
     m_numCols = ncols;
-    ParentClass::resize( nrows, initialRowCapacity, vectors ... );
+    ParentClass::resize( nrows, initialRowCapacity, buffers ... );
   }
 
   // Aliasing protected members in ArrayOfSetsView
@@ -383,8 +365,8 @@ protected:
   using ParentClass::m_sizes;
   using ParentClass::m_values;
 
-  // The number of columns in the matrix.
-  INDEX_TYPE m_numCols;
+  /// The number of columns in the matrix.
+  INDEX_TYPE_NC m_numCols;
 };
 
 } /* namespace LvArray */

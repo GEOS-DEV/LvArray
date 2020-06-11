@@ -17,7 +17,7 @@
  */
 
 /**
- * @file FloatingPointEnvironment.h
+ * @file SetSignalHandling.hpp
  */
 
 #ifndef COMPONENTS_CORE_SRC_CODINGUTILITIES_SETSIGNALHANDLING_HPP_
@@ -25,11 +25,19 @@
 
 #include <exception>
 
-namespace cxx_utilities
+namespace LvArray
 {
 
+/**
+ * @brief Set the signal handler for common signals.
+ * @param handler The signal handler.
+ */
 void setSignalHandling( void (* handler)( int ) );
 
+/**
+ * @brief Rest the signal handling back to the original state.
+ */
+void resetSignalHandling();
 
 } /* namespace geosx */
 

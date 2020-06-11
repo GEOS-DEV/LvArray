@@ -196,9 +196,56 @@ public:
   {
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
 
+    std::vector< INDEX_TYPE > oldSizes;
+    std::vector< INDEX_TYPE > oldCapacities;
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
+    {
+      oldSizes.push_back( m_array.sizeOfArray( i ) );
+      oldCapacities.push_back( m_array.capacityOfArray( i ) );
+    }
+
     m_array.resize( newSize, capacityPerArray );
+
+    for( INDEX_TYPE i = 0; i < std::min( newSize, INDEX_TYPE( oldSizes.size() ) ); ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), oldSizes[ i ] );
+      EXPECT_EQ( m_array.capacityOfArray( i ), oldCapacities[ i ] );
+    }
+
+    for( INDEX_TYPE i = INDEX_TYPE( oldSizes.size() ); i < newSize; ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), 0 );
+      EXPECT_EQ( m_array.capacityOfArray( i ), capacityPerArray );
+    }
+
     m_ref.resize( newSize );
 
+    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+  }
+
+  template< typename POLICY >
+  void resizeFromCapacities( INDEX_TYPE const newSize, INDEX_TYPE const maxCapacity )
+  {
+    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+
+    std::vector< INDEX_TYPE > newCapacities( newSize );
+
+    for( INDEX_TYPE & capacity : newCapacities )
+    {
+      capacity = rand( 0, maxCapacity );
+    }
+
+    m_array.template resizeFromCapacities< POLICY >( newSize, newCapacities.data() );
+
+    EXPECT_EQ( m_array.size(), newSize );
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), 0 );
+      EXPECT_EQ( m_array.capacityOfArray( i ), newCapacities[ i ] );
+    }
+
+    m_ref.clear();
+    m_ref.resize( newSize );
     COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
   }
 
@@ -608,12 +655,76 @@ protected:
 
   std::vector< std::vector< T > > m_ref;
 
-
   std::mt19937_64 m_gen;
+
+
+  /// Check that the move, toView, and toViewConst methods of ArrayOfArrays< T > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArrays< T > >,
+                 "ArrayOfArrays< T > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T, INDEX_TYPE const, false > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T, INDEX_TYPE const, false > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, false > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T, INDEX_TYPE const, true > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T, INDEX_TYPE const, true > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of ArrayOfArraysView< T const, INDEX_TYPE const, true > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a move method." );
+  static_assert( HasMemberFunction_toView< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ArrayOfArraysView< T const, INDEX_TYPE const, true > >,
+                 "ArrayOfArraysView< T const, INDEX_TYPE const, true > has a toViewConst method." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArrays< T >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArrays< T > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, false > const >,
+                 "The view type of ArrayOfArrays< T > is ArrayOfArraysView< T, INDEX_TYPE const, false > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArrays< T > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArrays< T > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T, INDEX_TYPE const, false >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T, INDEX_TYPE const, false > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, false > const >,
+                 "The view type of ArrayOfArraysView< T, INDEX_TYPE const, false > is ArrayOfArraysView< T, INDEX_TYPE const, false > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T, INDEX_TYPE const, false > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T, INDEX_TYPE const, false > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T, INDEX_TYPE const, true >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T, INDEX_TYPE const, true > const >,
+                 "The view type of ArrayOfArraysView< T, INDEX_TYPE const, true > is ArrayOfArraysView< T, INDEX_TYPE const, true > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfArraysView< T const, INDEX_TYPE const, true >
+  static_assert( std::is_same_v< typename GetViewType< ArrayOfArraysView< T const, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The view type of ArrayOfArraysView< T const, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfArraysView< T const, INDEX_TYPE const, true > >::type,
+                                 ArrayOfArraysView< T const, INDEX_TYPE const, true > const >,
+                 "The const view type of ArrayOfArraysView< T const, INDEX_TYPE const, true > is ArrayOfArraysView< T const, INDEX_TYPE const, true > const." );
 };
 
 using TestTypes = ::testing::Types< INDEX_TYPE, Tensor, TestString >;
-TYPED_TEST_CASE( ArrayOfArraysTest, TestTypes );
+TYPED_TEST_SUITE( ArrayOfArraysTest, TestTypes, );
 
 
 TYPED_TEST( ArrayOfArraysTest, emptyConstruction )
@@ -728,6 +839,31 @@ TYPED_TEST( ArrayOfArraysTest, resize )
   {
     this->insertArray( 100, 10 );
     this->resize();
+  }
+}
+
+TYPED_TEST( ArrayOfArraysTest, resizeWithCapacity )
+{
+  for( INDEX_TYPE i = 0; i < 3; ++i )
+  {
+    this->resize( 100, 10 );
+    this->insertIntoArray( 5 );
+    this->resize( 150, 10 );
+    this->insertIntoArray( 5 );
+  }
+}
+
+TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
+{
+  for( INDEX_TYPE i = 0; i < 3; ++i )
+  {
+    this->template resizeFromCapacities< serialPolicy >( 100, 10 );
+    this->insertIntoArray( 10 );
+
+#if defined( USE_OPENMP )
+    this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
+    this->insertIntoArray( 10 );
+#endif
   }
 }
 
@@ -932,7 +1068,7 @@ public:
 
     // Update the view on the device.
     forall( gpu(), 0, nArrays,
-            [view=m_array.toViewSemiConst()] __device__ ( INDEX_TYPE i )
+            [view=m_array.toViewConstSizes()] __device__ ( INDEX_TYPE i )
     {
       INDEX_TYPE const sizeOfArray = view.sizeOfArray( i );
       for( INDEX_TYPE j = 0; j < sizeOfArray; ++j )
@@ -1248,7 +1384,7 @@ protected:
 };
 
 using CudaTestTypes = ::testing::Types< INDEX_TYPE, Tensor >;
-TYPED_TEST_CASE( ArrayOfArraysCudaTest, CudaTestTypes );
+TYPED_TEST_SUITE( ArrayOfArraysCudaTest, CudaTestTypes );
 
 TYPED_TEST( ArrayOfArraysCudaTest, memoryMotion )
 {

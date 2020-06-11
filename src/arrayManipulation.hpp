@@ -30,17 +30,38 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p index is a valid into into the array.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index >= size, \
                     "Array Bounds Check Failed: index=" << index << " size()=" << size )
 
+/**
+ * @brief Check that @p index is a valid insertion position in the array.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index > size, \
                     "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p index is a valid into into the array.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index )
+
+/**
+ * @brief Check that @p index is a valid insertion position in the array.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
@@ -52,8 +73,8 @@ namespace arrayManipulation
 
 /**
  * @tparam INDEX_TYPE the integral type to check.
- * @brief Return true iff the given value is greater than or equal to zero.
- * @param [in] i the value to check.
+ * @brief @return Return true iff @p i is greater than or equal to zero.
+ * @param i the value to check.
  */
 template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline constexpr
@@ -63,19 +84,19 @@ isPositive( INDEX_TYPE const i )
 
 /**
  * @tparam INDEX_TYPE the integral type to check.
- * @brief Returns true. This specialization for unsigned types avoids compiler warnings.
+ * @brief @return Returns true. This specialization for unsigned types avoids compiler warnings.
  */
 template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline constexpr
 typename std::enable_if< !std::is_signed< INDEX_TYPE >::value, bool >::type
-isPositive( INDEX_TYPE const )
+isPositive( INDEX_TYPE )
 { return true; }
 
 /**
  * @tparam T the storage type of the array.
  * @brief Destory the values in the array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -92,35 +113,36 @@ void destroy( T * const LVARRAY_RESTRICT ptr,
 }
 
 /**
+ * @tparam ITER An iterator type.
  * @tparam T the storage type of the array.
  * @brief Copy construct values from the source to the destination.
- * @param [in/out] dst pointer to the destination array, must be uninitialized memory.
- * @param [in] size the number of values to copy.
- * @param [in] src pointer to the source array.
+ * @param first Iterator to the first value to copy.
+ * @param last Iterator to the end of the values to copy.
+ * @param dst Pointer to the destination array, must be uninitialized memory.
  */
 DISABLE_HD_WARNING
-template< typename T >
+template< typename ITER, typename T >
 LVARRAY_HOST_DEVICE inline
-void uninitializedCopy( T * const LVARRAY_RESTRICT dst,
-                        std::ptrdiff_t const size,
-                        T const * const LVARRAY_RESTRICT src )
+void uninitializedCopy( ITER first,
+                        ITER const & last,
+                        T * LVARRAY_RESTRICT dst )
 {
-  LVARRAY_ASSERT( dst != nullptr || size == 0 );
-  LVARRAY_ASSERT( isPositive( size ) );
-  LVARRAY_ASSERT( src != nullptr || size == 0 );
+  LVARRAY_ASSERT( dst != nullptr || first == last );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  while( first != last )
   {
-    new (dst + i) T( src[ i ] );
+    new ( dst ) T( *first );
+    ++dst;
+    ++first;
   }
 }
 
 /**
  * @tparam T the storage type of the array.
  * @brief Move construct values from the source to the destination.
- * @param [in/out] dst pointer to the destination array, must be uninitialized memory.
- * @param [in] size the number of values to copy.
- * @param [in/out] src pointer to the source array.
+ * @param dst pointer to the destination array, must be uninitialized memory.
+ * @param size the number of values to copy.
+ * @param src pointer to the source array.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -142,9 +164,9 @@ void uninitializedMove( T * const LVARRAY_RESTRICT dst,
 /**
  * @tparam T the storage type of the array.
  * @brief Shift values down into uninitialized memory.
- * @param [in/out] ptr pointer to the begining of the shift, values before this must be uninitialized.
- * @param [in] size number of values to shift.
- * @param [in] amount the amount to shift by.
+ * @param ptr pointer to the begining of the shift, values before this must be uninitialized.
+ * @param size number of values to shift.
+ * @param amount the amount to shift by.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -170,9 +192,9 @@ void uninitializedShiftDown( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Shift values up into uninitialized memory.
- * @param [in/out] ptr pointer to the begining of the shift.
- * @param [in] size number of values to shift, values after this must be uninitialized.
- * @param [in] amount the amount to shift by.
+ * @param ptr pointer to the begining of the shift.
+ * @param size number of values to shift, values after this must be uninitialized.
+ * @param amount the amount to shift by.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -199,14 +221,14 @@ void uninitializedShiftUp( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @tparam ARGS the types of the arguments to forward to the constructor.
  * @brief Resize the give array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] newSize the new size.
- * @param [in/out] args the arguments to forward to construct any new elements with.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param newSize the new size.
+ * @param args the arguments to forward to construct any new elements with.
  */
 DISABLE_HD_WARNING
 template< typename T, typename ... ARGS >
-inline
+LVARRAY_HOST_DEVICE inline
 void resize( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const size,
              std::ptrdiff_t const newSize,
@@ -230,10 +252,10 @@ void resize( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New uninitialized values take their place.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the index at which to begin the shift.
- * @param [in] n the number of places to shift.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the index at which to begin the shift.
+ * @param n the number of places to shift.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -267,11 +289,11 @@ void shiftUp( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position up by the given amount.
  *        New values take their place.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the index at which to begin the shift.
- * @param [in] n the number of places to shift.
- * @param [in] defaultValue the value to initialize the new entries with.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the index at which to begin the shift.
+ * @param n the number of places to shift.
+ * @param defaultValue the value to initialize the new entries with.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -297,10 +319,10 @@ void emplace( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are not destroyed.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the index at which to begin the shift.
- * @param [in] n the number of places to shift.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the index at which to begin the shift.
+ * @param n the number of places to shift.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -330,10 +352,10 @@ void shiftDown( T * const LVARRAY_RESTRICT ptr,
  * @tparam T the storage type of the array.
  * @brief Shift the values in the array at or above the given position down by the given amount overwriting
  *        the existing values. The n entries at the end of the array are then destroyed.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the index at which to begin the shift.
- * @param [in] n the number of places to shift.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the index at which to begin the shift.
+ * @param n the number of places to shift.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -359,9 +381,9 @@ void erase( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Append the given value to the array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] value the value to append.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param value the value to append.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -378,9 +400,9 @@ void append( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Append the given value to the array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in/out] value the value to append.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param value the value to append.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -397,10 +419,10 @@ void append( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Append the given values to the array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] values the values to append.
- * @param [in] n the number of values to append.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param values the values to append.
+ * @param n the number of values to append.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -424,10 +446,10 @@ void append( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Insert the given value into the array at the given position.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the position to insert the value at.
- * @param [in] value the value to insert.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the position to insert the value at.
+ * @param value the value to insert.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -449,10 +471,10 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Insert the given value into the array at the given position.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the position to insert the value at.
- * @param [in/out] value the value to insert.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the position to insert the value at.
+ * @param value the value to insert.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -473,11 +495,11 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Insert the given values into the array at the given position.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
- * @param [in] index the position to insert the value at.
- * @param [in] values the values to insert.
- * @param [in] n the number of values to insert.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
+ * @param index the position to insert the value at.
+ * @param values the values to insert.
+ * @param n the number of values to insert.
  */
 DISABLE_HD_WARNING
 template< typename T >
@@ -503,8 +525,8 @@ void insert( T * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the storage type of the array.
  * @brief Destroy the value at the end of the array.
- * @param [in/out] ptr pointer to the array.
- * @param [in] size the size of the array.
+ * @param ptr pointer to the array.
+ * @param size the size of the array.
  */
 DISABLE_HD_WARNING
 template< typename T >

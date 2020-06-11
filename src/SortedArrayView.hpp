@@ -29,12 +29,22 @@
 
 #ifdef USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p index falls within the size of the array.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define SORTEDARRAY_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= size(), \
                     "Array Bounds Check Failed: index=" << index << " size()=" << size())
 
 #else // USE_ARRAY_BOUNDS_CHECK
 
+/**
+ * @brief Check that @p index falls within the size of the first dimension.
+ * @param index The index to check.
+ * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ */
 #define SORTEDARRAY_CHECK_BOUNDS( index )
 
 #endif // USE_ARRAY_BOUNDS_CHECK
@@ -43,30 +53,45 @@ namespace LvArray
 {
 
 /**
+ * @tparam T type of data that is contained by the array.
+ * @tparam INDEX_TYPE the integer to use for indexing.
  * @class SortedArrayView
  * @brief This class provides a view into a SortedArray.
- * @tparam T type of data that is contained by the array.
- * @tparam INDEX_TYPE the integer to use for indexing the components of the array.
  *
- * When using a SortedArrayView directly the template parameter T should be const
- * since the View has no way of modifying the values. This also prevents unnecessary
- * memory movement.
+ * @details When using a SortedArrayView directly the template parameter T should be const
+ *   since the View has no way of modifying the values. This also prevents unnecessary
+ *   memory movement.
  */
 template< class T, class INDEX_TYPE=std::ptrdiff_t >
 class SortedArrayView
 {
 public:
 
+  /// The type of the value in the SortedArrayView.
+  using value_type = T;
+
+  /// The type of the iterator used.
+  using iterator = T const *;
+
+  /// The type of the const iterator used.
+  using const_iterator = T const *;
+
+  /// The pointer type.
+  using pointer = T *;
+
+  /// The const_pointer type.
+  using const_pointer = T const *;
+
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *        chai::ManagedArray copy constructor.
-   * @param [in] src the SortedArray to copy.
+   * @param src the SortedArray to copy.
    */
   SortedArrayView( SortedArrayView const & src ) = default;
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @param [in/out] src the SortedArray to be moved from.
+   * @param src The SortedArray to be moved from.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView( SortedArrayView && src ):
@@ -78,14 +103,16 @@ public:
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
-   * @param [in] src the SortedArray to copy.
+   * @param src The SortedArray to copy.
+   * @return *this.
    */
   inline
   SortedArrayView & operator=( SortedArrayView const & src ) = default;
 
   /**
    * @brief Default move assignment operator, this does a shallow copy.
-   * @param [in/out] src the SortedArray to be moved from.
+   * @param src the SortedArray to be moved from.
+   * @return *this.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView & operator=( SortedArrayView && src )
@@ -97,20 +124,31 @@ public:
   }
 
   /**
-   * @brief Return a pointer to the values.
-   *
-   * @note The pointer is of type T const * because it would be unsafe to modify
-   *        the values of the set.
+   * @brief @return A reference to *this.
+   */
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T > const & toView() const LVARRAY_RESTRICT_THIS
+  { return *this; }
+
+  /**
+   * @brief @return A reference to *this.
+   */
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE > const & >( *this ); }
+
+  /**
+   * @brief @return Return a pointer to the values.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   T const * data() const
   { return m_values.data(); }
 
   /**
-   * @brief Access the given value of the set.
-   * @param [in] i the index of the value to access.
+   * @brief @return Return the value at position @p i .
+   * @param i the index of the value to access.
    */
-  LVARRAY_HOST_DEVICE CONSTEXPRFUNC inline
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   T const & operator[]( INDEX_TYPE const i ) const
   {
     SORTEDARRAY_CHECK_BOUNDS( i );
@@ -118,46 +156,45 @@ public:
   }
 
   /**
-   * @brief Return a pointer to the beginning of the array.
+   * @brief @return Return an iterator to the beginning of the array.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  T const * begin() const
+  iterator begin() const
   { return data(); }
 
   /**
-   * @brief Return a pointer to the end of the array.
+   * @brief @return Return an iterator to the end of the array.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  T const * end() const
+  iterator end() const
   { return data() + size(); }
 
   /**
-   * @brief Return true if the array holds no values.
+   * @brief @return Return true if the array holds no values.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   bool empty() const
   { return size() == 0; }
 
   /**
-   * @brief Return the number of values in the array.
+   * @brief @return Return the number of values in the array.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE size() const
   { return m_size; }
 
   /**
-   * @brief Return true if the given value is in the array.
-   * @param [in] value the value to search for.
+   * @brief @return Return true if the @p value is in the array.
+   * @param value the value to search for.
    */
   LVARRAY_HOST_DEVICE inline
   bool contains( T const & value ) const
   { return sortedArrayManipulation::contains( data(), size(), value ); }
 
   /**
-   * @brief Return true if the given value is in the array.
-   * @param [in] value the value to search for.
-   *
-   * @note the is a alias for contains to conform to the std::set interface.
+   * @brief @return Return true if the given value is in the array.
+   * @param value the value to search for.
+   * @note This is a alias for contains to conform to the std::set interface.
    */
   LVARRAY_HOST_DEVICE inline
   bool count( const T & value ) const
@@ -165,52 +202,35 @@ public:
 
   /**
    * @brief Moves the SortedArrayView to the given execution space.
-   * @param [in] space the space to move to.
-   * @param [in] touch If the values will be modified in the new space.
+   * @param space the space to move to.
+   * @param touch If the values will be modified in the new space.
    * @note Since the SortedArrayView can't be modified on device when moving
    *       to the GPU @p touch is set to false.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool touch=true ) LVARRAY_RESTRICT_THIS
+  void move( chai::ExecutionSpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
   {
   #if defined(USE_CUDA)
     if( space == chai::GPU ) touch = false;
   #endif
-    m_values.move( space, size(), touch );
-  }
-
-  friend std::ostream & operator<< ( std::ostream & stream, SortedArrayView const & array )
-  {
-    if( array.size() == 0 )
-    {
-      stream << "{}";
-      return stream;
-    }
-
-    stream << "{ " << array[ 0 ];
-    for( INDEX_TYPE i = 1; i < array.size(); ++i )
-    {
-      stream << ", " << array[ i ];
-    }
-
-    stream << " }";
-    return stream;
+    m_values.move( space, touch );
   }
 
 protected:
 
   /**
-   * @brief Default constructor. Made protected since every SortedArrayView should
-   *        either be the base of a SortedArrayView or copied from another SortedArrayView.
+   * @brief Default constructor.
+   * @note Protected since every SortedArrayView should either be the base of a
+   *  SortedArray or copied from another SortedArrayView.
    */
   SortedArrayView():
     m_values( true )
   {}
 
-  // Holds the array of values.
+  /// Holds the array of values.
   NewChaiBuffer< T > m_values;
 
-  // The number of values
+  /// The number of values
   INDEX_TYPE m_size = 0;
 };
 

@@ -20,6 +20,7 @@
 #include "Array.hpp"
 #include "ArrayOfArrays.hpp"
 #include "ArrayOfSets.hpp"
+#include "streamIO.hpp"
 #include "testUtils.hpp"
 
 // TPL includes
@@ -96,18 +97,12 @@ void compareToReference( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE cons
 #define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); \
 }
 
-enum class ModificationType
-{
-  SINGLE,
-  MULTIPLE,
-  SORTED
-};
-
 enum class AddType
 {
   BINARY_SEARCH,
   LINEAR_SEARCH,
-  HYBRID
+  HYBRID,
+  UNSORTED_BINARY
 };
 
 template< typename T >
@@ -128,38 +123,42 @@ public:
   /**
    * @brief Test the insert multiple method of the CRSMatrix.
    * @param [in] maxInserts the number of entries to insert at a time.
-   * @param [in] type whether to use the singular, non-sorted, or sorted insert.
+   * @param [in] oneAtATime If true the entries are inserted one at at time.
    */
-  void insert( INDEX_TYPE const maxInserts, ModificationType const type )
+  void insert( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, type == ModificationType::SORTED );
-    ArrayOfArrays< T > const valuesToInsert = createArrayOfValues( columnsToInsert );
+    ArrayOfArrays< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, oneAtATime );
+    ArrayOfArrays< T > const valuesToInsert = createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Insert the entries into the reference.
-    insertIntoRef( columnsToInsert );
+    insertIntoRef( columnsToInsert.toViewConst() );
 
     for( INDEX_TYPE row = 0; row < numRows; ++row )
     {
       INDEX_TYPE const initialNNZ = m_matrix.numNonZeros( row );
       INDEX_TYPE nInserted = 0;
-      if( type == ModificationType::SINGLE )
+
+      // LVARRAY_LOG_VAR( m_matrix.getColumns( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( m_matrix.getEntries( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( columnsToInsert[ row ].toSliceConst() );
+      // LVARRAY_LOG_VAR( valuesToInsert[ row ].toSliceConst() );
+
+      if( oneAtATime )
       {
         for( INDEX_TYPE i = 0; i < columnsToInsert.sizeOfArray( row ); ++i )
         {
           nInserted += m_matrix.insertNonZero( row, columnsToInsert( row, i ), valuesToInsert( row, i ) );
         }
       }
-      if( type == ModificationType::MULTIPLE )
-      {
-        nInserted = m_matrix.insertNonZeros( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) );
-      }
-      if( type == ModificationType::SORTED )
-      {
-        nInserted = m_matrix.insertNonZerosSorted( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) );
-      }
+      else
+      { nInserted = m_matrix.insertNonZeros( row, columnsToInsert[ row ], valuesToInsert[ row ], columnsToInsert.sizeOfArray( row ) ); }
+
+      // LVARRAY_LOG_VAR( m_matrix.getColumns( row ).toSliceConst() );
+      // LVARRAY_LOG_VAR( m_matrix.getEntries( row ).toSliceConst() );
+      // LVARRAY_LOG( "" );
 
       ASSERT_EQ( m_matrix.numNonZeros( row ) - initialNNZ, nInserted );
       ASSERT_EQ( m_matrix.numNonZeros( row ), m_ref[ row ].size());
@@ -206,7 +205,7 @@ public:
     COL_TYPE const * const columns0 = m_matrix.getColumns( 0 );
     T const * const entries0 = m_matrix.getEntries( 0 );
 
-    this->insert( maxInserts, ModificationType::SORTED );
+    this->insert( maxInserts );
 
     ASSERT_EQ( m_matrix.getColumns( 0 ), columns0 );
     ASSERT_EQ( m_matrix.getEntries( 0 ), entries0 );
@@ -366,7 +365,7 @@ public:
     COL_TYPE const * const columns = m_matrix.getColumns( 0 );
     T const * const entries = m_matrix.getEntries( 0 );
 
-    insert( capacityPerRow / 2, ModificationType::SORTED );
+    insert( capacityPerRow / 2 );
 
     COL_TYPE const * const newColumns = m_matrix.getColumns( 0 );
     T const * const newEntries = m_matrix.getEntries( 0 );
@@ -424,7 +423,7 @@ public:
 
 protected:
 
-  ArrayOfArrays< COL_TYPE > createArrayOfColumns( INDEX_TYPE const maxCols, bool const sorted )
+  ArrayOfArrays< COL_TYPE > createArrayOfColumns( INDEX_TYPE const maxCols, bool const oneAtATime )
   {
     INDEX_TYPE const numRows = m_matrix.numRows();
 
@@ -440,9 +439,10 @@ protected:
         columns( row, i ) = rand( m_matrix.numColumns() - 1 );
       }
 
-      if( sorted && nCols != 0 )
+      if( !oneAtATime && nCols != 0 )
       {
-        std::sort( &columns( row, 0 ), &columns( row, 0 ) + nCols );
+        INDEX_TYPE const numUnique = sortedArrayManipulation::makeSortedUnique( &columns( row, 0 ), &columns( row, 0 ) + nCols );
+        columns.resizeArray( row, numUnique );
       }
     }
 
@@ -489,6 +489,72 @@ protected:
   CRSMatrix< T > m_matrix;
 
   REF_TYPE< T > m_ref;
+
+  /// Check that the move, toView, and toViewConst methods of CRSMatrix< T > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrix< T > >,
+                 "CRSMatrix< T > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that the move and toViewConst methods of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > are
+  /// detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a move method." );
+  static_assert( HasMemberFunction_toView< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >,
+                 "CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > has a toViewConst method." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrix< T >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrix< T > >::type,
+                                 CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrix< T > is CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrix< T > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrix< T > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > is CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+
+  /// Check that GetViewType and GetViewTypeConst are correct for CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE
+  /// const >
+  static_assert( std::is_same_v< typename GetViewType< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The view type of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
+  static_assert( std::is_same_v< typename GetViewTypeConst< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > >::type,
+                                 CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const >,
+                 "The const view type of CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > is CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const." );
 };
 
 using TestTypes = ::testing::Types<
@@ -496,7 +562,7 @@ using TestTypes = ::testing::Types<
   , Tensor
   , TestString
   >;
-TYPED_TEST_CASE( CRSMatrixTest, TestTypes );
+TYPED_TEST_SUITE( CRSMatrixTest, TestTypes, );
 
 const int DEFAULT_NROWS = 25;
 const int DEFAULT_NCOLS = 40;
@@ -553,7 +619,7 @@ TYPED_TEST( CRSMatrixTest, insert )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insert( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -563,17 +629,7 @@ TYPED_TEST( CRSMatrixTest, insertMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixTest, insertSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+    this->insert( DEFAULT_MAX_INSERTS );
   }
 }
 
@@ -592,28 +648,28 @@ TYPED_TEST( CRSMatrixTest, rowCapacity )
 TYPED_TEST( CRSMatrixTest, deepCopy )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->deepCopyTest();
 }
 
 TYPED_TEST( CRSMatrixTest, shallowCopy )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->deepCopyTest();
 }
 
 TYPED_TEST( CRSMatrixTest, setValues )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->setValues();
 }
 
 TYPED_TEST( CRSMatrixTest, compress )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->compress();
 }
 
@@ -627,7 +683,7 @@ public:
 
   CRSMatrixViewTest():
     CRSMatrixTest< T >(),
-    m_view( this->m_matrix )
+    m_view( this->m_matrix.toView() )
   {};
 
   /**
@@ -643,9 +699,8 @@ public:
     forall< serialPolicy >( m_view.numRows(),
                             [view, &curIndex]( INDEX_TYPE row )
     {
-      memoryMotionCheckRow( view, row, curIndex );
-    }
-                            );
+      memoryMotionCheckRow( view.toViewConst(), row, curIndex );
+    } );
   }
 
   /**
@@ -672,7 +727,7 @@ public:
     INDEX_TYPE const numCols = m_view.numColumns();
 
     // Capture a view with const columns on device and update the entries.
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConstSizes();
     forall< Policy >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -683,8 +738,7 @@ public:
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[i] ) || columns[i] >= numCols, "Invalid column." );
             entries[i] = T( 2 * i + 7 );
           }
-        }
-                      );
+        } );
 
     // This should copy back the entries but not the columns.
     this->m_matrix.move( chai::CPU );
@@ -714,7 +768,7 @@ public:
     INDEX_TYPE const numCols = m_view.numColumns();
 
     // Capture a view with const columns and const values on device.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
         {
@@ -729,7 +783,7 @@ public:
                       );
 
     // Insert entries, this will modify the offsets, sizes, columns and entries.
-    this->insert( maxInserts, ModificationType::SORTED );
+    this->insert( maxInserts );
 
     // Move the matrix back to the host, this should copy nothing.
     this->m_matrix.move( chai::CPU );
@@ -741,15 +795,15 @@ public:
   /**
    * @brief Test the CRSMatrixView insert methods.
    * @param [in] maxInserts the maximum number of inserts.
-   * @param [in] type whether to use the singular, non-sorted, or sorted insert.
+   * @param [in] oneAtATime If true the entries are inserted one at a time.
    */
-  void insertIntoView( INDEX_TYPE const maxInserts, ModificationType const type )
+  void insertIntoView( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = this->m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, type == ModificationType::SORTED );
-    ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert );
+    ArrayOfArrays< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, oneAtATime );
+    ArrayOfArrays< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Reserve space for the inserts
     for( INDEX_TYPE row = 0; row < numRows; ++row )
@@ -758,12 +812,12 @@ public:
     }
 
     // Insert the entries into the reference.
-    this->insertIntoRef( columnsToInsert );
+    this->insertIntoRef( columnsToInsert.toViewConst() );
 
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
-    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToInsert;
-    ArrayOfArraysView< T const, INDEX_TYPE const, true > const & valuesView = valuesToInsert;
-    if( type == ModificationType::SINGLE )
+    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToInsert.toViewConst();
+    ArrayOfArraysView< T const, INDEX_TYPE const, true > const & valuesView = valuesToInsert.toViewConst();
+    if( oneAtATime )
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
@@ -780,7 +834,7 @@ public:
           }
                         );
     }
-    if( type == ModificationType::MULTIPLE )
+    else
     {
       forall< Policy >( numRows,
                         [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
@@ -794,20 +848,6 @@ public:
           }
                         );
     }
-    if( type == ModificationType::SORTED )
-    {
-      forall< Policy >( numRows,
-                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-          {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nInserted = view.insertNonZerosSorted( row,
-                                                                    columnsView[row],
-                                                                    valuesView[row],
-                                                                    columnsView.sizeOfArray( row ) );
-            PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
-          }
-                        );
-    }
 
     this->m_matrix.move( chai::CPU );
     COMPARE_TO_REFERENCE( m_view.toViewConst(), this->m_ref );
@@ -816,14 +856,14 @@ public:
   /**
    * @brief Test the CRSMatrixView remove method.
    * @param [in] maxRemoves the maximum number of removes.
-   * @param [in] type whether to use the singular, non-sorted, or sorted remove.
+   * @param [in] oneAtATime If true the columns are removed one at a time.
    */
-  void removeFromView( INDEX_TYPE const maxRemoves, ModificationType const type )
+  void removeFromView( INDEX_TYPE const maxRemoves, bool const oneAtATime=false )
   {
     INDEX_TYPE const numRows = m_view.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArrays< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, type == ModificationType::SORTED );
+    ArrayOfArrays< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, oneAtATime );
 
     // Insert the entries into the reference.
     for( INDEX_TYPE i = 0; i < columnsToRemove.size(); ++i )
@@ -836,8 +876,8 @@ public:
     }
 
     CRSMatrixView< T, COL_TYPE, INDEX_TYPE const > const & view = m_view;
-    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToRemove;
-    if( type == ModificationType::SINGLE )
+    ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > const & columnsView = columnsToRemove.toViewConst();
+    if( oneAtATime )
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
@@ -850,10 +890,9 @@ public:
             }
 
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
+          } );
     }
-    if( type == ModificationType::MULTIPLE )
+    else
     {
       forall< Policy >( numRows,
                         [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
@@ -861,19 +900,7 @@ public:
             INDEX_TYPE const initialNNZ = view.numNonZeros( row );
             INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
-    }
-    if( type == ModificationType::SORTED )
-    {
-      forall< Policy >( numRows,
-                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-          {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nRemoved = view.removeNonZerosSorted( row, columnsView[row], columnsView.sizeOfArray( row ) );
-            PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
-          }
-                        );
+          } );
     }
 
     this->m_matrix.move( chai::CPU );
@@ -899,7 +926,7 @@ public:
     }
 
     // Check that each row contains the even columns and no odd columns.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -908,8 +935,7 @@ public:
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
           }
-        }
-                      );
+        } );
   }
 
   /**
@@ -922,7 +948,7 @@ public:
     SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & spView = m_view.toSparsityPatternView();
 
     // Check that each row contains the even columns and no odd columns on device.
-    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConst();
     forall< Policy >( numRows,
                       [spView, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -939,8 +965,7 @@ public:
             PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
             PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( i ) ), spView.empty( row, COL_TYPE( i ) ) );
           }
-        }
-                      );
+        } );
   }
 
   // This should be private but you can't have device lambdas need to be in public methods :(
@@ -1009,38 +1034,38 @@ using ViewTestTypes = ::testing::Types<
   , std::pair< parallelHostPolicy, TestString >
 #endif
 #if defined(USE_CUDA)
-  , std::pair< parallelDevicePolicy, int >
-  , std::pair< parallelDevicePolicy, Tensor >
+  , std::pair< parallelDevicePolicy< 256 >, int >
+  , std::pair< parallelDevicePolicy< 256 >, Tensor >
 #endif
   >;
 
-TYPED_TEST_CASE( CRSMatrixViewTest, ViewTestTypes );
+TYPED_TEST_SUITE( CRSMatrixViewTest, ViewTestTypes, );
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotion )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionMove )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionMoveTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionConst )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionConstTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, memoryMotionConstConst )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionConstConstTest( DEFAULT_MAX_INSERTS );
 }
 
@@ -1050,7 +1075,7 @@ TYPED_TEST( CRSMatrixViewTest, insert )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insertIntoView( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -1060,17 +1085,7 @@ TYPED_TEST( CRSMatrixViewTest, insertMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixViewTest, insertSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insertIntoView( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+    this->insertIntoView( DEFAULT_MAX_INSERTS );
   }
 }
 
@@ -1080,8 +1095,8 @@ TYPED_TEST( CRSMatrixViewTest, remove )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::SINGLE );
+    this->insert( DEFAULT_MAX_INSERTS );
+    this->removeFromView( DEFAULT_MAX_INSERTS, true );
   }
 }
 
@@ -1091,33 +1106,22 @@ TYPED_TEST( CRSMatrixViewTest, removeMultiple )
 
   for( int i = 0; i < 4; ++i )
   {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
-  }
-}
-
-TYPED_TEST( CRSMatrixViewTest, removeSorted )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-
-  for( int i = 0; i < 4; ++i )
-  {
-    this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
-    this->removeFromView( DEFAULT_MAX_INSERTS, ModificationType::MULTIPLE );
+    this->insert( DEFAULT_MAX_INSERTS );
+    this->removeFromView( DEFAULT_MAX_INSERTS );
   }
 }
 
 TYPED_TEST( CRSMatrixViewTest, empty )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->emptyTest();
 }
 
 TYPED_TEST( CRSMatrixViewTest, sparsityPatternView )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->sparsityPatternViewTest();
 }
 
@@ -1138,16 +1142,26 @@ public:
       INDEX_TYPE const nColsInRow = m_view.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
-      ArrayOfSets< COL_TYPE > columns;
+      ArrayOfArrays< COL_TYPE > columns;
       for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
         INDEX_TYPE const nColsToAddTo = this->rand( nColsInRow );
-        columns.appendSet( nColsToAddTo );
+        columns.appendArray( nColsToAddTo );
 
         for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
         {
           INDEX_TYPE const pos = this->rand( nColsInRow - 1 );
-          columns.insertIntoSet( threadID, m_view.getColumns( row )[ pos ] );
+          columns( threadID, i ) = m_view.getColumns( row )[ pos ];
+        }
+      }
+
+      if( type != AddType::UNSORTED_BINARY )
+      {
+        for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+        {
+          INDEX_TYPE const numUniqueCols =
+            sortedArrayManipulation::makeSortedUnique( columns.getIterableArray( threadID ).begin(), columns.getIterableArray( threadID ).end() );
+          columns.resizeArray( threadID, numUniqueCols );
         }
       }
 
@@ -1155,7 +1169,7 @@ public:
       ArrayOfArrays< T > values;
       for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
       {
-        INDEX_TYPE const nColsToAddTo = columns.sizeOfSet( threadID );
+        INDEX_TYPE const nColsToAddTo = columns.sizeOfArray( threadID );
         values.appendArray( nColsToAddTo );
 
         for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
@@ -1166,36 +1180,37 @@ public:
         }
       }
 
-      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view;
-      ArrayOfSetsView< COL_TYPE const, INDEX_TYPE const > colView = columns;
-      ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values;
+      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = m_view.toViewConstSizes();
+      ArrayOfArraysView< COL_TYPE const, INDEX_TYPE const, true > colView = columns.toViewConst();
+      ArrayOfArraysView< T const, INDEX_TYPE const, true > valView = values.toViewConst();
 
       if( type == AddType::LINEAR_SEARCH )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRowLinearSearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
       if( type == AddType::BINARY_SEARCH )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRowBinarySearch< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
       if( type == AddType::HYBRID )
       {
-        forall< Policy >( nThreads,
-                          [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
             {
-              view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfSet( threadID ) );
-            }
-                          );
+              view.template addToRow< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
+      }
+      if( type == AddType::UNSORTED_BINARY )
+      {
+        forall< Policy >( nThreads, [view, colView, valView, row] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+            {
+              view.template addToRowBinarySearchUnsorted< AtomicPolicy >( row, colView[ threadID ], valView[ threadID ], colView.sizeOfArray( threadID ) );
+            } );
       }
     }
 
@@ -1215,31 +1230,38 @@ using ViewAtomicTestTypes = ::testing::Types<
   , std::pair< parallelHostPolicy, int >
 #endif
 #if defined(USE_CUDA)
-  , std::pair< parallelDevicePolicy, int >
+  , std::pair< parallelDevicePolicy< 256 >, int >
 #endif
   >;
 
-TYPED_TEST_CASE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes );
+TYPED_TEST_SUITE( CRSMatrixViewAtomicTest, ViewAtomicTestTypes, );
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRowLinearSearch )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::LINEAR_SEARCH, 10 );
 }
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRowBinarySearch )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::BINARY_SEARCH, 10 );
 }
 
 TYPED_TEST( CRSMatrixViewAtomicTest, addToRow )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS, ModificationType::SORTED );
+  this->insert( DEFAULT_MAX_INSERTS );
   this->addToRow( AddType::HYBRID, 10 );
+}
+
+TYPED_TEST( CRSMatrixViewAtomicTest, addToRowBinarySearchUnsorted )
+{
+  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
+  this->insert( DEFAULT_MAX_INSERTS );
+  this->addToRow( AddType::UNSORTED_BINARY, 10 );
 }
 
 } // namespace testing
