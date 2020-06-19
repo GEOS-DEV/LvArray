@@ -322,7 +322,7 @@ public:
 
     move( space, touch );
 
-    if( prevSpace == chai::GPU && prevSpace != space ) moveInnerData( space, size, touch );
+    if( prevSpace == chai::GPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
   #else
     LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
     LVARRAY_UNUSED_VARIABLE( size );
@@ -338,7 +338,7 @@ public:
    */
   void move( MemorySpace const space, bool const touch ) const
   {
-  #if 1//defined(USE_CUDA)
+  #if defined(USE_CUDA)
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
     if( m_pointer_record == nullptr ||
         m_capacity == 0 ||
