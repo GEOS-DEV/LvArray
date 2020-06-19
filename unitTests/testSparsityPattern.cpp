@@ -1112,7 +1112,7 @@ public:
   void assimilate()
   {
     CRS_MATRIX matrix;
-    matrix.assimilate( std::move( this->m_sp ) );
+    matrix.template assimilate< serialPolicy >( std::move( this->m_sp ) );
     this->compareToReference( matrix.toSparsityPatternView() );
 
     EXPECT_EQ( this->m_sp.numRows(), 0 );

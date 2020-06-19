@@ -285,7 +285,7 @@ public:
 
     SparsityGenerationRAJA< EXEC_POLICY >::generateNodeLoop( this->m_sparsity.toView(),
                                                              this->m_elemToNodeMap.toViewConst(), this->m_nodeToElemMap.toViewConst(), this->m_state );
-    m_matrix.assimilate( std::move( this->m_sparsity ) );
+    m_matrix.assimilate< EXEC_POLICY >( std::move( this->m_sparsity ) );
     m_matrix.toViewConstSizes().move( RAJAHelper< POLICY >::space );
   }
 

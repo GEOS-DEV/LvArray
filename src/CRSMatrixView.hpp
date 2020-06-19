@@ -225,12 +225,12 @@ public:
   inline
   void setValues( T const & value ) const
   {
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                             [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
         INDEX_TYPE const nnz = view.numNonZeros( row );
-        ArraySlice< T, 1 > const entries = view.getEntries( row );
+        ArraySlice< T, 1, 0, INDEX_TYPE_NC > const entries = view.getEntries( row );
 
         for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
         { entries[ i ] = value; }

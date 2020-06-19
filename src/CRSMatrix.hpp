@@ -149,7 +149,7 @@ public:
     // Destroy the current entries.
     if( !std::is_trivially_destructible< T >::value )
     {
-      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
+      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                               [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -164,7 +164,7 @@ public:
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & view = toViewConstSizes();
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                             [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {

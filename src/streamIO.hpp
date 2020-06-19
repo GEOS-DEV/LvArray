@@ -446,8 +446,8 @@ std::ostream & operator<< ( std::ostream & stream,
  * @param view The ArrayOfArraysView to output.
  * @return @p stream .
  */
-template< typename T, typename COL_TYPE, typename INDEX_TYPE >
-std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & view )
+template< typename T, typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )
 {
   stream << "{" << std::endl;
 
