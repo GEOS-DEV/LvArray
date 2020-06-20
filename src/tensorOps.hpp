@@ -1743,6 +1743,45 @@ void plusAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
+ * @brief Multiply @p matrixA with the transpose of @p matrixB and put the result into @p dstMatrix.
+ * @tparam M The size of the first dimension of @p matrixA and both dimensions of @p dstMatrix.
+ * @tparam N The size of the second dimension of matrixA.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_A The type of @p matrixA.
+ * @param dstMatrix The matrix the result is written to, of size M x M.
+ * @param matrixA The matrix in the multiplication, of size M x N.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] += matrixA[ i ][ k ] * matrixA[ j ][ k ] @endcode
+ */
+template< std::ptrdiff_t M,
+          std::ptrdiff_t N,
+          typename DST_MATRIX,
+          typename MATRIX_A >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void plusAikAjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                 MATRIX_A const & LVARRAY_RESTRICT_REF matrixA )
+{
+  static_assert( M > 0, "M must be greater than zero." );
+  static_assert( N > 0, "N must be greater than zero." );
+  internal::checkSizes< M, M >( dstMatrix );
+  internal::checkSizes< M, N >( matrixA );
+
+  for( std::ptrdiff_t i = 0; i < M; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < M; ++j )
+    {
+      auto dot = matrixA[ i ][ 0 ] * matrixA[ j ][ 0 ];
+      for( std::ptrdiff_t k = 1; k < N; ++k )
+      {
+        dot = dot + matrixA[ i ][ k ] * matrixA[ j ][ k ];
+      }
+
+      dstMatrix[ i ][ j ] += dot;
+    }
+  }
+}
+
+/**
  * @brief Multiply the transpose of @p matrixA with @p matrixB and put the result into @p dstMatrix.
  * @tparam M The size of the first dimension of @p dstMatrix and the second dimension of @p matrixA.
  * @tparam N The size of the second dimension of @p dstMatrix and @p matrixB.
