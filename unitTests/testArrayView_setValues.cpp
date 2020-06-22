@@ -1,6 +1,6 @@
 /*
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * Copyright (c) 2019, Lawrence Livermore National Security, LLC.
+ * Copyright (c) 2018, Lawrence Livermore National Security, LLC.
  *
  * Produced at the Lawrence Livermore National Laboratory
  *
@@ -17,16 +17,16 @@
  */
 
 // Source includes
-#include "testArray.hpp"
+#include "testArrayView.hpp"
 
 namespace LvArray
 {
 namespace testing
 {
 
-TYPED_TEST( ArrayTest, scalarAssignmentOperator )
+TYPED_TEST( ArrayViewPolicyTest, setValues )
 {
-  this->scalarAssignmentOperator();
+  this->setValues();
 }
 
 } // namespace testing

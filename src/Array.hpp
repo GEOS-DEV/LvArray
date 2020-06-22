@@ -202,17 +202,6 @@ public:
   }
 
   /**
-   * @brief Assignment operator to assign the entire array to single value.
-   * @param rhs value to set array.
-   * @return *this.
-   */
-  Array & operator=( T const & rhs )
-  {
-    ParentClass::operator=( rhs );
-    return *this;
-  }
-
-  /**
    * @brief Resize the dimensions of the Array to match the given dimensions.
    * @param numDims must equal NDIMS.
    * @param dims the new size of the dimensions, must be of length NDIM.
@@ -339,7 +328,7 @@ public:
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
   LVARRAY_HOST_DEVICE
-  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
+  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue )
   { resizeDefaultDimension( newdim, defaultValue ); }
 
   /**

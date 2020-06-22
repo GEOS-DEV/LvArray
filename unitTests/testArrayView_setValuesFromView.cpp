@@ -1,6 +1,6 @@
 /*
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * Copyright (c) 2019, Lawrence Livermore National Security, LLC.
+ * Copyright (c) 2018, Lawrence Livermore National Security, LLC.
  *
  * Produced at the Lawrence Livermore National Laboratory
  *
@@ -17,27 +17,25 @@
  */
 
 // Source includes
-#include "testTensorOpsTwoSizes.hpp"
+#include "testArrayView.hpp"
 
 namespace LvArray
 {
 namespace testing
 {
 
-TYPED_TEST( TwoSizesTest, scaledCopy )
+TYPED_TEST( ArrayViewPolicyTest, setValuesFromView )
 {
-  this->testScaledCopy();
-}
-
-TYPED_TEST( TwoSizesTest, add )
-{
-  this->testAdd();
-}
-
-TYPED_TEST( TwoSizesTest, plusAikAjk )
-{
-  this->testPlusAikAjk();
+  this->setValuesFromView();
 }
 
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

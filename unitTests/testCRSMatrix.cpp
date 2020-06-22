@@ -368,23 +368,6 @@ public:
     EXPECT_EQ( newEntries, entries );
   }
 
-
-  void setValues()
-  {
-    T const val = T( rand( 100 ) );
-    m_matrix.template setValues< serialPolicy >( val );
-
-    for( auto & row : m_ref )
-    {
-      for( auto & kvPair : row )
-      {
-        kvPair.second = val;
-      }
-    }
-
-    COMPARE_TO_REFERENCE
-  }
-
   void compress()
   {
     m_matrix.compress();
@@ -648,13 +631,6 @@ TYPED_TEST( CRSMatrixTest, shallowCopy )
   this->deepCopyTest();
 }
 
-TYPED_TEST( CRSMatrixTest, setValues )
-{
-  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
-  this->insert( DEFAULT_MAX_INSERTS );
-  this->setValues();
-}
-
 TYPED_TEST( CRSMatrixTest, compress )
 {
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
@@ -794,6 +770,23 @@ public:
     this->m_matrix.move( MemorySpace::CPU );
 
     // And therefore the matrix should still equal the reference.
+    COMPARE_TO_REFERENCE
+  }
+
+  void setValues()
+  {
+    T const val = T( this->rand( 100 ) );
+    this->m_matrix.template setValues< POLICY >( val );
+
+    for( auto & row : this->m_ref )
+    {
+      for( auto & kvPair : row )
+      {
+        kvPair.second = val;
+      }
+    }
+
+    this->m_matrix.move( MemorySpace::CPU );
     COMPARE_TO_REFERENCE
   }
 
@@ -1073,6 +1066,13 @@ TYPED_TEST( CRSMatrixViewTest, memoryMotionConstConst )
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
   this->insert( DEFAULT_MAX_INSERTS );
   this->memoryMotionConstConstTest( DEFAULT_MAX_INSERTS );
+}
+
+TYPED_TEST( CRSMatrixViewTest, setValues )
+{
+  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
+  this->insert( DEFAULT_MAX_INSERTS );
+  this->setValues();
 }
 
 TYPED_TEST( CRSMatrixViewTest, insert )

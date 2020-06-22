@@ -1743,7 +1743,7 @@ void plusAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
- * @brief Multiply @p matrixA with the transpose of @p matrixB and put the result into @p dstMatrix.
+ * @brief Multiply @p matrixA with the transpose of itself and put the result into @p dstMatrix.
  * @tparam M The size of the first dimension of @p matrixA and both dimensions of @p dstMatrix.
  * @tparam N The size of the second dimension of matrixA.
  * @tparam DST_MATRIX The type of @p dstMatrix.

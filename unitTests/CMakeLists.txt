@@ -10,7 +10,6 @@ set(testSources
     testArray_toViewConst.cpp
     testArray_copyAssignmentOperator.cpp
     testArray_moveAssignmentOperator.cpp
-    testArray_scalarAssignmentOperator.cpp
     testArray_getSetSingleParameterResizeIndex.cpp
     testArray_resizeFromPointer.cpp
     testArray_resizeFromArgs.cpp
@@ -39,6 +38,8 @@ set(testSources
     testArrayView_modifyInMultipleKernels.cpp
     testArrayView_moveMultipleTimes.cpp
     testArrayView_emptyMove.cpp
+    testArrayView_setValues.cpp
+    testArrayView_setValuesFromView.cpp
     testArray1DOfArray1D.cpp
     testArray1DOfArray1DOfArray1D.cpp
     testArrayOfArrays.cpp
