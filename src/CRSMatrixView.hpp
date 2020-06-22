@@ -216,10 +216,13 @@ public:
     return nRemoved;
   }
 
+  /// @cond DO_NOT_DOCUMENT
+  // These method breaks uncrustify :(
+
   /**
    * @brief Set all the entries in the matrix to the given value.
-   * @tparam POLICY the kernel launch policy to use.
-   * @param value the value to set entries in the matrix to.
+   * @tparam POLICY The kernel launch policy to use.
+   * @param value The value to set entries in the matrix to.
    */
   template< typename POLICY >
   inline
@@ -236,10 +239,6 @@ public:
         { entries[ i ] = value; }
       } );
   }
-
-  /// @cond DO_NOT_DOCUMENT
-  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
-  // else it works just fine.
 
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.

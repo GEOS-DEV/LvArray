@@ -54,6 +54,11 @@ public:
     fill( m_matrixB_KJI.toSlice(), m_matrixBSeed );
     fill( m_matrixB_local, m_matrixBSeed );
 
+    fill( m_matrixNN_IJK.toSlice(), m_matrixNNSeed );
+    fill( m_matrixNN_IKJ.toSlice(), m_matrixNNSeed );
+    fill( m_matrixNN_KJI.toSlice(), m_matrixNNSeed );
+    fill( m_matrixNN_local, m_matrixNNSeed );
+
     fill( m_vectorN_IJ.toSlice(), m_vectorNSeed );
     fill( m_vectorN_JI.toSlice(), m_vectorNSeed );
     fill( m_vectorN_local, m_vectorNSeed );
@@ -670,6 +675,70 @@ public:
         } );
   }
 
+  void testPlusAikAjk()
+  {
+    T result[ N ][ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < N; ++j )
+      {
+        T dot = 0;
+        for( std::ptrdiff_t k = 0; k < M; ++k )
+        {
+          dot += m_matrixA_local[ i ][ k ] * m_matrixA_local[ j ][ k ];
+        }
+        result[ i ][ j ] = m_matrixNN_local[ i ][ j ] + dot;
+      }
+    }
+
+    ArrayViewT< T const, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toViewConst();
+    T const ( &matrixA_local )[ N ][ M ] = m_matrixA_local;
+
+    ArrayViewT< T, 3, 2 > const & matrixNN_IJK = m_matrixNN_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixNN_IKJ = m_matrixNN_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixNN_KJI = m_matrixNN_KJI.toView();
+
+    std::ptrdiff_t const matrixNNSeed = m_matrixNNSeed;
+
+    forall< POLICY >( 1,
+                      [result, matrixA_IJK, matrixA_IKJ, matrixA_KJI, matrixA_local, matrixNN_IJK,
+                       matrixNN_IKJ, matrixNN_KJI, matrixNNSeed ] LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( matrixNN, matrixA ) \
+            fill( matrixNN, matrixNNSeed ); \
+            tensorOps::plusAikAjk< N, M >( matrixNN, matrixA ); \
+            CHECK_EQUALITY_2D( N, N, matrixNN, result )
+
+          #define _TEST_PERMS( matrixNN, matrixA0, matrixA1, matrixA2, matrixA3 ) \
+            _TEST( matrixNN, matrixA0 ); \
+            _TEST( matrixNN, matrixA1 ); \
+            _TEST( matrixNN, matrixA2 ); \
+            _TEST( matrixNN, matrixA3 )
+
+          T matrixNN_local[ N ][ N ];
+
+          _TEST( matrixNN_local, matrixA_local );
+
+          LVARRAY_UNUSED_VARIABLE( matrixA_IJK );
+          LVARRAY_UNUSED_VARIABLE( matrixA_IKJ );
+          LVARRAY_UNUSED_VARIABLE( matrixA_KJI );
+          LVARRAY_UNUSED_VARIABLE( matrixA_local );
+          LVARRAY_UNUSED_VARIABLE( matrixNN_IJK );
+          LVARRAY_UNUSED_VARIABLE( matrixNN_IKJ );
+          LVARRAY_UNUSED_VARIABLE( matrixNN_KJI );
+
+          // _TEST_PERMS( matrixNN_IJK[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          // _TEST_PERMS( matrixNN_IKJ[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          // _TEST_PERMS( matrixNN_KJI[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          // _TEST_PERMS( matrixNN_local, matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+
+          #undef _TEST_PERMS
+          #undef _TEST
+        } );
+  }
+
 private:
   std::ptrdiff_t const m_matrixASeed = 0;
   ArrayT< T, RAJA::PERM_IJK > m_matrixA_IJK { 1, N, M };
@@ -683,7 +752,13 @@ private:
   ArrayT< T, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, M };
   T m_matrixB_local[ N ][ M ];
 
-  std::ptrdiff_t const m_vectorNSeed = m_matrixBSeed + N * M;
+  std::ptrdiff_t const m_matrixNNSeed = m_matrixBSeed + N * M;
+  ArrayT< T, RAJA::PERM_IJK > m_matrixNN_IJK { 1, N, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixNN_IKJ { 1, N, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixNN_KJI { 1, N, N };
+  T m_matrixNN_local[ N ][ N ];
+
+  std::ptrdiff_t const m_vectorNSeed = m_matrixNNSeed + N * N;
   ArrayT< T, RAJA::PERM_IJ > m_vectorN_IJ { 1, N };
   ArrayT< T, RAJA::PERM_JI > m_vectorN_JI { 1, N };
   T m_vectorN_local[ N ];

@@ -432,6 +432,56 @@ public:
     array.move( MemorySpace::CPU );
   }
 
+  static void setValues()
+  {
+    T const value = T( 3.14 );
+
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+
+    T const * const initialPtr = array->data();
+    INDEX_TYPE totalSize = 1;
+    std::array< INDEX_TYPE, NDIM > sizes;
+    for( int dim = 0; dim < NDIM; ++dim )
+    {
+      sizes[ dim ] = array->size( dim );
+      totalSize *= array->size( dim );
+    }
+
+    array->template setValues< POLICY >( value );
+    array->move( MemorySpace::CPU );
+
+    EXPECT_EQ( array->size(), totalSize );
+    EXPECT_EQ( array->capacity(), totalSize );
+    EXPECT_EQ( array->data(), initialPtr );
+
+    for ( int dim = 0; dim < NDIM; ++dim )
+    { EXPECT_EQ( array->size( dim ), sizes[ dim ] ); }
+
+    for( INDEX_TYPE i = 0; i < array->size(); ++i )
+    { EXPECT_EQ( array->data()[ i ], value ); }
+  }
+
+  static void setValuesFromView()
+  {
+    ARRAY array;
+    std::unique_ptr< ARRAY > arrayToCopy = ParentClass::sizedConstructor();
+
+    array.resize( NDIM, arrayToCopy->dims() );
+    T const * const initialPtr = array.data();
+
+    array.template setValues< POLICY >( arrayToCopy->toViewConst() );
+    array.move( MemorySpace::CPU );
+    
+    EXPECT_EQ( array.size(), arrayToCopy->size() );
+    EXPECT_EQ( array.capacity(), arrayToCopy->size() );
+    EXPECT_EQ( array.data(), initialPtr );
+
+    for ( int dim = 0; dim < NDIM; ++dim )
+    { EXPECT_EQ( array.size( dim ), arrayToCopy->size( dim ) ); }
+
+    ParentClass::checkFill( array );
+  }
+
 protected:
 
   template< typename ARRAY >
