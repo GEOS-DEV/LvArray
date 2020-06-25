@@ -474,6 +474,17 @@ public:
   INDEX_TYPE const * strides() const noexcept
   { return m_strides; }
 
+
+  /**
+   * @brief Touch the memory in @p space.
+   * @param space The memory space in which a touch will be recorded.
+   */
+  void registerTouch( MemorySpace const space ) const
+  {
+    m_dataBuffer.registerTouch( space );
+  }
+
+
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
    * @param space the space to move the Array to.

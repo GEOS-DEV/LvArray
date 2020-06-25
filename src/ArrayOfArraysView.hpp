@@ -453,6 +453,18 @@ public:
     m_sizes[i] -= n;
   }
 
+
+  /**
+   * @brief Touch the memory in @p space.
+   * @param space The memory space in which a touch will be recorded.
+   */
+  void registerTouch( MemorySpace const space ) const
+  {
+    m_values.registerTouch( space );
+    m_sizes.registerTouch( space );
+    m_offsets.registerTouch( space );
+  }
+
   /**
    * @brief Move this ArrayOfArrays to the given memory space.
    * @param space The memory space to move to.
