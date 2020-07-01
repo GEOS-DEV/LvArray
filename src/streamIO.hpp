@@ -454,7 +454,7 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
   for( INDEX_TYPE row = 0; row < view.numRows(); ++row )
   {
     stream << "row " << row << std::endl;
-    stream << "\tcolumns: " << view.getEntries( row ) << std::endl;
+    stream << "\tcolumns: " << view.getColumns( row ) << std::endl;
     stream << "\tvalues: " << view.getEntries( row ) << std::endl;
   }
 
