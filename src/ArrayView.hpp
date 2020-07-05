@@ -391,7 +391,7 @@ public:
   ///***********************************************************************************************
 
   /**
-   * @brief @return Return a lower dimensionsal slice of this ArrayView.
+   * @brief @return Return a lower dimensional slice of this ArrayView.
    * @param index The index of the slice to create.
    * @note This method is only active when NDIM > 1.
    */
