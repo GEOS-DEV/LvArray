@@ -505,6 +505,27 @@ protected:
   int m_singleParameterResizeIndex = 0;
 };
 
+/**
+ * @brief True if the template type is a ArrayView.
+ */
+template< class >
+constexpr bool isArrayView = false;
+
+/**
+ * @tparam T The type contained in the ArrayView.
+ * @tparam NDIM The number of dimensions in the ArrayView.
+ * @tparam USD The unit stride dimension.
+ * @tparam INDEX_TYPE The integral type used as an index.
+ * @tparam BUFFER_TYPE The type used to manager the underlying allocation.
+ * @brief Specialization of isArrayView for the ArrayView class.
+ */
+template< typename T,
+          int NDIM,
+          int USD,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+constexpr bool isArrayView< ArrayView< T, INDEX_TYPE, BUFFER_TYPE > > = true;
+
 } // namespace LvArray
 
 #endif // ARRAYVIEW_HPP_

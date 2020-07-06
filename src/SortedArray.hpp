@@ -313,11 +313,14 @@ constexpr bool isSortedArray = false;
 
 /**
  * @tparam T The type contained in the SortedArray.
- * @tparam INDEX_TYPE The type used to index the SortedArray.
+ * @tparam INDEX_TYPE The integral type used as an index.
+ * @tparam BUFFER_TYPE The type used to manager the underlying allocation.
  * @brief Specialization of isSortedArrayView for the SortedArray class.
  */
-template< class T, class INDEX_TYPE >
-constexpr bool isSortedArray< SortedArray< T, INDEX_TYPE > > = true;
+template< class T,
+          class INDEX_TYPE,
+          template < typename > class BUFFER_TYPE >
+constexpr bool isSortedArray< SortedArray< T, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 
 } // namespace LvArray
