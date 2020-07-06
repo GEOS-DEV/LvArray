@@ -524,7 +524,7 @@ template< typename T,
           int USD,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
-constexpr bool isArrayView< ArrayView< T, INDEX_TYPE, BUFFER_TYPE > > = true;
+constexpr bool isArrayView< ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 } // namespace LvArray
 
