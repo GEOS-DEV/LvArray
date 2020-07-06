@@ -186,7 +186,7 @@ template class OuterProductRAJA< RAJA::PERM_IJ, parallelHostPolicy >;
 template class OuterProductRAJA< RAJA::PERM_JI, parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 template class OuterProductRAJA< RAJA::PERM_IJ, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class OuterProductRAJA< RAJA::PERM_JI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif

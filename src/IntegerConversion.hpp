@@ -39,10 +39,19 @@ namespace LvArray
 namespace internal
 {
 
+/**
+ * @struct IntegerTraits
+ * @tparam INTEGER The integer type to get the traits of.
+ * @note This just wraps the methods in std::numeric_limits< INTEGER > but it makes them
+ *   available on device.
+ */
 template< typename INTEGER >
 struct IntegerTraits
 {
+  /// The minimum value representable by INTEGER.
   static constexpr INTEGER min = std::numeric_limits< INTEGER >::min();
+
+  /// The maximum value representable by INTEGER.
   static constexpr INTEGER max = std::numeric_limits< INTEGER >::max();
 };
 

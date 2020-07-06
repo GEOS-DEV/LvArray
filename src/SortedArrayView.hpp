@@ -23,7 +23,7 @@
 #ifndef SRC_COMMON_SORTEDARRAYVIEW
 #define SRC_COMMON_SORTEDARRAYVIEW
 
-#include "NewChaiBuffer.hpp"
+// Source includes
 #include "bufferManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 
@@ -62,7 +62,9 @@ namespace LvArray
  *   since the View has no way of modifying the values. This also prevents unnecessary
  *   memory movement.
  */
-template< class T, class INDEX_TYPE=std::ptrdiff_t >
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
 class SortedArrayView
 {
 public:
@@ -127,15 +129,15 @@ public:
    * @brief @return A reference to *this.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T > const & toView() const LVARRAY_RESTRICT_THIS
+  SortedArrayView const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief @return A reference to *this.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE > const & >( *this ); }
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return Return a pointer to the values.
@@ -208,10 +210,10 @@ public:
    *       to the GPU @p touch is set to false.
    */
   inline
-  void move( chai::ExecutionSpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
+  void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
   {
   #if defined(USE_CUDA)
-    if( space == chai::GPU ) touch = false;
+    if( space == MemorySpace::GPU ) touch = false;
   #endif
     m_values.move( space, touch );
   }
@@ -228,7 +230,7 @@ protected:
   {}
 
   /// Holds the array of values.
-  NewChaiBuffer< T > m_values;
+  BUFFER_TYPE< T > m_values;
 
   /// The number of values
   INDEX_TYPE m_size = 0;

@@ -176,7 +176,7 @@ void registerBenchmarks()
               , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
               , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA)
+  #if defined(USE_CUDA) && defined(USE_CHAI)
               , std::make_tuple( CUDA_N, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
               , std::make_tuple( CUDA_N, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
@@ -204,7 +204,7 @@ int main( int argc, char * * argv )
                LvArray::benchmarking::OMP_M << " )." );
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_N << ", " <<
                LvArray::benchmarking::CUDA_M << " )." );
 #endif

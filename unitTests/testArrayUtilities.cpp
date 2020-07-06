@@ -16,94 +16,93 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-/*
- * Copyright (c) 2015, Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- *
- * All rights reserved.
- *
- * This source code cannot be distributed without permission and
- * further review from Lawrence Livermore National Laboratory.
- */
-
-#include <gtest/gtest.h>
-#include <string>
+// Source includes
 #include "streamIO.hpp"
+#include "MallocBuffer.hpp"
+
+// TPL includes
+#include <gtest/gtest.h>
+
+// System includes
+#include <string>
 
 const char IGNORE_OUTPUT[] = ".*";
 
-using namespace LvArray;
-using namespace std;
+namespace LvArray
+{
+
+template< typename T, typename PERMUTATION >
+using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
 
 TEST( testArrayUtilities, stringToArrayErrors )
 {
-  string input;
+  std::string input;
 
   // This should work
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IJK > array;
     stringToArray( array, input );
   }
 
   {
     input = " { 10 1 } ";
-    LvArray::Array< int, 1 > array;
+    ArrayT< int, RAJA::PERM_I > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { 1, 2 }{ 3, 4 } } ";
-    LvArray::Array< int, 2 > array;
+    ArrayT< int, RAJA::PERM_IJ > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   // This should fail the num('{')==num('}') test
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IJK > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17}  , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IKJ > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14,{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_JIK > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8,{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_JKI > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { 0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_KIJ > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = "  { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_KJI > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IJK > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IJK > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2}}{ } }";
-    LvArray::Array< int, 3 > array;
+    ArrayT< int, RAJA::PERM_IJK > array;
     EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
@@ -112,9 +111,7 @@ TEST( testArrayUtilities, stringToArrayErrors )
 
 TEST( testArrayUtilities, stringToArray3d )
 {
-//  string input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} }
-// }";
-  string input;
+  std::string input;
   input += "{ ";
   int numI = 4;
   int numJ = 5;
@@ -147,7 +144,7 @@ TEST( testArrayUtilities, stringToArray3d )
   }
   input += " }";
 
-  LvArray::Array< int, 3 > array;
+  ArrayT< int, RAJA::PERM_JIK > array;
   stringToArray( array, input );
 
   ASSERT_EQ( array.size( 0 ), numI );
@@ -170,7 +167,7 @@ TEST( testArrayUtilities, stringToArray3d )
 
 TEST( testArrayUtilities, arrayToString )
 {
-  LvArray::Array< int, 3 > array( 2, 4, 3 );
+  ArrayT< int, RAJA::PERM_IKJ > array( 2, 4, 3 );
 
   for( int i=0; i<2; ++i )
   {
@@ -189,3 +186,5 @@ TEST( testArrayUtilities, arrayToString )
                        " { { 100, 101, 102 }, { 110, 111, 112 }, { 120, 121, 122 }, { 130, 131, 132 } } }" );
 
 }
+
+} // namespace LvArray

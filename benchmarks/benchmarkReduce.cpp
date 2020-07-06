@@ -131,7 +131,7 @@ INDEX_TYPE const SERIAL_SIZE = (2 << 20) + 573;
 #if defined(USE_OPENMP)
 INDEX_TYPE const OMP_SIZE = SERIAL_SIZE;
 #endif
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 INDEX_TYPE const CUDA_SIZE = SERIAL_SIZE;
 #endif
 
@@ -163,7 +163,7 @@ void registerBenchmarks()
   #if defined(USE_OPENMP)
               , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA)
+  #if defined(USE_CUDA) && defined(USE_CHAI)
               , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
               );
@@ -190,7 +190,7 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_SIZE << " )." );
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_SIZE << " )." );
 #endif
 

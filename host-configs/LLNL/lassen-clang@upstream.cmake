@@ -2,7 +2,10 @@ set(CONFIG_NAME "lassen-clang@upstream" CACHE PATH "")
 
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-05-11/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-06-17/install-${CONFIG_NAME}-release CACHE PATH "")
+
+set(ENABLE_UMPIRE ON CACHE BOOL "")
+set(ENABLE_CHAI ON CACHE BOOL "")
 
 # C options
 set(CMAKE_C_COMPILER /usr/tce/packages/clang/clang-upstream-2019.03.26/bin/clang CACHE PATH "")

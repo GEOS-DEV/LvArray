@@ -44,6 +44,20 @@ using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
 using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
 #endif
 
+template< typename T >
+using ArrayOfArraysT = ArrayOfArrays< T, INDEX_TYPE, DEFAULT_BUFFER >;
+
+template< typename T, bool CONST_SIZES >
+using ArrayOfArraysViewT = ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, DEFAULT_BUFFER >;
+
+using SparsityPatternT = SparsityPattern< COLUMN_TYPE, INDEX_TYPE, DEFAULT_BUFFER >;
+
+using SparsityPatternViewT = SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const, DEFAULT_BUFFER >;
+
+using CRSMatrixT = CRSMatrix< ENTRY_TYPE, COLUMN_TYPE, INDEX_TYPE, DEFAULT_BUFFER >;
+
+using CRSMatrixViewConstSizesT = CRSMatrixView< ENTRY_TYPE, COLUMN_TYPE const, INDEX_TYPE const, DEFAULT_BUFFER >;
+
 constexpr int NDIM = 3;
 constexpr int NODES_PER_ELEM = 8;
 constexpr int MAX_ELEMS_PER_NODE = 8;
@@ -113,7 +127,7 @@ public:
                 if( k + dk < 0 || k + dk >= m_numElemsZ ) continue;
 
                 INDEX_TYPE const elemIndex = ( i + di ) + elemJp * ( j + dj ) + elemKp * ( k + dk );
-                m_nodeToElemMap.appendToArray( nodeIndex, elemIndex );
+                m_nodeToElemMap.emplaceBack( nodeIndex, elemIndex );
               }
             }
           }
@@ -122,7 +136,7 @@ public:
     }
 
     for( INDEX_TYPE nodeID = 0; nodeID < m_numNodes; ++nodeID )
-    { sortedArrayManipulation::makeSorted( m_nodeToElemMap.getIterableArray( nodeID ).begin(), m_nodeToElemMap.getIterableArray( nodeID ).end() ); }
+    { sortedArrayManipulation::makeSorted( m_nodeToElemMap[ nodeID ].begin(), m_nodeToElemMap[ nodeID ].end() ); }
 
     m_nodeToElemMap.compress();
   }
@@ -137,7 +151,7 @@ public:
     INDEX_TYPE const nodeKp = nodeJp * ( m_numElemsY + 1 );
 
     /// Iterate over all the nodes.
-    m_sparsity.move( chai::CPU );
+    m_sparsity.move( MemorySpace::CPU );
 
     #if defined(USE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
@@ -214,7 +228,7 @@ protected:
   template< typename SPARSITY_TYPE >
   static void generateNodeLoop( SPARSITY_TYPE & sparsity,
                                 ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-                                ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap );
+                                ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
   ::benchmark::State & m_state;
 
@@ -225,8 +239,8 @@ protected:
   INDEX_TYPE m_numNodes;
 
   Array< INDEX_TYPE, ELEM_TO_NODE_PERM > m_elemToNodeMap;
-  ArrayOfArrays< INDEX_TYPE, INDEX_TYPE > m_nodeToElemMap;
-  SparsityPattern< COLUMN_TYPE, INDEX_TYPE > m_sparsity;
+  ArrayOfArraysT< INDEX_TYPE > m_nodeToElemMap;
+  SparsityPatternT m_sparsity;
   bool const m_destructorCheck;
 };
 
@@ -248,9 +262,9 @@ public:
   void resizeExact();
 
   // Note this shoule be protected but cuda won't let you put an extended lambda in a protected or private method.
-  static void generateNodeLoop( SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const & sparsity,
+  static void generateNodeLoop( SparsityPatternViewT const & sparsity,
                                 ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-                                ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap,
+                                ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap,
                                 ::benchmark::State & state );
 };
 
@@ -271,7 +285,7 @@ public:
 
     SparsityGenerationRAJA< EXEC_POLICY >::generateNodeLoop( this->m_sparsity.toView(),
                                                              this->m_elemToNodeMap.toViewConst(), this->m_nodeToElemMap.toViewConst(), this->m_state );
-    m_matrix.stealFrom( std::move( this->m_sparsity ) );
+    m_matrix.assimilate( std::move( this->m_sparsity ) );
     m_matrix.toViewConstSizes().move( RAJAHelper< POLICY >::space );
   }
 
@@ -282,8 +296,8 @@ public:
     INDEX_TYPE const nodeJp = this->m_numElemsX + 1;
     INDEX_TYPE const nodeKp = nodeJp * ( this->m_numElemsY + 1 );
 
-    m_matrix.move( chai::CPU, false );
-    this->m_nodeToElemMap.move( chai::CPU, false );
+    m_matrix.move( MemorySpace::CPU, false );
+    this->m_nodeToElemMap.move( MemorySpace::CPU, false );
 
     #if defined(USE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
@@ -316,8 +330,8 @@ public:
 
 
             std::vector< INDEX_TYPE > sharedElems;
-            std::set_intersection( this->m_nodeToElemMap.getIterableArray( nodeID ).begin(), this->m_nodeToElemMap.getIterableArray( nodeID ).end(),
-                                   this->m_nodeToElemMap.getIterableArray( nodeIndex1 ).begin(), this->m_nodeToElemMap.getIterableArray( nodeIndex1 ).end(),
+            std::set_intersection( this->m_nodeToElemMap[ nodeID ].begin(), this->m_nodeToElemMap[ nodeID ].end(),
+                                   this->m_nodeToElemMap[ nodeIndex1 ].begin(), this->m_nodeToElemMap[ nodeIndex1 ].end(),
                                    std::back_inserter( sharedElems ) );
             INDEX_TYPE const numSharedElems = sharedElems.size();
 
@@ -358,15 +372,14 @@ public:
   }
 
   void add() const
-  { addKernel( m_matrix.toViewConstSizes(), this->m_elemToNodeMap.toViewConst(), this->m_nodeToElemMap.toViewConst() ); }
+  { addKernel( m_matrix.toViewConstSizes(), this->m_elemToNodeMap.toViewConst() ); }
 
   // Note this shoule be protected but cuda won't let you put an extended lambda in a protected or private method.
-  static void addKernel( CRSMatrixView< ENTRY_TYPE, COLUMN_TYPE const, INDEX_TYPE const > const & matrix,
-                         ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-                         ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap );
+  static void addKernel( CRSMatrixViewConstSizesT const & matrix,
+                         ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
 
 private:
-  CRSMatrix< ENTRY_TYPE, COLUMN_TYPE, INDEX_TYPE > m_matrix;
+  CRSMatrixT m_matrix;
 };
 
 } // namespace benchmarking

@@ -103,7 +103,10 @@ struct DualIteratorAccessor
      */
     inline Temporary & operator=( Temporary && ) = delete;
 
+    /// A copy of type A.
     A m_a;
+
+    /// A copy of type B.
     B m_b;
   };
 
@@ -163,7 +166,10 @@ struct DualIteratorAccessor
     return *this;
   }
 
+  /// A reference to the first value.
   A & m_a;
+
+  /// A reference to the second value.
   B & m_b;
 };
 
@@ -175,7 +181,7 @@ struct DualIteratorAccessor
  * @brief This class is used to make a comparison method that takes in DualIteratorAccessor<A, B> from
  *        a comparison method that takes in objects of type A.
  */
-template< class A, class B, class Compare >
+template< typename A, typename B, typename Compare >
 struct DualIteratorComparator
 {
   /**
@@ -208,6 +214,7 @@ struct DualIteratorComparator
   { return m_compare( lhs.m_a, rhs.m_a ); }
 
 private:
+  /// The comparator that compares objects of type A.
   Compare m_compare;
 };
 
@@ -220,13 +227,12 @@ private:
 template< class RandomAccessIteratorA, class RandomAccessIteratorB >
 class DualIterator
 {
-private:
-  RandomAccessIteratorA m_itA;
-  RandomAccessIteratorB m_itB;
-
 public:
-  using A = typename std::remove_reference< decltype(*m_itA) >::type;
-  using B = typename std::remove_reference< decltype(*m_itB) >::type;
+  /// An alias for the type pointed to by RandomAccessIteratorA.
+  using A = typename std::remove_reference< decltype( *std::declval< RandomAccessIteratorA >() ) >::type;
+
+  /// An alias for the type pointed to by RandomAccessIteratorB.
+  using B = typename std::remove_reference< decltype( *std::declval< RandomAccessIteratorB >() ) >::type;
 
   /**
    * @brief Default constructor.
@@ -371,6 +377,14 @@ public:
   template< class Compare >
   LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare comp ) const LVARRAY_RESTRICT_THIS
   { return DualIteratorComparator< A, B, Compare >( comp ); }
+
+private:
+  /// The first iterator.
+  RandomAccessIteratorA m_itA;
+
+  /// The second iterator.
+  RandomAccessIteratorB m_itB;
+
 };
 
 /**

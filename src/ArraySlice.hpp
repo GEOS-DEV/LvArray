@@ -53,11 +53,6 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 #include "Macros.hpp"
 
 // System includes
-#include <cstring>
-#include <vector>
-#include <iostream>
-#include <utility>
-
 #ifndef NDEBUG
   #include "totalview/tv_data_display.h"
   #include "totalview/tv_helpers.hpp"
@@ -106,7 +101,7 @@ namespace LvArray
  * In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
  * an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
  */
-template< typename T, int NDIM, int USD=NDIM-1, typename INDEX_TYPE=std::ptrdiff_t >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 class ArraySlice
 {
 public:
@@ -264,10 +259,12 @@ public:
   std::enable_if_t< ( _USD >= 0), bool >
   isContiguous() const
   {
+    if( NDIM == 1 && USD == 0 ) return true;
+
     bool rval = true;
     for( int i = 0; i < NDIM; ++i )
     {
-      if( i == _USD ) continue;
+      if( i == USD ) continue;
       INDEX_TYPE prod = 1;
       for( int j = 0; j < NDIM; ++j )
       {
@@ -292,7 +289,7 @@ public:
 
   /**
    * @brief @return Return a pointer to the values.
-   * @pre The slice must be contiguous
+   * @pre The slice must be contiguous.
    */
   LVARRAY_HOST_DEVICE inline
   T * dataIfContiguous() const
@@ -300,6 +297,22 @@ public:
     LVARRAY_ERROR_IF( !isContiguous(), "The slice must be contiguous for direct data access" );
     return m_data;
   }
+
+  /**
+   * @brief @return Return a pointer to the values.
+   * @pre The slice must be contiguous.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  T * begin() const
+  { return dataIfContiguous(); }
+
+  /**
+   * @brief @return Return a pointer to the end values.
+   * @pre The slice must be contiguous.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  T * end() const
+  { return dataIfContiguous() + size(); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
   /**

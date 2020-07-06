@@ -62,12 +62,16 @@ void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
  * @note When T, COL_TYPE and INDEX_TYPE are const you cannot modify the matrix in any way
  *       and nothing is copied back from the device.
  */
-template< class T, class COL_TYPE=unsigned int, class INDEX_TYPE=std::ptrdiff_t >
-class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE >
+template< typename T,
+          typename COL_TYPE,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE
+          >
+class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
 
   /// An alias for the parent class.
-  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE >;
+  using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
   static_assert( !std::is_const< T >::value ||
@@ -110,29 +114,32 @@ public:
    * @brief This is included for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
   { return *this; }
 
   /**
    * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const > const & >( *this ); }
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const > const & >(*this); }
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
   /**
    * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & toSparsityPatternView() const
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const > const & >(*this); }
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toSparsityPatternView() const
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
   /**
    * @brief @return Return an ArraySlice1d to the matrix entries of the given row.
@@ -381,7 +388,7 @@ public:
    * @param touch If true touch the values, sizes and offsets in the new space.
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   {
     ParentClass::move( space, touch );
     m_entries.move( space, touch );
@@ -418,7 +425,7 @@ protected:
   using ParentClass::m_values;
 
   /// Holds the entries of the matrix, of length numNonZeros().
-  NewChaiBuffer< T > m_entries;
+  BUFFER_TYPE< T > m_entries;
 
 private:
 
@@ -437,7 +444,7 @@ public:
      * @param entriesToInsert pointer to the entries to insert.
      */
     LVARRAY_HOST_DEVICE inline
-    CallBacks( CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & crsMV,
+    CallBacks( CRSMatrixView const & crsMV,
                INDEX_TYPE const row, T const * const entriesToInsert ):
       m_crsMV( crsMV ),
       m_row( row ),
@@ -452,13 +459,13 @@ public:
      * @param curPtr the current pointer to the array.
      * @param nToAdd the increase in the size.
      * @note This method doesn't actually change the size, it just checks that the new
-     *       size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
+     *   size doesn't exceed the capacity since the CRSMatrixView can't do allocation.
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
-    COL_TYPE * incrementSize( COL_TYPE * const LVARRAY_UNUSED_ARG( curPtr ),
-                              INDEX_TYPE const nToAdd ) const
+    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const
     {
+      LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef USE_ARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF_GT_MSG( m_rowNNZ + nToAdd, m_rowCapacity, "CRSMatrixView cannot do reallocation." );
 #else
@@ -475,7 +482,7 @@ public:
      */
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE const insertPos ) const
-    { arrayManipulation::insert( m_entries, m_rowNNZ, insertPos, m_entriesToInsert[0] ); }
+    { arrayManipulation::emplace( m_entries, m_rowNNZ, insertPos, m_entriesToInsert[0] ); }
 
     /**
      * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
@@ -487,18 +494,16 @@ public:
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
     void set( INDEX_TYPE const pos, INDEX_TYPE const colPos ) const
-    { new (&m_entries[pos]) T( m_entriesToInsert[colPos] ); }
+    { new (&m_entries[ pos ]) T( m_entriesToInsert[ colPos ] ); }
 
     /**
-     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback
-     *        signals that the given column was inserted at the given position. Further information
-     *        is provided in order to make the insertion efficient. This means that we need to perform
-     *        the same operation on the entries.
+     * @brief Used with the sortedArrayManipulation::insertSorted routine this callback signals that the
+     *   given column was inserted at the given position. Further information is provided in order to make
+     *   the insertion efficient. This means that we need to perform the same operation on the entries.
      * @param nLeftToInsert the number of insertions that occur after this one.
      * @param colPos the position of the column that was inserted.
-     * @param insertPos the position the column was inserted at.
-     * @param prevPos the position the previous column was inserted at or m_rowNNZ
-     *             if it is the first insertion.
+     * @param pos The position the column was inserted at.
+     * @param prevPos The position the previous column was inserted at or m_rowNNZ if it is the first insertion.
      */
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
@@ -539,7 +544,7 @@ public:
 
 private:
     /// A reference to the associated CRSMatrixView.
-    CRSMatrixView< T, COL_TYPE, INDEX_TYPE > const & m_crsMV;
+    CRSMatrixView const & m_crsMV;
 
     /// The associated row.
     INDEX_TYPE const m_row;

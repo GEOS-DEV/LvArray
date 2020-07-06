@@ -27,8 +27,8 @@
 namespace LvArray
 {
 
-// Forward declaration of the ArrayOfSets class so that we can define the stealFrom method.
-template< class T, class INDEX_TYPE >
+// Forward declaration of the ArrayOfSets class so that we can define the assimilate method.
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 class ArrayOfSets;
 
 /**
@@ -37,13 +37,26 @@ class ArrayOfSets;
  * @tparam T the type stored in the arrays.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template< class T, typename INDEX_TYPE=std::ptrdiff_t >
-class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE >
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_TYPE >
 {
-public:
+  /// An alias for the parent class.
+  using ParentClass = ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_TYPE >;
 
-  /// An alias for the parent class ArrayOfArraysView< T, INDEX_TYPE >.
-  using ParentClass = ArrayOfArraysView< T, INDEX_TYPE >;
+public:
+  /// An alias for the type contained in the arrays.
+  using value_type = typename ParentClass::value_type;
+
+  /// An alias for the view type. Supports adding/removing values from arrays and modifying existing values.
+  using ViewType = ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >;
+
+  /// An alias for the view type with const sizes. Supports modifying existing values.
+  using ViewTypeConstSizes = ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >;
+
+  /// An alias for the const view type. Only accessing existing values is supported.
+  using ViewTypeConst = ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >;
 
   // Aliasing public methods of ArrayOfArraysView.
   using ParentClass::sizeOfArray;
@@ -52,8 +65,7 @@ public:
   using ParentClass::capacityOfArray;
   using ParentClass::operator[];
   using ParentClass::operator();
-  using ParentClass::getIterableArray;
-  using ParentClass::atomicAppendToArray;
+  using ParentClass::emplaceBackAtomic;
   using ParentClass::eraseFromArray;
 
   /**
@@ -124,10 +136,10 @@ public:
    * @param src the ArrayOfSets to convert.
    */
   inline
-  void stealFrom( ArrayOfSets< T, INDEX_TYPE > && src )
+  void assimilate( ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > && src )
   {
     ParentClass::free();
-    ParentClass::stealFrom( reinterpret_cast< ParentClass && >( src ) );
+    ParentClass::assimilate( reinterpret_cast< ParentClass && >( src ) );
   }
 
   /**
@@ -135,15 +147,15 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const > const & >( *this ); }
+  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & >( *this ); }
 
   /**
    * @brief @return Return a reference to *this converted to ArrayOfArraysView<T, INDEX_TYPE const, true>.
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConstSizes(); }
 
   /**
@@ -151,7 +163,7 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
   /**
@@ -205,8 +217,8 @@ public:
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
 
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
     ++m_numArrays;
 
     resizeArray( m_numArrays - 1, n );
@@ -214,39 +226,41 @@ public:
 
   /**
    * @brief Append an array.
-   * @param values the values of the array to append.
-   * @param n the number of values.
+   * @tparam ITER An iterator, the type of @p first and @p last.
+   * @param first An iterator to the first value of the array to append.
+   * @param last An iterator to the end of the array to append.
    */
-  void appendArray( T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
+  template< typename ITER >
+  void appendArray( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
     ++m_numArrays;
 
-    appendToArray( m_numArrays - 1, values, n );
+    appendToArray( m_numArrays - 1, first, last );
   }
 
   /**
    * @brief Insert an array.
+   * @tparam ITER An iterator, the type of @p first and @p last.
    * @param i the position to insert the array.
-   * @param values the values of the array to insert.
-   * @param n the number of values.
+   * @param first An iterator to the first value of the array to insert.
+   * @param last An iterator to the end of the array to insert.
    */
-  void insertArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n )
+  template< typename ITER >
+  void insertArray( INDEX_TYPE const i, ITER const first, ITER const last )
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i );
-    LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
-    LVARRAY_ASSERT( n == 0 || values != nullptr );
 
     // Insert an array of capacity zero at the given location
-    INDEX_TYPE const offset = m_offsets[i];
-    bufferManipulation::insert( m_offsets, m_numArrays + 1, i + 1, offset );
-    bufferManipulation::insert( m_sizes, m_numArrays, i, 0 );
+    INDEX_TYPE const offset = m_offsets[ i ];
+    bufferManipulation::emplace( m_offsets, m_numArrays + 1, i + 1, offset );
+    bufferManipulation::emplace( m_sizes, m_numArrays, i, 0 );
     ++m_numArrays;
 
     // Append to the new array
-    appendToArray( i, values, n );
+    appendToArray( i, first, last );
   }
 
   /**
@@ -271,74 +285,61 @@ public:
   { ParentClass::compress(); }
 
   /**
-   * @brief Append a value to an array.
+   * @brief Append a value to an array constructing it in place with the given arguments.
+   * @tparam ARGS Variadic pack of types used to construct T.
    * @param i the array to append to.
-   * @param value the value to append.
+   * @param args A variadic pack of arguments that are forwarded to construct the new value.
    */
-  void appendToArray( INDEX_TYPE const i, T const & value ) LVARRAY_RESTRICT_THIS
+  template< typename ... ARGS >
+  void emplaceBack( INDEX_TYPE const i, ARGS && ... args ) LVARRAY_RESTRICT_THIS
   {
     dynamicallyGrowArray( i, 1 );
-    ParentClass::appendToArray( i, value );
-  }
-
-  /**
-   * @brief Append a value to an array.
-   * @param i the array to append to.
-   * @param value the value to append.
-   */
-  void appendToArray( INDEX_TYPE const i, T && value ) LVARRAY_RESTRICT_THIS
-  {
-    dynamicallyGrowArray( i, 1 );
-    ParentClass::appendToArray( i, std::move( value ) );
+    ParentClass::emplaceBack( i, std::forward< ARGS >( args )... );
   }
 
   /**
    * @brief Append values to an array.
+   * @tparam ITER An iterator, the type of @p first and @p last.
    * @param i the array to append to.
-   * @param values the values to append.
-   * @param n the number of values to append.
+   * @param first An iterator to the first value to append.
+   * @param last An iterator to the end of the values to append.
    */
-  void appendToArray( INDEX_TYPE const i, T const * const values, INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
+  template< typename ITER >
+  void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
+    INDEX_TYPE const n = iterDistance( first, last );
     dynamicallyGrowArray( i, n );
-    ParentClass::appendToArray( i, values, n );
+    ParentClass::appendToArray( i, first, last );
   }
 
   /**
-   * @brief Insert a value into an array.
+   * @brief Insert a value into an array constructing it in place.
+   * @tparam ARGS Variadic pack of types used to construct T.
    * @param i the array to insert into.
    * @param j the position at which to insert.
-   * @param value the value to insert.
+   * @param args A variadic pack of arguments that are forwarded to construct the new value.
    */
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const & value )
+  template< typename ... ARGS >
+  void emplace( INDEX_TYPE const i, INDEX_TYPE const j, ARGS && ... args )
   {
     dynamicallyGrowArray( i, 1 );
-    ParentClass::insertIntoArray( i, j, value );
-  }
-
-  /**
-   * @brief Insert a value into an array.
-   * @param i the array to insert into.
-   * @param j the position at which to insert.
-   * @param value the value to insert.
-   */
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T && value )
-  {
-    dynamicallyGrowArray( i, 1 );
-    ParentClass::insertIntoArray( i, j, std::move( value ) );
+    ParentClass::emplace( i, j, std::forward< ARGS >( args )... );
   }
 
   /**
    * @brief Insert values into an array.
+   * @tparam ITER An iterator, the type of @p first and @p last.
    * @param i the array to insert into.
    * @param j the position at which to insert.
-   * @param values the values to insert.
-   * @param n the number of values to insert.
+   * @param first An iterator to the first value to insert.
+   * @param last An iterator to the end of the values to insert.
    */
-  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, T const * const values, INDEX_TYPE const n )
+  template< typename ITER >
+  void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, ITER const first, ITER const last )
   {
+    INDEX_TYPE const n = iterDistance( first, last );
     dynamicallyGrowArray( i, n );
-    ParentClass::insertIntoArray( i, j, values, n );
+    ParentClass::insertIntoArray( i, j, first, last );
   }
 
   /**
@@ -394,7 +395,7 @@ public:
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    * @note Duplicated for SFINAE needs.
    */
-  void move( chai::ExecutionSpace const space, bool touch=true ) const
+  void move( MemorySpace const space, bool touch=true ) const
   { ParentClass::move( space, touch ); }
 
 private:

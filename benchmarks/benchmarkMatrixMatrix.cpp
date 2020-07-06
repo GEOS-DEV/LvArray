@@ -138,7 +138,7 @@ INDEX_TYPE const OMP_L = SERIAL_L;
 INDEX_TYPE const OMP_M = SERIAL_M;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 INDEX_TYPE const CUDA_N = SERIAL_N;
 INDEX_TYPE const CUDA_L = SERIAL_L;
 INDEX_TYPE const CUDA_M = SERIAL_M;
@@ -184,7 +184,7 @@ void registerBenchmarks()
               , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
               , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA)
+  #if defined(USE_CUDA) && defined(USE_CHAI)
               , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
               , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
@@ -212,7 +212,7 @@ int main( int argc, char * * argv )
                LvArray::benchmarking::OMP_L << ", " << LvArray::benchmarking::OMP_M << " )." );
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_N << ", " <<
                LvArray::benchmarking::CUDA_L << ", " << LvArray::benchmarking::CUDA_M << " )." );
 #endif

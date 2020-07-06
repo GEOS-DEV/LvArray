@@ -17,7 +17,7 @@
  */
 
 /**
- * @file FloatingPointExceptions.cpp
+ * @file SetSignalHandling.cpp
  */
 
 #include "SetSignalHandling.hpp"
@@ -29,7 +29,10 @@
 namespace LvArray
 {
 
-typedef void ( *handle_type )( int );
+/// An alias for a function that takes an int and returns nothing.
+using handle_type = void ( * )( int );
+
+/// A map containing the initial signal handlers.
 static std::map< int, handle_type > initialHandler;
 
 void setSignalHandling( void (* handler)( int ) )

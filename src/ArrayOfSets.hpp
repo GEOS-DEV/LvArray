@@ -27,8 +27,8 @@
 namespace LvArray
 {
 
-// Forward declaration of the ArrayOfArrays class so that we can define the stealFrom method.
-template< class T, typename INDEX_TYPE >
+// Forward declaration of the ArrayOfArrays class so that we can define the assimilate method.
+template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 class ArrayOfArrays;
 
 
@@ -38,14 +38,18 @@ class ArrayOfArrays;
  * @tparam T the type stored in the sets.
  * @tparam INDEX_TYPE the integer to use for indexing.
  */
-template< class T, class INDEX_TYPE=std::ptrdiff_t >
-class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE >
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE, BUFFER_TYPE >
 {
 
   /// An alias for the parent class.
-  using ParentClass = ArrayOfSetsView< T, INDEX_TYPE >;
+  using ParentClass = ArrayOfSetsView< T, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
+  /// An alias for the type contained in the sets.
+  using value_type = T;
 
   // Aliasing public methods of ArrayOfSetsView.
   using ParentClass::capacity;
@@ -55,8 +59,6 @@ public:
   using ParentClass::operator();
   using ParentClass::operator[];
   using ParentClass::getSetValues;
-
-  using ParentClass::getIterableSet;
   using ParentClass::removeFromSet;
   using ParentClass::contains;
   using ParentClass::consistencyCheck;
@@ -68,7 +70,7 @@ public:
    */
   inline
   ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    ArrayOfSetsView< T, INDEX_TYPE >()
+    ParentClass()
   {
     resize( nsets, defaultSetCapacity );
     setName( "" );
@@ -80,7 +82,7 @@ public:
    */
   inline
   ArrayOfSets( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS:
-    ArrayOfSetsView< T, INDEX_TYPE >()
+    ParentClass()
   { *this = src; }
 
   /**
@@ -130,15 +132,17 @@ public:
    * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T, INDEX_TYPE const >.
    */
   inline
-  ArrayOfSetsView< T, INDEX_TYPE const > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const > const & >(*this); }
+  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
   /**
    * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T const, INDEX_TYPE const >.
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
   /**
@@ -146,7 +150,8 @@ public:
    * @note Duplicated for SFINAE needs.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true > const & toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toArrayOfArraysView(); }
 
   /**
@@ -164,10 +169,11 @@ public:
    * @note This would be prime for omp parallelism.
    */
   inline
-  void stealFrom( ArrayOfArrays< T, INDEX_TYPE > && src, sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
+  void assimilate( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > && src,
+                   sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
   {
     ParentClass::free();
-    ParentClass::stealFrom( reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE > && >( src ) );
+    ParentClass::assimilate( reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_TYPE > && >( src ) );
 
     INDEX_TYPE const numSets = size();
     if( desc == sortedArrayManipulation::UNSORTED_NO_DUPLICATES )
@@ -284,8 +290,8 @@ public:
   void appendSet( INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::pushBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::pushBack( m_sizes, m_numArrays, 0 );
+    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
     ++m_numArrays;
 
     setCapacityOfSet( m_numArrays - 1, setCapacity );
@@ -304,8 +310,8 @@ public:
 
     // Insert an set of capacity zero at the given location
     INDEX_TYPE const offset = m_offsets[i];
-    bufferManipulation::insert( m_offsets, m_numArrays + 1, i + 1, offset );
-    bufferManipulation::insert( m_sizes, m_numArrays, i, 0 );
+    bufferManipulation::emplace( m_offsets, m_numArrays + 1, i + 1, offset );
+    bufferManipulation::emplace( m_sizes, m_numArrays, i, 0 );
     ++m_numArrays;
 
     // Set the capacity of the new set
@@ -356,7 +362,7 @@ public:
    * @param name the name to display.
    */
   void setName( std::string const & name )
-  { ArrayOfArraysView< T, INDEX_TYPE >::template setName< decltype( *this ) >( name ); }
+  { ParentClass::template setName< decltype( *this ) >( name ); }
 
   /**
    * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
@@ -365,7 +371,7 @@ public:
    * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    * @note Duplicated for SFINAE needs.
    */
-  void move( chai::ExecutionSpace const space, bool const touch=true ) const
+  void move( MemorySpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
 
 private:
@@ -380,12 +386,12 @@ public:
 
     /**
      * @brief Constructor.
-     * @param aos the ArrayOfSets this CallBacks is associated with.
-     * @param i the set this CallBacks is associated with.
+     * @param aos The ArrayOfSets this CallBacks is associated with.
+     * @param i The set this CallBacks is associated with.
      */
     inline
-    CallBacks( ArrayOfSets< T, INDEX_TYPE > & sp, INDEX_TYPE const i ):
-      m_aos( sp ),
+    CallBacks( ArrayOfSets & aos, INDEX_TYPE const i ):
+      m_aos( aos ),
       m_i( i )
     {}
 
@@ -398,9 +404,9 @@ public:
      * @return a pointer to the sets values.
      */
     inline
-    T * incrementSize( T * const LVARRAY_UNUSED_ARG( curPtr ),
-                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
+      LVARRAY_UNUSED_VARIABLE( curPtr );
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;
       if( newNNZ > m_aos.capacityOfSet( m_i ) )
       {
@@ -412,7 +418,7 @@ public:
 
 private:
     /// A reference to the associated ArrayOfSets.
-    ArrayOfSets< T, INDEX_TYPE > & m_aos;
+    ArrayOfSets & m_aos;
 
     /// The index of the associated set.
     INDEX_TYPE const m_i;

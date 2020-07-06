@@ -72,8 +72,8 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result[ i ] = m_vectorA_local[ i ] * scale; }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
 
@@ -98,8 +98,8 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result += m_vectorA_local[ i ] * m_vectorA_local[ i ]; }
 
-    ArrayView< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
     T const ( &vectorA_local )[ N ] = m_vectorA_local;
 
     forall< POLICY >( 1, [result, vectorA_IJ, vectorA_JI, vectorA_local] LVARRAY_HOST_DEVICE ( int )
@@ -117,8 +117,8 @@ public:
     { norm += m_vectorA_local[ i ] * m_vectorA_local[ i ]; }
     norm = sqrt( norm );
 
-    ArrayView< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
     T const ( &vectorA_local )[ N ] = m_vectorA_local;
 
     forall< POLICY >( 1, [norm, vectorA_IJ, vectorA_JI, vectorA_local] LVARRAY_HOST_DEVICE ( int )
@@ -141,8 +141,8 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result [ i ] = m_vectorA_local[ i ] * invNorm; }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
 
@@ -163,8 +163,8 @@ public:
 
   void testFill()
   {
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
     forall< POLICY >( 1, [vectorA_IJ, vectorA_JI] LVARRAY_HOST_DEVICE ( int )
         {
@@ -193,8 +193,8 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { maxEntry = std::max( std::abs( maxEntry ), m_vectorA_local[ i ] ); }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
     std::ptrdiff_t const seedVectorA = m_seedVectorA;
 
@@ -212,11 +212,11 @@ public:
 
   void testCopy()
   {
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -248,11 +248,11 @@ public:
   void testScaledCopy()
   {
     T scale = T( 3.14 );
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -288,11 +288,11 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result[ i ] = m_vectorA_local[ i ] + m_vectorB_local[ i ]; }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -327,11 +327,11 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result[ i ] = m_vectorA_local[ i ] - m_vectorB_local[ i ]; }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -362,11 +362,11 @@ public:
 
   void testScaledAdd()
   {
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -406,12 +406,12 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { expectedValue += m_vectorA_local[ i ] * m_vectorB_local[ i ]; }
 
-    ArrayView< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorA_JI = m_vectorA_JI.toViewConst();
     T const ( &vectorA_local )[ N ] = m_vectorA_local;
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     forall< POLICY >( 1, [expectedValue, vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorA_local, vectorB_local] LVARRAY_HOST_DEVICE ( int )
@@ -436,15 +436,15 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result[ i ] = m_vectorB_local[ i ] * m_vectorC_local[ i ]; }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
-    ArrayView< T const, 2, 1 > const & vectorC_IJ = m_vectorC_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorC_JI = m_vectorC_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorC_IJ = m_vectorC_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorC_JI = m_vectorC_JI.toViewConst();
     T const ( &vectorC_local )[ N ] = m_vectorC_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
@@ -488,9 +488,9 @@ public:
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { result[ i ][ i ] += value; }
 
-    ArrayView< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
 
     std::ptrdiff_t const seedMatrixA = m_seedMatrixA;
 
@@ -514,30 +514,30 @@ public:
 
 private:
   std::ptrdiff_t const m_seedVectorA = 0;
-  Array< T, 2, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
-  Array< T, 2, RAJA::PERM_JI > m_vectorA_JI { 1, N };
+  ArrayT< T, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
+  ArrayT< T, RAJA::PERM_JI > m_vectorA_JI { 1, N };
   T m_vectorA_local[ N ];
 
   std::ptrdiff_t const m_seedVectorB = m_seedVectorA + N;
-  Array< T, 2, RAJA::PERM_IJ > m_vectorB_IJ { 1, N };
-  Array< T, 2, RAJA::PERM_JI > m_vectorB_JI { 1, N };
+  ArrayT< T, RAJA::PERM_IJ > m_vectorB_IJ { 1, N };
+  ArrayT< T, RAJA::PERM_JI > m_vectorB_JI { 1, N };
   T m_vectorB_local[ N ];
 
   std::ptrdiff_t const m_seedVectorC = m_seedVectorB + N;
-  Array< T, 2, RAJA::PERM_IJ > m_vectorC_IJ { 1, N };
-  Array< T, 2, RAJA::PERM_JI > m_vectorC_JI { 1, N };
+  ArrayT< T, RAJA::PERM_IJ > m_vectorC_IJ { 1, N };
+  ArrayT< T, RAJA::PERM_JI > m_vectorC_JI { 1, N };
   T m_vectorC_local[ N ];
 
   std::ptrdiff_t const m_seedMatrixA = m_seedVectorC + N;
-  Array< T, 3, RAJA::PERM_IJK > m_matrixA_IJK { 1, N, N };
-  Array< T, 3, RAJA::PERM_IKJ > m_matrixA_IKJ { 1, N, N };
-  Array< T, 3, RAJA::PERM_KJI > m_matrixA_KJI { 1, N, N };
+  ArrayT< T, RAJA::PERM_IJK > m_matrixA_IJK { 1, N, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixA_IKJ { 1, N, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixA_KJI { 1, N, N };
   T m_matrixA_local[ N ][ N ];
 
   std::ptrdiff_t const m_seedMatrixB = m_seedMatrixA + N * N;
-  Array< T, 3, RAJA::PERM_IJK > m_matrixB_IJK { 1, N, N };
-  Array< T, 3, RAJA::PERM_IKJ > m_matrixB_IKJ { 1, N, N };
-  Array< T, 3, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, N };
+  ArrayT< T, RAJA::PERM_IJK > m_matrixB_IJK { 1, N, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixB_IKJ { 1, N, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, N };
   T m_matrixB_local[ N ][ N ];
 };
 
@@ -546,7 +546,9 @@ using OneSizeTestTypes = ::testing::Types<
   std::tuple< double, std::integral_constant< int, 2 >, serialPolicy >
   , std::tuple< int, std::integral_constant< int, 3 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 6 >, serialPolicy >
-#if defined(USE_CUDA)
+
+// TODO: These tests can be run without chai and only using the c-arrays.
+#if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 6 >, parallelDevicePolicy< 32 > >

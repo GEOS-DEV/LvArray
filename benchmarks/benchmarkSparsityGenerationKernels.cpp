@@ -79,7 +79,7 @@ void insertEntriesForNode( SPARSITY_TYPE & sparsity,
 void SparsityGenerationNative::resize( INDEX_TYPE const initialCapacity )
 {
   LVARRAY_MARK_FUNCTION_TAG( "resize" );
-  m_sparsity = SparsityPattern< COLUMN_TYPE, INDEX_TYPE >( NDIM * m_numNodes, NDIM * m_numNodes, initialCapacity );
+  m_sparsity = SparsityPatternT( NDIM * m_numNodes, NDIM * m_numNodes, initialCapacity );
 }
 
 void SparsityGenerationNative::resizeExact()
@@ -102,7 +102,7 @@ void SparsityGenerationNative::resizeExact()
 template< typename POLICY >
 void SparsityGenerationNative::resizeFromNNZPerRow( std::vector< INDEX_TYPE > const & nnzPerRow )
 {
-  SparsityPattern< COLUMN_TYPE, INDEX_TYPE > newSparsity;
+  SparsityPatternT newSparsity;
   newSparsity.resizeFromRowCapacities< POLICY >( NDIM * m_numNodes, NDIM * m_numNodes, nnzPerRow.data() );
   m_sparsity = std::move( newSparsity );
 }
@@ -137,7 +137,7 @@ void SparsityGenerationNative::generateElemLoop( SPARSITY_TYPE & sparsity,
 template< typename SPARSITY_TYPE >
 void SparsityGenerationNative::generateNodeLoop( SPARSITY_TYPE & sparsity,
                                                  ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-                                                 ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap )
+                                                 ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap )
 {
   /// Iterate over all the nodes.
   for( INDEX_TYPE nodeID = 0; nodeID < nodeToElemMap.size(); ++nodeID )
@@ -154,13 +154,13 @@ resizeExact()
   std::vector< INDEX_TYPE > nnzPerRow( 3 * m_numNodes );
 
   #if defined(USE_OPENMP)
-  using RESIZE_POLICY = std::conditional_t< std::is_same_v< serialPolicy, POLICY >, serialPolicy, parallelHostPolicy >;
+  using RESIZE_POLICY = std::conditional_t< std::is_same< serialPolicy, POLICY >::value, serialPolicy, parallelHostPolicy >;
   #else
   using RESIZE_POLICY = serialPolicy;
   #endif
 
   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap = m_elemToNodeMap.toViewConst();
-  ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap = m_nodeToElemMap.toViewConst();
+  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap = m_nodeToElemMap.toViewConst();
   forall< RESIZE_POLICY >( m_numNodes, [&nnzPerRow, elemToNodeMap, nodeToElemMap] ( INDEX_TYPE const nodeID )
   {
     INDEX_TYPE neighborNodes[ MAX_ELEMS_PER_NODE * NODES_PER_ELEM ];
@@ -177,9 +177,9 @@ resizeExact()
 // Note this shoule be protected but cuda won't let you put an extended lambda in a protected or private method.
 template< typename POLICY >
 void SparsityGenerationRAJA< POLICY >::
-generateNodeLoop( SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const & sparsity,
+generateNodeLoop( SparsityPatternViewT const & sparsity,
                   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-                  ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap,
+                  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap,
                   ::benchmark::State & state )
 {
   LVARRAY_MARK_FUNCTION_TAG( "generateNodeLoop" );
@@ -205,13 +205,12 @@ generateNodeLoop( SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const & s
 
 template< typename POLICY >
 void CRSMatrixAddToRow< POLICY >::
-addKernel( CRSMatrixView< ENTRY_TYPE, COLUMN_TYPE const, INDEX_TYPE const > const & matrix,
-           ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
-           ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap )
+addKernel( CRSMatrixViewConstSizesT const & matrix,
+           ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap )
 {
   LVARRAY_MARK_FUNCTION_TAG( "addKernel" );
 
-  forall< POLICY >( elemToNodeMap.size( 0 ), [matrix, elemToNodeMap, nodeToElemMap] LVARRAY_HOST_DEVICE ( INDEX_TYPE const elemID )
+  forall< POLICY >( elemToNodeMap.size( 0 ), [matrix, elemToNodeMap] LVARRAY_HOST_DEVICE ( INDEX_TYPE const elemID )
       {
         COLUMN_TYPE dofNumbers[ NODES_PER_ELEM * NDIM ];
         ENTRY_TYPE additions[ NODES_PER_ELEM * NDIM ][ NODES_PER_ELEM * NDIM ];
@@ -246,23 +245,23 @@ addKernel( CRSMatrixView< ENTRY_TYPE, COLUMN_TYPE const, INDEX_TYPE const > cons
 }
 
 // Explicit instantiation of the templated SparsityGenerationNative static methods.
-template void SparsityGenerationNative::generateElemLoop< SparsityPattern< COLUMN_TYPE, INDEX_TYPE > >(
-  SparsityPattern< COLUMN_TYPE, INDEX_TYPE > &,
+template void SparsityGenerationNative::generateElemLoop< SparsityPatternT >(
+  SparsityPatternT &,
   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & );
 
-template void SparsityGenerationNative::generateElemLoop< SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const >(
-  SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const &,
+template void SparsityGenerationNative::generateElemLoop< SparsityPatternViewT const >(
+  SparsityPatternViewT const &,
   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & );
 
-template void SparsityGenerationNative::generateNodeLoop< SparsityPattern< COLUMN_TYPE, INDEX_TYPE > >(
-  SparsityPattern< COLUMN_TYPE, INDEX_TYPE > &,
+template void SparsityGenerationNative::generateNodeLoop< SparsityPatternT >(
+  SparsityPatternT &,
   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const &,
-  ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap );
+  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
-template void SparsityGenerationNative::generateNodeLoop< SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const >(
-  SparsityPatternView< COLUMN_TYPE, INDEX_TYPE const > const &,
+template void SparsityGenerationNative::generateNodeLoop< SparsityPatternViewT const >(
+  SparsityPatternViewT const &,
   ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const &,
-  ArrayOfArraysView< INDEX_TYPE const, INDEX_TYPE const, true > const & nodeToElemMap );
+  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
 // Explicit instantiation of SparsityGenerationRAJA.
 template class SparsityGenerationRAJA< serialPolicy >;
@@ -273,7 +272,7 @@ template class SparsityGenerationRAJA< parallelHostPolicy >;
 template class CRSMatrixAddToRow< parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA)
+#if defined(USE_CUDA) && defined(USE_CHAI)
 template class SparsityGenerationRAJA< parallelDevicePolicy< THREADS_PER_BLOCK > >;
 template class CRSMatrixAddToRow< parallelDevicePolicy< THREADS_PER_BLOCK > >;
 #endif

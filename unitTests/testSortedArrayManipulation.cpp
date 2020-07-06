@@ -37,6 +37,14 @@ namespace LvArray
 namespace testing
 {
 
+using INDEX_TYPE = std::ptrdiff_t;
+
+template< typename T >
+using Array1D = Array< T, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >;
+
+template< typename T >
+using ArrayView1D = ArrayView< T, 1, 0, INDEX_TYPE, DEFAULT_BUFFER >;
+
 template< class T_COMP_POLICY >
 class SingleArrayTest : public ::testing::Test
 {
@@ -45,22 +53,22 @@ public:
   using COMP = std::tuple_element_t< 1, T_COMP_POLICY >;
   using POLICY = std::tuple_element_t< 2, T_COMP_POLICY >;
 
-  void testMakeSorted( std::ptrdiff_t const maxSize )
+  void testMakeSorted( INDEX_TYPE const maxSize )
   {
-    for( std::ptrdiff_t size = 0; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ))
+    for( INDEX_TYPE size = 0; size < maxSize; size = INDEX_TYPE( size * 1.5 + 1 ))
     {
       fill( size );
 
       bool const isInitiallySorted = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp );
       std::sort( m_ref.begin(), m_ref.end(), m_comp );
 
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > resultOfFirstIsSorted( 0 );
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > resultOfSecondIsSorted( 0 );
-      ArrayView< T, 1 > const & view = m_array;
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > resultOfFirstIsSorted( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > resultOfSecondIsSorted( 0 );
+      ArrayView1D< T > const & view = m_array;
       COMP & comp = m_comp;
 
       forall< POLICY >( 1, [resultOfFirstIsSorted, resultOfSecondIsSorted, view, comp]
-                        LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+                        LVARRAY_HOST_DEVICE ( INDEX_TYPE )
           {
             resultOfFirstIsSorted += sortedArrayManipulation::isSorted( view.begin(), view.end(), comp );
             sortedArrayManipulation::makeSorted( view.begin(), view.end(), comp );
@@ -70,14 +78,14 @@ public:
       EXPECT_EQ( resultOfFirstIsSorted.get(), isInitiallySorted );
       EXPECT_TRUE( resultOfSecondIsSorted.get() );
 
-      m_array.move( chai::CPU );
+      m_array.move( MemorySpace::CPU );
       checkEquality();
     }
   }
 
-  void testRemoveDuplicates( std::ptrdiff_t const maxSize )
+  void testRemoveDuplicates( INDEX_TYPE const maxSize )
   {
-    for( std::ptrdiff_t size = 1; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ) )
+    for( INDEX_TYPE size = 1; size < maxSize; size = INDEX_TYPE( size * 1.5 + 1 ) )
     {
       fill( size );
 
@@ -91,19 +99,19 @@ public:
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }
 
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > firstIsSortedUnique( 0 );
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > secondIsSortedUnique( 0 );
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > numUniqueValues( 0 );
-      ArrayView< T, 1 > const & view = m_array;
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > firstIsSortedUnique( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > secondIsSortedUnique( 0 );
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > numUniqueValues( 0 );
+      ArrayView1D< T > const & view = m_array;
       COMP & comp = m_comp;
 
       forall< POLICY >( 1, [firstIsSortedUnique, secondIsSortedUnique, numUniqueValues, view, comp]
-                        LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+                        LVARRAY_HOST_DEVICE ( INDEX_TYPE )
           {
             firstIsSortedUnique += sortedArrayManipulation::isSortedUnique( view.begin(), view.end(), comp );
             sortedArrayManipulation::makeSorted( view.begin(), view.end(), comp );
 
-            std::ptrdiff_t const numUnique = sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
+            INDEX_TYPE const numUnique = sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
             numUniqueValues += numUnique;
             secondIsSortedUnique += sortedArrayManipulation::isSortedUnique( view.begin(), view.begin() + numUnique, comp );
           } );
@@ -111,7 +119,7 @@ public:
       EXPECT_EQ( firstIsSortedUnique.get(), isInitiallySortedUnique );
       EXPECT_TRUE( secondIsSortedUnique.get() );
 
-      m_array.move( chai::CPU );
+      m_array.move( MemorySpace::CPU );
 
       EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
       m_array.resize( numUniqueValues.get() );
@@ -120,9 +128,9 @@ public:
     }
   }
 
-  void testMakeSortedUnique( std::ptrdiff_t const maxSize )
+  void testMakeSortedUnique( INDEX_TYPE const maxSize )
   {
-    for( std::ptrdiff_t size = 1; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ) )
+    for( INDEX_TYPE size = 1; size < maxSize; size = INDEX_TYPE( size * 1.5 + 1 ) )
     {
       fill( size );
 
@@ -133,16 +141,16 @@ public:
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }
 
-      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, std::ptrdiff_t > numUniqueValues( 0 );
-      ArrayView< T, 1 > const & view = m_array;
+      RAJA::ReduceSum< typename RAJAHelper< POLICY >::ReducePolicy, INDEX_TYPE > numUniqueValues( 0 );
+      ArrayView1D< T > const & view = m_array;
       COMP & comp = m_comp;
 
-      forall< POLICY >( 1, [numUniqueValues, view, comp] LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+      forall< POLICY >( 1, [numUniqueValues, view, comp] LVARRAY_HOST_DEVICE ( INDEX_TYPE )
           {
             numUniqueValues += sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
           } );
 
-      m_array.move( chai::CPU );
+      m_array.move( MemorySpace::CPU );
 
       EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
       m_array.resize( numUniqueValues.get() );
@@ -153,13 +161,13 @@ public:
 
 protected:
 
-  void fill( std::ptrdiff_t const size )
+  void fill( INDEX_TYPE const size )
   {
-    std::uniform_int_distribution< std::ptrdiff_t > valueDist( 0, 2 * size );
+    std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, 2 * size );
 
     m_array.resize( size );
     m_ref.resize( size );
-    for( std::ptrdiff_t i = 0; i < size; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
       T const val = T( valueDist( m_gen ) );
       m_array[ i ] = val;
@@ -169,13 +177,13 @@ protected:
 
   void checkEquality() const
   {
-    for( std::ptrdiff_t i = 0; i < m_array.size(); ++i )
+    for( INDEX_TYPE i = 0; i < m_array.size(); ++i )
     {
       EXPECT_EQ( m_array[ i ], m_ref[ i ] );
     }
   }
 
-  Array< T, 1 > m_array;
+  Array1D< T > m_array;
   std::vector< T > m_ref;
   COMP m_comp;
   std::mt19937_64 m_gen;
@@ -189,7 +197,7 @@ using SingleArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#ifdef USE_CUDA
+#if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >
@@ -222,39 +230,39 @@ public:
   using COMP = std::tuple_element_t< 2, KEY_T_COMP_POLICY >;
   using POLICY = std::tuple_element_t< 3, KEY_T_COMP_POLICY >;
 
-  void testMakeSorted( std::ptrdiff_t maxSize )
+  void testMakeSorted( INDEX_TYPE maxSize )
   {
-    for( std::ptrdiff_t size = 0; size < maxSize; size = std::ptrdiff_t( size * 1.5 + 1 ))
+    for( INDEX_TYPE size = 0; size < maxSize; size = INDEX_TYPE( size * 1.5 + 1 ))
     {
       fillArrays( size );
       std::sort( m_ref.begin(), m_ref.end(), PairComp< KEY, T, COMP >());
 
-      ArrayView< KEY, 1 > const & keys = m_keys;
-      ArrayView< T, 1 > const & values = m_values;
+      ArrayView1D< KEY > const & keys = m_keys;
+      ArrayView1D< T > const & values = m_values;
       COMP & comp = m_comp;
-      forall< POLICY >( 1, [keys, values, comp] LVARRAY_HOST_DEVICE ( std::ptrdiff_t )
+      forall< POLICY >( 1, [keys, values, comp] LVARRAY_HOST_DEVICE ( INDEX_TYPE )
           {
             dualSort( keys.begin(), keys.end(), values.begin(), comp );
           } );
 
-      m_keys.move( chai::CPU );
-      m_values.move( chai::CPU );
+      m_keys.move( MemorySpace::CPU );
+      m_values.move( MemorySpace::CPU );
       checkEquality();
     }
   }
 
 private:
 
-  void fillArrays( std::ptrdiff_t const size )
+  void fillArrays( INDEX_TYPE const size )
   {
-    std::uniform_int_distribution< std::ptrdiff_t > valueDist( 0, 2 * size );
+    std::uniform_int_distribution< INDEX_TYPE > valueDist( 0, 2 * size );
 
     m_keys.resize( size );
     m_values.resize( size );
     m_ref.resize( size );
-    for( std::ptrdiff_t i = 0; i < size; ++i )
+    for( INDEX_TYPE i = 0; i < size; ++i )
     {
-      std::ptrdiff_t const seed = valueDist( m_gen );
+      INDEX_TYPE const seed = valueDist( m_gen );
       KEY const key = KEY( seed );
       T const val = T( seed * ( seed - size ) );
       m_keys[ i ] = key;
@@ -265,15 +273,15 @@ private:
 
   void checkEquality()
   {
-    for( std::ptrdiff_t i = 0; i < m_keys.size(); ++i )
+    for( INDEX_TYPE i = 0; i < m_keys.size(); ++i )
     {
       EXPECT_EQ( m_keys[ i ], m_ref[ i ].first );
       EXPECT_EQ( m_values[ i ], m_ref[ i ].second );
     }
   }
 
-  Array< KEY, 1 > m_keys;
-  Array< T, 1 > m_values;
+  Array1D< KEY > m_keys;
+  Array1D< T > m_values;
   std::vector< std::pair< KEY, T > > m_ref;
   COMP m_comp;
   std::mt19937_64 m_gen;
@@ -289,7 +297,7 @@ using DualArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#ifdef USE_CUDA
+#if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >

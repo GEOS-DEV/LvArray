@@ -21,6 +21,7 @@
 #include "ArrayOfArrays.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
+#include "MallocBuffer.hpp"
 
 /// TPL includes
 #include <gtest/gtest.h>
@@ -36,59 +37,21 @@ namespace testing
 
 using INDEX_TYPE = std::ptrdiff_t;
 
-template< class T >
-using ViewType = ArrayOfSetsView< T, INDEX_TYPE const >;
-
-template< class T >
-using REF_TYPE = std::vector< std::set< T > >;
-
-template< class T >
-void compareToReference( ViewType< T const > const & view, REF_TYPE< T > const & ref )
-{
-  view.consistencyCheck();
-
-  ASSERT_EQ( view.size(), ref.size());
-
-  for( INDEX_TYPE i = 0; i < view.size(); ++i )
-  {
-    ASSERT_EQ( view.sizeOfSet( i ), ref[i].size());
-
-    typename std::set< T >::iterator it = ref[i].begin();
-    for( INDEX_TYPE j = 0; j < view.sizeOfSet( i ); ++j )
-    {
-      EXPECT_EQ( view[i][j], *it++ );
-      EXPECT_EQ( view( i, j ), view[i][j] );
-    }
-    EXPECT_EQ( it, ref[i].end());
-
-    it = ref[i].begin();
-    for( T const & val : view.getIterableSet( i ))
-    {
-      EXPECT_EQ( val, *it++ );
-      EXPECT_TRUE( view.contains( i, val ));
-    }
-    EXPECT_EQ( it, ref[i].end());
-  }
-}
-
-// Use this macro to call compareToReference with better error messages.
-#define COMPARE_TO_REFERENCE( view, ref ) { SCOPED_TRACE( "" ); compareToReference( view, ref ); \
-}
-
-template< class T >
-void printArray( ViewType< T const > const & view )
+// This is for debugging.
+template< class ARRAY_OF_SETS >
+void printArray( ARRAY_OF_SETS const & array )
 {
   std::cout << "{" << std::endl;
 
-  for( INDEX_TYPE i = 0; i < view.size(); ++i )
+  for( INDEX_TYPE i = 0; i < array.size(); ++i )
   {
     std::cout << "\t{";
-    for( INDEX_TYPE j = 0; j < view.sizeOfSet( i ); ++j )
+    for( INDEX_TYPE j = 0; j < array.sizeOfSet( i ); ++j )
     {
-      std::cout << view[i][j] << ", ";
+      std::cout << array[ i ][ j ] << ", ";
     }
 
-    for( INDEX_TYPE j = view.sizeOfSet( i ); j < view.capacityOfSet( i ); ++j )
+    for( INDEX_TYPE j = array.sizeOfSet( i ); j < array.capacityOfSet( i ); ++j )
     {
       std::cout << "X" << ", ";
     }
@@ -99,14 +62,50 @@ void printArray( ViewType< T const > const & view )
   std::cout << "}" << std::endl;
 }
 
-template< class T >
+template< class ARRAY_OF_SETS >
 class ArrayOfSetsTest : public ::testing::Test
 {
 public:
+  using T = typename ARRAY_OF_SETS::value_type;
+
+  using ViewType = std::remove_reference_t< decltype( std::declval< ARRAY_OF_SETS >().toView() ) >;
+  using ViewTypeConst = std::remove_reference_t< decltype( std::declval< ARRAY_OF_SETS >().toViewConst() ) >;
+
+  void compareToReference( ViewTypeConst const & view )
+  {
+    view.consistencyCheck();
+
+    ASSERT_EQ( view.size(), m_ref.size() );
+
+    for( INDEX_TYPE i = 0; i < view.size(); ++i )
+    {
+      ASSERT_EQ( view.sizeOfSet( i ), m_ref[ i ].size());
+
+      typename std::set< T >::iterator it = m_ref[ i ].begin();
+      for( INDEX_TYPE j = 0; j < view.sizeOfSet( i ); ++j )
+      {
+        EXPECT_EQ( view[ i ][ j ], *it++ );
+        EXPECT_EQ( view( i, j ), view[ i ][ j ] );
+      }
+      EXPECT_EQ( it, m_ref[ i ].end());
+
+      it = m_ref[ i ].begin();
+      for( T const & val : view[ i ] )
+      {
+        EXPECT_EQ( val, *it++ );
+        EXPECT_TRUE( view.contains( i, val ) );
+      }
+      EXPECT_EQ( it, m_ref[ i ].end() );
+    }
+  }
+
+  // Use this macro to call compareToReference with better error messages.
+  #define COMPARE_TO_REFERENCE { SCOPED_TRACE( "" ); this->compareToReference( m_array.toViewConst() ); \
+  }
 
   void appendSet( INDEX_TYPE const nSets, INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     std::vector< T > arrayToAppend( maxInserts );
 
@@ -117,7 +116,7 @@ public:
 
       for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
-        arrayToAppend[j] = T( rand( 0, maxValue ));
+        arrayToAppend[ j ] = T( rand( 0, maxValue ));
       }
 
       m_array.appendSet( nValues );
@@ -131,12 +130,12 @@ public:
       m_ref.push_back( std::set< T >( arrayToAppend.begin(), arrayToAppend.end() ) );
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void insertSet( INDEX_TYPE const nSets, INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     std::vector< T > arrayToAppend( maxInserts );
 
@@ -147,7 +146,7 @@ public:
 
       for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
-        arrayToAppend[j] = T( rand( 0, maxValue ));
+        arrayToAppend[ j ] = T( rand( 0, maxValue ));
       }
 
       INDEX_TYPE insertPos = rand( 0, m_array.size());
@@ -163,12 +162,12 @@ public:
       m_ref.insert( m_ref.begin() + insertPos, std::set< T >( arrayToAppend.begin(), arrayToAppend.end()));
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void eraseSet( INDEX_TYPE const nSets )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     for( INDEX_TYPE i = 0; i < nSets; ++i )
     {
@@ -177,33 +176,33 @@ public:
       m_ref.erase( m_ref.begin() + removePos );
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void resize( INDEX_TYPE const newSize, INDEX_TYPE const capacityPerSet=0 )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     m_array.resize( newSize, capacityPerSet );
     m_ref.resize( newSize );
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void resize()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const newSize = rand( 0, 2 * m_array.size());
     m_array.resize( newSize );
     m_ref.resize( newSize );
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void insertIntoSet( INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
     for( INDEX_TYPE i = 0; i < nSets; ++i )
@@ -213,16 +212,16 @@ public:
       for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( rand( 0, maxValue ));
-        EXPECT_EQ( m_array.insertIntoSet( i, value ), m_ref[i].insert( value ).second );
+        EXPECT_EQ( m_array.insertIntoSet( i, value ), m_ref[ i ].insert( value ).second );
       }
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void insertMultipleIntoSet( INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
 
@@ -256,12 +255,12 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void removeFromSet( INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
     for( INDEX_TYPE i = 0; i < nSets; ++i )
@@ -271,16 +270,16 @@ public:
       for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( rand( 0, maxValue ));
-        EXPECT_EQ( m_array.removeFromSet( i, value ), m_ref[i].erase( value ) );
+        EXPECT_EQ( m_array.removeFromSet( i, value ), m_ref[ i ].erase( value ) );
       }
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void removeMultipleFromSet( INDEX_TYPE const maxInserts, INDEX_TYPE const maxValue )
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
 
@@ -314,12 +313,12 @@ public:
       }
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void compress()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     m_array.compress();
     T const * const values = m_array[0];
@@ -329,13 +328,13 @@ public:
     {
       EXPECT_EQ( m_array.sizeOfSet( i ), m_array.capacityOfSet( i ));
 
-      T const * const curValues = m_array[i];
+      T const * const curValues = m_array[ i ];
       EXPECT_EQ( values + curOffset, curValues );
 
       curOffset += m_array.sizeOfSet( i );
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void reserveSet( INDEX_TYPE const maxIncrease )
@@ -353,7 +352,7 @@ public:
 
   void fill()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     T const * const values = m_array[0];
     T const * const endValues = m_array[m_array.size() - 1];
@@ -366,14 +365,14 @@ public:
     EXPECT_EQ( m_array[0], values );
     EXPECT_EQ( m_array[m_array.size() - 1], endValues );
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void deepCopy()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    ArrayOfSets< T > copy( m_array );
+    ARRAY_OF_SETS copy( m_array );
 
     EXPECT_EQ( m_array.size(), copy.size());
 
@@ -382,8 +381,8 @@ public:
       INDEX_TYPE const setSize = m_array.sizeOfSet( i );
       EXPECT_EQ( setSize, copy.sizeOfSet( i ));
 
-      T const * const values = m_array[i];
-      T const * const valuesCopy = copy[i];
+      T const * const values = m_array[ i ];
+      T const * const valuesCopy = copy[ i ];
       ASSERT_NE( values, valuesCopy );
 
       for( INDEX_TYPE j = setSize -1; j >= 0; --j )
@@ -397,12 +396,12 @@ public:
       EXPECT_EQ( m_array.sizeOfSet( i ), setSize );
     }
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
   void shallowCopy()
   {
-    ViewType< T > const copy( m_array.toView());
+    ViewType const copy( m_array.toView());
 
     EXPECT_EQ( m_array.size(), copy.size());
 
@@ -411,8 +410,8 @@ public:
       INDEX_TYPE const setSize = m_array.sizeOfSet( i );
       EXPECT_EQ( setSize, copy.sizeOfSet( i ));
 
-      T const * const values = m_array[i];
-      T const * const valuesCopy = copy[i];
+      T const * const values = m_array[ i ];
+      T const * const valuesCopy = copy[ i ];
       EXPECT_EQ( values, valuesCopy );
 
       for( INDEX_TYPE j = setSize -1; j >= 0; --j )
@@ -430,10 +429,10 @@ public:
     }
   }
 
-  void stealFrom( INDEX_TYPE const maxValue, INDEX_TYPE const maxInserts, sortedArrayManipulation::Description const desc )
+  void assimilate( INDEX_TYPE const maxValue, INDEX_TYPE const maxInserts, sortedArrayManipulation::Description const desc )
   {
     INDEX_TYPE const nSets = m_array.size();
-    ArrayOfArrays< T > arrayToSteal( nSets );
+    typename ArrayConverter< ARRAY_OF_SETS >::template ArrayOfArrays< T > arrayToSteal( nSets );
 
     for( INDEX_TYPE i = 0; i < nSets; ++i )
     {
@@ -442,31 +441,31 @@ public:
       for( INDEX_TYPE j = 0; j < nValues; ++j )
       {
         T const value = T( rand( 0, maxValue ));
-        bool const insertSuccess = m_ref[i].insert( value ).second;
+        bool const insertSuccess = m_ref[ i ].insert( value ).second;
 
         if( sortedArrayManipulation::isUnique( desc ))
         {
           if( insertSuccess )
           {
-            arrayToSteal.appendToArray( i, value );
+            arrayToSteal.emplaceBack( i, value );
           }
         }
         else
         {
-          arrayToSteal.appendToArray( i, value );
+          arrayToSteal.emplaceBack( i, value );
         }
       }
 
       if( sortedArrayManipulation::isSorted( desc ))
       {
-        T * const values = arrayToSteal[i];
+        T * const values = arrayToSteal[ i ];
         std::sort( values, values + arrayToSteal.sizeOfArray( i ));
       }
     }
 
-    m_array.stealFrom( std::move( arrayToSteal ), desc );
+    m_array.assimilate( std::move( arrayToSteal ), desc );
 
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
   }
 
 protected:
@@ -497,18 +496,18 @@ protected:
     INDEX_TYPE const setCapacity = m_array.capacityOfSet( i );
     INDEX_TYPE nToInsert = setCapacity - setSize;
 
-    T const * const values = m_array[i];
+    T const * const values = m_array[ i ];
     T const * const endValues = m_array[m_array.size() - 1];
 
     while( nToInsert > 0 )
     {
       T const testValue = T( rand( 0, 2 * setCapacity ));
       bool const inserted = m_array.insertIntoSet( i, testValue );
-      EXPECT_EQ( inserted, m_ref[i].insert( testValue ).second );
+      EXPECT_EQ( inserted, m_ref[ i ].insert( testValue ).second );
       nToInsert -= inserted;
     }
 
-    ASSERT_EQ( m_array[i], values );
+    ASSERT_EQ( m_array[ i ], values );
     ASSERT_EQ( m_array[m_array.size() - 1], endValues );
     ASSERT_EQ( setCapacity, m_array.capacityOfSet( i ));
   }
@@ -518,82 +517,81 @@ protected:
 
   static constexpr INDEX_TYPE LARGE_NUMBER = 1E6;
 
-  ArrayOfSets< T > m_array;
+  ARRAY_OF_SETS m_array;
 
   std::vector< std::set< T > > m_ref;
 
   std::mt19937_64 m_gen;
 
 
-  /// Check that the move, toView, and toViewConst methods of ArrayOfSets< T > are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSets< T > >,
-                 "ArrayOfSets< T > has a move method." );
-  static_assert( HasMemberFunction_toView< ArrayOfSets< T > >,
-                 "ArrayOfSets< T > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ArrayOfSets< T > >,
-                 "ArrayOfSets< T > has a toViewConst method." );
+  /// Check that the move, toView, and toViewConst methods of ARRAY_OF_SETS are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ARRAY_OF_SETS >,
+                 "ARRAY_OF_SETS has a move method." );
+  static_assert( HasMemberFunction_toView< ARRAY_OF_SETS >,
+                 "ARRAY_OF_SETS has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ARRAY_OF_SETS >,
+                 "ARRAY_OF_SETS has a toViewConst method." );
 
-  /// Check that the move and toViewConst methods of ArrayOfSetsView< T, INDEX_TYPE const > are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSetsView< T, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T, INDEX_TYPE const > has a move method." );
-  static_assert( HasMemberFunction_toView< ArrayOfSetsView< T, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T, INDEX_TYPE const > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ArrayOfSetsView< T, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T, INDEX_TYPE const > has a toViewConst method." );
+  /// Check that the move and toViewConst methods of ViewType are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ViewType >,
+                 "ViewType has a move method." );
+  static_assert( HasMemberFunction_toView< ViewType >,
+                 "ViewType has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ViewType >,
+                 "ViewType has a toViewConst method." );
 
-  /// Check that the move and toViewConst methods of ArrayOfSetsView< T const, INDEX_TYPE const > are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ArrayOfSetsView< T const, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a move method." );
-  static_assert( HasMemberFunction_toView< ArrayOfSetsView< T const, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ArrayOfSetsView< T const, INDEX_TYPE const > >,
-                 "ArrayOfSetsView< T const, INDEX_TYPE const > has a toViewConst method." );
+  /// Check that the move and toViewConst methods of ViewTypeConst are detected.
+  static_assert( bufferManipulation::HasMemberFunction_move< ViewTypeConst >,
+                 "ViewTypeConst has a move method." );
+  static_assert( HasMemberFunction_toView< ViewTypeConst >,
+                 "ViewTypeConst has a toView method." );
+  static_assert( HasMemberFunction_toViewConst< ViewTypeConst >,
+                 "ViewTypeConst has a toViewConst method." );
 
-  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSets< T >
-  static_assert( std::is_same_v< typename GetViewType< ArrayOfSets< T > >::type,
-                                 ArrayOfSetsView< T, INDEX_TYPE const > const >,
-                 "The view type of ArrayOfSets< T > is ArrayOfSetsView< T, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSets< T > >::type,
-                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
-                 "The const view type of ArrayOfSets< T > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+  /// Check that GetViewType and GetViewTypeConst are correct for ARRAY_OF_SETS
+  static_assert( std::is_same< typename GetViewType< ARRAY_OF_SETS >::type, ViewType const >::value,
+                 "The view type of ARRAY_OF_SETS is ViewType const." );
+  static_assert( std::is_same< typename GetViewTypeConst< ARRAY_OF_SETS >::type, ViewTypeConst const >::value,
+                 "The const view type of ARRAY_OF_SETS is ViewTypeConst const." );
 
-  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSetsView< T, INDEX_TYPE const >
-  static_assert( std::is_same_v< typename GetViewType< ArrayOfSetsView< T, INDEX_TYPE const > >::type,
-                                 ArrayOfSetsView< T, INDEX_TYPE const > const >,
-                 "The view type of ArrayOfSetsView< T, INDEX_TYPE const > is ArrayOfSetsView< T, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSetsView< T, INDEX_TYPE const > >::type,
-                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
-                 "The const view type of ArrayOfSetsView< T, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+  /// Check that GetViewType and GetViewTypeConst are correct for ViewType
+  static_assert( std::is_same< typename GetViewType< ViewType >::type, ViewType const >::value,
+                 "The view type of ViewType is ViewType const." );
+  static_assert( std::is_same< typename GetViewTypeConst< ViewType >::type, ViewTypeConst const >::value,
+                 "The const view type of ViewType is ViewTypeConst const." );
 
-  /// Check that GetViewType and GetViewTypeConst are correct for ArrayOfSetsView< T const, INDEX_TYPE const >
-  static_assert( std::is_same_v< typename GetViewType< ArrayOfSetsView< T const, INDEX_TYPE const > >::type,
-                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
-                 "The view type of ArrayOfSetsView< T const, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
-  static_assert( std::is_same_v< typename GetViewTypeConst< ArrayOfSetsView< T const, INDEX_TYPE const > >::type,
-                                 ArrayOfSetsView< T const, INDEX_TYPE const > const >,
-                 "The const view type of ArrayOfSetsView< T const, INDEX_TYPE const > is ArrayOfSetsView< T const, INDEX_TYPE const > const." );
+  /// Check that GetViewType and GetViewTypeConst are correct for ViewTypeConst
+  static_assert( std::is_same< typename GetViewType< ViewTypeConst >::type, ViewTypeConst const >::value,
+                 "The view type of ViewTypeConst is ViewTypeConst const." );
+  static_assert( std::is_same< typename GetViewTypeConst< ViewTypeConst >::type, ViewTypeConst const >::value,
+                 "The const view type of ViewTypeConst is ViewTypeConst const." );
 };
 
-using TestTypes = ::testing::Types<
-  INDEX_TYPE
-  , Tensor
-  , TestString
+using ArrayOfSetsTestTypes = ::testing::Types<
+  ArrayOfSets< int, INDEX_TYPE, MallocBuffer >
+  , ArrayOfSets< Tensor, INDEX_TYPE, MallocBuffer >
+  , ArrayOfSets< TestString, INDEX_TYPE, MallocBuffer >
+#if defined(USE_CHAI)
+  , ArrayOfSets< int, INDEX_TYPE, NewChaiBuffer >
+  , ArrayOfSets< Tensor, INDEX_TYPE, NewChaiBuffer >
+  , ArrayOfSets< TestString, INDEX_TYPE, NewChaiBuffer >
+#endif
   >;
-TYPED_TEST_SUITE( ArrayOfSetsTest, TestTypes, );
+TYPED_TEST_SUITE( ArrayOfSetsTest, ArrayOfSetsTestTypes, );
 
 INDEX_TYPE const DEFAULT_MAX_INSERTS = 25;
 INDEX_TYPE const DEFAULT_MAX_VALUE = 2 * DEFAULT_MAX_INSERTS;
 
 TYPED_TEST( ArrayOfSetsTest, emptyConstruction )
 {
-  ArrayOfSets< TypeParam > a;
+  TypeParam a;
   ASSERT_EQ( a.size(), 0 );
   ASSERT_EQ( a.capacity(), 0 );
 }
 
 TYPED_TEST( ArrayOfSetsTest, sizedConstruction )
 {
-  ArrayOfSets< TypeParam > a( 10 );
+  TypeParam a( 10 );
   ASSERT_EQ( a.size(), 10 );
   ASSERT_EQ( a.capacity(), 10 );
 
@@ -606,7 +604,7 @@ TYPED_TEST( ArrayOfSetsTest, sizedConstruction )
 
 TYPED_TEST( ArrayOfSetsTest, sizedHintConstruction )
 {
-  ArrayOfSets< TypeParam > a( 10, 20 );
+  TypeParam a( 10, 20 );
   ASSERT_EQ( a.size(), 10 );
   ASSERT_EQ( a.capacity(), 10 );
 
@@ -720,71 +718,82 @@ TYPED_TEST( ArrayOfSetsTest, shallowCopy )
   this->shallowCopy();
 }
 
-TYPED_TEST( ArrayOfSetsTest, stealFromSortedUnique )
+TYPED_TEST( ArrayOfSetsTest, assimilateSortedUnique )
 {
   this->resize( 50 );
-  this->stealFrom( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE );
 }
 
-TYPED_TEST( ArrayOfSetsTest, stealFromUnsortedNoDuplicates )
+TYPED_TEST( ArrayOfSetsTest, assimilateUnsortedNoDuplicates )
 {
   this->resize( 50 );
-  this->stealFrom( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES );
 }
 
-TYPED_TEST( ArrayOfSetsTest, stealFromSortedWithDuplicates )
+TYPED_TEST( ArrayOfSetsTest, assimilateSortedWithDuplicates )
 {
   this->resize( 50 );
-  this->stealFrom( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES );
 }
 
-TYPED_TEST( ArrayOfSetsTest, stealFromUnsortedWithDuplicates )
+TYPED_TEST( ArrayOfSetsTest, assimilateUnsortedWithDuplicates )
 {
   this->resize( 50 );
-  this->stealFrom( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_WITH_DUPLICATES );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_WITH_DUPLICATES );
 }
 
-// Note this is testing capabilities of the ArrayOfArrays class, however it needs to first populate
+// This is testing capabilities of the ArrayOfArrays class, however it needs to first populate
 // the ArrayOfSets so it involves less code duplication to put it here.
 TYPED_TEST( ArrayOfSetsTest, ArrayOfArraysStealFrom )
 {
-  ArrayOfArrays< TypeParam > array;
+  typename ArrayConverter< TypeParam >::template ArrayOfArrays< typename TypeParam::value_type > array;
 
   this->resize( 50 );
   this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
-  array.stealFrom( std::move( this->m_array ));
+  array.assimilate( std::move( this->m_array ) );
 
   ASSERT_EQ( array.size(), this->m_ref.size());
 
   for( INDEX_TYPE i = 0; i < array.size(); ++i )
   {
-    ASSERT_EQ( array.sizeOfArray( i ), this->m_ref[i].size());
+    ASSERT_EQ( array.sizeOfArray( i ), this->m_ref[ i ].size());
 
-    typename std::set< TypeParam >::iterator it = this->m_ref[i].begin();
+    auto it = this->m_ref[ i ].begin();
     for( INDEX_TYPE j = 0; j < array.sizeOfArray( i ); ++j )
     {
-      EXPECT_EQ( array[i][j], *it++ );
+      EXPECT_EQ( array[ i ][ j ], *it++ );
     }
-    EXPECT_EQ( it, this->m_ref[i].end());
+    EXPECT_EQ( it, this->m_ref[ i ].end());
   }
 }
 
-template< class T_POLICY_PAIR >
-class ArrayOfSetsViewTest : public ArrayOfSetsTest< typename T_POLICY_PAIR::first_type >
+template< class ARRAY_OF_SETS_POLICY_PAIR >
+class ArrayOfSetsViewTest : public ArrayOfSetsTest< typename ARRAY_OF_SETS_POLICY_PAIR::first_type >
 {
 public:
 
-  using T = typename T_POLICY_PAIR::first_type;
-  using POLICY = typename T_POLICY_PAIR::second_type;
+  using ARRAY_OF_SETS = typename ARRAY_OF_SETS_POLICY_PAIR::first_type;
+  using POLICY = typename ARRAY_OF_SETS_POLICY_PAIR::second_type;
+  using ParentClass = ArrayOfSetsTest< ARRAY_OF_SETS >;
+
+  using typename ParentClass::T;
+  using typename ParentClass::ViewType;
+  using typename ParentClass::ViewTypeConst;
+
+  template< typename T >
+  using Array1D = typename ArrayConverter< ARRAY_OF_SETS >::template Array< T, 1, RAJA::PERM_I >;
+
+  template< typename T >
+  using ArrayView1D = typename ArrayConverter< ARRAY_OF_SETS >::template ArrayView< T, 1, 0 >;
 
   void memoryMotion()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
 
     // Update the view on the device.
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( nSets, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
@@ -793,7 +802,7 @@ public:
             PORTABLE_EXPECT_EQ( &view[ i ][ j ], &view( i, j ) );
           }
 
-          for( T const & val : view.getIterableSet( i ))
+          for( T const & val : view[ i ] )
           {
             PORTABLE_EXPECT_EQ( view.contains( i, val ), true );
           }
@@ -802,17 +811,17 @@ public:
     // Move the view back to the host and compare with the reference.
     forall< serialPolicy >( 1, [view, this] ( INDEX_TYPE )
     {
-      COMPARE_TO_REFERENCE( view.toViewConst(), m_ref );
+      this->compareToReference( view.toViewConst() );
     } );
   }
 
   void memoryMotionMove()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
     INDEX_TYPE const nSets = m_array.size();
 
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( nSets, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           INDEX_TYPE const sizeOfSet = view.sizeOfSet( i );
@@ -821,25 +830,25 @@ public:
             PORTABLE_EXPECT_EQ( &view[ i ][ j ], &view( i, j ) );
           }
 
-          for( T const & val : view.getIterableSet( i ))
+          for( T const & val : view[ i ] )
           {
             PORTABLE_EXPECT_EQ( view.contains( i, val ), true );
           }
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    m_array.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void insertView()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< T, 1 >, 1 > toInsert = createValues( true, false );
-    ArrayView< ArrayView< T const, 1 > const, 1 > const & toInsertView = toInsert.toViewConst();
+    Array1D< Array1D< T > > toInsert = createValues( true, false );
+    ArrayView1D< ArrayView1D< T const > const > const & toInsertView = toInsert.toViewConst();
 
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toInsertView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < toInsertView[ i ].size(); ++j )
@@ -848,35 +857,35 @@ public:
           }
         } );
 
-    m_array.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    m_array.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void insertMultipleView()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< T, 1 >, 1 > const toInsert = createValues( true, true );
-    ArrayView< ArrayView< T const, 1 > const, 1 > const & toInsertView = toInsert.toViewConst();
+    Array1D< Array1D< T > > const toInsert = createValues( true, true );
+    ArrayView1D< ArrayView1D< T const > const > const & toInsertView = toInsert.toViewConst();
 
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toInsertView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           view.insertIntoSet( i, toInsertView[ i ].begin(), toInsertView[ i ].end() );
         } );
 
-    m_array.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    m_array.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void removeView()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< T, 1 >, 1 > const toRemove = createValues( false, false );
-    ArrayView< ArrayView< T const, 1 > const, 1 > const & toRemoveView = toRemove.toViewConst();
+    Array1D< Array1D< T > > const toRemove = createValues( false, false );
+    ArrayView1D< ArrayView1D< T const > const > const & toRemoveView = toRemove.toViewConst();
 
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < toRemoveView[ i ].size(); ++j )
@@ -885,34 +894,34 @@ public:
           }
         } );
 
-    m_array.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    m_array.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
   void removeMultipleView()
   {
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    COMPARE_TO_REFERENCE
 
-    Array< Array< T, 1 >, 1 > const toRemove = createValues( false, true );
-    ArrayView< ArrayView< T const, 1 > const, 1 > const & toRemoveView = toRemove.toViewConst();
+    Array1D< Array1D< T > > const toRemove = createValues( false, true );
+    ArrayView1D< ArrayView1D< T const > const > const & toRemoveView = toRemove.toViewConst();
 
-    ArrayOfSetsView< T, INDEX_TYPE const > const & view = m_array.toView();
+    ViewType const & view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           view.removeFromSet( i, toRemoveView[ i ].begin(), toRemoveView[ i ].end() );
         } );
 
-    m_array.move( chai::CPU );
-    COMPARE_TO_REFERENCE( m_array.toViewConst(), m_ref );
+    m_array.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
   }
 
 protected:
 
-  Array< Array< T, 1 >, 1 > createValues( bool const insert, bool const sortedUnique )
+  Array1D< Array1D< T > > createValues( bool const insert, bool const sortedUnique )
   {
     INDEX_TYPE const nSets = m_array.size();
 
-    Array< Array< T, 1 >, 1 > values( nSets );
+    Array1D< Array1D< T > > values( nSets );
 
     for( INDEX_TYPE i = 0; i < nSets; ++i )
     {
@@ -945,27 +954,26 @@ protected:
     return values;
   }
 
-  using ArrayOfSetsTest< T >::rand;
-  using ArrayOfSetsTest< T >::LARGE_NUMBER;
-  using ArrayOfSetsTest< T >::m_array;
-  using ArrayOfSetsTest< T >::m_ref;
-  using ArrayOfSetsTest< T >::m_gen;
+  using ParentClass::rand;
+  using ParentClass::LARGE_NUMBER;
+  using ParentClass::m_array;
+  using ParentClass::m_ref;
+  using ParentClass::m_gen;
 };
 
 using ArrayOfSetsViewTestTypes = ::testing::Types<
-  std::pair< INDEX_TYPE, serialPolicy >
-  , std::pair< Tensor, serialPolicy >
-  , std::pair< TestString, serialPolicy >
-
-#ifdef USE_OPENMP
-  , std::pair< INDEX_TYPE, parallelHostPolicy >
-  , std::pair< Tensor, parallelHostPolicy >
-  , std::pair< TestString, parallelHostPolicy >
+  std::pair< ArrayOfSets< int, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< ArrayOfSets< Tensor, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< ArrayOfSets< TestString, INDEX_TYPE, MallocBuffer >, serialPolicy >
+#if defined(USE_CHAI)
+  , std::pair< ArrayOfSets< int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< ArrayOfSets< Tensor, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< ArrayOfSets< TestString, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
 #endif
 
-#ifdef USE_CUDA
-  , std::pair< INDEX_TYPE, parallelDevicePolicy< 256 > >
-  , std::pair< Tensor, parallelDevicePolicy< 256 > >
+#if defined(USE_CUDA) && defined(USE_CHAI)
+  , std::pair< ArrayOfSets< int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< ArrayOfSets< Tensor, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 

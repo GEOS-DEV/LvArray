@@ -32,33 +32,31 @@ namespace LvArray
 namespace testing
 {
 
-template< typename T, int NDIM, int MAX_SIZE >
-using stackArray = StackArray< T, NDIM, camp::make_idx_seq_t< NDIM >, int, MAX_SIZE >;
+using INDEX_TYPE = std::ptrdiff_t;
 
 LVARRAY_HOST_DEVICE
-int toLinearIndex( int const i )
+INDEX_TYPE toLinearIndex( INDEX_TYPE const i )
 { return i; }
 
 LVARRAY_HOST_DEVICE
-int toLinearIndex( int const i, int const j )
+INDEX_TYPE toLinearIndex( INDEX_TYPE const i, INDEX_TYPE const j )
 { return i + 10 * j; }
 
 LVARRAY_HOST_DEVICE
-int toLinearIndex( int const i, int const j, int const k )
+INDEX_TYPE toLinearIndex( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const k )
 { return i + 10 * j + 100 * k; }
 
-constexpr int pow( int const base, int const exponent )
+constexpr INDEX_TYPE pow( INDEX_TYPE const base, INDEX_TYPE const exponent )
 { return exponent == 0 ? 1 : base * pow( base, exponent - 1 ); }
 
-template< typename NDIM_T >
+template< typename PERMUTATION >
 class StackArrayTest : public ::testing::Test
 {
 public:
-  static constexpr int NDIM = NDIM_T::value;
+  static constexpr int NDIM = getDimension( PERMUTATION {} );
 
   void resize()
   {
-
     init();
 
     m_array.resize( 4 );
@@ -68,7 +66,7 @@ public:
       EXPECT_EQ( value, toLinearIndex( indices ... ) );
     } );
 
-    int dims[ NDIM ];
+    INDEX_TYPE dims[ NDIM ];
     for( int i = 0; i < NDIM; ++i )
     { dims[ i ] = i + 1; }
 
@@ -89,7 +87,7 @@ protected:
 
   void init()
   {
-    int dims[ NDIM ];
+    INDEX_TYPE dims[ NDIM ];
 
     for( int i = 0; i < NDIM; ++i )
     { dims[ i ] = 8; }
@@ -105,14 +103,20 @@ protected:
     } );
   }
 
-  static constexpr int CAPACITY = pow( 8, NDIM );
-  stackArray< int, NDIM, CAPACITY > m_array;
+  static constexpr INDEX_TYPE CAPACITY = pow( 8, NDIM );
+  StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > m_array;
 };
 
 using StackArrayTestTypes = ::testing::Types<
-  std::integral_constant< int, 1 >
-  , std::integral_constant< int, 2 >
-  , std::integral_constant< int, 3 >
+  RAJA::PERM_I
+  , RAJA::PERM_IJ
+  , RAJA::PERM_JI
+  , RAJA::PERM_IJK
+  , RAJA::PERM_IKJ
+  , RAJA::PERM_JIK
+  , RAJA::PERM_JKI
+  , RAJA::PERM_KIJ
+  , RAJA::PERM_KJI
   >;
 
 TYPED_TEST_SUITE( StackArrayTest, StackArrayTestTypes, );
@@ -123,24 +127,27 @@ TYPED_TEST( StackArrayTest, resize )
 }
 
 
-template< typename NDIM_POLICY_PAIR >
-class StackArrayCaptureTest : public StackArrayTest< typename NDIM_POLICY_PAIR::first_type >
+template< typename PERMUTATION_POLICY_PAIR >
+class StackArrayCaptureTest : public StackArrayTest< typename PERMUTATION_POLICY_PAIR::first_type >
 {
 public:
-  using StackArrayTest< typename NDIM_POLICY_PAIR::first_type >::NDIM;
-  using StackArrayTest< typename NDIM_POLICY_PAIR::first_type >::CAPACITY;
-  using POLICY = typename NDIM_POLICY_PAIR::second_type;
+  using PERMUTATION = typename PERMUTATION_POLICY_PAIR::first_type;
+  using POLICY = typename PERMUTATION_POLICY_PAIR::second_type;
+
+  using ParentClass = StackArrayTest< PERMUTATION >;
+  using ParentClass::NDIM;
+  using ParentClass::CAPACITY;
 
   void captureInLambda()
   {
     this->init();
 
-    stackArray< int, NDIM, CAPACITY > const & array = this->m_array;
+    StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > const & array = this->m_array;
     forall< POLICY >( 10, [array] LVARRAY_HOST_DEVICE ( int const )
         {
           forValuesInSliceWithIndices( array.toSlice(), [] ( int & value, auto const ... indices )
       {
-        int const index = toLinearIndex( indices ... );
+        INDEX_TYPE const index = toLinearIndex( indices ... );
         PORTABLE_EXPECT_EQ( value, index );
       } );
         } );
@@ -148,10 +155,10 @@ public:
 
   static void createInLambda()
   {
-    int const capacity = CAPACITY;
-    forall< POLICY >( 10, [capacity] LVARRAY_HOST_DEVICE ( int )
+    INDEX_TYPE const capacity = CAPACITY;
+    forall< POLICY >( 10, [capacity] LVARRAY_HOST_DEVICE ( INDEX_TYPE )
         {
-          stackArray< int, NDIM, CAPACITY > const array;
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > const array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
 
@@ -160,14 +167,14 @@ public:
 
   static void resizeInLambda()
   {
-    int dims[ NDIM ];
+    INDEX_TYPE dims[ NDIM ];
     for( int i = 0; i < NDIM; ++i )
     { dims[ i ] = 8; }
 
-    int const capacity = CAPACITY;
+    INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [dims, capacity] LVARRAY_HOST_DEVICE ( int )
         {
-          stackArray< int, NDIM, CAPACITY > array;
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
 
@@ -180,18 +187,17 @@ public:
         } );
   }
 
-#if defined(USE_CUDA)
-  /// This needs to use the parallelDevice policy because you can't next host-device lambdas.
+  /// This needs to use the parallelDevice policy because you can't nest host-device lambdas.
   static void resizeMultipleInLambda()
   {
-    int dims[ NDIM ];
+    INDEX_TYPE dims[ NDIM ];
     for( int i = 0; i < NDIM; ++i )
     { dims[ i ] = 8; }
 
-    int const capacity = CAPACITY;
-    forall< parallelDevicePolicy< 32 > >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
+    INDEX_TYPE const capacity = CAPACITY;
+    forall< POLICY >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
         {
-          stackArray< int, NDIM, CAPACITY > array;
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
 
@@ -202,10 +208,7 @@ public:
 
           PORTABLE_EXPECT_EQ( array.size(), capacity );
 
-          forValuesInSliceWithIndices( array.toSlice(), [] LVARRAY_DEVICE ( int & value, auto const ... indices )
-          {
-            value = toLinearIndex( indices ... );
-          } );
+          forValuesInSliceWithIndices( array.toSlice(), SetValue() );
 
           array.resize( 2 );
 
@@ -215,67 +218,94 @@ public:
 
           PORTABLE_EXPECT_EQ( array.size(), array.capacity() / 4 );
 
-          forValuesInSliceWithIndices( array.toSlice(), [] LVARRAY_DEVICE ( int & value, auto const ... indices )
-          {
-            PORTABLE_EXPECT_EQ( value, toLinearIndex( indices ... ) );
-          } );
+          forValuesInSliceWithIndices( array.toSlice(), CheckValue() );
         } );
   }
-#endif
+
+  template< typename _PERMUTATION=PERMUTATION >
+  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 1 >
+  sizedConstructorInLambda()
+  {
+    int capacity = CAPACITY;
+    forall< POLICY >( 10, [capacity] LVARRAY_DEVICE ( int )
+        {
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( CAPACITY );
+          PORTABLE_EXPECT_EQ( array.capacity(), capacity );
+          PORTABLE_EXPECT_EQ( array.size(), capacity );
+          PORTABLE_EXPECT_EQ( array.size( 0 ), capacity );
+        } );
+  }
+
+  template< typename _PERMUTATION=PERMUTATION >
+  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 2 >
+  sizedConstructorInLambda()
+  {
+    int capacity = CAPACITY;
+    int size = 8;
+    forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
+        {
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 1, size );
+          PORTABLE_EXPECT_EQ( array.capacity(), capacity );
+          PORTABLE_EXPECT_EQ( array.size(), ( size - 1 ) * size );
+          PORTABLE_EXPECT_EQ( array.size( 0 ), size - 1 );
+          PORTABLE_EXPECT_EQ( array.size( 1 ), size );
+        } );
+  }
+
+  template< typename _PERMUTATION=PERMUTATION >
+  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 3 >
+  sizedConstructorInLambda()
+  {
+    int capacity = CAPACITY;
+    int size = 8;
+    forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
+        {
+          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 2, size - 1, size );
+          PORTABLE_EXPECT_EQ( array.capacity(), capacity );
+          PORTABLE_EXPECT_EQ( array.size(), ( size - 2 ) * ( size - 1 ) * size );
+          PORTABLE_EXPECT_EQ( array.size( 0 ), size - 2 );
+          PORTABLE_EXPECT_EQ( array.size( 1 ), size - 1 );
+          PORTABLE_EXPECT_EQ( array.size( 2 ), size );
+        } );
+  }
+
+private:
+  struct SetValue
+  {
+    template< typename ... INDICES >
+    LVARRAY_HOST_DEVICE void operator() ( int & value, INDICES const ... indices )
+    { value = toLinearIndex( indices ... ); }
+  };
+
+  struct CheckValue
+  {
+    template< typename ... INDICES >
+    LVARRAY_HOST_DEVICE void operator() ( int & value, INDICES const ... indices )
+    { PORTABLE_EXPECT_EQ( value, toLinearIndex( indices ... ) ); }
+  };
 };
 
-#if defined(USE_CUDA)
-void sizedConstructorInLambda1D()
-{
-  int const SIZE = 8;
-  constexpr int CAPACITY = SIZE;
-  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
-      {
-        stackArray< int, 1, CAPACITY > array( SIZE );
-        PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
-        PORTABLE_EXPECT_EQ( array.size(), SIZE );
-        PORTABLE_EXPECT_EQ( array.size( 0 ), SIZE );
-      } );
-}
-
-void sizedConstructorInLambda2D()
-{
-  constexpr int SIZE = 8;
-  constexpr int CAPACITY = SIZE * SIZE;
-  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
-      {
-        stackArray< int, 2, CAPACITY > array( SIZE - 1, SIZE );
-        PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
-        PORTABLE_EXPECT_EQ( array.size(), ( SIZE - 1 ) * SIZE );
-        PORTABLE_EXPECT_EQ( array.size( 0 ), SIZE - 1 );
-        PORTABLE_EXPECT_EQ( array.size( 1 ), SIZE );
-      } );
-}
-
-void sizedConstructorInLambda3D()
-{
-  constexpr int SIZE = 8;
-  constexpr int CAPACITY = SIZE * SIZE * SIZE;
-  forall< parallelDevicePolicy< 32 > >( 10, [] LVARRAY_DEVICE ( int )
-      {
-        stackArray< int, 3, CAPACITY > array( SIZE - 2, SIZE - 1, SIZE );
-        PORTABLE_EXPECT_EQ( array.capacity(), CAPACITY );
-        PORTABLE_EXPECT_EQ( array.size(), ( SIZE - 2 ) * ( SIZE - 1 ) * SIZE );
-        PORTABLE_EXPECT_EQ( array.size( 0 ), SIZE - 2 );
-        PORTABLE_EXPECT_EQ( array.size( 1 ), SIZE - 1 );
-        PORTABLE_EXPECT_EQ( array.size( 2 ), SIZE );
-      } );
-}
-#endif
-
 using StackArrayCaptureTestTypes = ::testing::Types<
-  std::pair< std::integral_constant< int, 1 >, serialPolicy >
-  , std::pair< std::integral_constant< int, 2 >, serialPolicy >
-  , std::pair< std::integral_constant< int, 3 >, serialPolicy >
+  std::pair< RAJA::PERM_I, serialPolicy >
+  , std::pair< RAJA::PERM_IJ, serialPolicy >
+  , std::pair< RAJA::PERM_JI, serialPolicy >
+  , std::pair< RAJA::PERM_IJK, serialPolicy >
+  , std::pair< RAJA::PERM_IKJ, serialPolicy >
+  , std::pair< RAJA::PERM_JIK, serialPolicy >
+  , std::pair< RAJA::PERM_JKI, serialPolicy >
+  , std::pair< RAJA::PERM_KIJ, serialPolicy >
+  , std::pair< RAJA::PERM_KJI, serialPolicy >
+
 #if defined(USE_CUDA)
-  , std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy< 32 > >
-  , std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
-  , std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_I, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_IJ, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_JI, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_IJK, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_IKJ, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_JIK, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_JKI, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_KIJ, parallelDevicePolicy< 32 > >
+  , std::pair< RAJA::PERM_KJI, parallelDevicePolicy< 32 > >
 #endif
   >;
 
@@ -296,37 +326,15 @@ TYPED_TEST( StackArrayCaptureTest, resizeInLambda )
   this->resizeInLambda();
 }
 
-#ifdef USE_CUDA
-TEST( StackArrayCaptureTest, resizeMultipleInLambda1D )
+TYPED_TEST( StackArrayCaptureTest, resizeMultipleInLambda )
 {
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 1 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
+  this->resizeMultipleInLambda();
 }
 
-TEST( StackArrayCaptureTest, resizeMultipleInLambda2D )
+TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 {
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
+  this->sizedConstructorInLambda();
 }
-
-TEST( StackArrayCaptureTest, resizeMultipleInLambda3D )
-{
-  StackArrayCaptureTest< std::pair< std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > > >::resizeMultipleInLambda();
-}
-
-TEST( StackArrayCaptureTest, sizedConstructorInLambda1D )
-{
-  sizedConstructorInLambda1D();
-}
-
-TEST( StackArrayCaptureTest, sizedConstructorInLambda2D )
-{
-  sizedConstructorInLambda2D();
-}
-
-TEST( StackArrayCaptureTest, sizedConstructorInLambda3D )
-{
-  sizedConstructorInLambda3D();
-}
-#endif
 
 } // namespace testing
 } // namespace LvArray

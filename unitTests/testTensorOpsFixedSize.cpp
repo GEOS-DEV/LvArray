@@ -138,9 +138,9 @@ public:
 
   void testDeterminant()
   {
-    ArrayView< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
 
     forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI] LVARRAY_HOST_DEVICE ( int )
         {
@@ -165,13 +165,13 @@ public:
 
   void testInverseTwoArgs()
   {
-    ArrayView< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayView< T, 3, 2 > const & matrixB_IJK = m_matrixB_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixB_IKJ = m_matrixB_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixB_KJI = m_matrixB_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixB_IJK = m_matrixB_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixB_IKJ = m_matrixB_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixB_KJI = m_matrixB_KJI.toView();
 
     std::ptrdiff_t const aSeed = m_seedMatrixA;
     forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI, matrixB_IJK, matrixB_IKJ, matrixB_KJI, aSeed] LVARRAY_HOST_DEVICE ( int )
@@ -207,9 +207,9 @@ public:
 
   void testInverseOneArg()
   {
-    ArrayView< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
 
     forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI] LVARRAY_HOST_DEVICE ( int )
         {
@@ -242,15 +242,15 @@ public:
       tensorOps::AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const vectorASeed = m_seedVectorA;
@@ -297,15 +297,15 @@ public:
       tensorOps::plusAijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
-    ArrayView< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayView< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, 1 > const & vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayView< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayView< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > const & vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const vectorASeed = m_seedVectorA;
@@ -351,17 +351,17 @@ public:
       tensorOps::AikBjk< N, N, N >( result, denseSymA, m_matrixB_local );
     }
 
-    ArrayView< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayView< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayView< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayView< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayView< T const, 3, 2 > const & matrixB_IJK = m_matrixB_IJK.toViewConst();
-    ArrayView< T const, 3, 1 > const & matrixB_IKJ = m_matrixB_IKJ.toViewConst();
-    ArrayView< T const, 3, 0 > const & matrixB_KJI = m_matrixB_KJI.toViewConst();
+    ArrayViewT< T const, 3, 2 > const & matrixB_IJK = m_matrixB_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const & matrixB_IKJ = m_matrixB_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const & matrixB_KJI = m_matrixB_KJI.toViewConst();
     T const ( &matrixB_local )[ N ][ N ] = m_matrixB_local;
 
     std::ptrdiff_t const matrixASeed = m_seedMatrixA;
@@ -417,16 +417,16 @@ public:
       denseToSymmetric( std::integral_constant< int, N > {}, result, denseResult );
     }
 
-    ArrayView< T, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toView();
-    ArrayView< T, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toView();
+    ArrayViewT< T, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, 0 > symMatrixA_JI = m_symMatrixA_JI.toView();
 
-    ArrayView< T const, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayView< T const, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayView< T const, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrixA_local )[ N ][ N ] = m_matrixA_local;
 
-    ArrayView< T const, 2, 1 > symMatrixB_IJ = m_symMatrixB_IJ.toViewConst();
-    ArrayView< T const, 2, 0 > symMatrixB_JI = m_symMatrixB_JI.toViewConst();
+    ArrayViewT< T const, 2, 1 > symMatrixB_IJ = m_symMatrixB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > symMatrixB_JI = m_symMatrixB_JI.toViewConst();
     T const ( &symMatrixB_local )[ SYM_SIZE ] = m_symMatrixB_local;
 
     std::ptrdiff_t const matrixASeed = m_seedMatrixA;
@@ -536,42 +536,44 @@ private:
   }
 
   std::ptrdiff_t const m_seedVectorA = 0;
-  Array< T, 2, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
-  Array< T, 2, RAJA::PERM_JI > m_vectorA_JI { 1, N };
+  ArrayT< T, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
+  ArrayT< T, RAJA::PERM_JI > m_vectorA_JI { 1, N };
   T m_vectorA_local[ N ];
 
   std::ptrdiff_t const m_seedVectorB = m_seedVectorA + N;
-  Array< T, 2, RAJA::PERM_IJ > m_vectorB_IJ { 1, N };
-  Array< T, 2, RAJA::PERM_JI > m_vectorB_JI { 1, N };
+  ArrayT< T, RAJA::PERM_IJ > m_vectorB_IJ { 1, N };
+  ArrayT< T, RAJA::PERM_JI > m_vectorB_JI { 1, N };
   T m_vectorB_local[ N ];
 
   std::ptrdiff_t const m_seedMatrixA = m_seedVectorB + N;
-  Array< T, 3, RAJA::PERM_IJK > m_matrixA_IJK { 1, N, N };
-  Array< T, 3, RAJA::PERM_IKJ > m_matrixA_IKJ { 1, N, N };
-  Array< T, 3, RAJA::PERM_KJI > m_matrixA_KJI { 1, N, N };
+  ArrayT< T, RAJA::PERM_IJK > m_matrixA_IJK { 1, N, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixA_IKJ { 1, N, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixA_KJI { 1, N, N };
   T m_matrixA_local[ N ][ N ];
 
   std::ptrdiff_t const m_seedMatrixB = m_seedMatrixA + N * N;
-  Array< T, 3, RAJA::PERM_IJK > m_matrixB_IJK { 1, N, N };
-  Array< T, 3, RAJA::PERM_IKJ > m_matrixB_IKJ { 1, N, N };
-  Array< T, 3, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, N };
+  ArrayT< T, RAJA::PERM_IJK > m_matrixB_IJK { 1, N, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixB_IKJ { 1, N, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, N };
   T m_matrixB_local[ N ][ N ];
 
   std::ptrdiff_t const m_seedSymMatrixA = 0;
-  Array< T, 2, RAJA::PERM_IJ > m_symMatrixA_IJ { 1, SYM_SIZE };
-  Array< T, 2, RAJA::PERM_JI > m_symMatrixA_JI { 1, SYM_SIZE };
+  ArrayT< T, RAJA::PERM_IJ > m_symMatrixA_IJ { 1, SYM_SIZE };
+  ArrayT< T, RAJA::PERM_JI > m_symMatrixA_JI { 1, SYM_SIZE };
   T m_symMatrixA_local[ SYM_SIZE ];
 
   std::ptrdiff_t const m_seedSymMatrixB = m_seedSymMatrixA + N;
-  Array< T, 2, RAJA::PERM_IJ > m_symMatrixB_IJ { 1, SYM_SIZE};
-  Array< T, 2, RAJA::PERM_JI > m_symMatrixB_JI { 1, SYM_SIZE };
+  ArrayT< T, RAJA::PERM_IJ > m_symMatrixB_IJ { 1, SYM_SIZE};
+  ArrayT< T, RAJA::PERM_JI > m_symMatrixB_JI { 1, SYM_SIZE };
   T m_symMatrixB_local[ SYM_SIZE ];
 };
 
 using FixedSizeSquareMatrixTestTypes = ::testing::Types<
   std::tuple< double, std::integral_constant< int, 2 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 3 >, serialPolicy >
-#if defined(USE_CUDA)
+
+// TODO: These tests can be run without chai and only using the c-arrays.
+#if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
 #endif
