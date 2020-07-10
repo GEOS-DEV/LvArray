@@ -250,7 +250,7 @@ constexpr bool isSortedArrayView = false;
  */
 template< class T,
           class INDEX_TYPE,
-          template < typename > class BUFFER_TYPE >
+          template< typename > class BUFFER_TYPE >
 constexpr bool isSortedArrayView< SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 } // namespace LvArray

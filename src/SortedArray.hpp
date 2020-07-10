@@ -319,7 +319,7 @@ constexpr bool isSortedArray = false;
  */
 template< class T,
           class INDEX_TYPE,
-          template < typename > class BUFFER_TYPE >
+          template< typename > class BUFFER_TYPE >
 constexpr bool isSortedArray< SortedArray< T, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 
