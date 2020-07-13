@@ -236,6 +236,23 @@ protected:
   INDEX_TYPE m_size = 0;
 };
 
+/**
+ * @brief True if the template type is a SortedArrayView.
+ */
+template< class >
+constexpr bool isSortedArrayView = false;
+
+/**
+ * @tparam T The type contained in the SortedArrayView.
+ * @tparam INDEX_TYPE The integral type used as an index.
+ * @tparam BUFFER_TYPE The type used to manager the underlying allocation.
+ * @brief Specialization of isSortedArrayView for the SortedArrayView class.
+ */
+template< class T,
+          class INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+constexpr bool isSortedArrayView< SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE > > = true;
+
 } // namespace LvArray
 
 #endif /* SRC_COMMON_SORTEDARRAYVIEW */

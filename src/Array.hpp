@@ -629,7 +629,7 @@ constexpr bool isArray = false;
  * @tparam T The type contained in the Array.
  * @tparam NDIM The number of dimensions in the Array.
  * @tparam PERMUTATION The way that the data is layed out in memory.
- * @tparam INDEX_TYPE The integral type used as in index.
+ * @tparam INDEX_TYPE The integral type used as an index.
  * @tparam BUFFER_TYPE The type used to manage the underlying allocation.
  * @brief Specialization of isArray for the Array class.
  */

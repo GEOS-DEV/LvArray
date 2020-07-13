@@ -213,4 +213,5 @@ LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
+
 } /* namespace LvArray */
