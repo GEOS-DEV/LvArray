@@ -142,15 +142,21 @@ public:
    * @brief Steal the resources from a SparsityPattern.
    * @param src the SparsityPattern to convert.
    */
+  template< typename POLICY >
   inline
   void assimilate( SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && src )
   {
     // Destroy the current entries.
-    for( INDEX_TYPE row = 0; row < numRows(); ++row )
+    if( !std::is_trivially_destructible< T >::value )
     {
-      INDEX_TYPE const offset = m_offsets[ row ];
-      INDEX_TYPE const nnz = numNonZeros( row );
-      arrayManipulation::destroy( &m_entries[ offset ], nnz );
+      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+      RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
+                              [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+        {
+          INDEX_TYPE const nnz = view.numNonZeros( row );
+          T * const entries = view.getEntries( row );
+          arrayManipulation::destroy( entries, nnz );
+        } );
     }
 
     // Reallocate to the appropriate length
@@ -158,14 +164,16 @@ public:
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
-    for( INDEX_TYPE row = 0; row < numRows(); ++row )
-    {
-      T * const rowEntries = getEntries( row );
-      for( INDEX_TYPE i = 0; i < numNonZeros( row ); ++i )
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
+                            [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
-        new ( rowEntries + i ) T();
-      }
-    }
+        T * const rowEntries = view.getEntries( row );
+        for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+        {
+          new ( rowEntries + i ) T();
+        }
+      } );
 
     setName( "" );
   }

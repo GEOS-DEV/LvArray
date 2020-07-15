@@ -108,23 +108,42 @@ public:
     TIMING_LOOP( subscriptSliceKernel( a, b, c ) );
   }
 
-  void tensorAbstractionArray() const
-  { TIMING_LOOP( tensorAbstractionArrayKernel( m_a, m_b, m_c ) ); }
+  void tensorAbstractionFortranArray() const
+  { TIMING_LOOP( tensorAbstractionFortranArrayKernel( m_a, m_b, m_c ) ); }
 
-  void tensorAbstractionView() const
+  void tensorAbstractionFortranView() const
   {
     ArrayView< VALUE_TYPE const, PERMUTATION > const & a = m_a;
     ArrayView< VALUE_TYPE const, PERMUTATION > const & b = m_b;
     ArrayView< VALUE_TYPE, PERMUTATION > const & c = m_c;
-    TIMING_LOOP( tensorAbstractionViewKernel( a, b, c ) );
+    TIMING_LOOP( tensorAbstractionFortranViewKernel( a, b, c ) );
   }
 
-  void tensorAbstractionSlice() const
+  void tensorAbstractionFortranSlice() const
   {
     ArraySlice< VALUE_TYPE const, PERMUTATION > const a = m_a;
     ArraySlice< VALUE_TYPE const, PERMUTATION > const b = m_b;
     ArraySlice< VALUE_TYPE, PERMUTATION > const c = m_c;
-    TIMING_LOOP( tensorAbstractionSliceKernel( a, b, c ) );
+    TIMING_LOOP( tensorAbstractionFortranSliceKernel( a, b, c ) );
+  }
+
+  void tensorAbstractionSubscriptArray() const
+  { TIMING_LOOP( tensorAbstractionSubscriptArrayKernel( m_a, m_b, m_c ) ); }
+
+  void tensorAbstractionSubscriptView() const
+  {
+    ArrayView< VALUE_TYPE const, PERMUTATION > const & a = m_a;
+    ArrayView< VALUE_TYPE const, PERMUTATION > const & b = m_b;
+    ArrayView< VALUE_TYPE, PERMUTATION > const & c = m_c;
+    TIMING_LOOP( tensorAbstractionSubscriptViewKernel( a, b, c ) );
+  }
+
+  void tensorAbstractionSubscriptSlice() const
+  {
+    ArraySlice< VALUE_TYPE const, PERMUTATION > const a = m_a;
+    ArraySlice< VALUE_TYPE const, PERMUTATION > const b = m_b;
+    ArraySlice< VALUE_TYPE, PERMUTATION > const c = m_c;
+    TIMING_LOOP( tensorAbstractionSubscriptSliceKernel( a, b, c ) );
   }
 
   void RAJAView() const
@@ -178,17 +197,29 @@ private:
                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
-  static void tensorAbstractionArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                                            Array< VALUE_TYPE, PERMUTATION > const & b,
-                                            Array< VALUE_TYPE, PERMUTATION > const & c );
+  static void tensorAbstractionFortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
+                                                   Array< VALUE_TYPE, PERMUTATION > const & b,
+                                                   Array< VALUE_TYPE, PERMUTATION > const & c );
 
-  static void tensorAbstractionViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                           ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                           ArrayView< VALUE_TYPE, PERMUTATION > const & c );
+  static void tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                                                  ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                                  ArrayView< VALUE_TYPE, PERMUTATION > const & c );
 
-  static void tensorAbstractionSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                            ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                            ArraySlice< VALUE_TYPE, PERMUTATION > const c );
+  static void tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                                                   ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                                   ArraySlice< VALUE_TYPE, PERMUTATION > const c );
+
+  static void tensorAbstractionSubscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
+                                                     Array< VALUE_TYPE, PERMUTATION > const & b,
+                                                     Array< VALUE_TYPE, PERMUTATION > const & c );
+
+  static void tensorAbstractionSubscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                                                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                                    ArrayView< VALUE_TYPE, PERMUTATION > const & c );
+
+  static void tensorAbstractionSubscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
   static void RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                               RajaView< VALUE_TYPE const, PERMUTATION > const & b,
@@ -254,20 +285,36 @@ public:
     TIMING_LOOP( subscriptSliceKernel( a, b, c ) );
   }
 
-  void tensorAbstractionView() const
+  void tensorAbstractionFortranView() const
   {
     ArrayView< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
     ArrayView< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
     ArrayView< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
-    TIMING_LOOP( tensorAbstractionViewKernel( a, b, c ) );
+    TIMING_LOOP( tensorAbstractionFortranViewKernel( a, b, c ) );
   }
 
-  void tensorAbstractionSlice() const
+  void tensorAbstractionFortranSlice() const
   {
     ArraySlice< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
     ArraySlice< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
     ArraySlice< VALUE_TYPE, PERMUTATION > const c = this->m_c;
-    TIMING_LOOP( tensorAbstractionSliceKernel( a, b, c ) );
+    TIMING_LOOP( tensorAbstractionFortranSliceKernel( a, b, c ) );
+  }
+
+  void tensorAbstractionSubscriptView() const
+  {
+    ArrayView< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
+    ArrayView< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
+    ArrayView< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
+    TIMING_LOOP( tensorAbstractionSubscriptViewKernel( a, b, c ) );
+  }
+
+  void tensorAbstractionSubscriptSlice() const
+  {
+    ArraySlice< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
+    ArraySlice< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
+    ArraySlice< VALUE_TYPE, PERMUTATION > const c = this->m_c;
+    TIMING_LOOP( tensorAbstractionSubscriptSliceKernel( a, b, c ) );
   }
 
   void RAJAView() const
@@ -304,13 +351,21 @@ public:
                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
-  static void tensorAbstractionViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                           ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                           ArrayView< VALUE_TYPE, PERMUTATION > const & c );
+  static void tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                                                  ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                                  ArrayView< VALUE_TYPE, PERMUTATION > const & c );
 
-  static void tensorAbstractionSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                            ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                            ArraySlice< VALUE_TYPE, PERMUTATION > const c );
+  static void tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                                                   ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                                   ArraySlice< VALUE_TYPE, PERMUTATION > const c );
+
+  static void tensorAbstractionSubscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
+                                                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
+                                                    ArrayView< VALUE_TYPE, PERMUTATION > const & c );
+
+  static void tensorAbstractionSubscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
+                                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
+                                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c );
 
   static void RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                               RajaView< VALUE_TYPE const, PERMUTATION > const & b,

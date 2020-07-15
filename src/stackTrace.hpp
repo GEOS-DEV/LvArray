@@ -40,6 +40,11 @@ std::string stackTrace();
 void abort();
 
 /**
+ * @brief Abort the program, correctly finalizing MPI.
+ */
+void abort();
+
+/**
  * @brief Print signal information and a stack trace to standard out, optionally aborting.
  * @param sig The signal received.
  * @param exit If true abort execution.

@@ -1100,10 +1100,12 @@ struct CRSMatrixToSparsityPattern< CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TY
   using type = SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 };
 
-template< typename CRS_MATRIX >
-class CRSMatrixTest : public SparsityPatternTest< typename CRSMatrixToSparsityPattern< CRS_MATRIX >::type >
+template< typename CRS_MATRIX_POLICY_PAIR >
+class CRSMatrixTest : public SparsityPatternTest< typename CRSMatrixToSparsityPattern< typename CRS_MATRIX_POLICY_PAIR::first_type >::type >
 {
 public:
+  using CRS_MATRIX = typename CRS_MATRIX_POLICY_PAIR::first_type;
+  using POLICY = typename CRS_MATRIX_POLICY_PAIR::second_type;
   using ParentClass = SparsityPatternTest< typename CRSMatrixToSparsityPattern< CRS_MATRIX >::type >;
 
   using T = typename CRS_MATRIX::value_type;
@@ -1112,7 +1114,8 @@ public:
   void assimilate()
   {
     CRS_MATRIX matrix;
-    matrix.assimilate( std::move( this->m_sp ) );
+    matrix.template assimilate< POLICY >( std::move( this->m_sp ) );
+    matrix.move( MemorySpace::CPU );
     this->compareToReference( matrix.toSparsityPatternView() );
 
     EXPECT_EQ( this->m_sp.numRows(), 0 );
@@ -1155,13 +1158,17 @@ public:
 };
 
 using CRSMatrixTestTypes = ::testing::Types<
-  CRSMatrix< int, int, INDEX_TYPE, MallocBuffer >
-  , CRSMatrix< Tensor, int, INDEX_TYPE, MallocBuffer >
-  , CRSMatrix< TestString, int, INDEX_TYPE, MallocBuffer >
+  std::pair< CRSMatrix< int, int, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< Tensor, int, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, INDEX_TYPE, MallocBuffer >, serialPolicy >
 #if defined(USE_CHAI)
-  , CRSMatrix< int, int, INDEX_TYPE, NewChaiBuffer >
-  , CRSMatrix< Tensor, int, INDEX_TYPE, NewChaiBuffer >
-  , CRSMatrix< TestString, int, INDEX_TYPE, NewChaiBuffer >
+  , std::pair< CRSMatrix< int, int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< Tensor, int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+#endif
+#if defined(USE_CUDA) && defined(USE_CHAI)
+  , std::pair< CRSMatrix< int, int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< CRSMatrix< Tensor, int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 TYPED_TEST_SUITE( CRSMatrixTest, CRSMatrixTestTypes, );

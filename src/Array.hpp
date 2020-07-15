@@ -153,14 +153,7 @@ public:
    */
   LVARRAY_HOST_DEVICE
   ~Array()
-  {
-  #if !defined(__CUDA_ARCH__)
-    if( !std::is_trivially_destructible< T >::value )
-    { this->move( MemorySpace::CPU ); }
-  #endif
-
-    bufferManipulation::free( m_dataBuffer, size() );
-  }
+  { bufferManipulation::free( m_dataBuffer, size() ); }
 
   /**
    * @brief @return Return a reference to *this after converting any nested arrays to const views to mutable values.
@@ -205,17 +198,6 @@ public:
   Array & operator=( Array && rhs )
   {
     ParentClass::operator=( std::move( rhs ) );
-    return *this;
-  }
-
-  /**
-   * @brief Assignment operator to assign the entire array to single value.
-   * @param rhs value to set array.
-   * @return *this.
-   */
-  Array & operator=( T const & rhs )
-  {
-    ParentClass::operator=( rhs );
     return *this;
   }
 
@@ -346,7 +328,7 @@ public:
    * @note The default dimension is given by m_singleParameterResizeIndex.
    */
   LVARRAY_HOST_DEVICE
-  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue = T() )
+  void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue )
   { resizeDefaultDimension( newdim, defaultValue ); }
 
   /**

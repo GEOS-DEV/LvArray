@@ -226,24 +226,6 @@ public:
   }
 
   /**
-   * @brief Set all values of array to rhs.
-   * @param rhs The value that array will be set to.
-   * @return *this.
-   */
-  DISABLE_HD_WARNING
-  inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView const & operator=( T const & rhs ) const noexcept
-  {
-    INDEX_TYPE const length = size();
-    T * const data_ptr = data();
-    for( INDEX_TYPE a = 0; a < length; ++a )
-    {
-      data_ptr[a] = rhs;
-    }
-    return *this;
-  }
-
-  /**
    * @brief @return Return *this after converting any nested arrays to const views.
    */
   inline LVARRAY_HOST_DEVICE constexpr
@@ -323,8 +305,47 @@ public:
   /**
    * @brief @return Return true if the array is empty.
    */
-  inline bool empty() const
+  LVARRAY_HOST_DEVICE inline constexpr
+  bool empty() const
   { return size() == 0; }
+
+  /**
+   * @brief Set all entries in the array to @p value.
+   * @tparam POLICY The RAJA policy to use.
+   * @param value The value to set entries to.
+   */
+  DISABLE_HD_WARNING
+  template< typename POLICY >
+  void setValues( T const & value ) const
+  {
+    ViewType const & view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+      {
+        view.data()[ i ] = value;
+      } );
+  }
+
+  /**
+   * @brief Set entries to values from another compatible ArrayView.
+   * @tparam POLICY The RAJA policy to use.
+   * @param rhs The source array view, must have the same dimensions and strides as *this.
+   */
+  template< typename POLICY >
+  void setValues( ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & rhs ) const
+  {
+    for( int dim = 0; dim < NDIM; ++dim )
+    {
+      LVARRAY_ERROR_IF_NE( size( dim ), rhs.size( dim ) );
+      LVARRAY_ERROR_IF_NE_MSG( strides()[ dim ], rhs.strides()[ dim ],
+                               "This method only works with Arrays with the same data layout." );
+    }
+
+    ViewType const & view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+      {
+        view.data()[ i ] = rhs.data()[ i ];
+      } );
+  }
 
   /**
    * @brief @return Return an iterator to the begining of the data.
@@ -357,7 +378,7 @@ public:
   ///***********************************************************************************************
 
   /**
-   * @brief @return Return a lower dimensionsal slice of this ArrayView.
+   * @brief @return Return a lower dimensional slice of this ArrayView.
    * @param index The index of the slice to create.
    * @note This method is only active when NDIM > 1.
    */
@@ -440,6 +461,17 @@ public:
   INDEX_TYPE const * strides() const noexcept
   { return m_strides; }
 
+
+  /**
+   * @brief Touch the memory in @p space.
+   * @param space The memory space in which a touch will be recorded.
+   */
+  void registerTouch( MemorySpace const space ) const
+  {
+    m_dataBuffer.registerTouch( space );
+  }
+
+
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
    * @param space the space to move the Array to.
@@ -447,7 +479,7 @@ public:
    * @note Not all Buffers support memory movement.
    */
   void move( MemorySpace const space, bool const touch=true ) const
-  { m_dataBuffer.move( space, size(), touch ); }
+  { m_dataBuffer.moveNested( space, size(), touch ); }
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
@@ -486,7 +518,7 @@ protected:
     m_strides{ 0 },
     m_dataBuffer( true )
   {
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }

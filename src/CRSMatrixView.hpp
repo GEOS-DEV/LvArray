@@ -216,28 +216,29 @@ public:
     return nRemoved;
   }
 
+  /// @cond DO_NOT_DOCUMENT
+  // These method breaks uncrustify :(
+
   /**
-   * @brief Set all the values in the matrix to the given value.
-   * @param value the value to set values in the matrix to.
+   * @brief Set all the entries in the matrix to the given value.
+   * @tparam POLICY The kernel launch policy to use.
+   * @param value The value to set entries in the matrix to.
    */
+  template< typename POLICY >
   inline
   void setValues( T const & value ) const
   {
-    for( INDEX_TYPE_NC row = 0; row < numRows(); ++row )
-    {
-      INDEX_TYPE const nnz = numNonZeros( row );
-      T * const entries = getEntries( row );
-
-      for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
+                            [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
-        entries[ i ] = value;
-      }
-    }
-  }
+        INDEX_TYPE const nnz = view.numNonZeros( row );
+        ArraySlice< T, 1, 0, INDEX_TYPE_NC > const entries = view.getEntries( row );
 
-  /// @cond DO_NOT_DOCUMENT
-  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
-  // else it works just fine.
+        for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
+        { entries[ i ] = value; }
+      } );
+  }
 
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.

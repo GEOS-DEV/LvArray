@@ -170,32 +170,6 @@ public:
     compare( copy, movedCopy );
   }
 
-  static void scalarAssignmentOperator()
-  {
-    T const value = T( 3.14 );
-
-    std::unique_ptr< ARRAY > array = sizedConstructor();
-
-    T const * const initialPtr = array->data();
-    INDEX_TYPE totalSize = 1;
-    std::array< INDEX_TYPE, NDIM > sizes;
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      sizes[ dim ] = array->size( dim );
-      totalSize *= array->size( dim );
-    }
-
-    *array = value;
-    EXPECT_EQ( array->size(), totalSize );
-    EXPECT_EQ( array->capacity(), totalSize );
-    EXPECT_EQ( array->data(), initialPtr );
-
-    for( INDEX_TYPE i = 0; i < array->size(); ++i )
-    {
-      EXPECT_EQ( array->data()[ i ], value );
-    }
-  }
-
   static void getSetSingleParameterResizeIndex()
   {
     std::unique_ptr< ARRAY > array = sizedConstructor();

@@ -160,8 +160,9 @@ public:
   /**
    * @copydoc NewChaiBuffer( NewChaiBuffer const & )
    * @param size The number of values in the allocation.
-   * @note This method should be preffered over the copy constructor when the size information
-   *   is available.
+   * @note In addition to performing a shallow copy of @p src if the chai execution space
+   *   is set *this will contain a pointer the the allocation in that space. It will also
+   *   move any nested objects.
    */
   LVARRAY_HOST_DEVICE inline
   NewChaiBuffer( NewChaiBuffer const & src, std::ptrdiff_t const size ):
@@ -170,7 +171,7 @@ public:
     m_pointer_record( src.m_pointer_record )
   {
   #if defined(USE_CUDA) && !defined(__CUDA_ARCH__)
-    move( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), size, true );
+    moveNested( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), size, true );
   #else
     LVARRAY_UNUSED_VARIABLE( size );
   #endif
@@ -304,9 +305,10 @@ public:
    * @param space The space to move the buffer to.
    * @param size The size of the buffer.
    * @param touch If the buffer should be touched in the new space or not.
+   * @note If they type T supports it this will call move( @p space, @p touch ) on each sub object.
    */
   inline
-  void move( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
+  void moveNested( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
   #if defined(USE_CUDA)
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
@@ -318,16 +320,9 @@ public:
 
     if( prevSpace == chai::CPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
 
-    const_cast< T * & >( m_pointer ) =
-      static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
-                                                            m_pointer_record,
-                                                            chaiSpace ) );
-
-    if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ chaiSpace ] = true;
-    m_pointer_record->m_last_space = chaiSpace;
+    move( space, touch );
 
     if( prevSpace == chai::GPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
-
   #else
     LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
     LVARRAY_UNUSED_VARIABLE( size );
@@ -339,13 +334,28 @@ public:
    * @brief Move the buffer to the given execution space, optionally touching it.
    * @param space The space to move the buffer to.
    * @param touch If the buffer should be touched in the new space or not.
-   * @note This method is only active when the type T itself does not have a method move( MemorySpace ).
-   * @return Nothing.
+   * @note This will not move subobjects.
    */
-  template< typename U=T_non_const >
-  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
-  move( MemorySpace const space, bool const touch ) const
-  { move( space, capacity(), touch ); }
+  void move( MemorySpace const space, bool const touch ) const
+  {
+  #if defined(USE_CUDA)
+    chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
+    if( m_pointer_record == nullptr ||
+        m_capacity == 0 ||
+        chaiSpace == chai::NONE ) return;
+
+    const_cast< T * & >( m_pointer ) =
+      static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
+                                                            m_pointer_record,
+                                                            chaiSpace ) );
+
+    if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ chaiSpace ] = true;
+    m_pointer_record->m_last_space = chaiSpace;
+  #else
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_UNUSED_VARIABLE( touch );
+  #endif
+  }
 
   /**
    * @brief Touch the buffer in the given space.
