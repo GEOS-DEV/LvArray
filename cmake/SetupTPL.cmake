@@ -120,6 +120,27 @@ if(ENABLE_CALIPER)
     set(thirdPartyLibs ${thirdPartyLibs} caliper)
 endif()
 
+################################
+# Python
+################################
+if(ENABLE_PYTHON)
+    include(cmake/FindPython.cmake)
+    message(STATUS "Using Python Include: ${PYTHON_INCLUDE_DIRS}")
+    # include_directories(${PYTHON_INCLUDE_DIRS})
+    # # if we don't find python, throw a fatal error
+    # if(NOT PYTHON_FOUND)
+    #     message(FATAL_ERROR "ENABLE_PYTHON is true, but Python wasn't found.")
+    # endif()
+
+    # include(cmake/thirdparty/FindNumPy.cmake)
+    # message(STATUS "Using NumPy Include: ${NUMPY_INCLUDE_DIRS}")
+    # include_directories(${NUMPY_INCLUDE_DIRS})
+    # # if we don't find numpy, throw a fatal error
+    # if(NOT NUMPY_FOUND)
+    #     message(FATAL_ERROR "ENABLE_PYTHON is true, but NumPy wasn't found.")
+    # endif()
+endif()
+
 
 
 

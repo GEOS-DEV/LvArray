@@ -110,3 +110,8 @@ target_include_directories( testTensorOps PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../sr
 
 blt_add_test( NAME testTensorOps
               COMMAND testTensorOps )
+
+
+if( ENABLE_PYTHON )
+    add_subdirectory( python )
+endif()

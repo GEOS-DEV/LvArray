@@ -1,7 +1,6 @@
 add_subdirectory(docs)
 
-    
-        set(lvarray_headers
+set(lvarray_headers
     templateHelpers.hpp
     Array.hpp
     ArraySlice.hpp
@@ -45,6 +44,13 @@ set(lvarray_sources
     totalview/tv_data_display.c 
     )
 
+if(ENABLE_PYTHON)
+    set(lvarray_headers
+        python/numpyConversion.hpp
+        python/numpyArrayView.hpp
+        python/numpySortedArrayView.hpp
+        )
+endif()
 
 message("adding lvarray library")
 blt_add_library( NAME             lvarray
@@ -57,4 +63,3 @@ target_include_directories( lvarray PUBLIC ${CMAKE_BINARY_DIR}/include )
 
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )
-

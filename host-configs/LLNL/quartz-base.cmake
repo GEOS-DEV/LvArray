@@ -28,6 +28,9 @@ set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-07-08/install-${CONFIG_NAME}-releas
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 set(ENABLE_CHAI ON CACHE BOOL "")
 
+set(ENABLE_PYTHON ON CACHE BOOL "")
+set(PYTHON_DIR /usr/tce/packages/python/python-3.7.2 CACHE PATH "")
+
 set(SPHINX_EXECUTABLE /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu/bin/sphinx-build CACHE PATH "")
 set(DOXYGEN_EXECUTABLE ${GEOSX_TPL_ROOT_DIR}/doxygen/bin/doxygen CACHE PATH "")
 
