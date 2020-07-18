@@ -90,4 +90,19 @@ else()
     message(STATUS "Not using caliper.")
 endif()
 
-set(thirdPartyLibs ${thirdPartyLibs} CACHE STRING "")
+################################
+# Python
+################################
+if ( ENABLE_PYLVARRAY )
+    message( STATUS "Python3_EXECUTABLE=${Python3_EXECUTABLE}" )
+    find_package( Python3 REQUIRED
+                  COMPONENTS Development NumPy )
+
+    message( STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}" )
+    message( STATUS "Python3_LIBRARY_DIRS = ${Python3_LIBRARY_DIRS}" )
+    message( STATUS "Python3_NumPy_INCLUDE_DIRS = ${Python3_NumPy_INCLUDE_DIRS}" )
+
+    set( thirdPartyLibs ${thirdPartyLibs} Python3::Python Python3::NumPy )
+endif()
+
+set( thirdPartyLibs ${thirdPartyLibs} CACHE STRING "" )

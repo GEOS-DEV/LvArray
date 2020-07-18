@@ -258,7 +258,7 @@ public:
   { return numNonZeros( row ) == 0; }
 
   /**
-   * @return Return true iff the given entry is zero.
+   * @return Return true iff the given entry is in the matrix.
    * @param row the row to query.
    * @param col the col to query.
    */

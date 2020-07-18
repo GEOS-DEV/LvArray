@@ -39,6 +39,7 @@ The ``LvArray`` containers were designed specifically to integrate with `RAJA <h
   developmentAids
   testing
   benchmarks
+  python/index
 
 Doxygen
 =======

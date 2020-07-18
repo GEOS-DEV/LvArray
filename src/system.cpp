@@ -425,28 +425,33 @@ std::string calculateSize( size_t const bytes )
   return result;
 }
 
-#if defined( __ibmxl__ )
-// For whatever reason XL emits an error when assigning std::abort to @c s_errorHandler.
-static void ibmAbort()
-{ std::abort(); }
-
-std::function< void() > s_errorHandler = ibmAbort;
-#else
-/// The error handler to use.
-std::function< void() > s_errorHandler = std::abort;
-#endif
+/**
+ * @brief A static pointer to the error handler.
+ * @note When using a std::function directly there was an exit time error, by not deallocating it we get around it.
+ */
+std::function< void() > * s_errorHandler = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setErrorHandler( std::function< void() > const & handler )
 {
   LVARRAY_ERROR_IF( handler == nullptr, "Error handler cannot be null." );
-  s_errorHandler = handler;
+  if( s_errorHandler != nullptr )
+  {
+    delete s_errorHandler;
+  }
+
+  s_errorHandler = new std::function< void() >( handler );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void callErrorHandler()
 {
-  s_errorHandler();
+  if( s_errorHandler == nullptr || *s_errorHandler == nullptr )
+  {
+    return std::abort();
+  }
+
+  (*s_errorHandler)();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

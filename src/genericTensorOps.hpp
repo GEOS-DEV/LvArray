@@ -149,7 +149,18 @@ namespace tensorOps
 namespace internal
 {
 
+/**
+ * @brief Expands to a static constexpr template bool @c HasStaticMember_SIZE which is true if @c T
+ *   has a static member @c T::SIZE.
+ * @tparam T The type to query.
+ */
 HAS_STATIC_MEMBER( SIZE );
+
+/**
+ * @brief Expands to a static constexpr template bool @c HasStaticMember_NDIM which is true if @c T
+ *   has a static member @c T::NDIM.
+ * @tparam T The type to query.
+ */
 HAS_STATIC_MEMBER( NDIM );
 
 /**
@@ -158,7 +169,8 @@ HAS_STATIC_MEMBER( NDIM );
  * @tparam T The provided type.
  * @param src The value to check.
  * @note This overload is enabled for user-defined types that expose a compile-time size
- *       parameter through a public static integral member variable SIZE
+ *   parameter through a public static integral member variable SIZE
+ * @return None.
  */
 template< std::ptrdiff_t ISIZE, typename T >
 LVARRAY_HOST_DEVICE inline constexpr
@@ -213,6 +225,7 @@ void checkSizes( T const ( &src )[ INFERRED_M ][ INFERRED_N ] )
  * @tparam ISIZE The size expected size.
  * @tparam ARRAY The type o @p array, should be an Array, ArrayView or ArraySlice.
  * @param array The array to check.
+ * @return None.
  */
 template< std::ptrdiff_t ISIZE, typename ARRAY >
 LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
@@ -220,11 +233,12 @@ std::enable_if_t< HasStaticMember_NDIM< ARRAY > >
 checkSizes( ARRAY const & array )
 {
   static_assert( ARRAY::NDIM == 1, "Must be a 1D array." );
-  #ifdef LVARRAY_BOUNDS_CHECK
+
+#ifdef LVARRAY_BOUNDS_CHECK
   LVARRAY_ERROR_IF_NE( array.size( 0 ), ISIZE );
-  #else
+#else
   LVARRAY_UNUSED_VARIABLE( array );
-  #endif
+#endif
 }
 
 /**
@@ -233,6 +247,7 @@ checkSizes( ARRAY const & array )
  * @tparam JSIZE The expected size of the second dimension.
  * @tparam ARRAY The type o @p array, should be an Array, ArrayView or ArraySlice.
  * @param array The array to check.
+ * @return None.
  */
 template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename ARRAY >
 LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
