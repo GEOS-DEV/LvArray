@@ -12,6 +12,7 @@ set(testSources
     testArrayView_copyConstructor.cpp
     testArrayView_defaultConstructor.cpp
     testArrayView_emptyMove.cpp
+    testArrayView_getPointerInSpace.cpp
     testArrayView_modifyInKernel.cpp
     testArrayView_modifyInMultipleKernels.cpp
     testArrayView_move.cpp

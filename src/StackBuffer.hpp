@@ -111,6 +111,17 @@ public:
   { return const_cast< T * >( m_data ); }
 
   /**
+   * @brief @return Return a pointer to the beginning of the buffer in a particular memory space.
+   * @param space The target memory space.
+   */
+  LVARRAY_HOST_DEVICE inline
+  T * data( MemorySpace const space ) const
+  {
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "Buffer does not support target memory space" );
+    return data();
+  }
+
+  /**
    * @tparam INDEX_TYPE the type used to index into the values.
    * @return The value at position @p i .
    * @param i The position of the value to access.

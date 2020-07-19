@@ -49,6 +49,7 @@ static std::mutex chaiLock;
  * @return The chai::ExecutionSpace corresponding to @p space.
  * @param space The MemorySpace to convert.
  */
+LVARRAY_HOST_DEVICE
 inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 {
   if( space == MemorySpace::NONE )
@@ -314,6 +315,18 @@ public:
   LVARRAY_HOST_DEVICE inline constexpr
   chai::PointerRecord & pointerRecord() const
   { return *m_pointerRecord; }
+
+  /**
+   * @brief @return Return a pointer to the beginning of the buffer in a particular memory space.
+   * @param space The target memory space.
+   */
+  LVARRAY_HOST_DEVICE inline
+  T * data( MemorySpace const space ) const
+  {
+    T * const ptr = static_cast< T * >( m_pointerRecord->m_pointers[ internal::toChaiExecutionSpace( space ) ] );
+    LVARRAY_ERROR_IF( ptr == nullptr, "Buffer not allocated in memory space " << space );
+    return ptr;
+  }
 
   /**
    * @tparam INDEX_TYPE the type used to index into the values.
