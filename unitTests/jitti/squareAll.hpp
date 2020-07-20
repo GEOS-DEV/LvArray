@@ -15,7 +15,7 @@ void squareAll( LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const dst,
 
   LVARRAY_LOG( "Using POLICY = " << LvArray::demangleType< POLICY >() );
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, dst.size() ),
-    [dst, src] ( std::ptrdiff_t const i)
+    [dst, src] LVARRAY_HOST_DEVICE ( std::ptrdiff_t const i)
     {
       dst[ i ] = src[ i ] * src[ i ];
     }

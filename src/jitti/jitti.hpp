@@ -18,6 +18,17 @@ namespace jitti
 
 using SymbolTable = std::unordered_map< std::string, std::pair< void *, std::type_index > >;
 
+inline std::ostream & operator<<( std::ostream & os, SymbolTable const & table )
+{
+  for ( auto const & kvPair : table )
+  {
+    os << kvPair.first << ": " << "{ \"" << kvPair.second.first << "\", " <<
+          LvArray::demangle( kvPair.second.second.name() ) << " }\n";
+  }
+
+  return os;
+}
+
 template< typename T >
 std::pair< void *, std::type_index >
 createEntry( T * symbol )
@@ -87,7 +98,8 @@ public:
   {
     auto const iter = m_symbols.find( name );
     LVARRAY_ERROR_IF( iter == m_symbols.end(),
-                      "Symbol \"" << name << "\" not found in the exported symbol table.\n" );
+                      "Symbol \"" << name << "\" not found in the exported symbol table.\n" <<
+                      "table contains:\n" << m_symbols );
 
     std::pair< void *, std::type_index > const value = iter->second;
 
@@ -101,14 +113,14 @@ public:
 private:
   SymbolTable getSymbolTable()
   {
-    SymbolTable const * const symbols =
-      reinterpret_cast< SymbolTable * >( DynamicLibrary::getSymbol( "exportedSymbols") );
+    SymbolTable const * (*symbols)() =
+      reinterpret_cast< SymbolTable const * (*)() >( DynamicLibrary::getSymbol( "getExportedSymbols") );
 
     char const * const error = dlerror();
 
     LVARRAY_ERROR_IF( error != nullptr, "Could not find the symbols table!\n" << error );
 
-    return *symbols;
+    return *symbols();
   }
 
   SymbolTable const m_symbols;
@@ -182,7 +194,7 @@ public:
 
     defines.emplace_back( "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'" );
     defines.emplace_back( "JITTI_TEMPLATE_FUNCTION=" + templateFunction );
-    defines.emplace_back( "JITTI_TEMPLATE_PARAMS=" + templateParams );
+    defines.emplace_back( "JITTI_TEMPLATE_PARAMS=\'" + templateParams + '\'' );
     return Compiler::createDynamicLibrary( sourceFile,
                                            outputLibrary,
                                            includeDirs,

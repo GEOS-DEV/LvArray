@@ -13,7 +13,7 @@ blt_add_library( NAME             jitti
                  DEPENDS_ON       dl
                )
 
-set( JITTI_COMPILE_COMMANDS_JSON ${CMAKE_BINARY_DIR}/compile_commands.json )
+set( JITTI_OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti )
 
 set( JITTI_RAJA_LIBRARY ${RAJA_LIBRARY} )
 

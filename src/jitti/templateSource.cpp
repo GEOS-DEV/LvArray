@@ -19,13 +19,19 @@
 
 auto instantiation = JITTI_TEMPLATE_FUNCTION< JITTI_TEMPLATE_PARAMS >;
 
-extern "C"
-{
-
 jitti::SymbolTable exportedSymbols = {
   { std::string( STRINGIZE( JITTI_TEMPLATE_FUNCTION ) "< " STRINGIZE( JITTI_TEMPLATE_PARAMS ) " >" ),
     jitti::createEntry( instantiation ) }
 };
+
+extern "C"
+{
+
+jitti::SymbolTable const * getExportedSymbols()
+{ 
+  LVARRAY_LOG( "JITTI_TEMPLATE_PARAMS = " << STRINGIZE( JITTI_TEMPLATE_PARAMS ) );
+  return &exportedSymbols;
+}
 
 } // extern "C"
 
