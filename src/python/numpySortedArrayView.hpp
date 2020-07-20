@@ -21,6 +21,8 @@
  */
 
 #pragma once
+
+// source includes
 #include "numpyConversion.hpp"
 #include "../SortedArrayView.hpp"
 
@@ -31,14 +33,20 @@ namespace python
 {
 
 /**
- * Return a Numpy view of a SortedArray
+ * @brief Return a Numpy view of a SortedArrayView. This numpy view may not be resized and
+ *		  the contents may not be modified. The numpy view will be invalidated if the array
+ *		  is reallocated.
+ * @tparam T type of data that is contained by the array.
+ * @tparam INDEX_TYPE the integer to use for indexing.
+ * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the array. Must take
+ *         one template argument that describes the type of the data being stored (T).
  * @param arr the SortedArrayView to convert to numpy.
  */
 template< typename T, typename INDEX_TYPE, template<typename> class BUFFER_TYPE >
 PyObject * create( SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & arr ){
     arr.move( MemorySpace::CPU );
-    INDEX_TYPE dims = arr.size();
-    INDEX_TYPE strides = 1;
+    INDEX_TYPE const dims = arr.size();
+    INDEX_TYPE const strides = 1;
     return internal::create( arr.data(), 1, &dims, &strides);
 }
 

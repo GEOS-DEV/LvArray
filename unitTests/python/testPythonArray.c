@@ -1,11 +1,11 @@
 #define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API NPY_1_15_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL LvArray_ARRAY_API
-#include <Python.h>
 
-#include <numpy/arrayobject.h>
 #include "testPythonArray.h"
 
+#include <Python.h>
+#include <numpy/arrayobject.h>
 
 #ifdef __cplusplus
 extern "C" {

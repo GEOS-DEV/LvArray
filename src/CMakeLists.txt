@@ -45,10 +45,10 @@ set(lvarray_sources
     )
 
 if(ENABLE_PYTHON)
-    set(lvarray_headers
-        python/numpyConversion.hpp
-        python/numpyArrayView.hpp
-        python/numpySortedArrayView.hpp
+    list( APPEND lvarray_headers
+          python/numpyConversion.hpp
+          python/numpyArrayView.hpp
+          python/numpySortedArrayView.hpp
         )
 endif()
 

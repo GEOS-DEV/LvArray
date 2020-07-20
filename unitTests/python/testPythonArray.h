@@ -2,7 +2,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
