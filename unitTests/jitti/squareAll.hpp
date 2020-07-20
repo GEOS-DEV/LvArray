@@ -1,26 +1,11 @@
 #pragma once
 
 // Source includes
-#include "ArraySlice.hpp"
-#include "StringUtilities.hpp"
+#include "../../src/ArraySlice.hpp"
+#include "../../src/jitti/jitti.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
-
-// System includes
-#include <string>
-#include <unordered_map>
-#include <typeindex>
-
-using SymbolTable = std::unordered_map< std::string, std::pair< void *, std::type_index > >;
-
-template< typename T >
-std::pair< std::string, std::pair< void *, std::type_index > >
-createEntry( std::string const & name, T * symbol )
-{ return { name, { reinterpret_cast< void * >( symbol ), std::type_index( typeid( symbol ) ) } }; }
-
-namespace internal
-{
 
 template< typename POLICY >
 void squareAll( LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const dst,
@@ -37,6 +22,4 @@ void squareAll( LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const dst,
   );
 }
 
-} // namespace internal
-
-
+jitti::CompilationInfo getCompilationInfo();
