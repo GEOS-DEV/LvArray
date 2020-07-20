@@ -37,7 +37,6 @@
 // system includes
 #include <typeindex>
 #include <type_traits>
-#include <climits>
 
 namespace LvArray
 {
@@ -49,46 +48,45 @@ namespace internal
 {
 
 /**
- * @brief Get the Numpy type-flag corresponding to a `std::type_info` object.
- * @param tid the type_info object to use
+ * @brief Get the Numpy type-flag corresponding to char.
  */
-int getFlags( const std::type_info& tid ){
-    if ( std::type_index( tid ) == std::type_index( typeid( char ) ) ){
-        if ( CHAR_MIN < 0 )
-            return NPY_BYTE;
-        return NPY_UBYTE;
-    }
-    if ( std::type_index( tid ) == std::type_index( typeid( signed char ) ) )
+static constexpr int getCharFlag(void){
+    if ( std::is_signed< char >::value )
         return NPY_BYTE;
-    else if ( std::type_index( tid ) == std::type_index( typeid( unsigned char ) ) )
-        return NPY_UBYTE;
-    else if ( std::type_index( tid ) == std::type_index( typeid( short ) ) )
-        return NPY_SHORT;
-    else if ( std::type_index( tid ) == std::type_index( typeid( unsigned short ) ) )
-        return NPY_USHORT;
-    else if ( std::type_index( tid ) == std::type_index( typeid( int ) ) )
-        return NPY_INT;
-    else if ( std::type_index( tid ) == std::type_index( typeid( unsigned int ) ) )
-        return NPY_UINT;
-    else if ( std::type_index( tid ) == std::type_index( typeid( long ) ) )
-        return NPY_LONG;
-    else if ( std::type_index( tid ) == std::type_index( typeid( unsigned long ) ) )
-        return NPY_ULONG;
-    else if ( std::type_index( tid ) == std::type_index( typeid( long long ) ) )
-        return NPY_LONGLONG;
-    else if ( std::type_index( tid ) == std::type_index( typeid( unsigned long long ) ) )
-        return NPY_ULONGLONG;
-    else if ( std::type_index( tid ) == std::type_index( typeid( float ) ) )
-        return NPY_FLOAT;
-    else if ( std::type_index( tid ) == std::type_index( typeid( double ) ) )
-        return NPY_DOUBLE;
-    else if ( std::type_index( tid ) == std::type_index( typeid( long double ) ) )
-        return NPY_LONGDOUBLE;
-    else {
-        LVARRAY_ERROR( "Unsupported type: " << demangle( tid.name() ) );
-        return -1;
-    }
+    return NPY_UBYTE;
 }
+
+// Numpy flags for supported types
+template< typename T >
+static constexpr int numpyFlag = NPY_NOTYPE; // invalid type
+template<>
+static constexpr int numpyFlag< char > = getCharFlag();
+template<>
+static constexpr int numpyFlag< signed char > = NPY_BYTE;
+template<>
+static constexpr int numpyFlag< unsigned char > = NPY_UBYTE;
+template<>
+static constexpr int numpyFlag< short > = NPY_SHORT;
+template<>
+static constexpr int numpyFlag< unsigned short > = NPY_USHORT;
+template<>
+static constexpr int numpyFlag< int > = NPY_INT;
+template<>
+static constexpr int numpyFlag< unsigned int > = NPY_UINT;
+template<>
+static constexpr int numpyFlag< long > = NPY_LONG;
+template<>
+static constexpr int numpyFlag< unsigned long > = NPY_ULONG;
+template<>
+static constexpr int numpyFlag< long long > = NPY_LONGLONG;
+template<>
+static constexpr int numpyFlag< unsigned long long > = NPY_ULONGLONG;
+template<>
+static constexpr int numpyFlag< float > = NPY_FLOAT;
+template<>
+static constexpr int numpyFlag< double > = NPY_DOUBLE;
+template<>
+static constexpr int numpyFlag< long double > = NPY_LONGDOUBLE;
 
 /**
  * @brief Create a numpy ndarray representing the given array. If T is const then the array should be immutable.
@@ -104,6 +102,7 @@ PyObject * create( T * const data, int ndim, INDEX_TYPE const * const dims, INDE
 {
     using nonconstType = std::remove_const_t< T >;
     int flags = 0;
+    static_assert( numpyFlag< nonconstType > != NPY_NOTYPE, "Unsupported type for conversion to numpy array");
     std::vector<npy_intp> byteStrides( ndim );
     std::vector<npy_intp> npyDims( ndim );
     nonconstType * npyData = const_cast< nonconstType* >( data );
@@ -117,7 +116,7 @@ PyObject * create( T * const data, int ndim, INDEX_TYPE const * const dims, INDE
     }
     return PyArray_NewFromDescr(
         &PyArray_Type,
-        PyArray_DescrFromType( getFlags( typeid( T ) ) ),
+        PyArray_DescrFromType( numpyFlag< nonconstType > ),
         ndim,
         npyDims.data(),
         byteStrides.data(),
