@@ -21,7 +21,7 @@
 #include "SparsityPattern.hpp"
 #include "CRSMatrix.hpp"
 #include "ArrayOfArrays.hpp"
-#include "StringUtilities.hpp"
+#include "system.hpp"
 
 // TPL includes
 #include <benchmark/benchmark.h>
@@ -43,12 +43,6 @@ using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
 #else
 using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
 #endif
-
-template< typename T >
-using ArrayOfArraysT = ArrayOfArrays< T, INDEX_TYPE, DEFAULT_BUFFER >;
-
-template< typename T, bool CONST_SIZES >
-using ArrayOfArraysViewT = ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, DEFAULT_BUFFER >;
 
 using SparsityPatternT = SparsityPattern< COLUMN_TYPE, INDEX_TYPE, DEFAULT_BUFFER >;
 
@@ -78,7 +72,7 @@ public:
     m_nodeToElemMap( m_numNodes, MAX_ELEMS_PER_NODE ),
     m_destructorCheck( destructorCheck )
   {
-    LVARRAY_MARK_FUNCTION_TAG( "SparsityGenerationNative constructor" );
+    CALI_CXX_MARK_SCOPE( "SparsityGenerationNative constructor" );
 
     INDEX_TYPE const elemJp = m_numElemsX;
     INDEX_TYPE const elemKp = elemJp * m_numElemsY;
@@ -86,26 +80,7 @@ public:
     INDEX_TYPE const nodeJp = m_numElemsX + 1;
     INDEX_TYPE const nodeKp = nodeJp * ( m_numElemsY + 1 );
 
-    // Populate the element to node map.
-    for( INDEX_TYPE i = 0; i < m_numElemsX; ++i )
-    {
-      for( INDEX_TYPE j = 0; j < m_numElemsY; ++j )
-      {
-        for( INDEX_TYPE k = 0; k < m_numElemsZ; ++k )
-        {
-          INDEX_TYPE const elemIndex = i + elemJp * j + elemKp * k;
-          INDEX_TYPE const firstNodeIndex = i + nodeJp * j + nodeKp * k;
-          m_elemToNodeMap( elemIndex, 0 ) = firstNodeIndex;
-          m_elemToNodeMap( elemIndex, 1 ) = firstNodeIndex + 1;
-          m_elemToNodeMap( elemIndex, 2 ) = firstNodeIndex + 1 + nodeJp;
-          m_elemToNodeMap( elemIndex, 3 ) = firstNodeIndex + nodeJp;
-          m_elemToNodeMap( elemIndex, 4 ) = firstNodeIndex + nodeKp;
-          m_elemToNodeMap( elemIndex, 5 ) = firstNodeIndex + nodeKp + 1;
-          m_elemToNodeMap( elemIndex, 6 ) = firstNodeIndex + nodeKp + 1 + nodeJp;
-          m_elemToNodeMap( elemIndex, 7 ) = firstNodeIndex + nodeKp + nodeJp;
-        }
-      }
-    }
+    constructStructuredElementToNodeMap( m_elemToNodeMap, m_numElemsX, m_numElemsY, m_numElemsZ );
 
     // Populate the node to element map.
     for( INDEX_TYPE i = 0; i < m_numElemsX + 1; ++i )
@@ -143,7 +118,7 @@ public:
 
   ~SparsityGenerationNative()
   {
-    LVARRAY_MARK_FUNCTION_TAG( "~SparsityGenerationNative" );
+    CALI_CXX_MARK_SCOPE( "~SparsityGenerationNative" );
 
     if( !m_destructorCheck ) return;
 
@@ -223,11 +198,11 @@ protected:
 
   template< typename SPARSITY_TYPE >
   static void generateElemLoop( SPARSITY_TYPE & sparsity,
-                                ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
+                                ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
 
   template< typename SPARSITY_TYPE >
   static void generateNodeLoop( SPARSITY_TYPE & sparsity,
-                                ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
+                                ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
                                 ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
   ::benchmark::State & m_state;
@@ -238,7 +213,7 @@ protected:
   INDEX_TYPE m_numElems;
   INDEX_TYPE m_numNodes;
 
-  Array< INDEX_TYPE, ELEM_TO_NODE_PERM > m_elemToNodeMap;
+  ArrayT< INDEX_TYPE, ELEM_TO_NODE_PERM > m_elemToNodeMap;
   ArrayOfArraysT< INDEX_TYPE > m_nodeToElemMap;
   SparsityPatternT m_sparsity;
   bool const m_destructorCheck;
@@ -263,7 +238,7 @@ public:
 
   // Note this shoule be protected but cuda won't let you put an extended lambda in a protected or private method.
   static void generateNodeLoop( SparsityPatternViewT const & sparsity,
-                                ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
+                                ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
                                 ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap,
                                 ::benchmark::State & state );
 };
@@ -291,7 +266,7 @@ public:
 
   ~CRSMatrixAddToRow()
   {
-    LVARRAY_MARK_FUNCTION_TAG( "~CRSMatrixAddToRow" );
+    CALI_CXX_MARK_SCOPE( "~CRSMatrixAddToRow" );
 
     INDEX_TYPE const nodeJp = this->m_numElemsX + 1;
     INDEX_TYPE const nodeKp = nodeJp * ( this->m_numElemsY + 1 );
@@ -376,7 +351,7 @@ public:
 
   // Note this shoule be protected but cuda won't let you put an extended lambda in a protected or private method.
   static void addKernel( CRSMatrixViewConstSizesT const & matrix,
-                         ArrayView< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
+                         ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
 
 private:
   CRSMatrixT m_matrix;

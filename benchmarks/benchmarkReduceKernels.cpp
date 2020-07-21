@@ -40,22 +40,22 @@ namespace benchmarking
   } ); \
   return sum.get()
 
-VALUE_TYPE ReduceNative::fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceNative::fortranArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceNative::fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+VALUE_TYPE ReduceNative::fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a )
 { REDUCE_KERNEL( a.size(), a( i ) ); }
 
-VALUE_TYPE ReduceNative::subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceNative::subscriptArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL( a.size(), a[ i ] ); }
 
-VALUE_TYPE ReduceNative::subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceNative::subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL( a.size(), a[ i ] ); }
 
-VALUE_TYPE ReduceNative::subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+VALUE_TYPE ReduceNative::subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a )
 { REDUCE_KERNEL( a.size(), a[ i ] ); }
 
 VALUE_TYPE ReduceNative::RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a )
@@ -66,19 +66,19 @@ VALUE_TYPE ReduceNative::pointerKernel( VALUE_TYPE const * const LVARRAY_RESTRIC
 { REDUCE_KERNEL( N, a[ i ] ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceRAJA< POLICY >::fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL_RAJA( a.size(), a( i ) ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+VALUE_TYPE ReduceRAJA< POLICY >::fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a )
 { REDUCE_KERNEL_RAJA( a.size(), a( i ) ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a )
+VALUE_TYPE ReduceRAJA< POLICY >::subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a )
 { REDUCE_KERNEL_RAJA( a.size(), a[ i ] ); }
 
 template< class POLICY >
-VALUE_TYPE ReduceRAJA< POLICY >::subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a )
+VALUE_TYPE ReduceRAJA< POLICY >::subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a )
 { REDUCE_KERNEL_RAJA( a.size(), a[ i ] ); }
 
 template< class POLICY >

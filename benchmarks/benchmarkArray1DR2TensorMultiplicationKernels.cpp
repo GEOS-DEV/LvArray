@@ -80,86 +80,86 @@ void R2TensorMultiplySubscript( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, I
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-fortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                    Array< VALUE_TYPE, PERMUTATION > const & b,
-                    Array< VALUE_TYPE, PERMUTATION > const & c )
+fortranArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                    ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                    ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                   ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                   ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) );}
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-subscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                      Array< VALUE_TYPE, PERMUTATION > const & b,
-                      Array< VALUE_TYPE, PERMUTATION > const & c )
+subscriptArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                      ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                      ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionFortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                                     Array< VALUE_TYPE, PERMUTATION > const & b,
-                                     Array< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionFortranArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                                     ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                                     ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                    ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionFortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                                    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                                    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+tensorAbstractionFortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                                     ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                                     ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionSubscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                                       Array< VALUE_TYPE, PERMUTATION > const & b,
-                                       Array< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionSubscriptArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                                       ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                                       ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplySubscript( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionSubscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                      ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                      ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionSubscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                                      ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                                      ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplySubscript( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
 void ArrayOfR2TensorsNative< PERMUTATION >::
-tensorAbstractionSubscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                       ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                       ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+tensorAbstractionSubscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                                       ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                                       ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_LOOP( a.size( 0 ), R2TensorMultiplySubscript( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION >
@@ -197,58 +197,58 @@ pointerKernel( INDEX_TYPE const N,
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                   ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                   ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { RAJA_KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { RAJA_KERNEL( a.size( 0 ), a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { RAJA_KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { RAJA_KERNEL( a.size( 0 ), a[ i ][ j ][ l ], b[ i ][ l ][ k ], c[ i ][ j ][ k ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-tensorAbstractionFortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                    ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                    ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionFortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                                    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                                    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-tensorAbstractionFortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                     ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                     ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+tensorAbstractionFortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                                     ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                                     ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplyFortran( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-tensorAbstractionSubscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                                      ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                                      ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+tensorAbstractionSubscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                                      ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                                      ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplySubscript( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >
 void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
-tensorAbstractionSubscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                                       ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                                       ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+tensorAbstractionSubscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                                       ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                                       ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { RAJA_OUTER_LOOP( a.size( 0 ), R2TensorMultiplySubscript( a[ i ], b[ i ], c[ i ] ); ); }
 
 template< typename PERMUTATION, typename POLICY >

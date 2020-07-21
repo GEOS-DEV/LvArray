@@ -241,7 +241,7 @@ constexpr INDEX_TYPE CUDA_SIZE = (2 << 24) - 87;
 void registerBenchmarks()
 {
   // Register the native benchmarks.
-  forEachArg( []( auto permutation )
+  typeManipulation::forEachArg( []( auto permutation )
   {
     using PERMUTATION = decltype( permutation );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, fortranArrayNative, PERMUTATION );
@@ -259,12 +259,12 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, RAJAViewNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( { SERIAL_SIZE }, pointerNative, PERMUTATION );
   },
-              RAJA::PERM_IJK {}
-              , RAJA::PERM_KJI {}
-              );
+                                RAJA::PERM_IJK {}
+                                , RAJA::PERM_KJI {}
+                                );
 
   // Register the RAJA benchmarks.
-  forEachArg( []( auto tuple )
+  typeManipulation::forEachArg( []( auto tuple )
   {
     INDEX_TYPE const size = std::get< 0 >( tuple );
     using PERMUTATION = std::tuple_element_t< 1, decltype( tuple ) >;
@@ -280,17 +280,17 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { size }, RAJAViewRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, pointerRAJA, PERMUTATION, POLICY );
   },
-              std::make_tuple( SERIAL_SIZE, RAJA::PERM_IJK {}, serialPolicy {} )
-              , std::make_tuple( SERIAL_SIZE, RAJA::PERM_KJI {}, serialPolicy {} )
+                                std::make_tuple( SERIAL_SIZE, RAJA::PERM_IJK {}, serialPolicy {} )
+                                , std::make_tuple( SERIAL_SIZE, RAJA::PERM_KJI {}, serialPolicy {} )
   #if defined(USE_OPENMP)
-              , std::make_tuple( OMP_SIZE, RAJA::PERM_IJK {}, parallelHostPolicy {} )
-              , std::make_tuple( OMP_SIZE, RAJA::PERM_KJI {}, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_SIZE, RAJA::PERM_IJK {}, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_SIZE, RAJA::PERM_KJI {}, parallelHostPolicy {} )
   #endif
   #if defined(USE_CUDA) && defined(USE_CHAI)
-              , std::make_tuple( CUDA_SIZE, RAJA::PERM_IJK {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
-              , std::make_tuple( CUDA_SIZE, RAJA::PERM_KJI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_SIZE, RAJA::PERM_IJK {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_SIZE, RAJA::PERM_KJI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
-              );
+                                );
 }
 
 } // namespace benchmarking
@@ -303,7 +303,7 @@ int main( int argc, char * * argv )
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
 
-  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
+  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::system::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_SIZE << ", 3, 3 )." );
 
 #if defined(USE_OPENMP)
