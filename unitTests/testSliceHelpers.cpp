@@ -31,7 +31,7 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
 
 template< typename T >
 void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const & view )
@@ -95,7 +95,7 @@ template< typename ARRAY >
 class ForValuesInSlice : public ::testing::Test
 {
 public:
-  static constexpr int NDIM = ARRAY::ndim;
+  static constexpr int NDIM = ARRAY::NDIM;
 
   void test()
   {
@@ -239,7 +239,7 @@ class SumOverFirstDimension : public ForValuesInSlice< typename ARRAY_PERM_PAIR:
 public:
   using ARRAY = typename ARRAY_PERM_PAIR::first_type;
   using T = typename ARRAY::value_type;
-  static constexpr int NDIM = ARRAY::ndim;
+  static constexpr int NDIM = ARRAY::NDIM;
 
   using PERM = typename ARRAY_PERM_PAIR::second_type;
 

@@ -20,10 +20,13 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
+
+// System includes
+#include <random>
 
 #pragma once
 
@@ -35,10 +38,11 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, DEFAULT_BUFFER >;
+using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, DEFAULT_BUFFER >;
 
 template< typename T, int NDIM, int USD >
 using ArrayViewT = ArrayView< T, NDIM, USD, std::ptrdiff_t, DEFAULT_BUFFER >;
+
 
 template< typename T, int NDIM, int USD, typename ... SIZES >
 LVARRAY_HOST_DEVICE
@@ -50,6 +54,7 @@ void fill( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, std::ptrdiff_t of
   } );
 }
 
+
 template< typename T, std::ptrdiff_t N >
 LVARRAY_HOST_DEVICE
 void fill( T ( & array )[ N ], std::ptrdiff_t offset )
@@ -59,6 +64,7 @@ void fill( T ( & array )[ N ], std::ptrdiff_t offset )
     array[ i ] = ++offset;
   }
 }
+
 
 template< typename T, std::ptrdiff_t N, std::ptrdiff_t M >
 LVARRAY_HOST_DEVICE
@@ -72,6 +78,19 @@ void fill( T ( & array )[ N ][ M ], std::ptrdiff_t offset )
     }
   }
 }
+
+
+template< typename T >
+std::enable_if_t< std::is_floating_point< T >::value, T >
+randomValue( T const maxVal, std::mt19937_64 & gen )
+{ return std::uniform_real_distribution< T >( -maxVal, maxVal )( gen ); }
+
+
+template< typename T >
+std::enable_if_t< std::is_integral< T >::value, T >
+randomValue( T const maxVal, std::mt19937_64 & gen )
+{ return std::uniform_int_distribution< T >( -maxVal, maxVal )( gen ); }
+
 
 #define CHECK_EQUALITY_1D( N, A, RESULT ) \
   tensorOps::internal::checkSizes< N >( A ); \

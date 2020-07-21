@@ -30,7 +30,7 @@ class ArrayViewTest : public ArrayTest< ARRAY >
 public:
 
   using T = typename ARRAY::value_type;
-  static constexpr int NDIM = ARRAY::ndim;
+  static constexpr int NDIM = ARRAY::NDIM;
 
   using ViewType = std::remove_const_t< typename ARRAY::ViewType >;
   using ViewTypeConst = std::remove_const_t< typename ARRAY::ViewTypeConst >;
@@ -235,7 +235,7 @@ public:
   using POLICY = typename ARRAY_POLICY_PAIR::second_type;
 
   using T = typename ARRAY::value_type;
-  static constexpr int NDIM = ARRAY::ndim;
+  static constexpr int NDIM = ARRAY::NDIM;
 
   using ParentClass = ArrayViewTest< ARRAY >;
 
@@ -536,24 +536,24 @@ using ArrayViewPolicyTestTypes = ::testing::Types<
   , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
 
 #if defined(USE_CUDA) && defined(USE_CHAI)
-  , std::pair< Array< int, 1, RAJA::PERM_I, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 

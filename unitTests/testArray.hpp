@@ -18,7 +18,7 @@
 
 // Source includes
 #include "Array.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testUtils.hpp"
 #include "MallocBuffer.hpp"
 
@@ -45,10 +45,11 @@ template< typename ARRAY >
 class ArrayTest : public ::testing::Test
 {
 public:
-  using T = typename ARRAY::value_type;
-  static constexpr int NDIM = ARRAY::ndim;
-  using PERMUTATION = typename ARRAY::permutation;
-
+  using T = typename ARRAY::ValueType;
+  static constexpr int NDIM = ARRAY::NDIM;
+  using PERMUTATION = typename ARRAY::Permutation;
+  static constexpr int USD = ARRAY::USD;
+  using INDEX_TYPE = typename ARRAY::IndexType;
 
   static void defaultConstructor()
   {
@@ -516,7 +517,7 @@ protected:
     forValuesInSliceWithIndices( array.toSliceConst(),
                                  [&array, oldSizes, defaultInitialized, defaultValue] ( T const & value, auto const ... indices )
     {
-      if( !invalidIndices( oldSizes.data(), indices ... ) )
+      if( !indexing::invalidIndices( oldSizes.data(), indices ... ) )
       {
         EXPECT_EQ( value, T( getTestingLinearIndex( indices ... ) ) );
         EXPECT_EQ( &value, &array( indices ... ) );

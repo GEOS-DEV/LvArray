@@ -24,7 +24,7 @@
 #include "testUtils.hpp"
 #include "bufferManipulation.hpp"
 #include "StackBuffer.hpp"
-#include "MallocBuffer.hpp"
+#include "math.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
@@ -79,8 +79,8 @@ using BufferAPITestTypes = ::testing::Types<
   , MallocBuffer< int >
   , MallocBuffer< TestString >
 #if defined(USE_CHAI)
-  , NewChaiBuffer< int >
-  , NewChaiBuffer< TestString >
+  , ChaiBuffer< int >
+  , ChaiBuffer< TestString >
 #endif
   >;
 
@@ -291,7 +291,7 @@ public:
     {
       // Insert from a std::vector
       {
-        std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        std::ptrdiff_t const nToInsertThisIter = randInt( math::min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
         std::vector< T > valsToInsert( nToInsertThisIter );
 
         for( T & val : valsToInsert )
@@ -306,7 +306,7 @@ public:
 
       // Insert from a std::list
       {
-        std::ptrdiff_t const nToInsertThisIter = randInt( min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        std::ptrdiff_t const nToInsertThisIter = randInt( math::min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
         std::list< T > valsToInsert( nToInsertThisIter );
         for( T & val : valsToInsert )
         { val = T( randInt() ); }
@@ -532,7 +532,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
 {
   this->emplaceBack( NO_REALLOC_CAPACITY );
 
-  forEachArg(
+  typeManipulation::forEachArg(
     [this]( auto && copy )
   {
     bufferManipulation::copyInto( copy, 0, this->m_buffer, NO_REALLOC_CAPACITY );
@@ -540,7 +540,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
     bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
   },
   #if defined(USE_CHAI)
-    NewChaiBuffer< typename TypeParam::value_type >( true ),
+    ChaiBuffer< typename TypeParam::value_type >( true ),
   #endif
     MallocBuffer< typename TypeParam::value_type >( true )
     // I would like to copInto a StackBuffer but that doesn't work with std::string.
@@ -636,8 +636,8 @@ using BufferTestWithReallocTypes = ::testing::Types<
   MallocBuffer< int >
   , MallocBuffer< TestString >
 #if defined(USE_CHAI)
-  , NewChaiBuffer< int >
-  , NewChaiBuffer< TestString >
+  , ChaiBuffer< int >
+  , ChaiBuffer< TestString >
 #endif
   >;
 
@@ -709,8 +709,8 @@ TYPED_TEST( BufferTestWithRealloc, combination )
 
 // TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
-// Move tests with NewChaiBuffer
-// Copy-capture tests with NewChaiBuffer
+// Move tests with ChaiBuffer
+// Copy-capture tests with ChaiBuffer
 
 } // namespace testing
 } // namespace LvArray

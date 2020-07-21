@@ -19,9 +19,8 @@
 
 #include <iostream>
 #include "Macros.hpp"
-#include "SetFPE.hpp"
-#include "SetSignalHandling.hpp"
-#include "stackTrace.hpp"
+#include "system.hpp"
+#include "system.hpp"
 #include "testFloatingPointExceptionsHelpers.hpp"
 
 namespace testFloatingPointExceptionsHelpers
@@ -50,7 +49,7 @@ void func0( double divisor )
 
 void testStackTrace( double divisor )
 {
-  LvArray::setSignalHandling( []( int const signal ) { LvArray::stackTraceHandler( signal, true ); } );
+  LvArray::system::setSignalHandling( []( int const signal ) { LvArray::system::stackTraceHandler( signal, true ); } );
   func0( divisor );
 }
 

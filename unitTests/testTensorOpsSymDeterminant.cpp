@@ -16,33 +16,25 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-// Source includes
-#include "testTensorOpsTwoSizes.hpp"
+#include "testTensorOpsInverse.hpp"
 
 namespace LvArray
 {
 namespace testing
 {
 
-TYPED_TEST( TwoSizesTest, scaledCopy )
+TYPED_TEST( InverseTest, symDeterminant )
 {
-  this->testScaledCopy();
-}
-
-TYPED_TEST( TwoSizesTest, add )
-{
-  this->testAdd();
-}
-
-TYPED_TEST( TwoSizesTest, plusAikAjk )
-{
-  this->testPlusAikAjk();
-}
-
-TYPED_TEST( TwoSizesTest, transpose )
-{
-  this->testTranspose();
+  this->symDeterminant();
 }
 
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

@@ -24,9 +24,6 @@
 // TPL includes
 #include <gtest/gtest.h>
 
-// System includes
-#include <cmath>
-
 namespace LvArray
 {
 namespace testing
@@ -53,7 +50,7 @@ template< typename PERMUTATION >
 class StackArrayTest : public ::testing::Test
 {
 public:
-  static constexpr int NDIM = getDimension( PERMUTATION {} );
+  static constexpr int NDIM = typeManipulation::getDimension( PERMUTATION {} );
 
   void resize()
   {
@@ -223,7 +220,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 1 >
+  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 1 >
   sizedConstructorInLambda()
   {
     int capacity = CAPACITY;
@@ -237,7 +234,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 2 >
+  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 2 >
   sizedConstructorInLambda()
   {
     int capacity = CAPACITY;
@@ -253,7 +250,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< getDimension( _PERMUTATION {} ) == 3 >
+  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 3 >
   sizedConstructorInLambda()
   {
     int capacity = CAPACITY;

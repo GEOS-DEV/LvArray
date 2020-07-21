@@ -16,8 +16,11 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#include "gtest/gtest.h"
-#include "IntegerConversion.hpp"
+// Source includes
+#include "limits.hpp"
+
+// TPL includes
+#include <gtest/gtest.h>
 
 typedef  int32_t int32;
 typedef uint32_t uint32;

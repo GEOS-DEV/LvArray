@@ -20,81 +20,16 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testTensorOpsCommon.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
 
-
 namespace LvArray
 {
 namespace testing
 {
-
-// These could be put into tensorOps if it was of use.
-template< typename DST_MATRIX, typename SRC_SYM_MATRIX >
-void symmetricToDense( std::integral_constant< int, 2 >, DST_MATRIX && dstMatrix, SRC_SYM_MATRIX const & srcSymMatrix )
-{
-  tensorOps::internal::checkSizes< 2, 2 >( dstMatrix );
-  tensorOps::internal::checkSizes< 3 >( srcSymMatrix );
-
-  dstMatrix[ 0 ][ 0 ] = srcSymMatrix[ 0 ];
-  dstMatrix[ 1 ][ 1 ] = srcSymMatrix[ 1 ];
-
-  dstMatrix[ 0 ][ 1 ] = srcSymMatrix[ 2 ];
-
-  dstMatrix[ 1 ][ 0 ] = srcSymMatrix[ 2 ];
-}
-
-template< typename DST_MATRIX, typename SRC_SYM_MATRIX >
-void symmetricToDense( std::integral_constant< int, 3 >, DST_MATRIX && dstMatrix, SRC_SYM_MATRIX const & srcSymMatrix )
-{
-  tensorOps::internal::checkSizes< 3, 3 >( dstMatrix );
-  tensorOps::internal::checkSizes< 6 >( srcSymMatrix );
-
-  dstMatrix[ 0 ][ 0 ] = srcSymMatrix[ 0 ];
-  dstMatrix[ 1 ][ 1 ] = srcSymMatrix[ 1 ];
-  dstMatrix[ 2 ][ 2 ] = srcSymMatrix[ 2 ];
-
-  dstMatrix[ 0 ][ 1 ] = srcSymMatrix[ 5 ];
-  dstMatrix[ 0 ][ 2 ] = srcSymMatrix[ 4 ];
-  dstMatrix[ 1 ][ 2 ] = srcSymMatrix[ 3 ];
-
-  dstMatrix[ 1 ][ 0 ] = srcSymMatrix[ 5 ];
-  dstMatrix[ 2 ][ 0 ] = srcSymMatrix[ 4 ];
-  dstMatrix[ 2 ][ 1 ] = srcSymMatrix[ 3 ];
-}
-
-template< typename DST_SYM_MATRIX, typename SRC_MATRIX >
-void denseToSymmetric( std::integral_constant< int, 2 >, DST_SYM_MATRIX && dstSymMatrix, SRC_MATRIX const & srcMatrix )
-{
-  tensorOps::internal::checkSizes< 3 >( dstSymMatrix );
-  tensorOps::internal::checkSizes< 2, 2 >( srcMatrix );
-
-  dstSymMatrix[ 0 ] = srcMatrix[ 0 ][ 0 ];
-  dstSymMatrix[ 1 ] = srcMatrix[ 1 ][ 1 ];
-  dstSymMatrix[ 2 ] = srcMatrix[ 0 ][ 1 ];
-  EXPECT_EQ( srcMatrix[ 0 ][ 1 ], srcMatrix[ 1 ][ 0 ] );
-}
-
-template< typename DST_SYM_MATRIX, typename SRC_MATRIX >
-void denseToSymmetric( std::integral_constant< int, 3 >, DST_SYM_MATRIX && dstSymMatrix, SRC_MATRIX const & srcMatrix )
-{
-  tensorOps::internal::checkSizes< 6 >( dstSymMatrix );
-  tensorOps::internal::checkSizes< 3, 3 >( srcMatrix );
-
-  dstSymMatrix[ 0 ] = srcMatrix[ 0 ][ 0 ];
-  dstSymMatrix[ 1 ] = srcMatrix[ 1 ][ 1 ];
-  dstSymMatrix[ 2 ] = srcMatrix[ 2 ][ 2 ];
-  dstSymMatrix[ 5 ] = srcMatrix[ 0 ][ 1 ];
-  dstSymMatrix[ 4 ] = srcMatrix[ 0 ][ 2 ];
-  dstSymMatrix[ 3 ] = srcMatrix[ 1 ][ 2 ];
-
-  EXPECT_EQ( srcMatrix[ 0 ][ 1 ], srcMatrix[ 1 ][ 0 ] );
-  EXPECT_EQ( srcMatrix[ 0 ][ 2 ], srcMatrix[ 2 ][ 0 ] );
-  EXPECT_EQ( srcMatrix[ 1 ][ 2 ], srcMatrix[ 2 ][ 1 ] );
-}
 
 template< typename T_N_POLICY_TUPLE >
 class FixedSizeSquareMatrixTest : public ::testing::Test
@@ -136,109 +71,12 @@ public:
     fill( m_symMatrixB_local, m_seedSymMatrixB );
   }
 
-  void testDeterminant()
-  {
-    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
-
-    forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI] LVARRAY_HOST_DEVICE ( int )
-        {
-          T result[ N ][ N ];
-          T a_local[ N ][ N ];
-          T det;
-          for( int i = 0; i < numInverseTests; ++i )
-          {
-            #define _TEST( matrix ) \
-              det = initInverse( i, matrix, result ); \
-              PORTABLE_EXPECT_EQ( det, tensorOps::determinant< N >( matrix ) ); \
-
-            _TEST( matrixA_IJK[ 0 ] );
-            _TEST( matrixA_IKJ[ 0 ] );
-            _TEST( matrixA_KJI[ 0 ] );
-            _TEST( a_local );
-
-        #undef _TEST
-          }
-        } );
-  }
-
-  void testInverseTwoArgs()
-  {
-    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
-
-    ArrayViewT< T, 3, 2 > const & matrixB_IJK = m_matrixB_IJK.toView();
-    ArrayViewT< T, 3, 1 > const & matrixB_IKJ = m_matrixB_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const & matrixB_KJI = m_matrixB_KJI.toView();
-
-    std::ptrdiff_t const aSeed = m_seedMatrixA;
-    forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI, matrixB_IJK, matrixB_IKJ, matrixB_KJI, aSeed] LVARRAY_HOST_DEVICE ( int )
-        {
-          T result[ N ][ N ];
-          T a_local[ N ][ N ];
-          T b_local[ N ][ N ];
-          T det;
-          for( int i = 0; i < numInverseTests; ++i )
-          {
-            #define _TEST( input, output ) \
-              det = initInverse( i, input, result ); \
-              PORTABLE_EXPECT_EQ( det, tensorOps::invert< N >( output, input ) ); \
-              CHECK_EQUALITY_2D( N, N, output, result ); \
-              fill( output, aSeed )
-
-            #define _TEST_PERMS( input, output0, output1, output2, output3 ) \
-              _TEST( input, output0 ); \
-              _TEST( input, output1 ); \
-              _TEST( input, output2 ); \
-              _TEST( input, output3 )
-
-            _TEST_PERMS( matrixA_IJK[ 0 ], matrixB_IJK[ 0 ], matrixB_IKJ[ 0 ], matrixB_KJI[ 0 ], b_local );
-            _TEST_PERMS( matrixA_IKJ[ 0 ], matrixB_IJK[ 0 ], matrixB_IKJ[ 0 ], matrixB_KJI[ 0 ], b_local );
-            _TEST_PERMS( matrixA_KJI[ 0 ], matrixB_IJK[ 0 ], matrixB_IKJ[ 0 ], matrixB_KJI[ 0 ], b_local );
-            _TEST_PERMS( a_local, matrixB_IJK[ 0 ], matrixB_IKJ[ 0 ], matrixB_KJI[ 0 ], b_local );
-
-            #undef _TEST_PERMS
-            #undef _TEST
-          }
-        } );
-  }
-
-  void testInverseOneArg()
-  {
-    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
-
-    forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI] LVARRAY_HOST_DEVICE ( int )
-        {
-          T result[ N ][ N ];
-          T a_local[ N ][ N ];
-          T det;
-          for( int i = 0; i < numInverseTests; ++i )
-          {
-            #define _TEST( matrix ) \
-              det = initInverse( i, matrix, result ); \
-              PORTABLE_EXPECT_EQ( det, tensorOps::invert< N >( matrix ) ); \
-              CHECK_EQUALITY_2D( N, N, matrix, result ); \
-
-            _TEST( matrixA_IJK[ 0 ] );
-            _TEST( matrixA_IKJ[ 0 ] );
-            _TEST( matrixA_KJI[ 0 ] );
-            _TEST( a_local );
-
-            #undef _TEST
-          }
-        } );
-  }
-
-  void testSymAijBj()
+  void symAijBj()
   {
     T result[ N ];
     {
       T denseSymA[ N ][ N ];
-      symmetricToDense( std::integral_constant< int, N > {}, denseSymA, m_symMatrixA_local );
+      tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
       tensorOps::AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
@@ -293,7 +131,7 @@ public:
     tensorOps::copy< N >( result, m_vectorA_local );
     {
       T denseSymA[ N ][ N ];
-      symmetricToDense( std::integral_constant< int, N > {}, denseSymA, m_symMatrixA_local );
+      tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
       tensorOps::plusAijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
@@ -342,12 +180,12 @@ public:
         } );
   }
 
-  void testSymAikBjk()
+  void symAikBjk()
   {
     T result[ N ][ N ];
     {
       T denseSymA[ N ][ N ];
-      symmetricToDense( std::integral_constant< int, N > {}, denseSymA, m_symMatrixA_local );
+      tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
       tensorOps::AikBjk< N, N, N >( result, denseSymA, m_matrixB_local );
     }
 
@@ -402,19 +240,19 @@ public:
         } );
   }
 
-  void testAikSymBklAjl()
+  void AikSymBklAjl()
   {
     T result[ SYM_SIZE ];
     {
       T denseSymB[ N ][ N ];
-      symmetricToDense( std::integral_constant< int, N > {}, denseSymB, m_symMatrixB_local );
+      tensorOps::symmetricToDense< N >( denseSymB, m_symMatrixB_local );
 
       T temp[ N ][ N ];
       tensorOps::AikBjk< N, N, N >( temp, denseSymB, m_matrixA_local );
 
       T denseResult[ N ][ N ];
       tensorOps::AikBkj< N, N, N >( denseResult, m_matrixA_local, temp );
-      denseToSymmetric( std::integral_constant< int, N > {}, result, denseResult );
+      tensorOps::denseToSymmetric< N >( result, denseResult );
     }
 
     ArrayViewT< T, 2, 1 > symMatrixA_IJ = m_symMatrixA_IJ.toView();
@@ -466,74 +304,105 @@ public:
         } );
   }
 
+  void symmetricToDense()
+  {
+    ArrayViewT< T const, 2, 1 > const & symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const & symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
+
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+
+    std::ptrdiff_t const matrixASeed = m_seedMatrixA;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( symMatrix, matrix ) \
+            fill( matrix, matrixASeed ); \
+            tensorOps::symmetricToDense< N >( matrix, symMatrix ); \
+            for( int j = 0; j < N; ++j ) \
+            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
+            if( N == 2 ) \
+            { \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 2 ] ); \
+            } \
+            else \
+            { \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 5 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 0 ], symMatrix[ 4 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 1 ], symMatrix[ 3 ] ); \
+            }
+
+          #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
+            _TEST( symMatrix, matrix0 ) \
+            _TEST( symMatrix, matrix1 ) \
+            _TEST( symMatrix, matrix2 ) \
+            _TEST( symMatrix, matrix3 )
+
+          T matrixA_local[ N ][ N ];
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( symMatrixA_local, matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+
+      #undef _TEST_PERMS
+      #undef _TEST
+        } );
+  }
+
+  void denseToSymmetric()
+  {
+    ArrayViewT< T, 2, 1 > const & symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & symMatrixA_JI = m_symMatrixA_JI.toView();
+
+    ArrayViewT< T const, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toViewConst();
+    T const ( &matrixA_local )[ N ][ N ] = m_matrixA_local;
+
+    std::ptrdiff_t const symMatrixASeed = m_seedSymMatrixA;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( symMatrix, matrix ) \
+            fill( symMatrix, symMatrixASeed ); \
+            tensorOps::denseToSymmetric< N >( symMatrix, matrix ); \
+            for( int j = 0; j < N; ++j ) \
+            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
+            if( N == 2 ) \
+            { \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
+            } \
+            else \
+            { \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
+              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
+            }
+
+          #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
+            _TEST( symMatrix, matrix0 ) \
+            _TEST( symMatrix, matrix1 ) \
+            _TEST( symMatrix, matrix2 ) \
+            _TEST( symMatrix, matrix3 )
+
+          T symMatrixA_local[ SYM_SIZE ];
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( symMatrixA_local, matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+
+      #undef _TEST_PERMS
+      #undef _TEST
+        } );
+  }
+
 private:
-
-  static constexpr int numInverseTests = 2;
-
-  template< typename A >
-  LVARRAY_HOST_DEVICE
-  static T initInverse( int i, A && src, T ( & result )[ 2 ][ 2 ] )
-  {
-    if( i == 0 )
-    {
-      T const matrix[ 2 ][ 2 ] = { { 1, 0 },
-        { 0, 1 } };
-
-      tensorOps::copy< N, N >( src, matrix );
-      tensorOps::copy< N, N >( result, matrix );
-      return 1;
-    }
-    if( i == 1 )
-    {
-      double const matrix[ 2 ][ 2 ] = { { 1, 2 },
-        { 1, -2 } };
-
-      double const inverse[ 2 ][ 2 ] = { { 2, 2 },
-        { 1, -1 } };
-
-      tensorOps::copy< N, N >( src, matrix );
-      tensorOps::copy< N, N >( result, inverse );
-      tensorOps::scale< N, N >( result, 1.0 / 4.0 );
-      return -4;
-    }
-
-    LVARRAY_ERROR( "No test for " << i );
-    return 0;
-  }
-
-  template< typename A >
-  LVARRAY_HOST_DEVICE
-  static T initInverse( int i, A && src, T ( & result )[ 3 ][ 3 ] )
-  {
-    if( i == 0 )
-    {
-      T const matrix[ 3 ][ 3 ] = { { 1, 0, 0 },
-        { 0, 1, 0 },
-        { 0, 0, 1 } };
-
-      tensorOps::copy< N, N >( src, matrix );
-      tensorOps::copy< N, N >( result, matrix );
-      return 1;
-    }
-    if( i == 1 )
-    {
-      double const matrix[ 3 ][ 3 ] = { { 1, 2, 3 },
-        { 1, 2, -3 },
-        { 7, 8, 9 } };
-
-      double const inverse[ 3 ][ 3 ] = { { -7, -1, 2 },
-        {  5, 2, -1 },
-        {  1, -1, 0 } };
-
-      tensorOps::copy< N, N >( src, matrix );
-      tensorOps::copy< N, N >( result, inverse );
-      tensorOps::scale< N, N >( result, 1.0 / 6.0 );
-      return -36;
-    }
-
-    LVARRAY_ERROR( "No test for " << i );
-    return 0;
-  }
 
   std::ptrdiff_t const m_seedVectorA = 0;
   ArrayT< T, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
@@ -572,7 +441,6 @@ using FixedSizeSquareMatrixTestTypes = ::testing::Types<
   std::tuple< double, std::integral_constant< int, 2 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 3 >, serialPolicy >
 
-// TODO: These tests can be run without chai and only using the c-arrays.
 #if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
@@ -581,24 +449,9 @@ using FixedSizeSquareMatrixTestTypes = ::testing::Types<
 
 TYPED_TEST_SUITE( FixedSizeSquareMatrixTest, FixedSizeSquareMatrixTestTypes, );
 
-TYPED_TEST( FixedSizeSquareMatrixTest, determinant )
-{
-  this->testDeterminant();
-}
-
-TYPED_TEST( FixedSizeSquareMatrixTest, inverseTwoArgs )
-{
-  this->testInverseTwoArgs();
-}
-
-TYPED_TEST( FixedSizeSquareMatrixTest, inverseOneArg )
-{
-  this->testInverseOneArg();
-}
-
 TYPED_TEST( FixedSizeSquareMatrixTest, symAijBj )
 {
-  this->testSymAijBj();
+  this->symAijBj();
 }
 
 TYPED_TEST( FixedSizeSquareMatrixTest, plusSymAijBj )
@@ -608,12 +461,22 @@ TYPED_TEST( FixedSizeSquareMatrixTest, plusSymAijBj )
 
 TYPED_TEST( FixedSizeSquareMatrixTest, symAikBjk )
 {
-  this->testSymAikBjk();
+  this->symAikBjk();
 }
 
 TYPED_TEST( FixedSizeSquareMatrixTest, AikSymBklAjl )
 {
-  this->testAikSymBklAjl();
+  this->AikSymBklAjl();
+}
+
+TYPED_TEST( FixedSizeSquareMatrixTest, symmetricToDense )
+{
+  this->symmetricToDense();
+}
+
+TYPED_TEST( FixedSizeSquareMatrixTest, denseToSymmetric )
+{
+  this->denseToSymmetric();
 }
 
 } // namespace testing
