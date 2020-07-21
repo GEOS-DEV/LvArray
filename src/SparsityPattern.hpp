@@ -18,10 +18,10 @@
 
 /**
  * @file SparsityPattern.hpp
+ * @brief Contains the implementation of LvArray:SparsityPattern.
  */
 
-#ifndef SPARSITYPATTERN_HPP_
-#define SPARSITYPATTERN_HPP_
+#pragma once
 
 #include "SparsityPatternView.hpp"
 
@@ -45,21 +45,13 @@ class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUF
 
 public:
 
-  /// An alias for the column type.
-  using column_type = COL_TYPE;
+  using typename ParentClass::ColType;
+  using typename ParentClass::IndexType;
 
-  // Aliasing public methods of SparsityPatternView.
-  using ParentClass::numRows;
-  using ParentClass::numColumns;
-  using ParentClass::numNonZeros;
-  using ParentClass::nonZeroCapacity;
-  using ParentClass::empty;
-  using ParentClass::getColumns;
-  using ParentClass::getOffsets;
-  using ParentClass::insertNonZero;
-  using ParentClass::insertNonZeros;
-  using ParentClass::removeNonZero;
-  using ParentClass::removeNonZeros;
+  /**
+   * @name Constructors and the destructor.
+   */
+  ///@{
 
   /**
    * @brief Constructor.
@@ -99,6 +91,13 @@ public:
   ~SparsityPattern() LVARRAY_RESTRICT_THIS
   { ParentClass::free(); }
 
+  ///@}
+
+  /**
+   * @name Methods to construct the matrix from scratch.
+   */
+  ///@{
+
   /**
    * @brief Copy assignment operator, performs a deep copy.
    * @param src the SparsityPattern to copy.
@@ -107,7 +106,7 @@ public:
   inline
   SparsityPattern & operator=( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS
   {
-    m_numCols = src.m_numCols;
+    this->m_numCols = src.m_numCols;
     ParentClass::setEqualTo( src.m_numArrays,
                              src.m_offsets[ src.m_numArrays ],
                              src.m_offsets,
@@ -130,22 +129,83 @@ public:
   }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
+   * @tparam POLICY The RAJA policy used to convert @p rowCapacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the matrix and creates a new matrix with the given number of rows and columns.
+   * @param nRows The new number of rows.
+   * @param nCols The new number of columns.
+   * @param rowCapacities A pointer to an array of length @p nRows containing the capacity
+   *   of each new row.
+   */
+  template< typename POLICY >
+  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
+  {
+    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
+    LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
+                      "COL_TYPE must be able to hold the range of columns: [0, " << nCols - 1 << "]." );
+
+    this->m_numCols = nCols;
+    ParentClass::template resizeFromCapacities< POLICY >( nRows, rowCapacities );
+  }
+
+  ///@}
+
+  /**
+   * @name SparsityPatternView creation methods
+   */
+  ///@{
+
+  /**
+   * @copydoc ParentClass::toView
+   * @note This is just a wrapper around the SparsityPatternView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
   SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  { return ParentClass::toView(); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
+   * @copydoc ParentClass::toViewConst
+   * @note This is just a wrapper around the SparsityPatternView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
+
+  ///@}
+
+  /**
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  using ParentClass::numRows;
+  using ParentClass::numColumns;
+  using ParentClass::numNonZeros;
+  using ParentClass::nonZeroCapacity;
+  using ParentClass::empty;
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data
+   */
+  ///@{
+
+  using ParentClass::getColumns;
+  using ParentClass::getOffsets;
+
+  ///@}
+
+  /**
+   * @name Methods to change the capacity
+   */
+  ///@{
 
   /**
    * @brief Reserve space for the given number of rows.
@@ -202,6 +262,13 @@ public:
   void compress() LVARRAY_RESTRICT_THIS
   { ParentClass::compress(); }
 
+  ///@}
+
+  /**
+   * @name Methods to resize the matrix.
+   */
+  ///@{
+
   /**
    * @brief Set the dimensions of the matrix.
    * @param nRows the new number of rows.
@@ -217,40 +284,26 @@ public:
 
 
   /**
-   * @tparam POLICY The RAJA policy used to convert @p rowCapacities into the offsets array.
-   *   Should NOT be a device policy.
-   * @brief Clears the array and creates a new array with the given number of sub-arrays.
-   * @param nRows The new number of rows.
-   * @param nCols The new number of columns.
-   * @param rowCapacities A pointer to an array of length @p nRows containing the capacity
-   *   of each new sub array.
-   */
-  template< typename POLICY >
-  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
-  {
-    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
-    LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
-                      "COL_TYPE must be able to hold the range of columns: [0, " << nCols - 1 << "]." );
-
-    m_numCols = nCols;
-    ParentClass::template resizeFromCapacities< POLICY >( nRows, rowCapacities );
-  }
-
-
-  /**
    * @brief Append a row with the given capacity.
    * @param nzCapacity The non zero capacity of the row.
    */
   inline
   void appendRow( INDEX_TYPE const nzCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
+    bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( this->m_sizes, this->m_numArrays, 0 );
+    ++this->m_numArrays;
 
-    setRowCapacity( m_numArrays - 1, nzCapacity );
+    setRowCapacity( this->m_numArrays - 1, nzCapacity );
   }
+
+  ///@}
+
+  /**
+   * @name Methods to modify a row
+   */
+  ///@{
 
   /**
    * @brief Insert a non zero entry in the entry (row, col).
@@ -276,22 +329,41 @@ public:
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   { return ParentClass::insertIntoSetImpl( row, first, last, CallBacks( *this, row ) ); }
 
+  using ParentClass::removeNonZero;
+
+  /**
+   * @copydoc ParentClass::removeNonZeros
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  template< typename ITER >
+  inline INDEX_TYPE
+  removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  { return ParentClass::removeNonZeros( row, first, last ); }
+
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc SparsityPatternView::move
+   * @note This is just a wrapper around the SparsityPatternView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  void move( MemorySpace const space, bool const touch=true ) const
+  { return ParentClass::move( space, touch ); }
+
+  ///@}
+
   /**
    * @brief Set the name associated with this SparsityPattern which is used in the chai callback.
    * @param name the of the SparsityPattern.
    */
   void setName( std::string const & name )
   { ParentClass::template setName< decltype( *this ) >( name ); }
-
-  /**
-   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
-   * @param space the memory space to move to.
-   * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
-   * @note Duplicated for SFINAE needs.
-   */
-  void move( MemorySpace const space, bool const touch=true ) const
-  { return ParentClass::move( space, touch ); }
 
 private:
 
@@ -352,15 +424,6 @@ private:
     /// The row the call back is associated with.
     INDEX_TYPE const m_row;
   };
-
-  // Aliasing protected members of SparsityPatternView.
-  using ParentClass::m_numArrays;
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
-  using ParentClass::m_numCols;
 };
 
 } /* namespace LvArray */
-
-#endif /* SPARSITYPATTERN_HPP_ */

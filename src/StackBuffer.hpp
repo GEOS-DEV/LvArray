@@ -16,8 +16,13 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifndef STACKBUFER_HPP_
-#define STACKBUFER_HPP_
+/**
+ * @file StackBuffer.hpp
+ * @brief Contains the implementation of LvArray:StackBuffer.
+ */
+
+
+#pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
@@ -92,14 +97,14 @@ public:
   {}
 
   /**
-   * @brief @return Return the capacity of the buffer.
+   * @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   std::ptrdiff_t capacity() const
   { return LENGTH; }
 
   /**
-   * @brief @return Return a pointer to the beginning of the buffer.
+   * @return Return a pointer to the beginning of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
@@ -107,7 +112,7 @@ public:
 
   /**
    * @tparam INDEX_TYPE the type used to index into the values.
-   * @brief @return The value at position @p i .
+   * @return The value at position @p i .
    * @param i The position of the value to access.
    * @note No bounds checks are performed.
    */
@@ -123,5 +128,3 @@ private:
 };
 
 } // namespace LvArray
-
-#endif // STACKBUFER_HPP_

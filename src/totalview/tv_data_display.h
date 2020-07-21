@@ -30,7 +30,13 @@
  * Jul 1  2009 SJT: Created.
  *
  */
+
+/**
+ * @file tv_data_display.h
+ */
+
 //UNCRUSTIFY-OFF
+/// @cond DO_NOT_DOCUMENT
 
 #ifndef TV_DATA_DISPLAY_H_INCLUDED
 #define TV_DATA_DISPLAY_H_INCLUDED 1
@@ -90,4 +96,5 @@ extern int TV_ttf_add_row( const char * field_name,
 
 #endif
 
+/// @endcond DO_NOT_DOCUMENT
 //UNCRUSTIFY-ON

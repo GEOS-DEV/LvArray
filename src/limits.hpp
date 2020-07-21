@@ -17,11 +17,12 @@
  */
 
 /**
- * @file IntegerConversion.hpp
+ * @file limits.hpp
+ * @brief Contains portable access to std::numeric_limits and functions for
+ *   converting between integral types.
  */
 
-#ifndef INTEGERCONVERSION_HPP_
-#define INTEGERCONVERSION_HPP_
+#pragma once
 
 // Source includes
 #include "Macros.hpp"
@@ -29,31 +30,40 @@
 // System includes
 #include <limits>
 
-/**
- * @file IntegerConversion.hpp
- */
-
 namespace LvArray
 {
 
+/**
+ * @struct NumericLimits
+ * @brief A wrapper for the std::numeric_limits< T > member functions,
+ *  this allows their values to be used on device.
+ * @tparam T The numeric type to query.
+ */
+template< typename T >
+struct NumericLimits : public std::numeric_limits< T >
+{
+  /// The smallest finite value T can hold.
+  static constexpr T min = std::numeric_limits< T >::min();
+  /// The lowest finite value T can hold.
+  static constexpr T lowest = std::numeric_limits< T >::lowest();
+  /// The largest finite value T can hold.
+  static constexpr T max = std::numeric_limits< T >::max();
+  /// The difference between 1.0 and the next representable value (if T is floating point).
+  static constexpr T epsilon = std::numeric_limits< T >::epsilon();
+  /// The maximum rounding error (if T is a floating point).
+  static constexpr T round_error = std::numeric_limits< T >::round_error();
+  /// A positive infinity value (if T is a floating point).
+  static constexpr T infinity = std::numeric_limits< T >::infinity();
+  /// A quiet NaN (if T is a floating point).
+  static constexpr T quiet_NaN = std::numeric_limits< T >::quiet_NaN();
+  /// A signaling NaN (if T is a floating point).
+  static constexpr T signaling_NaN = std::numeric_limits< T >::signaling_NaN();
+  /// The smallest positive subnormal value (if T is a floating point).
+  static constexpr T denorm_min = std::numeric_limits< T >::denorm_min();
+};
+
 namespace internal
 {
-
-/**
- * @struct IntegerTraits
- * @tparam INTEGER The integer type to get the traits of.
- * @note This just wraps the methods in std::numeric_limits< INTEGER > but it makes them
- *   available on device.
- */
-template< typename INTEGER >
-struct IntegerTraits
-{
-  /// The minimum value representable by INTEGER.
-  static constexpr INTEGER min = std::numeric_limits< INTEGER >::min();
-
-  /// The maximum value representable by INTEGER.
-  static constexpr INTEGER max = std::numeric_limits< INTEGER >::max();
-};
 
 /**
  * @tparam T The first type to check.
@@ -108,7 +118,7 @@ integerConversion( INPUT input )
   static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  LVARRAY_ERROR_IF_GT( input, internal::IntegerTraits< OUTPUT >::max );
+  LVARRAY_ERROR_IF_GT( input, NumericLimits< OUTPUT >::max );
 
   return static_cast< OUTPUT >( input );
 }
@@ -129,16 +139,14 @@ integerConversion( INPUT input )
   static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ internal::IntegerTraits< OUTPUT >::min } );
+  LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ NumericLimits< OUTPUT >::min } );
 
   // If OUTPUT is unsigned we convert input to an unsigned type. This is safe because it must be
   // positive due to the check above.
   using ConditionallyUnsigned = std::conditional_t< std::is_unsigned< OUTPUT >::value, std::make_unsigned_t< INPUT >, INPUT >;
-  LVARRAY_ERROR_IF_GT( ConditionallyUnsigned( input ), internal::IntegerTraits< OUTPUT >::max );
+  LVARRAY_ERROR_IF_GT( ConditionallyUnsigned( input ), NumericLimits< OUTPUT >::max );
 
   return static_cast< OUTPUT >( input );
 }
 
-} // namespace LvArray
-
-#endif /* SRC_SRC_INTEGERCONVERSION_HPP_ */
+}

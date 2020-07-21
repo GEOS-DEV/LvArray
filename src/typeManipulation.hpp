@@ -1,0 +1,404 @@
+/*
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Copyright (c) 2019, Lawrence Livermore National Security, LLC.
+ *
+ * Produced at the Lawrence Livermore National Laboratory
+ *
+ * LLNL-CODE-746361
+ *
+ * All rights reserved. See COPYRIGHT for details.
+ *
+ * This file is part of the GEOSX Simulation Framework.
+ *
+ * GEOSX is a free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License (as published by the
+ * Free Software Foundation) version 2.1 dated February 1999.
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+/**
+ * @file typeManipulation.hpp
+ * @brief Contains templates useful for type manipulation.
+ */
+
+#pragma once
+
+// Source includes
+#include "LvArrayConfig.hpp"
+#include "Macros.hpp"
+
+// TPL includes
+#include <camp/camp.hpp>
+
+// System includes
+#include <initializer_list>
+#include <utility>
+
+/**
+ * @brief Macro that expands to a static constexpr bool with one template argument
+ *   which is true only if the expression is valid.
+ * @param NAME The name to give the boolean variable.
+ * @param T Name of the template argument in the expression.
+ * @note The remaining macro arguments consist of the expresion to check for validity.
+ */
+#define IS_VALID_EXPRESSION( NAME, T, ... ) \
+  template< typename _T > \
+  struct NAME ## _impl \
+  { \
+private: \
+    template< typename T > static constexpr auto test( int )->decltype( __VA_ARGS__, bool() ) \
+    { return true; } \
+    template< typename T > static constexpr auto test( ... )->bool \
+    { return false; } \
+public: \
+    static constexpr bool value = test< _T >( 0 ); \
+  }; \
+  template< typename T > \
+  static constexpr bool NAME = NAME ## _impl< T >::value
+
+/**
+ * @brief Macro that expands to a static constexpr bool with two template arguments
+ *   which is true only if the expression is valid.
+ * @param NAME The name to give the boolean variable.
+ * @param T Name of the first template argument in the expression.
+ * @param U Name of the second template argument in the expression.
+ * @note The remaining macro arguments consist of the expresion to check for validity.
+ */
+#define IS_VALID_EXPRESSION_2( NAME, T, U, ... ) \
+  template< typename _T, typename _U > \
+  struct NAME ## _impl \
+  { \
+private: \
+    template< typename T, typename U > static constexpr auto test( int )->decltype( __VA_ARGS__, bool() ) \
+    { return true; } \
+    template< typename T, typename U > static constexpr auto test( ... )->bool \
+    { return false; } \
+public: \
+    static constexpr bool value = test< _T, _U >( 0 ); \
+  }; \
+  template< typename T, typename U > \
+  static constexpr bool NAME = NAME ## _impl< T, U >::value
+
+/**
+ * @brief Macro that expands to a static constexpr bool templated on a type that is only true when
+ *   the type has a method @p NAME which takes the given arguments. The name of the boolean variable
+ *   is HasMemberFunction_ ## @p NAME.
+ * @param NAME The name of the method to look for.
+ * @note The remaining macro arguments is the argument list to call the method with.
+ * @note The class type is available through the name CLASS.
+ */
+#define HAS_MEMBER_FUNCTION_NO_RTYPE( NAME, ... ) \
+  IS_VALID_EXPRESSION( HasMemberFunction_ ## NAME, CLASS, std::declval< CLASS >().NAME( __VA_ARGS__ ) )
+
+namespace LvArray
+{
+
+/**
+ * @brief Contains templates for manipulating types.
+ */
+namespace typeManipulation
+{
+
+/**
+ * @tparam F The type of the function to call.
+ * @brief The recursive base case where no argument is provided.
+ * @param f The function to not call.
+ */
+DISABLE_HD_WARNING
+template< typename F >
+inline constexpr LVARRAY_HOST_DEVICE
+void forEachArg( F && f )
+{ LVARRAY_UNUSED_VARIABLE( f ); }
+
+/**
+ * @tparam F The type of the function to call.
+ * @tparam ARG The type of the first argument to pass to the function.
+ * @tparam ARGS The types of the remaining arguments.
+ * @brief Call the @p f with @p arg and then again with each argument in @p args .
+ * @param f The function to call.
+ * @param arg The first argument to call the function with.
+ * @param args The rest of the arguments to call the function with.
+ */
+DISABLE_HD_WARNING
+template< typename F, typename ARG, typename ... ARGS >
+inline constexpr LVARRAY_HOST_DEVICE
+void forEachArg( F && f, ARG && arg, ARGS && ... args )
+{
+  f( arg );
+  forEachArg( std::forward< F >( f ), std::forward< ARGS >( args ) ... );
+}
+
+/**
+ * @brief A struct that contains a static constexpr bool value that is true if all of BOOLS are true.
+ * @tparam BOOLS A variadic pack of bool.
+ * @note Not a static constexpr bool so it can be used on device.
+ */
+template< bool ... BOOLS >
+using all_of = camp::concepts::metalib::all_of< BOOLS ... >;
+
+/**
+ * @brief A struct that contains a static constexpr bool value that is true if all of TYPES::value are true.
+ * @tparam TYPES A variadic pack of types all of which define a static constexpr bool value.
+ * @note Not a static constexpr bool so it can be used on device.
+ */
+template< typename ... TYPES >
+using all_of_t = camp::concepts::metalib::all_of_t< TYPES ... >;
+
+/**
+ * @tparam TEMPLATE The template to check if @p TYPE is an instantiation of.
+ * @tparam TYPE The type to check.
+ * @brief Trait to detect if @tparam TYPE is an instantiation of @tparam Tempate.
+ * @details Usage: @code is_instantiaton_of< std::vector, std::vector< int > > @endcode.
+ */
+template< template< typename ... > class TEMPLATE,
+          typename TYPE >
+constexpr bool is_instantiation_of = false;
+
+/**
+ * @tparam TEMPLATE The template to check.
+ * @tparam ARGS The variadic pack of argument types used to instantiate TEMPLATE.
+ * @brief Trait to detect if @tparam TYPE is an instantiation of @tparam Tempate.
+ * @details Usage: @code is_instantiaton_of< std::vector, std::vector< int > > @endcode.
+ * @note Specialization for the true case.
+ */
+template< template< typename ... > class TEMPLATE,
+          typename ... ARGS >
+constexpr bool is_instantiation_of< TEMPLATE, TEMPLATE< ARGS... > > = true;
+
+/**
+ * @brief Defines a static constexpr bool HasMemberFunction_toView is true if CLASS has a method toView().
+ * @tparam CLASS The type to test.
+ */
+HAS_MEMBER_FUNCTION_NO_RTYPE( toView, );
+
+/**
+ * @brief Defines a static constexpr bool HasMemberFunction_toViewConstSizes is true if CLASS has a method toView().
+ * @tparam CLASS The type to test.
+ */
+HAS_MEMBER_FUNCTION_NO_RTYPE( toViewConstSizes, );
+
+
+/**
+ * @brief Defines a static constexpr bool HasMemberFunction_toViewConst is true if CLASS has a method toViewConst().
+ * @tparam CLASS The type to test.
+ */
+HAS_MEMBER_FUNCTION_NO_RTYPE( toViewConst, );
+
+namespace internal
+{
+
+/**
+ * @struct GetViewType
+ * @brief A helper struct used to get the view type of an object.
+ * @tparam T The type to get the view type of.
+ * @note By default this is T &.
+ */
+template< typename T, bool=HasMemberFunction_toView< T > >
+struct GetViewType
+{
+  /// An alias for the view type.
+  using type = T &;
+};
+
+/**
+ * @struct GetViewType< T, true >
+ * @brief A helper struct used to get the view type of an object.
+ * @tparam T The type to get the view type of.
+ * @note This is a specialization for objects with a toView method.
+ */
+template< typename T >
+struct GetViewType< T, true >
+{
+  /// An alias for the view type.
+  using type = std::remove_reference_t< decltype( std::declval< T >().toView() ) >;
+};
+
+/**
+ * @struct GetViewTypeConstSizes
+ * @tparam T The type to get the un-resizable view type of.
+ * @brief A helper struct used to get the un-resizable view type of an object.
+ * @note By default this is GetViewType< T >.
+ */
+template< typename T, bool=HasMemberFunction_toViewConstSizes< T > >
+struct GetViewTypeConstSizes
+{
+  /// An alias for the view type.
+  using type = typename GetViewType< T >::type;
+};
+
+/**
+ * @struct GetViewTypeConstSizes< T, true >
+ * @brief A helper struct used to get the un-resizable view type of an object.
+ * @tparam T The type to get the un-resizable view type of T.
+ * @note This is a specialization for objects with a toView method.
+ */
+template< typename T >
+struct GetViewTypeConstSizes< T, true >
+{
+  /// An alias for the view type.
+  using type = std::remove_reference_t< decltype( std::declval< T >().toViewConstSizes() ) >;
+};
+
+/**
+ * @struct GetViewTypeConst
+ * @brief A helper struct used to get the const view type of an object.
+ * @tparam T The type to get the const view type of.
+ * @note By default this is T const &.
+ */
+template< typename T, bool=HasMemberFunction_toViewConst< T > >
+struct GetViewTypeConst
+{
+  /// An alias for the const view type.
+  using type = std::remove_reference_t< T > const &;
+};
+
+/**
+ * @struct GetViewTypeConst< T, true >
+ * @brief A helper struct used to get the const view type of an object.
+ * @tparam T The type to get the const view type of.
+ * @note This is a specialization for objects with a toViewConst method.
+ */
+template< typename T >
+struct GetViewTypeConst< T, true >
+{
+  /// An alias for the const view type.
+  using type = std::remove_reference_t< decltype( std::declval< T >().toViewConst() ) >;
+};
+
+} // namespace internal
+
+/**
+ * @brief An alias for the view type of T.
+ * @tparam T The type to get the view type of.
+ */
+template< typename T >
+using ViewType = typename internal::GetViewType< T >::type;
+
+/**
+ * @brief An alias for the un-resizable view type of T.
+ * @tparam T The type to get the view type of.
+ */
+template< typename T >
+using ViewTypeConstSizes = typename internal::GetViewTypeConstSizes< T >::type;
+
+/**
+ * @brief An alias for the const view type of T.
+ * @tparam T The type to get the view type of.
+ */
+template< typename T >
+using ViewTypeConst = typename internal::GetViewTypeConst< T >::type;
+
+namespace internal
+{
+
+/**
+ * @return Return true iff INDEX_TO_FIND == INDEX.
+ * @tparam INDEX_TO_FIND The value of the index to find.
+ * @tparam INDEX The index.
+ */
+template< camp::idx_t INDEX_TO_FIND, camp::idx_t INDEX >
+constexpr bool contains( camp::idx_seq< INDEX > )
+{ return INDEX_TO_FIND == INDEX; }
+
+/**
+ * @return Return true iff INDEX_TO_FIND is in { INDEX0, INDEX1, INDICES ... }.
+ * @tparam INDEX_TO_FIND The value of the index to find.
+ * @tparam INDEX0 The first index.
+ * @tparam INDEX1 The second index.
+ * @tparam INDICES The remaining indices.
+ */
+template< camp::idx_t INDEX_TO_FIND, camp::idx_t INDEX0, camp::idx_t INDEX1, camp::idx_t... INDICES >
+constexpr bool contains( camp::idx_seq< INDEX0, INDEX1, INDICES... > )
+{ return ( INDEX_TO_FIND == INDEX0 ) || contains< INDEX_TO_FIND >( camp::idx_seq< INDEX1, INDICES... > {} ); }
+
+/**
+ * @return Return true iff PERMUTATION is a valid permutation of INDICES.
+ * @tparam PERMUTATION The permutation to check.
+ * @tparam INDICES The indices.
+ */
+template< typename PERMUTATION, camp::idx_t... INDICES >
+constexpr bool isValidPermutation( PERMUTATION, camp::idx_seq< INDICES... > )
+{ return all_of< contains< INDICES >( PERMUTATION {} )... >::value; }
+
+} // namespace internal
+
+/**
+ * @tparam INDICES A variadic list of indices.
+ * @return The number of indices.
+ */
+template< camp::idx_t... INDICES >
+constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
+{ return sizeof...( INDICES ); }
+
+/**
+ * @tparam INDICES A variadic list of indices.
+ * @return The unit stride dimension, the last index in the sequence.
+ */
+template< camp::idx_t... INDICES >
+constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
+{
+  constexpr camp::idx_t dimension = camp::seq_at< sizeof...( INDICES ) - 1, camp::idx_seq< INDICES... > >::value;
+  static_assert( dimension >= 0, "The dimension must be greater than zero." );
+  static_assert( dimension < sizeof...( INDICES ), "The dimension must be less than NDIM." );
+  return dimension;
+}
+
+/**
+ * @tparam PERMUTATION A camp::idx_seq.
+ * @return True iff @tparam PERMUTATION is a permutation of [0, N] for some N.
+ */
+template< typename PERMUTATION >
+constexpr bool isValidPermutation( PERMUTATION )
+{
+  constexpr int NDIM = getDimension( PERMUTATION {} );
+  return internal::isValidPermutation( PERMUTATION {}, camp::make_idx_seq_t< NDIM > {} );
+}
+
+/**
+ * @tparam T The type of values stored in the array.
+ * @tparam N The number of values in the array.
+ * @struct CArray
+ * @brief A wrapper around a compile time c array.
+ */
+template< typename T, std::ptrdiff_t N >
+struct CArray
+{
+  /**
+   * @return Return a reference to the value at position @p i.
+   * @param i The position to access.
+   */
+  constexpr inline LVARRAY_HOST_DEVICE
+  T & operator[]( std::ptrdiff_t const i )
+  { return m_d_a_t_a[ i ]; }
+
+  /**
+   * @return Return a const reference to the value at position @p i.
+   * @param i The position to access.
+   */
+  constexpr inline LVARRAY_HOST_DEVICE
+  T const & operator[]( std::ptrdiff_t const i ) const
+  { return m_d_a_t_a[ i ]; }
+
+  /**
+   * @return Return the size of the array.
+   */
+  constexpr inline LVARRAY_HOST_DEVICE
+  std::ptrdiff_t size()
+  { return N; }
+
+  /// The backing c array, public so that aggregate initialization works.
+  /// The funny name is to dissuade the user from accessing it directly.
+  T m_d_a_t_a[ N ];
+};
+
+/**
+ * @tparam INDICES A variadic pack of numbers.
+ * @return A CArray containing @tparam INDICES.
+ */
+template< camp::idx_t... INDICES >
+LVARRAY_HOST_DEVICE inline constexpr
+CArray< camp::idx_t, sizeof...( INDICES ) > asArray( camp::idx_seq< INDICES... > )
+{ return { INDICES ... }; }
+
+} // namespace typeManipulation
+} // namespace LvArray

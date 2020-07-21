@@ -18,15 +18,16 @@
 
 /**
  * @file Macros.hpp
+ * @brief Contains a bunch of macro definitions.
  */
 
 #pragma once
 
-/// Source includes
+// Source includes
 #include "LvArrayConfig.hpp"
-#include "stackTrace.hpp"
+#include "system.hpp"
 
-/// System includes
+// System includes
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -118,9 +119,9 @@
       __oss << "***** LOCATION: " LOCATION "\n"; \
       __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
       __oss << MSG << "\n"; \
-      __oss << LvArray::stackTrace(); \
+      __oss << LvArray::system::stackTrace(); \
       std::cout << __oss.str() << std::endl; \
-      LvArray::abort(); \
+      LvArray::system::abort(); \
     } \
   } while( false )
 #endif

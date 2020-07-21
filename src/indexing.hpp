@@ -17,21 +17,27 @@
  */
 
 /**
- * @file arrayHelpers.hpp
+ * @file indexing.hpp
+ * @brief Contains functions to aid in multidimensional indexing.
  */
 
 #pragma once
 
 // Source includes
 #include "Macros.hpp"
-#include "Permutation.hpp"
-#include "templateHelpers.hpp"
-#include "IntegerConversion.hpp"
+#include "typeManipulation.hpp"
+#include "limits.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
 
 namespace LvArray
+{
+
+/**
+ * @brief Contains functions to aid in multidimensional indexing.
+ */
+namespace indexing
 {
 
 /**
@@ -44,12 +50,12 @@ struct ConditionalMultiply
   /**
    * @tparam A The type of @p a.
    * @tparam B the type of @p b.
-   * @brief @return Return the product of @p a and @p b.
+   * @return Return the product of @p a and @p b.
    * @param a The left multiplication operand.
    * @param b The right multiplication operand.
    */
   template< typename A, typename B >
-  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const b )
+  static inline LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
   { return a * b; }
 };
 
@@ -62,7 +68,7 @@ struct ConditionalMultiply< true >
   /**
    * @tparam A The type of @p a.
    * @tparam B the type of @p b.
-   * @brief @return Return @p a since the second argument is assumed to be 1.
+   * @return Return @p a since the second argument is assumed to be 1.
    * @param a The value to return.
    * @note The second argument is passed by reference so that you can do
    * @code  ConditionalMultiply< true >( 5, *static_cast< int * >( nullptr ) ) @endcode.
@@ -75,7 +81,7 @@ struct ConditionalMultiply< true >
 /**
  * @tparam SIZE The number of values to multiply together.
  * @tparam T The type of the values.
- * @brief @return The product of the values in [ @p values, @p values + SIZE )
+ * @return The product of the values in [ @p values, @p values + SIZE )
  * @param values A pointer to the values to multiply together.
  */
 template< int SIZE, typename T >
@@ -87,7 +93,7 @@ multiplyAll( T const * const LVARRAY_RESTRICT values )
 /**
  * @tparam SIZE The number of values to multiply together.
  * @tparam T The type of the values.
- * @brief @return The product of the values in [ @p values, @p values + SIZE )
+ * @return The product of the values in [ @p values, @p values + SIZE )
  * @param values A pointer to the values to multiply together.
  */
 template< int SIZE, typename T >
@@ -131,7 +137,7 @@ INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, IN
          getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
 }
 
-/// @brief @return A string representing an empty set of indices.
+/// @return A string representing an empty set of indices.
 inline
 std::string getIndexString()
 { return "{}"; }
@@ -139,7 +145,7 @@ std::string getIndexString()
 /**
  * @tparam INDEX The integral type of the first index.
  * @tparam REMAINING_INDICES A variadic pack of the integral types of the remaining indices.
- * @brief @return A string representing the indices.
+ * @return A string representing the indices.
  * @param index The first index.
  * @param indices A variadic pack of indices to the remaining dimensions.
  */
@@ -159,7 +165,7 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
 /**
  * @tparam INDEX_TYPE The integral type of the dimensions.
  * @tparam INDICES A variadic pack of the integral types of the indices.
- * @brief @return A string representing the dimensions of the multidimensional space and the indices into it.
+ * @return A string representing the dimensions of the multidimensional space and the indices into it.
  * @param dims A pointer to the dimensions of the space.
  * @param indices A variadic pack of indices.
  */
@@ -182,7 +188,7 @@ std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims,
 /**
  * @tparam INDEX_TYPE The integral type used for the dimensions of the space.
  * @tparam INDICES A variadic pack of the integral types of the indices.
- * @brief @return If the indices into the multidimensional space are invalid.
+ * @return If the indices into the multidimensional space are invalid.
  * @param dims A pointer to the dimensions of the space.
  * @param indices A variadic pack of the indices.
  */
@@ -192,7 +198,7 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 {
   int curDim = 0;
   bool invalid = false;
-  forEachArg( [dims, &curDim, &invalid]( auto const index )
+  typeManipulation::forEachArg( [dims, &curDim, &invalid]( auto const index )
   {
     invalid = invalid || ( index < 0 ) || ( index >= dims[ curDim ] );
     ++curDim;
@@ -214,4 +220,5 @@ void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
 
-} /* namespace LvArray */
+} // namespace indexing
+} // namespace LvArray

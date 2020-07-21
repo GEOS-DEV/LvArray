@@ -18,10 +18,10 @@
 
 /**
  * @file SortedArrayView.hpp
+ * @brief Contains the implementation of LvArray::SortedArrayView.
  */
 
-#ifndef SRC_COMMON_SORTEDARRAYVIEW
-#define SRC_COMMON_SORTEDARRAYVIEW
+#pragma once
 
 // Source includes
 #include "bufferManipulation.hpp"
@@ -69,20 +69,22 @@ class SortedArrayView
 {
 public:
 
-  /// The type of the value in the SortedArrayView.
+  /// The type of the values contained in the SortedArrayView
+  using ValueType = T;
+
+  /// The integer type used for indexing.
+  using IndexType = INDEX_TYPE;
+
+  /// The type of the values contained in the SortedArrayView, here for stl compatability.
   using value_type = T;
 
-  /// The type of the iterator used.
-  using iterator = T const *;
+  /// The integer type used for indexing, here for stl compatability.
+  using size_type = INDEX_TYPE;
 
-  /// The type of the const iterator used.
-  using const_iterator = T const *;
-
-  /// The pointer type.
-  using pointer = T *;
-
-  /// The const_pointer type.
-  using const_pointer = T const *;
+  /**
+   * @name Constructors, destructor and assignment operators.
+   */
+  ///@{
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -125,29 +127,74 @@ public:
     return *this;
   }
 
-  /**
-   * @brief @return A reference to *this.
-   */
-  LVARRAY_HOST_DEVICE inline
-  SortedArrayView const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  ///@}
 
   /**
-   * @brief @return A reference to *this.
+   * @name SortedArrayView creation methods
+   */
+  ///@{
+
+  /**
+   * @return An immutable SortedArrayView.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & >( *this ); }
 
   /**
-   * @brief @return Return a pointer to the values.
+   * @return An immutable SortedArrayView.
    */
-  LVARRAY_HOST_DEVICE constexpr inline
-  T const * data() const
-  { return m_values.data(); }
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  { return toView(); }
+
+  ///@}
 
   /**
-   * @brief @return Return the value at position @p i .
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  /**
+   * @return Return true if the array holds no values.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  bool empty() const
+  { return size() == 0; }
+
+  /**
+   * @return Return the number of values in the array.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  INDEX_TYPE size() const
+  { return m_size; }
+
+  /**
+   * @return Return true if the @p value is in the array.
+   * @param value the value to search for.
+   */
+  LVARRAY_HOST_DEVICE inline
+  bool contains( T const & value ) const
+  { return sortedArrayManipulation::contains( data(), size(), value ); }
+
+  /**
+   * @return Return true if the given value is in the array.
+   * @param value the value to search for.
+   * @note This is a alias for contains to conform to the std::set interface.
+   */
+  LVARRAY_HOST_DEVICE inline
+  bool count( T const & value ) const
+  { return contains( value ); }
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data.
+   */
+  ///@{
+
+  /**
+   * @return Return the value at position @p i .
    * @param i the index of the value to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
@@ -158,56 +205,39 @@ public:
   }
 
   /**
-   * @brief @return Return an iterator to the beginning of the array.
+   * @return Return a pointer to the values.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  iterator begin() const
+  T const * data() const
+  { return m_values.data(); }
+
+  /**
+   * @return Return an iterator to the beginning of the array.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  T const * begin() const
   { return data(); }
 
   /**
-   * @brief @return Return an iterator to the end of the array.
+   * @return Return an iterator to the end of the array.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  iterator end() const
+  T const * end() const
   { return data() + size(); }
 
-  /**
-   * @brief @return Return true if the array holds no values.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  bool empty() const
-  { return size() == 0; }
+  ///@}
 
   /**
-   * @brief @return Return the number of values in the array.
+   * @name Methods dealing with memory spaces
    */
-  LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE size() const
-  { return m_size; }
-
-  /**
-   * @brief @return Return true if the @p value is in the array.
-   * @param value the value to search for.
-   */
-  LVARRAY_HOST_DEVICE inline
-  bool contains( T const & value ) const
-  { return sortedArrayManipulation::contains( data(), size(), value ); }
-
-  /**
-   * @brief @return Return true if the given value is in the array.
-   * @param value the value to search for.
-   * @note This is a alias for contains to conform to the std::set interface.
-   */
-  LVARRAY_HOST_DEVICE inline
-  bool count( const T & value ) const
-  { return contains( value ); }
+  ///@{
 
   /**
    * @brief Moves the SortedArrayView to the given execution space.
    * @param space the space to move to.
    * @param touch If the values will be modified in the new space.
    * @note Since the SortedArrayView can't be modified on device when moving
-   *       to the GPU @p touch is set to false.
+   *   to the GPU @p touch is set to false.
    */
   inline
   void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
@@ -217,6 +247,8 @@ public:
   #endif
     m_values.move( space, touch );
   }
+
+  ///@}
 
 protected:
 
@@ -254,5 +286,3 @@ template< class T,
 constexpr bool isSortedArrayView< SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 } // namespace LvArray
-
-#endif /* SRC_COMMON_SORTEDARRAYVIEW */

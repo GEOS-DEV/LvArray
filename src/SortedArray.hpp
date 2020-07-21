@@ -18,6 +18,7 @@
 
 /**
  * @file SortedArray.hpp
+ * @brief Contains the implementation of LvArray::SortedArray.
  */
 
 #pragma once
@@ -50,25 +51,26 @@ public:
   using ParentClass = SortedArrayView< T, INDEX_TYPE, BUFFER_TYPE >;
 
   // Alias public typedefs of SortedArrayView.
+  using typename ParentClass::ValueType;
+  using typename ParentClass::IndexType;
   using typename ParentClass::value_type;
-  using typename ParentClass::iterator;
-  using typename ParentClass::const_iterator;
-  using typename ParentClass::pointer;
-  using typename ParentClass::const_pointer;
+  using typename ParentClass::size_type;
 
   /// The view type.
   using ViewType = SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const;
 
-  /// The const view type, this is the same as the view type since SortedArrayView can't
-  /// modify the data.
+  /**
+   * @brief The const view type
+   * @note This is the same as the view type since SortedArrayView can't modify the data.
+   */
   using ViewTypeConst = SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const;
 
   // Alias public methods of SortedArrayView.
-  using ParentClass::operator[];
-  using ParentClass::begin;
-  using ParentClass::end;
-  using ParentClass::contains;
-  using ParentClass::count;
+
+  /**
+   * @name Constructors, destructor and assignment operators.
+   */
+  ///@{
 
   /**
    * @brief Default constructor.
@@ -99,7 +101,7 @@ public:
    */
   inline
   ~SortedArray() LVARRAY_RESTRICT_THIS
-  { bufferManipulation::free( m_values, size() ); }
+  { bufferManipulation::free( this->m_values, size() ); }
 
   /**
    * @brief Copy assignment operator, performs a deep copy.
@@ -109,8 +111,8 @@ public:
   inline
   SortedArray & operator=( SortedArray const & src ) LVARRAY_RESTRICT_THIS
   {
-    bufferManipulation::copyInto( m_values, size(), src.m_values, src.size() );
-    m_size = src.size();
+    bufferManipulation::copyInto( this->m_values, size(), src.m_values, src.size() );
+    this->m_size = src.size();
     return *this;
   }
 
@@ -122,61 +124,83 @@ public:
   inline
   SortedArray & operator=( SortedArray && src ) = default;
 
+  ///@}
+
   /**
-   * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
+   * @name SortedArrayView creation methods
+   */
+  ///@{
+
+  /**
+   * @copydoc ParentClass::toView()
+   * @note This is just a wrapper around the SortedArrayView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::toViewConst(); }
+  { return ParentClass::toView(); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a SortedArrayView<T const> const.
+   * @copydoc ParentClass::toViewConst()
+   * @note This is just a wrapper around the SortedArrayView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
-  /**
-   * @brief @return Return true iff the SortedArray contains not values.
-   * @note Duplicated for SFINAE needs.
-   */
-  constexpr inline
-  bool empty() const
-  { return ParentClass::empty(); }
+  ///@}
 
   /**
-   * @brief @return Return the number of values in the SortedArray.
-   * @note Duplicated for SFINAE needs.
+   * @name Attribute querying methods
    */
-  constexpr inline
+  ///@{
+
+  using ParentClass::empty;
+
+  /**
+   * @copydoc SortedArrayView::size
+   * @note This is just a wrapper around the SortedArrayView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE size() const
   { return ParentClass::size(); }
 
+  using ParentClass::contains;
+  using ParentClass::count;
+
+  ///@}
+
   /**
-   * @brief @return Return a pointer to the values.
-   * @note Duplicated for SFINAE needs.
+   * @name Methods that provide access to the data.
+   */
+  ///@{
+
+  using ParentClass::operator[];
+
+  /**
+   * @copydoc SortedArrayView::data
+   * @note This is just a wrapper around the SortedArrayView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   T const * data() const
   { return ParentClass::data(); }
 
-  /**
-   * @brief Remove all the values from the array.
-   */
-  inline
-  void clear() LVARRAY_RESTRICT_THIS
-  {
-    bufferManipulation::resize( m_values, size(), 0 );
-    m_size = 0;
-  }
+  using ParentClass::begin;
+  using ParentClass::end;
+
+  ///@}
 
   /**
-   * @brief Reserve space to store the given number of values without resizing.
-   * @param nVals the number of values to reserve space for.
+   * @name Methods to insert or remove values
    */
-  inline
-  void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
-  { bufferManipulation::reserve( m_values, size(), nVals ); }
+  ///@{
 
   /**
    * @brief Insert the given value into the array if it doesn't already exist.
@@ -186,8 +210,11 @@ public:
   inline
   bool insert( T const & value ) LVARRAY_RESTRICT_THIS
   {
-    bool const success = sortedArrayManipulation::insert( m_values.data(), size(), value, CallBacks( m_values, size() ) );
-    m_size += success;
+    bool const success = sortedArrayManipulation::insert( this->m_values.data(),
+                                                          size(),
+                                                          value,
+                                                          CallBacks( this->m_values, size() ) );
+    this->m_size += success;
     return success;
   }
 
@@ -202,8 +229,12 @@ public:
   template< typename ITER >
   INDEX_TYPE insert( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( m_values.data(), size(), first, last, CallBacks( m_values, size() ) );
-    m_size += nInserted;
+    INDEX_TYPE const nInserted = sortedArrayManipulation::insert( this->m_values.data(),
+                                                                  size(),
+                                                                  first,
+                                                                  last,
+                                                                  CallBacks( this->m_values, size() ) );
+    this->m_size += nInserted;
     return nInserted;
   }
 
@@ -215,8 +246,11 @@ public:
   inline
   bool remove( T const & value ) LVARRAY_RESTRICT_THIS
   {
-    bool const success = sortedArrayManipulation::remove( m_values.data(), size(), value, CallBacks( m_values, size() ) );
-    m_size -= success;
+    bool const success = sortedArrayManipulation::remove( this->m_values.data(),
+                                                          size(),
+                                                          value,
+                                                          CallBacks( this->m_values, size() ) );
+    this->m_size -= success;
     return success;
   }
 
@@ -231,29 +265,65 @@ public:
   template< typename ITER >
   INDEX_TYPE remove( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( m_values.data(), size(), first, last, CallBacks( m_values, size() ) );
-    m_size -= nRemoved;
+    INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( this->m_values.data(),
+                                                                 size(),
+                                                                 first,
+                                                                 last,
+                                                                 CallBacks( this->m_values, size() ) );
+    this->m_size -= nRemoved;
     return nRemoved;
   }
+
+  ///@}
+
+  /**
+   * @name Methods that modify the size or capacity
+   */
+  ///@{
+
+  /**
+   * @brief Remove all the values from the array.
+   */
+  inline
+  void clear() LVARRAY_RESTRICT_THIS
+  {
+    bufferManipulation::resize( this->m_values, size(), 0 );
+    this->m_size = 0;
+  }
+
+  /**
+   * @brief Reserve space to store the given number of values without resizing.
+   * @param nVals the number of values to reserve space for.
+   */
+  inline
+  void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
+  { bufferManipulation::reserve( this->m_values, size(), nVals ); }
+
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc SortedArrayView::move
+   * @note This is just a wrapper around the SortedArrayView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  inline
+  void move( MemorySpace const space, bool const touch=true ) const LVARRAY_RESTRICT_THIS
+  { ParentClass::move( space, touch ); }
+
+  ///@}
 
   /**
    * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
    * @param name The name to associate with this SortedArray.
    */
   void setName( std::string const & name )
-  { m_values.template setName< decltype( *this ) >( name ); }
-
-  /**
-   * @brief Moves the SortedArrayView to the given execution space.
-   * @param space the space to move to.
-   * @param touch If the values will be modified in the new space.
-   * @note Since the SortedArrayView can't be modified on device when moving
-   *       to the GPU @p touch is set to false.
-   * @note Duplicated for SFINAE needs.
-   */
-  inline
-  void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
-  { return ParentClass::move( space, touch ); }
+  { this->m_values.template setName< decltype( *this ) >( name ); }
 
 private:
 
@@ -299,10 +369,6 @@ private:
     /// The number of values in the buffer.
     INDEX_TYPE const m_size;
   };
-
-  // Alias the protected members of SortedArrayView.
-  using ParentClass::m_values;
-  using ParentClass::m_size;
 };
 
 /**

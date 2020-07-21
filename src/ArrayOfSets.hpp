@@ -17,7 +17,8 @@
  */
 
 /**
- * @file SparsityPattern.hpp
+ * @file ArrayOfSets.hpp
+ * @brief Contains the implementation of LvArray::ArrayOfSets
  */
 
 #pragma once
@@ -48,20 +49,15 @@ class ArrayOfSets : protected ArrayOfSetsView< T, INDEX_TYPE, BUFFER_TYPE >
   using ParentClass = ArrayOfSetsView< T, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
-  /// An alias for the type contained in the sets.
-  using value_type = T;
+  using typename ParentClass::ValueType;
+  using typename ParentClass::IndexType;
+  using typename ParentClass::value_type;
+  using typename ParentClass::size_type;
 
-  // Aliasing public methods of ArrayOfSetsView.
-  using ParentClass::capacity;
-  using ParentClass::valueCapacity;
-  using ParentClass::sizeOfSet;
-  using ParentClass::capacityOfSet;
-  using ParentClass::operator();
-  using ParentClass::operator[];
-  using ParentClass::getSetValues;
-  using ParentClass::removeFromSet;
-  using ParentClass::contains;
-  using ParentClass::consistencyCheck;
+  /**
+   * @name Constructors and the destructor.
+   */
+  ///@{
 
   /**
    * @brief Constructor.
@@ -99,6 +95,13 @@ public:
   ~ArrayOfSets() LVARRAY_RESTRICT_THIS
   { ParentClass::free(); }
 
+  ///@}
+
+  /**
+   * @name Methods to construct the array from scratch.
+   */
+  ///@{
+
   /**
    * @brief Copy assignment operator, performs a deep copy.
    * @param src the ArrayOfSets to copy.
@@ -129,51 +132,17 @@ public:
   }
 
   /**
-   * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T, INDEX_TYPE const >.
-   */
-  inline
-  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const &
-  toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
-
-  /**
-   * @brief @return A reference to *this reinterpreted as an ArrayOfSetsView< T const, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
-  toViewConst() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::toViewConst(); }
-
-  /**
-   * @brief @return A reference to *this reinterpreted as an ArrayOfArraysView< T const, INDEX_TYPE const, true >.
-   * @note Duplicated for SFINAE needs.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
-  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::toArrayOfArraysView(); }
-
-  /**
-   * @brief @return Return the number sets.
-   * @note Duplicated for SFINAE needs.
-   */
-  inline
-  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::size(); }
-
-  /**
    * @brief Steal the resources from an ArrayOfArrays and convert it to an ArrayOfSets.
    * @param src the ArrayOfArrays to convert.
    * @param desc describes the type of data in the source.
-   * @note This would be prime for omp parallelism.
+   * TODO: Add a RAJA policy template parameter.
    */
   inline
   void assimilate( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > && src,
                    sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
   {
     ParentClass::free();
-    ParentClass::assimilate( reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_TYPE > && >( src ) );
+    ParentClass::assimilate( reinterpret_cast< ParentClass && >( src ) );
 
     INDEX_TYPE const numSets = size();
     if( desc == sortedArrayManipulation::UNSORTED_NO_DUPLICATES )
@@ -194,7 +163,7 @@ public:
 
         INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues, setValues + numValues );
         arrayManipulation::resize( setValues, numValues, numUniqueValues );
-        m_sizes[ i ] = numUniqueValues;
+        this->m_sizes[ i ] = numUniqueValues;
       }
     }
     if( desc == sortedArrayManipulation::UNSORTED_WITH_DUPLICATES )
@@ -206,7 +175,7 @@ public:
 
         INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( setValues, setValues + numValues );
         arrayManipulation::resize( setValues, numValues, numUniqueValues );
-        m_sizes[ i ] = numUniqueValues;
+        this->m_sizes[ i ] = numUniqueValues;
       }
     }
 
@@ -215,72 +184,110 @@ public:
 #endif
   }
 
+  using ParentClass::resizeFromCapacities;
+
+  ///@}
+
   /**
-   * @brief Clear a set.
-   * @param i the index of the set to clear.
+   * @name ArrayOfArraysView creation methods
    */
-  void clearSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( i );
-
-    INDEX_TYPE const prevSize = sizeOfSet( i );
-    T * const values = getSetValues( i );
-    arrayManipulation::resize( values, prevSize, INDEX_TYPE( 0 ) );
-    m_sizes[ i ] = 0;
-  }
+  ///@{
 
   /**
-   * @brief Reserve space for the given number of sets.
-   * @param newCapacity the new minimum capacity for the number of sets.
+   * @copydoc ParentClass::toView
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toView(); }
+
+  /**
+   * @copydoc ParentClass::toViewConst
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
+
+  /**
+   * @copydoc ParentClass::toArrayOfArraysView
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toArrayOfArraysView(); }
+
+  ///@}
+
+  /**
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  /**
+   * @copydoc ParentClass::size
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   inline
-  void reserve( INDEX_TYPE const newCapacity ) LVARRAY_RESTRICT_THIS
-  { ParentClass::reserve( newCapacity ); }
+  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::size(); }
+
+  using ParentClass::sizeOfSet;
+  using ParentClass::capacity;
+  using ParentClass::capacityOfSet;
+  using ParentClass::valueCapacity;
+  using ParentClass::contains;
+  using ParentClass::consistencyCheck;
+
+  ///@}
+
 
   /**
-   * @brief Reserve space for the given number of values.
-   * @param newValueCapacity the new minimum capacity for the number of values across all sets.
+   * @name Methods that provide access to the data
    */
-  inline
-  void reserveValues( INDEX_TYPE const newValueCapacity ) LVARRAY_RESTRICT_THIS
-  { ParentClass::reserveValues( newValueCapacity ); }
+  ///@{
+
+  using ParentClass::operator[];
+  using ParentClass::operator();
+
+  ///@}
 
   /**
-   * @brief Set the capacity of a set.
-   * @param i the set to set the capacity of.
-   * @param newCapacity the value to set the capacity of the set to.
+   * @name Methods to modify the outer array.
    */
-  inline
-  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
-  { ParentClass::setCapacityOfArray( i, newCapacity ); }
+  ///@{
+
+  using ParentClass::reserve;
+  using ParentClass::reserveValues;
 
   /**
-   * @brief Reserve space in a set.
-   * @param i the set to reserve space in.
-   * @param newCapacity the number of values to reserve space for.
+   * @copydoc ArrayOfArraysView::resize
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
-  inline
-  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    if( newCapacity > capacityOfSet( i ) ) setCapacityOfSet( i, newCapacity );
-  }
+  void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity=0 )
+  { return ParentClass::resize( newSize, defaultArrayCapacity ); }
+
+  using ParentClass::compress;
+
+  ///@}
 
   /**
-   * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @note This method doesn't free any memory.
+   * @name Methods to create or remove an inner set.
    */
-  inline
-  void compress() LVARRAY_RESTRICT_THIS
-  { ParentClass::compress(); }
-
-  /**
-   * @brief Set the number of sets.
-   * @param numSubSets The new number of sets.
-   * @param defaultSetCapacity The default capacity for each new array.
-   */
-  void resize( INDEX_TYPE const numSubSets, INDEX_TYPE const defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS
-  { ParentClass::resize( numSubSets, defaultSetCapacity ); }
+  ///@{
 
   /**
    * @brief Append a set with capacity @p setCapacity.
@@ -289,12 +296,12 @@ public:
   inline
   void appendSet( INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
+    bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( this->m_sizes, this->m_numArrays, 0 );
+    ++this->m_numArrays;
 
-    setCapacityOfSet( m_numArrays - 1, setCapacity );
+    setCapacityOfSet( this->m_numArrays - 1, setCapacity );
   }
 
   /**
@@ -309,10 +316,10 @@ public:
     LVARRAY_ASSERT( arrayManipulation::isPositive( setCapacity ) );
 
     // Insert an set of capacity zero at the given location
-    INDEX_TYPE const offset = m_offsets[i];
-    bufferManipulation::emplace( m_offsets, m_numArrays + 1, i + 1, offset );
-    bufferManipulation::emplace( m_sizes, m_numArrays, i, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const offset = this->m_offsets[i];
+    bufferManipulation::emplace( this->m_offsets, this->m_numArrays + 1, i + 1, offset );
+    bufferManipulation::emplace( this->m_sizes, this->m_numArrays, i, 0 );
+    ++this->m_numArrays;
 
     // Set the capacity of the new set
     setCapacityOfSet( i, setCapacity );
@@ -328,10 +335,17 @@ public:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     setCapacityOfSet( i, 0 );
-    bufferManipulation::erase( m_offsets, m_numArrays + 1, i + 1 );
-    bufferManipulation::erase( m_sizes, m_numArrays, i );
-    --m_numArrays;
+    bufferManipulation::erase( this->m_offsets, this->m_numArrays + 1, i + 1 );
+    bufferManipulation::erase( this->m_sizes, this->m_numArrays, i );
+    --this->m_numArrays;
   }
+
+  ///@}
+
+  /**
+   * @name Methods to modify an inner set.
+   */
+  ///@{
 
   /**
    * @brief Insert a value into the given set.
@@ -358,23 +372,92 @@ public:
   { return ParentClass::insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   /**
+   * @copydoc ParentClass::removeFromSet
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  LVARRAY_HOST_DEVICE inline
+  bool removeFromSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
+  { return ParentClass::removeFromSet( i, value ); }
+
+  /**
+   * @tparam ITER An iterator type.
+   * @brief Removes multiple values from the given set.
+   * @param i The set to remove from.
+   * @param first An iterator to the first value to remove.
+   * @param last An iterator to the end of the values to remove.
+   * @return The number of values removed.
+   * @pre The values to remove [ @p first, @p last ) must be sorted and contain no duplicates.
+   * @note This is not brought in with a @c using statement because it breaks doxygen. Furthermore I'm not
+   *   sure how to get copydoc to work with an overloaded template like this.
+   */
+  template< typename ITER >
+  LVARRAY_HOST_DEVICE inline
+  INDEX_TYPE removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  { return ParentClass::removeFromSet( i, first, last ); }
+
+  /**
+   * @brief Clear a set.
+   * @param i the index of the set to clear.
+   */
+  void clearSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+
+    INDEX_TYPE const prevSize = sizeOfSet( i );
+    T * const values = getSetValues( i );
+    arrayManipulation::resize( values, prevSize, INDEX_TYPE( 0 ) );
+    this->m_sizes[ i ] = 0;
+  }
+
+  /**
+   * @brief Set the capacity of a set.
+   * @param i the set to set the capacity of.
+   * @param newCapacity the value to set the capacity of the set to.
+   */
+  inline
+  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
+  { ParentClass::setCapacityOfArray( i, newCapacity ); }
+
+  /**
+   * @brief Reserve space in a set.
+   * @param i the set to reserve space in.
+   * @param newCapacity the number of values to reserve space for.
+   */
+  inline
+  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+    if( newCapacity > capacityOfSet( i ) ) setCapacityOfSet( i, newCapacity );
+  }
+
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc ArrayOfSetsView::move
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  void move( MemorySpace const space, bool const touch=true ) const
+  { return ParentClass::move( space, touch ); }
+
+  ///@}
+
+  /**
    * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
    * @param name the name to display.
    */
   void setName( std::string const & name )
   { ParentClass::template setName< decltype( *this ) >( name ); }
 
-  /**
-   * @brief Move this ArrayOfSetsView to the given memory space and touch the values, sizes and offsets.
-   * @param space the memory space to move to.
-   * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
-   * @note Duplicated for SFINAE needs.
-   */
-  void move( MemorySpace const space, bool const touch=true ) const
-  { return ParentClass::move( space, touch ); }
-
 private:
+
+  using ParentClass::getSetValues;
 
   /**
    * @class CallBacks
@@ -423,12 +506,6 @@ private:
     /// The index of the associated set.
     INDEX_TYPE const m_i;
   };
-
-  // Aliasing protected members of ArrayOfSetsView.
-  using ParentClass::m_numArrays;
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
 };
 
 } /* namespace LvArray */

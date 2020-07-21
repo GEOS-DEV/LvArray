@@ -18,6 +18,7 @@
 
 /**
  * @file ArrayOfArrays.hpp
+ * @brief Contains the implementation of LvArray::ArrayOfArrays.
  */
 
 #pragma once
@@ -46,27 +47,15 @@ class ArrayOfArrays : protected ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_
   using ParentClass = ArrayOfArraysView< T, INDEX_TYPE, false, BUFFER_TYPE >;
 
 public:
-  /// An alias for the type contained in the arrays.
-  using value_type = typename ParentClass::value_type;
+  using typename ParentClass::ValueType;
+  using typename ParentClass::IndexType;
+  using typename ParentClass::value_type;
+  using typename ParentClass::size_type;
 
-  /// An alias for the view type. Supports adding/removing values from arrays and modifying existing values.
-  using ViewType = ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >;
-
-  /// An alias for the view type with const sizes. Supports modifying existing values.
-  using ViewTypeConstSizes = ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >;
-
-  /// An alias for the const view type. Only accessing existing values is supported.
-  using ViewTypeConst = ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >;
-
-  // Aliasing public methods of ArrayOfArraysView.
-  using ParentClass::sizeOfArray;
-  using ParentClass::capacity;
-  using ParentClass::valueCapacity;
-  using ParentClass::capacityOfArray;
-  using ParentClass::operator[];
-  using ParentClass::operator();
-  using ParentClass::emplaceBackAtomic;
-  using ParentClass::eraseFromArray;
+  /**
+   * @name Constructors and destructor.
+   */
+  ///@{
 
   /**
    * @brief Constructor.
@@ -101,6 +90,53 @@ public:
    */
   ~ArrayOfArrays()
   { ParentClass::free(); }
+
+  ///@}
+
+  /**
+   * @name ArrayOfArraysView creation methods
+   */
+  ///@{
+
+  /**
+   * @copydoc ParentClass::toView
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & >( *this ); }
+
+  /**
+   * @copydoc ParentClass::toViewConstSizes
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConstSizes(); }
+
+  /**
+   * @copydoc ParentClass::toViewConst
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  toViewConst() const LVARRAY_RESTRICT_THIS
+  { return ParentClass::toViewConst(); }
+
+  ///@}
+
+  /**
+   * @name Methods to construct the array from scratch.
+   */
+  ///@{
 
   /**
    * @brief Copy assignment operator, performs a deep copy.
@@ -142,71 +178,67 @@ public:
     ParentClass::assimilate( reinterpret_cast< ParentClass && >( src ) );
   }
 
-  /**
-   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T, INDEX_TYPE const>.
-   * @note Duplicated for SFINAE needs.
-   */
-  constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & >( *this ); }
+  using ParentClass::resizeFromCapacities;
+
+  ///@}
 
   /**
-   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T, INDEX_TYPE const, true>.
-   * @note Duplicated for SFINAE needs.
+   * @name Attribute querying methods
    */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const & toViewConstSizes() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::toViewConstSizes(); }
+  ///@{
 
   /**
-   * @brief @return Return a reference to *this converted to ArrayOfArraysView<T const, INDEX_TYPE const, true>.
-   * @note Duplicated for SFINAE needs.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
-  { return ParentClass::toViewConst(); }
-
-  /**
-   * @brief @return Return the number of arrays.
-   * @note Duplicated for SFINAE needs.
+   * @copydoc ParentClass::size
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   inline
   INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
   { return ParentClass::size(); }
 
-  /**
-   * @brief Reserve space for the given number of arrays.
-   * @param newCapacity the new minimum capacity for the number of arrays.
-   */
-  void reserve( INDEX_TYPE const newCapacity )
-  { ParentClass::reserve( newCapacity ); }
+  using ParentClass::sizeOfArray;
+  using ParentClass::capacity;
+  using ParentClass::capacityOfArray;
+  using ParentClass::valueCapacity;
+
+  ///@}
 
   /**
-   * @brief Reserve space for the given number of values.
-   * @param newValueCapacity the new minimum capacity for the number of values across all arrays.
+   * @name Methods that provide access to the data
    */
-  void reserveValues( INDEX_TYPE const newValueCapacity )
-  { ParentClass::reserveValues( newValueCapacity ); }
+  ///@{
+
+  using ParentClass::operator[];
+  using ParentClass::operator();
+
+  ///@}
 
   /**
-   * @brief Set the number of arrays.
-   * @param numSubArrays The new number of arrays.
-   * @param defaultArrayCapacity The default capacity for each new array.
+   * @name Methods to modify the outer array.
    */
-  void resize( INDEX_TYPE const numSubArrays, INDEX_TYPE const defaultArrayCapacity=0 )
-  { ParentClass::resize( numSubArrays, defaultArrayCapacity ); }
+  ///@{
+
+  using ParentClass::reserve;
+  using ParentClass::reserveValues;
 
   /**
-   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
-   *   Should NOT be a device policy.
-   * @brief Clears the array and creates a new array with the given number of sub-arrays.
-   * @param numSubArrays The new number of arrays.
-   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
-   *   of each new sub array.
+   * @copydoc ArrayOfArraysView::resize
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
-  template< typename POLICY >
-  void resizeFromCapacities( INDEX_TYPE const numSubArrays, INDEX_TYPE const * const capacities )
-  { ParentClass::template resizeFromCapacities< POLICY >( numSubArrays, capacities ); }
+  void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity=0 )
+  { return ParentClass::resize( newSize, defaultArrayCapacity ); }
+
+  using ParentClass::compress;
+
+  ///@}
+
+  /**
+   * @name Methods to create or remove an inner array.
+   */
+  ///@{
 
   /**
    * @brief Append an array.
@@ -216,12 +248,12 @@ public:
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
 
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
+    bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( this->m_sizes, this->m_numArrays, 0 );
+    ++this->m_numArrays;
 
-    resizeArray( m_numArrays - 1, n );
+    resizeArray( this->m_numArrays - 1, n );
   }
 
   /**
@@ -233,12 +265,12 @@ public:
   template< typename ITER >
   void appendArray( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    bufferManipulation::emplaceBack( m_offsets, m_numArrays + 1, maxOffset );
-    bufferManipulation::emplaceBack( m_sizes, m_numArrays, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
+    bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
+    bufferManipulation::emplaceBack( this->m_sizes, this->m_numArrays, 0 );
+    ++this->m_numArrays;
 
-    appendToArray( m_numArrays - 1, first, last );
+    appendToArray( this->m_numArrays - 1, first, last );
   }
 
   /**
@@ -254,10 +286,10 @@ public:
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i );
 
     // Insert an array of capacity zero at the given location
-    INDEX_TYPE const offset = m_offsets[ i ];
-    bufferManipulation::emplace( m_offsets, m_numArrays + 1, i + 1, offset );
-    bufferManipulation::emplace( m_sizes, m_numArrays, i, 0 );
-    ++m_numArrays;
+    INDEX_TYPE const offset = this->m_offsets[ i ];
+    bufferManipulation::emplace( this->m_offsets, this->m_numArrays + 1, i + 1, offset );
+    bufferManipulation::emplace( this->m_sizes, this->m_numArrays, i, 0 );
+    ++this->m_numArrays;
 
     // Append to the new array
     appendToArray( i, first, last );
@@ -272,17 +304,17 @@ public:
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
     setCapacityOfArray( i, 0 );
-    bufferManipulation::erase( m_offsets, m_numArrays + 1, i + 1 );
-    bufferManipulation::erase( m_sizes, m_numArrays, i );
-    --m_numArrays;
+    bufferManipulation::erase( this->m_offsets, this->m_numArrays + 1, i + 1 );
+    bufferManipulation::erase( this->m_sizes, this->m_numArrays, i );
+    --this->m_numArrays;
   }
 
+  ///@}
+
   /**
-   * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @note This method doesn't free any memory.
+   * @name Methods to modify an inner array.
    */
-  void compress()
-  { ParentClass::compress(); }
+  ///@{
 
   /**
    * @brief Append a value to an array constructing it in place with the given arguments.
@@ -307,10 +339,12 @@ public:
   template< typename ITER >
   void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
   {
-    INDEX_TYPE const n = iterDistance( first, last );
+    INDEX_TYPE const n = arrayManipulation::iterDistance( first, last );
     dynamicallyGrowArray( i, n );
     ParentClass::appendToArray( i, first, last );
   }
+
+  using ParentClass::emplaceBackAtomic;
 
   /**
    * @brief Insert a value into an array constructing it in place.
@@ -337,10 +371,12 @@ public:
   template< typename ITER >
   void insertIntoArray( INDEX_TYPE const i, INDEX_TYPE const j, ITER const first, ITER const last )
   {
-    INDEX_TYPE const n = iterDistance( first, last );
+    INDEX_TYPE const n = arrayManipulation::iterDistance( first, last );
     dynamicallyGrowArray( i, n );
     ParentClass::insertIntoArray( i, j, first, last );
   }
+
+  using ParentClass::eraseFromArray;
 
   /**
    * @brief Set the number of values in an array.
@@ -363,7 +399,7 @@ public:
     INDEX_TYPE const prevSize = sizeOfArray( i );
     T * const values = (*this)[i];
     arrayManipulation::resize( values, prevSize, newSize, std::forward< ARGS >( args )... );
-    m_sizes[ i ] = newSize;
+    this->m_sizes[ i ] = newSize;
   }
 
   /**
@@ -381,22 +417,30 @@ public:
   void setCapacityOfArray( INDEX_TYPE const i, INDEX_TYPE const newCapacity )
   { ParentClass::setCapacityOfArray( i, newCapacity ); }
 
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc ArrayOfArraysView::move
+   * @note This is just a wrapper around the ArrayOfArraysView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  void move( MemorySpace const space, bool touch=true ) const
+  { ParentClass::move( space, touch ); }
+
+  ///@}
+
   /**
    * @brief Set the name to be displayed whenever the underlying Buffer's user call back is called.
    * @param name The name to display.
    */
   void setName( std::string const & name )
   { ParentClass::template setName< decltype( *this ) >( name ); }
-
-  /**
-   * @brief Move this ArrayOfArrays to the given memory space.
-   * @param space The memory space to move to.
-   * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
-   * @note Duplicated for SFINAE needs.
-   */
-  void move( MemorySpace const space, bool touch=true ) const
-  { ParentClass::move( space, touch ); }
 
 private:
 
@@ -415,11 +459,6 @@ private:
       setCapacityOfArray( i, 2 * newArraySize );
     }
   }
-
-  using ParentClass::m_numArrays;
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
 };
 
 } /* namespace LvArray */
