@@ -18,10 +18,10 @@
 
 /**
  * @file ArraySlice.hpp
+ * @brief Contains the implementation of LvArray::ArraySlice
  */
 
-#ifndef ARRAY_SLICE_HPP_
-#define ARRAY_SLICE_HPP_
+#pragma once
 
 #ifndef NDEBUG
   #ifndef __APPLE__
@@ -49,7 +49,7 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
 
 // Source includes
 #include "LvArrayConfig.hpp"
-#include "arrayHelpers.hpp"
+#include "indexing.hpp"
 #include "Macros.hpp"
 
 // System includes
@@ -86,30 +86,41 @@ namespace LvArray
 
 /**
  * @class ArraySlice
- * @brief This class serves to provide a sliced multidimensional interface to the family of LvArray
- *        classes.
+ * @brief This class serves to provide a sliced multidimensional interface to the family of LvArray classes.
  * @tparam T type of data that is contained by the array
- * @tparam NDIM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
- * @tparam USD the dimension with a unit stride, in an Array with a standard layout
- *         this is the last dimension.
- * @tparam INDEX_TYPE the integer to use for indexing the components of the array
- *
- * This class serves as a sliced interface to an array. This is a lightweight class that contains
- * only pointers, and provides an operator[] to create a lower dimensionsal slice and an operator()
- * to access values given a multidimensional index.
- *
- * In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
- * an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
+ * @tparam NDIM_TPARAM The number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
+ * @tparam USD The dimension with a unit stride, in an Array with a standard layout
+ *   this is the last dimension.
+ * @tparam INDEX_TYPE The integer to use for indexing the components of the array.
+ * @brief This class serves as a sliced interface to an array. This is a lightweight class that contains
+ *   only pointers, and provides an operator[] to create a lower dimensionsal slice and an operator()
+ *   to access values given a multidimensional index.
+ *   In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
+ *   an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
  */
-template< typename T, int NDIM, int USD, typename INDEX_TYPE >
+template< typename T, int NDIM_TPARAM, int USD_TPARAM, typename INDEX_TYPE >
 class ArraySlice
 {
 public:
 
-  static_assert( USD < NDIM, "USD must be less than NDIM." );
+  static_assert( USD_TPARAM < NDIM_TPARAM, "USD must be less than NDIM." );
+
+  /// The type of the value in the ArraySlice.
+  using ValueType = T;
 
   /// The number of dimensions.
-  static constexpr int ndim = NDIM;
+  static constexpr int NDIM = NDIM_TPARAM;
+
+  /// The unit stride dimension.
+  static constexpr int USD = USD_TPARAM;
+
+  /// The integer type used for indexing.
+  using IndexType = INDEX_TYPE;
+
+  /**
+   * @name Constructors, destructor and assignment operators.
+   */
+  ///@{
 
   /// deleted default constructor
   ArraySlice() = delete;
@@ -133,8 +144,15 @@ public:
 #endif
   }
 
+  ///@}
+
   /**
-   * @brief @return Return a new immutable slice.
+   * @name ArraySlice creation methods and user defined conversions
+   */
+  ///@{
+
+  /**
+   * @return Return a new immutable slice.
    */
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
@@ -143,7 +161,7 @@ public:
   { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides ); }
 
   /**
-   * @brief @return Return a new immutable slice.
+   * @return Return a new immutable slice.
    */
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
@@ -152,84 +170,22 @@ public:
     () const LVARRAY_RESTRICT_THIS noexcept
   { return toSliceConst(); }
 
-  /**
-   * @brief @return A raw pointer.
-   * @note This method is only active when NDIM == 0 and USD == 0.
-   */
-  template< int _NDIM=NDIM, int _USD=USD >
-  LVARRAY_HOST_DEVICE constexpr inline
-  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
-    () const noexcept LVARRAY_RESTRICT_THIS
-  { return m_data; }
+  ///@}
 
   /**
-   * @brief @return Return a lower dimensionsal slice of this ArrayView.
-   * @param index The index of the slice to create.
-   * @note This method is only active when NDIM > 1.
+   * @name Attribute querying methods
    */
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
-                                                       m_dims + 1,
-                                                       m_strides + 1 );
-  }
+  ///@{
 
   /**
-   * @brief @return Return a reference to the value at the given index.
-   * @param index The index of the value to access.
-   * @note This method is only active when NDIM == 1.
-   */
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
-  }
-
-  /**
-   * @tparam INDICES A variadic pack of integral types.
-   * @brief @return Return a reference to the value at the given multidimensional index.
-   * @param indices The indices of the value to access.
-   */
-  template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline constexpr
-  T & operator()( INDICES... indices ) const
-  {
-    static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-    return m_data[ linearIndex( indices ... ) ];
-  }
-
-  /**
-   * @tparam INDICES A variadic pack of integral types.
-   * @brief @return Return the linear index from a multidimensional index.
-   * @param indices The indices of the value to get the linear index of.
-   */
-  template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE linearIndex( INDICES... indices ) const
-  {
-    static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-#ifdef USE_ARRAY_BOUNDS_CHECK
-    checkIndices( m_dims, indices ... );
-#endif
-    return getLinearIndex< USD >( m_strides, indices ... );
-  }
-
-  /**
-   * @brief @return Return the total size of the slice.
+   * @return Return the total size of the slice.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
-  { return multiplyAll< NDIM >( m_dims ); }
+  { return indexing::multiplyAll< NDIM >( m_dims ); }
 
   /**
-   * @brief @return Return the length of the given dimension.
+   * @return Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
@@ -240,14 +196,6 @@ public:
 #endif
     return m_dims[dim];
   }
-
-  /**
-   * @brief @return Return true iff the @p ptr matches the data pointer of this ArraySlice.
-   * @param ptr The pointer to check.
-   */
-  LVARRAY_HOST_DEVICE inline constexpr
-  bool operator==( T const * const ptr ) const
-  { return m_data == ptr; }
 
   /**
    * @brief Check if the slice is contiguous in memory
@@ -288,7 +236,83 @@ public:
   { return false; }
 
   /**
-   * @brief @return Return a pointer to the values.
+   * @tparam INDICES A variadic pack of integral types.
+   * @return Return the linear index from a multidimensional index.
+   * @param indices The indices of the value to get the linear index of.
+   */
+  template< typename ... INDICES >
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  INDEX_TYPE linearIndex( INDICES... indices ) const
+  {
+    static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
+#ifdef USE_ARRAY_BOUNDS_CHECK
+    indexing::checkIndices( m_dims, indices ... );
+#endif
+    return indexing::getLinearIndex< USD >( m_strides, indices ... );
+  }
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data.
+   */
+  ///@{
+
+  /**
+   * @return A raw pointer.
+   * @note This method is only active when NDIM == 0 and USD == 0.
+   */
+  template< int _NDIM=NDIM, int _USD=USD >
+  LVARRAY_HOST_DEVICE constexpr inline
+  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
+    () const noexcept LVARRAY_RESTRICT_THIS
+  { return m_data; }
+
+  /**
+   * @return Return a lower dimensionsal slice of this ArrayView.
+   * @param index The index of the slice to create.
+   * @note This method is only active when NDIM > 1.
+   */
+  template< int U=NDIM >
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  {
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
+                                                       m_dims + 1,
+                                                       m_strides + 1 );
+  }
+
+  /**
+   * @return Return a reference to the value at the given index.
+   * @param index The index of the value to access.
+   * @note This method is only active when NDIM == 1.
+   */
+  template< int U=NDIM >
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  std::enable_if_t< U == 1, T & >
+  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  {
+    ARRAY_SLICE_CHECK_BOUNDS( index );
+    return m_data[ indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
+  }
+
+  /**
+   * @tparam INDICES A variadic pack of integral types.
+   * @return Return a reference to the value at the given multidimensional index.
+   * @param indices The indices of the value to access.
+   */
+  template< typename ... INDICES >
+  LVARRAY_HOST_DEVICE inline constexpr
+  T & operator()( INDICES... indices ) const
+  {
+    static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
+    return m_data[ linearIndex( indices ... ) ];
+  }
+
+  /**
+   * @return Return a pointer to the values.
    * @pre The slice must be contiguous.
    */
   LVARRAY_HOST_DEVICE inline
@@ -299,7 +323,7 @@ public:
   }
 
   /**
-   * @brief @return Return a pointer to the values.
+   * @return Return a pointer to the values.
    * @pre The slice must be contiguous.
    */
   LVARRAY_HOST_DEVICE inline constexpr
@@ -307,12 +331,14 @@ public:
   { return dataIfContiguous(); }
 
   /**
-   * @brief @return Return a pointer to the end values.
+   * @return Return a pointer to the end values.
    * @pre The slice must be contiguous.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   T * end() const
   { return dataIfContiguous() + size(); }
+
+  ///@}
 
 #if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
   /**
@@ -349,5 +375,3 @@ protected:
 };
 
 } // namespace LvArray
-
-#endif /* SRC_COMPONENTS_CORE_SRC_ARRAY_MULTIDIMENSIONALARRAY_HPP_ */

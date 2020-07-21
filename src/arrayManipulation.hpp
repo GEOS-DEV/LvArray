@@ -18,13 +18,10 @@
 
 /**
  * @file arrayManipulation.hpp
- * This file contains common array manipulation routines. Every function takes a
- * pointer and a size that define the array. Every function assumes that
- * the array has a capacity large enough for the given operation.
+ * @brief Contains functions for manipulating a contiguous array of values.
  */
 
-#ifndef ARRAYMANIPULATION_HPP_
-#define ARRAYMANIPULATION_HPP_
+#pragma once
 
 #include "Macros.hpp"
 
@@ -68,12 +65,20 @@
 
 namespace LvArray
 {
+
+/**
+ * @brief Contains functions for operating on a contiguous array of values.
+ * @details Most functions accept a pointer and a size as the first two arguments. Values
+ *   in this range are expected to be in a valid state. Values past the end of the array
+ *   are expected to be uninitialized. Functions that increase the size of the array
+ *   expect the array to have a large enough capacity to handle the increase.
+ */
 namespace arrayManipulation
 {
 
 /**
  * @tparam INDEX_TYPE the integral type to check.
- * @brief @return Return true iff @p i is greater than or equal to zero.
+ * @return Return true iff @p i is greater than or equal to zero.
  * @param i the value to check.
  */
 template< typename INDEX_TYPE >
@@ -84,13 +89,61 @@ isPositive( INDEX_TYPE const i )
 
 /**
  * @tparam INDEX_TYPE the integral type to check.
- * @brief @return Returns true. This specialization for unsigned types avoids compiler warnings.
+ * @return Returns true. This specialization for unsigned types avoids compiler warnings.
  */
 template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline constexpr
 typename std::enable_if< !std::is_signed< INDEX_TYPE >::value, bool >::type
 isPositive( INDEX_TYPE )
 { return true; }
+
+/**
+ * @tparam ITER An iterator type.
+ * @return The distance between two non-random access iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename ITER >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< ITER >::difference_type
+iterDistance( ITER first, ITER const last, std::input_iterator_tag )
+{
+  typename std::iterator_traits< ITER >::difference_type n = 0;
+  while( first != last )
+  {
+    ++first;
+    ++n;
+  }
+
+  return n;
+}
+
+/**
+ * @tparam ITER An iterator type.
+ * @return The distance between two random access iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename RandomAccessIterator >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< RandomAccessIterator >::difference_type
+iterDistance( RandomAccessIterator first, RandomAccessIterator last, std::random_access_iterator_tag )
+{ return last - first; }
+
+/**
+ * @tparam ITER An iterator type.
+ * @return The distance between two iterators.
+ * @param first The iterator to the beginning of the range.
+ * @param last The iterator to the end of the range.
+ */
+DISABLE_HD_WARNING
+template< typename ITER >
+inline constexpr LVARRAY_HOST_DEVICE
+typename std::iterator_traits< ITER >::difference_type
+iterDistance( ITER const first, ITER const last )
+{ return iterDistance( first, last, typename std::iterator_traits< ITER >::iterator_category() ); }
 
 /**
  * @tparam T the storage type of the array.
@@ -477,5 +530,3 @@ void popBack( T * const LVARRAY_RESTRICT ptr,
 
 } // namespace arrayManipulation
 } // namespace LvArray
-
-#endif /* ARRAYMANIPULATION_HPP_ */

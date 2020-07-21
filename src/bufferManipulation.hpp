@@ -16,12 +16,17 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+/**
+ * @file bufferManipulation.hpp
+ * @brief Contains functions for manipulating buffers.
+ */
+
 #pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
-#include "templateHelpers.hpp"
+#include "typeManipulation.hpp"
 #include "arrayManipulation.hpp"
 
 // System includes
@@ -62,15 +67,19 @@ inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
   return os;
 }
 
+/**
+ * @brief Contains template functions for performing common operations on buffers.
+ * @details Each function accepts a buffer and a size as the first two arguments.
+ */
 namespace bufferManipulation
 {
 
 /**
  * @brief Defines a static constexpr bool HasMemberFunction_move< @p CLASS >
- *   that is true iff the method @p CLASS ::move(MemorySpace, bool) exists.
+ *   that is true iff the class has a method move(MemorySpace, bool).
  * @tparam CLASS The type to test.
  */
-IS_VALID_EXPRESSION( HasMemberFunction_move, CLASS, std::declval< CLASS >().move( MemorySpace::CPU, true ) );
+HAS_MEMBER_FUNCTION_NO_RTYPE( move, MemorySpace::CPU, true );
 
 /**
  * @class VoidBuffer
@@ -82,9 +91,9 @@ struct VoidBuffer
 {
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
-   * @param space the space to move the buffer to.
-   * @param size the size of the buffer.
-   * @param touch whether the buffer should be touched in the new space or not.
+   * @param space The space to move the buffer to.
+   * @param size The size of the buffer.
+   * @param touch Whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
@@ -97,8 +106,8 @@ struct VoidBuffer
 
   /**
    * @brief Move the buffer to the given execution space, optionally touching it.
-   * @param space the space to move the buffer to.
-   * @param touch whether the buffer should be touched in the new space or not.
+   * @param space The space to move the buffer to.
+   * @param touch Whether the buffer should be touched in the new space or not.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
@@ -131,8 +140,8 @@ struct VoidBuffer
 /**
  * @brief Check that given Buffer and size are valid.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to check.
- * @param size the size of the buffer.
+ * @param buf The buffer to check.
+ * @param size The size of the buffer.
  * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
  */
 template< typename BUFFER >
@@ -152,9 +161,9 @@ void check( BUFFER const & buf, std::ptrdiff_t const size )
 /**
  * @brief Check that given Buffer, size, and insertion position, are valid.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to check.
- * @param size the size of the buffer.
- * @param pos the insertion position.
+ * @param buf The buffer to check.
+ * @param size The size of the buffer.
+ * @param pos The insertion position.
  * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
  */
 template< typename BUFFER >
@@ -175,8 +184,8 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
 /**
  * @brief Destroy the values in the buffer and free it's memory.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to free.
- * @param size the size of the buffer.
+ * @param buf The buffer to free.
+ * @param size The size of the buffer.
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
@@ -199,9 +208,9 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 /**
  * @brief Set the capacity of the buffer.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to set the capacity of.
- * @param size the size of the buffer.
- * @param newCapacity the new capacity of the buffer.
+ * @param buf The buffer to set the capacity of.
+ * @param size The size of the buffer.
+ * @param newCapacity The new capacity of the buffer.
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
@@ -215,9 +224,9 @@ void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const 
 /**
  * @brief Reserve space in the buffer for at least the given capacity.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to reserve space in.
- * @param size the size of the buffer.
- * @param newCapacity the new minimum capacity of the buffer.
+ * @param buf The buffer to reserve space in.
+ * @param size The size of the buffer.
+ * @param newCapacity The new minimum capacity of the buffer.
  */
 template< typename BUFFER >
 LVARRAY_HOST_DEVICE
@@ -235,9 +244,9 @@ void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newC
  * @brief If the buffer's capacity is greater than newCapacity this is a no-op.
  *   Otherwise the buffer's capacity is increased to at least 2 * newCapacity.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to reserve space in.
- * @param size the size of the buffer.
- * @param newCapacity the new minimum capacity of the buffer.
+ * @param buf The buffer to reserve space in.
+ * @param size The size of the buffer.
+ * @param newCapacity The new minimum capacity of the buffer.
  * @note Use this in methods which increase the size of the buffer to efficiently grow
  *   the capacity.
  */
@@ -255,11 +264,11 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
 /**
  * @brief Resize the buffer to the given size.
  * @tparam BUFFER the buffer type.
- * @param ARGS the types of the arguments to initialize the new values with.
- * @param buf the buffer to resize.
- * @param size the current size of the buffer.
- * @param newSize the new size of the buffer.
- * @param args the arguments to initialize the new values with.
+ * @tparam ARGS The types of the arguments to initialize the new values with.
+ * @param buf The buffer to resize.
+ * @param size The current size of the buffer.
+ * @param newSize The new size of the buffer.
+ * @param args The arguments to initialize the new values with.
  * @note Use this in methods which increase the size of the buffer to efficiently grow
  *   the capacity.
  */
@@ -281,7 +290,14 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 #endif
 }
 
-
+/**
+ * @brief Construct a new value at the end of the buffer.
+ * @tparam BUFFER The buffer type.
+ * @tparam ARGS A variadic pack of argument types.
+ * @param buf The buffer to insert into.
+ * @param size The current size of the buffer.
+ * @param args A variadic pack of parameters to construct the new value with.
+ */
 template< typename BUFFER, typename ... ARGS >
 void emplaceBack( BUFFER & buf, std::ptrdiff_t const size, ARGS && ... args )
 {
@@ -291,6 +307,15 @@ void emplaceBack( BUFFER & buf, std::ptrdiff_t const size, ARGS && ... args )
   arrayManipulation::emplaceBack( buf.data(), size, std::forward< ARGS >( args ) ... );
 }
 
+/**
+ * @brief Construct a new value at position @p pos.
+ * @tparam BUFFER The buffer type.
+ * @tparam ARGS A variadic pack of argument types.
+ * @param buf The buffer to insert into.
+ * @param size The current size of the buffer.
+ * @param pos The position to construct the values at.
+ * @param args A variadic pack of parameters to construct the new value with.
+ */
 template< typename BUFFER, typename ... ARGS >
 void emplace( BUFFER & buf,
               std::ptrdiff_t const size,
@@ -305,24 +330,25 @@ void emplace( BUFFER & buf,
 
 /**
  * @brief Insert multiple values into the buffer.
- * @tparam BUFFER the buffer type.
- * @param buf the buffer to insert into.
- * @param size the current size of the buffer.
- * @param pos the position to insert the values at.
- * @param values a pointer to the values to insert via a copy.
- * @param nVals the number of values to insert.
+ * @tparam BUFFER The buffer type.
+ * @tparam ITER An iterator type.
+ * @param buf The buffer to insert into.
+ * @param size The current size of the buffer.
+ * @param pos The position to insert the values at.
+ * @param first An iterator to the first value to insert.
+ * @param last An iterator to the end of the values to insert.
  * @return The number of values inserted.
  */
-template< typename BUFFER, typename ITERATOR >
+template< typename BUFFER, typename ITER >
 std::ptrdiff_t insert( BUFFER & buf,
                        std::ptrdiff_t const size,
                        std::ptrdiff_t const pos,
-                       ITERATOR const first,
-                       ITERATOR const last )
+                       ITER const first,
+                       ITER const last )
 {
   checkInsert( buf, size, pos );
 
-  std::ptrdiff_t const nVals = iterDistance( first, last );
+  std::ptrdiff_t const nVals = arrayManipulation::iterDistance( first, last );
   dynamicReserve( buf, size, size + nVals );
   arrayManipulation::insert( buf.data(), size, pos, first, nVals );
   return nVals;
@@ -331,8 +357,8 @@ std::ptrdiff_t insert( BUFFER & buf,
 /**
  * @brief Remove a value from the end of the buffer.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to remove from.
- * @param size the current size of the buffer.
+ * @param buf The buffer to remove from.
+ * @param size The current size of the buffer.
  */
 template< typename BUFFER >
 void popBack( BUFFER & buf, std::ptrdiff_t const size )
@@ -344,9 +370,9 @@ void popBack( BUFFER & buf, std::ptrdiff_t const size )
 /**
  * @brief Erase a value from the buffer.
  * @tparam BUFFER the buffer type.
- * @param buf the buffer to erase from.
- * @param size the current size of the buffer.
- * @param pos the position to erase.
+ * @param buf The buffer to erase from.
+ * @param size The current size of the buffer.
+ * @param pos The position to erase.
  */
 template< typename BUFFER >
 void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
@@ -361,10 +387,10 @@ void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
  * @brief Copy values from the source buffer into the destination buffer.
  * @tparam DST_BUFFER the destination buffer type.
  * @tparam SRC_BUFFER the source buffer type.
- * @param dst the destination buffer.
- * @param dstSize the size of the destination buffer.
- * @param src the source buffer.
- * @param srcSize the size of the source buffer.
+ * @param dst The destination buffer.
+ * @param dstSize The size of the destination buffer.
+ * @param src The source buffer.
+ * @param srcSize The size of the source buffer.
  */
 DISABLE_HD_WARNING
 template< typename DST_BUFFER, typename SRC_BUFFER >

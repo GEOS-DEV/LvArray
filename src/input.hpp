@@ -17,45 +17,48 @@
  */
 
 /**
- * @file streamIO.hpp
+ * @file input.hpp
+ * @brief Contains functions for creating objects from strings.
  */
 
-#ifndef ARRAYUTILITIES_HPP_
-#define ARRAYUTILITIES_HPP_
+#pragma once
 
-// SRC includes
+// Source includes
 #include "Array.hpp"
-#include "SortedArray.hpp"
-#include "ArrayOfArrays.hpp"
-#include "CRSMatrix.hpp"
 
 // System includes
 #include <string>
-#include <vector>
 #include <iostream>
 
 namespace LvArray
 {
 
 /**
- * @struct stringToArrayHelper
+ * @brief Contains functions for filling array objects from strings.
+ */
+namespace input
+{
+namespace internal
+{
+
+/**
+ * @struct StringToArrayHelper
  * @brief A helper struct to recursively read an istringstream into an array.
  */
 template< typename T, typename INDEX_TYPE >
-struct stringToArrayHelper
+struct StringToArrayHelper
 {
 
   /**
    * @brief function to skip ',' delimiters in a istringstream
    * @param inputStream The istringstream to operate on.
    */
-  static void skipDelimters( std::istringstream & inputStream )
+  static void skipDelimiters( std::istringstream & inputStream )
   {
     while( inputStream.peek() == ' ' )
     {
       inputStream.ignore();
     }
-
   }
 
   /**
@@ -92,17 +95,17 @@ struct stringToArrayHelper
 
     for( int i=0; i<(*dims); ++i )
     {
-      skipDelimters( inputStream );
+      skipDelimiters( inputStream );
       Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
     }
 
-    skipDelimters( inputStream );
+    skipDelimiters( inputStream );
     LVARRAY_ERROR_IF( inputStream.peek() != '}', "closing } not found for input array: "<<inputStream.str() );
     inputStream.ignore();
   }
 };
 
-
+} // namespace internal
 
 /**
  * @brief This function reads the contents of a string into an Array.
@@ -138,7 +141,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
     bool valueOnLeft = false;
     bool spaceOnLeft = false;
 
-    for( char const & c : valueString )
+    for( char const c : valueString )
     {
       if( c != '{' && c != ',' && c != '}' && c!=' ' )
       {
@@ -295,215 +298,8 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
   }
   std::istringstream strstream( valueString );
   // this recursively reads the values from the stringstream
-  stringToArrayHelper< T, INDEX_TYPE >::Read( array.toSlice(), array.dims(), strstream );
+  internal::StringToArrayHelper< T, INDEX_TYPE >::Read( array.toSlice(), array.dims(), strstream );
 }
 
-/**
- * @tparam T The type of the values in @p slice.
- * @tparam NDIM The number of dimensions of @p slice.
- * @tparam USD The unit stride dimension of @p slice.
- * @tparam INDEX_TYPE The integer used by @p slice.
- * @brief This function outputs the contents of an array slice to an output stream.
- * @param stream The output stream to write to.
- * @param slice The slice to output.
- * @return @p stream .
- */
-template< typename T, int NDIM, int USD, typename INDEX_TYPE >
-std::ostream & operator<<( std::ostream & stream,
-                           ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice )
-{
-  stream << "{ ";
-
-  if( slice.size( 0 ) > 0 )
-    stream << slice[ 0 ];
-
-  for( INDEX_TYPE i = 1; i < slice.size( 0 ); ++i )
-  {
-    stream << ", " << slice[ i ];
-  }
-
-  stream << " }";
-  return stream;
-}
-
-/**
- * @tparam T The type of the values in @p view.
- * @tparam NDIM The number of dimensions of @p view.
- * @tparam USD The unit stride dimension of @p view.
- * @tparam INDEX_TYPE The integer used by @p view.
- * @tparam BUFFER_TYPE The buffer type used by @p view.
- * @brief This function outputs the contents of an ArrayView to an output stream.
- * @param stream The output stream to write to.
- * @param view The view to output.
- * @return @p stream .
- */
-template< typename T,
-          int NDIM,
-          int USD,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-std::ostream & operator<<( std::ostream & stream,
-                           ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & view )
-{ return stream << view.toSliceConst(); }
-
-/**
- * @tparam T The type of the values in @p view.
- * @tparam INDEX_TYPE The integer used by @p view.
- * @brief This function outputs the contents of @p view to an output stream.
- * @param stream The output stream to write to.
- * @param view The SortedArrayView to output.
- * @return @p stream .
- */
-template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::ostream & operator<< ( std::ostream & stream,
-                            SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & view )
-{
-  if( view.size() == 0 )
-  {
-    stream << "{}";
-    return stream;
-  }
-
-  stream << "{ " << view[ 0 ];
-
-  if( view.size() > 0 )
-    stream << view[ 0 ];
-
-  for( INDEX_TYPE i = 1; i < view.size(); ++i )
-  {
-    stream << ", " << view[ i ];
-  }
-
-  stream << " }";
-  return stream;
-}
-
-/**
- * @tparam T The type of the values in @p array.
- * @tparam INDEX_TYPE The integer used by @p array.
- * @brief This function outputs the contents of @p array to an output stream.
- * @param stream The output stream to write to.
- * @param array The SortedArray to output.
- * @return @p stream .
- */
-template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::ostream & operator<< ( std::ostream & stream,
-                            SortedArray< T, INDEX_TYPE, BUFFER_TYPE > const & array )
-{ return stream << array.toViewConst(); }
-
-/**
- * @tparam T The type of the values in @p view.
- * @tparam INDEX_TYPE The integer used by @p view.
- * @brief This function outputs the contents of @p view to an output stream.
- * @param stream The output stream to write to.
- * @param view The ArrayOfArraysView to output.
- * @return @p stream .
- */
-template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::ostream & operator<< ( std::ostream & stream,
-                            ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & view )
-{
-  stream << "{" << std::endl;
-
-  for( INDEX_TYPE i = 0; i < view.size(); ++i )
-  {
-    stream << i << "\t{";
-    for( INDEX_TYPE j = 0; j < view.sizeOfArray( i ); ++j )
-    {
-      stream << view( i, j ) << ", ";
-    }
-
-    // for (INDEX_TYPE j = view.sizeOfArray(i); j < view.capacityOfArray(i); ++j)
-    // {
-    //   stream << "X" << ", ";
-    // }
-
-    stream << "}" << std::endl;
-  }
-
-  stream << "}" << std::endl;
-  return stream;
-}
-
-/**
- * @tparam T The type of the values in @p array.
- * @tparam INDEX_TYPE The integer used by @p array.
- * @brief This function outputs the contents of @p array to an output stream.
- * @param stream The output stream to write to.
- * @param array The ArrayOfArrays to output.
- * @return @p stream .
- */
-template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::ostream & operator<< ( std::ostream & stream,
-                            ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > const & array )
-{ return stream << array.toViewConst(); }
-
-/**
- * @tparam T The type of the values in @p view.
- * @tparam INDEX_TYPE The integer used by @p view.
- * @brief This function outputs the contents of @p view to an output stream.
- * @param stream The output stream to write to.
- * @param view The ArrayOfArraysView to output.
- * @return @p stream .
- */
-template< typename T, typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )
-{
-  stream << "{" << std::endl;
-
-  for( INDEX_TYPE row = 0; row < view.numRows(); ++row )
-  {
-    stream << "row " << row << std::endl;
-    stream << "\tcolumns: " << view.getColumns( row ) << std::endl;
-    stream << "\tvalues: " << view.getEntries( row ) << std::endl;
-  }
-
-  stream << "}" << std::endl;
-  return stream;
-}
-
-/**
- * @brief Output a c-array to a stream.
- * @tparam T The type contained in the array.
- * @tparam N The size of the array.
- * @param stream The output stream to write to.
- * @param array The c-array to output.
- * @return @p stream.
- */
-template< typename T, int N >
-std::enable_if_t< !std::is_same< T, char >::value, std::ostream & >
-operator<< ( std::ostream & stream, T const ( &array )[ N ] )
-{
-  stream << "{ " << array[ 0 ];
-  for( int i = 1; i < N; ++i )
-  {
-    stream << ", " << array[ i ];
-  }
-  stream << " }";
-  return stream;
-}
-
-/**
- * @brief Output a 2D c-array to a stream.
- * @tparam T The type contained in the array.
- * @tparam M The size of the first dimension.
- * @tparam N The size of the second dimension.
- * @param stream The output stream to write to.
- * @param array The 2D c-array to output.
- * @return @p stream.
- */
-template< typename T, int M, int N >
-std::ostream & operator<< ( std::ostream & stream, T const ( &array )[ M ][ N ] )
-{
-  stream << "{ " << array[ 0 ];
-  for( int i = 1; i < M; ++i )
-  {
-    stream << ", " << array[ i ];
-  }
-  stream << " }";
-  return stream;
-}
-
+} // namespace input
 } // namespace LvArray
-
-#endif /* STRINGUTILITIES_HPP_ */

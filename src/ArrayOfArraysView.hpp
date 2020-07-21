@@ -18,6 +18,7 @@
 
 /**
  * @file ArrayOfArraysView.hpp
+ * @brief Contains the implementation of LvArray::ArrayOfArraysView.
  */
 
 #pragma once
@@ -26,7 +27,8 @@
 #include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
-#include "templateHelpers.hpp"
+#include "typeManipulation.hpp"
+#include "math.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
@@ -53,9 +55,9 @@
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS2( i, j ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
-                    !arrayManipulation::isPositive( j ) || j >= this->sizeOfArray( i ), \
+                    !arrayManipulation::isPositive( j ) || j >= this->m_sizes[ i ], \
                     "Bounds Check Failed: i=" << i << " size()=" << this->size() << \
-                    " j=" << j << " sizeOfArray( i )=" << this->sizeOfArray( i ) )
+                    " j=" << j << " m_sizes[ i ]=" << this->m_sizes[ i ] )
 
 /**
  * @brief Check that @p i is a valid index to insert an array at.
@@ -170,29 +172,40 @@ namespace LvArray
  *
  * When CONST_SIZES is true m_sizes is not copied between memory spaces.
  */
-template< class T,
-          class INDEX_TYPE,
+template< typename T,
+          typename INDEX_TYPE,
           bool CONST_SIZES,
           template< typename > class BUFFER_TYPE >
 class ArrayOfArraysView
 {
+protected:
+  /// Since INDEX_TYPE should always be const we need an alias for the non const version.
+  using INDEX_TYPE_NC = std::remove_const_t< INDEX_TYPE >;
 public:
   static_assert( !std::is_const< T >::value || (std::is_const< INDEX_TYPE >::value && CONST_SIZES),
                  "When T is const INDEX_TYPE must also be const and CONST_SIZES must be true" );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
 
-  /// An alias for the type contained in the arrays.
+  /// An alias for the type contained in the inner arrays.
+  using ValueType = T;
+
+  /// The integer type used for indexing.
+  using IndexType = INDEX_TYPE;
+
+  /// An alias for the type contained in the inner arrays, here for stl compatability.
   using value_type = T;
 
-  /// Since INDEX_TYPE should always be const we need an alias for the non const version.
-  using INDEX_TYPE_NC = typename std::remove_const< INDEX_TYPE >::type;
-
-  /// An alias for the size type based on CONST_SIZES.
-  using SIZE_TYPE = std::conditional_t< CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC >;
+  /// The integer type used for indexing, here for stl compatability.
+  using size_type = INDEX_TYPE;
 
   /**
-   * @brief Default copy constructor. Performs a shallow copy and calls the
-   *   chai::ManagedArray copy constructor.
+   * @name Constructors, destructor and assignment operators
+   */
+  ///@{
+
+  /**
+   * @brief Default copy constructor.
+   * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE
    */
   ArrayOfArraysView( ArrayOfArraysView const & ) = default;
 
@@ -206,9 +219,7 @@ public:
     m_offsets( std::move( src.m_offsets ) ),
     m_sizes( std::move( src.m_sizes ) ),
     m_values( std::move( src.m_values ) )
-  {
-    src.m_numArrays = 0;
-  }
+  { src.m_numArrays = 0; }
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -233,17 +244,23 @@ public:
     return *this;
   }
 
-  /**
-   * @brief @return Return *this.
-   * @brief This is included for SFINAE needs.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES, BUFFER_TYPE > const &
-  toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  ///@}
 
   /**
-   * @brief @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T, INDEX_TYPE const, true>.
+   * @name ArrayOfArraysView creation methods
+   */
+  ///@{
+
+  /**
+   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T, INDEX_TYPE const, CONST_SIZES>.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE > const & >( *this ); }
+
+  /**
+   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T, INDEX_TYPE const, true>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const &
@@ -251,22 +268,40 @@ public:
   { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
 
   /**
-   * @brief @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T const, INDEX_TYPE const, true>.
+   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T const, INDEX_TYPE const, true>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
 
+  ///@}
+
   /**
-   * @brief @return Return the number of arrays.
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  /**
+   * @return Return the number of arrays.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC size() const LVARRAY_RESTRICT_THIS
   { return m_numArrays; }
 
   /**
-   * @brief @return Return the number of (zero length) arrays that can be stored before reallocation.
+   * @return Return the size of the given array.
+   * @param i the array to query.
+   */
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+    return m_sizes[ i ];
+  }
+
+  /**
+   * @return Return the number of (zero length) arrays that can be stored before reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITH_NDEBUG inline
   INDEX_TYPE_NC capacity() const LVARRAY_RESTRICT_THIS
@@ -276,47 +311,43 @@ public:
   }
 
   /**
-   * @brief @return Return the total number values that can be stored before reallocation.
-   */
-  LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC valueCapacity() const LVARRAY_RESTRICT_THIS
-  { return m_values.capacity(); }
-
-  /**
-   * @brief @return Return the size of the given array.
-   * @param i the array to querry.
-   */
-  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
-  {
-    ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    return m_sizes[i];
-  }
-
-  /**
-   * @brief @return Return the capacity of the given array.
-   * @param i the array to querry.
+   * @return Return the capacity of the given array.
+   * @param i the array to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    return m_offsets[i + 1] - m_offsets[i];
+    return m_offsets[ i + 1 ] - m_offsets[ i ];
   }
 
   /**
-   * @brief @return Return an ArraySlice1d to the values of the given array.
+   * @return Return the total number values that can be stored before reallocation.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  INDEX_TYPE_NC valueCapacity() const LVARRAY_RESTRICT_THIS
+  { return m_values.capacity(); }
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data
+   */
+  ///@{
+
+  /**
+   * @return Return an ArraySlice1d to the values of the given array.
    * @param i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_values.data() + m_offsets[i], &m_sizes[i], nullptr );
+    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_values.data() + m_offsets[ i ], &m_sizes[ i ], nullptr );
   }
 
   /**
-   * @brief @return Return a reference to the value at the given position in the given array.
+   * @return Return a reference to the value at the given position in the given array.
    * @param i the array to access.
    * @param j the index within the array to access.
    */
@@ -324,8 +355,15 @@ public:
   T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
-    return m_values[m_offsets[i] + j];
+    return m_values[m_offsets[ i ] + j];
   }
+
+  ///@}
+
+  /**
+   * @name Methods that modify the size of an inner array.
+   */
+  ///@{
 
   /**
    * @brief Append a value to an array.
@@ -344,7 +382,7 @@ public:
 
     T * const ptr = m_values.data() + m_offsets[ i ];
     arrayManipulation::emplaceBack( ptr, sizeOfArray( i ), std::forward< ARGS >( args ) ... );
-    m_sizes[i] += 1;
+    m_sizes[ i ] += 1;
   }
 
   /**
@@ -408,7 +446,7 @@ public:
 
     T * const ptr = m_values.data() + m_offsets[ i ];
     arrayManipulation::emplace( ptr, sizeOfArray( i ), j, std::forward< ARGS >( args )... );
-    m_sizes[i]++;
+    m_sizes[ i ]++;
   }
 
   /**
@@ -429,7 +467,7 @@ public:
                         ITER const last ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
-    INDEX_TYPE const n = iterDistance( first, last );
+    INDEX_TYPE const n = arrayManipulation::iterDistance( first, last );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, n );
 
     T * const ptr = m_values.data() + m_offsets[ i ];
@@ -450,9 +488,15 @@ public:
 
     T * const ptr = m_values.data() + m_offsets[ i ];
     arrayManipulation::erase( ptr, sizeOfArray( i ), j, n );
-    m_sizes[i] -= n;
+    m_sizes[ i ] -= n;
   }
 
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
 
   /**
    * @brief Touch the memory in @p space.
@@ -469,7 +513,7 @@ public:
    * @brief Move this ArrayOfArrays to the given memory space.
    * @param space The memory space to move to.
    * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
    */
   void move( MemorySpace const space, bool touch=true ) const
   {
@@ -481,6 +525,8 @@ public:
   #endif
     m_offsets.move( space, touch );
   }
+
+  ///@}
 
 protected:
 
@@ -502,6 +548,135 @@ protected:
   {}
 
   /**
+   * @name Methods intended to be publically aliased directly in a derived array class.
+   */
+  ///@{
+
+  /**
+   * @brief Set the number of arrays.
+   * @param newSize the new number of arrays.
+   * @param defaultArrayCapacity the default capacity for each new array.
+   */
+  void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity=0 )
+  { return resizeImpl( newSize, defaultArrayCapacity ); }
+
+  /**
+   * @brief Reserve space for the given number of arrays.
+   * @param newCapacity the new minimum capacity for the number of arrays.
+   */
+  void reserve( INDEX_TYPE const newCapacity )
+  {
+    bufferManipulation::reserve( m_offsets, m_numArrays + 1, newCapacity + 1 );
+    bufferManipulation::reserve( m_sizes, m_numArrays, newCapacity );
+  }
+
+  /**
+   * @brief Reserve space for the given number of values.
+   * @tparam BUFFERS variadic template where each type is a BUFFER_TYPE.
+   * @param newValueCapacity the new minimum capacity for the number of values across all arrays.
+   * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
+   *        similarly to m_values.
+   */
+  template< class ... BUFFERS >
+  void reserveValues( INDEX_TYPE const newValueCapacity, BUFFERS & ... buffers )
+  {
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    typeManipulation::forEachArg( [newValueCapacity, maxOffset] ( auto & buffer )
+    {
+      bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
+    }, m_values, buffers ... );
+  }
+
+  /**
+   * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
+   * @tparam BUFFERS variadic template where each type is a BUFFER_TYPE.
+   * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
+   *   similarly to m_values.
+   * @note This method doesn't free any memory.
+   */
+  template< class ... BUFFERS >
+  void compress( BUFFERS & ... buffers )
+  {
+    if( m_numArrays == 0 ) return;
+
+    for( INDEX_TYPE i = 0; i < m_numArrays - 1; ++i )
+    {
+      INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
+      INDEX_TYPE const shiftAmount = nextOffset - m_offsets[ i ] - sizeOfArray( i );
+      INDEX_TYPE const sizeOfNextArray = sizeOfArray( i + 1 );
+
+      // Shift the values in the next array down.
+      typeManipulation::forEachArg(
+        [sizeOfNextArray, nextOffset, shiftAmount] ( auto & buffer )
+      {
+        arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
+      }, m_values, buffers ... );
+
+      // And update the offsets.
+      m_offsets[ i + 1 ] -= shiftAmount;
+    }
+
+    // Update the last offset.
+    m_offsets[ m_numArrays ] = m_offsets[ m_numArrays - 1 ] + sizeOfArray( m_numArrays - 1 );
+  }
+
+  /**
+   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
+   *   of each new sub array.
+   * @param buffers A variadic pack of buffers to treat similarly to m_values.
+   */
+  template< typename POLICY, typename ... BUFFERS >
+  void resizeFromCapacities( INDEX_TYPE const numSubArrays,
+                             INDEX_TYPE const * const capacities,
+                             BUFFERS & ... buffers )
+  {
+    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
+
+  #ifdef USE_ARRAY_BOUNDS_CHECK
+    for( INDEX_TYPE i = 0; i < numSubArrays; ++i )
+    {
+      LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );
+    }
+  #endif
+
+    destroyValues( 0, m_numArrays, buffers ... );
+
+    bufferManipulation::reserve( m_sizes, m_numArrays, numSubArrays );
+    std::fill_n( m_sizes.data(), numSubArrays, 0 );
+
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
+    bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
+
+    m_offsets[ 0 ] = 0;
+    // RAJA::inclusive_scan fails on empty input range
+    if( numSubArrays > 0 )
+    {
+      // const_cast needed until for RAJA bug.
+      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
+                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+                                      m_offsets.data() + 1 );
+    }
+
+    m_numArrays = numSubArrays;
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
+    {
+      bufferManipulation::reserve( buffer, 0, maxOffset );
+    }, m_values, buffers ... );
+  }
+
+  ///@}
+
+  /**
+   * @name Methods to be used to help implement a derived classes
+   */
+  ///@{
+
+  /**
    * @brief Steal the resources of @p src, clearing it in the process.
    * @param src The ArrayOfArraysView to steal from.
    */
@@ -509,16 +684,13 @@ protected:
   { *this = std::move( src ); }
 
   /**
-   * @brief Set the number of arrays.
+   * @copydoc resize
    * @tparam BUFFERS variadic template where each type is BUFFER_TYPE.
-   * @param newSize the new number of arrays.
-   * @param defaultArrayCapacity the default capacity for each new array.
    * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
    *   similarly to m_values.
-   * @note This is to be use by the non-view derived classes.
    */
   template< typename ... BUFFERS >
-  void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ... buffers )
+  void resizeImpl( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ... buffers )
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( newSize ) );
 
@@ -548,7 +720,7 @@ protected:
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
 
         INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-        forEachArg( [totalSize, maxOffset]( auto & buffer )
+        typeManipulation::forEachArg( [totalSize, maxOffset]( auto & buffer )
         {
           bufferManipulation::reserve( buffer, maxOffset, totalSize );
         }, m_values, buffers ... );
@@ -559,68 +731,17 @@ protected:
   }
 
   /**
-   * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
-   *   Should NOT be a device policy.
-   * @brief Clears the array and creates a new array with the given number of sub-arrays.
-   * @param numSubArrays The new number of arrays.
-   * @param capacities A pointer to an array of length @p numSubArrays containing the capacity
-   *   of each new sub array.
-   * @param buffers A variadic pack of buffers to treat similarly to m_values.
-   */
-  template< typename POLICY, typename ... BUFFERS >
-  void resizeFromCapacities( INDEX_TYPE const numSubArrays,
-                             INDEX_TYPE const * const capacities,
-                             BUFFERS & ... buffers )
-  {
-    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
-
-  #ifdef USE_ARRAY_BOUNDS_CHECK
-    for( INDEX_TYPE i = 0; i < numSubArrays; ++i )
-    {
-      LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );
-    }
-  #endif
-
-    destroyValues( 0, m_numArrays, buffers ... );
-
-    bufferManipulation::reserve( m_sizes, m_numArrays, numSubArrays );
-    memset( m_sizes.data(), 0, numSubArrays * sizeof( INDEX_TYPE ) );
-
-    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
-
-    m_offsets[ 0 ] = 0;
-    // RAJA::inclusive_scan fails on empty input range
-    if( numSubArrays > 0 )
-    {
-      // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
-                                      m_offsets.data() + 1 );
-    }
-
-    m_numArrays = numSubArrays;
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    forEachArg( [ maxOffset] ( auto & buffer )
-    {
-      bufferManipulation::reserve( buffer, 0, maxOffset );
-    }, m_values, buffers ... );
-  }
-
-
-  /**
    * @brief Destroy all the objects held by this array and free all associated memory.
    * @tparam BUFFERS variadic template where each type is a BUFFER_TYPE.
    * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
    *        similarly to m_values.
-   * @note This is to be use by the non-view derived classes.
    */
   template< class ... BUFFERS >
   void free( BUFFERS & ... buffers )
   {
     destroyValues( 0, m_numArrays, buffers ... );
 
-    forEachArg( []( auto & buffer )
+    typeManipulation::forEachArg( []( auto & buffer )
     {
       buffer.free();
     }, m_sizes, m_offsets, m_values, buffers ... );
@@ -638,7 +759,6 @@ protected:
    * @param srcValues the source values array.
    * @param pairs variadic parameter pack where each argument is an PairOfBuffers where each pair
    *   should be treated similarly to {m_values, srcValues}.
-   * @note This is to be use by the non-view derived classes.
    */
   template< class ... PAIRS_OF_BUFFERS >
   void setEqualTo( INDEX_TYPE const srcNumArrays,
@@ -656,88 +776,27 @@ protected:
     bufferManipulation::copyInto( m_sizes, m_numArrays, srcSizes, srcNumArrays );
 
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
+    typeManipulation::forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
     {
       bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
     }, m_values, pairs.first ... );
 
     m_numArrays = srcNumArrays;
 
-    forEachArg( [this] ( auto & pair )
+    typeManipulation::forEachArg( [this] ( auto & pair )
     {
       auto & dstBuffer = pair.first;
       auto const & srcBuffer = pair.second;
 
       for( INDEX_TYPE_NC i = 0; i < m_numArrays; ++i )
       {
-        INDEX_TYPE const offset = m_offsets[i];
+        INDEX_TYPE const offset = m_offsets[ i ];
         INDEX_TYPE const arraySize = sizeOfArray( i );
-        arrayManipulation::uninitializedCopy( &srcBuffer[ offset ], &srcBuffer[ offset ] + arraySize, &dstBuffer[ offset ] );
+        arrayManipulation::uninitializedCopy( &srcBuffer[ offset ],
+                                              &srcBuffer[ offset ] + arraySize,
+                                              &dstBuffer[ offset ] );
       }
     }, PairOfBuffers< T >( m_values, srcValues ), pairs ... );
-  }
-
-  /**
-   * @brief Compress the arrays so that the values of each array are contiguous with no extra capacity in between.
-   * @tparam BUFFERS variadic template where each type is a BUFFER_TYPE.
-   * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
-   *   similarly to m_values.
-   * @note This is to be use by the non-view derived classes.
-   * @note This method doesn't free any memory.
-   */
-  template< class ... BUFFERS >
-  void compress( BUFFERS & ... buffers )
-  {
-    if( m_numArrays == 0 ) return;
-
-    for( INDEX_TYPE i = 0; i < m_numArrays - 1; ++i )
-    {
-      INDEX_TYPE const nextOffset = m_offsets[ i + 1 ];
-      INDEX_TYPE const shiftAmount = nextOffset - m_offsets[ i ] - sizeOfArray( i );
-      INDEX_TYPE const sizeOfNextArray = sizeOfArray( i + 1 );
-
-      // Shift the values in the next array down.
-      forEachArg(
-        [sizeOfNextArray, nextOffset, shiftAmount] ( auto & buffer )
-      {
-        arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
-      },
-        m_values, buffers ...
-        );
-
-      // And update the offsets.
-      m_offsets[ i + 1 ] -= shiftAmount;
-    }
-
-    // Update the last offset.
-    m_offsets[ m_numArrays ] = m_offsets[ m_numArrays - 1 ] + sizeOfArray( m_numArrays - 1 );
-  }
-
-  /**
-   * @brief Reserve space for the given number of arrays.
-   * @param newCapacity the new minimum capacity for the number of arrays.
-   */
-  void reserve( INDEX_TYPE const newCapacity )
-  {
-    bufferManipulation::reserve( m_offsets, m_numArrays + 1, newCapacity + 1 );
-    bufferManipulation::reserve( m_sizes, m_numArrays, newCapacity );
-  }
-
-  /**
-   * @brief Reserve space for the given number of values.
-   * @tparam BUFFERS variadic template where each type is a BUFFER_TYPE.
-   * @param newValueCapacity the new minimum capacity for the number of values across all arrays.
-   * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
-   *        similarly to m_values.
-   */
-  template< class ... BUFFERS >
-  void reserveValues( INDEX_TYPE const newValueCapacity, BUFFERS & ... buffers )
-  {
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    forEachArg( [newValueCapacity, maxOffset] ( auto & buffer )
-    {
-      bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
-    }, m_values, buffers ... );
   }
 
   /**
@@ -746,8 +805,7 @@ protected:
    * @param i the array to set the capacity of.
    * @param newCapacity the value to set the capacity of the given array to.
    * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
-   *        similarly to m_values.
-   * @note This is to be use by the non-view derived classes.
+   *   similarly to m_values.
    */
   template< class ... BUFFERS >
   void setCapacityOfArray( INDEX_TYPE const i, INDEX_TYPE const newCapacity, BUFFERS & ... buffers )
@@ -762,7 +820,7 @@ protected:
     if( capacityIncrease > 0 )
     {
       INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-      forEachArg(
+      typeManipulation::forEachArg(
         [this, i, maxOffset, capacityIncrease]( auto & buffer )
       {
         // Increase the size of the buffer.
@@ -781,14 +839,14 @@ protected:
     }
     else
     {
-      INDEX_TYPE const arrayOffset = m_offsets[i];
+      INDEX_TYPE const arrayOffset = m_offsets[ i ];
       INDEX_TYPE const capacityDecrease = -capacityIncrease;
 
       INDEX_TYPE const prevArraySize = sizeOfArray( i );
-      INDEX_TYPE const newArraySize = min( prevArraySize, newCapacity );
+      INDEX_TYPE const newArraySize = math::min( prevArraySize, newCapacity );
 
-      m_sizes[i] = newArraySize;
-      forEachArg(
+      m_sizes[ i ] = newArraySize;
+      typeManipulation::forEachArg(
         [this, i, capacityDecrease, arrayOffset, newArraySize, prevArraySize] ( auto & buffer )
       {
         // Delete the values at the end of the array.
@@ -831,17 +889,19 @@ protected:
     m_values.template setName< U >( name + "/m_values" );
   }
 
+  ///@}
+
   /// The number of arrays contained.
   INDEX_TYPE_NC m_numArrays = 0;
 
   /// Holds the offset of each array, of length m_numArrays + 1. Array i begins at
-  /// m_offsets[i] and has capacity m_offsets[i+1] - m_offsets[i].
+  /// m_offsets[ i ] and has capacity m_offsets[i+1] - m_offsets[ i ].
   BUFFER_TYPE< INDEX_TYPE > m_offsets;
 
   /// Holds the size of each array.
-  BUFFER_TYPE< SIZE_TYPE > m_sizes;
+  BUFFER_TYPE< std::conditional_t< CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC > > m_sizes;
 
-  /// Holds the values of each array. Values in the range [m_offsets[i], m_offsets[i] + m_sizes[i])
+  /// Holds the values of each array. Values in the range [m_offsets[ i ], m_offsets[ i ] + m_sizes[ i ])
   /// are valid. All other entries contain uninitialized values.
   BUFFER_TYPE< T > m_values;
 
@@ -853,9 +913,9 @@ private:
    * @param begin the array to start with.
    * @param end where to stop destroying values.
    * @param buffers variadic parameter pack where each argument is a BUFFER_TYPE that should be treated
-   *        similarly to m_values.
+   *   similarly to m_values.
    * @note This is to be use by the non-view derived classes.
-   * @note This method doesn't free any memory.
+   * @note This doesn't free any memory.
    */
   template< class ... BUFFERS >
   void destroyValues( INDEX_TYPE const begin, INDEX_TYPE const end, BUFFERS & ... buffers )
@@ -864,12 +924,12 @@ private:
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( end );
 
     // If the values aren't trivially destructable then the data needs to be moved back to the host.
-    // This moves sizes, offsets and values. BUFFERS ... buffers are moved inside the loop.
-    if( !all_of_t< std::is_trivially_destructible< T >,
-                   std::is_trivially_destructible< typename BUFFERS::value_type > ... >::value )
+    // This moves m_sizes and m_offsets, m_values and buffers are moved inside the loop.
+    if( !typeManipulation::all_of_t< std::is_trivially_destructible< T >,
+                                     std::is_trivially_destructible< typename BUFFERS::value_type > ... >::value )
     { move( MemorySpace::CPU, true ); }
 
-    forEachArg( [this, begin, end] ( auto & buffer )
+    typeManipulation::forEachArg( [this, begin, end] ( auto & buffer )
     {
       if( !std::is_trivially_destructible< decltype( buffer[ 0 ] ) >::value )
       {

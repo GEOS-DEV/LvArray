@@ -20,19 +20,17 @@
  * @file tv_helpers.hpp
  */
 
-#ifndef CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_TOTALVIEW_TV_HELPERS_HPP_
-#define CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_TOTALVIEW_TV_HELPERS_HPP_
+#pragma once
 
 // Source includes
-#include "../StringUtilities.hpp"
+#include "../system.hpp"
 
 // TPL include
 #include <typeinfo>
 
 /**
- * @namespace This namespace is used to encapsulate functions that are used by the implementation
- *            of the totalview c++ view for data inspection within totalview.
- * @return
+ * @brief Contains functions that are used by the implementation of the
+ *   totalview c++ view for data inspection within totalview.
  */
 namespace totalview
 {
@@ -49,7 +47,7 @@ namespace totalview
 template< typename TYPE, typename INDEX_TYPE >
 std::string format( int NDIM, INDEX_TYPE const * const dims )
 {
-  std::string rval = LvArray::demangleType< TYPE >();
+  std::string rval = LvArray::system::demangleType< TYPE >();
   for( int i=0; i<NDIM; ++i )
   {
     rval += "["+std::to_string( dims[i] )+"]";
@@ -58,6 +56,3 @@ std::string format( int NDIM, INDEX_TYPE const * const dims )
 }
 
 }
-
-
-#endif /* CORECOMPONENTS_CXX_UTILITIES_SRC_SRC_TOTALVIEW_TV_HELPERS_HPP_ */

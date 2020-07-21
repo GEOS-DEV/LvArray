@@ -18,10 +18,10 @@
 
 /**
  * @file sliceHelpers.hpp
+ * @brief Contains functions for interacting with ArraySlices of arbitrary dimension.
  */
 
-#ifndef SLICE_HELPERS_HPP_
-#define SLICE_HELPERS_HPP_
+#pragma once
 
 // Source includes
 #include "ArraySlice.hpp"
@@ -86,8 +86,8 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
  * @tparam INDEX_TYPE the integer used to index into @p slice.
  * @tparam INDICES variadic pack of indices.
  * @tparam LAMBDA the type of the function @p f to apply.
- * @brief Iterate over the values in the slice in lexicographic order, passing the indices as well as the value to the
- * lambda.
+ * @brief Iterate over the values in the slice in lexicographic order, passing the indices as well
+ *   as the value to the lambda.
  * @param slice The slice to iterate over.
  * @param f The lambda to apply to each value.
  * @param indices The previous sliced off indices.
@@ -154,5 +154,3 @@ void sumOverFirstDimension( ArraySlice< T const, NDIM, USD_SRC, INDEX_TYPE > con
 }
 
 } // namespace LvArray
-
-#endif /// SLICE_HELPERS_HPP_

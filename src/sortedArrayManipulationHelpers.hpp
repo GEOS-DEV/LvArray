@@ -18,13 +18,12 @@
 
 /**
  * @file sortedArrayManipulationHelpers.hpp
- * These routines were ripped from the gcc standard library
- *(https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/)
- * almost entirely from stl_heap.h and stl_algo.h.
+ * @brief Contains helper functions for the sortedArrayManipulation routines.
+ *   Much of this was adapted from stl_heap.h and stl_algo.h of the gcc standard library
+ *   See https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/
  */
 
-#ifndef SORTEDARRAYMANIPULATIONHELPERS_HPP_
-#define SORTEDARRAYMANIPULATIONHELPERS_HPP_
+#pragma once
 
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
@@ -95,11 +94,13 @@ struct DualIteratorAccessor
 
     /**
      * @brief Deleted copy assignment operator.
+     * @return *this.
      */
     inline Temporary & operator=( Temporary const & ) = delete;
 
     /**
      * @brief Deleted move assignment operator.
+     * @return *this.
      */
     inline Temporary & operator=( Temporary && ) = delete;
 
@@ -129,22 +130,24 @@ struct DualIteratorAccessor
   /**
    * @brief Delete the copy constructor.
    */
-  DualIteratorAccessor( DualIteratorAccessor const & src ) = delete;
+  DualIteratorAccessor( DualIteratorAccessor const & ) = delete;
 
   /**
    * @brief Default the move constructor.
    */
   DISABLE_HD_WARNING
-  inline DualIteratorAccessor( DualIteratorAccessor && src ) = default;
+  inline DualIteratorAccessor( DualIteratorAccessor && ) = default;
 
   /**
    * @brief Delete the default copy assignment operator.
+   * @return *this.
    */
-  DualIteratorAccessor & operator=( DualIteratorAccessor const & src ) = delete;
+  DualIteratorAccessor & operator=( DualIteratorAccessor const & ) = delete;
 
   /**
    * @brief Move assignment operator that moves the values of src into the values of this.
    * @param src the DualIteratorAccessor to move from.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIteratorAccessor & operator=( DualIteratorAccessor && src ) LVARRAY_RESTRICT_THIS
@@ -157,6 +160,7 @@ struct DualIteratorAccessor
   /**
    * @brief Move assignment operator that moves the values of src into the values of this.
    * @param src the Temporary to move from.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE DualIteratorAccessor & operator=( Temporary && src ) LVARRAY_RESTRICT_THIS
@@ -194,9 +198,10 @@ struct DualIteratorComparator
   {}
 
   /**
-   * @brief Compare lhs with rhs using their first values.
+   * @brief Compare @p lhs with @p rhs using their first values.
    * @param lhs a DualIteratorAccessor of the first object to compare.
    * @param rhs a DualIteratorAccessor of the second object to compare.
+   * @return The result of the comparison of @p lhs with @p rhs using their first values.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( DualIteratorAccessor< A, B > const & lhs,
@@ -204,9 +209,10 @@ struct DualIteratorComparator
   { return m_compare( lhs.m_a, rhs.m_a ); }
 
   /**
-   * @brief Compare lhs with rhs using their first values.
+   * @brief Compare @p lhs with @p rhs using their first values.
    * @param lhs a DualIteratorAccessor::Temporary of the first object to compare.
    * @param rhs a DualIteratorAccessor of the second object to compare.
+   * @return The result of the comparison of @p lhs with @p rhs using their first values.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator()( typename DualIteratorAccessor< A, B >::Temporary const & lhs,
@@ -252,32 +258,39 @@ public:
   {}
 
   /**
-   * @brief Default copy constructor.
+   * @brief Default assignment operator constructor.
+   * @param src The DualIterator to copy.
    */
   DISABLE_HD_WARNING
   inline DualIterator( DualIterator const & src ) = default;
 
   /**
    * @brief Default move constructor.
+   * @param src The DualIterator to move from.
    */
   DISABLE_HD_WARNING
   inline DualIterator( DualIterator && src ) = default;
 
   /**
    * @brief Default copy assignment operator.
+   * @param src The DualIterator to copy.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   inline DualIterator & operator=( DualIterator const & src ) = default;
 
   /**
    * @brief Default move assignment operator.
-   */
+   * @param src The DualIterator to move from.
+   * @return *this.
+   * */
   DISABLE_HD_WARNING
   inline DualIterator & operator=( DualIterator && src ) = default;
 
   /**
    * @brief Return a new DualIterator where both of the underlying iterators have been incremented by offset.
    * @param offset the value to increment the iterators by.
+   * @return A new DualIterator where both of the underlying iterators have been incremented by offset.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator operator+( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
@@ -286,6 +299,7 @@ public:
   /**
    * @brief Increment the underlying iterators by offset and return a reference to *this.
    * @param offset the value to increment the iterators by.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator+=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
@@ -297,6 +311,7 @@ public:
 
   /**
    * @brief Increment the underlying iterators by 1 and return a reference to *this.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator++() LVARRAY_RESTRICT_THIS
@@ -307,8 +322,9 @@ public:
   }
 
   /**
-   * @brief Return the distance between *this and the given DualIterator.
+   * @brief Return the distance between *this and @p rhs.
    * @param rhs the DualIterator to find the distance between.
+   * @return The distance between *this and the @p rhs.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline std::ptrdiff_t operator-( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
@@ -319,16 +335,18 @@ public:
   }
 
   /**
-   * @brief Return a new DualIterator where both of the underlying iterators have been decrement by offset.
+   * @brief Return a new DualIterator where both of the underlying iterators have been decrement by @p offset.
    * @param offset the value to decrement the iterators by.
+   * @return A new DualIterator where both of the underlying iterators have been decrement by @p offset.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator operator-( std::ptrdiff_t const offset ) const LVARRAY_RESTRICT_THIS
   { return *this + (-offset); }
 
   /**
-   * @brief Decrement the underlying iterators by offset and return a reference to *this.
+   * @brief Decrement the underlying iterators by @p offset and return a reference to *this.
    * @param offset the value to decrement the iterators by.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator-=( std::ptrdiff_t const offset ) LVARRAY_RESTRICT_THIS
@@ -336,6 +354,7 @@ public:
 
   /**
    * @brief Decrement the underlying iterators by 1 and return a reference to *this.
+   * @return *this.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIterator & operator--() LVARRAY_RESTRICT_THIS
@@ -346,16 +365,18 @@ public:
   }
 
   /**
-   * @brief Return true if rhs does not point to the same values.
+   * @brief Return true if @p rhs does not point to the same values.
    * @param rhs the DualIterator to compare against.
+   * @return True if @p rhs does not point to the same values.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator!=( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
   { return m_itA != rhs.m_itA; }
 
   /**
-   * @brief Return true if is less than this.
+   * @brief Return true if this less than @p rhs.
    * @param rhs the DualIterator to compare against.
+   * @return True if this less than @p rhs.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline bool operator<( DualIterator const & rhs ) const LVARRAY_RESTRICT_THIS
@@ -363,20 +384,22 @@ public:
 
   /**
    * @brief Return a DualIteratorAccessor to the two values at which m_itA and m_itB point at.
+   * @return A DualIteratorAccessor to the two values at which m_itA and m_itB point at.
    */
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline DualIteratorAccessor< A, B > operator*() const LVARRAY_RESTRICT_THIS
   { return DualIteratorAccessor< A, B >( *m_itA, *m_itB ); }
 
   /**
-   * @tparam Compare the type of the comparison method.
    * @brief Return a new Comparator which will compare two DualIteratorAccessors using the given comparison.
+   * @tparam Compare the type of the comparison method.
    * @param comp the comparison to wrap.
+   * @return A new Comparator which will compare two DualIteratorAccessors using the given comparison.
    */
   DISABLE_HD_WARNING
   template< class Compare >
-  LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare comp ) const LVARRAY_RESTRICT_THIS
-  { return DualIteratorComparator< A, B, Compare >( comp ); }
+  LVARRAY_HOST_DEVICE inline DualIteratorComparator< A, B, Compare > createComparator( Compare && comp ) const LVARRAY_RESTRICT_THIS
+  { return DualIteratorComparator< A, B, Compare >( std::forward< Compare >( comp ) ); }
 
 private:
   /// The first iterator.
@@ -391,6 +414,7 @@ private:
  * @tparam T the type of the value to create.
  * @brief Return a temporary object holding the value of a.
  * @param a the value to move.
+ * @return Return a temporary object holding the value of a.
  */
 DISABLE_HD_WARNING
 template< class T >
@@ -400,10 +424,11 @@ LVARRAY_HOST_DEVICE inline T && createTemporary( T & a )
 }
 
 /**
+ * @brief Return a temporary object holding the values held in the DualIteratorAccessor.
  * @tparam A the type of the first value in the DualIteratorAccessor.
  * @tparam B the type of the second value in the DualIteratorAccessor.
- * @brief Return a temporary object holding the values held in the DualIteratorAccessor.
  * @param it the DualIteratorAccessor to move from.
+ * @return Return a temporary object holding the values held in the DualIteratorAccessor.
  */
 DISABLE_HD_WARNING
 template< class A, class B >
@@ -500,8 +525,7 @@ LVARRAY_HOST_DEVICE inline void computeMedian( Iterator result, Iterator a, Iter
  * @param last iterator to the end of the range to partition.
  * @param pivot iterator to the value to use as a pivot.
  * @param comp the comparison method to use.
- * @return a RandomAccessIterator.
- *
+ * @return An iterator to pivot.
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
@@ -534,13 +558,13 @@ LVARRAY_HOST_DEVICE inline RandomAccessIterator unguardedPartition( RandomAccess
 }
 
 /**
+ * @brief Partition the range [first, last).
  * @tparam RandomAccessIterator a random access iterator type.
  * @tparam Compare the type of the comparison method.
- * @brief Partition the range [first, last).
  * @param first iterator to the beginning of the range to partition.
  * @param last iterator to the end of the range to partition.
  * @param comp the comparison method to use.
- *
+ * @return An iterator to pivot.
  * @note This method was adapted from the gcc standard libarary header stl_algo.h
  *       which can be found at https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/include/bits/.
  */
@@ -654,5 +678,3 @@ LVARRAY_HOST_DEVICE inline void introsortLoop( RandomAccessIterator first, Rando
 } // namespace internal
 } // namespace sortedArrayManipulation
 } // namespace LvArray
-
-#endif // SORTEDARRAYMANIPULATIONHELPERS_HPP_

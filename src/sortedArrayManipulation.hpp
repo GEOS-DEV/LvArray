@@ -18,13 +18,12 @@
 
 /**
  * @file sortedArrayManipulation.hpp
- * This file contains common sorted array manipulation routines.
- * Aside from the functions that take a callback every function assumes that
- * the array has a capacity large enough for the given operation.
+ * @brief This file contains common sorted array manipulation routines.
+ *   Aside from the functions that take a callback every function assumes that
+ *   the array has a capacity large enough for the given operation.
  */
 
-#ifndef SORTEDARRAYMANIPULATION_HPP_
-#define SORTEDARRAYMANIPULATION_HPP_
+#pragma once
 
 // Source includes
 #include "Macros.hpp"
@@ -37,6 +36,13 @@
 
 namespace LvArray
 {
+
+/**
+ * @brief Contains functions for operating on a contiguous sorted unique array of values.
+ * @details Most functions accept a pointer and a size as the first two arguments. Values
+ *   in this range are expected to be in a valid state and sorted unique.
+ *   Values past the end of the array are expected to be uninitialized.
+ */
 namespace sortedArrayManipulation
 {
 
@@ -53,7 +59,7 @@ enum Description
 };
 
 /**
- * @brief @return True if @p desc describes an array that is sorted.
+ * @return True if @p desc describes an array that is sorted.
  * @param desc The Description to query.
  */
 LVARRAY_HOST_DEVICE constexpr inline
@@ -61,7 +67,7 @@ bool isSorted( Description const desc )
 { return desc == SORTED_UNIQUE || desc == SORTED_WITH_DUPLICATES; }
 
 /**
- * @brief @return True if @p desc describes an array that contains no duplicates.
+ * @return True if @p desc describes an array that contains no duplicates.
  * @param desc the Description to query.
  */
 LVARRAY_HOST_DEVICE constexpr inline
@@ -171,7 +177,7 @@ template< typename T >
 struct less
 {
   /**
-   * @brief @return Return @p lhs < @p rhs.
+   * @return Return @p lhs < @p rhs.
    * @param lhs The left side of the comparison.
    * @param rhs The right side of the comparison.
    */
@@ -190,7 +196,7 @@ template< typename T >
 struct greater
 {
   /**
-   * @brief @return Return @p lhs > @p rhs.
+   * @return Return @p lhs > @p rhs.
    * @param lhs The left side of the comparison.
    * @param rhs The right side of the comparison.
    */
@@ -212,7 +218,9 @@ struct greater
 DISABLE_HD_WARNING
 template< typename RandomAccessIterator,
           typename Compare=less< typename std::iterator_traits< RandomAccessIterator >::value_type > >
-LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator first, RandomAccessIterator last, Compare && comp=Compare() )
+LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator const first,
+                                            RandomAccessIterator const last,
+                                            Compare && comp=Compare() )
 {
 #ifdef __CUDA_ARCH__
   if( last - first > internal::INTROSORT_THRESHOLD )
@@ -260,7 +268,7 @@ LVARRAY_HOST_DEVICE inline void dualSort( RandomAccessIteratorA valueFirst, Rand
 /**
  * @tparam ITER The type of the iterator to the values to check.
  * @tparam Compare The type of the comparison function, defaults to less.
- * @brief @return Return true if the given array is sorted using comp.
+ * @return Return true if the given array is sorted using comp.
  * @param first Iterator to the beginning of the values to check.
  * @param last Iterator to the end of the values to check.
  * @param comp The comparison method to use.
@@ -307,7 +315,7 @@ bool isSorted( ITER first, ITER const last, Compare && comp=Compare() )
 DISABLE_HD_WARNING
 template< typename ITER, typename Compare=less< typename std::iterator_traits< ITER >::value_type > >
 LVARRAY_HOST_DEVICE inline
-std::ptrdiff_t removeDuplicates( ITER first, ITER last, Compare && comp=Compare() )
+std::ptrdiff_t removeDuplicates( ITER first, ITER const last, Compare && comp=Compare() )
 {
   LVARRAY_ASSERT( isSorted( first, last, comp ) );
 
@@ -358,7 +366,7 @@ std::ptrdiff_t makeSortedUnique( ITER const first, ITER const last, Compare && c
 /**
  * @tparam ITER An iterator type.
  * @tparam Compare The type of the comparison function, defaults to less.
- * @brief @return Return true iff [ @p first, @p last ) is sorted under @p comp and contains no values which compare
+ * @return Return true iff [ @p first, @p last ) is sorted under @p comp and contains no values which compare
  * equal.
  * @param first Iterator to the beginning of the values.
  * @param last Iterator to the end of the values.
@@ -393,7 +401,7 @@ bool isSortedUnique( ITER first, ITER const last, Compare && comp=Compare() )
 /**
  * @tparam T the type of values in the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
- * @brief @return Return the index of the first value in the array that compares not less
+ * @return Return the index of the first value in the array that compares not less
  *   than @p value or @p size if no such element can be found.
  * @param ptr Pointer to the array, must be sorted under comp.
  * @param size The size of the array.
@@ -434,7 +442,7 @@ std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
 /**
  * @tparam T the type of values in the array.
  * @tparam Compare the type of the comparison function, defaults to less<T>.
- * @brief @return Return true if @p value is contained in the array.
+ * @return Return true if @p value is contained in the array.
  * @param ptr Pointer to the array, must be sorted under comp.
  * @param size The size of the array.
  * @param value The value to find.
@@ -684,7 +692,7 @@ std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
   // Special case for inserting into an empty array.
   if( size == 0 )
   {
-    std::ptrdiff_t numInserted = iterDistance( first, last );
+    std::ptrdiff_t numInserted = arrayManipulation::iterDistance( first, last );
     T * const newPtr = callBacks.incrementSize( ptr, numInserted );
 
     numInserted = 0;
@@ -755,5 +763,3 @@ std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
 
 } // namespace sortedArrayManipulation
 } // namespace LvArray
-
-#endif // SORTEDARRAYMANIPULATION_HPP_

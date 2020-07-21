@@ -16,14 +16,19 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+/**
+ * @file ChaiBuffer.hpp
+ * @brief Contains the implementation of LvArray::ChaiBuffer.
+ */
+
 #pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
-#include "templateHelpers.hpp"
+#include "typeManipulation.hpp"
 #include "arrayManipulation.hpp"
-#include "StringUtilities.hpp"
+#include "system.hpp"
 #include "bufferManipulation.hpp"
 
 // TPL includes
@@ -39,15 +44,22 @@ namespace LvArray
 namespace internal
 {
 
+/**
+ * @return The chai::ArrayManager instance.
+ */
 inline chai::ArrayManager & getArrayManager()
 {
   static chai::ArrayManager & arrayManager = *chai::ArrayManager::getInstance();
   return arrayManager;
 }
 
-// CHAI is not threadsafe so we use a lock to serialize access.
+/// chai is not threadsafe so we use a lock to serialize access.
 static std::mutex chaiLock;
 
+/**
+ * @return The chai::ExecutionSpace corresponding to @p space.
+ * @param space The MemorySpace to convert.
+ */
 inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 {
   if( space == MemorySpace::NONE )
@@ -64,6 +76,10 @@ inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
   return chai::NONE;
 }
 
+/**
+ * @return The MemorySpace corresponding to @p space.
+ * @param space The chai::ExecutionSpace to convert.
+ */
 inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
 {
   if( space == chai::NONE )
@@ -84,11 +100,11 @@ inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
 
 /**
  * @tparam T type of data that is contained in the buffer.
- * @class NewChaiBuffer
+ * @class ChaiBuffer
  * @brief Implements the Buffer interface using CHAI.
- * @details The NewChaiBuffer's allocation can exist in multiple memory spaces. If the chai
+ * @details The ChaiBuffer's allocation can exist in multiple memory spaces. If the chai
  *   execution space is set the copy constructor will ensure that the newly constructed
- *   NewChaiBuffer's pointer points to memory in that space. If the memory does
+ *   ChaiBuffer's pointer points to memory in that space. If the memory does
  *   exist it will be allocated and the data copied over. If the memory exists but the data has been
  *   touched (modified) in the current space it will be copied over. The data is touched in the
  *   new space if T is non const and is not touched if T is const.
@@ -96,26 +112,26 @@ inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
  *   of the source. Similarly the destructor does not free the allocation.
  */
 template< typename T >
-class NewChaiBuffer
+class ChaiBuffer
 {
 public:
 
   /// Alias for T used used in the bufferManipulation functions.
   using value_type = T;
 
-  /// A flag indicating that the NewChaiBuffer's copy semantics are shallow.
+  /// A flag indicating that the ChaiBuffer's copy semantics are shallow.
   constexpr static bool hasShallowCopy = true;
 
   /// An alias for the non const version of T.
   using T_non_const = std::remove_const_t< T >;
 
   /**
-   * @brief Default constructor, creates an uninitialized NewChaiBuffer.
-   * @details An uninitialized NewChaiBuffer is an undefined state and may only be assigned to.
-   *   An uninitialized NewChaiBuffer holds no recources and does not need to be free'd.
+   * @brief Default constructor, creates an uninitialized ChaiBuffer.
+   * @details An uninitialized ChaiBuffer is an undefined state and may only be assigned to.
+   *   An uninitialized ChaiBuffer holds no recources and does not need to be free'd.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  NewChaiBuffer():
+  ChaiBuffer():
     m_pointer( nullptr ),
     m_capacity( 0 ),
     m_pointer_record( nullptr )
@@ -126,7 +142,7 @@ public:
    * @details An empty buffer may hold resources and needs to be free'd.
    * @note The unused boolean parameter is to distinguish this from default constructor.
    */
-  NewChaiBuffer( bool ):
+  ChaiBuffer( bool ):
     m_pointer( nullptr ),
     m_capacity( 0 ),
     m_pointer_record( new chai::PointerRecord{} )
@@ -147,7 +163,7 @@ public:
    *   is set *this will contain a pointer the the allocation in that space.
    */
   LVARRAY_HOST_DEVICE inline
-  NewChaiBuffer( NewChaiBuffer const & src ):
+  ChaiBuffer( ChaiBuffer const & src ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
@@ -158,14 +174,14 @@ public:
   }
 
   /**
-   * @copydoc NewChaiBuffer( NewChaiBuffer const & )
+   * @copydoc ChaiBuffer( ChaiBuffer const & )
    * @param size The number of values in the allocation.
    * @note In addition to performing a shallow copy of @p src if the chai execution space
    *   is set *this will contain a pointer the the allocation in that space. It will also
    *   move any nested objects.
    */
   LVARRAY_HOST_DEVICE inline
-  NewChaiBuffer( NewChaiBuffer const & src, std::ptrdiff_t const size ):
+  ChaiBuffer( ChaiBuffer const & src, std::ptrdiff_t const size ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
@@ -179,10 +195,10 @@ public:
 
   /**
    * @brief Move constructor.
-   * @param src The NewChaiBuffer to be moved from, is uninitialized after this call.
+   * @param src The ChaiBuffer to be moved from, is uninitialized after this call.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  NewChaiBuffer( NewChaiBuffer && src ):
+  ChaiBuffer( ChaiBuffer && src ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
     m_pointer_record( src.m_pointer_record )
@@ -194,11 +210,11 @@ public:
 
   /**
    * @brief Copy assignment operator.
-   * @param src The NewChaiBuffer to be copied.
+   * @param src The ChaiBuffer to be copied.
    * @return *this.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  NewChaiBuffer & operator=( NewChaiBuffer const & src )
+  ChaiBuffer & operator=( ChaiBuffer const & src )
   {
     m_capacity = src.m_capacity;
     m_pointer = src.m_pointer;
@@ -208,11 +224,11 @@ public:
 
   /**
    * @brief Move assignment operator.
-   * @param src The NewChaiBuffer to be moved from, is uninitialized after this call.
+   * @param src The ChaiBuffer to be moved from, is uninitialized after this call.
    * @return *this.
    */
   LVARRAY_HOST_DEVICE inline constexpr
-  NewChaiBuffer & operator=( NewChaiBuffer && src )
+  ChaiBuffer & operator=( ChaiBuffer && src )
   {
     m_capacity = src.m_capacity;
     m_pointer = src.m_pointer;
@@ -276,14 +292,14 @@ public:
   }
 
   /**
-   * @brief @return Return the capacity of the buffer.
+   * @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   std::ptrdiff_t capacity() const
   { return m_capacity; }
 
   /**
-   * @brief @return Return a pointer to the beginning of the buffer.
+   * @return Return a pointer to the beginning of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
@@ -291,7 +307,7 @@ public:
 
   /**
    * @tparam INDEX_TYPE the type used to index into the values.
-   * @brief @return The value at position @p i .
+   * @return The value at position @p i .
    * @param i The position of the value to access.
    * @note No bounds checks are performed.
    */
@@ -374,16 +390,16 @@ public:
    * @brief Set the name associated with this buffer which is used in the chai callback.
    * @param name the of the buffer.
    */
-  template< typename U=NewChaiBuffer< T > >
+  template< typename U=ChaiBuffer< T > >
   void setName( std::string const & name )
   {
-    std::string const typeString = LvArray::demangle( typeid( U ).name() );
+    std::string const typeString = LvArray::system::demangleType< U >();
     m_pointer_record->m_user_callback =
       [name, typeString]( chai::PointerRecord const * const record, chai::Action const act, chai::ExecutionSpace const s )
     {
       if( act == chai::ACTION_MOVE )
       {
-        std::string const size = LvArray::calculateSize( record->m_size );
+        std::string const size = system::calculateSize( record->m_size );
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
@@ -399,6 +415,7 @@ private:
    * @param space The memory space to move to.
    * @param size The number of values to move.
    * @param touch If the inner values should be touched or not.
+   * @return void.
    * @note This method is only active when T has a method move( MemorySpace ).
    */
   template< typename U=T_non_const >
@@ -416,6 +433,7 @@ private:
   /**
    * @tparam U A dummy parameter to enable SFINAE, do not specify.
    * @brief Move inner allocations to the memory space @p space.
+   * @return void.
    * @note This method is only active when T does not have a method move( MemorySpace ).
    */
   template< typename U=T_non_const >

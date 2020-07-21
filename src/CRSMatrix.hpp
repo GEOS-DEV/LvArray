@@ -18,10 +18,10 @@
 
 /**
  * @file CRSMatrix.hpp
+ * @brief Contains the implementation of LvArray::CRSMatrix.
  */
 
-#ifndef CRSMATRIX_HPP_
-#define CRSMATRIX_HPP_
+#pragma once
 
 #include "CRSMatrixView.hpp"
 #include "arrayManipulation.hpp"
@@ -51,25 +51,14 @@ class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE 
 
 public:
 
-  /// An alias for the type of the entries in the matrix.
-  using value_type = T;
+  using typename ParentClass::EntryType;
+  using typename ParentClass::ColType;
+  using typename ParentClass::IndexType;
 
-  // Aliasing public methods of CRSMatrixView.
-  using ParentClass::numRows;
-  using ParentClass::numColumns;
-  using ParentClass::numNonZeros;
-  using ParentClass::nonZeroCapacity;
-  using ParentClass::empty;
-  using ParentClass::getColumns;
-  using ParentClass::getOffsets;
-  using ParentClass::toSparsityPatternView;
-  using ParentClass::getEntries;
-  using ParentClass::insertNonZero;
-  using ParentClass::insertNonZeros;
-  using ParentClass::removeNonZero;
-  using ParentClass::removeNonZeros;
-  using ParentClass::setValues;
-  using ParentClass::addToRow;
+  /**
+   * @name Constructors and the destructor
+   */
+  ///@{
 
   /**
    * @brief Constructor.
@@ -105,7 +94,14 @@ public:
    * @brief Destructor, frees the entries, values (columns), sizes and offsets Buffers.
    */
   ~CRSMatrix()
-  { ParentClass::free( m_entries ); }
+  { ParentClass::free( this->m_entries ); }
+
+  ///@}
+
+  /**
+   * @name Methods to construct the matrix from scratch.
+   */
+  ///@{
 
   /**
    * @brief Copy assignment operator, performs a deep copy.
@@ -115,13 +111,13 @@ public:
   inline
   CRSMatrix & operator=( CRSMatrix const & src ) LVARRAY_RESTRICT_THIS
   {
-    m_numCols = src.m_numCols;
+    this->m_numCols = src.m_numCols;
     ParentClass::setEqualTo( src.m_numArrays,
                              src.m_offsets[ src.m_numArrays ],
                              src.m_offsets,
                              src.m_sizes,
                              src.m_values,
-                             typename ParentClass::template PairOfBuffers< T >( m_entries, src.m_entries ) );
+                             typename ParentClass::template PairOfBuffers< T >( this->m_entries, src.m_entries ) );
     return *this;
   }
 
@@ -133,7 +129,7 @@ public:
   inline
   CRSMatrix & operator=( CRSMatrix && src )
   {
-    ParentClass::free( m_entries );
+    ParentClass::free( this->m_entries );
     ParentClass::operator=( std::move( src ) );
     return *this;
   }
@@ -141,6 +137,7 @@ public:
   /**
    * @brief Steal the resources from a SparsityPattern.
    * @param src the SparsityPattern to convert.
+   * @note All entries are default initialized. For numeric types this is zero initialization.
    */
   template< typename POLICY >
   inline
@@ -160,7 +157,7 @@ public:
     }
 
     // Reallocate to the appropriate length
-    bufferManipulation::reserve( m_entries, 0, src.nonZeroCapacity() );
+    bufferManipulation::reserve( this->m_entries, 0, src.nonZeroCapacity() );
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
@@ -179,16 +176,48 @@ public:
   }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
+   * @tparam POLICY The RAJA policy used to convert @p rowCapacities into the offsets array.
+   *   Should NOT be a device policy.
+   * @brief Clears the matrix and creates a new matrix with the given number of rows and columns.
+   * @param nRows The new number of rows.
+   * @param nCols The new number of columns.
+   * @param rowCapacities A pointer to an array of length @p nRows containing the capacity
+   *   of each new row.
+   */
+  template< typename POLICY >
+  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
+  {
+    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
+    LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
+                      "COL_TYPE must be able to hold the range of columns: [0, " << nCols - 1 << "]." );
+
+    this->m_numCols = nCols;
+    ParentClass::template resizeFromCapacities< POLICY >( nRows, rowCapacities, this->m_entries );
+  }
+
+  ///@}
+
+  /**
+   * @name CRSMatrixView and SparsityPatternView creation methods
+   */
+  ///@{
+
+  /**
+   * @copydoc ParentClass::toView
+   * @note This is just a wrapper around the CRSMatrixView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
   CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  { return ParentClass::toView(); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
+   * @copydoc ParentClass::toViewConstSizes
+   * @note This is just a wrapper around the CRSMatrixView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
@@ -196,22 +225,48 @@ public:
   { return ParentClass::toViewConstSizes(); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
+   * @copydoc ParentClass::toViewConst
+   * @note This is just a wrapper around the CRSMatrixView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
+  using ParentClass::toSparsityPatternView;
+
+  ///@}
+
   /**
-   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
-   * @note Duplicated for SFINAE needs.
+   * @name Attribute querying methods
    */
-  LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
-  toSparsityPatternView() const
-  { return ParentClass::toSparsityPatternView(); }
+  ///@{
+
+  using ParentClass::numRows;
+  using ParentClass::numColumns;
+  using ParentClass::numNonZeros;
+  using ParentClass::nonZeroCapacity;
+  using ParentClass::empty;
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data
+   */
+  ///@{
+
+  using ParentClass::getColumns;
+  using ParentClass::getOffsets;
+  using ParentClass::getEntries;
+
+  ///@}
+
+  /**
+   * @name Methods to change the capacity
+   */
+  ///@{
 
   /**
    * @brief Reserve space to hold at least the given total number of non zero entries.
@@ -219,7 +274,7 @@ public:
    */
   inline
   void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
-  { ParentClass::reserveValues( nnz, m_entries ); }
+  { ParentClass::reserveValues( nnz, this->m_entries ); }
 
   /**
    * @brief Reserve space to hold at least the given number of non zero entries in the given row.
@@ -227,11 +282,57 @@ public:
    * @param nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE row, INDEX_TYPE nnz ) LVARRAY_RESTRICT_THIS
+  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
   {
     if( nonZeroCapacity( row ) >= nnz ) return;
     setRowCapacity( row, nnz );
   }
+
+  /**
+   * @brief Set the non zero capacity of the given row.
+   * @param row the row to modify.
+   * @param newCapacity the new capacity of the row.
+   *
+   * @note If the given capacity is less than the current number of non zero entries
+   *       the entries are truncated.
+   * @note Since a row can hold at most numColumns() entries the resulting capacity is
+   *       min(newCapacity, numColumns()).
+   */
+  inline
+  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
+  {
+    if( newCapacity > numColumns() ) newCapacity = numColumns();
+    ParentClass::setCapacityOfArray( row, newCapacity, this->m_entries );
+  }
+
+  /**
+   * @brief Set the dimensions of the matrix.
+   * @param nRows the new number of rows.
+   * @param nCols the new number of columns.
+   * @param initialRowCapacity the default capacity for each new array.
+   * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
+   *   This can leave the matrix in an invalid state where a row has more columns than the matrix
+   *   or where a specific column is greater than the number of columns in the matrix.
+   *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
+   */
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
+  { ParentClass::resize( nRows, nCols, initialRowCapacity, this->m_entries ); }
+
+  /**
+   * @brief Compress the CRSMatrix so that the non-zeros and values of each row
+   *        are contiguous with no extra capacity in between.
+   * @note This method doesn't free any memory.
+   */
+  inline
+  void compress() LVARRAY_RESTRICT_THIS
+  { ParentClass::compress( this->m_entries ); }
+
+  ///@}
+
+  /**
+   * @name Methods that insert or remove entries from a row.
+   */
+  ///@{
 
   /**
    * @brief Insert a non-zero entry at the given position.
@@ -242,7 +343,7 @@ public:
    */
   inline
   bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) LVARRAY_RESTRICT_THIS
-  { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry )); }
+  { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
    * @brief Insert a non-zero entries into the given row.
@@ -261,45 +362,90 @@ public:
                              INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
   { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
-  /**
-   * @brief Set the non zero capacity of the given row.
-   * @param row the row to modify.
-   * @param newCapacity the new capacity of the row.
-   *
-   * @note If the given capacity is less than the current number of non zero entries
-   *       the entries are truncated.
-   * @note Since a row can hold at most numColumns() entries the resulting capacity is
-   *       min(newCapacity, numColumns()).
-   */
-  inline
-  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
-  {
-    if( newCapacity > numColumns() ) newCapacity = numColumns();
-    ParentClass::setCapacityOfArray( row, newCapacity, m_entries );
-  }
+  using ParentClass::removeNonZero;
+  using ParentClass::removeNonZeros;
+
+  ///@}
 
   /**
-   * @brief Compress the CRSMatrix so that the non-zeros and values of each row
-   *        are contiguous with no extra capacity in between.
-   * @note This method doesn't free any memory.
+   * @name Methods that modify the entires of the matrix
    */
-  inline
-  void compress() LVARRAY_RESTRICT_THIS
-  { ParentClass::compress( m_entries ); }
+  ///@{
 
   /**
-   * @brief Set the dimensions of the matrix.
-   * @param nRows the new number of rows.
-   * @param nCols the new number of columns.
-   * @param initialRowCapacity the default capacity for each new array.
-   * @note When shrinking the number of columns this method doesn't get rid of any existing entries.
-   *   This can leave the matrix in an invalid state where a row has more columns than the matrix
-   *   or where a specific column is greater than the number of columns in the matrix.
-   *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
-   * TODO: Add tests.
+   * @copydoc ParentClass::setValues
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
-  { ParentClass::resize( nRows, nCols, initialRowCapacity, m_entries ); }
+  template< typename POLICY >
+  inline
+  void setValues( T const & value ) const
+  { ParentClass::template setValues< POLICY >( value ); }
+
+  /**
+   * @copydoc ParentClass::addToRow
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  template< typename AtomicPolicy >
+  inline
+  void addToRow( INDEX_TYPE const row,
+                 COL_TYPE const * const LVARRAY_RESTRICT cols,
+                 T const * const LVARRAY_RESTRICT vals,
+                 INDEX_TYPE const nCols ) const
+  { ParentClass::template addToRow< AtomicPolicy >( row, cols, vals, nCols ); }
+
+  /**
+   * @copydoc ParentClass::addToRowBinarySearch
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  template< typename AtomicPolicy >
+  inline
+  void addToRowBinarySearch( INDEX_TYPE const row,
+                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             T const * const LVARRAY_RESTRICT vals,
+                             INDEX_TYPE const nCols ) const
+  { ParentClass::template addToRowBinarySearch< AtomicPolicy >( row, cols, vals, nCols ); }
+
+  /**
+   * @copydoc ParentClass::addToRowLinearSearch
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  template< typename AtomicPolicy >
+  inline
+  void addToRowLinearSearch( INDEX_TYPE const row,
+                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             T const * const LVARRAY_RESTRICT vals,
+                             INDEX_TYPE const nCols ) const
+  { ParentClass::template addToRowLinearSearch< AtomicPolicy >( row, cols, vals, nCols ); }
+
+  /**
+   * @copydoc ParentClass::addToRowBinarySearchUnsorted
+   * @note This is not brought in with a @c using statement because it breaks doxygen.
+   */
+  template< typename AtomicPolicy >
+  inline
+  void addToRowBinarySearchUnsorted( INDEX_TYPE const row,
+                                     COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                     T const * const LVARRAY_RESTRICT vals,
+                                     INDEX_TYPE const nCols ) const
+  { ParentClass::template addToRowBinarySearchUnsorted< AtomicPolicy >( row, cols, vals, nCols ); }
+
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc CRSMatrixView::move
+   * @note This is just a wrapper around the CRSMatrixView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
+   */
+  void move( MemorySpace const space, bool const touch=true ) const
+  { return ParentClass::move( space, touch ); }
+
+  ///@}
 
   /**
    * @brief Set the name associated with this CRSMatrix which is used in the chai callback.
@@ -307,16 +453,6 @@ public:
    */
   void setName( std::string const & name )
   { ParentClass::template setName< decltype( *this ) >( name ); }
-
-  /**
-   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
-   * @param space the memory space to move to.
-   * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
-   * @note Duplicated for SFINAE needs.
-   */
-  void move( MemorySpace const space, bool const touch=true ) const
-  { ParentClass::move( space, touch ); }
 
 private:
 
@@ -436,15 +572,6 @@ private:
     /// A pointer to the entries to insert.
     T const * const m_entriesToInsert;
   };
-
-  // Aliasing protected members of CRSMatrixView.
-  using ParentClass::m_numCols;
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
-  using ParentClass::m_entries;
 };
 
 } /* namespace LvArray */
-
-#endif /* CRSMATRIX_HPP_ */

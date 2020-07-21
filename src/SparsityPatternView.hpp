@@ -18,6 +18,7 @@
 
 /**
  * @file SparsityPatternView.hpp
+ * @brief Contains the implementation of LvArray:SparsityPatternView.
  */
 
 #pragma once
@@ -70,9 +71,12 @@ template< typename COL_TYPE,
           template< typename > class BUFFER_TYPE >
 class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
-
+protected:
   /// An alias for the parent class.
   using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
+
+  /// An alias for the non const index type.
+  using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
 
 public:
   static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
@@ -80,12 +84,18 @@ public:
   static_assert( std::numeric_limits< INDEX_TYPE >::max() >= std::numeric_limits< COL_TYPE >::max(),
                  "INDEX_TYPE must be able to hold values at least as large as COL_TYPE." );
 
-  /// An alias for the non const index type.
-  using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
+  /// The integer type used to enumerate the columns.
+  using ColType = COL_TYPE;
+  using typename ParentClass::IndexType;
 
   /**
-   * @brief Default copy constructor. Performs a shallow copy and calls the
-   *   BUFFER_TYPE copy constructor.
+   * @name Constructors, destructor and assignment operators
+   */
+  ///@{
+
+  /**
+   * @brief Default copy constructor.
+   * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE
    */
   inline
   SparsityPatternView( SparsityPatternView const & ) = default;
@@ -99,6 +109,7 @@ public:
     ParentClass( std::move( src ) ),
     m_numCols( src.m_numCols )
   { src.m_numCols = 0; }
+
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -121,46 +132,53 @@ public:
     return *this;
   }
 
-  /**
-   * @brief Steal the resources of @p src, clearing it in the process.
-   * @param src The SparsityPatternView to steal from.
-   */
-  void assimilate( SparsityPatternView && src )
-  { *this = std::move( src ); }
+  ///@}
 
   /**
-   * @brief @return Return *this.
-   * @brief This is included for SFINAE needs.
+   * @name SparsityPatternView creation methods
+   */
+  ///@{
+
+
+  /**
+   * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
   toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
+  ///@}
+
   /**
-   * @brief @return Return the number of rows in the matrix.
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  /**
+   * @return Return the number of rows in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
   { return ParentClass::size(); }
 
   /**
-   * @brief @return Return the number of columns in the matrix.
+   * @return Return the number of columns in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC numColumns() const LVARRAY_RESTRICT_THIS
   { return m_numCols; }
 
   /**
-   * @brief @return Return the total number of non zero entries in the matrix.
+   * @return Return the total number of non zero entries in the matrix.
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC numNonZeros() const LVARRAY_RESTRICT_THIS
@@ -175,7 +193,7 @@ public:
   }
 
   /**
-   * @brief @return Return the total number of non zero entries in the given row.
+   * @return Return the total number of non zero entries in the given row.
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
@@ -183,14 +201,14 @@ public:
   { return ParentClass::sizeOfSet( row ); }
 
   /**
-   * @brief @return Return the total number of non zero entries able to be stored without a reallocation.
+   * @return Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE_NC nonZeroCapacity() const LVARRAY_RESTRICT_THIS
-  { return m_values.capacity(); }
+  { return ParentClass::valueCapacity(); }
 
   /**
-   * @brief @return Return the total number of non zero entries able to be stored in a given row without increasing its
+   * @return Return the total number of non zero entries able to be stored in a given row without increasing its
    * capacity.
    * @param row the row to query.
    */
@@ -199,14 +217,14 @@ public:
   { return ParentClass::capacityOfSet( row ); }
 
   /**
-   * @brief @return Return true iff the matrix is all zeros.
+   * @return Return true iff the matrix is all zeros.
    */
   LVARRAY_HOST_DEVICE inline
   bool empty() const LVARRAY_RESTRICT_THIS
   { return numNonZeros() == 0; }
 
   /**
-   * @brief @return Return true iff the given row is all zeros.
+   * @return Return true iff the given row is all zeros.
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
@@ -214,7 +232,7 @@ public:
   { return numNonZeros( row ) == 0; }
 
   /**
-   * @brief @return Return true iff the given entry is zero.
+   * @return Return true iff the given entry is zero.
    * @param row the row to query.
    * @param col the col to query.
    */
@@ -222,20 +240,34 @@ public:
   bool empty( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
   { return !ParentClass::contains( row, col ); }
 
+  ///@}
+
   /**
-   * @brief @return Return an ArraySlice1d to the columns of the given row.
+   * @name Methods that provide access to the data
+   */
+  ///@{
+
+  /**
+   * @return Return an ArraySlice1d to the columns of the given row.
    * @param row the row to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC > getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC >getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return (*this)[row]; }
 
   /**
-   * @brief @return Return a pointer to the array of offsets, this array has length numRows() + 1.
+   * @return Return a pointer to the array of offsets, this array has length numRows() + 1.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
-  { return m_offsets.data(); }
+  { return this->m_offsets.data(); }
+
+  ///@}
+
+  /**
+   * @name Methods that insert or remove entries from a row.
+   */
+  ///@{
 
   /**
    * @brief Insert a non-zero entry at the given position.
@@ -252,10 +284,6 @@ public:
     SPARSITYPATTERN_COLUMN_CHECK( col );
     return ParentClass::insertIntoSet( row, col );
   }
-
-  /// @cond DO_NOT_DOCUMENT
-  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
-  // else it works just fine.
 
   /**
    * @tparam ITER An iterator type.
@@ -282,8 +310,6 @@ public:
     return ParentClass::insertIntoSet( row, first, last );
   }
 
-  /// @endcond DO_NOT_DOCUMENT
-
   /**
    * @brief Remove a non-zero entry at the given position.
    * @param row the row to remove from.
@@ -297,10 +323,6 @@ public:
     SPARSITYPATTERN_COLUMN_CHECK( col );
     return ParentClass::removeFromSet( row, col );
   }
-
-  /// @cond DO_NOT_DOCUMENT
-  // This method breaks uncrustify, and it has something to do with the overloading. If it's called something
-  // else it works just fine.
 
   /**
    * @tparam ITER An iterator type.
@@ -326,16 +348,23 @@ public:
     return ParentClass::removeFromSet( row, first, last );
   }
 
-  /// @endcond DO_NOT_DOCUMENT
+  ///@}
 
   /**
-   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
-   * @param space the memory space to move to.
-   * @param touch If true touch the values, sizes and offsets in the new space.
-   * @note When moving to the GPU since the offsets can't be modified on device they are not touched.
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
+
+  /**
+   * @copydoc ArrayOfSets::move
+   * @note This is just a wrapper around the ArrayOfSetsView method. The reason
+   *   it isn't pulled in with a @c using statement is that it is detected using
+   *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   void move( MemorySpace const space, bool const touch=true ) const
   { return ParentClass::move( space, touch ); }
+
+  ///@}
 
 protected:
 
@@ -345,6 +374,13 @@ protected:
    *   SparsityPattern or copied from another SparsityPatternView.
    */
   SparsityPatternView() = default;
+
+  /**
+   * @brief Steal the resources of @p src, clearing it in the process.
+   * @param src The SparsityPatternView to steal from.
+   */
+  void assimilate( SparsityPatternView && src )
+  { *this = std::move( src ); }
 
   /**
    * @tparam BUFFERS A variadic pack of buffer types.
@@ -366,13 +402,8 @@ protected:
                       "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
 
     m_numCols = ncols;
-    ParentClass::resize( nrows, initialRowCapacity, buffers ... );
+    ParentClass::resizeImpl( nrows, initialRowCapacity, buffers ... );
   }
-
-  // Aliasing protected members in ArrayOfSetsView
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
 
   /// The number of columns in the matrix.
   INDEX_TYPE_NC m_numCols;

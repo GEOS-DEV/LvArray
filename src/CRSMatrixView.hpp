@@ -18,10 +18,10 @@
 
 /**
  * @file CRSMatrixView.hpp
+ * @brief Contains the implementation of LvArray::CRSMatrixView.
  */
 
-#ifndef CRSMATRIXVIEW_HPP_
-#define CRSMATRIXVIEW_HPP_
+#pragma once
 
 #include "SparsityPatternView.hpp"
 #include "arrayManipulation.hpp"
@@ -30,22 +30,36 @@
 namespace LvArray
 {
 
-// Wrapper around RAJA::atomicAdd that allows for non primitive types with RAJA::seq_atomic
-namespace
+namespace internal
 {
 
+/**
+ * @brief Wrapper around RAJA::atomicAdd.
+ * @tparam POLICY The RAJA atomic policy to use.
+ * @tparam T The type of the value to add to.
+ * @param acc A pointer to the value to add to.
+ * @param val The value to add.
+ */
 template< typename POLICY, typename T >
 LVARRAY_HOST_DEVICE inline
 void atomicAdd( POLICY, T * const acc, T const & val )
 { RAJA::atomicAdd< POLICY >( acc, val ); }
 
+/**
+ * @brief Wrapper around RAJA::atomicAdd.
+ * @tparam T The type of the value to add to.
+ * @param acc A pointer to the value to add to.
+ * @param val The value to add.
+ * @note An overload for RAJA::seq_atomic that doesn't use
+ *   a volatile pointer. Necessary for non-primative types.
+ */
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE constexpr inline
 void atomicAdd( RAJA::seq_atomic, T * acc, T const & val )
 { *acc += val; }
 
-}
+} // namespace internal
 
 /**
  * @class CRSMatrixView
@@ -73,22 +87,23 @@ class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFE
   /// An alias for the parent class.
   using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
+  /// An alias for the non const index type.
+  using typename ParentClass::INDEX_TYPE_NC;
+
 public:
   static_assert( !std::is_const< T >::value ||
                  (std::is_const< COL_TYPE >::value && std::is_const< INDEX_TYPE >::value),
                  "When T is const COL_TYPE and INDEX_TYPE must also be const." );
 
-  /// An alias for the non const index type.
-  using typename ParentClass::INDEX_TYPE_NC;
+  /// The type of the entries in the matrix.
+  using EntryType = T;
+  using typename ParentClass::ColType;
+  using typename ParentClass::IndexType;
 
-  // Aliasing public methods of SparsityPatternView.
-  using ParentClass::numRows;
-  using ParentClass::numColumns;
-  using ParentClass::numNonZeros;
-  using ParentClass::nonZeroCapacity;
-  using ParentClass::empty;
-  using ParentClass::getColumns;
-  using ParentClass::getOffsets;
+  /**
+   * @name Constructors, destructor and assignment operators
+   */
+  ///@{
 
   /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
@@ -110,15 +125,20 @@ public:
   CRSMatrixView & operator=( CRSMatrixView const & ) = default;
 
   /**
-   * @brief @return Return *this.
-   * @brief This is included for SFINAE needs.
+   * @name CRSMatrixView and SparsityPatternView creation methods
    */
-  LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
-  { return *this; }
+  ///@{
 
   /**
-   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
+   * @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  toView() const LVARRAY_RESTRICT_THIS
+  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+
+  /**
+   * @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
@@ -126,7 +146,7 @@ public:
   { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
+   * @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
@@ -134,23 +154,55 @@ public:
   { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
   /**
-   * @brief @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
   toSparsityPatternView() const
   { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
 
+  ///@}
+
   /**
-   * @brief @return Return an ArraySlice1d to the matrix entries of the given row.
+   * @name Attribute querying methods
+   */
+  ///@{
+
+  using ParentClass::numRows;
+  using ParentClass::numColumns;
+  using ParentClass::numNonZeros;
+  using ParentClass::nonZeroCapacity;
+  using ParentClass::empty;
+
+  ///@}
+
+  /**
+   * @name Methods that provide access to the data
+   */
+  ///@{
+
+  /**
+   * @return Return an ArraySlice1d to the matrix entries of the given row.
    * @param row The row to access.
    */
   LVARRAY_HOST_DEVICE inline
   ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_entries.data() + m_offsets[row], &m_sizes[row], nullptr );
+    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_entries.data() + this->m_offsets[ row ],
+                                                 &this->m_sizes[ row ],
+                                                 nullptr );
   }
+
+  using ParentClass::getColumns;
+  using ParentClass::getOffsets;
+
+  ///@}
+
+  /**
+   * @name Methods that insert or remove entries from a row.
+   */
+  ///@{
 
   /**
    * @brief Insert a non-zero entry at the given position.
@@ -216,8 +268,12 @@ public:
     return nRemoved;
   }
 
-  /// @cond DO_NOT_DOCUMENT
-  // These method breaks uncrustify :(
+  ///@}
+
+  /**
+   * @name Methods that modify the entires of the matrix
+   */
+  ///@{
 
   /**
    * @brief Set all the entries in the matrix to the given value.
@@ -242,7 +298,7 @@ public:
 
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.
-   *        The columns must be sorted.
+   *   The columns must be sorted.
    * @tparam AtomicPolicy the policy to use when adding to the values.
    * @param row The row to access.
    * @param cols The columns to add to, must be sorted, unique and of length nCols.
@@ -250,7 +306,7 @@ public:
    * @param nCols The number of columns to add to.
    * @pre The range [ @p cols, @p cols + @p ncols ) must be sorted and contain no duplicates.
    * TODO: Use benchmarks of addToRowBinarySearch and addToRowLinearSearch
-   *       to develop a better heuristic.
+   *   to develop a better heuristic.
    */
   template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
@@ -269,8 +325,6 @@ public:
       addToRowLinearSearch< AtomicPolicy >( row, cols, vals, nCols );
     }
   }
-
-  /// @endcond DO_NOT_DOCUMENT
 
   /**
    * @brief Add to the given entries, the entries must already exist in the matrix.
@@ -304,7 +358,7 @@ public:
       LVARRAY_ASSERT_GT( nnz, pos );
       LVARRAY_ASSERT_EQ( columns[ pos ], cols[ i ] );
 
-      atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
+      internal::atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
       curPos = pos + 1;
     }
   }
@@ -346,7 +400,7 @@ public:
         }
       }
       LVARRAY_ASSERT_EQ( columns[ curPos ], cols[ i ] );
-      atomicAdd( AtomicPolicy{}, entries + curPos, vals[ i ] );
+      internal::atomicAdd( AtomicPolicy{}, entries + curPos, vals[ i ] );
       ++curPos;
     }
   }
@@ -379,9 +433,16 @@ public:
       LVARRAY_ASSERT_GT( nnz, pos );
       LVARRAY_ASSERT_EQ( columns[ pos ], cols[ i ] );
 
-      atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
+      internal::atomicAdd( AtomicPolicy{}, entries + pos, vals[ i ] );
     }
   }
+
+  ///@}
+
+  /**
+   * @name Methods dealing with memory spaces
+   */
+  ///@{
 
   /**
    * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
@@ -395,6 +456,7 @@ public:
     m_entries.move( space, touch );
   }
 
+  ///@}
 
 protected:
 
@@ -418,12 +480,6 @@ protected:
     ParentClass::template setName< U >( name );
     m_entries.template setName< U >( name + "/entries" );
   }
-
-  // Aliasing protected members of SparsityPatternView.
-  using ParentClass::m_numCols;
-  using ParentClass::m_offsets;
-  using ParentClass::m_sizes;
-  using ParentClass::m_values;
 
   /// Holds the entries of the matrix, of length numNonZeros().
   BUFFER_TYPE< T > m_entries;
@@ -566,5 +622,3 @@ private:
 };
 
 } /* namespace LvArray */
-
-#endif /* CRSMATRIXVIEW_HPP_ */
