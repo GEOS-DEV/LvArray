@@ -5,10 +5,11 @@ The LvArray project is a collection of array classes for use in high-performance
 simulation software.
 LvArray provides:
  1. Multi-dimensional arrays with permutable data layout.
- 2. Sorted Arrays are similar to [std::set](https://en.cppreference.com/w/cpp/container/set) but are contigous in memory.
+ 2. Sorted Arrays are similar to [std::set](https://en.cppreference.com/w/cpp/container/set) but are contiguous in memory.
  3. ArrayOfArrays provide a 2-dimensional array with variable sized second dimension.
  4. ArrayOfSets provide a 2-dimensional array with variable sized second dimension that are sorted.
  5. CRSMatrix for storage of sparse matricies.
+ 
 All components of LvArray provide smart management of data motion between memory
 spaces on systems with hetergeneous memory (e.g. CPU/GPU) through lambda copy
 semantics in [RAJA](https://github.com/LLNL/RAJA), similar to the implementation of the [CHAI::ManagedArray](https://github.com/LLNL/CHAI)
@@ -21,7 +22,7 @@ Full documenation is hosted at [readthedocs](https://lvarray.readthedocs.io/en/l
 
 Authors
 -------
-See [Github](https://github.com/GEOSX/cxx-utilities/graphs/contributors)
+See [Github](https://github.com/GEOSX/LvArray/graphs/contributors)
 
 Release
 -------

@@ -1,13 +1,11 @@
 #
 set( PREPROCESSOR_DEFINES ARRAY_BOUNDS_CHECK
-                          ATK
                           CHAI
                           CUDA
                           MPI
-                          RAJA
                           TOTALVIEW_OUTPUT
                           OPENMP
-   )
+                          CALIPER )
 
 set( USE_CONFIGFILE ON CACHE BOOL "" )
 foreach( DEP in ${PREPROCESSOR_DEFINES})
@@ -28,7 +26,7 @@ function( make_full_config_file
     endforeach()
 
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
-                    ${CMAKE_CURRENT_SOURCE_DIR}/src/docs/doxygen/LvArrayConfig.hpp )
+                    ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/LvArrayConfig.hpp )
 endfunction()
 
 
