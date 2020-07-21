@@ -17,6 +17,7 @@
  */
 
 // Source includes
+#include "typeManipulation.hpp"
 #include "SortedArray.hpp"
 #include "testUtils.hpp"
 #include "MallocBuffer.hpp"
@@ -256,9 +257,9 @@ using TestTypes = ::testing::Types<
   , SortedArray< Tensor, INDEX_TYPE, MallocBuffer >
   , SortedArray< TestString, INDEX_TYPE, MallocBuffer >
 #if defined(USE_CHAI)
-  , SortedArray< int, INDEX_TYPE, NewChaiBuffer >
-  , SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >
-  , SortedArray< TestString, INDEX_TYPE, NewChaiBuffer >
+  , SortedArray< int, INDEX_TYPE, ChaiBuffer >
+  , SortedArray< Tensor, INDEX_TYPE, ChaiBuffer >
+  , SortedArray< TestString, INDEX_TYPE, ChaiBuffer >
 #endif
   >;
 TYPED_TEST_SUITE( SortedArrayTest, TestTypes, );
@@ -446,19 +447,12 @@ protected:
 };
 
 using SortedArrayViewTestTypes = ::testing::Types<
-  std::pair< SortedArray< int, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< SortedArray< Tensor, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< SortedArray< TestString, INDEX_TYPE, MallocBuffer >, serialPolicy >
-
-#if defined(USE_CHAI)
-  , std::pair< SortedArray< int, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< SortedArray< TestString, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-#endif
-
+  std::pair< SortedArray< int, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< SortedArray< Tensor, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< SortedArray< TestString, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
 #if defined(USE_CUDA) && defined(USE_CHAI)
-  , std::pair< SortedArray< int, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< SortedArray< Tensor, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< SortedArray< int, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< SortedArray< Tensor, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 TYPED_TEST_SUITE( SortedArrayViewTest, SortedArrayViewTestTypes, );

@@ -16,23 +16,16 @@
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-#ifndef TEST_UTILS_HPP_
-#define TEST_UTILS_HPP_
+#pragma once
 
 // Source includes
 #include "LvArrayConfig.hpp"
-#include "Array.hpp"
-#include "SortedArray.hpp"
-#include "ArrayOfArrays.hpp"
-#include "ArrayOfSets.hpp"
-#include "SparsityPattern.hpp"
-#include "CRSMatrix.hpp"
 #include "Macros.hpp"
 
-#if defined(USE_CHAI)
-#include "NewChaiBuffer.hpp"
-#else
 #include "MallocBuffer.hpp"
+
+#if defined(USE_CHAI)
+  #include "ChaiBuffer.hpp"
 #endif
 
 
@@ -71,7 +64,7 @@ template<>
 struct RAJAHelper< parallelHostPolicy >
 {
   using ReducePolicy = RAJA::omp_reduce;
-  using AtomicPolicy = RAJA::builtin_atomic;
+  using AtomicPolicy = RAJA::omp_atomic;
   static constexpr MemorySpace space = MemorySpace::CPU;
 };
 
@@ -100,8 +93,12 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 
 #ifndef __CUDA_ARCH__
 #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LT( math::abs( ( L ) -( R ) ), EPSILON ) << \
+    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
 #else
 #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GT_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
+                                                                       STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
 #endif
 
 // Comparator that compares a std::pair by it's first object.
@@ -118,97 +115,11 @@ struct PairComp
 
 #if defined(USE_CHAI)
 template< typename T >
-using DEFAULT_BUFFER = NewChaiBuffer< T >;
+using DEFAULT_BUFFER = ChaiBuffer< T >;
 #else
 template< typename T >
 using DEFAULT_BUFFER = MallocBuffer< T >;
 #endif
-
-template< typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-struct ArrayConversion
-{
-  template< typename T, int NDIM, typename PERMUTATION >
-  using Array = Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T, int NDIM, int USD >
-  using ArrayView = ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T, int NDIM, int USD >
-  using ArraySlice = ArraySlice< T, NDIM, USD, INDEX_TYPE >;
-
-  template< typename T >
-  using SortedArray = SortedArray< T, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T >
-  using SortedArrayView = SortedArrayView< T, INDEX_TYPE const, BUFFER_TYPE >;
-
-  template< typename T >
-  using ArrayOfArrays = ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T, bool CONST_SIZES >
-  using ArrayOfArraysView = ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE >;
-
-  template< typename T >
-  using ArrayOfSets = ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T >
-  using ArrayOfSetsView = ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >;
-
-  template< typename COL_TYPE >
-  using SparsityPattern = SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename COL_TYPE >
-  using SparsityPatternView = SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >;
-
-  template< typename T, typename COL_TYPE >
-  using CRSMatrix = CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
-
-  template< typename T, typename COL_TYPE >
-  using CRSMatrixView = CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >;
-};
-
-template< typename >
-struct ArrayConverter;
-
-template< typename T,
-          int NDIM,
-          typename PERMUTATION,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-struct ArrayConverter< Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > > :
-  public ArrayConversion< INDEX_TYPE, BUFFER_TYPE >
-{};
-
-template< typename T,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-struct ArrayConverter< ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > > :
-  public ArrayConversion< INDEX_TYPE, BUFFER_TYPE >
-{};
-
-template< typename T,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-struct ArrayConverter< ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > > :
-  public ArrayConversion< INDEX_TYPE, BUFFER_TYPE >
-{};
-
-template< typename COL_TYPE,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-struct ArrayConverter< SparsityPattern< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > > :
-  public ArrayConversion< INDEX_TYPE, BUFFER_TYPE >
-{};
-
-template< typename T,
-          typename COL_TYPE,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-struct ArrayConverter< CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > > :
-  public ArrayConversion< INDEX_TYPE, BUFFER_TYPE >
-{};
-
-
 
 /**
  * @class TestString
@@ -355,5 +266,3 @@ private:
 
 } // namespace testing
 } // namespace LvArray
-
-#endif // TEST_UTILS_HPP_

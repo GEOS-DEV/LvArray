@@ -18,9 +18,8 @@
 
 // Source includes
 #include "testFloatingPointExceptionsHelpers.hpp"
-#include "SetFPE.hpp"
-#include "SetSignalHandling.hpp"
-#include "stackTrace.hpp"
+#include "system.hpp"
+#include "system.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
@@ -39,11 +38,11 @@ const char IGNORE_OUTPUT[] = ".*";
 
 TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
 {
-  feenableexcept( FE_UNDERFLOW );
+  LvArray::system::enableFloatingPointExceptions( FE_UNDERFLOW );
   EXPECT_DEATH_IF_SUPPORTED( uf_test( DBL_MIN, 2 ), IGNORE_OUTPUT );
-  fedisableexcept( FE_UNDERFLOW );
+  LvArray::system::disableFloatingPointExceptions( FE_UNDERFLOW );
 
-  LvArray::SetFPE();
+  LvArray::system::setFPE();
   double fpnum = uf_test( DBL_MIN, 2 );
   int fpclassification = std::fpclassify( fpnum );
   EXPECT_NE( fpclassification, FP_SUBNORMAL );
@@ -51,20 +50,20 @@ TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
 
 TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
 {
-  LvArray::SetFPE();
+  LvArray::system::setFPE();
   EXPECT_DEATH_IF_SUPPORTED( func3( 0.0 ), IGNORE_OUTPUT );
 }
 
 
 TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
 {
-  LvArray::SetFPE();
+  LvArray::system::setFPE();
   EXPECT_DEATH_IF_SUPPORTED( of_test( 2, DBL_MAX ), IGNORE_OUTPUT );
 }
 
 TEST( TestFloatingPointEnvironment, test_FE_INVALID )
 {
-  LvArray::SetFPE();
+  LvArray::system::setFPE();
   EXPECT_DEATH_IF_SUPPORTED( invalid_test( 0.0 ), IGNORE_OUTPUT );
 }
 

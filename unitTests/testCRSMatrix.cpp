@@ -20,7 +20,7 @@
 #include "Array.hpp"
 #include "ArrayOfArrays.hpp"
 #include "ArrayOfSets.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testUtils.hpp"
 #include "MallocBuffer.hpp"
 
@@ -38,9 +38,6 @@ namespace LvArray
 namespace testing
 {
 
-using INDEX_TYPE = std::ptrdiff_t;
-using COL_TYPE = int;
-
 enum class AddType
 {
   BINARY_SEARCH,
@@ -49,33 +46,45 @@ enum class AddType
   UNSORTED_BINARY
 };
 
+template< typename U, typename T >
+struct ToArray
+{};
+
+template< typename U, typename T, typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+struct ToArray< U, CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >
+{
+  using AoA = ArrayOfArrays< U, INDEX_TYPE, BUFFER_TYPE >;
+};
+
 template< typename CRS_MATRIX >
 class CRSMatrixTest : public ::testing::Test
 {
 public:
 
-  using T = typename CRS_MATRIX::value_type;
+  using T = typename CRS_MATRIX::EntryType;
+  using ColType = typename CRS_MATRIX::ColType;
+  using IndexType = typename CRS_MATRIX::IndexType;
 
-  using ViewType = std::remove_reference_t< decltype( std::declval< CRS_MATRIX >().toView() ) >;
-  using ViewTypeConstSizes = std::remove_reference_t< decltype( std::declval< CRS_MATRIX >().toViewConstSizes() ) >;
-  using ViewTypeConst = std::remove_reference_t< decltype( std::declval< CRS_MATRIX >().toViewConst() ) >;
+  using ViewType = typeManipulation::ViewType< CRS_MATRIX >;
+  using ViewTypeConstSizes = typeManipulation::ViewTypeConstSizes< CRS_MATRIX >;
+  using ViewTypeConst = typeManipulation::ViewTypeConst< CRS_MATRIX >;
 
   template< typename U >
-  using ArrayOfArraysT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArrays< U >;
+  using ArrayOfArraysT = typename ToArray< U, CRS_MATRIX >::AoA;
 
-  template< typename U, bool CONST_SIZES >
-  using ArrayOfArraysViewT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArraysView< U, CONST_SIZES >;
+  template< typename U >
+  using ArrayOfArraysViewT = typeManipulation::ViewTypeConst< ArrayOfArraysT< std::remove_const_t< U > > >;
 
   void compareToReference( ViewTypeConst const & view ) const
   {
-    INDEX_TYPE const numRows = view.numRows();
+    IndexType const numRows = view.numRows();
     ASSERT_EQ( numRows, m_ref.size());
 
-    INDEX_TYPE ref_nnz = 0;
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    IndexType ref_nnz = 0;
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const rowNNZ = view.numNonZeros( row );
-      INDEX_TYPE const refRowNNZ = m_ref[ row ].size();
+      IndexType const rowNNZ = view.numNonZeros( row );
+      IndexType const refRowNNZ = m_ref[ row ].size();
       ref_nnz += refRowNNZ;
 
       ASSERT_EQ( rowNNZ, refRowNNZ );
@@ -90,9 +99,9 @@ public:
       }
 
       auto it = m_ref[ row ].begin();
-      COL_TYPE const * const columns = view.getColumns( row );
+      ColType const * const columns = view.getColumns( row );
       T const * const entries = view.getEntries( row );
-      for( INDEX_TYPE i = 0; i < rowNNZ; ++i )
+      for( IndexType i = 0; i < rowNNZ; ++i )
       {
         EXPECT_FALSE( view.empty( row, columns[ i ] ));
         EXPECT_EQ( columns[ i ], it->first );
@@ -113,9 +122,9 @@ public:
   }
 
 
-  void resize( INDEX_TYPE const nRows,
-               INDEX_TYPE const nCols,
-               INDEX_TYPE initialRowCapacity=0 )
+  void resize( IndexType const nRows,
+               IndexType const nCols,
+               IndexType initialRowCapacity=0 )
   {
     m_matrix.resize( nRows, nCols, initialRowCapacity );
     m_ref.resize( nRows );
@@ -123,30 +132,55 @@ public:
     COMPARE_TO_REFERENCE
   }
 
+  template< typename POLICY >
+  void resizeFromRowCapacities( IndexType const numRows, IndexType const numCols )
+  {
+    COMPARE_TO_REFERENCE;
+
+    std::vector< IndexType > newCapacities( numRows );
+
+    for( IndexType & capacity : newCapacities )
+    { capacity = rand( numCols ); }
+
+    m_matrix.template resizeFromRowCapacities< POLICY >( numRows, numCols, newCapacities.data() );
+
+    EXPECT_EQ( m_matrix.numRows(), numRows );
+    EXPECT_EQ( m_matrix.numColumns(), numCols );
+    for( IndexType row = 0; row < m_matrix.numRows(); ++row )
+    {
+      EXPECT_EQ( m_matrix.numNonZeros( row ), 0 );
+      EXPECT_EQ( m_matrix.nonZeroCapacity( row ), newCapacities[ row ] );
+    }
+
+    m_ref.clear();
+    m_ref.resize( numRows );
+    COMPARE_TO_REFERENCE;
+  }
+
   /**
    * @brief Test the insert multiple method of the CRSMatrix.
    * @param [in] maxInserts the number of entries to insert at a time.
    * @param [in] oneAtATime If true the entries are inserted one at at time.
    */
-  void insert( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
+  void insert( IndexType const maxInserts, bool const oneAtATime=false )
   {
-    INDEX_TYPE const numRows = m_matrix.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArraysT< COL_TYPE > const columnsToInsert = createArrayOfColumns( maxInserts, oneAtATime );
+    ArrayOfArraysT< ColType > const columnsToInsert = createArrayOfColumns( maxInserts, oneAtATime );
     ArrayOfArraysT< T > const valuesToInsert = createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Insert the entries into the reference.
     insertIntoRef( columnsToInsert.toViewConst() );
 
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const initialNNZ = m_matrix.numNonZeros( row );
-      INDEX_TYPE nInserted = 0;
+      IndexType const initialNNZ = m_matrix.numNonZeros( row );
+      IndexType nInserted = 0;
 
       if( oneAtATime )
       {
-        for( INDEX_TYPE i = 0; i < columnsToInsert.sizeOfArray( row ); ++i )
+        for( IndexType i = 0; i < columnsToInsert.sizeOfArray( row ); ++i )
         {
           nInserted += m_matrix.insertNonZero( row, columnsToInsert( row, i ), valuesToInsert( row, i ) );
         }
@@ -165,11 +199,11 @@ public:
    * @brief Fill a row of the CRSMatrixView up to its capacity.
    * @param [in] row the row of the CRSMatrixView to fill.
    */
-  void fillRow( INDEX_TYPE const row )
+  void fillRow( IndexType const row )
   {
-    INDEX_TYPE nToInsert = m_matrix.nonZeroCapacity( row ) - m_matrix.numNonZeros( row );
-    COL_TYPE testColumn = COL_TYPE( m_matrix.numColumns() - 1 );
-    COL_TYPE const * const columns = m_matrix.getColumns( row );
+    IndexType nToInsert = m_matrix.nonZeroCapacity( row ) - m_matrix.numNonZeros( row );
+    ColType testColumn = ColType( m_matrix.numColumns() - 1 );
+    ColType const * const columns = m_matrix.getColumns( row );
     T const * const entries = m_matrix.getEntries( row );
 
     ASSERT_GE( m_matrix.numColumns(), m_matrix.nonZeroCapacity( row ));
@@ -187,36 +221,36 @@ public:
     EXPECT_EQ( m_matrix.numNonZeros( row ), m_ref[row].size());
     EXPECT_EQ( m_matrix.nonZeroCapacity( row ), m_matrix.numNonZeros( row ));
 
-    EXPECT_EQ( m_matrix.getColumns( row ), columns );
-    EXPECT_EQ( m_matrix.getEntries( row ), entries );
+    EXPECT_EQ( m_matrix.getColumns( row ).dataIfContiguous(), columns );
+    EXPECT_EQ( m_matrix.getEntries( row ).dataIfContiguous(), entries );
   }
 
   /**
    * @brief Test the setRowCapacity method of CRSMatrix.
    */
-  void rowCapacityTest( INDEX_TYPE const maxInserts )
+  void rowCapacityTest( IndexType const maxInserts )
   {
-    COL_TYPE const * const columns0 = m_matrix.getColumns( 0 );
+    ColType const * const columns0 = m_matrix.getColumns( 0 );
     T const * const entries0 = m_matrix.getEntries( 0 );
 
     this->insert( maxInserts );
 
-    ASSERT_EQ( m_matrix.getColumns( 0 ), columns0 );
-    ASSERT_EQ( m_matrix.getEntries( 0 ), entries0 );
+    ASSERT_EQ( m_matrix.getColumns( 0 ).dataIfContiguous(), columns0 );
+    ASSERT_EQ( m_matrix.getEntries( 0 ).dataIfContiguous(), entries0 );
 
-    INDEX_TYPE const numRows = m_matrix.numRows();
+    IndexType const numRows = m_matrix.numRows();
     ASSERT_EQ( numRows, m_ref.size());
 
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const rowNNZ = m_matrix.numNonZeros( row );
+      IndexType const rowNNZ = m_matrix.numNonZeros( row );
       ASSERT_EQ( rowNNZ, m_ref[row].size());
 
       // The new capacity will be the index of the row.
-      INDEX_TYPE const new_capacity = row;
+      IndexType const new_capacity = row;
       if( new_capacity < rowNNZ )
       {
-        COL_TYPE const * const columns = m_matrix.getColumns( row );
+        ColType const * const columns = m_matrix.getColumns( row );
         T const * const entries = m_matrix.getEntries( row );
         m_matrix.setRowCapacity( row, new_capacity );
 
@@ -224,11 +258,11 @@ public:
         ASSERT_EQ( m_matrix.nonZeroCapacity( row ), m_matrix.numNonZeros( row ));
 
         // Check that the pointers to the columns and entries haven't changed.
-        ASSERT_EQ( m_matrix.getColumns( row ), columns );
-        ASSERT_EQ( m_matrix.getEntries( row ), entries );
+        ASSERT_EQ( m_matrix.getColumns( row ).dataIfContiguous(), columns );
+        ASSERT_EQ( m_matrix.getEntries( row ).dataIfContiguous(), entries );
 
         // Erase the last entries from the reference.
-        INDEX_TYPE const difference = rowNNZ - new_capacity;
+        IndexType const difference = rowNNZ - new_capacity;
         auto erase_pos = m_ref[row].end();
         std::advance( erase_pos, -difference );
         m_ref[row].erase( erase_pos, m_ref[row].end());
@@ -259,15 +293,15 @@ public:
     ASSERT_EQ( m_matrix.numColumns(), copy.numColumns());
     ASSERT_EQ( m_matrix.numNonZeros(), copy.numNonZeros());
 
-    INDEX_TYPE const totalNNZ = m_matrix.numNonZeros();
+    IndexType const totalNNZ = m_matrix.numNonZeros();
 
-    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
+    for( IndexType row = 0; row < m_matrix.numRows(); ++row )
     {
-      INDEX_TYPE const nnz = m_matrix.numNonZeros( row );
+      IndexType const nnz = m_matrix.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
 
-      COL_TYPE const * const cols = m_matrix.getColumns( row );
-      COL_TYPE const * const cols_cpy = copy.getColumns( row );
+      ColType const * const cols = m_matrix.getColumns( row );
+      ColType const * const cols_cpy = copy.getColumns( row );
       ASSERT_NE( cols, cols_cpy );
 
       T const * const entries = m_matrix.getEntries( row );
@@ -275,7 +309,7 @@ public:
       ASSERT_NE( entries, entries_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
+      for( IndexType i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[ i ], cols_cpy[ i ] );
         EXPECT_EQ( entries[ i ], entries_cpy[ i ] );
@@ -304,13 +338,13 @@ public:
     ASSERT_EQ( m_matrix.numColumns(), copy.numColumns());
     ASSERT_EQ( m_matrix.numNonZeros(), copy.numNonZeros());
 
-    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
+    for( IndexType row = 0; row < m_matrix.numRows(); ++row )
     {
-      INDEX_TYPE const nnz = m_matrix.numNonZeros( row );
+      IndexType const nnz = m_matrix.numNonZeros( row );
       ASSERT_EQ( nnz, copy.numNonZeros( row ));
 
-      COL_TYPE const * const cols = m_matrix.getColumns( row );
-      COL_TYPE const * const cols_cpy = copy.getColumns( row );
+      ColType const * const cols = m_matrix.getColumns( row );
+      ColType const * const cols_cpy = copy.getColumns( row );
       ASSERT_EQ( cols, cols_cpy );
 
       T const * const entries = m_matrix.getEntries( row );
@@ -318,7 +352,7 @@ public:
       ASSERT_EQ( entries, entries_cpy );
 
       // Iterate backwards and remove entries from copy.
-      for( INDEX_TYPE i = nnz - 1; i >= 0; --i )
+      for( IndexType i = nnz - 1; i >= 0; --i )
       {
         EXPECT_EQ( cols[ i ], cols_cpy[ i ] );
         EXPECT_EQ( entries[ i ], entries_cpy[ i ] );
@@ -340,9 +374,9 @@ public:
    * @brief Test the reserveNonZeros method of the CRSMatrix.
    * @param [in] capacityPerRow the capacity to reserve for each row.
    */
-  void reserveTest( INDEX_TYPE const capacityPerRow )
+  void reserveTest( IndexType const capacityPerRow )
   {
-    INDEX_TYPE const nRows = m_matrix.numRows();
+    IndexType const nRows = m_matrix.numRows();
 
     ASSERT_EQ( m_matrix.nonZeroCapacity(), 0 );
 
@@ -350,18 +384,18 @@ public:
     ASSERT_EQ( m_matrix.nonZeroCapacity(), nRows * capacityPerRow );
     ASSERT_EQ( m_matrix.numNonZeros(), 0 );
 
-    for( INDEX_TYPE row = 0; row < nRows; ++row )
+    for( IndexType row = 0; row < nRows; ++row )
     {
       ASSERT_EQ( m_matrix.nonZeroCapacity( row ), 0 );
       ASSERT_EQ( m_matrix.numNonZeros( row ), 0 );
     }
 
-    COL_TYPE const * const columns = m_matrix.getColumns( 0 );
+    ColType const * const columns = m_matrix.getColumns( 0 );
     T const * const entries = m_matrix.getEntries( 0 );
 
     insert( capacityPerRow / 2 );
 
-    COL_TYPE const * const newColumns = m_matrix.getColumns( 0 );
+    ColType const * const newColumns = m_matrix.getColumns( 0 );
     T const * const newEntries = m_matrix.getEntries( 0 );
 
     EXPECT_EQ( newColumns, columns );
@@ -373,11 +407,11 @@ public:
     m_matrix.compress();
 
     T const * const entries = m_matrix.getEntries( 0 );
-    COL_TYPE const * const columns = m_matrix.getColumns( 0 );
-    INDEX_TYPE const * const offsets = m_matrix.getOffsets();
+    ColType const * const columns = m_matrix.getColumns( 0 );
+    IndexType const * const offsets = m_matrix.getOffsets();
 
-    INDEX_TYPE curOffset = 0;
-    for( INDEX_TYPE row = 0; row < m_matrix.numRows(); ++row )
+    IndexType curOffset = 0;
+    for( IndexType row = 0; row < m_matrix.numRows(); ++row )
     {
       // The last row will have all the extra capacity.
       if( row != m_matrix.numRows() - 1 )
@@ -385,7 +419,7 @@ public:
         EXPECT_EQ( m_matrix.numNonZeros( row ), m_matrix.nonZeroCapacity( row ));
       }
 
-      COL_TYPE const * const rowColumns = m_matrix.getColumns( row );
+      ColType const * const rowColumns = m_matrix.getColumns( row );
       EXPECT_EQ( rowColumns, columns + curOffset );
 
       T const * const rowEntries = m_matrix.getEntries( row );
@@ -400,25 +434,25 @@ public:
 
 protected:
 
-  ArrayOfArraysT< COL_TYPE > createArrayOfColumns( INDEX_TYPE const maxCols, bool const oneAtATime )
+  ArrayOfArraysT< ColType > createArrayOfColumns( IndexType const maxCols, bool const oneAtATime )
   {
-    INDEX_TYPE const numRows = m_matrix.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     // Create an array of the columns.
-    ArrayOfArraysT< COL_TYPE > columns;
+    ArrayOfArraysT< ColType > columns;
 
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const nCols = rand( maxCols );
+      IndexType const nCols = rand( maxCols );
       columns.appendArray( nCols );
-      for( INDEX_TYPE i = 0; i < nCols; ++i )
+      for( IndexType i = 0; i < nCols; ++i )
       {
         columns( row, i ) = rand( m_matrix.numColumns() - 1 );
       }
 
       if( !oneAtATime && nCols != 0 )
       {
-        INDEX_TYPE const numUnique = sortedArrayManipulation::makeSortedUnique( &columns( row, 0 ), &columns( row, 0 ) + nCols );
+        IndexType const numUnique = sortedArrayManipulation::makeSortedUnique( &columns( row, 0 ), &columns( row, 0 ) + nCols );
         columns.resizeArray( row, numUnique );
       }
     }
@@ -426,28 +460,28 @@ protected:
     return columns;
   }
 
-  void insertIntoRef( ArrayOfArraysViewT< COL_TYPE const, true > const & columnsToInsert )
+  void insertIntoRef( ArrayOfArraysViewT< ColType const > const & columnsToInsert )
   {
-    for( INDEX_TYPE i = 0; i < columnsToInsert.size(); ++i )
+    for( IndexType i = 0; i < columnsToInsert.size(); ++i )
     {
-      for( INDEX_TYPE j = 0; j < columnsToInsert.sizeOfArray( i ); ++j )
+      for( IndexType j = 0; j < columnsToInsert.sizeOfArray( i ); ++j )
       {
-        COL_TYPE const col = columnsToInsert( i, j );
+        ColType const col = columnsToInsert( i, j );
         m_ref[ i ][ col ] = T( col );
       }
     }
   }
 
-  ArrayOfArraysT< T > createArrayOfValues( ArrayOfArraysViewT< COL_TYPE const, true > const & columns ) const
+  ArrayOfArraysT< T > createArrayOfValues( ArrayOfArraysViewT< ColType const > const & columns ) const
   {
     ArrayOfArraysT< T > values;
 
-    INDEX_TYPE const numRows = m_matrix.numRows();
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    IndexType const numRows = m_matrix.numRows();
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const nCols = columns.sizeOfArray( row );
+      IndexType const nCols = columns.sizeOfArray( row );
       values.appendArray( nCols );
-      for( INDEX_TYPE i = 0; i < nCols; ++i )
+      for( IndexType i = 0; i < nCols; ++i )
       {
         values( row, i ) = T( columns( row, i ) );
       }
@@ -456,82 +490,26 @@ protected:
     return values;
   }
 
-  INDEX_TYPE rand( INDEX_TYPE const max )
+  IndexType rand( IndexType const max )
   {
-    return std::uniform_int_distribution< INDEX_TYPE >( 0, max )( m_gen );
+    return std::uniform_int_distribution< IndexType >( 0, max )( m_gen );
   }
 
   std::mt19937_64 m_gen;
 
   CRS_MATRIX m_matrix;
 
-  std::vector< std::map< COL_TYPE, T > > m_ref;
-
-  /// Check that the move, toView, and toViewConst methods of CRS_MATRIX are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< CRS_MATRIX >,
-                 "CRS_MATRIX has a move method." );
-  static_assert( HasMemberFunction_toView< CRS_MATRIX >,
-                 "CRS_MATRIX has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< CRS_MATRIX >,
-                 "CRS_MATRIX has a toViewConst method." );
-
-  /// Check that the move and toViewConst methods of ViewType are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ViewType >,
-                 "ViewType has a move method." );
-  static_assert( HasMemberFunction_toView< ViewType >,
-                 "ViewType has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ViewType >,
-                 "ViewType has a toViewConst method." );
-
-  /// Check that the move and toViewConst methods of ViewTypeConstSizes are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ViewTypeConstSizes >,
-                 "ViewTypeConstSizes has a move method." );
-  static_assert( HasMemberFunction_toView< ViewTypeConstSizes >,
-                 "ViewTypeConstSizes has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ViewTypeConstSizes >,
-                 "ViewTypeConstSizes has a toViewConst method." );
-
-  /// Check that the move and toViewConst methods of ViewTypeConst are detected.
-  static_assert( bufferManipulation::HasMemberFunction_move< ViewTypeConst >,
-                 "ViewTypeConst has a move method." );
-  static_assert( HasMemberFunction_toView< ViewTypeConst >,
-                 "ViewTypeConst has a toView method." );
-  static_assert( HasMemberFunction_toViewConst< ViewTypeConst >,
-                 "ViewTypeConst has a toViewConst method." );
-
-  /// Check that GetViewType and GetViewTypeConst are correct for CRS_MATRIX
-  static_assert( std::is_same< typename GetViewType< CRS_MATRIX >::type, ViewType const >::value,
-                 "The view type of CRS_MATRIX is ViewType const." );
-  static_assert( std::is_same< typename GetViewTypeConst< CRS_MATRIX >::type, ViewTypeConst const >::value,
-                 "The const view type of CRS_MATRIX is ViewTypeConst const." );
-
-  /// Check that GetViewType and GetViewTypeConst are correct for ViewType
-  static_assert( std::is_same< typename GetViewType< ViewType >::type, ViewType const >::value,
-                 "The view type of ViewType is ViewType const." );
-  static_assert( std::is_same< typename GetViewTypeConst< ViewType >::type, ViewTypeConst const >::value,
-                 "The const view type of ViewType is ViewTypeConst const." );
-
-  /// Check that GetViewType and GetViewTypeConst are correct for ViewTypeConstSizes
-  static_assert( std::is_same< typename GetViewType< ViewTypeConstSizes >::type, ViewTypeConstSizes const >::value,
-                 "The view type of ViewTypeConstSizes is ViewTypeConstSizes const." );
-  static_assert( std::is_same< typename GetViewTypeConst< ViewTypeConstSizes >::type, ViewTypeConst const >::value,
-                 "The const view type of ViewTypeConstSizes is ViewTypeConst const." );
-
-  /// Check that GetViewType and GetViewTypeConst are correct for ViewTypeConst
-  static_assert( std::is_same< typename GetViewType< ViewTypeConst >::type, ViewTypeConst const >::value,
-                 "The view type of ViewTypeConst is ViewTypeConst const." );
-  static_assert( std::is_same< typename GetViewTypeConst< ViewTypeConst >::type, ViewTypeConst const >::value,
-                 "The const view type of ViewTypeConst is ViewTypeConst const." );
+  std::vector< std::map< ColType, T > > m_ref;
 };
 
 using CRSMatrixTestTypes = ::testing::Types<
-  CRSMatrix< int, COL_TYPE, INDEX_TYPE, MallocBuffer >
-  , CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, MallocBuffer >
-  , CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, MallocBuffer >
+  CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >
+  , CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >
+  , CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >
 #if defined(USE_CHAI)
-  , CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >
-  , CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, NewChaiBuffer >
-  , CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, NewChaiBuffer >
+  , CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >
+  , CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >
+  , CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >
 #endif
   >;
 TYPED_TEST_SUITE( CRSMatrixTest, CRSMatrixTestTypes, );
@@ -548,13 +526,13 @@ TYPED_TEST( CRSMatrixTest, construction )
   EXPECT_EQ( m.numNonZeros(), 0 );
   EXPECT_TRUE( m.empty());
 
-  for( INDEX_TYPE row = 0; row < DEFAULT_NROWS; ++row )
+  for( int row = 0; row < DEFAULT_NROWS; ++row )
   {
     EXPECT_EQ( m.numNonZeros( row ), 0 );
     EXPECT_EQ( m.nonZeroCapacity( row ), 0 );
     EXPECT_EQ( m.empty( row ), true );
 
-    COL_TYPE const * const columns = m.getColumns( row );
+    auto const * const columns = m.getColumns( row ).dataIfContiguous();
     EXPECT_EQ( columns, nullptr );
 
     auto const * const entries = m.getEntries( row ).dataIfContiguous();
@@ -571,17 +549,31 @@ TYPED_TEST( CRSMatrixTest, hintConstruction )
   EXPECT_EQ( m.nonZeroCapacity(), DEFAULT_NROWS * 5 );
   EXPECT_TRUE( m.empty());
 
-  for( INDEX_TYPE row = 0; row < DEFAULT_NROWS; ++row )
+  for( int row = 0; row < DEFAULT_NROWS; ++row )
   {
     EXPECT_EQ( m.numNonZeros( row ), 0 );
     EXPECT_EQ( m.nonZeroCapacity( row ), 5 );
     EXPECT_EQ( m.empty( row ), true );
 
-    COL_TYPE const * const columns = m.getColumns( row );
+    auto const * const columns = m.getColumns( row ).dataIfContiguous();
     ASSERT_NE( columns, nullptr );
 
     auto const * const entries = m.getEntries( row ).dataIfContiguous();
     ASSERT_NE( entries, nullptr );
+  }
+}
+
+TYPED_TEST( CRSMatrixTest, resizeFromRowCapacities )
+{
+  for( int i = 0; i < 2; ++i )
+  {
+    this->template resizeFromRowCapacities< serialPolicy >( DEFAULT_NROWS, DEFAULT_NCOLS );
+    this->insert( DEFAULT_MAX_INSERTS, true );
+
+#if defined( USE_OPENMP )
+    this->template resizeFromRowCapacities< parallelHostPolicy >( 2 * DEFAULT_NROWS, DEFAULT_NCOLS / 2 );
+    this->insert( DEFAULT_MAX_INSERTS, true );
+#endif
   }
 }
 
@@ -638,8 +630,10 @@ TYPED_TEST( CRSMatrixTest, compress )
   this->compress();
 }
 
+// Sphinx start after CRSMatrixViewTest
 template< typename CRS_MATRIX_POLICY_PAIR >
 class CRSMatrixViewTest : public CRSMatrixTest< typename CRS_MATRIX_POLICY_PAIR::first_type >
+// Sphinx end before CRSMatrixViewTest
 {
 public:
 
@@ -649,18 +643,17 @@ public:
   using ParentClass = CRSMatrixTest< CRS_MATRIX >;
 
   using typename ParentClass::T;
+  using typename ParentClass::ColType;
+  using typename ParentClass::IndexType;
   using typename ParentClass::ViewType;
   using typename ParentClass::ViewTypeConstSizes;
   using typename ParentClass::ViewTypeConst;
 
   template< typename U >
-  using ArrayOfArraysT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArrays< U >;
+  using ArrayOfArraysT = typename ParentClass::template ArrayOfArraysT< U >;
 
-  template< typename U, bool CONST_SIZES >
-  using ArrayOfArraysViewT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArraysView< U, CONST_SIZES >;
-
-  using SparsityPatternViewT = typename ArrayConverter< CRS_MATRIX >::template SparsityPatternView< COL_TYPE const >;
-
+  template< typename U >
+  using ArrayOfArraysViewT = typename ParentClass::template ArrayOfArraysViewT< U >;
 
   CRSMatrixViewTest():
     ParentClass(),
@@ -675,10 +668,10 @@ public:
     memoryMotionInit();
 
     // Check that the columns and entries have been updated.
-    INDEX_TYPE curIndex = 0;
+    IndexType curIndex = 0;
     ViewType const & view = m_view;
     forall< serialPolicy >( m_view.numRows(),
-                            [view, &curIndex]( INDEX_TYPE row )
+                            [view, &curIndex]( IndexType row )
     {
       memoryMotionCheckRow( view.toViewConst(), row, curIndex );
     } );
@@ -692,29 +685,29 @@ public:
     memoryMotionInit();
 
     this->m_matrix.move( MemorySpace::CPU );
-    INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0; row < m_view.numRows(); ++row )
+    IndexType curIndex = 0;
+    for( IndexType row = 0; row < m_view.numRows(); ++row )
     {
       memoryMotionCheckRow( m_view.toViewConst(), row, curIndex );
     }
   }
 
   /**
-   * @brief Test the const capture semantics where COL_TYPE is const.
+   * @brief Test the const capture semantics where ColType is const.
    */
   void memoryMotionConstTest()
   {
-    INDEX_TYPE const numRows = m_view.numRows();
-    INDEX_TYPE const numCols = m_view.numColumns();
+    IndexType const numRows = m_view.numRows();
+    IndexType const numCols = m_view.numColumns();
 
     // Capture a view with const columns on device and update the entries.
     ViewTypeConstSizes const & view = m_view.toViewConstSizes();
     forall< POLICY >( numRows,
-                      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
+                      [view, numCols] LVARRAY_HOST_DEVICE ( IndexType row )
         {
-          COL_TYPE const * const columns = view.getColumns( row );
+          ColType const * const columns = view.getColumns( row );
           T * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+          for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "Invalid column." );
             entries[ i ] = T( 2 * i + 7 );
@@ -723,15 +716,15 @@ public:
 
     // This should copy back the entries but not the columns.
     this->m_matrix.move( MemorySpace::CPU );
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
       ASSERT_EQ( m_view.numNonZeros( row ), this->m_ref[row].size());
 
       auto it = this->m_ref[row].begin();
-      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
+      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
       {
         // So the columns should be the same as the reference.
-        COL_TYPE const col = m_view.getColumns( row )[ i ];
+        ColType const col = m_view.getColumns( row )[ i ];
         EXPECT_EQ( col, it->first );
         EXPECT_EQ( m_view.getEntries( row )[ i ], T( 2 * i + 7 ));
         ++it;
@@ -740,22 +733,22 @@ public:
   }
 
   /**
-   * @brief Test the const capture semantics where both T and COL_TYPE are const.
+   * @brief Test the const capture semantics where both T and ColType are const.
    * @param [in] maxInserts the maximum number of inserts.
    */
-  void memoryMotionConstConstTest( INDEX_TYPE const maxInserts )
+  void memoryMotionConstConstTest( IndexType const maxInserts )
   {
-    INDEX_TYPE const numRows = m_view.numRows();
-    INDEX_TYPE const numCols = m_view.numColumns();
+    IndexType const numRows = m_view.numRows();
+    IndexType const numCols = m_view.numColumns();
 
     // Capture a view with const columns and const values on device.
     ViewTypeConst const & view = m_view.toViewConst();
     forall< POLICY >( numRows,
-                      [view, numCols] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
+                      [view, numCols] LVARRAY_HOST_DEVICE ( IndexType row )
         {
-          COL_TYPE const * const columns = view.getColumns( row );
+          ColType const * const columns = view.getColumns( row );
           T const * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+          for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
             LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "Invalid column." );
             LVARRAY_ERROR_IF( entries[ i ] != T( columns[ i ] ), "Incorrect value." );
@@ -795,16 +788,16 @@ public:
    * @param [in] maxInserts the maximum number of inserts.
    * @param [in] oneAtATime If true the entries are inserted one at a time.
    */
-  void insertIntoView( INDEX_TYPE const maxInserts, bool const oneAtATime=false )
+  void insertIntoView( IndexType const maxInserts, bool const oneAtATime=false )
   {
-    INDEX_TYPE const numRows = this->m_matrix.numRows();
+    IndexType const numRows = this->m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArraysT< COL_TYPE > const columnsToInsert = this->createArrayOfColumns( maxInserts, oneAtATime );
+    ArrayOfArraysT< ColType > const columnsToInsert = this->createArrayOfColumns( maxInserts, oneAtATime );
     ArrayOfArraysT< T > const valuesToInsert = this->createArrayOfValues( columnsToInsert.toViewConst() );
 
     // Reserve space for the inserts
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
       this->m_matrix.reserveNonZeros( row, this->m_matrix.numNonZeros( row ) + columnsToInsert.sizeOfArray( row ) );
     }
@@ -813,18 +806,18 @@ public:
     this->insertIntoRef( columnsToInsert.toViewConst() );
 
     ViewType const & view = m_view;
-    ArrayOfArraysViewT< COL_TYPE const, true > const & columnsView = columnsToInsert.toViewConst();
-    ArrayOfArraysViewT< T const, true > const & valuesView = valuesToInsert.toViewConst();
+    ArrayOfArraysViewT< ColType const > const & columnsView = columnsToInsert.toViewConst();
+    ArrayOfArraysViewT< T const > const & valuesView = valuesToInsert.toViewConst();
     if( oneAtATime )
     {
       forall< POLICY >( numRows,
-                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( IndexType const row )
           {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE nInserted = 0;
-            for( INDEX_TYPE i = 0; i < columnsView.sizeOfArray( row ); ++i )
+            IndexType const initialNNZ = view.numNonZeros( row );
+            IndexType nInserted = 0;
+            for( IndexType i = 0; i < columnsView.sizeOfArray( row ); ++i )
             {
-              COL_TYPE const col = columnsView( row, i );
+              ColType const col = columnsView( row, i );
               nInserted += view.insertNonZero( row, col, T( col ) );
             }
 
@@ -835,13 +828,13 @@ public:
     else
     {
       forall< POLICY >( numRows,
-                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                        [view, columnsView, valuesView] LVARRAY_HOST_DEVICE ( IndexType const row )
           {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nInserted = view.insertNonZeros( row,
-                                                              columnsView[row],
-                                                              valuesView[row],
-                                                              columnsView.sizeOfArray( row ) );
+            IndexType const initialNNZ = view.numNonZeros( row );
+            IndexType const nInserted = view.insertNonZeros( row,
+                                                             columnsView[row],
+                                                             valuesView[row],
+                                                             columnsView.sizeOfArray( row ) );
             PORTABLE_EXPECT_EQ( view.numNonZeros( row ) - initialNNZ, nInserted );
           }
                         );
@@ -856,33 +849,33 @@ public:
    * @param [in] maxRemoves the maximum number of removes.
    * @param [in] oneAtATime If true the columns are removed one at a time.
    */
-  void removeFromView( INDEX_TYPE const maxRemoves, bool const oneAtATime=false )
+  void removeFromView( IndexType const maxRemoves, bool const oneAtATime=false )
   {
-    INDEX_TYPE const numRows = m_view.numRows();
+    IndexType const numRows = m_view.numRows();
 
     // Create an Array of the columns and values to insert into each row.
-    ArrayOfArraysT< COL_TYPE > const columnsToRemove = this->createArrayOfColumns( maxRemoves, oneAtATime );
+    ArrayOfArraysT< ColType > const columnsToRemove = this->createArrayOfColumns( maxRemoves, oneAtATime );
 
     // Insert the entries into the reference.
-    for( INDEX_TYPE i = 0; i < columnsToRemove.size(); ++i )
+    for( IndexType i = 0; i < columnsToRemove.size(); ++i )
     {
-      for( INDEX_TYPE j = 0; j < columnsToRemove.sizeOfArray( i ); ++j )
+      for( IndexType j = 0; j < columnsToRemove.sizeOfArray( i ); ++j )
       {
-        COL_TYPE const col = columnsToRemove( i, j );
+        ColType const col = columnsToRemove( i, j );
         this->m_ref[ i ].erase( col );
       }
     }
 
     ViewType const & view = m_view;
-    ArrayOfArraysViewT< COL_TYPE const, true > const & columnsView = columnsToRemove.toViewConst();
+    ArrayOfArraysViewT< ColType const > const & columnsView = columnsToRemove.toViewConst();
     if( oneAtATime )
     {
       forall< POLICY >( numRows,
-                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE row )
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( IndexType row )
           {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE nRemoved = 0;
-            for( INDEX_TYPE i = 0; i < columnsView.sizeOfArray( row ); ++i )
+            IndexType const initialNNZ = view.numNonZeros( row );
+            IndexType nRemoved = 0;
+            for( IndexType i = 0; i < columnsView.sizeOfArray( row ); ++i )
             {
               nRemoved += view.removeNonZero( row, columnsView( row, i ) );
             }
@@ -893,10 +886,10 @@ public:
     else
     {
       forall< POLICY >( numRows,
-                        [view, columnsView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                        [view, columnsView] LVARRAY_HOST_DEVICE ( IndexType const row )
           {
-            INDEX_TYPE const initialNNZ = view.numNonZeros( row );
-            INDEX_TYPE const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
+            IndexType const initialNNZ = view.numNonZeros( row );
+            IndexType const nRemoved = view.removeNonZeros( row, columnsView[row], columnsView.sizeOfArray( row ) );
             PORTABLE_EXPECT_EQ( initialNNZ - view.numNonZeros( row ), nRemoved );
           } );
     }
@@ -910,28 +903,28 @@ public:
    */
   void emptyTest() const
   {
-    INDEX_TYPE const numRows = m_view.numRows();
+    IndexType const numRows = m_view.numRows();
 
     // Initialize each row to only contain even numbered columns.
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      COL_TYPE const * const columns = m_view.getColumns( row );
-      COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
-      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
+      ColType const * const columns = m_view.getColumns( row );
+      ColType * const columnsNC = const_cast< ColType * >(columns);
+      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
       {
-        columnsNC[ i ] = COL_TYPE( 2 * i );
+        columnsNC[ i ] = ColType( 2 * i );
       }
     }
 
     // Check that each row contains the even columns and no odd columns.
     ViewTypeConst const & view = m_view.toViewConst();
     forall< POLICY >( numRows,
-                      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                      [view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+          for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
-            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i ) ), false );
-            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( 2 * i + 1 ) ), true );
+            PORTABLE_EXPECT_EQ( view.empty( row, ColType( 2 * i ) ), false );
+            PORTABLE_EXPECT_EQ( view.empty( row, ColType( 2 * i + 1 ) ), true );
           }
         } );
   }
@@ -941,27 +934,27 @@ public:
    */
   void sparsityPatternViewTest() const
   {
-    INDEX_TYPE const numRows = m_view.numRows();
+    IndexType const numRows = m_view.numRows();
 
-    SparsityPatternViewT const & spView = m_view.toSparsityPatternView();
+    auto const & spView = m_view.toSparsityPatternView();
 
     // Check that each row contains the even columns and no odd columns on device.
     ViewTypeConst const & view = m_view.toViewConst();
     forall< POLICY >( numRows,
-                      [spView, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                      [spView, view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
-          INDEX_TYPE const nnz = view.numNonZeros( row );
+          IndexType const nnz = view.numNonZeros( row );
           PORTABLE_EXPECT_EQ( nnz, spView.numNonZeros( row ) );
 
-          COL_TYPE const * const columns = view.getColumns( row );
-          COL_TYPE const * const spColumns = spView.getColumns( row );
+          ColType const * const columns = view.getColumns( row );
+          ColType const * const spColumns = spView.getColumns( row );
           PORTABLE_EXPECT_EQ( columns, spColumns );
 
-          for( INDEX_TYPE i = 0; i < nnz; ++i )
+          for( IndexType i = 0; i < nnz; ++i )
           {
             PORTABLE_EXPECT_EQ( columns[ i ], spColumns[ i ] );
             PORTABLE_EXPECT_EQ( view.empty( row, columns[ i ] ), spView.empty( row, columns[ i ] ) );
-            PORTABLE_EXPECT_EQ( view.empty( row, COL_TYPE( i ) ), spView.empty( row, COL_TYPE( i ) ) );
+            PORTABLE_EXPECT_EQ( view.empty( row, ColType( i ) ), spView.empty( row, ColType( i ) ) );
           }
         } );
   }
@@ -969,17 +962,17 @@ public:
   // This should be private but you can't have device lambdas need to be in public methods :(
   void memoryMotionInit() const
   {
-    INDEX_TYPE const numRows = m_view.numRows();
+    IndexType const numRows = m_view.numRows();
 
     // Set the columns and entries. The const casts here isn't necessary, we could remove and insert
     // into the view instead, but this is quicker.
-    INDEX_TYPE curIndex = 0;
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    IndexType curIndex = 0;
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      COL_TYPE const * const columns = m_view.getColumns( row );
-      COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
+      ColType const * const columns = m_view.getColumns( row );
+      ColType * const columnsNC = const_cast< ColType * >(columns);
       T * const entries = m_view.getEntries( row );
-      for( INDEX_TYPE i = 0; i < m_view.numNonZeros( row ); ++i )
+      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
       {
         columnsNC[ i ] = curIndex;
         entries[ i ] = T( curIndex++ );
@@ -990,12 +983,12 @@ public:
     // because we don't want to test the insert/remove methods on device yet.
     ViewType const & view = m_view;
     forall< POLICY >( numRows,
-                      [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+                      [view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
-          COL_TYPE const * const columns = view.getColumns( row );
-          COL_TYPE * const columnsNC = const_cast< COL_TYPE * >(columns);
+          ColType const * const columns = view.getColumns( row );
+          ColType * const columnsNC = const_cast< ColType * >(columns);
           T * const entries = view.getEntries( row );
-          for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+          for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
             columnsNC[ i ] += columns[ i ];
             entries[ i ] += entries[ i ];
@@ -1007,11 +1000,11 @@ public:
 protected:
 
   static void memoryMotionCheckRow( ViewTypeConst const & view,
-                                    INDEX_TYPE const row, INDEX_TYPE & curIndex )
+                                    IndexType const row, IndexType & curIndex )
   {
-    for( INDEX_TYPE i = 0; i < view.numNonZeros( row ); ++i )
+    for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
     {
-      EXPECT_EQ( COL_TYPE( curIndex ) * 2, view.getColumns( row )[ i ] );
+      EXPECT_EQ( ColType( curIndex ) * 2, view.getColumns( row )[ i ] );
       T expectedEntry( curIndex );
       expectedEntry += T( curIndex );
       EXPECT_EQ( expectedEntry, view.getEntries( row )[ i ] );
@@ -1022,19 +1015,21 @@ protected:
   ViewType const & m_view;
 };
 
+// Sphinx start after CRSMatrixViewTestTypes
 using CRSMatrixViewTestTypes = ::testing::Types<
-  std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
+// Sphinx end before CRSMatrixViewTestTypes
+  , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
 #if defined(USE_CHAI)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
 #if defined(USE_CUDA) && defined(USE_CHAI)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 
@@ -1142,43 +1137,45 @@ public:
   using ParentClass = CRSMatrixViewTest< CRS_MATRIX_POLICY_PAIR >;
 
   using typename ParentClass::T;
+  using typename ParentClass::IndexType;
+  using typename ParentClass::ColType;
   using typename ParentClass::ViewType;
   using typename ParentClass::ViewTypeConstSizes;
   using typename ParentClass::ViewTypeConst;
 
   template< typename U >
-  using ArrayOfArraysT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArrays< U >;
+  using ArrayOfArraysT = typename ParentClass::template ArrayOfArraysT< U >;
 
-  template< typename U, bool CONST_SIZES >
-  using ArrayOfArraysViewT = typename ArrayConverter< CRS_MATRIX >::template ArrayOfArraysView< U, CONST_SIZES >;
+  template< typename U >
+  using ArrayOfArraysViewT = typename ParentClass::template ArrayOfArraysViewT< U >;
 
-  void addToRow( AddType const type, INDEX_TYPE const nThreads )
+  void addToRow( AddType const type, IndexType const nThreads )
   {
-    INDEX_TYPE const numRows = m_view.numRows();
+    IndexType const numRows = m_view.numRows();
 
-    for( INDEX_TYPE row = 0; row < numRows; ++row )
+    for( IndexType row = 0; row < numRows; ++row )
     {
-      INDEX_TYPE const nColsInRow = m_view.numNonZeros( row );
+      IndexType const nColsInRow = m_view.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
-      ArrayOfArraysT< COL_TYPE > columns;
-      for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+      ArrayOfArraysT< ColType > columns;
+      for( IndexType threadID = 0; threadID < nThreads; ++threadID )
       {
-        INDEX_TYPE const nColsToAddTo = this->rand( nColsInRow );
+        IndexType const nColsToAddTo = this->rand( nColsInRow );
         columns.appendArray( nColsToAddTo );
 
-        for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
+        for( IndexType i = 0; i < nColsToAddTo; ++i )
         {
-          INDEX_TYPE const pos = this->rand( nColsInRow - 1 );
+          IndexType const pos = this->rand( nColsInRow - 1 );
           columns( threadID, i ) = m_view.getColumns( row )[ pos ];
         }
       }
 
       if( type != AddType::UNSORTED_BINARY )
       {
-        for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+        for( IndexType threadID = 0; threadID < nThreads; ++threadID )
         {
-          INDEX_TYPE const numUniqueCols =
+          IndexType const numUniqueCols =
             sortedArrayManipulation::makeSortedUnique( columns[ threadID ].begin(), columns[ threadID ].end() );
           columns.resizeArray( threadID, numUniqueCols );
         }
@@ -1186,24 +1183,24 @@ public:
 
       // Array that holds the values each thread will add to in the current row.
       ArrayOfArraysT< T > values;
-      for( INDEX_TYPE threadID = 0; threadID < nThreads; ++threadID )
+      for( IndexType threadID = 0; threadID < nThreads; ++threadID )
       {
-        INDEX_TYPE const nColsToAddTo = columns.sizeOfArray( threadID );
+        IndexType const nColsToAddTo = columns.sizeOfArray( threadID );
         values.appendArray( nColsToAddTo );
 
-        for( INDEX_TYPE i = 0; i < nColsToAddTo; ++i )
+        for( IndexType i = 0; i < nColsToAddTo; ++i )
         {
-          COL_TYPE const column = columns( threadID, i );
+          ColType const column = columns( threadID, i );
           values( threadID, i ) = T( columns( threadID, i ) );
           this->m_ref[ row ][ column ] += values( threadID, i );
         }
       }
 
       ViewTypeConstSizes const & view = m_view.toViewConstSizes();
-      ArrayOfArraysViewT< COL_TYPE const, true > colView = columns.toViewConst();
-      ArrayOfArraysViewT< T const, true > valView = values.toViewConst();
+      ArrayOfArraysViewT< ColType const > colView = columns.toViewConst();
+      ArrayOfArraysViewT< T const > valView = values.toViewConst();
 
-      forall< POLICY >( nThreads, [type, row, view, colView, valView] LVARRAY_HOST_DEVICE ( INDEX_TYPE const threadID )
+      forall< POLICY >( nThreads, [type, row, view, colView, valView] LVARRAY_HOST_DEVICE ( IndexType const threadID )
           {
             if( type == AddType::LINEAR_SEARCH )
             {
@@ -1245,27 +1242,27 @@ protected:
 };
 
 using CRSMatrixViewAtomicTestTypes = ::testing::Types<
-  std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, MallocBuffer >, serialPolicy >
+  std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
 #if defined(USE_CHAI)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< Tensor, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
-  , std::pair< CRSMatrix< TestString, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
+  , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
 #if defined(USE_OPENMP)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, MallocBuffer >, parallelHostPolicy >
-  , std::pair< CRSMatrix< double, COL_TYPE, INDEX_TYPE, MallocBuffer >, parallelHostPolicy >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
+  , std::pair< CRSMatrix< double, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
 #endif
 #if defined(USE_OPENMP) && defined(USE_CHAI)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelHostPolicy >
-  , std::pair< CRSMatrix< double, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelHostPolicy >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
+  , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
 
 #if defined(USE_CUDA) && defined(USE_CHAI)
-  , std::pair< CRSMatrix< int, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< CRSMatrix< double, COL_TYPE, INDEX_TYPE, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 

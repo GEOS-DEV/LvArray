@@ -18,7 +18,7 @@
 
 // Source includes
 #include "Array.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testUtils.hpp"
 #include "MallocBuffer.hpp"
 
@@ -130,7 +130,7 @@ public:
     {
       // Insert from a std::vector
       {
-        INDEX_TYPE const nToInsertThisIter = randomInteger( 0, min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        INDEX_TYPE const nToInsertThisIter = randomInteger( 0, math::min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
         std::vector< T > valsToInsert( nToInsertThisIter );
 
         for( T & val : valsToInsert )
@@ -145,7 +145,7 @@ public:
 
       // Insert from a std::list
       {
-        INDEX_TYPE const nToInsertThisIter = randomInteger( 0, min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
+        INDEX_TYPE const nToInsertThisIter = randomInteger( 0, math::min( MAX_VALS_PER_INSERT, nToInsert - nInserted ) );
         std::list< T > valsToInsert( nToInsertThisIter );
         for( T & val : valsToInsert )
         { val = T( randomInteger( 0, 1000 ) ); }
@@ -209,9 +209,9 @@ using Array1DTestTypes = ::testing::Types<
   , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
   , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
 #if defined(USE_CHAI)
-  , Array< int, 1, RAJA::PERM_I, INDEX_TYPE, NewChaiBuffer >
-  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, NewChaiBuffer >
-  , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, NewChaiBuffer >
+  , Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
+  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
+  , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
 #endif
   >;
 
@@ -253,3 +253,11 @@ TYPED_TEST( Array1DTest, combinedOperations )
 
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

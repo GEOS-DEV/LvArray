@@ -17,7 +17,8 @@
  */
 
 // Source includes
-#include "streamIO.hpp"
+#include "input.hpp"
+#include "output.hpp"
 #include "MallocBuffer.hpp"
 
 // TPL includes
@@ -32,9 +33,9 @@ namespace LvArray
 {
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
+using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
 
-TEST( testArrayUtilities, stringToArrayErrors )
+TEST( input, stringToArrayErrors )
 {
   std::string input;
 
@@ -42,74 +43,74 @@ TEST( testArrayUtilities, stringToArrayErrors )
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    stringToArray( array, input );
+    input::stringToArray( array, input );
   }
 
   {
     input = " { 10 1 } ";
     ArrayT< int, RAJA::PERM_I > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { 1, 2 }{ 3, 4 } } ";
     ArrayT< int, RAJA::PERM_IJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   // This should fail the num('{')==num('}') test
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17}  , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IKJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14,{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_JIK > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8,{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_JKI > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { 0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_KIJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = "  { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
     ArrayT< int, RAJA::PERM_KJI > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
   {
     input = " { { {},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
   {
     input = " { { {0,1,2}}{ } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( stringToArray( array, input ), IGNORE_OUTPUT );
+    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
   }
 
 
 }
 
-TEST( testArrayUtilities, stringToArray3d )
+TEST( input, stringToArray3d )
 {
   std::string input;
   input += "{ ";
@@ -145,7 +146,7 @@ TEST( testArrayUtilities, stringToArray3d )
   input += " }";
 
   ArrayT< int, RAJA::PERM_JIK > array;
-  stringToArray( array, input );
+  input::stringToArray( array, input );
 
   ASSERT_EQ( array.size( 0 ), numI );
   ASSERT_EQ( array.size( 1 ), numJ );
@@ -163,9 +164,7 @@ TEST( testArrayUtilities, stringToArray3d )
   }
 }
 
-
-
-TEST( testArrayUtilities, arrayToString )
+TEST( input, arrayToString )
 {
   ArrayT< int, RAJA::PERM_IKJ > array( 2, 4, 3 );
 

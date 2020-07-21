@@ -22,7 +22,7 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testTensorOpsCommon.hpp"
 
 // TPL includes
@@ -58,6 +58,11 @@ public:
     fill( m_matrixNN_IKJ.toSlice(), m_matrixNNSeed );
     fill( m_matrixNN_KJI.toSlice(), m_matrixNNSeed );
     fill( m_matrixNN_local, m_matrixNNSeed );
+
+    fill( m_matrixMN_IJK.toSlice(), m_matrixMNSeed );
+    fill( m_matrixMN_IKJ.toSlice(), m_matrixMNSeed );
+    fill( m_matrixMN_KJI.toSlice(), m_matrixMNSeed );
+    fill( m_matrixMN_local, m_matrixMNSeed );
 
     fill( m_vectorN_IJ.toSlice(), m_vectorNSeed );
     fill( m_vectorN_JI.toSlice(), m_vectorNSeed );
@@ -426,7 +431,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorM, vectorMSeed ); \
-            tensorOps::AjiBj< N, M >( vectorM, matrix, vectorN ); \
+            tensorOps::AjiBj< M, N >( vectorM, matrix, vectorN ); \
             CHECK_EQUALITY_1D( M, vectorM, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -487,7 +492,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorM, vectorMSeed ); \
-            tensorOps::plusAjiBj< N, M >( vectorM, matrix, vectorN ); \
+            tensorOps::plusAjiBj< M, N >( vectorM, matrix, vectorN ); \
             CHECK_EQUALITY_1D( M, vectorM, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -719,23 +724,65 @@ public:
 
           T matrixNN_local[ N ][ N ];
 
-          _TEST( matrixNN_local, matrixA_local );
-
-          LVARRAY_UNUSED_VARIABLE( matrixA_IJK );
-          LVARRAY_UNUSED_VARIABLE( matrixA_IKJ );
-          LVARRAY_UNUSED_VARIABLE( matrixA_KJI );
-          LVARRAY_UNUSED_VARIABLE( matrixA_local );
-          LVARRAY_UNUSED_VARIABLE( matrixNN_IJK );
-          LVARRAY_UNUSED_VARIABLE( matrixNN_IKJ );
-          LVARRAY_UNUSED_VARIABLE( matrixNN_KJI );
-
-          // _TEST_PERMS( matrixNN_IJK[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
-          // _TEST_PERMS( matrixNN_IKJ[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
-          // _TEST_PERMS( matrixNN_KJI[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
-          // _TEST_PERMS( matrixNN_local, matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( matrixNN_IJK[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( matrixNN_IKJ[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( matrixNN_KJI[ 0 ], matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
+          _TEST_PERMS( matrixNN_local, matrixA_IJK[ 0 ], matrixA_IKJ[ 0 ], matrixA_KJI[ 0 ], matrixA_local );
 
           #undef _TEST_PERMS
           #undef _TEST
+        } );
+  }
+
+  void testTranspose()
+  {
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+
+    ArrayViewT< T const, 3, 2 > const & matrixMN_IJK_view = m_matrixMN_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const & matrixMN_IKJ_view = m_matrixMN_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const & matrixMN_KJI_view = m_matrixMN_KJI.toViewConst();
+    T const ( &matrixMN_local )[ M ][ N ] = m_matrixMN_local;
+
+    std::ptrdiff_t const matrixSeed = m_matrixASeed;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( dstMatrix, srcMatrix ) \
+            fill( dstMatrix, matrixSeed ); \
+            tensorOps::transpose< N, M >( dstMatrix, srcMatrix ); \
+            for( int i = 0; i < N; ++i ) \
+            { \
+              for( int j = 0; j < M; ++j ) \
+              { \
+                PORTABLE_EXPECT_EQ( dstMatrix[ i ][ j ], srcMatrix[ j ][ i ] ); \
+              } \
+            }
+
+          #define _TEST_PERMS( dstMatrix, srcMatrix0, srcMatrix1, srcMatrix2, srcMatrix3 ) \
+            _TEST( dstMatrix, srcMatrix0 ); \
+            _TEST( dstMatrix, srcMatrix1 ); \
+            _TEST( dstMatrix, srcMatrix2 ); \
+            _TEST( dstMatrix, srcMatrix3 )
+
+          T matrix_local[ N ][ M ];
+
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrix_local, matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrix_local, matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrix_local, matrixMN_IJK_view[ 0 ], matrixMN_IKJ_view[ 0 ], matrixMN_KJI_view[ 0 ], matrixMN_local );
+
+      #undef _TEST_PERMS
+      #undef _TEST
         } );
   }
 
@@ -758,7 +805,13 @@ private:
   ArrayT< T, RAJA::PERM_KJI > m_matrixNN_KJI { 1, N, N };
   T m_matrixNN_local[ N ][ N ];
 
-  std::ptrdiff_t const m_vectorNSeed = m_matrixNNSeed + N * N;
+  std::ptrdiff_t const m_matrixMNSeed = m_matrixNNSeed + N * N;
+  ArrayT< T, RAJA::PERM_IJK > m_matrixMN_IJK { 1, M, N };
+  ArrayT< T, RAJA::PERM_IKJ > m_matrixMN_IKJ { 1, M, N };
+  ArrayT< T, RAJA::PERM_KJI > m_matrixMN_KJI { 1, M, N };
+  T m_matrixMN_local[ M ][ N ];
+
+  std::ptrdiff_t const m_vectorNSeed = m_matrixMNSeed + N * M;
   ArrayT< T, RAJA::PERM_IJ > m_vectorN_IJ { 1, N };
   ArrayT< T, RAJA::PERM_JI > m_vectorN_JI { 1, N };
   T m_vectorN_local[ N ];
@@ -775,7 +828,6 @@ using TwoSizesTestTypes = ::testing::Types<
   , std::tuple< int, std::integral_constant< int, 5 >, std::integral_constant< int, 4 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 3 >, std::integral_constant< int, 3 >, serialPolicy >
 
-// TODO: These tests can be run without chai and only using the c-arrays.
 #if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, std::integral_constant< int, 5 >, std::integral_constant< int, 4 >, parallelDevicePolicy< 32 > >

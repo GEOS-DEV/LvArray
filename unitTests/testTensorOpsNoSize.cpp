@@ -20,7 +20,7 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testTensorOpsCommon.hpp"
 
 // TPL includes
@@ -360,7 +360,6 @@ using NoSizeTestTypes = ::testing::Types<
   std::tuple< double, serialPolicy >
   , std::tuple< int, serialPolicy >
 
-// TODO: These tests can be run without chai and only using the c-arrays.
 #if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, parallelDevicePolicy< 32 > >
   , std::tuple< int, parallelDevicePolicy< 32 > >

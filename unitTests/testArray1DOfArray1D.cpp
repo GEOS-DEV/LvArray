@@ -18,7 +18,7 @@
 
 // Source includes
 #include "Array.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testUtils.hpp"
 #include "MallocBuffer.hpp"
 
@@ -41,6 +41,16 @@ inline INDEX_TYPE randomInteger( INDEX_TYPE const min, INDEX_TYPE const max )
   return std::uniform_int_distribution< INDEX_TYPE >( min, max )( gen );
 }
 
+template< typename U, typename T >
+struct ToArray1D
+{};
+
+template< typename U, typename T, int NDIM, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+struct ToArray1D< U, Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > >
+{
+  using type = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+};
+
 template< typename ARRAY1D_POLICY_PAIR >
 class Array1DOfArray1DTest : public ::testing::Test
 {
@@ -48,13 +58,14 @@ public:
   using ARRAY1D = typename ARRAY1D_POLICY_PAIR::first_type;
   using POLICY = typename ARRAY1D_POLICY_PAIR::second_type;
 
-  using T = typename ARRAY1D::value_type;
+  using T = typename ARRAY1D::ValueType;
+  using IndexType = typename ARRAY1D::IndexType;
 
   template< typename U >
-  using Array1D = typename ArrayConverter< ARRAY1D >::template Array< U, 1, RAJA::PERM_I >;
+  using Array1D = typename ToArray1D< U, ARRAY1D >::type;
 
   template< typename U >
-  using ArrayView1D = typename ArrayConverter< ARRAY1D >::template ArrayView< U, 1, 0 >;
+  using ArrayView1D = std::remove_const_t< typeManipulation::ViewType< Array1D< U > > >;
 
   void modifyInKernel()
   {
@@ -228,13 +239,13 @@ using Array1DOfArray1DTestTypes = ::testing::Types<
   , std::pair< Array1D< Tensor, MallocBuffer >, serialPolicy >
   , std::pair< Array1D< TestString, MallocBuffer >, serialPolicy >
 #if defined(USE_CHAI)
-  , std::pair< Array1D< int, NewChaiBuffer >, serialPolicy >
-  , std::pair< Array1D< Tensor, NewChaiBuffer >, serialPolicy >
-  , std::pair< Array1D< TestString, NewChaiBuffer >, serialPolicy >
+  , std::pair< Array1D< int, ChaiBuffer >, serialPolicy >
+  , std::pair< Array1D< Tensor, ChaiBuffer >, serialPolicy >
+  , std::pair< Array1D< TestString, ChaiBuffer >, serialPolicy >
 #endif
 #if defined(USE_CUDA) && defined(USE_CHAI)
-  , std::pair< Array1D< int, NewChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array1D< Tensor, NewChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array1D< int, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array1D< Tensor, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 

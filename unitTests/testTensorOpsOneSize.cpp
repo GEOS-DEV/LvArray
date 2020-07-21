@@ -20,7 +20,7 @@
 #include "tensorOps.hpp"
 #include "Array.hpp"
 #include "testUtils.hpp"
-#include "streamIO.hpp"
+#include "output.hpp"
 #include "testTensorOpsCommon.hpp"
 
 // TPL includes
@@ -39,6 +39,8 @@ public:
   using T = std::tuple_element_t< 0, T_N_POLICY_TUPLE >;
   static constexpr std::ptrdiff_t N = std::tuple_element_t< 1, T_N_POLICY_TUPLE > {};
   using POLICY = std::tuple_element_t< 2, T_N_POLICY_TUPLE >;
+
+  static constexpr std::ptrdiff_t SymSize = tensorOps::SYM_SIZE< N >;
 
   void SetUp() override
   {
@@ -63,6 +65,10 @@ public:
     fill( m_matrixB_IKJ.toSlice(), m_seedMatrixB );
     fill( m_matrixB_KJI.toSlice(), m_seedMatrixB );
     fill( m_matrixB_local, m_seedMatrixB );
+
+    fill( m_symMatrix_IJ.toSlice(), m_seedSymMatrix );
+    fill( m_symMatrix_JI.toSlice(), m_seedSymMatrix );
+    fill( m_symMatrix_local, m_seedSymMatrix );
   }
 
   void testScale()
@@ -454,7 +460,7 @@ public:
         {
           #define _TEST( a, b, c ) \
             fill( a, aSeed ); \
-            tensorOps::elementWiseMultiplication< N >( a, b, c ); \
+            tensorOps::hadamardProduct< N >( a, b, c ); \
             CHECK_EQUALITY_1D( N, a, result )
 
           #define _TEST_PERMS( a, b, c0, c1, c2 ) \
@@ -512,6 +518,117 @@ public:
         } );
   }
 
+  void testTranspose()
+  {
+    T result[ N ][ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < N; ++j )
+      { result[ i ][ j ] = m_matrixA_local[ j ][ i ]; }
+    }
+
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+
+    std::ptrdiff_t const seedMatrixA = m_seedMatrixA;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          tensorOps::transpose< N >( matrixA_IJK[ 0 ] );
+          CHECK_EQUALITY_2D( N, N, matrixA_IJK[ 0 ], result );
+
+          tensorOps::transpose< N >( matrixA_IKJ[ 0 ] );
+          CHECK_EQUALITY_2D( N, N, matrixA_IKJ[ 0 ], result );
+
+          tensorOps::transpose< N >( matrixA_KJI[ 0 ] );
+          CHECK_EQUALITY_2D( N, N, matrixA_KJI[ 0 ], result );
+
+          T matrixA_local[ N ][ N ];
+          fill( matrixA_local, seedMatrixA );
+          tensorOps::transpose< N >( matrixA_local );
+          CHECK_EQUALITY_2D( N, N, matrixA_local, result );
+        } );
+  }
+
+  void testTrace()
+  {
+    T result = 0;
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    { result += m_matrixA_local[ i ][ i ]; }
+
+    ArrayViewT< T, 3, 2 > const & matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const & matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const & matrixA_KJI = m_matrixA_KJI.toView();
+
+    std::ptrdiff_t const seedMatrixA = m_seedMatrixA;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          PORTABLE_EXPECT_EQ( tensorOps::trace< N >( matrixA_IJK[ 0 ] ), result );
+
+          PORTABLE_EXPECT_EQ( tensorOps::trace< N >( matrixA_IKJ[ 0 ] ), result );
+
+          PORTABLE_EXPECT_EQ( tensorOps::trace< N >( matrixA_KJI[ 0 ] ), result );
+
+          T matrixA_local[ N ][ N ];
+          fill( matrixA_local, seedMatrixA );
+          PORTABLE_EXPECT_EQ( tensorOps::trace< N >( matrixA_local ), result );
+        } );
+  }
+
+  void testSymAddIdentity()
+  {
+    T value = T( 3.14 );
+    T result[ SymSize ];
+    tensorOps::copy< SymSize >( result, m_symMatrix_local );
+
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    { result[ i ] += value; }
+
+    ArrayViewT< T, 2, 1 > const & symMatrix_IJ = m_symMatrix_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & symMatrix_JI = m_symMatrix_JI.toView();
+
+    std::ptrdiff_t const seedSymMatrix = m_seedSymMatrix;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          tensorOps::symAddIdentity< N >( symMatrix_IJ[ 0 ], value );
+          CHECK_EQUALITY_1D( SymSize, symMatrix_IJ[ 0 ], result );
+
+          tensorOps::symAddIdentity< N >( symMatrix_JI[ 0 ], value );
+          CHECK_EQUALITY_1D( SymSize, symMatrix_JI[ 0 ], result );
+
+          T symMatrixLocal[ SymSize ];
+          fill( symMatrixLocal, seedSymMatrix );
+          tensorOps::symAddIdentity< N >( symMatrixLocal, value );
+          CHECK_EQUALITY_1D( SymSize, symMatrixLocal, result );
+        } );
+  }
+
+  void testSymTrace()
+  {
+    T result = 0;;
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    { result += m_symMatrix_local[ i ]; }
+
+    ArrayViewT< T, 2, 1 > const & symMatrix_IJ = m_symMatrix_IJ.toView();
+    ArrayViewT< T, 2, 0 > const & symMatrix_JI = m_symMatrix_JI.toView();
+
+    std::ptrdiff_t const seedSymMatrix = m_seedSymMatrix;
+
+    forall< POLICY >( 1, [=] LVARRAY_HOST_DEVICE ( int )
+        {
+          PORTABLE_EXPECT_EQ( tensorOps::symTrace< N >( symMatrix_IJ[ 0 ] ), result );
+
+          PORTABLE_EXPECT_EQ( tensorOps::symTrace< N >( symMatrix_JI[ 0 ] ), result );
+
+          T symMatrixLocal[ SymSize ];
+          fill( symMatrixLocal, seedSymMatrix );
+          PORTABLE_EXPECT_EQ( tensorOps::symTrace< N >( symMatrixLocal ), result );
+        } );
+  }
+
 private:
   std::ptrdiff_t const m_seedVectorA = 0;
   ArrayT< T, RAJA::PERM_IJ > m_vectorA_IJ { 1, N };
@@ -539,6 +656,11 @@ private:
   ArrayT< T, RAJA::PERM_IKJ > m_matrixB_IKJ { 1, N, N };
   ArrayT< T, RAJA::PERM_KJI > m_matrixB_KJI { 1, N, N };
   T m_matrixB_local[ N ][ N ];
+
+  std::ptrdiff_t const m_seedSymMatrix = m_seedMatrixB + N * N;
+  ArrayT< T, RAJA::PERM_IJ > m_symMatrix_IJ { 1, SymSize };
+  ArrayT< T, RAJA::PERM_JI > m_symMatrix_JI { 1, SymSize };
+  T m_symMatrix_local[ SymSize ];
 };
 
 
@@ -547,7 +669,6 @@ using OneSizeTestTypes = ::testing::Types<
   , std::tuple< int, std::integral_constant< int, 3 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 6 >, serialPolicy >
 
-// TODO: These tests can be run without chai and only using the c-arrays.
 #if defined(USE_CUDA) && defined(USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
@@ -617,7 +738,7 @@ TYPED_TEST( OneSizeTest, AiBi )
   this->testAiBi();
 }
 
-TYPED_TEST( OneSizeTest, elementWiseMultiplication )
+TYPED_TEST( OneSizeTest, hadamardProduct )
 {
   this->testElementWiseMultiplication();
 }
@@ -625,6 +746,26 @@ TYPED_TEST( OneSizeTest, elementWiseMultiplication )
 TYPED_TEST( OneSizeTest, addIdentity )
 {
   this->testAddIdentity();
+}
+
+TYPED_TEST( OneSizeTest, transpose )
+{
+  this->testTranspose();
+}
+
+TYPED_TEST( OneSizeTest, trace )
+{
+  this->testTrace();
+}
+
+TYPED_TEST( OneSizeTest, symAddIdentity )
+{
+  this->testSymAddIdentity();
+}
+
+TYPED_TEST( OneSizeTest, symTrace )
+{
+  this->testSymTrace();
 }
 
 } // namespace testing

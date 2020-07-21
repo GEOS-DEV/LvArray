@@ -27,14 +27,14 @@ namespace LvArray
 {
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
+using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
 
 template< typename ARRAY >
 class ArraySliceTest : public ::testing::Test
 {
 public:
-  static constexpr int NDIM = ARRAY::ndim;
-  using PERMUTATION = typename ARRAY::permutation;
+  static constexpr int NDIM = ARRAY::NDIM;
+  using PERMUTATION = typename ARRAY::Permutation;
 
   void resize()
   {
