@@ -9,6 +9,9 @@ set(benchmarkSources
     benchmarkMatrixMatrix.cpp
     benchmarkArray1DR2TensorMultiplication.cpp
     benchmarkSparsityGeneration.cpp
+    benchmarkArrayOfArraysReduce.cpp
+    benchmarkArrayOfArraysNodeToElementMapConstruction.cpp
+    benchmarkEigendecomposition.cpp
    )
 
 if (NOT ${ENABLE_BENCHMARKS})

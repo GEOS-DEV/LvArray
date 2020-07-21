@@ -46,44 +46,44 @@ namespace benchmarking
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                    Array< VALUE_TYPE, RAJA::PERM_I > const & b,
-                    Array< VALUE_TYPE, PERMUTATION > const & c )
+fortranArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                    ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b,
+                    ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a( i ), b( j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                   ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                   ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a( i ), b( j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a( i ), b( j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                      Array< VALUE_TYPE, RAJA::PERM_I > const & b,
-                      Array< VALUE_TYPE, PERMUTATION > const & c )
+subscriptArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                      ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b,
+                      ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a[ i ], b[ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                     ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                     ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a[ i ], b[ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
 void OuterProductNative< PERMUTATION >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                      ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                      ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_PRODUCT_KERNEL( c.size( 0 ), c.size( 1 ), a[ i ], b[ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
@@ -113,30 +113,30 @@ pointerKernel( INDEX_TYPE const N,
 
 template< typename PERMUTATION, typename POLICY >
 void OuterProductRAJA< PERMUTATION, POLICY >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                   ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                   ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL_RAJA( c.size( 0 ), c.size( 1 ), a( i ), b( j ), c( i, j ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void OuterProductRAJA< PERMUTATION, POLICY >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_PRODUCT_KERNEL_RAJA( c.size( 0 ), c.size( 1 ), a( i ), b( j ), c( i, j ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void OuterProductRAJA< PERMUTATION, POLICY >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                     ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                     ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { OUTER_PRODUCT_KERNEL_RAJA( c.size( 0 ), c.size( 1 ), a[ i ], b[ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void OuterProductRAJA< PERMUTATION, POLICY >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                      ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                      ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { OUTER_PRODUCT_KERNEL_RAJA( c.size( 0 ), c.size( 1 ), a[ i ], b[ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION, typename POLICY >

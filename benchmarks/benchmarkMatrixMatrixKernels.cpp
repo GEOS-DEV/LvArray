@@ -56,44 +56,44 @@ namespace benchmarking
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-fortranArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                    Array< VALUE_TYPE, PERMUTATION > const & b,
-                    Array< VALUE_TYPE, PERMUTATION > const & c )
+fortranArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                    ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                    ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                   ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                   ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-subscriptArrayKernel( Array< VALUE_TYPE, PERMUTATION > const & a,
-                      Array< VALUE_TYPE, PERMUTATION > const & b,
-                      Array< VALUE_TYPE, PERMUTATION > const & c )
+subscriptArrayKernel( ArrayT< VALUE_TYPE, PERMUTATION > const & a,
+                      ArrayT< VALUE_TYPE, PERMUTATION > const & b,
+                      ArrayT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a[ i ][ k ], b[ k ][ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a[ i ][ k ], b[ k ][ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
 void MatrixMatrixNative< PERMUTATION >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { MATRIX_MATRIX_KERNEL( a.size( 0 ), a.size( 1 ), b.size( 1 ), a[ i ][ k ], b[ k ][ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION >
@@ -135,30 +135,30 @@ pointerKernel( INDEX_TYPE const N,
 
 template< typename PERMUTATION, typename POLICY >
 void MatrixMatrixRAJA< PERMUTATION, POLICY >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                   ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                   ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                   ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                   ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL_RAJA( a.size( 0 ), a.size( 1 ), b.size( 1 ), a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void MatrixMatrixRAJA< PERMUTATION, POLICY >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                    ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                    ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                    ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { MATRIX_MATRIX_KERNEL_RAJA( a.size( 0 ), a.size( 1 ), b.size( 1 ), a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename PERMUTATION, typename POLICY >
 void MatrixMatrixRAJA< PERMUTATION, POLICY >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, PERMUTATION > const & a,
-                     ArrayView< VALUE_TYPE const, PERMUTATION > const & b,
-                     ArrayView< VALUE_TYPE, PERMUTATION > const & c )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a,
+                     ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b,
+                     ArrayViewT< VALUE_TYPE, PERMUTATION > const & c )
 { MATRIX_MATRIX_KERNEL_RAJA( a.size( 0 ), a.size( 1 ), b.size( 1 ), a[ i ][ k ], b[ k ][ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION, typename POLICY >
 void MatrixMatrixRAJA< PERMUTATION, POLICY >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, PERMUTATION > const a,
-                      ArraySlice< VALUE_TYPE const, PERMUTATION > const b,
-                      ArraySlice< VALUE_TYPE, PERMUTATION > const c )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, PERMUTATION > const a,
+                      ArraySliceT< VALUE_TYPE const, PERMUTATION > const b,
+                      ArraySliceT< VALUE_TYPE, PERMUTATION > const c )
 { MATRIX_MATRIX_KERNEL_RAJA( a.size( 0 ), a.size( 1 ), b.size( 1 ), a[ i ][ k ], b[ k ][ j ], c[ i ][ j ] ); }
 
 template< typename PERMUTATION, typename POLICY >

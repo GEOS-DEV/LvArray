@@ -20,7 +20,7 @@
 #include "benchmarkHelpers.hpp"
 #include "SparsityPattern.hpp"
 #include "ArrayOfArrays.hpp"
-#include "StringUtilities.hpp"
+#include "system.hpp"
 #include "benchmarkSparsityGenerationKernels.hpp"
 
 // TPL includes
@@ -80,8 +80,7 @@ void nodeLoopPreallocatedNative( benchmark::State & state )
 template< typename POLICY >
 void nodeLoopExactAllocationRAJA( benchmark::State & state )
 {
-  LVARRAY_MARK_FUNCTION_TAG_STRING( std::string( "nodeLoopExactAllocationRAJA_" ) + LvArray::demangleType< POLICY >() );
-
+  CALI_CXX_MARK_PRETTY_FUNCTION;
   SparsityGenerationRAJA< POLICY > kernels( state );
   TIMING_LOOP( kernels.resizeExact(); kernels.generateNodeLoopView() );
 }
@@ -89,7 +88,7 @@ void nodeLoopExactAllocationRAJA( benchmark::State & state )
 template< typename POLICY >
 void nodeLoopPreallocatedRAJA( benchmark::State & state )
 {
-  LVARRAY_MARK_FUNCTION_TAG_STRING( std::string( "nodeLoopPreallocatedRAJA_" ) + LvArray::demangleType< POLICY >() );
+  CALI_CXX_MARK_PRETTY_FUNCTION;
   SparsityGenerationRAJA< POLICY > kernels( state );
   TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateNodeLoopView() );
 }
@@ -97,7 +96,7 @@ void nodeLoopPreallocatedRAJA( benchmark::State & state )
 template< typename POLICY >
 void addToRow( benchmark::State & state )
 {
-  LVARRAY_MARK_FUNCTION_TAG_STRING( std::string( "addToRow_" ) + LvArray::demangleType< POLICY >() );
+  CALI_CXX_MARK_PRETTY_FUNCTION;
   CRSMatrixAddToRow< POLICY > kernels( state );
   TIMING_LOOP( kernels.add() );
 }
@@ -124,37 +123,37 @@ void registerBenchmarks()
   REGISTER_BENCHMARK( WRAP( { SERIAL_SIZE, SERIAL_SIZE, SERIAL_SIZE } ), nodeLoopPreallocatedNative );
 
   // Register the RAJA benchmarks.
-  forEachArg( []( auto tuple )
+  typeManipulation::forEachArg( []( auto tuple )
   {
     INDEX_TYPE const size = std::get< 0 >( tuple );
     using POLICY = std::tuple_element_t< 1, decltype( tuple ) >;
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { size, size, size } ), nodeLoopExactAllocationRAJA, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { size, size, size } ), nodeLoopPreallocatedRAJA, POLICY );
   },
-              std::make_tuple( SERIAL_SIZE, serialPolicy {} )
+                                std::make_tuple( SERIAL_SIZE, serialPolicy {} )
   #if defined(USE_OPENMP)
-              , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
   #if defined(USE_CUDA) && defined(USE_CHAI)
-              , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
-              );
+                                );
 
   // Register the RAJA benchmarks.
-  forEachArg( []( auto tuple )
+  typeManipulation::forEachArg( []( auto tuple )
   {
     INDEX_TYPE const size = std::get< 0 >( tuple );
     using POLICY = std::tuple_element_t< 1, decltype( tuple ) >;
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { size, size, size } ), addToRow, POLICY );
   },
-              std::make_tuple( SERIAL_SIZE, serialPolicy {} )
+                                std::make_tuple( SERIAL_SIZE, serialPolicy {} )
   #if defined(USE_OPENMP)
-              , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
   #if defined(USE_CUDA) && defined(USE_CHAI)
-              , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
-              );
+                                );
 }
 
 } // namespace benchmarking
@@ -167,8 +166,8 @@ int main( int argc, char * * argv )
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
 
-  LVARRAY_LOG( "COLUMN_TYPE = " << LvArray::demangleType< LvArray::benchmarking::COLUMN_TYPE >() );
-  LVARRAY_LOG( "INDEX_TYPE = " << LvArray::demangleType< LvArray::benchmarking::INDEX_TYPE >() );
+  LVARRAY_LOG( "COLUMN_TYPE = " << LvArray::system::demangleType< LvArray::benchmarking::COLUMN_TYPE >() );
+  LVARRAY_LOG( "INDEX_TYPE = " << LvArray::system::demangleType< LvArray::benchmarking::INDEX_TYPE >() );
 
   LvArray::benchmarking::INDEX_TYPE size = std::pow( LvArray::benchmarking::SERIAL_SIZE, 3 );
   LVARRAY_LOG( "Serial problems of size ( " << size << " )." );

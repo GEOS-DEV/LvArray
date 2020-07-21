@@ -20,7 +20,9 @@
 
 // Source includes
 #include "../unitTests/testUtils.hpp"
-#include "StringUtilities.hpp"
+#include "Array.hpp"
+#include "ArrayOfArrays.hpp"
+#include "system.hpp"
 
 // System includes
 #include <random>
@@ -28,16 +30,11 @@
 #include <unordered_map>
 
 #if defined(USE_CALIPER)
-
-#include <caliper/cali.h>
-#define LVARRAY_MARK_FUNCTION_TAG( name ) cali::Function __cali_ann ## __LINE__( STRINGIZE_NX( name ) )
-#define LVARRAY_MARK_FUNCTION_TAG_STRING( string ) cali::Function __cali_ann ## __LINE__( ( string ).data() )
-
+  #include <caliper/cali.h>
+#define CALI_CXX_MARK_PRETTY_FUNCTION cali::Function __cali_ann ## __func__( __PRETTY_FUNCTION__ )
 #else
-
-#define LVARRAY_MARK_FUNCTION_TAG( name )
-#define LVARRAY_MARK_FUNCTION_TAG_STRING( string )
-
+#define CALI_CXX_MARK_PRETTY_FUNCTION
+#define CALI_CXX_MARK_SCOPE( string )
 #endif
 
 namespace LvArray
@@ -47,8 +44,8 @@ using namespace testing;
 
 
 #if defined(USE_CHAI)
-static_assert( std::is_same< DEFAULT_BUFFER< int >, NewChaiBuffer< int > >::value,
-               "The default buffer should be NewChaiBuffer when chai is enabled." );
+static_assert( std::is_same< DEFAULT_BUFFER< int >, ChaiBuffer< int > >::value,
+               "The default buffer should be ChaiBuffer when chai is enabled." );
 #endif
 
 namespace benchmarking
@@ -59,7 +56,7 @@ namespace internal
 
 template< typename T >
 std::string typeToString( T const & )
-{ return LvArray::demangleType< T >(); }
+{ return LvArray::system::demangleType< T >(); }
 
 inline std::string typeToString( RAJA::PERM_I const & ) { return "RAJA::PERM_I"; }
 
@@ -80,34 +77,46 @@ inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_K
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using Array = LvArray::Array< T, getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = LvArray::Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
-using ArrayView = LvArray::ArrayView< T,
-getDimension( PERMUTATION {} ),
-getStrideOneDimension( PERMUTATION {} ),
+using ArrayViewT = LvArray::ArrayView< T,
+typeManipulation::getDimension( PERMUTATION {} ),
+typeManipulation::getStrideOneDimension( PERMUTATION {} ),
 INDEX_TYPE,
 DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
-using ArraySlice = LvArray::ArraySlice< T,
-getDimension( PERMUTATION {} ),
-getStrideOneDimension( PERMUTATION {} ),
+using ArraySliceT = LvArray::ArraySlice< T,
+typeManipulation::getDimension( PERMUTATION {} ),
+typeManipulation::getStrideOneDimension( PERMUTATION {} ),
 INDEX_TYPE >;
 
 template< typename T, typename PERMUTATION >
 using RajaView = RAJA::View< T,
-RAJA::Layout< getDimension( PERMUTATION {} ),
+RAJA::Layout< typeManipulation::getDimension( PERMUTATION {} ),
 INDEX_TYPE,
-getStrideOneDimension( PERMUTATION {} ) >>;
+typeManipulation::getStrideOneDimension( PERMUTATION {} ) >>;
 
-template< typename ARG0 >
-std::string typeListToString()
-{ return internal::typeToString( ARG0 {} ); }
+template< typename T >
+using ArrayOfArraysT = ArrayOfArrays< T, INDEX_TYPE, DEFAULT_BUFFER >;
 
-template< typename ARG0, typename ARG1 >
+template< typename T, bool CONST_SIZES >
+using ArrayOfArraysViewT = ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, DEFAULT_BUFFER >;
+
+template< typename ARG, typename ... ARGS >
 std::string typeListToString()
-{ return internal::typeToString( ARG0 {} ) + ", " + internal::typeToString( ARG1 {} ); }
+{
+  std::string string = internal::typeToString( ARG {} );
+
+  typeManipulation::forEachArg( [&string] ( auto const & arg )
+  {
+    string += ", " + internal::typeToString( arg );
+  }, ARGS {} ... );
+
+  return string;
+}
+
 
 
 #define REGISTER_BENCHMARK( args, func ) \
@@ -147,17 +156,17 @@ inline std::uint_fast64_t getSeed()
 }
 
 
-template< typename T, typename PERMUTATION >
-void initialize( Array< T, PERMUTATION > const & array, int & iter )
+template< typename T, int NDIM, int USD >
+void initialize( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, int & iter )
 {
   ++iter;
   std::mt19937_64 gen( iter * getSeed() );
 
   // This is used to generate a random real number between -100, 100.
-  // std::unifor_real_distribution is not used because it is really slow on Lassen.
+  // std::uniform_real_distribution is not used because it is really slow on Lassen.
   std::uniform_int_distribution< std::int64_t > dis( -1e18, 1e18 );
 
-  forValuesInSlice( array.toSlice(), [&dis, &gen]( T & value )
+  forValuesInSlice( slice, [&dis, &gen]( T & value )
   {
     double const valueFP = dis( gen ) / 1e16;
     value = valueFP;
@@ -166,9 +175,9 @@ void initialize( Array< T, PERMUTATION > const & array, int & iter )
 
 
 template< typename T, typename PERMUTATION >
-RajaView< T, PERMUTATION > makeRajaView( Array< T, PERMUTATION > const & array )
+RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array )
 {
-  constexpr int NDIM = getDimension( PERMUTATION {} );
+  constexpr int NDIM = typeManipulation::getDimension( PERMUTATION {} );
   std::array< INDEX_TYPE, NDIM > sizes;
 
   for( int i = 0; i < NDIM; ++i )
@@ -182,7 +191,7 @@ RajaView< T, PERMUTATION > makeRajaView( Array< T, PERMUTATION > const & array )
 
 
 template< typename T, typename PERMUTATION >
-INDEX_TYPE reduce( Array< T, PERMUTATION > const & array )
+INDEX_TYPE reduce( ArrayT< T, PERMUTATION > const & array )
 {
   T result = 0;
 
@@ -194,6 +203,43 @@ INDEX_TYPE reduce( Array< T, PERMUTATION > const & array )
 
   return result;
 }
+
+template< typename PERM >
+void constructStructuredElementToNodeMap( ArrayT< INDEX_TYPE, PERM > & elementToNodeMap,
+                                          INDEX_TYPE const nx,
+                                          INDEX_TYPE const ny,
+                                          INDEX_TYPE const nz )
+{
+  elementToNodeMap.resize( nx * ny * nz, 8 );
+
+  INDEX_TYPE const elemJp = nx;
+  INDEX_TYPE const elemKp = elemJp * ny;
+
+  INDEX_TYPE const nodeJp = nx + 1;
+  INDEX_TYPE const nodeKp = nodeJp * ( ny + 1 );
+
+  // Populate the element to node map.
+  for( INDEX_TYPE i = 0; i < nx; ++i )
+  {
+    for( INDEX_TYPE j = 0; j < ny; ++j )
+    {
+      for( INDEX_TYPE k = 0; k < nz; ++k )
+      {
+        INDEX_TYPE const elemIndex = i + elemJp * j + elemKp * k;
+        INDEX_TYPE const firstNodeIndex = i + nodeJp * j + nodeKp * k;
+        elementToNodeMap( elemIndex, 0 ) = firstNodeIndex;
+        elementToNodeMap( elemIndex, 1 ) = firstNodeIndex + 1;
+        elementToNodeMap( elemIndex, 2 ) = firstNodeIndex + 1 + nodeJp;
+        elementToNodeMap( elemIndex, 3 ) = firstNodeIndex + nodeJp;
+        elementToNodeMap( elemIndex, 4 ) = firstNodeIndex + nodeKp;
+        elementToNodeMap( elemIndex, 5 ) = firstNodeIndex + nodeKp + 1;
+        elementToNodeMap( elemIndex, 6 ) = firstNodeIndex + nodeKp + 1 + nodeJp;
+        elementToNodeMap( elemIndex, 7 ) = firstNodeIndex + nodeKp + nodeJp;
+      }
+    }
+  }
+}
+
 
 
 template< typename T, unsigned long N >

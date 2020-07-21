@@ -56,8 +56,8 @@ public:
     m_sum( 0 )
   {
     int iter = 0;
-    initialize( m_a, iter );
-    initialize( m_b, iter );
+    initialize( m_a.toSlice(), iter );
+    initialize( m_b.toSlice(), iter );
   }
 
   ~InnerProductNative()
@@ -71,15 +71,15 @@ public:
 
   void fortranView()
   {
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
     TIMING_LOOP( fortranViewKernel( a, b ) );
   }
 
   void fortranSlice()
   {
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( a, b ) );
   }
 
@@ -88,15 +88,15 @@ public:
 
   void subscriptView()
   {
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
     TIMING_LOOP( subscriptViewKernel( a, b ) );
   }
 
   void subscriptSlice()
   {
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( a, b ) );
   }
 
@@ -119,28 +119,28 @@ protected:
   ::benchmark::State & m_state;
   std::string const m_callingFunction;
   ResultsMap< VALUE_TYPE, 1 > & m_results;
-  Array< VALUE_TYPE, RAJA::PERM_I > m_a;
-  Array< VALUE_TYPE, RAJA::PERM_I > m_b;
+  ArrayT< VALUE_TYPE, RAJA::PERM_I > m_a;
+  ArrayT< VALUE_TYPE, RAJA::PERM_I > m_b;
   VALUE_TYPE m_sum = 0;
 
 private:
-  static VALUE_TYPE fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                                        Array< VALUE_TYPE, RAJA::PERM_I > const & b );
+  static VALUE_TYPE fortranArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                                        ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                       ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+  static VALUE_TYPE fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                       ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                                        ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+  static VALUE_TYPE fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                        ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b );
 
-  static VALUE_TYPE subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                                          Array< VALUE_TYPE, RAJA::PERM_I > const & b );
+  static VALUE_TYPE subscriptArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                                          ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                         ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+  static VALUE_TYPE subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                         ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                                          ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+  static VALUE_TYPE subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                          ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b );
 
   static VALUE_TYPE RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                                     RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b );
@@ -163,29 +163,29 @@ public:
 
   void fortranView()
   {
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
     TIMING_LOOP( fortranViewKernel( a, b ) );
   }
 
   void fortranSlice()
   {
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( a, b ) );
   }
 
   void subscriptView()
   {
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
     TIMING_LOOP( subscriptViewKernel( a, b ) );
   }
 
   void subscriptSlice()
   {
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( a, b ) );
   }
 
@@ -205,17 +205,17 @@ public:
 
 // Should be private but nvcc demands they're public.
 public:
-  static VALUE_TYPE fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                       ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+  static VALUE_TYPE fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                       ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                                        ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+  static VALUE_TYPE fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                        ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b );
 
-  static VALUE_TYPE subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                                         ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b );
+  static VALUE_TYPE subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                                         ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b );
 
-  static VALUE_TYPE subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                                          ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b );
+  static VALUE_TYPE subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                                          ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b );
 
   static VALUE_TYPE RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                                     RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b );

@@ -41,33 +41,33 @@ namespace benchmarking
   return sum.get()
 
 VALUE_TYPE InnerProductNative::
-  fortranArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                      Array< VALUE_TYPE, RAJA::PERM_I > const & b )
+  fortranArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                      ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL( a.size(), a( i ), b( i ) ); }
 
 VALUE_TYPE InnerProductNative::
-  fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                     ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b )
+  fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                     ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL( a.size(), a( i ), b( i ) ); }
 
 VALUE_TYPE InnerProductNative::
-  fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                      ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b )
+  fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                      ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b )
 { INNER_PRODUCT_KERNEL( a.size(), a( i ), b( i ) ); }
 
 VALUE_TYPE InnerProductNative::
-  subscriptArrayKernel( Array< VALUE_TYPE, RAJA::PERM_I > const & a,
-                        Array< VALUE_TYPE, RAJA::PERM_I > const & b )
+  subscriptArrayKernel( ArrayT< VALUE_TYPE, RAJA::PERM_I > const & a,
+                        ArrayT< VALUE_TYPE, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL( a.size(), a[ i ], b[ i ] ); }
 
 VALUE_TYPE InnerProductNative::
-  subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                       ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b )
+  subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                       ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL( a.size(), a[ i ], b[ i ] ); }
 
 VALUE_TYPE InnerProductNative::
-  subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                        ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b )
+  subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                        ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b )
 { INNER_PRODUCT_KERNEL( a.size(), a[ i ], b[ i ] ); }
 
 VALUE_TYPE InnerProductNative::
@@ -83,26 +83,26 @@ VALUE_TYPE InnerProductNative::
 
 template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::
-fortranViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                   ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b )
+fortranViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                   ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL_RAJA( a.size(), a( i ), b( i ) ); }
 
 template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::
-fortranSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                    ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b )
+fortranSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b )
 { INNER_PRODUCT_KERNEL_RAJA( a.size(), a( i ), b( i ) ); }
 
 template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::
-subscriptViewKernel( ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & a,
-                     ArrayView< VALUE_TYPE const, RAJA::PERM_I > const & b )
+subscriptViewKernel( ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a,
+                     ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b )
 { INNER_PRODUCT_KERNEL_RAJA( a.size(), a[ i ], b[ i ] ); }
 
 template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::
-subscriptSliceKernel( ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const a,
-                      ArraySlice< VALUE_TYPE const, RAJA::PERM_I > const b )
+subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a,
+                      ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b )
 { INNER_PRODUCT_KERNEL_RAJA( a.size(), a[ i ], b[ i ] ); }
 
 template< typename POLICY >

@@ -152,7 +152,7 @@ void registerBenchmarks()
   REGISTER_BENCHMARK( { SERIAL_SIZE }, pointerNative );
 
   // Register the RAJA benchmarks.
-  forEachArg( []( auto tuple )
+  typeManipulation::forEachArg( []( auto tuple )
   {
     INDEX_TYPE const size = std::get< 0 >( tuple );
     using POLICY = std::tuple_element_t< 1, decltype( tuple ) >;
@@ -163,14 +163,14 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { size }, rajaViewRAJA, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( { size }, pointerRAJA, POLICY );
   },
-              std::make_tuple( SERIAL_SIZE, serialPolicy {} )
+                                std::make_tuple( SERIAL_SIZE, serialPolicy {} )
   #if defined(USE_OPENMP)
-              , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
   #if defined(USE_CUDA) && defined(USE_CHAI)
-              , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
-              );
+                                );
 }
 
 } // namespace benchmarking
@@ -184,8 +184,8 @@ int main( int argc, char * * argv )
   if( ::benchmark::ReportUnrecognizedArguments( argc, argv ) )
     return 1;
 
-  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
-  LVARRAY_LOG( "INDEX_TYPE = " << LvArray::demangleType< LvArray::benchmarking::INDEX_TYPE >() );
+  LVARRAY_LOG( "VALUE_TYPE = " << LvArray::system::demangleType< LvArray::benchmarking::VALUE_TYPE >() );
+  LVARRAY_LOG( "INDEX_TYPE = " << LvArray::system::demangleType< LvArray::benchmarking::INDEX_TYPE >() );
 
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_SIZE << " )." );
 
