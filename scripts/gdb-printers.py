@@ -67,8 +67,8 @@ class StackBufferPrinter(BufferPrinter):
         return self.val['m_data']
 
 
-class NewChaiBufferPrinter(BufferPrinter):
-    """Pretty-print a NewChaiBuffer"""
+class ChaiBufferPrinter(BufferPrinter):
+    """Pretty-print a ChaiBuffer"""
 
     def size(self):
         return self.val['m_capacity']
@@ -80,7 +80,7 @@ class NewChaiBufferPrinter(BufferPrinter):
 def build_buffer_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("LvArray-buffers")
     pp.add_printer('LvArray::StackBuffer', 'LvArray::StackBuffer<.*>', StackBufferPrinter)
-    pp.add_printer('LvArray::NewChaiBuffer', 'LvArray::NewChaiBuffer<.*>', NewChaiBufferPrinter)
+    pp.add_printer('LvArray::ChaiBuffer', 'LvArray::ChaiBuffer<.*>', ChaiBufferPrinter)
     return pp
 
 

@@ -1,6 +1,5 @@
 set( thirdPartyLibs "")
 
-
 ################################
 # RAJA
 ################################
@@ -81,22 +80,6 @@ endif()
 # CALIPER and Adiak
 ################################
 if(ENABLE_CALIPER)
-    if(NOT EXISTS ${ADIAK_DIR})
-        set(ADIAK_DIR ${GEOSX_TPL_DIR}/adiak)
-    endif()
-
-    message(STATUS "Using adiak at ${ADIAK_DIR}")
-
-    find_package(adiak REQUIRED
-                 PATHS ${ADIAK_DIR}/lib/cmake/adiak)
-
-    blt_register_library(NAME adiak
-                         INCLUDES ${adiak_INCLUDE_DIRS}
-                         LIBRARIES ${adiak_LIBRARIES}
-                         TREAT_INCLUDES_AS_SYSTEM ON)
-
-    set(thirdPartyLibs ${thirdPartyLibs} adiak)
-
     if(NOT EXISTS ${CALIPER_DIR})
         set(CALIPER_DIR ${GEOSX_TPL_DIR}/caliper)
     endif()

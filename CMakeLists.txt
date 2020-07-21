@@ -1,25 +1,34 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required( VERSION 3.9 )
 
 # check if LvArray is build as a submodule or a separate project
-get_directory_property(parent_dir PARENT_DIRECTORY)
+get_directory_property( parent_dir PARENT_DIRECTORY )
 if(parent_dir)
-    set(is_submodule ON)
+    set( is_submodule ON )
 else()
-    set(is_submodule OFF)
+    set( is_submodule OFF )
 endif()
 
-if(NOT is_submodule)
+if( NOT is_submodule )
 
-  project(LvArray LANGUAGES C CXX)
+    project( LvArray LANGUAGES C CXX )
 
-  set(BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE)
-  set(ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "")
+    set( BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE )
+    set( ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "" )
 
-  option(ENABLE_BENCHMARKS "Enables benchmarks" ON)
-  include(cmake/blt/SetupBLT.cmake)
-  include(cmake/CMakeBasics.cmake)
-  include(cmake/SetupTPL.cmake)
+    option( ENABLE_TESTS "Builds tests" ON )
+    option( ENABLE_EXAMPLES "Builds examples" ON )
+    option( ENABLE_BENCHMARKS "Builds benchmarks" ON )
+    option( ENABLE_DOCS "Builds documentation" ON )
 
+    option( ENABLE_CHAI "Build with CHAI" ON )
+    option( ENABLE_MPI "Build with MPI" ON )
+    option( ENABLE_CUDA "Build with CUDA" OFF )
+    option( ENABLE_OPENMP "Build with OpenMP" ON )
+    option( ENABLE_CALIPER "Build with Caliper" ON )
+
+    include( cmake/blt/SetupBLT.cmake )
+    include( cmake/CMakeBasics.cmake )
+    include( cmake/SetupTPL.cmake )
 endif()
 
 include(cmake/Macros.cmake)
@@ -51,7 +60,22 @@ if( ENABLE_CALIPER )
     set( lvarray_dependencies ${lvarray_dependencies} caliper )
 endif()
 
-add_subdirectory(unitTests)
-add_subdirectory(benchmarks)
-add_subdirectory(src)
+
+if( ENABLE_TESTS )
+    add_subdirectory( unitTests )
+endif()
+
+if ( ENABLE_EXAMPLES )
+    add_subdirectory( examples )
+endif()
+
+if( ENABLE_BENCHMARKS )
+    add_subdirectory( benchmarks )
+endif()
+
+if( ENABLE_DOCS )
+    add_subdirectory( docs )
+endif()
+
+add_subdirectory( src )
 
