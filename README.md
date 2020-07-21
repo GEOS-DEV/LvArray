@@ -16,8 +16,7 @@ semantics in [RAJA](https://github.com/LLNL/RAJA), similar to the implementation
  
 
 Documentation
----------------------
-
+-------------
 Full documenation is hosted at [readthedocs](https://lvarray.readthedocs.io/en/latest/)
 
 Authors
@@ -26,17 +25,11 @@ See [Github](https://github.com/GEOSX/LvArray/graphs/contributors)
 
 Release
 -------
+LvArray is licensed under the BSD 3-Clause license, (BSD-3-Clause or https://opensource.org/licenses/BSD-3-Clause).
 
-Copyright (c) 2018, Lawrence Livermore National Security, LLC.
-Produced at the Lawrence Livermore National Laboratory.
+Copyrights and patents in the LvArray project are retained by contributors. No copyright assignment is required to contribute to LvArray.
 
-All rights reserved.
+Unlimited Open Source - BSD 3-clause Distribution `LLNL-Code-746361` `OCEC-18-021`
 
-Unlimited Open Source - LGPL 2.1 License
-
-For release details and restrictions, please read the LICENSE.txt file.
-It is also linked here:
+For release details and restrictions, please read the LICENSE file.
 [LICENSE](./LICENSE) 
-`LLNL-Code-746361`  `OCEC-18-021`
-
-Next release will be BSD.
