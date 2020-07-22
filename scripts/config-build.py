@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Python wrapper script for generating the correct cmake line with the options specified by the user.
 #
 # Please keep parser option names as close to possible as the names of the cmake options they are wrapping.
