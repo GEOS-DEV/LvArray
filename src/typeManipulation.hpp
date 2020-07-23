@@ -353,14 +353,6 @@ template< typename T, std::ptrdiff_t N >
 struct CArray
 {
   /**
-   * @return Return a reference to the value at position @p i.
-   * @param i The position to access.
-   */
-  constexpr inline LVARRAY_HOST_DEVICE
-  T & operator[]( std::ptrdiff_t const i )
-  { return m_d_a_t_a[ i ]; }
-
-  /**
    * @return Return a const reference to the value at position @p i.
    * @param i The position to access.
    */

@@ -202,7 +202,7 @@ public:
    * @param src The ChaiBuffer to be copied.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE inline LVARRAY_INTEL_CONSTEXPR
   ChaiBuffer & operator=( ChaiBuffer const & src )
   {
     m_capacity = src.m_capacity;
@@ -216,7 +216,7 @@ public:
    * @param src The ChaiBuffer to be moved from, is uninitialized after this call.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE inline LVARRAY_INTEL_CONSTEXPR
   ChaiBuffer & operator=( ChaiBuffer && src )
   {
     m_capacity = src.m_capacity;
