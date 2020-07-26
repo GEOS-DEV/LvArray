@@ -17,22 +17,9 @@ namespace jitti
 
 using SymbolTable = std::unordered_map< std::string, std::pair< void *, std::type_index > >;
 
-inline std::ostream & operator<<( std::ostream & os, SymbolTable const & table )
-{
-  for ( auto const & kvPair : table )
-  {
-    os << kvPair.first << ": " << "{ \"" << kvPair.second.first << "\", " <<
-          LvArray::demangle( kvPair.second.second.name() ) << " }\n";
-  }
+std::ostream & operator<<( std::ostream & os, SymbolTable const & table );
 
-  return os;
-}
-
-template< typename T >
-std::pair< void *, std::type_index >
-createEntry( T * symbol )
-{ return { reinterpret_cast< void * >( symbol ), std::type_index( typeid( symbol ) ) }; }
-
+std::array< int, 6 > getCompileTime();
 
 struct CompilationInfo
 {
@@ -110,15 +97,6 @@ public:
   #else
     std::string compileCommand = m_compileCommand + " -fPIC -c " + filePath + " -o " + outputObject;
   #endif
-
-    // for ( std::string const & include : includeDirs )
-    // { compileCommand += " -I " + include; }
-
-    // for ( std::string const & include : systemIncludeDirs )
-    // { compileCommand += " -isystem " + include; }
-
-    // for ( std::string const & lib : libs )
-    // { compileCommand += " " + lib; }
 
     for ( std::string const & define : defines )
     { compileCommand += " -D " + define; }

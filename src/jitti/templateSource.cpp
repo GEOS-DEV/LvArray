@@ -21,7 +21,7 @@ auto instantiation = JITTI_TEMPLATE_FUNCTION< JITTI_TEMPLATE_PARAMS >;
 
 jitti::SymbolTable exportedSymbols = {
   { std::string( STRINGIZE( JITTI_TEMPLATE_FUNCTION ) "< " STRINGIZE( JITTI_TEMPLATE_PARAMS ) " >" ),
-    jitti::createEntry( instantiation ) }
+     { reinterpret_cast< void * >( instantiation ), std::type_index( typeid( instantiation ) ) } }
 };
 
 extern "C"
