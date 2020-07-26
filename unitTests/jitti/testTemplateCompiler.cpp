@@ -1,35 +1,10 @@
 // Source includes
+#include "testHelpers.hpp"
+#include "squareAllJIT.hpp"
 #include "../../src/jitti/jitti.hpp"
-#include "../../src/Array.hpp"
-#include "../../src/MallocBuffer.hpp"
-
-#include "squareAll.hpp"
-
-#include "jittiConfig.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
-
-// Load the function from the library.
-using SquareAllType = void (*)( LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const,
-                                LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const );
-
-void test( SquareAllType squareAll )
-{
-  // Prepare the input.
-  LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > output( 100 );
-  LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > input( 100 );
-
-  for ( std::ptrdiff_t i = 0; i < input.size(); ++i )
-  { input[ i ] = i; }
-
-  // Call the function.
-  squareAll( output, input );
-
-  // Check the output.
-  for ( std::ptrdiff_t i = 0; i < output.size(); ++i )
-  { EXPECT_EQ( output[ i ], i * i ); }
-}
 
 TEST( TemplateCompiler, serial )
 {
@@ -37,8 +12,8 @@ TEST( TemplateCompiler, serial )
 
   std::string const templateParams = "RAJA::loop_exec";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/libsquareAllSerial.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllSerial.so";
+  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITSerial.o";
+  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITSerial.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
   jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
@@ -53,7 +28,7 @@ TEST( TemplateCompiler, serial )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll );
+  test( squareAll, "RAJA::policy::loop::loop_exec" );
 }
 
 #if defined( USE_OPENMP )
@@ -63,8 +38,8 @@ TEST( TemplateCompiler, OpenMP )
 
   std::string const templateParams = "RAJA::omp_parallel_for_exec";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/libsquareAllOpenMP.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllOpenMP.so";
+  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITOpenMP.o";
+  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITOpenMP.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
   jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
@@ -80,7 +55,7 @@ TEST( TemplateCompiler, OpenMP )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll );
+  test( squareAll, "RAJA::policy::omp::omp_parallel_for_exec" );
 }
 #endif
 
@@ -91,8 +66,8 @@ TEST( TemplateCompiler, CUDA )
 
   std::string const templateParams = "RAJA::cuda_exec< 32 >";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/libsquareAllCUDA.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllCUDA.so";
+  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITCUDA.o";
+  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITCUDA.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
   jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
@@ -108,7 +83,7 @@ TEST( TemplateCompiler, CUDA )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll );
+  test( squareAll, "RAJA::policy::cuda::cuda_exec<32ul, false>" );
 }
 #endif
 

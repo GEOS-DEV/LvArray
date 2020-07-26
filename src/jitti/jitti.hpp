@@ -34,7 +34,11 @@ class DynamicLibrary
 {
 
 public:
-  DynamicLibrary( std::string const & path );
+  DynamicLibrary( char const * const path );
+
+  DynamicLibrary( std::string const & path ):
+    DynamicLibrary( path.data() )
+  {}
 
   DynamicLibrary( DynamicLibrary const & ) = delete;
 
@@ -141,7 +145,7 @@ public:
     std::vector< std::string > defines = {
       "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'",
       "JITTI_TEMPLATE_FUNCTION=" + templateFunction,
-      "JITTI_TEMPLATE_PARAMS=\'" + templateParams + '\''
+      "JITTI_TEMPLATE_PARAMS=\"" + templateParams + "\""
     };
 
     return Compiler::createDynamicLibrary( sourceFile,
