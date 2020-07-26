@@ -13,34 +13,33 @@
 
 TEST( JIT, SquareAll )
 {
-  // The function to compile.
-  std::string const function = "squareAll";
+  jitti::CompilationInfo const info = getCompilationInfo();
+
   std::string const templateParams = "RAJA::loop_exec";
+  // std::string const templateParams = "RAJA::omp_parallel_for_exec";
   // std::string const templateParams = "RAJA::cuda_exec< 32 >";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAll.so";
+  
+  // std::string const outputObject = JITTI_OUTPUT_DIR "/squareAll.o";
+  // std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAll.so";
 
-  // jitti::CompilationInfo const info = getCompilationInfo();
+  // // // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
+  // jitti::TemplateCompiler compiler( info.compileCommand, info.linkCommand );
 
-  // // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  // jitti::TemplateCompiler compiler( info.compilerPath, info.compilerFlags );
-
-  // // Compile the source and load it as a dynamic library.
-  // jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( function,
+  // // // Compile the source and load it as a dynamic library.
+  // jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
   //                                                               templateParams,
   //                                                               info.header,
-  //                                                               outputLib,
-  //                                                               info.includeDirs,
-  //                                                               info.systemIncludeDirs,
-  //                                                               info.libs );
+  //                                                               outputObject,
+  //                                                               outputLib );
 
-  LVARRAY_LOG_VAR( outputLib );
+  std::string const outputLib = "lib/jitti/libsquareAll.so";
   jitti::TypedDynamicLibrary dl = jitti::DynamicLibrary( outputLib );
 
   // Load the function from the library.
   using SquareAllType = void (*)( LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const,
                                   LvArray::ArraySlice< int, 1, 0, std::ptrdiff_t > const );
 
-  std::string const name = function + "< " + templateParams + " >";
+  std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
   // Prepare the input.

@@ -7,7 +7,6 @@
 
 // System includes
 #include <iostream>
-#include <dlfcn.h>
 #include <unordered_map>
 #include <typeindex>
 #include <string>
@@ -37,48 +36,26 @@ createEntry( T * symbol )
 
 struct CompilationInfo
 {
-  std::string compilerPath;
-  std::string compilerFlags;
+  std::string compileCommand;
+  std::string linker;
+  std::string linkArgs;
   std::string header;
-  std::vector< std::string > includeDirs;
-  std::vector< std::string > systemIncludeDirs;
-  std::vector< std::string > libs;
+  std::string function;
 };
 
 class DynamicLibrary
 {
 
 public:
-  DynamicLibrary( std::string const & path ):
-    m_handle( dlopen( path.data(), RTLD_LAZY ) )
-  {}
+  DynamicLibrary( std::string const & path );
 
   DynamicLibrary( DynamicLibrary const & ) = delete;
 
-  DynamicLibrary( DynamicLibrary && src ) :
-    m_handle( src.m_handle )
-  {
-    src.m_handle = nullptr;
-  }
+  DynamicLibrary( DynamicLibrary && src );
 
-  ~DynamicLibrary()
-  {
-    if ( m_handle != nullptr )
-    { LVARRAY_ERROR_IF( dlclose( m_handle ), dlerror() ); }
-  }
+  ~DynamicLibrary();
 
-  void * getSymbol( char const * const name ) const
-  {
-    LVARRAY_ERROR_IF( m_handle == nullptr, dlerror() );
-
-    void * const symbolAddress = dlsym( m_handle, name );
-
-    char const * const error = dlerror();
-
-    LVARRAY_ERROR_IF( error != nullptr, "Could not find the symbol: " << name << "\n" << error );
-
-    return symbolAddress;
-  }
+  void * getSymbol( char const * const name ) const;
 
 private:
   void * m_handle;
@@ -88,10 +65,7 @@ class TypedDynamicLibrary : public DynamicLibrary
 {
 
 public:
-  TypedDynamicLibrary( DynamicLibrary && dl ):
-    DynamicLibrary( std::move( dl ) ),
-    m_symbols( getSymbolTable() )
-  {}
+  TypedDynamicLibrary( DynamicLibrary && dl );
 
   template< typename T >
   T getSymbol( char const * const name ) const
@@ -111,17 +85,7 @@ public:
   }
 
 private:
-  SymbolTable getSymbolTable()
-  {
-    SymbolTable const * (*symbols)() =
-      reinterpret_cast< SymbolTable const * (*)() >( DynamicLibrary::getSymbol( "getExportedSymbols") );
-
-    char const * const error = dlerror();
-
-    LVARRAY_ERROR_IF( error != nullptr, "Could not find the symbols table!\n" << error );
-
-    return *symbols();
-  }
+  SymbolTable getSymbolTable();
 
   SymbolTable const m_symbols;
 };
@@ -130,77 +94,82 @@ private:
 class Compiler
 {
 public:
-  Compiler( std::string const & compilerPath, std::string const & compilerArgs ):
-    m_compilerPath( compilerPath ),
-    m_compilerArgs( compilerArgs )
+  Compiler( std::string const & compileCommand, std::string const & linker, std::string const & linkArgs ):
+    m_compileCommand( compileCommand ),
+    m_linker( linker ),
+    m_linkArgs( linkArgs )
   {}
 
   DynamicLibrary createDynamicLibrary( std::string const & filePath,
-                                       std::string const & outputLibrary,
-                                       std::vector< std::string > const & includeDirs,
-                                       std::vector< std::string > const & systemIncludeDirs,
-                                       std::vector< std::string > const & libs,
-                                       std::vector< std::string > const & defines ) const
+                                       std::vector< std::string > const & defines,
+                                       std::string const & outputObject,
+                                       std::string const & outputLibrary ) const
   {
   #if defined(__CUDACC__)
-    std::string command = m_compilerPath + " " + m_compilerArgs + " -Xcompiler -fPIC -shared -o " + outputLibrary + " " + filePath;
+    std::string compileCommand = m_compileCommand + " -Xcompiler -fPIC -c " + filePath + " -o " + outputObject;
   #else
-    std::string command = m_compilerPath + " " + m_compilerArgs + " -fPIC -shared -o " + outputLibrary + " " + filePath;
+    std::string compileCommand = m_compileCommand + " -fPIC -c " + filePath + " -o " + outputObject;
   #endif
 
-    for ( std::string const & include : includeDirs )
-    { command += " -I " + include; }
+    // for ( std::string const & include : includeDirs )
+    // { compileCommand += " -I " + include; }
 
-    for ( std::string const & include : systemIncludeDirs )
-    { command += " -isystem " + include; }
+    // for ( std::string const & include : systemIncludeDirs )
+    // { compileCommand += " -isystem " + include; }
 
-    for ( std::string const & lib : libs )
-    { command += " " + lib; }
+    // for ( std::string const & lib : libs )
+    // { compileCommand += " " + lib; }
 
     for ( std::string const & define : defines )
-    { command += " -D " + define; }
+    { compileCommand += " -D " + define; }
 
-    LVARRAY_LOG( "Compiling " << filePath );
-    LVARRAY_LOG_VAR( command );
-    LVARRAY_ERROR_IF( std::system( command.data() ) != 0, command );
+    LVARRAY_LOG( "\nCompiling " << filePath );
+    LVARRAY_LOG_VAR( compileCommand );
+    LVARRAY_ERROR_IF( std::system( compileCommand.data() ) != 0, compileCommand );
+
+    std::string linkCommand = m_linker + " -shared " + outputObject + " " + m_linkArgs + " -o " + outputLibrary;
+
+    LVARRAY_LOG( "\nLinking " << outputObject );
+    LVARRAY_LOG_VAR( linkCommand );
+    LVARRAY_ERROR_IF( std::system( linkCommand.data() ) != 0, linkCommand );
 
     return DynamicLibrary( outputLibrary );
   }
 
 private:
-  std::string const m_compilerPath;
-  std::string const m_compilerArgs;
+  std::string const m_compileCommand;
+  std::string const m_linker;
+  std::string const m_linkArgs;
 };
 
 
 class TemplateCompiler: private Compiler
 {
 public:
-  TemplateCompiler( std::string const & compilerPath,
-                    std::string const & compilerArgs ) :
-    Compiler( compilerPath, compilerArgs )
+  TemplateCompiler( std::string const & compileCommand,
+                    std::string const & linker,
+                    std::string const & linkArgs ) :
+    Compiler( compileCommand, linker, linkArgs )
   {}
 
   TypedDynamicLibrary instantiateTemplate( std::string const & templateFunction,
                                            std::string const & templateParams,
                                            std::string const & headerFile,
-                                           std::string const & outputLibrary,
-                                           std::vector< std::string > const & includeDirs,
-                                           std::vector< std::string > const & systemIncludeDirs,
-                                           std::vector< std::string > const & libs,
-                                           std::vector< std::string > defines={} ) const
+                                           std::string const & outputObject,
+                                           std::string const & outputLibrary ) const
   {
     char const * const sourceFile = "/usr/WS2/corbett5/LvArray/src/jitti/templateSource.cpp";
 
-    defines.emplace_back( "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'" );
-    defines.emplace_back( "JITTI_TEMPLATE_FUNCTION=" + templateFunction );
-    defines.emplace_back( "JITTI_TEMPLATE_PARAMS=\'" + templateParams + '\'' );
+    std::vector< std::string > defines = {
+      "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'",
+      "JITTI_TEMPLATE_FUNCTION=" + templateFunction,
+      "JITTI_TEMPLATE_PARAMS=\'" + templateParams + '\''
+    };
+
     return Compiler::createDynamicLibrary( sourceFile,
-                                           outputLibrary,
-                                           includeDirs,
-                                           systemIncludeDirs,
-                                           libs,
-                                           defines );
+                                           defines,
+                                           outputObject,
+                                           outputLibrary );
   }
 
 };
