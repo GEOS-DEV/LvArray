@@ -57,9 +57,9 @@ def main():
                          help="The path of the header file to generate." )
     parser.add_argument( "--linker", dest="linker", required=True, type=str,
                          help="The program to use for linking" )
-    parser.add_argument( "--linkDirectories", dest="linkDirectories", required=True, type=str, nargs="+",
+    parser.add_argument( "--linkDirectories", dest="linkDirectories", required=True, type=str, nargs="*",
                          help="The directories to add to the library search path." )
-    parser.add_argument( "--linkLibraries", dest="linkLibraries", required=True, type=str, nargs="+",
+    parser.add_argument( "--linkLibraries", dest="linkLibraries", required=True, type=str, nargs="*",
                          help="The libraries to link against")
     args = parser.parse_args()
 

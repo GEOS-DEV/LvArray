@@ -29,6 +29,11 @@ if(ENABLE_UMPIRE)
     find_package(umpire REQUIRED
                  PATHS ${UMPIRE_DIR})
     
+    blt_register_library(NAME umpire
+                         INCLUDES ${UMPIRE_INCLUDE_DIRS}
+                         LIBRARIES umpire
+                         TREAT_INCLUDES_AS_SYSTEM ON)
+
     set(thirdPartyLibs ${thirdPartyLibs} umpire)
 else()
     message(STATUS "Not using Umpire.")

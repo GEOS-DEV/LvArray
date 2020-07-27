@@ -5,8 +5,8 @@
 // TPL includes
 #include <gtest/gtest.h>
 
-using SquareAllType = void (*)( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const,
-                                LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const,
+using SquareAllType = void (*)( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const &,
+                                LvArray::ArrayView< int const, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const &,
                                 std::string & );
 
 void test( SquareAllType squareAll, std::string const & expectedPolicy )
@@ -20,10 +20,11 @@ void test( SquareAllType squareAll, std::string const & expectedPolicy )
 
   // Call the function.
   std::string policy;
-  squareAll( output, input, policy );
+  squareAll( output.toView(), input.toViewConst(), policy );
   EXPECT_EQ( policy, expectedPolicy );
 
   // Check the output.
+  output.move( LvArray::MemorySpace::CPU );
   for ( std::ptrdiff_t i = 0; i < output.size(); ++i )
   { EXPECT_EQ( output[ i ], i * i ); }
 }

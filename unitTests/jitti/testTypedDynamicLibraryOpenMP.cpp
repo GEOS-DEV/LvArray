@@ -2,8 +2,8 @@
 #include "squareAll.hpp"
 #include "../../src/jitti/jitti.hpp"
 
-void squareAllOpenMP( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const dst,
-                      LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const src,
+void squareAllOpenMP( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const & dst,
+                      LvArray::ArrayView< int const, 1, 0, std::ptrdiff_t, LvArray::NewChaiBuffer > const & src,
                       std::string & policy )
 { squareAll< RAJA::omp_parallel_for_exec >( dst, src, policy ); }
 

@@ -1,23 +1,28 @@
+get_target_property( lvarray_ITERFACE_INCLUDES lvarray INTERFACE_INCLUDE_DIRECTORIES )
+get_target_property( lvarray_ITERFACE_SYSTEM_INCLUDES lvarray INTERFACE_SYSTEM_INCLUDE_DIRECTORIES )
+
 #
 # Logic for testDynamicLibrary
 #
 blt_add_library( NAME testDynamicLibrarySerial
                  SOURCES testDynamicLibrarySerial.cpp
                  OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                 DEPENDS_ON lvarray ${lvarray_dependencies}
                  SHARED ON )
 
-set_property( TARGET testDynamicLibrarySerial PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
+target_include_directories( testDynamicLibrarySerial PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+target_include_directories( testDynamicLibrarySerial SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
+set_target_properties( testDynamicLibrarySerial PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
 set( testDynamicLibraryDependencies testDynamicLibrarySerial )
 
 if( ENABLE_OPENMP )
   blt_add_library( NAME testDynamicLibraryOpenMP
                    SOURCES testDynamicLibraryOpenMP.cpp
                    OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                   DEPENDS_ON lvarray ${lvarray_dependencies}
                    SHARED ON )
 
-  set_property( TARGET testDynamicLibraryOpenMP PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
+  target_include_directories( testDynamicLibraryOpenMP PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+  target_include_directories( testDynamicLibraryOpenMP SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
+  set_target_properties( testDynamicLibraryOpenMP PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
   list( APPEND testDynamicLibraryDependencies testDynamicLibraryOpenMP )
 endif()
 
@@ -25,10 +30,12 @@ if( ENABLE_CUDA )
   blt_add_library( NAME testDynamicLibraryCUDA
                    SOURCES testDynamicLibraryCUDA.cpp
                    OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                   DEPENDS_ON lvarray ${lvarray_dependencies}
+                   DEPENDS_ON cuda openmp
                    SHARED ON )
 
-  set_property( TARGET testDynamicLibraryCUDA PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
+  target_include_directories( testDynamicLibraryCUDA PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+  target_include_directories( testDynamicLibraryCUDA SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
+  set_target_properties( testDynamicLibraryCUDA PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
   list( APPEND testDynamicLibraryDependencies testDynamicLibraryCUDA )
 endif()
 
@@ -48,9 +55,10 @@ blt_add_test( NAME testDynamicLibrary
 blt_add_library( NAME testTypedDynamicLibrarySerial
                  SOURCES testTypedDynamicLibrarySerial.cpp
                  OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                 DEPENDS_ON lvarray ${lvarray_dependencies} jitti
                  SHARED ON )
 
+target_include_directories( testTypedDynamicLibrarySerial PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+target_include_directories( testTypedDynamicLibrarySerial SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
 set_property( TARGET testTypedDynamicLibrarySerial PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
 set( testTypedDynamicLibraryDependencies testTypedDynamicLibrarySerial )
 
@@ -58,9 +66,10 @@ if( ENABLE_OPENMP )
   blt_add_library( NAME testTypedDynamicLibraryOpenMP
                    SOURCES testTypedDynamicLibraryOpenMP.cpp
                    OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                   DEPENDS_ON lvarray ${lvarray_dependencies} jitti
                    SHARED ON )
 
+  target_include_directories( testTypedDynamicLibraryOpenMP PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+  target_include_directories( testTypedDynamicLibraryOpenMP SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
   set_property( TARGET testTypedDynamicLibraryOpenMP PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
   list( APPEND testTypedDynamicLibraryDependencies testTypedDynamicLibraryOpenMP )
 endif()
@@ -69,9 +78,11 @@ if( ENABLE_CUDA )
   blt_add_library( NAME testTypedDynamicLibraryCUDA
                    SOURCES testTypedDynamicLibraryCUDA.cpp
                    OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
-                   DEPENDS_ON lvarray ${lvarray_dependencies} jitti
+                   DEPENDS_ON cuda openmp
                    SHARED ON )
 
+  target_include_directories( testTypedDynamicLibraryCUDA PUBLIC ${lvarray_ITERFACE_INCLUDES} )
+  target_include_directories( testTypedDynamicLibraryCUDA SYSTEM PUBLIC ${lvarray_ITERFACE_SYSTEM_INCLUDES} )
   set_property( TARGET testTypedDynamicLibraryCUDA PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF )
   list( APPEND testTypedDynamicLibraryDependencies testTypedDynamicLibraryCUDA )
 endif()
@@ -114,8 +125,8 @@ add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.
                                    --cpp ${CMAKE_CURRENT_LIST_DIR}/squareAllJIT.cpp
                                    --hpp ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.hpp
                                    --linker ${CMAKE_CXX_COMPILER}
-                                   --linkDirectories ${linkDirectories}
-                                   --linkLibraries '${squareAll_LINK_LIBRARIES}' )
+                                   --linkDirectories
+                                   --linkLibraries )
 
 blt_add_executable( NAME testTemplateCompiler
                     SOURCES testTemplateCompiler.cpp
