@@ -1,9 +1,10 @@
 get_target_property( lvarray_ITERFACE_INCLUDES lvarray INTERFACE_INCLUDE_DIRECTORIES )
 get_target_property( lvarray_ITERFACE_SYSTEM_INCLUDES lvarray INTERFACE_SYSTEM_INCLUDE_DIRECTORIES )
 
-#
-# Logic for testDynamicLibrary
-#
+# Logic for testDynamicLibrary. We want to compile the libraries as if they depended on lvarray.
+# However we don't want to actually link against (lvarray) and associated libraries because then
+# when it gets dlopen'd by testDynamicLibrary there will be duplicates. This seems to be the only way
+# I could get it to work but hopefully there's a better way.
 blt_add_library( NAME testDynamicLibrarySerial
                  SOURCES testDynamicLibrarySerial.cpp
                  OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
@@ -27,6 +28,7 @@ if( ENABLE_OPENMP )
 endif()
 
 if( ENABLE_CUDA )
+  # CUDA still needs to be linked in otherwise there are some undefined reference errors when it gets dlopen'd.
   blt_add_library( NAME testDynamicLibraryCUDA
                    SOURCES testDynamicLibraryCUDA.cpp
                    OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
@@ -49,9 +51,7 @@ add_dependencies( testDynamicLibrary ${testDynamicLibraryDependencies} )
 blt_add_test( NAME testDynamicLibrary
               COMMAND testDynamicLibrary )
 
-#
 # Logic for testTypedDynamicLibrary
-#
 blt_add_library( NAME testTypedDynamicLibrarySerial
                  SOURCES testTypedDynamicLibrarySerial.cpp
                  OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti
@@ -97,25 +97,26 @@ add_dependencies( testTypedDynamicLibrary ${testTypedDynamicLibraryDependencies}
 blt_add_test( NAME testTypedDynamicLibrary
               COMMAND testTypedDynamicLibrary )
 
-#
 # Logic for testTemplateCompiler
-#
+# The first step is to compile the library that will hold the compilation info. It doesn't have to be in a
+# separate library from the test executable but it makes the dependency on the generated header cleaner.
 blt_add_library( NAME squareAllJIT
                  SOURCES squareAllJIT.cpp
                  HEADERS squareAllJIT.hpp ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.hpp
                  DEPENDS_ON lvarray jitti ${lvarray_dependencies}
                  SHARED ON )
 
-get_target_property( squareAll_LINK_LIBRARIES squareAllJIT LINK_LIBRARIES )
+# The second set is to create the generated header. It parses the output compile_commands.json file to get the
+# command used to build squareAllJIT.cpp. It adapts this to compile the dynamic library. However we need to manually
+# specify the link commands. As with above we don't want to link to anything except if we're using cuda.
+# The CMake logic is actually simpler than the above cases because it naturally pulls out all the includes and 
+# by default doesn't link to anything.
+set( linkDirectories "" )
+set( linkLibraries "" )
 
-set( linkDirectories ${CMAKE_BINARY_DIR}/lib )
-
-if( ENABLE_CALIPER )
-    list(APPEND linkDirectories ${CALIPER_DIR}/lib64 )
-endif()
-
-if( ENABLE_CHAI )
-    list(APPEND linkDirectories ${CHAI_DIR}/lib )
+if( ENABLE_CUDA )
+    list( APPEND linkDirectories ${CUDA_TOOLKIT_ROOT_DIR}/lib64 )
+    list( APPEND linkLibraries cudart_static cudadevrt )
 endif()
 
 add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.hpp
@@ -125,8 +126,8 @@ add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.
                                    --cpp ${CMAKE_CURRENT_LIST_DIR}/squareAllJIT.cpp
                                    --hpp ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.hpp
                                    --linker ${CMAKE_CXX_COMPILER}
-                                   --linkDirectories
-                                   --linkLibraries )
+                                   --linkDirectories ${linkDirectories}
+                                   --linkLibraries ${linkLibraries} )
 
 blt_add_executable( NAME testTemplateCompiler
                     SOURCES testTemplateCompiler.cpp
