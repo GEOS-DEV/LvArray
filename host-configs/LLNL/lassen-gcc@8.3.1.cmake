@@ -3,7 +3,7 @@ set(CONFIG_NAME "lassen-gcc@8.3.1" CACHE PATH "")
 # Set up the tpls
 # These were probably built with clang (no guarantee that they would work)
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-07-08/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-08-05/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 set(ENABLE_CHAI ON CACHE BOOL "")
