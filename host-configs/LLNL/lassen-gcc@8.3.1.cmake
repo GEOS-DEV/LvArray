@@ -7,6 +7,7 @@ set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-07-08/install-${CONFIG_NAME}-releas
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 set(ENABLE_CHAI ON CACHE BOOL "")
+set(USE_ADDR2LINE ON CACHE BOOL "")
 
 set(CMAKE_C_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/gcc CACHE PATH "")
 set(CMAKE_CXX_COMPILER /usr/tce/packages/gcc/gcc-8.3.1/bin/g++ CACHE PATH "")

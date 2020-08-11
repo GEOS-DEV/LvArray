@@ -13,6 +13,8 @@
 #pragma once
 
 // System includes
+#include <vector>
+#include <array>
 #include <string>
 #include <typeinfo>
 
@@ -25,8 +27,14 @@ namespace LvArray
 namespace system
 {
 
-/// @return Return a demangled stack trace of the last 25 frames.
-std::string stackTrace();
+/**
+ * @brief Return a demangled stack trace of the last 25 frames.
+ * @param lineInfo If @c true then file and line numbers will be added to the
+ *   trace if available. This is only supported if @c LVARRAY_ADDR2LINE_EXEC is defined and
+ *   normally only works in debug builds.
+ * @return A demangled stack trace of the last 25 frames.
+ */
+std::string stackTrace( bool const lineInfo );
 
 /**
  * @return The demangled name corresponding to the given
