@@ -8,7 +8,7 @@
 // Source includes
 #include "Array.hpp"
 #include "MallocBuffer.hpp"
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 
@@ -321,7 +321,7 @@ TEST( Array, arraySlice )
 }
 // Sphinx end before arraySlice
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 // Sphinx start after chaiBuffer
 CUDA_TEST( Array, chaiBuffer )
 {

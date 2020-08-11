@@ -512,7 +512,7 @@ public:
     COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF_GT_MSG( m_rowNNZ + nToAdd, m_rowCapacity, "CRSMatrixView cannot do reallocation." );
 #else
       LVARRAY_DEBUG_VAR( nToAdd );

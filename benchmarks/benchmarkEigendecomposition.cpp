@@ -38,13 +38,13 @@ void eigenvectors( benchmark::State & state )
 INDEX_TYPE const SERIAL_SIZE_2x2 = (2 << 22) - 87;
 INDEX_TYPE const SERIAL_SIZE_3x3 = (2 << 19) - 87;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 INDEX_TYPE const OMP_SIZE_2x2 = (2 << 24) - 87;
 INDEX_TYPE const OMP_SIZE_3x3 = (2 << 23) - 87;
 #endif
 
 // The non Array benchmarks could be run without chai, but then what's the point.
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 constexpr INDEX_TYPE CUDA_SIZE_2x2 = (2 << 24) - 87;
 constexpr INDEX_TYPE CUDA_SIZE_3x3 = (2 << 24) - 87;
 #endif
@@ -67,13 +67,13 @@ void registerBenchmarks()
                                 , std::make_tuple( SERIAL_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, serialPolicy {} )
-  #if defined(USE_OPENMP)
+  #if defined(LVARRAY_USE_OPENMP)
                                 , std::make_tuple( OMP_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA) && defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
                                 , std::make_tuple( CUDA_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
                                 , std::make_tuple( CUDA_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
                                 , std::make_tuple( CUDA_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
@@ -97,12 +97,12 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial number of 2x2 matrices = " << LvArray::benchmarking::SERIAL_SIZE_2x2 );
   LVARRAY_LOG( "Serial number of 3x3 matrices = " << LvArray::benchmarking::SERIAL_SIZE_3x3 );
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   LVARRAY_LOG( "OMP number of 2x2 matrices = " << LvArray::benchmarking::OMP_SIZE_2x2 );
   LVARRAY_LOG( "OMP number of 3x3 matrices = " << LvArray::benchmarking::OMP_SIZE_3x3 );
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   LVARRAY_LOG( "CUDA number of 2x2 matrices = " << LvArray::benchmarking::CUDA_SIZE_2x2 );
   LVARRAY_LOG( "CUDA number of 3x3 matrices = " << LvArray::benchmarking::CUDA_SIZE_3x3 );
 #endif

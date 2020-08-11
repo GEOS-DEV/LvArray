@@ -30,7 +30,7 @@
   #include <sys/wait.h>
 #endif
 
-#if defined( USE_MPI )
+#if defined( LVARRAY_USE_MPI )
   #include <mpi.h>
 #endif
 
@@ -427,7 +427,7 @@ std::string calculateSize( size_t const bytes )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void abort()
 {
-#ifdef USE_MPI
+#ifdef LVARRAY_USE_MPI
   int mpi = 0;
   MPI_Initialized( &mpi );
   if( mpi )

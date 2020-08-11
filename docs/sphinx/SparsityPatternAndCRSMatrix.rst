@@ -73,9 +73,9 @@ The three types of ``LvArray::CRSMatrixView`` obtainable from an ``LvArray::CRSM
 
 Calling the explicit ``move`` method with the touch parameter set to ``true`` on a view type has the behavior described above. However calling ``move( MemorySpace::CPU )`` on an ``LvArray::CRSMatrix`` or ``LvArray::SparsityPattern`` will also touch the offsets (if moving to the GPU the offsets aren't touched). This is the only way to touch the offsets so if an ``LvArray::CRSMatrix`` was previously on the device then it must be explicitly moved and touched on the host before any modification to the offsets can safely take place.
 
-Usage with ``USE_ARRAY_BOUNDS_CHECK``
+Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------
-When ``USE_ARRAY_BOUNDS_CHECK`` is defined access all row and column access is checked. Methods which expect a sorted unique set of columns check that the columns are indeed sorted and unique. In addition if ``addToRow`` checks that all the given columns are present in the row.
+When ``LVARRAY_BOUNDS_CHECK`` is defined access all row and column access is checked. Methods which expect a sorted unique set of columns check that the columns are indeed sorted and unique. In addition if ``addToRow`` checks that all the given columns are present in the row.
 
 Guidelines
 ----------

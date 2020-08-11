@@ -245,7 +245,7 @@ using TestTypes = ::testing::Types<
   SortedArray< int, INDEX_TYPE, MallocBuffer >
   , SortedArray< Tensor, INDEX_TYPE, MallocBuffer >
   , SortedArray< TestString, INDEX_TYPE, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , SortedArray< int, INDEX_TYPE, ChaiBuffer >
   , SortedArray< Tensor, INDEX_TYPE, ChaiBuffer >
   , SortedArray< TestString, INDEX_TYPE, ChaiBuffer >
@@ -439,7 +439,7 @@ using SortedArrayViewTestTypes = ::testing::Types<
   std::pair< SortedArray< int, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
   , std::pair< SortedArray< Tensor, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
   , std::pair< SortedArray< TestString, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< SortedArray< int, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< SortedArray< Tensor, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

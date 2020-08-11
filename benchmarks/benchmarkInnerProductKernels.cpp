@@ -109,11 +109,11 @@ pointerKernel( INDEX_TYPE const N,
 
 template class InnerProductRAJA< serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 template class InnerProductRAJA< parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 template class InnerProductRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
 

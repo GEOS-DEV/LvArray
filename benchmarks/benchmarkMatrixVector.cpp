@@ -161,11 +161,11 @@ void registerBenchmarks()
   },
                                 std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
-  #if defined(USE_OPENMP)
+  #if defined(LVARRAY_USE_OPENMP)
                                 , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA) && defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
                                 , std::make_tuple( CUDA_N, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
                                 , std::make_tuple( CUDA_N, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
@@ -188,12 +188,12 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_N << ", " <<
                LvArray::benchmarking::SERIAL_M << " )." );
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_N << ", " <<
                LvArray::benchmarking::OMP_M << " )." );
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_N << ", " <<
                LvArray::benchmarking::CUDA_M << " )." );
 #endif

@@ -32,7 +32,7 @@ enum class MemorySpace
 {
   NONE
   , CPU
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   , GPU
 #endif
 };
@@ -49,7 +49,7 @@ inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
     os << "NONE";
   if( space == MemorySpace::CPU )
     os << "CPU";
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   if( space == MemorySpace::GPU )
     os << "GPU";
 #endif
@@ -131,13 +131,13 @@ struct VoidBuffer
  * @tparam BUFFER the buffer type.
  * @param buf The buffer to check.
  * @param size The size of the buffer.
- * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
+ * @note This method is a no-op when LVARRAY_BOUNDS_CHECK is not defined.
  */
 template< typename BUFFER >
 inline LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
 void check( BUFFER const & buf, std::ptrdiff_t const size )
 {
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
   LVARRAY_ERROR_IF_GT( 0, buf.capacity() );
   LVARRAY_ERROR_IF_GT( 0, size );
   LVARRAY_ERROR_IF_GT( size, buf.capacity() );
@@ -153,13 +153,13 @@ void check( BUFFER const & buf, std::ptrdiff_t const size )
  * @param buf The buffer to check.
  * @param size The size of the buffer.
  * @param pos The insertion position.
- * @note This method is a no-op when USE_ARRAY_BOUNDS_CHECK is not defined.
+ * @note This method is a no-op when LVARRAY_BOUNDS_CHECK is not defined.
  */
 template< typename BUFFER >
 inline
 void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
 {
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
   check( buf, size );
   LVARRAY_ERROR_IF_GT( 0, pos );
   LVARRAY_ERROR_IF_GT( pos, size );

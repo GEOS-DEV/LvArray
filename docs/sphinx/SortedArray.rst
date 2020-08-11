@@ -46,9 +46,9 @@ It is worth noting that after a ``LvArray::SortedArray`` is moved to the device 
 
 *[Source: examples/exampleSortedArray.cpp]*
 
-Usage with ``USE_ARRAY_BOUNDS_CHECK``
+Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------
-Like ``LvArray::Array`` when ``USE_ARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` is checked for invalid access. If an out of bounds access is detected the program is aborted. In addition calls to insert and remove multiple values will error out if the values to insert or remove aren't sorted and unique.
+Like ``LvArray::Array`` when ``LVARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` is checked for invalid access. If an out of bounds access is detected the program is aborted. In addition calls to insert and remove multiple values will error out if the values to insert or remove aren't sorted and unique.
 
 .. literalinclude:: ../../examples/exampleSortedArray.cpp
   :language: c++

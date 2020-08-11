@@ -121,13 +121,13 @@ INDEX_TYPE const SERIAL_N = (2 << 7) + 73;
 INDEX_TYPE const SERIAL_L = (2 << 7) - 71;
 INDEX_TYPE const SERIAL_M = (2 << 7) - 3;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 INDEX_TYPE const OMP_N = SERIAL_N;
 INDEX_TYPE const OMP_L = SERIAL_L;
 INDEX_TYPE const OMP_M = SERIAL_M;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 INDEX_TYPE const CUDA_N = SERIAL_N;
 INDEX_TYPE const CUDA_L = SERIAL_L;
 INDEX_TYPE const CUDA_M = SERIAL_M;
@@ -169,11 +169,11 @@ void registerBenchmarks()
   },
                                 std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
-  #if defined(USE_OPENMP)
+  #if defined(LVARRAY_USE_OPENMP)
                                 , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA) && defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
                                 , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
                                 , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
@@ -196,12 +196,12 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_N << ", " <<
                LvArray::benchmarking::SERIAL_L << ", " << LvArray::benchmarking::SERIAL_M << " )." );
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_N << ", " <<
                LvArray::benchmarking::OMP_L << ", " << LvArray::benchmarking::OMP_M << " )." );
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   LVARRAY_LOG( "CUDA problems of size ( " << LvArray::benchmarking::CUDA_N << ", " <<
                LvArray::benchmarking::CUDA_L << ", " << LvArray::benchmarking::CUDA_M << " )." );
 #endif

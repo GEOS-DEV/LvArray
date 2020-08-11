@@ -8,7 +8,7 @@
 // Source includes
 #include "ArrayOfArrays.hpp"
 #include "MallocBuffer.hpp"
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 #include "sortedArrayManipulation.hpp"
@@ -95,7 +95,7 @@ TEST( ArrayOfArrays, modification )
 }
 // Sphinx end before examples
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 // Sphinx start after view
 TEST( ArrayOfArrays, view )
 {
@@ -275,7 +275,7 @@ TEST( ArrayOfArrays, resizeFromCapacities )
 }
 // Sphinx end before resizeFromCapacities
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 // Sphinx start after ChaiBuffer
 CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 {
@@ -365,7 +365,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 // Sphinx start after bounds check
 TEST( ArrayOfArrays, boundsCheck )
 {
-#if defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_BOUNDS_CHECK)
   LvArray::ArrayOfArrays< int, std::ptrdiff_t, LvArray::MallocBuffer > arrayOfArrays;
 
   // Append an array.

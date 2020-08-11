@@ -64,7 +64,7 @@ CUDA_TEST( typeManipulation, forEachArg )
   EXPECT_EQ( str, "1010" );
   EXPECT_EQ( pi, 6 );
 
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   // Test on device.
   RAJA::ReduceSum< RAJA::cuda_reduce, int > intReducer( 1 );
   RAJA::ReduceSum< RAJA::cuda_reduce, float > floatReducer( 3 );

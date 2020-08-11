@@ -171,14 +171,14 @@ template class MatrixVectorNative< RAJA::PERM_JI >;
 template class MatrixVectorRAJA< RAJA::PERM_IJ, serialPolicy >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 
 template class MatrixVectorRAJA< RAJA::PERM_IJ, parallelHostPolicy >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, parallelHostPolicy >;
 
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 
 template class MatrixVectorRAJA< RAJA::PERM_IJ, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;

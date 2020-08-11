@@ -18,23 +18,23 @@
 // System includes
 #include <limits>
 
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p col is a valid column in the matrix.
  * @param col The column to check.
- * @note This macro is only active with USE_ARRAY_BOUNDS_CHECK.
+ * @note This macro is only active with LVARRAY_BOUNDS_CHECK.
  */
 #define SPARSITYPATTERN_COLUMN_CHECK( col ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
                     "Column Check Failed: col=" << col << " numColumns=" << this->numColumns() )
 
-#else // USE_ARRAY_BOUNDS_CHECK
+#else // LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p col is a valid column in the matrix.
  * @param col The column to check.
- * @note This macro is only active with USE_ARRAY_BOUNDS_CHECK.
+ * @note This macro is only active with LVARRAY_BOUNDS_CHECK.
  */
 #define SPARSITYPATTERN_COLUMN_CHECK( col )
 
@@ -291,7 +291,7 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
 
-  #ifdef USE_ARRAY_BOUNDS_CHECK
+  #ifdef LVARRAY_BOUNDS_CHECK
     for( ITER iter = first; iter != last; ++iter )
     { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
   #endif
@@ -329,7 +329,7 @@ public:
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
 
-  #ifdef USE_ARRAY_BOUNDS_CHECK
+  #ifdef LVARRAY_BOUNDS_CHECK
     for( ITER iter = first; iter != last; ++iter )
     { SPARSITYPATTERN_COLUMN_CHECK( *iter ); }
   #endif

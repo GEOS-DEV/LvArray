@@ -25,12 +25,12 @@
 // System includes
 #include <cstring>
 
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p i is a valid array index.
  * @param i The array index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size(), \
@@ -40,7 +40,7 @@
  * @brief Check that @p i is a valid array index and that @p j is a valid index into that array.
  * @param i The array index to check.
  * @param j The index into the array to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS2( i, j ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
@@ -51,7 +51,7 @@
 /**
  * @brief Check that @p i is a valid index to insert an array at.
  * @param i The array index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i > this->size(), \
@@ -61,7 +61,7 @@
  * @brief Check that @p i is a valid array index and that @p j is a valid insertion index into that array.
  * @param i The array index to check.
  * @param j The index into the array to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
@@ -73,7 +73,7 @@
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
  * @param i The array index to check.
  * @param increase The increases in the capacity.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CAPACITY_CHECK( i, increase ) \
   LVARRAY_ERROR_IF( this->sizeOfArray( i ) + increase > this->capacityOfArray( i ), \
@@ -86,7 +86,7 @@
  * @param i The array index to check.
  * @param previousSize The previous size of the array.
  * @param increase The increases in the capacity.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase ) \
   LVARRAY_ERROR_IF( previousSize + increase > this->capacityOfArray( i ), \
@@ -94,12 +94,12 @@
                     " sizeOfArray( i )=" << previousSize << " capacityOfArray( i )=" << \
                     this->capacityOfArray( i ) )
 
-#else // USE_ARRAY_BOUNDS_CHECK
+#else // LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p i is a valid array index.
  * @param i The array index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i )
 
@@ -107,14 +107,14 @@
  * @brief Check that @p i is a valid array index and that @p j is a valid index into that array.
  * @param i The array index to check.
  * @param j The index into the array to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS2( i, j )
 
 /**
  * @brief Check that @p i is a valid index to insert an array at.
  * @param i The array index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i )
 
@@ -122,7 +122,7 @@
  * @brief Check that @p i is a valid array index and that @p j is a valid insertion index into that array.
  * @param i The array index to check.
  * @param j The index into the array to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j )
 
@@ -130,7 +130,7 @@
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
  * @param i The array index to check.
  * @param increase The increases in the capacity.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CAPACITY_CHECK( i, increase )
 
@@ -139,11 +139,11 @@
  * @param i The array index to check.
  * @param previousSize The previous size of the array.
  * @param increase The increases in the capacity.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase )
 
-#endif // USE_ARRAY_BOUNDS_CHECK
+#endif // LVARRAY_BOUNDS_CHECK
 
 namespace LvArray
 {
@@ -509,7 +509,7 @@ public:
     m_values.move( space, touch );
     m_sizes.move( space, touch );
 
-  #if defined(USE_CUDA)
+  #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::GPU ) touch = false;
   #endif
     m_offsets.move( space, touch );
@@ -625,7 +625,7 @@ protected:
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
 
-  #ifdef USE_ARRAY_BOUNDS_CHECK
+  #ifdef LVARRAY_BOUNDS_CHECK
     for( INDEX_TYPE i = 0; i < numSubArrays; ++i )
     {
       LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );

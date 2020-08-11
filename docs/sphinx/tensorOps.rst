@@ -227,7 +227,7 @@ You can mix and match the data types of the objects and also call the ``tensorOp
 
 Bounds checking
 ---------------
-Whatever the argument type the number of dimensions is checked at compile time. For example if you pass a ``double[ 3 ][ 3 ]`` or a three dimensional ``LvArray::ArraySlice`` to ``LvArray::tensorOps::crossProduct`` you will get a compilation error since that function is only implemented for vectors. When passing a c-array as an argument the size of the array is checked at compile time. For example if you pass ``int[ 2 ][ 3 ]`` to ``LvArray::tensorOps::addIdentity`` you will get a compilation error because that function only operates on square matrices. However when passing an ``LvArray::Array*`` object the size is only checked at runtime if ``USE_ARRAY_BOUNDS_CHECK`` is defined.
+Whatever the argument type the number of dimensions is checked at compile time. For example if you pass a ``double[ 3 ][ 3 ]`` or a three dimensional ``LvArray::ArraySlice`` to ``LvArray::tensorOps::crossProduct`` you will get a compilation error since that function is only implemented for vectors. When passing a c-array as an argument the size of the array is checked at compile time. For example if you pass ``int[ 2 ][ 3 ]`` to ``LvArray::tensorOps::addIdentity`` you will get a compilation error because that function only operates on square matrices. However when passing an ``LvArray::Array*`` object the size is only checked at runtime if ``LVARRAY_BOUNDS_CHECK`` is defined.
 
 .. literalinclude:: ../../examples/exampleTensorOps.cpp
   :language: c++
