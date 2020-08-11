@@ -528,7 +528,7 @@ protected:
 using SparsityPatternTestTypes = ::testing::Types<
   SparsityPattern< int, std::ptrdiff_t, MallocBuffer >
   , SparsityPattern< uint, std::ptrdiff_t, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , SparsityPattern< int, std::ptrdiff_t, ChaiBuffer >
   , SparsityPattern< uint, std::ptrdiff_t, ChaiBuffer >
 #endif
@@ -586,7 +586,7 @@ TYPED_TEST( SparsityPatternTest, resizeFromRowCapacities )
     this->template resizeFromRowCapacities< serialPolicy >( 100, 75 );
     this->insertTest( MAX_INSERTS );
 
-#if defined( USE_OPENMP )
+#if defined( LVARRAY_USE_OPENMP )
     this->template resizeFromRowCapacities< parallelHostPolicy >( 150, 200 );
     this->insertTest( MAX_INSERTS );
 #endif
@@ -998,12 +998,12 @@ protected:
 using SparsityPatternViewTestTypes = ::testing::Types<
   std::pair< SparsityPattern< int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< SparsityPattern< uint, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< SparsityPattern< int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< SparsityPattern< uint, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< SparsityPattern< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< SparsityPattern< uint, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
@@ -1156,7 +1156,7 @@ using CRSMatrixTestTypes = ::testing::Types<
   std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

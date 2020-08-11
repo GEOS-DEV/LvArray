@@ -93,11 +93,11 @@ void addToRow( benchmark::State & state )
 int const NO_ALLOCATION_SIZE = 10;
 int const SERIAL_SIZE = 100;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 int const OMP_SIZE = 100;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 int const CUDA_SIZE = 100;
 #endif
 
@@ -120,10 +120,10 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { size, size, size } ), nodeLoopPreallocatedRAJA, POLICY );
   },
                                 std::make_tuple( SERIAL_SIZE, serialPolicy {} )
-  #if defined(USE_OPENMP)
+  #if defined(LVARRAY_USE_OPENMP)
                                 , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA) && defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
                                 , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
                                 );
@@ -136,10 +136,10 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { size, size, size } ), addToRow, POLICY );
   },
                                 std::make_tuple( SERIAL_SIZE, serialPolicy {} )
-  #if defined(USE_OPENMP)
+  #if defined(LVARRAY_USE_OPENMP)
                                 , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
-  #if defined(USE_CUDA) && defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
                                 , std::make_tuple( CUDA_SIZE, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
                                 );
@@ -161,12 +161,12 @@ int main( int argc, char * * argv )
   LvArray::benchmarking::INDEX_TYPE size = std::pow( LvArray::benchmarking::SERIAL_SIZE, 3 );
   LVARRAY_LOG( "Serial problems of size ( " << size << " )." );
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   size = std::pow( LvArray::benchmarking::OMP_SIZE, 3 );
   LVARRAY_LOG( "OMP problems of size ( " << size << " )." );
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   size = std::pow( LvArray::benchmarking::CUDA_SIZE, 3 );
   LVARRAY_LOG( "CUDA problems of size ( " << size << " )." );
 #endif

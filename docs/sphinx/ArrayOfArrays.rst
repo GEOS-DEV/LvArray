@@ -153,9 +153,9 @@ Calling the explicit ``move`` method with the touch parameter set to ``true`` on
 
 *[Source: examples/exampleArrayOfArrays.cpp]*
 
-Usage with ``USE_ARRAY_BOUNDS_CHECK``
+Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------
-When ``USE_ARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` and ``operator()`` is checked. If an invalid access is detected the program is aborted. Methods such as ``sizeOfArray``, ``insertArray`` and ``emplace`` are also checked.
+When ``LVARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` and ``operator()`` is checked. If an invalid access is detected the program is aborted. Methods such as ``sizeOfArray``, ``insertArray`` and ``emplace`` are also checked.
 
 .. literalinclude:: ../../examples/exampleArrayOfArrays.cpp
   :language: c++

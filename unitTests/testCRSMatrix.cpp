@@ -495,7 +495,7 @@ using CRSMatrixTestTypes = ::testing::Types<
   CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >
   , CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >
   , CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >
   , CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >
   , CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >
@@ -559,7 +559,7 @@ TYPED_TEST( CRSMatrixTest, resizeFromRowCapacities )
     this->template resizeFromRowCapacities< serialPolicy >( DEFAULT_NROWS, DEFAULT_NCOLS );
     this->insert( DEFAULT_MAX_INSERTS, true );
 
-#if defined( USE_OPENMP )
+#if defined( LVARRAY_USE_OPENMP )
     this->template resizeFromRowCapacities< parallelHostPolicy >( 2 * DEFAULT_NROWS, DEFAULT_NCOLS / 2 );
     this->insert( DEFAULT_MAX_INSERTS, true );
 #endif
@@ -1010,13 +1010,13 @@ using CRSMatrixViewTestTypes = ::testing::Types<
 // Sphinx end before CRSMatrixViewTestTypes
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
@@ -1234,22 +1234,22 @@ using CRSMatrixViewAtomicTestTypes = ::testing::Types<
   std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
 #endif
-#if defined(USE_OPENMP) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_OPENMP) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

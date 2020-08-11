@@ -41,14 +41,14 @@ template class Eigendecomposition< 2, RAJA::PERM_JI, RAJA::PERM_KJI, serialPolic
 template class Eigendecomposition< 3, RAJA::PERM_IJ, RAJA::PERM_IJK, serialPolicy >;
 template class Eigendecomposition< 3, RAJA::PERM_JI, RAJA::PERM_KJI, serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 template class Eigendecomposition< 2, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelHostPolicy >;
 template class Eigendecomposition< 2, RAJA::PERM_JI, RAJA::PERM_KJI, parallelHostPolicy >;
 template class Eigendecomposition< 3, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelHostPolicy >;
 template class Eigendecomposition< 3, RAJA::PERM_JI, RAJA::PERM_KJI, parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 template class Eigendecomposition< 2, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelDevicePolicy< THREADS_PER_BLOCK > >;
 template class Eigendecomposition< 2, RAJA::PERM_JI, RAJA::PERM_KJI, parallelDevicePolicy< THREADS_PER_BLOCK > >;
 template class Eigendecomposition< 3, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelDevicePolicy< THREADS_PER_BLOCK > >;

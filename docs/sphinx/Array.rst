@@ -176,9 +176,9 @@ Finally you can write a recursive function that operates on an ``LvArray::ArrayS
 
 *[Source: src/output.hpp]*
 
-Usage with ``USE_ARRAY_BOUNDS_CHECK``
+Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------
-When ``USE_ARRAY_BOUNDS_CHECK`` is defined all accesses via ``operator[]`` and ``operator()`` is checked to make sure the indices are valid. If invalid indices are detected an error message is printed to standard out and the program is aborted. It should be noted that access via ``operator()`` is able to provide a more useful error message upon an invalid access because it has access to all of the indices whereas ``operator[]`` only has access to a single index at a time. ``size( int dim )``, ``linearIndex``, ``emplace`` and ``insert`` will also check that their arguments are in bounds.
+When ``LVARRAY_BOUNDS_CHECK`` is defined all accesses via ``operator[]`` and ``operator()`` is checked to make sure the indices are valid. If invalid indices are detected an error message is printed to standard out and the program is aborted. It should be noted that access via ``operator()`` is able to provide a more useful error message upon an invalid access because it has access to all of the indices whereas ``operator[]`` only has access to a single index at a time. ``size( int dim )``, ``linearIndex``, ``emplace`` and ``insert`` will also check that their arguments are in bounds.
 
 .. literalinclude:: ../../examples/exampleArray.cpp
   :language: c++

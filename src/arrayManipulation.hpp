@@ -14,12 +14,12 @@
 
 #include "Macros.hpp"
 
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index is a valid into into the array.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index >= size, \
@@ -28,29 +28,29 @@
 /**
  * @brief Check that @p index is a valid insertion position in the array.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index > size, \
                     "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
 
-#else // USE_ARRAY_BOUNDS_CHECK
+#else // LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index is a valid into into the array.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index )
 
 /**
  * @brief Check that @p index is a valid insertion position in the array.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index )
 
-#endif // USE_ARRAY_BOUNDS_CHECK
+#endif // LVARRAY_BOUNDS_CHECK
 
 namespace LvArray
 {

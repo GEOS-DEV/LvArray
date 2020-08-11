@@ -349,7 +349,7 @@ using NoSizeTestTypes = ::testing::Types<
   std::tuple< double, serialPolicy >
   , std::tuple< int, serialPolicy >
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, parallelDevicePolicy< 32 > >
   , std::tuple< int, parallelDevicePolicy< 32 > >
 #endif

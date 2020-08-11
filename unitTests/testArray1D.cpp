@@ -197,7 +197,7 @@ using Array1DTestTypes = ::testing::Types<
   Array< int, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
   , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
   , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
   , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
   , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >

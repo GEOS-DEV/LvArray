@@ -12,30 +12,18 @@
 
 #pragma once
 
-#cmakedefine USE_ARRAY_BOUNDS_CHECK
+#cmakedefine LVARRAY_BOUNDS_CHECK
 
-#ifndef USE_CHAI
-#cmakedefine USE_CHAI
-#endif
+#cmakedefine LVARRAY_USE_CHAI
 
-#ifndef USE_CUDA
-#cmakedefine USE_CUDA
-#endif
+#cmakedefine LVARRAY_USE_CUDA
 
-#ifndef USE_MPI
-#cmakedefine USE_MPI
-#endif
+#cmakedefine LVARRAY_USE_MPI
 
-#ifndef USE_TOTALVIEW_OUTPUT
-#cmakedefine USE_TOTALVIEW_OUTPUT
-#endif
+#cmakedefine LVARRAY_USE_TOTALVIEW_OUTPUT
 
-#ifndef USE_OPENMP
-#cmakedefine USE_OPENMP
-#endif
+#cmakedefine LVARRAY_USE_OPENMP
 
-#ifndef USE_CALIPER
-#cmakedefine USE_CALIPER
-#endif
+#cmakedefine LVARRAY_USE_CALIPER
 
-#cmakedefine LVARRAY_ADDR2LINE_EXEC "@LVARRAY_ADDR2LINE_EXEC@"
+#cmakedefine LVARRAY_ADDR2LINE_EXEC @LVARRAY_ADDR2LINE_EXEC@

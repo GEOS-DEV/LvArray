@@ -21,7 +21,7 @@
 #include "bufferManipulation.hpp"
 
 // System includes
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
 #include "totalview/tv_helpers.hpp"
 #include "totalview/tv_data_display.h"
 #endif
@@ -312,7 +312,7 @@ public:
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE size( int const dim ) const noexcept
   {
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ASSERT_GE( dim, 0 );
     LVARRAY_ASSERT_GT( NDIM, dim );
 #endif
@@ -350,7 +350,7 @@ public:
   INDEX_TYPE linearIndex( INDICES const ... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
     indexing::checkIndices( m_dims, indices ... );
 #endif
     return indexing::getLinearIndex< USD >( m_strides, indices ... );
@@ -526,7 +526,7 @@ public:
 
   ///@}
 
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.
@@ -563,7 +563,7 @@ protected:
     m_strides{ 0 },
     m_dataBuffer( true )
   {
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(LVARRAY_BOUNDS_CHECK)
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }

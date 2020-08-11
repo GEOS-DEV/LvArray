@@ -81,11 +81,11 @@ VALUE_TYPE ReduceRAJA< POLICY >::pointerKernel( VALUE_TYPE const * const LVARRAY
 
 template class ReduceRAJA< serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 template class ReduceRAJA< parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 template class ReduceRAJA< RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
 

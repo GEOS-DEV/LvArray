@@ -170,12 +170,12 @@ template class OuterProductNative< RAJA::PERM_JI >;
 template class OuterProductRAJA< RAJA::PERM_IJ, serialPolicy >;
 template class OuterProductRAJA< RAJA::PERM_JI, serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 template class OuterProductRAJA< RAJA::PERM_IJ, parallelHostPolicy >;
 template class OuterProductRAJA< RAJA::PERM_JI, parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 template class OuterProductRAJA< RAJA::PERM_IJ, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class OuterProductRAJA< RAJA::PERM_JI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif

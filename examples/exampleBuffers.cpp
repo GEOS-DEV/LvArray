@@ -8,7 +8,7 @@
 // Source includes
 #include "MallocBuffer.hpp"
 #include "StackBuffer.hpp"
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 
@@ -79,7 +79,7 @@ TEST( MallocBuffer, nonPOD )
 }
 // Sphinx end before MallocBuffer
 
-#if defined(USE_CHAI) && defined(USE_CUDA)
+#if defined(LVARRAY_USE_CHAI) && defined(LVARRAY_USE_CUDA)
 // Sphinx start after ChaiBuffer captureOnDevice
 CUDA_TEST( ChaiBuffer, captureOnDevice )
 {

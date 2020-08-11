@@ -658,7 +658,7 @@ using OneSizeTestTypes = ::testing::Types<
   , std::tuple< int, std::integral_constant< int, 3 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 6 >, serialPolicy >
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 6 >, parallelDevicePolicy< 32 > >

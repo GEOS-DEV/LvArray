@@ -47,27 +47,27 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
   #include "totalview/tv_helpers.hpp"
 #endif
 
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index is a valid index into the first dimension.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAY_SLICE_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= m_dims[ 0 ], \
                     "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
 
-#else // USE_ARRAY_BOUNDS_CHECK
+#else // LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index is a valid index into the first dimension.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAY_SLICE_CHECK_BOUNDS( index )
 
-#endif // USE_ARRAY_BOUNDS_CHECK
+#endif // LVARRAY_BOUNDS_CHECK
 
 
 namespace LvArray
@@ -128,7 +128,7 @@ public:
     m_dims( inputDimensions ),
     m_strides( inputStrides )
   {
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(LVARRAY_BOUNDS_CHECK)
     ArraySlice::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -180,7 +180,7 @@ public:
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int dim ) const noexcept
   {
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
     return m_dims[dim];
@@ -234,7 +234,7 @@ public:
   INDEX_TYPE linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
     indexing::checkIndices( m_dims, indices ... );
 #endif
     return indexing::getLinearIndex< USD >( m_strides, indices ... );
@@ -329,7 +329,7 @@ public:
 
   ///@}
 
-#if defined(USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(LVARRAY_BOUNDS_CHECK)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.

@@ -12,30 +12,18 @@
 
 #pragma once
 
-#define USE_ARRAY_BOUNDS_CHECK
+/* #undef LVARRAY_BOUNDS_CHECK */
 
-#ifndef USE_CHAI
-#define USE_CHAI
-#endif
+#define LVARRAY_USE_CHAI
 
-#ifndef USE_CUDA
-#define USE_CUDA
-#endif
+/* #undef LVARRAY_USE_CUDA */
 
-#ifndef USE_MPI
-#define USE_MPI
-#endif
+#define LVARRAY_USE_MPI
 
-#ifndef USE_TOTALVIEW_OUTPUT
-#define USE_TOTALVIEW_OUTPUT
-#endif
+/* #undef LVARRAY_USE_TOTALVIEW_OUTPUT */
 
-#ifndef USE_OPENMP
-#define USE_OPENMP
-#endif
+#define LVARRAY_USE_OPENMP
 
-#ifndef USE_CALIPER
-#define USE_CALIPER
-#endif
+#define LVARRAY_USE_CALIPER
 
-#define LVARRAY_ADDR2LINE_EXEC "/usr/bin/addr2line"
+#define LVARRAY_ADDR2LINE_EXEC /usr/bin/addr2line

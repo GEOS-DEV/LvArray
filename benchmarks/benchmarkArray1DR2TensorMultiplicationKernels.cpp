@@ -290,12 +290,12 @@ template class ArrayOfR2TensorsNative< RAJA::PERM_KJI >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, serialPolicy >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, serialPolicy >;
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, parallelHostPolicy >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, parallelHostPolicy >;
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, RAJA::cuda_exec< THREADS_PER_BLOCK > >;
 #endif
