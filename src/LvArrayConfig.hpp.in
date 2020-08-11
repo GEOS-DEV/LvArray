@@ -37,3 +37,5 @@
 #ifndef USE_CALIPER
 #cmakedefine USE_CALIPER
 #endif
+
+#cmakedefine LVARRAY_ADDR2LINE_EXEC "@LVARRAY_ADDR2LINE_EXEC@"

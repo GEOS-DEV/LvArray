@@ -37,3 +37,5 @@
 #ifndef USE_CALIPER
 #define USE_CALIPER
 #endif
+
+#define LVARRAY_ADDR2LINE_EXEC "/usr/bin/addr2line"
