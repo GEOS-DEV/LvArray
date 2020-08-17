@@ -117,20 +117,20 @@ void pointerRAJA( benchmark::State & state )
   kernels.pointer();
 }
 
-INDEX_TYPE const SERIAL_N = (2 << 7) + 73;
-INDEX_TYPE const SERIAL_L = (2 << 7) - 71;
-INDEX_TYPE const SERIAL_M = (2 << 7) - 3;
+INDEX_TYPE const SERIAL_N = (2 << 8) + 73;
+INDEX_TYPE const SERIAL_L = (2 << 8) - 71;
+INDEX_TYPE const SERIAL_M = (2 << 8) - 3;
 
 #if defined(LVARRAY_USE_OPENMP)
-INDEX_TYPE const OMP_N = SERIAL_N;
-INDEX_TYPE const OMP_L = SERIAL_L;
-INDEX_TYPE const OMP_M = SERIAL_M;
+INDEX_TYPE const OMP_N = 4 * SERIAL_N;
+INDEX_TYPE const OMP_L = 4 * SERIAL_L;
+INDEX_TYPE const OMP_M = 4 * SERIAL_M;
 #endif
 
 #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
-INDEX_TYPE const CUDA_N = SERIAL_N;
-INDEX_TYPE const CUDA_L = SERIAL_L;
-INDEX_TYPE const CUDA_M = SERIAL_M;
+INDEX_TYPE const CUDA_N = 16 * SERIAL_N;
+INDEX_TYPE const CUDA_L = 16 * SERIAL_L;
+INDEX_TYPE const CUDA_M = 16 * SERIAL_M;
 #endif
 
 void registerBenchmarks()
@@ -170,12 +170,12 @@ void registerBenchmarks()
                                 std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
   #if defined(LVARRAY_USE_OPENMP)
-                                , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
-                                , std::make_tuple( OMP_N, SERIAL_L, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_N, OMP_L, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
+                                , std::make_tuple( OMP_N, OMP_L, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
   #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
-                                , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
-                                , std::make_tuple( CUDA_N, SERIAL_L, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_N, CUDA_L, CUDA_M, RAJA::PERM_IJ {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
+                                , std::make_tuple( CUDA_N, CUDA_L, CUDA_M, RAJA::PERM_JI {}, parallelDevicePolicy< THREADS_PER_BLOCK > {} )
   #endif
                                 );
 }
