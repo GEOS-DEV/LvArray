@@ -196,7 +196,7 @@ Operation                                                                       
 :math:`\mathbf{S} \leftarrow \mathbf{Q}^-1`                                      ``tensorOps::symInvert< m >( S, Q )``
 :math:`\mathbf{S} \leftarrow \mathbf{S}^-1`                                      ``tensorOps::symInvert< m >( S )``
 :math:`x \leftarrow \mathbf{S} \mathbf{A}^T = diag(x) \mathbf{A}^T`              ``tensorOps::symEigenvalues< M >( x, S )``
-:math:`x, \mathbf{A} \leftarrow \mathbf{S} \mathbf{A}^T = diag(x) \mathbf{A}^T`  ``tensorOps::symEigenvalues< M >( x, S )``
+:math:`x, \mathbf{A} \leftarrow \mathbf{S} \mathbf{A}^T = diag(x) \mathbf{A}^T`  ``tensorOps::symEigenvectors< M >( x, S )``
 ================================================================================ ==============================================
 
 There are also two function ``tensorOps::denseToSymmetric`` and ``tensorOps::symmetricToDense`` which convert between dense and symmetric matrix representation.
