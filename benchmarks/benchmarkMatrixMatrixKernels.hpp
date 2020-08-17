@@ -52,7 +52,7 @@ public:
   {
     VALUE_TYPE const result = reduce( m_c ) / INDEX_TYPE( m_state.iterations() );
     registerResult( m_results, { m_a.size( 0 ), m_a.size( 1 ), m_b.size( 1 ) }, result, m_callingFunction );
-    m_state.counters[ "OPS "] = ::benchmark::Counter( 2 * m_a.size() * m_b.size(
+    m_state.counters[ "OPS" ] = ::benchmark::Counter( 2 * m_a.size() * m_b.size(
                                                         1 ), ::benchmark::Counter::kIsIterationInvariantRate, ::benchmark::Counter::OneK::kIs1000 );
   }
 
@@ -170,7 +170,7 @@ public:
   }
 
   ~MatrixMatrixRAJA()
-  { this->m_c.move( RAJAHelper< POLICY >::space, false ); }
+  { this->m_c.move( MemorySpace::CPU, false ); }
 
   void fortranView() const
   {

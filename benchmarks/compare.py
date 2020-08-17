@@ -170,10 +170,12 @@ def aggregateAndPrint( results ):
                     resultNames.append( name )
 
                 value = group[ name ] / group[ "baseline" ]
-                if value > 1:
+                if value > 1.05:
                     colors[ groupName ][ name ] = style.GREEN
-                else:
+                elif value < 0.95:
                     colors[ groupName ][ name ] = style.RED
+                else:
+                    colors[ groupName ][ name ] = style.RESET
 
                 group[ name ] = "{:.4}x".format( value )
 
