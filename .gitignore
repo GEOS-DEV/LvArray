@@ -1,5 +1,5 @@
 /build*
 /install*
-*.x
 *.*~*
 .vscode
+docs/doxygen/LvArrayConfig.hpp
