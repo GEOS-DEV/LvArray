@@ -25,35 +25,61 @@ using namespace testFloatingPointExceptionsHelpers;
 
 const char IGNORE_OUTPUT[] = ".*";
 
-TEST( TestFloatingPointEnvironment, test_FE_UNDERFLOW_flush )
+namespace LvArray
 {
-  LvArray::system::enableFloatingPointExceptions( FE_UNDERFLOW );
-  EXPECT_DEATH_IF_SUPPORTED( uf_test( DBL_MIN, 2 ), IGNORE_OUTPUT );
-  LvArray::system::disableFloatingPointExceptions( FE_UNDERFLOW );
+namespace testing
+{
 
-  LvArray::system::setFPE();
-  double fpnum = uf_test( DBL_MIN, 2 );
+TEST( TestFloatingPointEnvironment, Underflow )
+{
+  system::enableFloatingPointExceptions( FE_UNDERFLOW );
+  EXPECT_DEATH_IF_SUPPORTED( divide( DBL_MIN, 2 ), IGNORE_OUTPUT );
+  system::disableFloatingPointExceptions( FE_UNDERFLOW );
+
+  system::setFPE();
+  double fpnum = divide( DBL_MIN, 2 );
   int fpclassification = std::fpclassify( fpnum );
   EXPECT_NE( fpclassification, FP_SUBNORMAL );
 }
 
-TEST( TestFloatingPointEnvironment, test_FE_DIVBYZERO )
+TEST( TestFloatingPointEnvironment, DivideByZero )
 {
-  LvArray::system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( func3( 0.0 ), IGNORE_OUTPUT );
+  system::setFPE();
+  EXPECT_DEATH_IF_SUPPORTED( divide( 1, 0 ), IGNORE_OUTPUT );
 }
 
-
-TEST( TestFloatingPointEnvironment, test_FE_OVERFLOW )
+TEST( TestFloatingPointEnvironment, Overlow )
 {
-  LvArray::system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( of_test( 2, DBL_MAX ), IGNORE_OUTPUT );
+  system::setFPE();
+  EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), IGNORE_OUTPUT );
 }
 
-TEST( TestFloatingPointEnvironment, test_FE_INVALID )
+TEST( TestFloatingPointEnvironment, Invalid )
 {
-  LvArray::system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( invalid_test( 0.0 ), IGNORE_OUTPUT );
+  system::setFPE();
+  EXPECT_DEATH_IF_SUPPORTED( invalid(), IGNORE_OUTPUT );
 }
+
+TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
+{
+  system::setFPE();
+
+  {
+    system::FloatingPointExceptionGuard guard( FE_UNDERFLOW );
+    divide( DBL_MIN, 2 );
+    EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), IGNORE_OUTPUT );
+  }
+}
+
+} // namespace testing
+} // namespace LvArray
 
 #endif
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

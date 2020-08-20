@@ -104,6 +104,32 @@ int disableFloatingPointExceptions( int const exceptions );
 void setFPE();
 
 /**
+ * @class FloatingPointExceptionGuard
+ * @brief Changes the floating point environment and reverts it when destoyed.
+ */
+class FloatingPointExceptionGuard
+{
+public:
+  /**
+   * @brief Disable the floating point exceptions given by @p exceptions.
+   * @param exceptions The floating point exceptions to disable.
+   */
+  FloatingPointExceptionGuard( int const exceptions ):
+    m_previousExceptions( disableFloatingPointExceptions( exceptions ) )
+  {}
+
+  /**
+   * @brief Re-enable the floating point exceptions that were active on construction.
+   */
+  ~FloatingPointExceptionGuard()
+  { enableFloatingPointExceptions( m_previousExceptions ); }
+
+private:
+  /// The floating point exceptions that were active on construction.
+  int const m_previousExceptions;
+};
+
+/**
  * @return A string representing @p bytes converted to either
  *   KB, MB, or GB.
  * @param bytes The number of bytes.

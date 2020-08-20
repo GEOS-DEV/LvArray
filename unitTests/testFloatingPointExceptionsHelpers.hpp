@@ -5,33 +5,16 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
-
-
-#include <fenv.h>
-#include <cmath>
-#include <float.h>
-
-#if defined(__x86_64__)
-#include <xmmintrin.h>
-#endif
-
 namespace testFloatingPointExceptionsHelpers
 {
-void func3( double divisor );
 
-void func2( double divisor );
+/// Return @p x / @p y.
+double divide( double const x, double const y );
 
-void func1( double divisor );
+/// Return @p x * @p y.
+double multiply( double const x, double const y );
 
-void func0( double divisor );
+/// Performs an invalid floating point operations (generate a NaN).
+double invalid();
 
-void testStackTrace( double divisor );
-
-void show_fe_exceptions( void );
-
-double uf_test( double x, double denominator );
-
-double of_test( double x, double y );
-
-double invalid_test( double x );
-}
+} // namespace testFloatingPointExceptionsHelpers
