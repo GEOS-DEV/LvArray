@@ -41,8 +41,13 @@
  */
 struct UnwindState
 {
-  std::size_t frames_to_skip;
+  /// The number of frames left to skip.
+  std::size_t framesToSkip;
+
+  /// A pointer to the current frame.
   void * * current;
+
+  /// A pointer to the final frame.
   void * * end;
 };
 
@@ -57,9 +62,9 @@ static _Unwind_Reason_Code unwindCallback( _Unwind_Context * const context, void
   // Note: do not write `::_Unwind_GetIP` because it is a macro on some platforms.
   // Use `_Unwind_GetIP` instead!
   UnwindState * const state = static_cast< UnwindState * >(arg);
-  if( state->frames_to_skip )
+  if( state->framesToSkip )
   {
-    --state->frames_to_skip;
+    --state->framesToSkip;
     return _Unwind_GetIP( context ) ? _URC_NO_REASON : _URC_END_OF_STACK;
   }
 
@@ -525,7 +530,9 @@ int enableFloatingPointExceptions( int const exceptions )
 
   return fesetenv( &fenv ) ? -1 : oldExcepts;
 #else
-  return feenableexcept( exceptions );
+  int const oldExceptions = feenableexcept( exceptions );
+  LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
+  return oldExceptions;
 #endif
 }
 
@@ -552,7 +559,9 @@ int disableFloatingPointExceptions( int const exceptions )
 
   return fesetenv( &fenv ) ? -1 : oldExcepts;
 #else
-  return fedisableexcept( exceptions );
+  int const oldExceptions = fedisableexcept( exceptions );
+  LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
+  return oldExceptions;
 #endif
 }
 
