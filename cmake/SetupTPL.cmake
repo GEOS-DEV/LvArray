@@ -68,7 +68,7 @@ if(ENABLE_CHAI)
     get_target_property(CHAI_LINK_LIBRARIES chai INTERFACE_LINK_LIBRARIES)
     list(REMOVE_ITEM CHAI_LINK_LIBRARIES RAJA)
     set_target_properties(chai
-                        PROPERTIES INTERFACE_LINK_LIBRARIES ${CHAI_LINK_LIBRARIES})
+                          PROPERTIES INTERFACE_LINK_LIBRARIES "${CHAI_LINK_LIBRARIES}")
 
     set(thirdPartyLibs ${thirdPartyLibs} chai)
 else()

@@ -314,9 +314,21 @@ std::ptrdiff_t removeDuplicates( ITER first, ITER const last, Compare && comp=Co
   }
 
   std::ptrdiff_t numUnique = 1;
+
   ITER next = first;
-  ++next;
-  while( next != last )
+
+  /**
+   * For whatever reason the standard approach doesn't work with XL in release on device.
+   * It does some really strange things, for example `last - next == 0` and they can have identical
+   * values but `next != last`. If you print out the array each iteration it works as expected. I even
+   * tried substituting the example code for std::unique from cppreference and that exhibited the same problem.
+   * My guess is it's most likely a compiler bug.
+   */
+#if defined( __ibmxl__ ) && defined( __CUDA_ARCH__ )
+  while( arrayManipulation::iterDistance( ++next, last ) > 0 )
+#else
+  while( ++next != last )
+#endif
   {
     if( comp( *first, *next ) )
     {
@@ -327,8 +339,6 @@ std::ptrdiff_t removeDuplicates( ITER first, ITER const last, Compare && comp=Co
         *first = std::move( *next );
       }
     }
-
-    ++next;
   }
 
   return numUnique;

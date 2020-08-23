@@ -219,7 +219,7 @@
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
-#define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
+#define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, "" )
 
 /**
  * @brief Raise a hard error if two values are not equal.

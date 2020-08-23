@@ -12,8 +12,7 @@
 
 #pragma once
 
-#ifndef NDEBUG
-  #ifndef __APPLE__
+#if !defined( NDEBUG ) && !defined( __APPLE__ ) && !defined( __ibmxl__ )
 /**
  * @brief Add GDB pretty printers the given script.
  * @param script_name The python script that contains the gdb hooks.
@@ -21,20 +20,19 @@
  */
 #define DEFINE_GDB_PY_SCRIPT( script_name ) \
   asm (".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n \
-              .byte 1 /* Python */\n \
-              .asciz \"" script_name "\"\n \
-              .popsection \n" )
-  #else
+                .byte 1 /* Python */\n \
+                .asciz \"" script_name "\"\n \
+                .popsection \n" );
+#else
 /**
  * @brief Add GDB pretty printers for OSX. This hasn't been done yet.
  * @param script_name The python script that contains the gdb hooks.
  */
 #define DEFINE_GDB_PY_SCRIPT( script_name )
-  #endif
+#endif
 
 /// Point GDB at the scripts/gdb-printers.py
-DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" );
-#endif
+DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" )
 
 // Source includes
 #include "LvArrayConfig.hpp"
@@ -171,7 +169,19 @@ public:
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
-  { return indexing::multiplyAll< NDIM >( m_dims ); }
+  {
+  #if defined( __ibmxl__ )
+    // Note: This used to be done with a recursive template but XL-release would produce incorrect results.
+    // Specifically in exampleArray it would return an "old" size even after being updated, strange.
+    INDEX_TYPE val = m_dims[ 0 ];
+    for( int i = 1; i < NDIM; ++i )
+    { val *= m_dims[ i ]; }
+
+    return val;
+  #else
+    return indexing::multiplyAll< NDIM >( m_dims );
+  #endif
+  }
 
   /**
    * @return Return the length of the given dimension.

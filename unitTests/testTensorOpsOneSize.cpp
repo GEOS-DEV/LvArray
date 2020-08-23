@@ -126,6 +126,9 @@ public:
 
   void testNormalize()
   {
+    if( std::is_integral< T >::value )
+    { return; }
+
     double norm = 0;
     for( std::ptrdiff_t i = 0; i < N; ++i )
     { norm += m_vectorA_local[ i ] * m_vectorA_local[ i ]; }
@@ -143,16 +146,20 @@ public:
 
     forall< POLICY >( 1, [norm, result, vectorA_IJ, vectorA_JI, aSeed] LVARRAY_HOST_DEVICE ( int )
         {
+          T const epsilon = NumericLimitsNC< T >{}.epsilon;
           PORTABLE_EXPECT_EQ( tensorOps::normalize< N >( vectorA_IJ[ 0 ] ), norm );
-          CHECK_EQUALITY_1D( N, vectorA_IJ[ 0 ], result );
+          for( std::ptrdiff_t i = 0; i < N; ++i ) \
+          { PORTABLE_EXPECT_NEAR( vectorA_IJ[ 0 ][ i ], result[ i ], epsilon ); }
 
           PORTABLE_EXPECT_EQ( tensorOps::normalize< N >( vectorA_JI[ 0 ] ), norm );
-          CHECK_EQUALITY_1D( N, vectorA_JI[ 0 ], result );
+          for( std::ptrdiff_t i = 0; i < N; ++i ) \
+          { PORTABLE_EXPECT_NEAR( vectorA_JI[ 0 ][ i ], result[ i ], epsilon ); }
 
           T vectorA_local[ N ];
           fill( vectorA_local, aSeed );
           PORTABLE_EXPECT_EQ( tensorOps::normalize< N >( vectorA_local ), norm );
-          CHECK_EQUALITY_1D( N, vectorA_local, result );
+          for( std::ptrdiff_t i = 0; i < N; ++i ) \
+          { PORTABLE_EXPECT_NEAR( vectorA_local[ i ], result[ i ], epsilon ); }
         } );
   }
 

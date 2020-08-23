@@ -20,6 +20,7 @@ if( NOT is_submodule )
     option( ENABLE_BENCHMARKS "Builds benchmarks" ON )
     option( ENABLE_DOCS "Builds documentation" ON )
 
+    option( ENABLE_UMPIRE "Build with UMPIRE" ON )
     option( ENABLE_CHAI "Build with CHAI" ON )
     option( ENABLE_MPI "Build with MPI" ON )
     option( ENABLE_CUDA "Build with CUDA" OFF )
