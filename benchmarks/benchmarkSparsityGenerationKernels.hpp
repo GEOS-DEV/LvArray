@@ -168,16 +168,10 @@ public:
 
   void resizeExact();
 
-  void generateElemLoop()
-  { generateElemLoop( m_sparsity, m_elemToNodeMap.toViewConst() ); }
-
-  void generateElemLoopView() const
+  void generateElemLoop() const
   { generateElemLoop( m_sparsity.toView(), m_elemToNodeMap.toViewConst() ); }
 
-  void generateNodeLoop()
-  { generateNodeLoop( m_sparsity, m_elemToNodeMap.toViewConst(), m_nodeToElemMap.toViewConst() ); }
-
-  void generateNodeLoopView() const
+  void generateNodeLoop() const
   { generateNodeLoop( m_sparsity.toView(), m_elemToNodeMap.toViewConst(), m_nodeToElemMap.toViewConst() ); }
 
 protected:
@@ -185,12 +179,10 @@ protected:
   template< typename POLICY >
   void resizeFromNNZPerRow( std::vector< INDEX_TYPE > const & nnzPerRow );
 
-  template< typename SPARSITY_TYPE >
-  static void generateElemLoop( SPARSITY_TYPE & sparsity,
+  static void generateElemLoop( SparsityPatternViewT const & sparsity,
                                 ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap );
 
-  template< typename SPARSITY_TYPE >
-  static void generateNodeLoop( SPARSITY_TYPE & sparsity,
+  static void generateNodeLoop( SparsityPatternViewT const & sparsity,
                                 ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
                                 ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
@@ -220,7 +212,7 @@ public:
     m_nodeToElemMap.move( RAJAHelper< POLICY >::space, false );
   }
 
-  void generateNodeLoopView() const
+  void generateNodeLoop() const
   { generateNodeLoop( m_sparsity.toView(), m_elemToNodeMap.toViewConst(), m_nodeToElemMap.toViewConst(), m_state ); }
 
   void resizeExact();
@@ -248,7 +240,10 @@ public:
     #endif
 
     SparsityGenerationRAJA< EXEC_POLICY >::generateNodeLoop( this->m_sparsity.toView(),
-                                                             this->m_elemToNodeMap.toViewConst(), this->m_nodeToElemMap.toViewConst(), this->m_state );
+                                                             this->m_elemToNodeMap.toViewConst(),
+                                                             this->m_nodeToElemMap.toViewConst(),
+                                                             this->m_state );
+
     m_matrix.assimilate< EXEC_POLICY >( std::move( this->m_sparsity ) );
     m_matrix.toViewConstSizes().move( RAJAHelper< POLICY >::space );
   }

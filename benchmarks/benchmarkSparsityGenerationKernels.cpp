@@ -96,8 +96,7 @@ void SparsityGenerationNative::resizeFromNNZPerRow( std::vector< INDEX_TYPE > co
   m_sparsity = std::move( newSparsity );
 }
 
-template< typename SPARSITY_TYPE >
-void SparsityGenerationNative::generateElemLoop( SPARSITY_TYPE & sparsity,
+void SparsityGenerationNative::generateElemLoop( SparsityPatternViewT const & sparsity,
                                                  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap )
 {
   COLUMN_TYPE dofNumbers[ NODES_PER_ELEM * NDIM ];
@@ -123,8 +122,7 @@ void SparsityGenerationNative::generateElemLoop( SPARSITY_TYPE & sparsity,
   }
 }
 
-template< typename SPARSITY_TYPE >
-void SparsityGenerationNative::generateNodeLoop( SPARSITY_TYPE & sparsity,
+void SparsityGenerationNative::generateNodeLoop( SparsityPatternViewT const & sparsity,
                                                  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap,
                                                  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap )
 {
@@ -148,8 +146,8 @@ resizeExact()
   using RESIZE_POLICY = serialPolicy;
   #endif
 
-  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & elemToNodeMap = m_elemToNodeMap.toViewConst();
-  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap = m_nodeToElemMap.toViewConst();
+  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const elemToNodeMap = m_elemToNodeMap.toViewConst();
+  ArrayOfArraysViewT< INDEX_TYPE const, true > const nodeToElemMap = m_nodeToElemMap.toViewConst();
   forall< RESIZE_POLICY >( m_numNodes, [&nnzPerRow, elemToNodeMap, nodeToElemMap] ( INDEX_TYPE const nodeID )
   {
     INDEX_TYPE neighborNodes[ MAX_ELEMS_PER_NODE * NODES_PER_ELEM ];
@@ -232,25 +230,6 @@ addKernel( CRSMatrixViewConstSizesT const & matrix,
         }
       } );
 }
-
-// Explicit instantiation of the templated SparsityGenerationNative static methods.
-template void SparsityGenerationNative::generateElemLoop< SparsityPatternT >(
-  SparsityPatternT &,
-  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & );
-
-template void SparsityGenerationNative::generateElemLoop< SparsityPatternViewT const >(
-  SparsityPatternViewT const &,
-  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const & );
-
-template void SparsityGenerationNative::generateNodeLoop< SparsityPatternT >(
-  SparsityPatternT &,
-  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const &,
-  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
-
-template void SparsityGenerationNative::generateNodeLoop< SparsityPatternViewT const >(
-  SparsityPatternViewT const &,
-  ArrayViewT< INDEX_TYPE const, ELEM_TO_NODE_PERM > const &,
-  ArrayOfArraysViewT< INDEX_TYPE const, true > const & nodeToElemMap );
 
 // Explicit instantiation of SparsityGenerationRAJA.
 template class SparsityGenerationRAJA< serialPolicy >;

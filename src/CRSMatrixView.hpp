@@ -79,6 +79,8 @@ class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFE
   /// An alias for the non const index type.
   using typename ParentClass::INDEX_TYPE_NC;
 
+  using typename ParentClass::SIZE_TYPE;
+
 public:
   static_assert( !std::is_const< T >::value ||
                  (std::is_const< COL_TYPE >::value && std::is_const< INDEX_TYPE >::value),
@@ -95,8 +97,7 @@ public:
   ///@{
 
   /**
-   * @brief Default copy constructor. Performs a shallow copy and calls the
-   *        chai::ManagedArray copy constructor.
+   * @brief Default copy constructor.
    */
   CRSMatrixView( CRSMatrixView const & ) = default;
 
@@ -107,11 +108,38 @@ public:
   CRSMatrixView( CRSMatrixView && ) = default;
 
   /**
-   * @brief Default copy assignment operator, this does a shallow copy.
+   * @brief Construct a new CRSMatrixView from the given buffers.
+   * @param nRows The number of rows.
+   * @param nCols The number of columns
+   * @param offsets The offsets buffer, of size @p nRows + 1.
+   * @param nnz The buffer containing the number of non zeros in each row, of size @p nRows.
+   * @param columns The columns buffer, of size @p offsets[ nRows ].
+   * @param entries The entries buffer, of size @p offsets[ nRows ].
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView( INDEX_TYPE const nRows,
+                 INDEX_TYPE const nCols,
+                 BUFFER_TYPE< INDEX_TYPE > const & offsets,
+                 BUFFER_TYPE< SIZE_TYPE > const & nnz,
+                 BUFFER_TYPE< COL_TYPE > const & columns,
+                 BUFFER_TYPE< T > const & entries ):
+    ParentClass( nRows, nCols, offsets, nnz, columns ),
+    m_entries( entries )
+  {}
+
+  /**
+   * @brief Default copy assignment operator.
    * @return *this.
    */
   inline
   CRSMatrixView & operator=( CRSMatrixView const & ) = default;
+
+  /**
+   * @brief Default move assignment operator.
+   * @return *this.
+   */
+  inline
+  CRSMatrixView & operator=( CRSMatrixView && ) = default;
 
   /**
    * @name CRSMatrixView and SparsityPatternView creation methods
@@ -119,36 +147,63 @@ public:
   ///@{
 
   /**
-   * @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
+   * @return A new CRSMatrixView< T, COL_TYPE, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  {
+    return CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                        numColumns(),
+                                                                        this->m_offsets,
+                                                                        this->m_sizes,
+                                                                        this->m_values,
+                                                                        this->m_entries );
+  }
 
   /**
-   * @return A reference to *this reinterpreted as a CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
+   * @return A new CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConstSizes() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  {
+    return CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                              numColumns(),
+                                                                              this->m_offsets,
+                                                                              this->m_sizes,
+                                                                              this->m_values,
+                                                                              this->m_entries );
+  }
 
   /**
-   * @return A reference to *this reinterpreted as a CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
+   * @return A new CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
+  {
+    return CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                                    numColumns(),
+                                                                                    this->m_offsets,
+                                                                                    this->m_sizes,
+                                                                                    this->m_values,
+                                                                                    this->m_entries );
+  }
 
   /**
    * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toSparsityPatternView() const
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
+  {
+    return SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                                 numColumns(),
+                                                                                 this->m_offsets,
+                                                                                 this->m_sizes,
+                                                                                 this->m_values );
+  }
 
   ///@}
 
@@ -273,7 +328,7 @@ public:
   inline
   void setValues( T const & value ) const
   {
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                             [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {

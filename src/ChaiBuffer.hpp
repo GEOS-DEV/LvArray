@@ -123,7 +123,7 @@ public:
   ChaiBuffer():
     m_pointer( nullptr ),
     m_capacity( 0 ),
-    m_pointer_record( nullptr )
+    m_pointerRecord( nullptr )
   {}
 
   /**
@@ -134,14 +134,14 @@ public:
   ChaiBuffer( bool ):
     m_pointer( nullptr ),
     m_capacity( 0 ),
-    m_pointer_record( new chai::PointerRecord{} )
+    m_pointerRecord( new chai::PointerRecord{} )
   {
-    m_pointer_record->m_size = 0;
+    m_pointerRecord->m_size = 0;
     setName( "" );
 
     for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
     {
-      m_pointer_record->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
+      m_pointerRecord->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
     }
   }
 
@@ -155,7 +155,7 @@ public:
   ChaiBuffer( ChaiBuffer const & src ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
-    m_pointer_record( src.m_pointer_record )
+    m_pointerRecord( src.m_pointerRecord )
   {
   #if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
     move( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), true );
@@ -173,7 +173,7 @@ public:
   ChaiBuffer( ChaiBuffer const & src, std::ptrdiff_t const size ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
-    m_pointer_record( src.m_pointer_record )
+    m_pointerRecord( src.m_pointerRecord )
   {
   #if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
     moveNested( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), size, true );
@@ -190,12 +190,25 @@ public:
   ChaiBuffer( ChaiBuffer && src ):
     m_pointer( src.m_pointer ),
     m_capacity( src.m_capacity ),
-    m_pointer_record( src.m_pointer_record )
+    m_pointerRecord( src.m_pointerRecord )
   {
     src.m_capacity = 0;
     src.m_pointer = nullptr;
-    src.m_pointer_record = nullptr;
+    src.m_pointerRecord = nullptr;
   }
+
+  /**
+   * @brief Create a copy of @p src with const T.
+   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @param src The buffer to copy.
+   */
+  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  LVARRAY_HOST_DEVICE inline constexpr
+  ChaiBuffer( ChaiBuffer< std::remove_const_t< T > > const & src ):
+    m_pointer( src.data() ),
+    m_capacity( src.capacity() ),
+    m_pointerRecord( &src.pointerRecord() )
+  {}
 
   /**
    * @brief Copy assignment operator.
@@ -207,7 +220,7 @@ public:
   {
     m_capacity = src.m_capacity;
     m_pointer = src.m_pointer;
-    m_pointer_record = src.m_pointer_record;
+    m_pointerRecord = src.m_pointerRecord;
     return *this;
   }
 
@@ -221,11 +234,11 @@ public:
   {
     m_capacity = src.m_capacity;
     m_pointer = src.m_pointer;
-    m_pointer_record = src.m_pointer_record;
+    m_pointerRecord = src.m_pointerRecord;
 
     src.m_capacity = 0;
     src.m_pointer = nullptr;
-    src.m_pointer_record = nullptr;
+    src.m_pointerRecord = nullptr;
 
     return *this;
   }
@@ -242,11 +255,11 @@ public:
   {
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
-    newRecord->m_user_callback = m_pointer_record->m_user_callback;
+    newRecord->m_user_callback = m_pointerRecord->m_user_callback;
 
     for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
     {
-      newRecord->m_allocators[ space ] = m_pointer_record->m_allocators[ space ];
+      newRecord->m_allocators[ space ] = m_pointerRecord->m_allocators[ space ];
     }
 
     internal::chaiLock.lock();
@@ -262,7 +275,7 @@ public:
     free();
     m_capacity = newCapacity;
     m_pointer = newPointer;
-    m_pointer_record = newRecord;
+    m_pointerRecord = newRecord;
     registerTouch( MemorySpace::CPU );
   }
 
@@ -274,10 +287,10 @@ public:
   void free()
   {
     std::lock_guard< std::mutex > lock( internal::chaiLock );
-    internal::getArrayManager().free( m_pointer_record );
+    internal::getArrayManager().free( m_pointerRecord );
     m_capacity = 0;
     m_pointer = nullptr;
-    m_pointer_record = nullptr;
+    m_pointerRecord = nullptr;
   }
 
   /**
@@ -293,6 +306,14 @@ public:
   LVARRAY_HOST_DEVICE inline constexpr
   T * data() const
   { return m_pointer; }
+
+  /**
+   * @brief Return a reference to the associated CHAI PointerRecord.
+   * @return A reference to the associated CHAI PointerRecord.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  chai::PointerRecord & pointerRecord() const
+  { return *m_pointerRecord; }
 
   /**
    * @tparam INDEX_TYPE the type used to index into the values.
@@ -317,11 +338,11 @@ public:
   {
   #if defined(LVARRAY_USE_CUDA)
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
-    if( m_pointer_record == nullptr ||
+    if( m_pointerRecord == nullptr ||
         m_capacity == 0 ||
         chaiSpace == chai::NONE ) return;
 
-    chai::ExecutionSpace const prevSpace = m_pointer_record->m_last_space;
+    chai::ExecutionSpace const prevSpace = m_pointerRecord->m_last_space;
 
     if( prevSpace == chai::CPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
 
@@ -345,17 +366,17 @@ public:
   {
   #if defined(LVARRAY_USE_CUDA)
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
-    if( m_pointer_record == nullptr ||
+    if( m_pointerRecord == nullptr ||
         m_capacity == 0 ||
         chaiSpace == chai::NONE ) return;
 
     const_cast< T * & >( m_pointer ) =
       static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
-                                                            m_pointer_record,
+                                                            m_pointerRecord,
                                                             chaiSpace ) );
 
-    if( !std::is_const< T >::value && touch ) m_pointer_record->m_touched[ chaiSpace ] = true;
-    m_pointer_record->m_last_space = chaiSpace;
+    if( !std::is_const< T >::value && touch ) m_pointerRecord->m_touched[ chaiSpace ] = true;
+    m_pointerRecord->m_last_space = chaiSpace;
   #else
     LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
     LVARRAY_UNUSED_VARIABLE( touch );
@@ -370,8 +391,8 @@ public:
   void registerTouch( MemorySpace const space ) const
   {
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
-    m_pointer_record->m_touched[ chaiSpace ] = true;
-    m_pointer_record->m_last_space = chaiSpace;
+    m_pointerRecord->m_touched[ chaiSpace ] = true;
+    m_pointerRecord->m_last_space = chaiSpace;
   }
 
   /**
@@ -383,7 +404,7 @@ public:
   void setName( std::string const & name )
   {
     std::string const typeString = LvArray::system::demangleType< U >();
-    m_pointer_record->m_user_callback =
+    m_pointerRecord->m_user_callback =
       [name, typeString]( chai::PointerRecord const * const record, chai::Action const act, chai::ExecutionSpace const s )
     {
       if( act == chai::ACTION_MOVE )
@@ -437,7 +458,7 @@ private:
   std::ptrdiff_t m_capacity = 0;
 
   /// A pointer to the chai PointerRecord, keeps track of the memory space information.
-  chai::PointerRecord * m_pointer_record = nullptr;
+  chai::PointerRecord * m_pointerRecord = nullptr;
 };
 
 } /* namespace LvArray */

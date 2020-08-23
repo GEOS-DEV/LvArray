@@ -63,7 +63,7 @@ overAllocation( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > 
   nodeToElementMap.resize( numNodes, maxNodeElements );
 
   // Create an ArrayOfArraysView
-  ArrayOfArraysView< INDEX_TYPE, INDEX_TYPE const, false, DEFAULT_BUFFER > const & nodeToElementMapView =
+  ArrayOfArraysView< INDEX_TYPE, INDEX_TYPE const, false, DEFAULT_BUFFER > const nodeToElementMapView =
     nodeToElementMap.toView();
 
   // Launch a RAJA kernel that populates the ArrayOfArraysView.
@@ -108,7 +108,7 @@ resizeFromCapacities( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUF
   nodeToElementMap.resizeFromCapacities< POLICY >( elementsPerNode.size(), elementsPerNode.data() );
 
   // Create an ArrayOfArraysView
-  ArrayOfArraysView< INDEX_TYPE, INDEX_TYPE const, false, DEFAULT_BUFFER > const & nodeToElementMapView =
+  ArrayOfArraysView< INDEX_TYPE, INDEX_TYPE const, false, DEFAULT_BUFFER > const nodeToElementMapView =
     nodeToElementMap.toView();
 
   // Launch a RAJA kernel that populates the ArrayOfArraysView.

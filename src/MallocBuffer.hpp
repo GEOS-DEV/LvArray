@@ -80,6 +80,18 @@ public:
   }
 
   /**
+   * @brief Create a copy of @p src with const T.
+   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @param src The buffer to copy.
+   */
+  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  LVARRAY_HOST_DEVICE inline constexpr
+  MallocBuffer( MallocBuffer< std::remove_const_t< T > > const & src ):
+    m_data( src.data() ),
+    m_capacity( src.capacity() )
+  {}
+
+  /**
    * @brief Copy assignment operator, creates a shallow copy.
    * @param src The buffer to be copied.
    * @return *this.

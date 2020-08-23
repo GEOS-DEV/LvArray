@@ -57,7 +57,7 @@ public:
 
     RAJA::ReduceSum< typename RAJAHelper< EXEC_POLICY >::ReducePolicy, INDEX_TYPE > totalMapSize( 0 ); \
 
-    ArrayOfArraysViewT< INDEX_TYPE, true > const & nodeToElementMap = m_nodeToElementMap.toViewConstSizes();
+    ArrayOfArraysViewT< INDEX_TYPE, true > const nodeToElementMap = m_nodeToElementMap.toViewConstSizes();
 
     INDEX_TYPE const elemsX = m_numElemsX;
     INDEX_TYPE const elemsY = m_numElemsY;

@@ -915,7 +915,7 @@ public:
     IndexType const nArrays = m_array.size();
 
     // Update the view on the device.
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( nArrays, [view] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           IndexType const sizeOfArray = view.sizeOfArray( i );
@@ -952,7 +952,7 @@ public:
     IndexType const nArrays = m_array.size();
 
     // Update the view on the device.
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( nArrays, [view] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           IndexType const sizeOfArray = view.sizeOfArray( i );
@@ -1005,8 +1005,8 @@ public:
     }
 
     // Append to the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const & seeds = seedsToAppend.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToAppend.toViewConst();
     forall< POLICY >( nArrays, [view, seeds] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < seeds[ i ].size(); ++j )
@@ -1045,8 +1045,8 @@ public:
     }
 
     // Append to the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView1D< ArrayView1D< T const > const > const & toAppend = valuesToAppend.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView1D< ArrayView1D< T const > const > const toAppend = valuesToAppend.toViewConst();
     forall< POLICY >( nArrays, [view, toAppend] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.appendToArray( i, toAppend[ i ].begin(), toAppend[ i ].end() );
@@ -1088,9 +1088,9 @@ public:
     }
 
     // Insert into the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const & positions = positionsToInsert.toViewConst();
-    ArrayView1D< ArrayView1D< IndexType const > const > const & seeds = seedsToInsert.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToInsert.toViewConst();
+    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToInsert.toViewConst();
     forall< POLICY >( nArrays, [view, positions, seeds] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < positions[ i ].size(); ++j )
@@ -1134,9 +1134,9 @@ public:
     }
 
     // Insert into the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView1D< IndexType const > const & positions = positionsToInsert.toViewConst();
-    ArrayView1D< ArrayView1D< T const > const > const & values = valuesToInsert.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView1D< IndexType const > const positions = positionsToInsert.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const values = valuesToInsert.toViewConst();
     forall< POLICY >( nArrays, [view, positions, values] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.insertIntoArray( i, positions[ i ], values[ i ].begin(), values[ i ].end() );
@@ -1170,8 +1170,8 @@ public:
     }
 
     // Remove the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const & positions = positionsToRemove.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToRemove.toViewConst();
     forall< POLICY >( nArrays, [view, positions] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < positions[ i ].size(); ++j )
@@ -1207,8 +1207,8 @@ public:
     }
 
     // Remove from the view on the device.
-    ViewType const & view = m_array.toView();
-    ArrayView2D< IndexType const > removals = toRemove.toViewConst();
+    ViewType const view = m_array.toView();
+    ArrayView2D< IndexType const > const removals = toRemove.toViewConst();
     forall< POLICY >( nArrays, [view, removals] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           if( view.sizeOfArray( i ) == 0 ) return;
@@ -1359,7 +1359,7 @@ public:
       ASSERT_EQ( m_array.sizeOfArray( i ), 0 );
     }
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( numThreads,
                       [view, nArrays, appendsPerArrayPerThread] LVARRAY_HOST_DEVICE ( IndexType const threadNum )
         {

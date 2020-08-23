@@ -170,6 +170,10 @@ class ArrayOfArraysView
 protected:
   /// Since INDEX_TYPE should always be const we need an alias for the non const version.
   using INDEX_TYPE_NC = std::remove_const_t< INDEX_TYPE >;
+
+  /// The type contained by the m_sizes buffer.
+  using SIZE_TYPE = std::conditional_t< CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC >;
+
 public:
   static_assert( !std::is_const< T >::value || (std::is_const< INDEX_TYPE >::value && CONST_SIZES),
                  "When T is const INDEX_TYPE must also be const and CONST_SIZES must be true" );
@@ -211,14 +215,32 @@ public:
   { src.m_numArrays = 0; }
 
   /**
-   * @brief Default copy assignment operator, this does a shallow copy.
+   * @brief Construct a new ArrayOfArraysView from the given buffers.
+   * @param numArrays The number of arrays.
+   * @param offsets The offsets buffer, of size @p numArrays + 1.
+   * @param sizes The sizes buffer, of size @p numArrays.
+   * @param values The values buffer, of size @p offsets[ numArrays ].
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfArraysView( INDEX_TYPE const numArrays,
+                     BUFFER_TYPE< INDEX_TYPE > const & offsets,
+                     BUFFER_TYPE< SIZE_TYPE > const & sizes,
+                     BUFFER_TYPE< T > const & values ):
+    m_numArrays( numArrays ),
+    m_offsets( offsets ),
+    m_sizes( sizes ),
+    m_values( values )
+  {}
+
+  /**
+   * @brief Default copy assignment operator.
    * @return *this.
    */
   inline
   ArrayOfArraysView & operator=( ArrayOfArraysView const & ) = default;
 
   /**
-   * @brief Default move assignment operator, this does a shallow copy.
+   * @brief Move assignment operator..
    * @param src the SparsityPatternView to be moved from.
    * @return *this.
    */
@@ -241,28 +263,43 @@ public:
   ///@{
 
   /**
-   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T, INDEX_TYPE const, CONST_SIZES>.
+   * @return Return a new ArrayOfArraysView<T, INDEX_TYPE const, CONST_SIZES>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE > const &
+  ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE > const & >( *this ); }
+  {
+    return ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE >( size(),
+                                                                               this->m_offsets,
+                                                                               this->m_sizes,
+                                                                               this->m_values );
+  }
 
   /**
-   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T, INDEX_TYPE const, true>.
+   * @return Return a new ArrayOfArraysView<T, INDEX_TYPE const, true>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
   toViewConstSizes() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
+  {
+    return ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
+                                                                        this->m_offsets,
+                                                                        this->m_sizes,
+                                                                        this->m_values );
+  }
 
   /**
-   * @return Return a reference to *this reinterpreted as an ArrayOfArraysView<T const, INDEX_TYPE const, true>.
+   * @return Return a new ArrayOfArraysView<T const, INDEX_TYPE const, true>.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
+  {
+    return ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
+                                                                              this->m_offsets,
+                                                                              this->m_sizes,
+                                                                              this->m_values );
+  }
 
   ///@}
 
@@ -888,7 +925,7 @@ protected:
   BUFFER_TYPE< INDEX_TYPE > m_offsets;
 
   /// Holds the size of each array.
-  BUFFER_TYPE< std::conditional_t< CONST_SIZES, INDEX_TYPE const, INDEX_TYPE_NC > > m_sizes;
+  BUFFER_TYPE< SIZE_TYPE > m_sizes;
 
   /// Holds the values of each array. Values in the range [m_offsets[ i ], m_offsets[ i ] + m_sizes[ i ])
   /// are valid. All other entries contain uninitialized values.

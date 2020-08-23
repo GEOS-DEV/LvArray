@@ -127,7 +127,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toView(); }
 
   /**
@@ -137,7 +137,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
   ///@}

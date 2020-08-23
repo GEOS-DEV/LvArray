@@ -189,7 +189,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const &
+  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toView(); }
 
@@ -200,7 +200,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
@@ -211,7 +211,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
   toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toArrayOfArraysView(); }
 

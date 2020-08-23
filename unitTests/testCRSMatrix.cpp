@@ -645,8 +645,7 @@ public:
   using ArrayOfArraysViewT = typename ParentClass::template ArrayOfArraysViewT< U >;
 
   CRSMatrixViewTest():
-    ParentClass(),
-    m_view( this->m_matrix.toView() )
+    ParentClass()
   {};
 
   /**
@@ -658,8 +657,8 @@ public:
 
     // Check that the columns and entries have been updated.
     IndexType curIndex = 0;
-    ViewType const & view = m_view;
-    forall< serialPolicy >( m_view.numRows(),
+    ViewType const view = m_matrix.toView();
+    forall< serialPolicy >( m_matrix.numRows(),
                             [view, &curIndex]( IndexType row )
     {
       memoryMotionCheckRow( view.toViewConst(), row, curIndex );
@@ -675,9 +674,9 @@ public:
 
     this->m_matrix.move( MemorySpace::CPU );
     IndexType curIndex = 0;
-    for( IndexType row = 0; row < m_view.numRows(); ++row )
+    for( IndexType row = 0; row < m_matrix.numRows(); ++row )
     {
-      memoryMotionCheckRow( m_view.toViewConst(), row, curIndex );
+      memoryMotionCheckRow( m_matrix.toViewConst(), row, curIndex );
     }
   }
 
@@ -686,11 +685,11 @@ public:
    */
   void memoryMotionConstTest()
   {
-    IndexType const numRows = m_view.numRows();
-    IndexType const numCols = m_view.numColumns();
+    IndexType const numRows = m_matrix.numRows();
+    IndexType const numCols = m_matrix.numColumns();
 
     // Capture a view with const columns on device and update the entries.
-    ViewTypeConstSizes const & view = m_view.toViewConstSizes();
+    ViewTypeConstSizes const view = m_matrix.toViewConstSizes();
     forall< POLICY >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( IndexType row )
         {
@@ -707,15 +706,15 @@ public:
     this->m_matrix.move( MemorySpace::CPU );
     for( IndexType row = 0; row < numRows; ++row )
     {
-      ASSERT_EQ( m_view.numNonZeros( row ), this->m_ref[row].size());
+      ASSERT_EQ( m_matrix.numNonZeros( row ), this->m_ref[row].size());
 
       auto it = this->m_ref[row].begin();
-      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
+      for( IndexType i = 0; i < m_matrix.numNonZeros( row ); ++i )
       {
         // So the columns should be the same as the reference.
-        ColType const col = m_view.getColumns( row )[ i ];
+        ColType const col = m_matrix.getColumns( row )[ i ];
         EXPECT_EQ( col, it->first );
-        EXPECT_EQ( m_view.getEntries( row )[ i ], T( 2 * i + 7 ));
+        EXPECT_EQ( m_matrix.getEntries( row )[ i ], T( 2 * i + 7 ));
         ++it;
       }
     }
@@ -727,11 +726,11 @@ public:
    */
   void memoryMotionConstConstTest( IndexType const maxInserts )
   {
-    IndexType const numRows = m_view.numRows();
-    IndexType const numCols = m_view.numColumns();
+    IndexType const numRows = m_matrix.numRows();
+    IndexType const numCols = m_matrix.numColumns();
 
     // Capture a view with const columns and const values on device.
-    ViewTypeConst const & view = m_view.toViewConst();
+    ViewTypeConst const view = m_matrix.toViewConst();
     forall< POLICY >( numRows,
                       [view, numCols] LVARRAY_HOST_DEVICE ( IndexType row )
         {
@@ -794,9 +793,9 @@ public:
     // Insert the entries into the reference.
     this->insertIntoRef( columnsToInsert.toViewConst() );
 
-    ViewType const & view = m_view;
-    ArrayOfArraysViewT< ColType const > const & columnsView = columnsToInsert.toViewConst();
-    ArrayOfArraysViewT< T const > const & valuesView = valuesToInsert.toViewConst();
+    ViewType const view = this->m_matrix.toView();
+    ArrayOfArraysViewT< ColType const > const columnsView = columnsToInsert.toViewConst();
+    ArrayOfArraysViewT< T const > const valuesView = valuesToInsert.toViewConst();
     if( oneAtATime )
     {
       forall< POLICY >( numRows,
@@ -840,7 +839,7 @@ public:
    */
   void removeFromView( IndexType const maxRemoves, bool const oneAtATime=false )
   {
-    IndexType const numRows = m_view.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     // Create an Array of the columns and values to insert into each row.
     ArrayOfArraysT< ColType > const columnsToRemove = this->createArrayOfColumns( maxRemoves, oneAtATime );
@@ -855,8 +854,8 @@ public:
       }
     }
 
-    ViewType const & view = m_view;
-    ArrayOfArraysViewT< ColType const > const & columnsView = columnsToRemove.toViewConst();
+    ViewType const view = m_matrix.toView();
+    ArrayOfArraysViewT< ColType const > const columnsView = columnsToRemove.toViewConst();
     if( oneAtATime )
     {
       forall< POLICY >( numRows,
@@ -892,21 +891,21 @@ public:
    */
   void emptyTest() const
   {
-    IndexType const numRows = m_view.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     // Initialize each row to only contain even numbered columns.
     for( IndexType row = 0; row < numRows; ++row )
     {
-      ColType const * const columns = m_view.getColumns( row );
+      ColType const * const columns = m_matrix.getColumns( row );
       ColType * const columnsNC = const_cast< ColType * >(columns);
-      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
+      for( IndexType i = 0; i < m_matrix.numNonZeros( row ); ++i )
       {
         columnsNC[ i ] = ColType( 2 * i );
       }
     }
 
     // Check that each row contains the even columns and no odd columns.
-    ViewTypeConst const & view = m_view.toViewConst();
+    ViewTypeConst const view = m_matrix.toViewConst();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
@@ -923,12 +922,12 @@ public:
    */
   void sparsityPatternViewTest() const
   {
-    IndexType const numRows = m_view.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
-    auto const & spView = m_view.toSparsityPatternView();
+    auto const & spView = m_matrix.toSparsityPatternView();
 
     // Check that each row contains the even columns and no odd columns on device.
-    ViewTypeConst const & view = m_view.toViewConst();
+    ViewTypeConst const view = m_matrix.toViewConst();
     forall< POLICY >( numRows,
                       [spView, view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
@@ -951,17 +950,17 @@ public:
   // This should be private but you can't have device lambdas need to be in public methods :(
   void memoryMotionInit() const
   {
-    IndexType const numRows = m_view.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     // Set the columns and entries. The const casts here isn't necessary, we could remove and insert
     // into the view instead, but this is quicker.
     IndexType curIndex = 0;
     for( IndexType row = 0; row < numRows; ++row )
     {
-      ColType const * const columns = m_view.getColumns( row );
+      ColType const * const columns = m_matrix.getColumns( row );
       ColType * const columnsNC = const_cast< ColType * >(columns);
-      T * const entries = m_view.getEntries( row );
-      for( IndexType i = 0; i < m_view.numNonZeros( row ); ++i )
+      T * const entries = m_matrix.getEntries( row );
+      for( IndexType i = 0; i < m_matrix.numNonZeros( row ); ++i )
       {
         columnsNC[ i ] = curIndex;
         entries[ i ] = T( curIndex++ );
@@ -970,7 +969,7 @@ public:
 
     // Capture the view on device and set the entries. Here the const cast is necessary
     // because we don't want to test the insert/remove methods on device yet.
-    ViewType const & view = m_view;
+    ViewType const view = m_matrix.toView();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
@@ -1001,7 +1000,7 @@ protected:
     }
   }
 
-  ViewType const & m_view;
+  using ParentClass::m_matrix;
 };
 
 // Sphinx start after CRSMatrixViewTestTypes
@@ -1140,11 +1139,11 @@ public:
 
   void addToRow( AddType const type, IndexType const nThreads )
   {
-    IndexType const numRows = m_view.numRows();
+    IndexType const numRows = m_matrix.numRows();
 
     for( IndexType row = 0; row < numRows; ++row )
     {
-      IndexType const nColsInRow = m_view.numNonZeros( row );
+      IndexType const nColsInRow = m_matrix.numNonZeros( row );
 
       // Array that holds the columns each thread will add to in the current row.
       ArrayOfArraysT< ColType > columns;
@@ -1156,7 +1155,7 @@ public:
         for( IndexType i = 0; i < nColsToAddTo; ++i )
         {
           IndexType const pos = this->rand( nColsInRow - 1 );
-          columns( threadID, i ) = m_view.getColumns( row )[ pos ];
+          columns( threadID, i ) = m_matrix.getColumns( row )[ pos ];
         }
       }
 
@@ -1185,7 +1184,7 @@ public:
         }
       }
 
-      ViewTypeConstSizes const & view = m_view.toViewConstSizes();
+      ViewTypeConstSizes const view = m_matrix.toViewConstSizes();
       ArrayOfArraysViewT< ColType const > colView = columns.toViewConst();
       ArrayOfArraysViewT< T const > valView = values.toViewConst();
 
@@ -1227,7 +1226,7 @@ public:
   }
 
 protected:
-  using CRSMatrixViewTest< CRS_MATRIX_POLICY_PAIR >::m_view;
+  using CRSMatrixViewTest< CRS_MATRIX_POLICY_PAIR >::m_matrix;
 };
 
 using CRSMatrixViewAtomicTestTypes = ::testing::Types<

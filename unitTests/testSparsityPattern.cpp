@@ -743,7 +743,7 @@ public:
 
     // Capture the view on device and set the values. Here the const cast is necessary
     // because we don't want to test the insert/remove methods on device yet.
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( IndexType row )
         {
@@ -776,7 +776,7 @@ public:
   {
     IndexType const numRows = m_sp.numRows();
 
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
 
     IndexType curIndex = 0;
     for( IndexType row = 0; row < numRows; ++row )
@@ -822,7 +822,7 @@ public:
     IndexType const numCols = m_sp.numColumns();
 
     // Create a view const and capture it on device.
-    ViewTypeConst const & constView = m_sp.toViewConst();
+    ViewTypeConst const constView = m_sp.toViewConst();
     forall< POLICY >( numRows,
                       [constView, numCols] LVARRAY_HOST_DEVICE ( IndexType row )
         {
@@ -849,9 +849,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > toInsert = createColumns( true, false );
-    ArrayView1D< ArrayView1D< ColType const > const > const & toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toViewConst();
 
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
           for( IndexType j = 0; j < toInsertView[ row ].size(); ++j )
@@ -869,9 +869,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toInsert = createColumns( true, true );
-    ArrayView1D< ArrayView1D< ColType const > const > const & toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toViewConst();
 
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
           view.insertNonZeros( row, toInsertView[ row ].begin(), toInsertView[ row ].end() );
@@ -886,9 +886,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toRemove = createColumns( false, false );
-    ArrayView1D< ArrayView1D< ColType const > const > const & toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toViewConst();
 
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
           for( IndexType j = 0; j < toRemoveView[ row ].size(); ++j )
@@ -906,9 +906,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toRemove = createColumns( false, true );
-    ArrayView1D< ArrayView1D< ColType const > const > const & toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toViewConst();
 
-    ViewType const & view = m_sp.toView();
+    ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const row )
         {
           view.removeNonZeros( row, toRemoveView[ row ].begin(), toRemoveView[ row ].end() );
@@ -938,7 +938,7 @@ public:
     }
 
     // Check that each row contains the even columns and no odd columns on device.
-    ViewTypeConst const & view = m_sp.toViewConst();
+    ViewTypeConst const view = m_sp.toViewConst();
     forall< POLICY >( numRows,
                       [view] LVARRAY_HOST_DEVICE ( IndexType row )
         {

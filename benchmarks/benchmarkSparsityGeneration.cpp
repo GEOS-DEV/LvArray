@@ -30,28 +30,16 @@ namespace benchmarking
     benchmark::ClobberMemory(); \
   } \
 
-void elemLoopNoPreallocationNative( ::benchmark::State & state )
-{
-  SparsityGenerationNative kernels( state );
-  TIMING_LOOP( kernels.resize( 0 ); kernels.generateElemLoop() );
-}
-
 void elemLoopExactAllocationNative( benchmark::State & state )
 {
   SparsityGenerationNative kernels( state );
-  TIMING_LOOP( kernels.resizeExact(); kernels.generateElemLoopView() );
+  TIMING_LOOP( kernels.resizeExact(); kernels.generateElemLoop() );
 }
 
 void elemLoopPreallocatedNative( benchmark::State & state )
 {
   SparsityGenerationNative kernels( state );
-  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateElemLoopView() );
-}
-
-void nodeLoopNoPreallocationNative( benchmark::State & state )
-{
-  SparsityGenerationNative kernels( state );
-  TIMING_LOOP( kernels.resize( 0 ); kernels.generateNodeLoop() );
+  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateElemLoop() );
 }
 
 void nodeLoopExactAllocationNative( benchmark::State & state )
@@ -63,7 +51,7 @@ void nodeLoopExactAllocationNative( benchmark::State & state )
 void nodeLoopPreallocatedNative( benchmark::State & state )
 {
   SparsityGenerationNative kernels( state );
-  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateNodeLoopView() );
+  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateNodeLoop() );
 }
 
 template< typename POLICY >
@@ -71,7 +59,7 @@ void nodeLoopExactAllocationRAJA( benchmark::State & state )
 {
   CALI_CXX_MARK_PRETTY_FUNCTION;
   SparsityGenerationRAJA< POLICY > kernels( state );
-  TIMING_LOOP( kernels.resizeExact(); kernels.generateNodeLoopView() );
+  TIMING_LOOP( kernels.resizeExact(); kernels.generateNodeLoop() );
 }
 
 template< typename POLICY >
@@ -79,7 +67,7 @@ void nodeLoopPreallocatedRAJA( benchmark::State & state )
 {
   CALI_CXX_MARK_PRETTY_FUNCTION;
   SparsityGenerationRAJA< POLICY > kernels( state );
-  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateNodeLoopView() );
+  TIMING_LOOP( kernels.resize( MAX_COLUMNS_PER_ROW ); kernels.generateNodeLoop() );
 }
 
 template< typename POLICY >
@@ -90,7 +78,6 @@ void addToRow( benchmark::State & state )
   TIMING_LOOP( kernels.add() );
 }
 
-int const NO_ALLOCATION_SIZE = 10;
 int const SERIAL_SIZE = 100;
 
 #if defined(LVARRAY_USE_OPENMP)
@@ -104,10 +91,8 @@ int const CUDA_SIZE = 100;
 void registerBenchmarks()
 {
   // Register the native benchmarks.
-  REGISTER_BENCHMARK( WRAP( { NO_ALLOCATION_SIZE, NO_ALLOCATION_SIZE, NO_ALLOCATION_SIZE } ), elemLoopNoPreallocationNative );
   REGISTER_BENCHMARK( WRAP( { SERIAL_SIZE, SERIAL_SIZE, SERIAL_SIZE } ), elemLoopExactAllocationNative );
   REGISTER_BENCHMARK( WRAP( { SERIAL_SIZE, SERIAL_SIZE, SERIAL_SIZE } ), elemLoopPreallocatedNative );
-  REGISTER_BENCHMARK( WRAP( { NO_ALLOCATION_SIZE, NO_ALLOCATION_SIZE, NO_ALLOCATION_SIZE } ), nodeLoopNoPreallocationNative );
   REGISTER_BENCHMARK( WRAP( { SERIAL_SIZE, SERIAL_SIZE, SERIAL_SIZE } ), nodeLoopExactAllocationNative );
   REGISTER_BENCHMARK( WRAP( { SERIAL_SIZE, SERIAL_SIZE, SERIAL_SIZE } ), nodeLoopPreallocatedNative );
 
