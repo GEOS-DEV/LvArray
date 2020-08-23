@@ -303,7 +303,19 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE size() const noexcept
-  { return indexing::multiplyAll< NDIM >( m_dims ); }
+  {
+  #if defined( __ibmxl__ )
+    // Note: This used to be done with a recursive template but XL-release would produce incorrect results.
+    // Specifically in exampleArray it would return an "old" size even after being updated, strange.
+    INDEX_TYPE val = m_dims[ 0 ];
+    for( int i = 1; i < NDIM; ++i )
+    { val *= m_dims[ i ]; }
+
+    return val;
+  #else
+    return indexing::multiplyAll< NDIM >( m_dims.data );
+  #endif
+  }
 
   /**
    * @return Return the length of the given dimension.

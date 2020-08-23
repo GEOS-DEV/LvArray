@@ -210,7 +210,7 @@ public:
   template< typename ... DIMS >
   LVARRAY_HOST_DEVICE
   std::enable_if_t< sizeof ... ( DIMS ) == NDIM && typeManipulation::all_of_t< std::is_integral< DIMS > ... >::value >
-  resize( DIMS... newDims )
+  resize( DIMS const ... newDims )
   {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
     INDEX_TYPE const oldSize = this->size();

@@ -147,7 +147,6 @@ public:
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > const array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
-
         } );
   }
 
@@ -212,7 +211,7 @@ public:
   static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 1 >
   sizedConstructorInLambda()
   {
-    int capacity = CAPACITY;
+    INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [capacity] LVARRAY_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( CAPACITY );
@@ -226,8 +225,8 @@ public:
   static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 2 >
   sizedConstructorInLambda()
   {
-    int capacity = CAPACITY;
-    int size = 8;
+    INDEX_TYPE const capacity = CAPACITY;
+    int const size = 8;
     forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 1, size );
@@ -242,8 +241,8 @@ public:
   static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 3 >
   sizedConstructorInLambda()
   {
-    int capacity = CAPACITY;
-    int size = 8;
+    INDEX_TYPE const capacity = CAPACITY;
+    int const size = 8;
     forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 2, size - 1, size );

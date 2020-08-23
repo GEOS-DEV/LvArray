@@ -189,11 +189,12 @@ public:
 
       // Construct a diagonal matrix of the eigenvalues
       FLOAT lambda[ tensorOps::SYM_SIZE< M > ];
+
+      for( int j = 0; j < tensorOps::SYM_SIZE< M >; ++j )
+      { lambda[ j ] = 0; }
+
       for( int j = 0; j < M; ++j )
       { lambda[ j ] = expectedEigenvalues( i, j ); }
-
-      for( int j = M; j < tensorOps::SYM_SIZE< M >; ++j )
-      { lambda[ j ] = 0; }
 
       // Construct Q from the eigenvectors.
       FLOAT Q[ M ][ M ];

@@ -51,6 +51,35 @@ struct NumericLimits : public std::numeric_limits< T >
   static constexpr T denorm_min = std::numeric_limits< T >::denorm_min();
 };
 
+/**
+ * @struct NumericLimitsNC
+ * @brief The same as @c NumericLimits except the entries are not static or constexpr.
+ * @details This is useful for solving "undefined reference" errors that pop up often in lambdas.
+ * @tparam T the numeric type to query.
+ */
+template< typename T >
+struct NumericLimitsNC : public std::numeric_limits< T >
+{
+  /// The smallest finite value T can hold.
+  T const min = std::numeric_limits< T >::min();
+  /// The lowest finite value T can hold.
+  T const lowest = std::numeric_limits< T >::lowest();
+  /// The largest finite value T can hold.
+  T const max = std::numeric_limits< T >::max();
+  /// The difference between 1.0 and the next representable value (if T is floating point).
+  T const epsilon = std::numeric_limits< T >::epsilon();
+  /// The maximum rounding error (if T is a floating point).
+  T const round_error = std::numeric_limits< T >::round_error();
+  /// A positive infinity value (if T is a floating point).
+  T const infinity = std::numeric_limits< T >::infinity();
+  /// A quiet NaN (if T is a floating point).
+  T const quiet_NaN = std::numeric_limits< T >::quiet_NaN();
+  /// A signaling NaN (if T is a floating point).
+  T const signaling_NaN = std::numeric_limits< T >::signaling_NaN();
+  /// The smallest positive subnormal value (if T is a floating point).
+  T const denorm_min = std::numeric_limits< T >::denorm_min();
+};
+
 namespace internal
 {
 

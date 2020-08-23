@@ -55,9 +55,9 @@ struct TestMath : public ::testing::Test
   void sqrtAndInvSqrt()
   {
     using FloatingPoint = decltype( math::sqrt( T() ) );
-    FloatingPoint const epsilon = NumericLimits< FloatingPoint >::epsilon;
-    forall< POLICY >( 1, [epsilon] LVARRAY_HOST_DEVICE ( int )
+    forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
         {
+          FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
 
           T a = 5 * 5;
           PORTABLE_EXPECT_EQ( math::sqrt( a ), 5.0 );
@@ -112,10 +112,11 @@ struct TestMathFloatingPointOnly : public ::testing::Test
 
   void trig()
   {
-    FloatingPoint const epsilon = NumericLimits< FloatingPoint >::epsilon;
-    forall< POLICY >( 1, [epsilon] LVARRAY_HOST_DEVICE ( int )
+    forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
         {
-          FloatingPoint coords[ 2 ][ 3 ] = { { 1, 2, 1.10714871779409050301 },
+          FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
+
+          FloatingPoint const coords[ 2 ][ 3 ] = { { 1, 2, 1.10714871779409050301 },
             { 4, -1, -0.24497866312686415417 } };
 
           for( int i = 0; i < 2; ++i )
@@ -140,7 +141,12 @@ struct TestMathFloatingPointOnly : public ::testing::Test
 
             PORTABLE_EXPECT_NEAR( math::abs( math::asin( sinTheta ) ), math::abs( theta ), 1.1 * epsilon );
             PORTABLE_EXPECT_NEAR( math::abs( math::acos( cosTheta ) ), math::abs( theta ), 1.1 * epsilon );
+
+            #if defined( __ibmxl__ ) && !defined( __CUDA_ARCH__ )
+            PORTABLE_EXPECT_NEAR( math::atan2( y, x ), theta, 1.1 * epsilon );
+            #else
             PORTABLE_EXPECT_NEAR( math::atan2( y, x ), theta, epsilon );
+            #endif
           }
         } );
   }
