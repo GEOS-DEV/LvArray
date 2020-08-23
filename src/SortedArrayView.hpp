@@ -86,7 +86,7 @@ public:
    * @brief Default move constructor, performs a shallow copy.
    * @param src The SortedArray to be moved from.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView( SortedArrayView && src ):
     m_values( std::move( src.m_values ) ),
     m_size( src.m_size )
@@ -95,11 +95,21 @@ public:
   }
 
   /**
+   * @brief Construct a new SortedArrayView from the given buffer.
+   * @param size The number of entries.
+   * @param buffer The values buffer, of size @p size.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SortedArrayView( INDEX_TYPE const size, BUFFER_TYPE< T > const buffer ):
+    m_values( buffer ),
+    m_size( size )
+  {}
+
+  /**
    * @brief Default copy assignment operator, this does a shallow copy.
    * @param src The SortedArray to copy.
    * @return *this.
    */
-  inline
   SortedArrayView & operator=( SortedArrayView const & src ) = default;
 
   /**
@@ -107,7 +117,7 @@ public:
    * @param src the SortedArray to be moved from.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView & operator=( SortedArrayView && src )
   {
     m_values = std::move( src.m_values );
@@ -126,15 +136,17 @@ public:
   /**
    * @return An immutable SortedArrayView.
    */
-  LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & >( *this ); }
+  LVARRAY_HOST_DEVICE constexpr inline
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
+  toView() const LVARRAY_RESTRICT_THIS
+  { return SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >( size(), m_values ); }
 
   /**
    * @return An immutable SortedArrayView.
    */
-  LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & toViewConst() const LVARRAY_RESTRICT_THIS
+  LVARRAY_HOST_DEVICE constexpr inline
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
+  toViewConst() const LVARRAY_RESTRICT_THIS
   { return toView(); }
 
   ///@}

@@ -314,64 +314,64 @@ using GetViewTypesTypes = ::testing::Types<
                 ArrayViewT< ArrayViewT< std::string const, 2, 0 > const, 3, 1 > const
                 >
   , std::tuple< SortedArrayT< float >,
-                SortedArrayViewT< float const > const,
-                SortedArrayViewT< float const > const,
-                SortedArrayViewT< float const > const
+                SortedArrayViewT< float const >,
+                SortedArrayViewT< float const >,
+                SortedArrayViewT< float const >
                 >
   , std::tuple< SortedArrayViewT< std::string >,
-                SortedArrayViewT< std::string const > const,
-                SortedArrayViewT< std::string const > const,
-                SortedArrayViewT< std::string const > const
+                SortedArrayViewT< std::string const >,
+                SortedArrayViewT< std::string const >,
+                SortedArrayViewT< std::string const >
                 >
   , std::tuple< ArrayOfArraysT< int > const,
-                ArrayOfArraysViewT< int, false > const,
-                ArrayOfArraysViewT< int, true > const,
-                ArrayOfArraysViewT< int const, true > const
+                ArrayOfArraysViewT< int, false >,
+                ArrayOfArraysViewT< int, true >,
+                ArrayOfArraysViewT< int const, true >
                 >
   , std::tuple< ArrayOfArraysViewT< double, true >,
-                ArrayOfArraysViewT< double, true > const,
-                ArrayOfArraysViewT< double, true > const,
-                ArrayOfArraysViewT< double const, true > const
+                ArrayOfArraysViewT< double, true >,
+                ArrayOfArraysViewT< double, true >,
+                ArrayOfArraysViewT< double const, true >
                 >
   , std::tuple< ArrayOfArraysViewT< std::string const, true > const,
-                ArrayOfArraysViewT< std::string const, true > const,
-                ArrayOfArraysViewT< std::string const, true > const,
-                ArrayOfArraysViewT< std::string const, true > const
+                ArrayOfArraysViewT< std::string const, true >,
+                ArrayOfArraysViewT< std::string const, true >,
+                ArrayOfArraysViewT< std::string const, true >
                 >
   , std::tuple< SparsityPatternT< int > const,
-                SparsityPatternViewT< int > const,
-                SparsityPatternViewT< int > const,
-                SparsityPatternViewT< int const > const
+                SparsityPatternViewT< int >,
+                SparsityPatternViewT< int >,
+                SparsityPatternViewT< int const >
                 >
   , std::tuple< SparsityPatternViewT< long >,
-                SparsityPatternViewT< long > const,
-                SparsityPatternViewT< long > const,
-                SparsityPatternViewT< long const > const
+                SparsityPatternViewT< long >,
+                SparsityPatternViewT< long >,
+                SparsityPatternViewT< long const >
                 >
   , std::tuple< SparsityPatternViewT< unsigned char const >,
-                SparsityPatternViewT< unsigned char const > const,
-                SparsityPatternViewT< unsigned char const > const,
-                SparsityPatternViewT< unsigned char const > const
+                SparsityPatternViewT< unsigned char const >,
+                SparsityPatternViewT< unsigned char const >,
+                SparsityPatternViewT< unsigned char const >
                 >
   , std::tuple< CRSMatrixT< double, int >,
-                CRSMatrixViewT< double, int > const,
-                CRSMatrixViewT< double, int const > const,
-                CRSMatrixViewT< double const, int const > const
+                CRSMatrixViewT< double, int >,
+                CRSMatrixViewT< double, int const >,
+                CRSMatrixViewT< double const, int const >
                 >
   , std::tuple< CRSMatrixViewT< char, int > const,
-                CRSMatrixViewT< char, int > const,
-                CRSMatrixViewT< char, int const > const,
-                CRSMatrixViewT< char const, int const > const
+                CRSMatrixViewT< char, int >,
+                CRSMatrixViewT< char, int const >,
+                CRSMatrixViewT< char const, int const >
                 >
   , std::tuple< CRSMatrixViewT< int, long const >,
-                CRSMatrixViewT< int, long const > const,
-                CRSMatrixViewT< int, long const > const,
-                CRSMatrixViewT< int const, long const > const
+                CRSMatrixViewT< int, long const >,
+                CRSMatrixViewT< int, long const >,
+                CRSMatrixViewT< int const, long const >
                 >
   , std::tuple< CRSMatrixViewT< float const, long const >,
-                CRSMatrixViewT< float const, long const > const,
-                CRSMatrixViewT< float const, long const > const,
-                CRSMatrixViewT< float const, long const > const
+                CRSMatrixViewT< float const, long const >,
+                CRSMatrixViewT< float const, long const >,
+                CRSMatrixViewT< float const, long const >
                 >
   , std::tuple< int, int &, int &, int const & >
   , std::tuple< int const, int const &, int const &, int const & >

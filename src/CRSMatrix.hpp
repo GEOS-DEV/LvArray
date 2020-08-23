@@ -135,7 +135,7 @@ public:
     // Destroy the current entries.
     if( !std::is_trivially_destructible< T >::value )
     {
-      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+      CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConstSizes();
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                               [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
@@ -150,7 +150,7 @@ public:
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
-    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view = toViewConstSizes();
+    CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                             [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
@@ -198,7 +198,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toView(); }
 
@@ -209,7 +209,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConstSizes() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConstSizes(); }
 
@@ -220,7 +220,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 

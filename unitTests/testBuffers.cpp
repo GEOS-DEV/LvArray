@@ -36,7 +36,7 @@ namespace testing
  */
 template< typename BUFFER_TYPE >
 void compareToReference( BUFFER_TYPE const & buffer,
-                         std::vector< typename BUFFER_TYPE::value_type > const & ref )
+                         std::vector< std::remove_const_t< typename BUFFER_TYPE::value_type > > const & ref )
 {
   std::ptrdiff_t const size = ref.size();
   ASSERT_GE( buffer.capacity(), size );
@@ -146,6 +146,22 @@ TYPED_TEST( BufferAPITest, setName )
 
   bufferManipulation::free( buffer, 0 );
 }
+
+template< typename >
+struct ToBufferConst
+{};
+
+template< template< typename > class BUFFER, typename T >
+struct ToBufferConst< BUFFER< T > >
+{
+  using type = BUFFER< T const >;
+};
+
+template< typename T, int N >
+struct ToBufferConst< StackBuffer< T, N > >
+{
+  using type = StackBuffer< T const, N >;
+};
 
 /**
  * @tparam BUFFER_TYPE the type of the Buffer to test.
@@ -418,7 +434,6 @@ TYPED_TEST( BufferTestNoRealloc, CopyConstructor )
 
   COMPARE_TO_REFERENCE( copy, this->m_ref );
   COMPARE_TO_REFERENCE( copy2, this->m_ref );
-
 }
 
 /**
@@ -478,6 +493,28 @@ TYPED_TEST( BufferTestNoRealloc, moveAssignmentOperator )
   // destructor will attempt to destroy the values in m_buffer between
   // 0 and m_ref.size(), so we set the size of m_ref to 0 to prevent this.
   this->m_ref.clear();
+}
+
+/**
+ * @brief Test the construction of buffer of T const.
+ */
+TYPED_TEST( BufferTestNoRealloc, ConstConstructor )
+{
+  this->emplaceBack( 100 );
+  typename ToBufferConst< TypeParam >::type copy( this->m_buffer );
+
+  EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
+
+  if( TypeParam::hasShallowCopy )
+  {
+    EXPECT_EQ( this->m_buffer.data(), copy.data() );
+  }
+  else
+  {
+    EXPECT_NE( this->m_buffer.data(), copy.data() );
+  }
+
+  COMPARE_TO_REFERENCE( copy, this->m_ref );
 }
 
 /**

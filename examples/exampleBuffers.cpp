@@ -129,8 +129,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 
   // Create a const buffer and capture it in a device kernel which
   // creates an allocation on device and copies the data there.
-  LvArray::ChaiBuffer< int const > const & constBuffer =
-    reinterpret_cast< LvArray::ChaiBuffer< int const > const & >( buffer );
+  LvArray::ChaiBuffer< int const > const constBuffer( buffer );
   RAJA::forall< RAJA::cuda_exec< 32 > >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, size ),
     [constBuffer] __device__ ( std::ptrdiff_t const i )

@@ -162,7 +162,7 @@ TEST( CRSMatrix, views )
   // pattern in parallel.
   LvArray::SparsityPatternView< int,
                                 std::ptrdiff_t const,
-                                LvArray::MallocBuffer > const & sparsityView = sparsity.toView();
+                                LvArray::MallocBuffer > const sparsityView = sparsity.toView();
 
   RAJA::forall< RAJA::omp_parallel_for_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, sparsityView.numRows() ),
@@ -183,7 +183,7 @@ TEST( CRSMatrix, views )
   LvArray::CRSMatrixView< double,
                           int const,
                           std::ptrdiff_t const,
-                          LvArray::MallocBuffer > const & matrixView = matrix.toViewConstSizes();
+                          LvArray::MallocBuffer > const matrixView = matrix.toViewConstSizes();
   RAJA::forall< RAJA::omp_parallel_for_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, matrixView.numRows() ),
     [matrixView] ( std::ptrdiff_t const row )

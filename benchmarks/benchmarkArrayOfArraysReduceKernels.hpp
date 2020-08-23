@@ -76,13 +76,13 @@ public:
 
   void reduceFortranView()
   {
-    ArrayOfArraysViewT< VALUE_TYPE const, true > const & view = m_array.toViewConst();
+    ArrayOfArraysViewT< VALUE_TYPE const, true > const view = m_array.toViewConst();
     TIMING_LOOP( reduceFortranView( view ) );
   }
 
   void reduceSubscriptView()
   {
-    ArrayOfArraysViewT< VALUE_TYPE const, true > const & view = m_array.toViewConst();
+    ArrayOfArraysViewT< VALUE_TYPE const, true > const view = m_array.toViewConst();
     TIMING_LOOP( reduceSubscriptView( view ) );
   }
 

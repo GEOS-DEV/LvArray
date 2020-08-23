@@ -46,6 +46,8 @@ protected:
   /// Since INDEX_TYPE should always be const we need an alias for the non const version.
   using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
 
+  using typename ParentClass::SIZE_TYPE;
+
 public:
   using typename ParentClass::ValueType;
   using typename ParentClass::IndexType;
@@ -72,6 +74,21 @@ public:
   ArrayOfSetsView( ArrayOfSetsView && ) = default;
 
   /**
+   * @brief Construct a new ArrayOfArraysView from the given buffers.
+   * @param numArrays The number of arrays.
+   * @param offsets The offsets buffer, of size @p numArrays + 1.
+   * @param sizes The sizes buffer, of size @p numArrays.
+   * @param values The values buffer, of size @p offsets[ numArrays ].
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArrayOfSetsView( INDEX_TYPE const numArrays,
+                   BUFFER_TYPE< INDEX_TYPE > const & offsets,
+                   BUFFER_TYPE< SIZE_TYPE > const & sizes,
+                   BUFFER_TYPE< T > const & values ):
+    ParentClass( numArrays, offsets, sizes, values )
+  {}
+
+  /**
    * @brief Default copy assignment operator, this does a shallow copy.
    * @return *this.
    */
@@ -93,31 +110,43 @@ public:
   ///@{
 
   /**
-   * @return Return a reference to *this reinterpreted as an
-   *   ArrayOfSetsView< T, INDEX_TYPE const >.
+   * @return Return a new ArrayOfSetsView< T, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const &
+  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE > const & >(*this);}
+  {
+    return ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >( size(),
+                                                                this->m_offsets,
+                                                                this->m_sizes,
+                                                                this->m_values );
+  }
 
   /**
-   * @return Return a reference to *this reinterpreted as an
-   *   ArrayOfSetsView< T const, INDEX_TYPE const >.
+   * @return Return a new ArrayOfSetsView< T const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const &
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE > const & >(*this); }
+  {
+    return ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >( size(),
+                                                                      this->m_offsets,
+                                                                      this->m_sizes,
+                                                                      this->m_values );
+  }
 
   /**
-   * @return Return a reference to *this reinterpreted as an
-   *   ArrayOfArraysView< T const, INDEX_TYPE const, true >.
+   * @return Return a new ArrayOfArraysView< T const, INDEX_TYPE const, true >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
   toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const & >( *this ); }
+  {
+    return ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
+                                                                              this->m_offsets,
+                                                                              this->m_sizes,
+                                                                              this->m_values );
+  }
 
   ///@}
 

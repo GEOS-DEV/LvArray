@@ -94,9 +94,9 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const &
+  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE > const & >( *this ); }
+  { return ParentClass::toView(); }
 
   /**
    * @copydoc ParentClass::toViewConstSizes
@@ -105,7 +105,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
   toViewConstSizes() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConstSizes(); }
 
@@ -116,7 +116,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE > const &
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 

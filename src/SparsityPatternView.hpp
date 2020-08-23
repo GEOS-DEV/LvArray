@@ -65,7 +65,9 @@ protected:
   using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
   /// An alias for the non const index type.
-  using INDEX_TYPE_NC = typename ParentClass::INDEX_TYPE_NC;
+  using typename ParentClass::INDEX_TYPE_NC;
+
+  using typename ParentClass::SIZE_TYPE;
 
 public:
   static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
@@ -99,6 +101,23 @@ public:
     m_numCols( src.m_numCols )
   { src.m_numCols = 0; }
 
+  /**
+   * @brief Construct a new CRSMatrixView from the given buffers.
+   * @param nRows The number of rows.
+   * @param nCols The number of columns
+   * @param offsets The offsets buffer, of size @p nRows + 1.
+   * @param nnz The buffer containing the number of non zeros in each row, of size @p nRows.
+   * @param columns The columns buffer, of size @p offsets[ nRows ].
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView( INDEX_TYPE const nRows,
+                       INDEX_TYPE const nCols,
+                       BUFFER_TYPE< INDEX_TYPE > const & offsets,
+                       BUFFER_TYPE< SIZE_TYPE > const & nnz,
+                       BUFFER_TYPE< COL_TYPE > const & columns ):
+    ParentClass( nRows, offsets, nnz, columns ),
+    m_numCols( nCols )
+  {}
 
   /**
    * @brief Default copy assignment operator, this does a shallow copy.
@@ -130,20 +149,32 @@ public:
 
 
   /**
-   * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
+   * @return A new SparsityPatternView< COL_TYPE, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  {
+    return SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                           numColumns(),
+                                                                           this->m_offsets,
+                                                                           this->m_sizes,
+                                                                           this->m_values );
+  }
 
   /**
-   * @return A reference to *this reinterpreted as a SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
+   * @return A new SparsityPatternView< COL_TYPE const, INDEX_TYPE const >.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
-  { return reinterpret_cast< SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & >( *this ); }
+  {
+    return SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
+                                                                                 numColumns(),
+                                                                                 this->m_offsets,
+                                                                                 this->m_sizes,
+                                                                                 this->m_values );
+  }
 
   ///@}
 

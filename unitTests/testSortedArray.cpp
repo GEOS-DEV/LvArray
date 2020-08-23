@@ -346,7 +346,7 @@ public:
     ASSERT_EQ( m_set.size(), size );
 
     // Capture a view on the device.
-    ViewType const & view = m_set.toView();
+    ViewType const view = m_set.toView();
     forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           LVARRAY_ERROR_IF( view[ i ] != T( i ), "Values changed when moved." );
@@ -422,7 +422,7 @@ public:
 
     ASSERT_EQ( m_set.size(), size );
 
-    ViewType const & view = m_set.toView();
+    ViewType const view = m_set.toView();
     forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );

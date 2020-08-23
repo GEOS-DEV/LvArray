@@ -66,6 +66,17 @@ public:
   {}
 
   /**
+   * @brief Create a copy of @p src with const T.
+   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @param src The buffer to copy.
+   */
+  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  LVARRAY_HOST_DEVICE inline constexpr
+  StackBuffer( StackBuffer< std::remove_const_t< T >, LENGTH > const & src ):
+    StackBuffer( reinterpret_cast< StackBuffer const & >( src ) )
+  {}
+
+  /**
    * @brief Notionally this method reallocates the buffer, but since the StackBuffer is sized at
    *   compile time all this does is check that newCapacity doesn't exceed LENGTH.
    * @param size The current size of the buffer, not used.

@@ -767,7 +767,7 @@ public:
     IndexType const nSets = m_array.size();
 
     // Update the view on the device.
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( nSets, [view] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           IndexType const sizeOfSet = view.sizeOfSet( i );
@@ -795,7 +795,7 @@ public:
 
     IndexType const nSets = m_array.size();
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( nSets, [view] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           IndexType const sizeOfSet = view.sizeOfSet( i );
@@ -820,9 +820,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< T > > toInsert = createValues( true, false );
-    ArrayView1D< ArrayView1D< T const > const > const & toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const toInsertView = toInsert.toViewConst();
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < toInsertView[ i ].size(); ++j )
@@ -840,9 +840,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< T > > const toInsert = createValues( true, true );
-    ArrayView1D< ArrayView1D< T const > const > const & toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const toInsertView = toInsert.toViewConst();
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.insertIntoSet( i, toInsertView[ i ].begin(), toInsertView[ i ].end() );
@@ -857,9 +857,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< T > > const toRemove = createValues( false, false );
-    ArrayView1D< ArrayView1D< T const > const > const & toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const toRemoveView = toRemove.toViewConst();
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < toRemoveView[ i ].size(); ++j )
@@ -877,9 +877,9 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< T > > const toRemove = createValues( false, true );
-    ArrayView1D< ArrayView1D< T const > const > const & toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const toRemoveView = toRemove.toViewConst();
 
-    ViewType const & view = m_array.toView();
+    ViewType const view = m_array.toView();
     forall< POLICY >( m_array.size(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.removeFromSet( i, toRemoveView[ i ].begin(), toRemoveView[ i ].end() );

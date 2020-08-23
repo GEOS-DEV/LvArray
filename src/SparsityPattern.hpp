@@ -151,7 +151,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   constexpr inline
-  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
   toView() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toView(); }
 
@@ -162,7 +162,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const &
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
   toViewConst() const LVARRAY_RESTRICT_THIS
   { return ParentClass::toViewConst(); }
 
