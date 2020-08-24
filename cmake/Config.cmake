@@ -36,3 +36,6 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
 
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
                 ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/LvArrayConfig.hpp )
+
+install( FILES ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp
+         DESTINATION include )

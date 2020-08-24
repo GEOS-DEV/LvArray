@@ -71,10 +71,18 @@ if( ENABLE_TESTS )
 endif()
 
 if ( ENABLE_EXAMPLES )
+    if( NOT ENABLE_TESTS )
+        message( WARNING "ENABLE_TESTS must be on to build the examples." )
+    endif()
+
     add_subdirectory( examples )
 endif()
 
 if( ENABLE_BENCHMARKS )
+    if( NOT ENABLE_TESTS )
+        message( WARNING "ENABLE_TESTS must be on to build the benchmarks." )
+    endif()
+
     add_subdirectory( benchmarks )
 endif()
 
