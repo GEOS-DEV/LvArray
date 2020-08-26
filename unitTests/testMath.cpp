@@ -77,7 +77,7 @@ using TestMathTypes = ::testing::Types<
   , std::pair< long long int, serialPolicy >
   , std::pair< float, serialPolicy >
   , std::pair< double, serialPolicy >
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   , std::pair< int, parallelDevicePolicy< 32 > >
   , std::pair< long int, parallelDevicePolicy< 32 > >
   , std::pair< long long int, parallelDevicePolicy< 32 > >
@@ -149,7 +149,7 @@ struct TestMathFloatingPointOnly : public ::testing::Test
 using TestMathFloatingPointOnlyTypes = ::testing::Types<
   std::pair< float, serialPolicy >
   , std::pair< double, serialPolicy >
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   , std::pair< float, parallelDevicePolicy< 32 > >
   , std::pair< double, parallelDevicePolicy< 32 > >
 #endif

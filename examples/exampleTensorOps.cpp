@@ -9,7 +9,7 @@
 #include "Array.hpp"
 #include "tensorOps.hpp"
 #include "MallocBuffer.hpp"
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 
@@ -66,7 +66,7 @@ TEST( tensorOps, AiBi )
 }
 // Sphinx end before inner product
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 // Sphinx start after device
 CUDA_TEST( tensorOps, device )
 {
@@ -126,7 +126,7 @@ TEST( tensorOps, boundsCheck )
 
   xArray( 0 ) = 10;
 
-#if defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_BOUNDS_CHECK)
   // This will fail at runtime.
   EXPECT_DEATH_IF_SUPPORTED( LvArray::tensorOps::normalize< 3 >( xArray ), "" );
 #endif

@@ -67,7 +67,7 @@ using BufferAPITestTypes = ::testing::Types<
   StackBuffer< int, NO_REALLOC_CAPACITY >
   , MallocBuffer< int >
   , MallocBuffer< TestString >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , ChaiBuffer< int >
   , ChaiBuffer< TestString >
 #endif
@@ -528,7 +528,7 @@ TYPED_TEST( BufferTestNoRealloc, copyInto )
     COMPARE_TO_REFERENCE( copy, this->m_ref );
     bufferManipulation::free( copy, NO_REALLOC_CAPACITY );
   },
-  #if defined(USE_CHAI)
+  #if defined(LVARRAY_USE_CHAI)
     ChaiBuffer< typename TypeParam::value_type >( true ),
   #endif
     MallocBuffer< typename TypeParam::value_type >( true )
@@ -624,7 +624,7 @@ public:
 using BufferTestWithReallocTypes = ::testing::Types<
   MallocBuffer< int >
   , MallocBuffer< TestString >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , ChaiBuffer< int >
   , ChaiBuffer< TestString >
 #endif

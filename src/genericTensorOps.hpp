@@ -209,7 +209,7 @@ void checkSizes( T const ( &src )[ INFERRED_M ][ INFERRED_N ] )
 }
 
 /**
- * @brief Verify at compile time that @tparam ARRAY is 1D and at runtime verify the size when USE_ARRAY_BOUNDS_CHECK.
+ * @brief Verify at compile time that @tparam ARRAY is 1D and at runtime verify the size when LVARRAY_BOUNDS_CHECK.
  * @tparam M The size expected size.
  * @tparam ARRAY The type o @p array, should be an Array, ArrayView or ArraySlice.
  * @param array The array to check.
@@ -219,7 +219,7 @@ LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
 void checkSizes( ARRAY const & array )
 {
   static_assert( ARRAY::NDIM == 1, "Must be a 1D array." );
-  #ifdef USE_ARRAY_BOUNDS_CHECK
+  #ifdef LVARRAY_BOUNDS_CHECK
   LVARRAY_ERROR_IF_NE( array.size( 0 ), M );
   #else
   LVARRAY_UNUSED_VARIABLE( array );
@@ -227,7 +227,7 @@ void checkSizes( ARRAY const & array )
 }
 
 /**
- * @brief Verify at compile time that @tparam ARRAY is 2D and at runtime verify the sizes when USE_ARRAY_BOUNDS_CHECK.
+ * @brief Verify at compile time that @tparam ARRAY is 2D and at runtime verify the sizes when LVARRAY_BOUNDS_CHECK.
  * @tparam M The expected size of the first dimension.
  * @tparam N The expected size of the second dimension.
  * @tparam ARRAY The type o @p array, should be an Array, ArrayView or ArraySlice.
@@ -238,7 +238,7 @@ LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
 void checkSizes( ARRAY const & array )
 {
   static_assert( ARRAY::NDIM == 2, "Must be a 1D array." );
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
   LVARRAY_ERROR_IF_NE( array.size( 0 ), M );
   LVARRAY_ERROR_IF_NE( array.size( 1 ), N );
 #else

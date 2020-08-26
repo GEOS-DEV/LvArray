@@ -22,7 +22,7 @@
 #include <iostream>
 #include <type_traits>
 
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
   #include <cassert>
 #endif
 
@@ -108,7 +108,7 @@
       __oss << "***** LOCATION: " LOCATION "\n"; \
       __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
       __oss << MSG << "\n"; \
-      __oss << LvArray::system::stackTrace(); \
+      __oss << LvArray::system::stackTrace( true ); \
       std::cout << __oss.str() << std::endl; \
       LvArray::system::abort(); \
     } \
@@ -369,7 +369,7 @@
  */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-#if defined(USE_CUDA) && defined(__CUDACC__)
+#if defined(LVARRAY_USE_CUDA) && defined(__CUDACC__)
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
 
@@ -418,7 +418,7 @@
   #endif
 #endif
 
-#if !defined(USE_ARRAY_BOUNDS_CHECK)
+#if !defined(LVARRAY_BOUNDS_CHECK)
 /**
  * @brief Expands to constexpr when array bound checking is disabled.
  */
@@ -442,7 +442,7 @@
 #define CONSTEXPR_WITH_NDEBUG
 #endif
 
-#if !defined(USE_ARRAY_BOUNDS_CHECK)
+#if !defined(LVARRAY_BOUNDS_CHECK)
 /**
  * @brief Expands to constexpr when array bound checking is disabled.
  */

@@ -598,7 +598,7 @@ using ArrayOfArraysTestTypes = ::testing::Types<
   ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer >
   , ArrayOfArrays< Tensor, std::ptrdiff_t, MallocBuffer >
   , ArrayOfArrays< TestString, std::ptrdiff_t, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >
   , ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >
   , ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >
@@ -742,7 +742,7 @@ TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
     this->template resizeFromCapacities< serialPolicy >( 100, 10 );
     this->emplace( 10 );
 
-#if defined( USE_OPENMP )
+#if defined( LVARRAY_USE_OPENMP )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
     this->emplace( 10 );
 #endif
@@ -1232,13 +1232,13 @@ using ArrayOfArraysViewTestTypes = ::testing::Types<
   std::pair< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
@@ -1404,24 +1404,24 @@ using ArrayOfArraysViewAtomicTestTypes = ::testing::Types<
   std::pair< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
 #endif
-#if defined(USE_OPENMP) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_OPENMP) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

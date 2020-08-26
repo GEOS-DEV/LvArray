@@ -8,7 +8,7 @@
 // Source includes
 #include "SortedArray.hpp"
 #include "MallocBuffer.hpp"
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 
@@ -59,7 +59,7 @@ TEST( SortedArray, construction )
 }
 // Sphinx end before construction
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
 // Sphinx start after ChaiBuffer
 CUDA_TEST( SortedArray, ChaiBuffer )
 {
@@ -95,7 +95,7 @@ CUDA_TEST( SortedArray, ChaiBuffer )
 // Sphinx end before ChaiBuffer
 #endif
 
-#if defined(USE_ARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_BOUNDS_CHECK)
 // Sphinx start after bounds check
 TEST( SortedArray, boundsCheck )
 {

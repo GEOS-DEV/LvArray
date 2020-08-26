@@ -26,6 +26,8 @@ if( NOT is_submodule )
     option( ENABLE_OPENMP "Build with OpenMP" ON )
     option( ENABLE_CALIPER "Build with Caliper" ON )
 
+    option( ENABLE_ADDR2LINE "Enable addr2line usage in stacktraces" ON )
+
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
     include( cmake/SetupTPL.cmake )
@@ -34,7 +36,7 @@ endif()
 include(cmake/Macros.cmake)
 include(cmake/Config.cmake)
 
-set( lvarray_dependencies "" )
+set( lvarray_dependencies dl )
 
 if( ENABLE_CHAI )
     set( lvarray_dependencies ${lvarray_dependencies} chai umpire )

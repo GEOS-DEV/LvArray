@@ -27,7 +27,7 @@ using COLUMN_TYPE = std::ptrdiff_t;
 using ENTRY_TYPE = double;
 constexpr unsigned long THREADS_PER_BLOCK = 256;
 
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
 using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
 #else
 using ELEM_TO_NODE_PERM = RAJA::PERM_JI;
@@ -117,7 +117,7 @@ public:
     /// Iterate over all the nodes.
     m_sparsity.move( MemorySpace::CPU );
 
-    #if defined(USE_OPENMP)
+    #if defined(LVARRAY_USE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;
@@ -241,7 +241,7 @@ public:
   {
     this->resizeExact();
 
-    #if defined(USE_OPENMP)
+    #if defined(LVARRAY_USE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;
@@ -263,7 +263,7 @@ public:
     m_matrix.move( MemorySpace::CPU, false );
     this->m_nodeToElemMap.move( MemorySpace::CPU, false );
 
-    #if defined(USE_OPENMP)
+    #if defined(LVARRAY_USE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;

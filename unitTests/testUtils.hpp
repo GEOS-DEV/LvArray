@@ -13,7 +13,7 @@
 
 #include "MallocBuffer.hpp"
 
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   #include "ChaiBuffer.hpp"
 #endif
 
@@ -45,7 +45,7 @@ struct RAJAHelper< serialPolicy >
   static constexpr MemorySpace space = MemorySpace::CPU;
 };
 
-#if defined(USE_OPENMP)
+#if defined(LVARRAY_USE_OPENMP)
 
 using parallelHostPolicy = RAJA::omp_parallel_for_exec;
 
@@ -59,7 +59,7 @@ struct RAJAHelper< parallelHostPolicy >
 
 #endif
 
-#if defined(USE_CUDA)
+#if defined(LVARRAY_USE_CUDA)
 
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
@@ -102,7 +102,7 @@ struct PairComp
   }
 };
 
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
 template< typename T >
 using DEFAULT_BUFFER = ChaiBuffer< T >;
 #else

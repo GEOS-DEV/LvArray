@@ -527,7 +527,7 @@ using ArrayOfSetsTestTypes = ::testing::Types<
   ArrayOfSets< int, std::ptrdiff_t, MallocBuffer >
   , ArrayOfSets< Tensor, std::ptrdiff_t, MallocBuffer >
   , ArrayOfSets< TestString, std::ptrdiff_t, MallocBuffer >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , ArrayOfSets< int, std::ptrdiff_t, ChaiBuffer >
   , ArrayOfSets< Tensor, std::ptrdiff_t, ChaiBuffer >
   , ArrayOfSets< TestString, std::ptrdiff_t, ChaiBuffer >
@@ -611,7 +611,7 @@ TYPED_TEST( ArrayOfSetsTest, resizeFromCapacities )
     this->template resizeFromCapacities< serialPolicy >( 100, DEFAULT_MAX_INSERTS );
     this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
 
-#if defined( USE_OPENMP )
+#if defined( LVARRAY_USE_OPENMP )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, DEFAULT_MAX_INSERTS );
     this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
 #endif
@@ -939,13 +939,13 @@ using ArrayOfSetsViewTestTypes = ::testing::Types<
   std::pair< ArrayOfSets< int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfSets< Tensor, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< ArrayOfSets< TestString, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfSets< int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfSets< Tensor, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
   , std::pair< ArrayOfSets< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfSets< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfSets< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

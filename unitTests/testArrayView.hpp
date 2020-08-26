@@ -524,7 +524,7 @@ using ArrayViewPolicyTestTypes = ::testing::Types<
   , std::pair< Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
   , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
 
-#if defined(USE_CUDA) && defined(USE_CHAI)
+#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
   , std::pair< Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >

@@ -453,7 +453,7 @@ public:
     T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF_GT_MSG( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd, m_aos.capacityOfSet( m_indexOfSet ),
                                "ArrayOfSetsView cannot do reallocation." );
 #else

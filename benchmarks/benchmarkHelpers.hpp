@@ -18,7 +18,7 @@
 #include <chrono>
 #include <unordered_map>
 
-#if defined(USE_CALIPER)
+#if defined(LVARRAY_USE_CALIPER)
   #include <caliper/cali.h>
 #define CALI_CXX_MARK_PRETTY_FUNCTION cali::Function __cali_ann ## __func__( __PRETTY_FUNCTION__ )
 #else
@@ -32,7 +32,7 @@ namespace LvArray
 using namespace testing;
 
 
-#if defined(USE_CHAI)
+#if defined(LVARRAY_USE_CHAI)
 static_assert( std::is_same< DEFAULT_BUFFER< int >, ChaiBuffer< int > >::value,
                "The default buffer should be ChaiBuffer when chai is enabled." );
 #endif

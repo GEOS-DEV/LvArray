@@ -5,7 +5,9 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
+// Source includes
 #include "system.hpp"
+#include "Macros.hpp"
 
 // System includes
 #include <map>
@@ -14,82 +16,300 @@
 #include <signal.h>
 #include <fenv.h>
 #include <cxxabi.h>
-#include <execinfo.h>
 #include <string.h>
-#include <cstdio>
 
 #if defined(__x86_64__)
-  #include <xmmintrin.h>
   #include <pmmintrin.h>
 #endif
 
-std::string demangleBacktrace( char * backtraceString, int frame )
+#include <dlfcn.h>
+#include <unwind.h>
+
+#if defined( LVARRAY_ADDR2LINE_EXEC )
+  #include <unistd.h>
+  #include <sys/wait.h>
+#endif
+
+#if defined( LVARRAY_USE_MPI )
+  #include <mpi.h>
+#endif
+
+/**
+ * @struct UnwindState
+ * @brief Holds info used in unwindCallback.
+ * @note Adapted from https://github.com/boostorg/stacktrace
+ */
+struct UnwindState
 {
-  char * mangledName = nullptr;
-  char * functionOffset = nullptr;
-  char * returnOffset = nullptr;
+  std::size_t frames_to_skip;
+  void * * current;
+  void * * end;
+};
 
-#ifdef __APPLE__
-  /* On apple machines the mangled function name always starts at the 58th
-   * character */
-  constexpr int APPLE_OFFSET = 58;
-  mangledName = backtraceString + APPLE_OFFSET;
-  for( char * p = backtraceString; *p; ++p )
+/**
+ * @brief Callback used with _Unwind_Backtrace.
+ * @param context
+ * @param arg The UnwindState.
+ * @note Adapted from https://github.com/boostorg/stacktrace
+ */
+static _Unwind_Reason_Code unwindCallback( _Unwind_Context * const context, void * const arg )
+{
+  // Note: do not write `::_Unwind_GetIP` because it is a macro on some platforms.
+  // Use `_Unwind_GetIP` instead!
+  UnwindState * const state = static_cast< UnwindState * >(arg);
+  if( state->frames_to_skip )
   {
-    if( *p == '+' )
-    {
-      functionOffset = p;
-    }
-    returnOffset = p;
+    --state->frames_to_skip;
+    return _Unwind_GetIP( context ) ? _URC_NO_REASON : _URC_END_OF_STACK;
   }
-#else
-  for( char * p = backtraceString; *p; ++p )
+
+  *state->current = reinterpret_cast< void * >( _Unwind_GetIP( context ) );
+
+  ++state->current;
+  if( !*(state->current - 1) || state->current == state->end )
   {
-    if( *p == '(' )
+    return _URC_END_OF_STACK;
+  }
+
+  return _URC_NO_REASON;
+}
+
+/**
+ * @brief Populate @p frames with the stack return addresses.
+ * @param frames A pointer to the buffer to fill, must have length at least @p maxFrames.
+ * @param maxFrames The maximum number of frames to collect.
+ * @param skip The number of initial frames to skip.
+ * @note Adapted from https://github.com/boostorg/stacktrace
+ */
+static std::size_t collect( void * * const frames, std::size_t const maxFrames, std::size_t const skip )
+{
+  std::size_t frames_count = 0;
+  if( !maxFrames )
+  {
+    return frames_count;
+  }
+
+  UnwindState state = { skip + 1, frames, frames + maxFrames };
+  _Unwind_Backtrace( &unwindCallback, &state );
+  frames_count = state.current - frames;
+
+  if( frames_count && frames[frames_count - 1] == 0 )
+  {
+    --frames_count;
+  }
+
+  return frames_count;
+}
+
+/**
+ * @brief Return the demangled name of the function at @p address.
+ * @param address The address of the function gotten from the stack frame.
+ * @return the demangled name of the function at @p address.
+ */
+static std::string getFunctionNameFromFrame( void const * const address )
+{
+  Dl_info dli;
+  const bool dl_ok = dladdr( address, &dli );
+  if( dl_ok && dli.dli_sname )
+  {
+    return LvArray::system::demangle( dli.dli_sname );
+  }
+
+  return "";
+}
+
+#if defined( LVARRAY_ADDR2LINE_EXEC )
+
+/**
+ * @brief Return @c true iff @p path is an absolute path.
+ * @param path The file path to inspect.
+ * @return @c true iff @p path is an absolute path.
+ */
+static constexpr bool isAbsPath( char const * path )
+{ return *path != '\0' && ( *path == ':' || *path == '/' || isAbsPath( path + 1 ) ); }
+
+/**
+ * @class UnwindState
+ * @brief Used to fork a subprocess that executes @c LVARRAY_ADDR2LINE_EXEC and get the results.
+ * @note Adapted from https://github.com/boostorg/stacktrace
+ */
+class Addr2LinePipe
+{
+public:
+
+  /**
+   * @brief Constructor.
+   * @param flag The flag(s) to pass to addr2line.
+   * @param execPath The path to the executable the address is from, usually the current executable.
+   * @param addr The address to query.
+   */
+  Addr2LinePipe( char const * const flag, char const * const execPath, char const * const addr ):
+    m_file( nullptr ),
+    m_pid( 0 )
+  {
+    int pdes[ 2 ];
+    char prog_name[] = STRINGIZE( LVARRAY_ADDR2LINE_EXEC );
+    static_assert( isAbsPath( STRINGIZE( LVARRAY_ADDR2LINE_EXEC ) ),
+                   "LVARRAY_ADDR2LINE_EXEC = " STRINGIZE( LVARRAY_ADDR2LINE_EXEC ) );
+
+    char * argp[] = {
+      prog_name,
+      const_cast< char * >( flag ),
+      const_cast< char * >( execPath ),
+      const_cast< char * >( addr ),
+      0
+    };
+
+    if( pipe( pdes ) < 0 )
+    { return; }
+
+    m_pid = fork();
+    switch( m_pid )
     {
-      mangledName = p;
+      case -1:
+      {
+        // Failed...
+        close( pdes[ 0 ] );
+        close( pdes[ 1 ] );
+        return;
+
+      }
+      case 0:
+        // We are the child.
+        close( STDERR_FILENO );
+        close( pdes[ 0 ] );
+        if( pdes[ 1 ] != STDOUT_FILENO )
+        { dup2( pdes[ 1 ], STDOUT_FILENO ); }
+
+        // Do not use `execlp()`, `execvp()`, and `execvpe()` here!
+        // `exec*p*` functions are vulnerable to PATH variable evaluation attacks.
+        execv( prog_name, argp );
+        _exit( 127 );
     }
-    else if( *p == '+' )
+
+    m_file = fdopen( pdes[ 0 ], "r" );
+    close( pdes[ 1 ] );
+  }
+
+  /**
+   * @brief User defined conversion to a file pointer.
+   * @return A file pointer to the output of the addr2line execution.
+   */
+  operator FILE *() const
+  { return m_file; }
+
+  /// Destructor
+  ~Addr2LinePipe()
+  {
+    if( m_file )
     {
-      functionOffset = p;
-    }
-    else if( *p == ')' )
-    {
-      returnOffset = p;
-      break;
+      fclose( m_file );
+      int pstat = 0;
+      kill( m_pid, SIGKILL );
+      waitpid( m_pid, &pstat, 0 );
     }
   }
-#endif
 
-  std::ostringstream oss;
+private:
+  /// A file pointer to the output of the addr2line execution.
+  FILE * m_file;
 
-  if( mangledName && functionOffset && returnOffset &&
-      mangledName < functionOffset )
+  /// The process ID of the forked child process.
+  pid_t m_pid;
+};
+
+/**
+ * @brief Return the result of calling @c addr2line @p flag @c pathToCurrentExecutable @p addr.
+ * @param flag The flag to pass to addr2line.
+ * @param addr The address to pass to addr2line.
+ * @return The result of calling @c addr2line @p flag @c pathToCurrentExecutable @p addr.
+ */
+static std::string addr2line( const char * flag, const void * addr )
+{
+  std::string res;
+
+  Dl_info dli;
+  if( dladdr( addr, &dli ) )
   {
-    // if the line could be processed, attempt to demangle the symbol
-    *mangledName = 0;
-    mangledName++;
-#ifdef __APPLE__
-    *(functionOffset - 1) = 0;
-#endif
-    *functionOffset = 0;
-    ++functionOffset;
-    *returnOffset = 0;
-    ++returnOffset;
-
-    oss << "Frame " << frame << ": " << LvArray::system::demangle( mangledName ) << "\n";
+    res = dli.dli_fname;
   }
   else
   {
-    // otherwise, print the whole line
-    oss << "Frame " << frame << ": " << backtraceString << "\n";
+    res.resize( 16 );
+    int rlin_size = readlink( "/proc/self/exe", &res[ 0 ], res.size() - 1 );
+    while( rlin_size == static_cast< int >( res.size() - 1 ) )
+    {
+      res.resize( res.size() * 4 );
+      rlin_size = readlink( "/proc/self/exe", &res[ 0 ], res.size() - 1 );
+    }
+    if( rlin_size == -1 )
+    {
+      res.clear();
+      return res;
+    }
+    res.resize( rlin_size );
   }
 
-  return ( oss.str() );
+  std::ostringstream oss;
+  oss << addr;
+
+  Addr2LinePipe p( flag, res.c_str(), oss.str().c_str() );
+  res.clear();
+
+  if( !p )
+  {
+    return res;
+  }
+
+  char data[ 32 ];
+  while( !feof( p ) )
+  {
+    if( fgets( data, sizeof( data ), p ) )
+    {
+      res += data;
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  // Trimming
+  while( !res.empty() && ( res[ res.size() - 1 ] == '\n' || res[ res.size() - 1 ] == '\r' ) )
+  {
+    res.erase( res.size() - 1 );
+  }
+
+  return res;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string getFpeDetails()
+#endif
+
+/**
+ * @brief Return the source location of @p address iff LVARRAY_ADDR2LINE_EXEC is defined.
+ * @param address The address to get the source location of.
+ * @return The source location of @p address iff LVARRAY_ADDR2LINE_EXEC is defined.
+ */
+static std::string getSourceLocationFromFrame( void const * const address )
+{
+  #if defined( LVARRAY_ADDR2LINE_EXEC )
+  std::string const source_line = addr2line( "-Cpe", address );
+  if( !source_line.empty() && source_line[0] != '?' )
+  {
+    return source_line;
+  }
+  #else
+  LVARRAY_UNUSED_VARIABLE( address );
+  #endif
+
+  return "";
+}
+
+/**
+ * @brief Return a string representing the current floating point exception.
+ * @return A string representing the current floating point exception.
+ */
+static std::string getFpeDetails()
 {
   std::ostringstream oss;
   int const fpe = fetestexcept( FE_ALL_EXCEPT );
@@ -132,27 +352,30 @@ using handle_type = void ( * )( int );
 static std::map< int, handle_type > initialHandler;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string stackTrace()
+std::string stackTrace( bool const location )
 {
   constexpr int MAX_FRAMES = 25;
   void * array[ MAX_FRAMES ];
 
-  const int size = backtrace( array, MAX_FRAMES );
-  char * * strings = backtrace_symbols( array, size );
+  std::size_t const size = collect( array, MAX_FRAMES, 1 );
 
-  // skip first stack frame (points here)
   std::ostringstream oss;
   oss << "\n** StackTrace of " << size - 1 << " frames **\n";
-  for( int i = 1; i < size && strings != nullptr; ++i )
+  for( std::size_t i = 0; i < size; ++i )
   {
-    oss << demangleBacktrace( strings[ i ], i );
+    oss << "Frame " << i << ": " << getFunctionNameFromFrame( array[ i ] );
+
+    if( location )
+    {
+      oss << " " << getSourceLocationFromFrame( array[ i ] );
+    }
+
+    oss << "\n";
   }
 
   oss << "=====\n";
 
-  free( strings );
-
-  return ( oss.str() );
+  return oss.str();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +427,7 @@ std::string calculateSize( size_t const bytes )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void abort()
 {
-#ifdef USE_MPI
+#ifdef LVARRAY_USE_MPI
   int mpi = 0;
   MPI_Initialized( &mpi );
   if( mpi )
@@ -231,7 +454,7 @@ void stackTraceHandler( int const sig, bool const exit )
     }
   }
 
-  oss << stackTrace() << std::endl;
+  oss << stackTrace( true ) << std::endl;
   std::cout << oss.str();
 
   if( exit )

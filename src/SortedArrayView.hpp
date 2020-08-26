@@ -16,27 +16,27 @@
 #include "bufferManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 
-#ifdef USE_ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index falls within the size of the array.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define SORTEDARRAY_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= size(), \
                     "Array Bounds Check Failed: index=" << index << " size()=" << size())
 
-#else // USE_ARRAY_BOUNDS_CHECK
+#else // LVARRAY_BOUNDS_CHECK
 
 /**
  * @brief Check that @p index falls within the size of the first dimension.
  * @param index The index to check.
- * @note This is only active when USE_ARRAY_BOUNDS_CHECK is defined.
+ * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define SORTEDARRAY_CHECK_BOUNDS( index )
 
-#endif // USE_ARRAY_BOUNDS_CHECK
+#endif // LVARRAY_BOUNDS_CHECK
 
 namespace LvArray
 {
@@ -231,7 +231,7 @@ public:
   inline
   void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
   {
-  #if defined(USE_CUDA)
+  #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::GPU ) touch = false;
   #endif
     m_values.move( space, touch );

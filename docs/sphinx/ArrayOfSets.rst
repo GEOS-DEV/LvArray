@@ -56,9 +56,9 @@ The two types of ``LvArray::ArrayOfSetsView`` obtainable from an ``LvArray::Arra
 
 Calling the explicit ``move`` method with the touch parameter set to ``true`` on a view type has the behavior described above. However calling ``move( MemorySpace::CPU )`` on an ``LvArray::ArrayOfSets`` will also touch the offsets (if moving to the GPU the offsets aren't touched). This is the only way to touch the offsets so if an ``LvArray::ArrayOfSets`` was previously on the device then it must be explicitly moved and touched on the host before any modification to the offsets can safely take place.
 
-Usage with ``USE_ARRAY_BOUNDS_CHECK``
+Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------
-When ``USE_ARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` and ``operator()`` is checked. If an invalid access is detected the program is aborted. Methods such as ``sizeOfArray``, ``insertArray`` and ``emplace`` are also checked. The values passed to ``insertIntoSet`` and ``removeFromSet`` are also checked to ensure they are sorted and contain no duplicates.
+When ``LVARRAY_BOUNDS_CHECK`` is defined access via ``operator[]`` and ``operator()`` is checked. If an invalid access is detected the program is aborted. Methods such as ``sizeOfArray``, ``insertArray`` and ``emplace`` are also checked. The values passed to ``insertIntoSet`` and ``removeFromSet`` are also checked to ensure they are sorted and contain no duplicates.
 
 Guidelines
 ----------
