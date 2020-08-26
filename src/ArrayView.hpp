@@ -192,7 +192,7 @@ public:
    * anotherView = std::move( view );
    * @endcode
    */
-  inline LVARRAY_HOST_DEVICE constexpr
+  inline LVARRAY_HOST_DEVICE LVARRAY_INTEL_CONSTEXPR
   ArrayView & operator=( ArrayView && rhs )
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
@@ -214,7 +214,7 @@ public:
    * @param rhs object to copy.
    * @return *this
    */
-  inline constexpr
+  inline LVARRAY_INTEL_CONSTEXPR
   ArrayView & operator=( ArrayView const & rhs ) noexcept
   {
     m_dataBuffer = rhs.m_dataBuffer;

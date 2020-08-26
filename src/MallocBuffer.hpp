@@ -84,7 +84,7 @@ public:
    * @param src The buffer to be copied.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE inline LVARRAY_INTEL_CONSTEXPR
   MallocBuffer & operator=( MallocBuffer const & src )
   {
     m_capacity = src.m_capacity;
@@ -97,7 +97,7 @@ public:
    * @param src The buffer to be moved from, is empty after the move.
    * @return *this.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE inline LVARRAY_INTEL_CONSTEXPR
   MallocBuffer & operator=( MallocBuffer && src )
   {
     m_capacity = src.m_capacity;
