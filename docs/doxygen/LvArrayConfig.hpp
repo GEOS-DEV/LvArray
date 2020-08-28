@@ -12,7 +12,7 @@
 
 #pragma once
 
-/* #undef LVARRAY_BOUNDS_CHECK */
+#define LVARRAY_BOUNDS_CHECK
 
 #define LVARRAY_USE_CHAI
 

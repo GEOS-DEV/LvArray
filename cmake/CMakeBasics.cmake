@@ -1,10 +1,12 @@
 set(CMAKE_ENABLE_EXPORTS ON)
 
-message( "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}" )
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  set(ENABLE_ARRAY_BOUNDS_CHECK "ON" CACHE BOOL "")
+  message( "Bounds Checking Enabled" )
+  option( LVARRAY_BOUNDS_CHECK "" ON )
+else()
+  option( LVARRAY_BOUNDS_CHECK "" OFF )
 endif()
-option( ENABLE_ARRAY_BOUNDS_CHECK "" OFF )
+
 
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
@@ -34,3 +36,4 @@ blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
 if( ${CMAKE_MAKE_PROGRAM} STREQUAL "ninja" OR ${CMAKE_MAKE_PROGRAM} MATCHES ".*/ninja$" )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOSX_NINJA_FLAGS}")
 endif()
+

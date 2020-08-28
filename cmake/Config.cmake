@@ -1,6 +1,5 @@
 #
-set( PREPROCESSOR_DEFINES ARRAY_BOUNDS_CHECK
-                          CHAI
+set( PREPROCESSOR_DEFINES CHAI
                           CUDA
                           MPI
                           TOTALVIEW_OUTPUT

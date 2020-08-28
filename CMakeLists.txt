@@ -31,6 +31,8 @@ if( NOT is_submodule )
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
     include( cmake/SetupTPL.cmake )
+else()
+    include( cmake/CMakeBasics.cmake )
 endif()
 
 include(cmake/Macros.cmake)
