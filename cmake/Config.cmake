@@ -25,6 +25,12 @@ if( USE_ADDR2LINE )
     set( LVARRAY_ADDR2LINE_EXEC ${ADDR2LINE_EXEC} )
 endif()
 
+if( DEFINED LVARRAY_BOUNDS_CHECK )
+    message( STATUS "LvArray bounds checking enabled." )
+else()
+    message( STATUS "LvArray bounds checking disabled." )
+endif()
+
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
                 ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp )
 

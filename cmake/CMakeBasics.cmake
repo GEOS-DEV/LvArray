@@ -1,7 +1,6 @@
 set(CMAKE_ENABLE_EXPORTS ON)
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  message( "Bounds Checking Enabled" )
   option( LVARRAY_BOUNDS_CHECK "" ON )
 else()
   option( LVARRAY_BOUNDS_CHECK "" OFF )
