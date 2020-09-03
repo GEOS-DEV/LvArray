@@ -849,7 +849,7 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > toInsert = createColumns( true, false );
-    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toNestedViewConst();
 
     ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const row )
@@ -869,7 +869,7 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toInsert = createColumns( true, true );
-    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toInsertView = toInsert.toNestedViewConst();
 
     ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toInsertView] LVARRAY_HOST_DEVICE ( IndexType const row )
@@ -886,7 +886,7 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toRemove = createColumns( false, false );
-    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toNestedViewConst();
 
     ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const row )
@@ -906,7 +906,7 @@ public:
     COMPARE_TO_REFERENCE
 
     Array1D< Array1D< ColType > > const toRemove = createColumns( false, true );
-    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toViewConst();
+    ArrayView1D< ArrayView1D< ColType const > const > const toRemoveView = toRemove.toNestedViewConst();
 
     ViewType const view = m_sp.toView();
     forall< POLICY >( m_sp.numRows(), [view, toRemoveView] LVARRAY_HOST_DEVICE ( IndexType const row )

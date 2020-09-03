@@ -78,7 +78,7 @@ void SparsityGenerationNative::resizeExact()
   INDEX_TYPE neighborNodes[ MAX_ELEMS_PER_NODE * NODES_PER_ELEM ];
   for( INDEX_TYPE nodeID = 0; nodeID < m_numNodes; ++nodeID )
   {
-    INDEX_TYPE const numNeighbors = getNeighborNodes( neighborNodes, m_elemToNodeMap, m_nodeToElemMap[ nodeID ] );
+    INDEX_TYPE const numNeighbors = getNeighborNodes( neighborNodes, m_elemToNodeMap.toViewConst(), m_nodeToElemMap[ nodeID ] );
     for( int dim = 0; dim < NDIM; ++dim )
     {
       nnzPerRow[ NDIM * nodeID + dim ] = NDIM * numNeighbors;

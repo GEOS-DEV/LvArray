@@ -23,57 +23,57 @@ template< typename T, typename PERMUTATION >
 using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
 
 template< typename T >
-void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const & view )
+void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const slice )
 {
   INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
-    EXPECT_EQ( view( i ), offset++ );
+    EXPECT_EQ( slice( i ), offset++ );
   }
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 2, USD, INDEX_TYPE > const & view )
+void check( ArraySlice< T const, 2, USD, INDEX_TYPE > const slice )
 {
   INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
-    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
     {
-      EXPECT_EQ( view( i, j ), offset++ );
+      EXPECT_EQ( slice( i, j ), offset++ );
     }
   }
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 3, USD, INDEX_TYPE > const & view )
+void check( ArraySlice< T const, 3, USD, INDEX_TYPE > const slice )
 {
   INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
-    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
     {
-      for( INDEX_TYPE k = 0; k < view.size( 2 ); ++k )
+      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
       {
-        EXPECT_EQ( view( i, j, k ), offset++ );
+        EXPECT_EQ( slice( i, j, k ), offset++ );
       }
     }
   }
 }
 
 template< typename T, int USD >
-void check( ArraySlice< T const, 4, USD, INDEX_TYPE > const & view )
+void check( ArraySlice< T const, 4, USD, INDEX_TYPE > const slice )
 {
   INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < view.size( 0 ); ++i )
+  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
   {
-    for( INDEX_TYPE j = 0; j < view.size( 1 ); ++j )
+    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
     {
-      for( INDEX_TYPE k = 0; k < view.size( 2 ); ++k )
+      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
       {
-        for( INDEX_TYPE l = 0; l < view.size( 3 ); ++l )
+        for( INDEX_TYPE l = 0; l < slice.size( 3 ); ++l )
         {
-          EXPECT_EQ( view( i, j, k, l ), offset++ );
+          EXPECT_EQ( slice( i, j, k, l ), offset++ );
         }
       }
     }
@@ -166,8 +166,8 @@ TEST( ForValuesInSlice, scalar )
 
 
 template< typename T, int USD_SRC >
-void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const & src,
-                ArraySlice< T const, 1, 0, INDEX_TYPE > const & sums )
+void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const src,
+                ArraySlice< T const, 1, 0, INDEX_TYPE > const sums )
 {
   for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {
@@ -182,8 +182,8 @@ void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const & src,
 }
 
 template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const & src,
-                ArraySlice< T const, 2, USD_SUMS, INDEX_TYPE > const & sums )
+void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const src,
+                ArraySlice< T const, 2, USD_SUMS, INDEX_TYPE > const sums )
 {
   for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {
@@ -201,8 +201,8 @@ void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const & src,
 }
 
 template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 4, USD_SRC, INDEX_TYPE > const & src,
-                ArraySlice< T const, 3, USD_SUMS, INDEX_TYPE > const & sums )
+void checkSums( ArraySlice< T const, 4, USD_SRC, INDEX_TYPE > const src,
+                ArraySlice< T const, 3, USD_SUMS, INDEX_TYPE > const sums )
 {
   for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
   {

@@ -128,7 +128,15 @@ public:
    *   shallow copy that invalidates the contents of source. However this depends on the
    *   implementation of BUFFER_TYPE.
    */
-  Array( Array && source ) = default;
+  Array( Array && source ):
+    ParentClass( std::move( source ) )
+  {
+    for( int i = 0; i < NDIM; ++i )
+    {
+      source.m_dims[ i ] = 0;
+      source.m_strides[ i ] = 0;
+    }
+  }
 
   /**
    * @brief Destructor, free's the data.
@@ -166,6 +174,13 @@ public:
   Array & operator=( Array && rhs )
   {
     ParentClass::operator=( std::move( rhs ) );
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      rhs.m_dims[ i ] = 0;
+      rhs.m_strides[ i ] = 0;
+    }
+
     return *this;
   }
 
@@ -216,10 +231,10 @@ public:
     INDEX_TYPE const oldSize = this->size();
 
     int curDim = 0;
-    typeManipulation::forEachArg( [&curDim, dims=this->m_dims]( auto const newDim )
+    typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      dims[ curDim++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
-      LVARRAY_ERROR_IF_LT( dims[ curDim ], 0 );
+      this->m_dims[ curDim++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      LVARRAY_ERROR_IF_LT( this->m_dims[ curDim ], 0 );
     }, newDims ... );
 
     CalculateStrides();
@@ -245,10 +260,10 @@ public:
     INDEX_TYPE const oldSize = this->size();
 
     int i = 0;
-    typeManipulation::forEachArg( [&i, dims=this->m_dims]( auto const newDim )
+    typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      dims[ i++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
-      LVARRAY_ERROR_IF_LT( dims[ i ], 0 );
+      this->m_dims[ i++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      LVARRAY_ERROR_IF_LT( this->m_dims[ i ], 0 );
     }, newDims ... );
 
     CalculateStrides();

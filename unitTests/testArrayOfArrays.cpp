@@ -1006,7 +1006,7 @@ public:
 
     // Append to the view on the device.
     ViewType const view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToAppend.toViewConst();
+    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToAppend.toNestedViewConst();
     forall< POLICY >( nArrays, [view, seeds] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < seeds[ i ].size(); ++j )
@@ -1046,7 +1046,7 @@ public:
 
     // Append to the view on the device.
     ViewType const view = m_array.toView();
-    ArrayView1D< ArrayView1D< T const > const > const toAppend = valuesToAppend.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const toAppend = valuesToAppend.toNestedViewConst();
     forall< POLICY >( nArrays, [view, toAppend] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.appendToArray( i, toAppend[ i ].begin(), toAppend[ i ].end() );
@@ -1089,8 +1089,8 @@ public:
 
     // Insert into the view on the device.
     ViewType const view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToInsert.toViewConst();
-    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToInsert.toViewConst();
+    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToInsert.toNestedViewConst();
+    ArrayView1D< ArrayView1D< IndexType const > const > const seeds = seedsToInsert.toNestedViewConst();
     forall< POLICY >( nArrays, [view, positions, seeds] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < positions[ i ].size(); ++j )
@@ -1136,7 +1136,7 @@ public:
     // Insert into the view on the device.
     ViewType const view = m_array.toView();
     ArrayView1D< IndexType const > const positions = positionsToInsert.toViewConst();
-    ArrayView1D< ArrayView1D< T const > const > const values = valuesToInsert.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const values = valuesToInsert.toNestedViewConst();
     forall< POLICY >( nArrays, [view, positions, values] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           view.insertIntoArray( i, positions[ i ], values[ i ].begin(), values[ i ].end() );
@@ -1171,7 +1171,7 @@ public:
 
     // Remove the view on the device.
     ViewType const view = m_array.toView();
-    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToRemove.toViewConst();
+    ArrayView1D< ArrayView1D< IndexType const > const > const positions = positionsToRemove.toNestedViewConst();
     forall< POLICY >( nArrays, [view, positions] LVARRAY_HOST_DEVICE ( IndexType const i )
         {
           for( IndexType j = 0; j < positions[ i ].size(); ++j )

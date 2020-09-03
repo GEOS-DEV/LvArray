@@ -38,7 +38,7 @@ namespace LvArray
 // Sphinx start after Array stream IO
 template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ::LvArray::ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice )
+                           ::LvArray::ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice )
 {
   stream << "{ ";
 

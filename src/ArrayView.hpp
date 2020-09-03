@@ -35,29 +35,29 @@ namespace LvArray
  * @tparam T type of data that is contained by the array
  * @tparam NDIM_TPARAM number of dimensions in array (e.g. NDIM=1->vector, NDIM=2->Matrix, etc. ).
  * @tparam USD the dimension with a unit stride, in an Array with a standard layout
- *         this is the last dimension.
+ *   this is the last dimension.
  * @tparam INDEX_TYPE the integer to use for indexing.
  * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the Array. Must take
- *         one template argument that describes the type of the data being stored (T).
+ *   one template argument that describes the type of the data being stored (T).
  *
- * When using the CHaiBuffer the copy copy constructor of this class calls the copy constructor for the
- * ChaiBuffer which will move the data to the location of the touch (host or device). In general, the
- * ArrayView should be what is passed by value into a lambda that is used to launch kernels as it
- * copy will trigger the desired data motion onto the appropriate memory space.
+ * @details When using the ChaiBuffer the copy copy constructor of this class calls the copy constructor for the
+ *   ChaiBuffer which will move the data to the location of the touch (host or device). In general, the
+ *   ArrayView should be what is passed by value into a lambda that is used to launch kernels as it
+ *   copy will trigger the desired data motion onto the appropriate memory space.
  *
- * Key features:
- * 1) When using a ChaiBuffer as the BUFFER_TYPE the ArrayView copy constructor will move the data
- *    to the current execution space.
- * 2) Defines a slicing operator[].
- * 3) Defines operator() array accessor.
- * 3) operator[] and operator() are all const and may be called in non-mutable lambdas.
- * 4) Conversion operators to go from ArrayView<T> to ArrayView<T const>.
- * 5) Since the Array is derived from ArrayView, it may be upcasted:
- *      Array<T,NDIM> array;
- *      ArrayView<T,NDIM> const & arrView = array;
+ *   Key features:
+ *   1) When using a ChaiBuffer as the BUFFER_TYPE the ArrayView copy constructor will move the data
+ *      to the current execution space.
+ *   2) Defines a slicing operator[].
+ *   3) Defines operator() array accessor.
+ *   3) operator[] and operator() are all const and may be called in non-mutable lambdas.
+ *   4) Conversion operators to go from ArrayView<T> to ArrayView<T const>.
+ *   5) Since the Array is derived from ArrayView, it may be upcasted:
+ *        Array<T,NDIM> array;
+ *        ArrayView<T,NDIM> const & arrView = array;
  *
- * A good guideline is to upcast to an ArrayView when you don't need allocation capabilities that
- * are only present in Array.
+ *   A good guideline is to upcast to an ArrayView when you don't need allocation capabilities that
+ *   are only present in Array.
  */
 template< typename T,
           int NDIM_TPARAM,
@@ -68,6 +68,7 @@ class ArrayView
 {
 public:
 
+  static_assert( NDIM_TPARAM > 0, "Number of dimensions must be greater than zero." );
   static_assert( USD_TPARAM >= 0, "USD must be positive." );
   static_assert( USD_TPARAM < NDIM_TPARAM, "USD must be less than NDIM." );
 
@@ -84,12 +85,12 @@ public:
   using IndexType = INDEX_TYPE;
 
   /// The type when all inner array classes are converted to const views.
-  using ViewType = ArrayView< std::remove_reference_t< typeManipulation::ViewType< T > >,
-                              NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
+  using NestedViewType = ArrayView< std::remove_reference_t< typeManipulation::NestedViewType< T > >,
+                                    NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
 
   /// The type when all inner array classes are converted to const views and the inner most view's values are also const.
-  using ViewTypeConst = ArrayView< std::remove_reference_t< typeManipulation::ViewTypeConst< T > > const,
-                                   NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const;
+  using NestedViewTypeConst = ArrayView< std::remove_reference_t< typeManipulation::NestedViewTypeConst< T > >,
+                                         NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
 
   /// The type of the ArrayView when converted to an ArraySlice.
   using SliceType = ArraySlice< T, NDIM, USD, INDEX_TYPE > const;
@@ -124,17 +125,11 @@ public:
   DISABLE_HD_WARNING
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView( ArrayView const & source ) noexcept:
-    m_dims{ 0 },
-    m_strides{ 0 },
+    m_dims{ source.m_dims },
+    m_strides{ source.m_strides },
     m_dataBuffer{ source.m_dataBuffer, source.size() },
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
-  {
-    for( int i = 0; i < NDIM; ++i )
-    {
-      m_dims[ i ] = source.m_dims[ i ];
-      m_strides[ i ] = source.m_strides[ i ];
-    }
-  }
+  {}
 
   /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
@@ -153,22 +148,25 @@ public:
    * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > anotherView = std::move( view );
    * @endcode
    */
-  inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView( ArrayView && source ):
-    m_dims{ 0 },
-    m_strides{ 0 },
-    m_dataBuffer( std::move( source.m_dataBuffer ) ),
-    m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
-  {
-    for( int i = 0; i < NDIM; ++i )
-    {
-      m_dims[ i ] = source.m_dims[ i ];
-      m_strides[ i ] = source.m_strides[ i ];
+  ArrayView( ArrayView && source ) = default;
 
-      source.m_dims[ i ] = 0;
-      source.m_strides[ i ] = 0;
-    }
-  }
+  /**
+   * @brief Construct a new ArrayView from existing components.
+   * @param dims The array of dimensions.
+   * @param strides The array of strides.
+   * @param singleParameterResizeIndex The single parameter resize index.
+   * @param buffer The buffer to copy construct.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims,
+             typeManipulation::CArray< INDEX_TYPE, NDIM > const & strides,
+             int const singleParameterResizeIndex,
+             BUFFER_TYPE< T > const & buffer ):
+    m_dims( dims ),
+    m_strides( strides ),
+    m_dataBuffer( buffer ),
+    m_singleParameterResizeIndex( singleParameterResizeIndex )
+  {}
 
   /// The default destructor.
   ~ArrayView() = default;
@@ -201,9 +199,6 @@ public:
     {
       m_dims[ i ] = rhs.m_dims[ i ];
       m_strides[ i ] = rhs.m_strides[ i ];
-
-      rhs.m_dims[ i ] = 0;
-      rhs.m_strides[ i ] = 0;
     }
 
     return *this;
@@ -239,57 +234,137 @@ public:
    * @return Return *this after converting any nested arrays to const views.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ViewType & toView() const
-  { return reinterpret_cast< ViewType & >( *this ); }
+  ArrayView toView() const
+  { return ArrayView( m_dims, m_strides, m_singleParameterResizeIndex, m_dataBuffer ); }
 
   /**
    * @return Return *this after converting any nested arrays to const views to const values.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ViewTypeConst & toViewConst() const
-  { return reinterpret_cast< ViewTypeConst & >( *this ); }
+  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const
+  {
+    return ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >( m_dims,
+                                                                     m_strides,
+                                                                     m_singleParameterResizeIndex,
+                                                                     m_dataBuffer );
+  }
+
+  /**
+   * @brief @return Return *this after converting any nested arrays to const views.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  NestedViewType toNestedView() const
+  { return reinterpret_cast< NestedViewType const & >( *this ); }
+
+  /**
+   * @brief @return Return *this after converting any nested arrays to const views to const values.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  NestedViewTypeConst toNestedViewConst() const
+  { return reinterpret_cast< NestedViewTypeConst const & >( *this ); }
 
   /**
    * @return Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T, NDIM, USD, INDEX_TYPE >
-  toSlice() const noexcept
-  { return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
+  toSlice() const & noexcept
+  { return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims.data, m_strides.data ); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArraySlice.
+   * @brief @c toSlice cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the object that is about to be destroyed. This overload
+   *   prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArraySlice< T, NDIM, USD, INDEX_TYPE >
+  toSlice() const && noexcept
+  {
+    static_assert( NDIM < 0, "Cannot call toSlice on a rvalue." );
+    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
+  }
 
   /**
    * @return Return an immutable ArraySlice representing this ArrayView.
    */
-  template< typename U=T >
+  template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
-  toSliceConst() const noexcept
-  { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims, m_strides ); }
+  toSliceConst() const & noexcept
+  { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims.data, m_strides.data ); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArraySlice.
+   * @brief @c toSliceConst cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the object that is about to be destroyed. This overload
+   *   prevents that from happening.
+   */
+  template< typename _T=T >
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArraySlice< T const, NDIM, USD, INDEX_TYPE >
+  toSliceConst() const && noexcept
+  {
+    static_assert( NDIM < 0, "Cannot call toSliceConst on a rvalue." );
+    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
+  }
 
   /**
    * @return Return *this interpret as ArrayView<T const> const &.
    */
-  template< typename U = T >
+  template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
-  operator std::enable_if_t< !std::is_const< U >::value, ViewTypeConst & >() const noexcept
+  operator std::enable_if_t< !std::is_const< _T >::value,
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const noexcept
   { return toViewConst(); }
 
   /**
    * @return Return an ArraySlice representing this ArrayView.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const noexcept
+  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const & noexcept
   { return toSlice(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArraySlice.
+   * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the object that is about to be destroyed. This overload
+   *   prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const && noexcept
+  {
+    static_assert( NDIM < 0, "Cannot use to conversion to an ArraySlice< T, ... > on a rvalue." );
+    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
+  }
 
   /**
    * @return Return an immutable ArraySlice representing this ArrayView.
    */
-  template< typename U=T >
+  template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
-  operator std::enable_if_t< !std::is_const< U >::value,
-                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >
-    () const noexcept
+  operator std::enable_if_t< !std::is_const< _T >::value,
+                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >() const & noexcept
   { return toSliceConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArraySlice.
+   * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the object that is about to be destroyed. This overload
+   *   prevents that from happening.
+   */
+  template< typename _T=T >
+  inline LVARRAY_HOST_DEVICE constexpr
+  operator std::enable_if_t< !std::is_const< _T >::value,
+                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >() const && noexcept
+  {
+    static_assert( NDIM < 0, "Cannot use to conversion to an ArraySlice< T const, ... > on a rvalue." );
+    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
+  }
 
   ///@}
 
@@ -363,9 +438,9 @@ public:
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef LVARRAY_BOUNDS_CHECK
-    indexing::checkIndices( m_dims, indices ... );
+    indexing::checkIndices( m_dims.data, indices ... );
 #endif
-    return indexing::getLinearIndex< USD >( m_strides, indices ... );
+    return indexing::getLinearIndex< USD >( m_strides.data, indices ... );
   }
 
   /**
@@ -373,14 +448,14 @@ public:
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * dims() const noexcept
-  { return m_dims; }
+  { return m_dims.data; }
 
   /**
    * @return A pointer to the array containing the stride of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * strides() const noexcept
-  { return m_strides; }
+  { return m_strides.data; }
 
   ///@}
 
@@ -394,15 +469,33 @@ public:
    * @param index The index of the slice to create.
    * @note This method is only active when NDIM > 1.
    */
-  template< int U=NDIM >
+  template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
+  operator[]( INDEX_TYPE const index ) const & noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
-                                                       m_dims + 1,
-                                                       m_strides + 1 );
+                                                       m_dims.data + 1,
+                                                       m_strides.data + 1 );
+  }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @param index Not used.
+   * @return A null ArraySlice.
+   * @brief The multidimensional operator[] cannot be called on a rvalue since the @c ArraySlice
+   *   would contain pointers to the object that is about to be destroyed. This overload
+   *   prevents that from happening.
+   */
+  template< int _NDIM=NDIM >
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
+  operator[]( INDEX_TYPE const index ) const && noexcept LVARRAY_RESTRICT_THIS
+  {
+    LVARRAY_UNUSED_VARIABLE( index );
+    static_assert( NDIM < 0, "Cannot call operator[] on an rvalue." );
+    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
   /**
@@ -410,10 +503,10 @@ public:
    * @param index The index of the value to access.
    * @note This method is only active when NDIM == 1.
    */
-  template< int U=NDIM >
+  template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  std::enable_if_t< _NDIM == 1, T & >
+  operator[]( INDEX_TYPE const index ) const & noexcept LVARRAY_RESTRICT_THIS
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return data()[ indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
@@ -481,10 +574,9 @@ public:
   template< typename POLICY >
   void setValues( T const & value ) const
   {
-    ViewType const & view = toView();
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, this] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
-        view.data()[ i ] = value;
+        data()[ i ] = value;
       } );
   }
 
@@ -503,10 +595,9 @@ public:
                                "This method only works with Arrays with the same data layout." );
     }
 
-    ViewType const & view = toView();
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, this] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
-        view.data()[ i ] = rhs.data()[ i ];
+        data()[ i ] = rhs.data()[ i ];
       } );
   }
 
@@ -581,10 +672,10 @@ protected:
   }
 
   /// the dimensions of the array.
-  INDEX_TYPE m_dims[ NDIM ] = { 0 };
+  typeManipulation::CArray< INDEX_TYPE, NDIM > m_dims = { 0 };
 
   /// the strides of the array.
-  INDEX_TYPE m_strides[ NDIM ] = { 0 };
+  typeManipulation::CArray< INDEX_TYPE, NDIM > m_strides = { 0 };
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;

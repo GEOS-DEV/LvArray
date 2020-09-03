@@ -61,7 +61,7 @@ public:
     Array1D< Array1D< Array1D< T > > > array;
     init( array );
 
-    ArrayView1D< ArrayView1D< ArrayView1D< T > const > const > const & view = array.toView();
+    ArrayView1D< ArrayView1D< ArrayView1D< T > const > const > const & view = array.toNestedView();
     forall< POLICY >( array.size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < view[ i ].size(); ++j )
@@ -104,7 +104,7 @@ public:
     }
 
     // Create a const view and launch a kernel checking the values.
-    ArrayView1D< ArrayView1D< ArrayView1D< T const > const > const > const & viewConst = array.toViewConst();
+    ArrayView1D< ArrayView1D< ArrayView1D< T const > const > const > const & viewConst = array.toNestedViewConst();
     forall< POLICY >( array.size(), [viewConst] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < viewConst[ i ].size(); ++j )
