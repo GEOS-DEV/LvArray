@@ -56,13 +56,13 @@ public:
 
   void fortranView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & view = m_array.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const view = m_array.toViewConst();
     TIMING_LOOP( fortranViewKernel( view ) );
   }
 
   void fortranSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & slice = m_array.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const slice = m_array.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( slice ) );
   }
 
@@ -71,13 +71,13 @@ public:
 
   void subscriptView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & view = m_array.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const view = m_array.toViewConst();
     TIMING_LOOP( subscriptViewKernel( view ) );
   }
 
   void subscriptSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & slice = m_array.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const slice = m_array.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( slice ) );
   }
 
@@ -135,25 +135,25 @@ public:
 
   void fortranView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & view = m_array.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const view = m_array.toViewConst();
     TIMING_LOOP( fortranViewKernel( view ) );
   }
 
   void fortranSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & slice = m_array.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const slice = m_array.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( slice ) );
   }
 
   void subscriptView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & view = m_array.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const view = m_array.toViewConst();
     TIMING_LOOP( subscriptViewKernel( view ) );
   }
 
   void subscriptSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & slice = m_array.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const slice = m_array.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( slice ) );
   }
 

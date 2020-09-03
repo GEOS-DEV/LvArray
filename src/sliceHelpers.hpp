@@ -44,7 +44,7 @@ void forValuesInSlice( T & value, LAMBDA && f )
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
 LVARRAY_HOST_DEVICE
-void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAMBDA && f )
+void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, LAMBDA && f )
 {
   INDEX_TYPE const bounds = slice.size( 0 );
   for( INDEX_TYPE i = 0; i < bounds; ++i )
@@ -84,7 +84,7 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
 LVARRAY_HOST_DEVICE
-void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice,
+void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice,
                                   LAMBDA && f,
                                   INDICES const ... indices )
 {
@@ -105,7 +105,7 @@ void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const &
  * @param dst The value to add the sum to.
  */
 template< typename T, int USD_SRC, typename INDEX_TYPE >
-void sumOverFirstDimension( ArraySlice< T const, 1, USD_SRC, INDEX_TYPE > const & src,
+void sumOverFirstDimension( ArraySlice< T const, 1, USD_SRC, INDEX_TYPE > const src,
                             T & dst )
 {
   INDEX_TYPE const bounds = src.size( 0 );
@@ -126,8 +126,8 @@ void sumOverFirstDimension( ArraySlice< T const, 1, USD_SRC, INDEX_TYPE > const 
  * @param dst The slice to add to.
  */
 template< typename T, int NDIM, int USD_SRC, int USD_DST, typename INDEX_TYPE >
-void sumOverFirstDimension( ArraySlice< T const, NDIM, USD_SRC, INDEX_TYPE > const & src,
-                            ArraySlice< T, NDIM - 1, USD_DST, INDEX_TYPE > const & dst )
+void sumOverFirstDimension( ArraySlice< T const, NDIM, USD_SRC, INDEX_TYPE > const src,
+                            ArraySlice< T, NDIM - 1, USD_DST, INDEX_TYPE > const dst )
 {
 #ifdef ARRAY_SLICE_CHECK_BOUNDS
   for( int i = 1; i < NDIM; ++i )

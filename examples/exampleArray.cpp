@@ -256,7 +256,7 @@ TEST( Array, arrayView )
                       2,
                       0,
                       std::ptrdiff_t,
-                      LvArray::MallocBuffer > const & view = array;
+                      LvArray::MallocBuffer > const view = array;
   EXPECT_EQ( view.data(), array.data() );
 
   // Create a view with const values.
@@ -264,7 +264,7 @@ TEST( Array, arrayView )
                       2,
                       0,
                       std::ptrdiff_t,
-                      LvArray::MallocBuffer > const & viewConst = array.toViewConst();
+                      LvArray::MallocBuffer > const viewConst = array.toViewConst();
   EXPECT_EQ( viewConst.data(), array.data() );
 
   // Copy a view.
@@ -272,7 +272,7 @@ TEST( Array, arrayView )
                       2,
                       0,
                       std::ptrdiff_t,
-                      LvArray::MallocBuffer > const & viewCopy = view;
+                      LvArray::MallocBuffer > const viewCopy = view;
   EXPECT_EQ( viewCopy.data(), array.data() );
 }
 // Sphinx end before arrayView

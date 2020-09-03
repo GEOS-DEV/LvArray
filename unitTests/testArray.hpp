@@ -115,14 +115,12 @@ public:
   static void toView()
   {
     std::unique_ptr< ARRAY > array = sizedConstructor();
-    EXPECT_EQ( array.get(), &array->toView() );
     compare( *array, array->toView(), true );
   }
 
   static void toViewConst()
   {
     std::unique_ptr< ARRAY > array = sizedConstructor();
-    EXPECT_EQ( static_cast< void * >( array.get() ), static_cast< const void * >( &array->toViewConst() ) );
     compare( *array, array->toViewConst(), true );
   }
 

@@ -155,23 +155,39 @@ template< template< typename ... > class TEMPLATE,
 constexpr bool is_instantiation_of< TEMPLATE, TEMPLATE< ARGS... > > = true;
 
 /**
- * @brief Defines a static constexpr bool HasMemberFunction_toView is true if CLASS has a method toView().
+ * @brief Defines a template static constexpr bool @c HasMemberFunction_toView
+ *   that is true if @c CLASS has a method @c toView().
  * @tparam CLASS The type to test.
  */
 HAS_MEMBER_FUNCTION_NO_RTYPE( toView, );
 
 /**
- * @brief Defines a static constexpr bool HasMemberFunction_toViewConstSizes is true if CLASS has a method toView().
+ * @brief Defines a template static constexpr bool @c HasMemberFunction_toViewConstSizes
+ *   that is true if @c CLASS has a method @c toView().
  * @tparam CLASS The type to test.
  */
 HAS_MEMBER_FUNCTION_NO_RTYPE( toViewConstSizes, );
 
-
 /**
- * @brief Defines a static constexpr bool HasMemberFunction_toViewConst is true if CLASS has a method toViewConst().
+ * @brief Defines a template static constexpr bool @c HasMemberFunction_toViewConst
+ *   that is true if @c CLASS has a method @c toViewConst().
  * @tparam CLASS The type to test.
  */
 HAS_MEMBER_FUNCTION_NO_RTYPE( toViewConst, );
+
+/**
+ * @brief Defines a template static constexpr bool @c HasMemberFunction_toNestedView
+ *   that is true if @c CLASS has a method @c toNestedView().
+ * @tparam CLASS The type to test.
+ */
+HAS_MEMBER_FUNCTION_NO_RTYPE( toNestedView, );
+
+/**
+ * @brief Defines a template static constexpr bool @c HasMemberFunction_toNestedViewConst
+ *   that is true if @c CLASS has a method @c toNestedViewConst().
+ * @tparam CLASS The type to test.
+ */
+HAS_MEMBER_FUNCTION_NO_RTYPE( toNestedViewConst, );
 
 namespace internal
 {
@@ -199,7 +215,7 @@ template< typename T >
 struct GetViewType< T, true >
 {
   /// An alias for the view type.
-  using type = std::remove_reference_t< decltype( std::declval< T >().toView() ) >;
+  using type = decltype( std::declval< T >().toView() );
 };
 
 /**
@@ -225,7 +241,7 @@ template< typename T >
 struct GetViewTypeConstSizes< T, true >
 {
   /// An alias for the view type.
-  using type = std::remove_reference_t< decltype( std::declval< T >().toViewConstSizes() ) >;
+  using type = decltype( std::declval< T >().toViewConstSizes() );
 };
 
 /**
@@ -251,7 +267,37 @@ template< typename T >
 struct GetViewTypeConst< T, true >
 {
   /// An alias for the const view type.
-  using type = std::remove_reference_t< decltype( std::declval< T >().toViewConst() ) >;
+  using type = decltype( std::declval< T >().toViewConst() );
+};
+
+template< typename T, bool=HasMemberFunction_toNestedView< T > >
+struct GetNestedViewType
+{
+  /// An alias for the view type.
+  using type = typename GetViewType< T >::type;
+};
+
+
+template< typename T >
+struct GetNestedViewType< T, true >
+{
+  /// An alias for the view type.
+  using type = decltype( std::declval< T >().toNestedView() ) const;
+};
+
+template< typename T, bool=HasMemberFunction_toNestedViewConst< T > >
+struct GetNestedViewTypeConst
+{
+  /// An alias for the view type.
+  using type = typename GetViewTypeConst< T >::type;
+};
+
+
+template< typename T >
+struct GetNestedViewTypeConst< T, true >
+{
+  /// An alias for the view type.
+  using type = decltype( std::declval< T >().toNestedViewConst() ) const;
 };
 
 } // namespace internal
@@ -276,6 +322,21 @@ using ViewTypeConstSizes = typename internal::GetViewTypeConstSizes< T >::type;
  */
 template< typename T >
 using ViewTypeConst = typename internal::GetViewTypeConst< T >::type;
+
+/**
+ * @brief An alias for the nested view type of T.
+ * @tparam T The type to get the nested view type of.
+ */
+template< typename T >
+using NestedViewType = typename internal::GetNestedViewType< T >::type;
+
+/**
+ * @brief An alias for the nested const view type of T.
+ * @tparam T The type to get the nested const view type of.
+ */
+template< typename T >
+using NestedViewTypeConst = typename internal::GetNestedViewTypeConst< T >::type;
+
 
 namespace internal
 {
@@ -353,12 +414,20 @@ template< typename T, std::ptrdiff_t N >
 struct CArray
 {
   /**
+   * @return Return a reference to the value at position @p i.
+   * @param i The position to access.
+   */
+  LVARRAY_INTEL_CONSTEXPR inline LVARRAY_HOST_DEVICE
+  T & operator[]( std::ptrdiff_t const i )
+  { return data[ i ]; }
+
+  /**
    * @return Return a const reference to the value at position @p i.
    * @param i The position to access.
    */
   constexpr inline LVARRAY_HOST_DEVICE
   T const & operator[]( std::ptrdiff_t const i ) const
-  { return m_d_a_t_a[ i ]; }
+  { return data[ i ]; }
 
   /**
    * @return Return the size of the array.
@@ -369,7 +438,7 @@ struct CArray
 
   /// The backing c array, public so that aggregate initialization works.
   /// The funny name is to dissuade the user from accessing it directly.
-  T m_d_a_t_a[ N ];
+  T data[ N ];
 };
 
 /**

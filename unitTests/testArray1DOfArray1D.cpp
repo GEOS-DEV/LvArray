@@ -5,6 +5,8 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
+#if 0
+
 // Source includes
 #include "Array.hpp"
 #include "output.hpp"
@@ -61,7 +63,7 @@ public:
     Array1D< Array1D< T > > array;
     init( array );
 
-    ArrayView1D< ArrayView1D< T > const > const & view = array.toView();
+    ArrayView1D< ArrayView1D< T > const > const & view = array.toNestedView();
     forall< POLICY >( array.size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < view[ i ].size(); ++j )
@@ -92,7 +94,7 @@ public:
     { copy[ i ] = array[ i ].toView(); }
 
     // Create a const view and launch a kernel checking the values.
-    ArrayView1D< ArrayView1D< T const > const > const & viewConst = array.toViewConst();
+    ArrayView1D< ArrayView1D< T const > const > const & viewConst = array.toNestedViewConst();
     forall< POLICY >( array.size(), [viewConst] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           for( INDEX_TYPE j = 0; j < viewConst[ i ].size(); ++j )
@@ -275,3 +277,5 @@ int main( int argc, char * * argv )
   int const result = RUN_ALL_TESTS();
   return result;
 }
+
+#endif

@@ -54,16 +54,16 @@ namespace benchmarking
 
 template< typename VALUE_TYPE_CONST, int USD >
 inline LVARRAY_HOST_DEVICE constexpr
-void R2TensorMultiplyFortran( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & a,
-                              LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & b,
-                              LvArray::ArraySlice< VALUE_TYPE, 2, USD, INDEX_TYPE > const & c )
+void R2TensorMultiplyFortran( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const a,
+                              LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const b,
+                              LvArray::ArraySlice< VALUE_TYPE, 2, USD, INDEX_TYPE > const c )
 { INNER_LOOP( a( j, l ), b( l, k ), c( j, k ) ) }
 
 template< typename VALUE_TYPE_CONST, int USD >
 RAJA_INLINE LVARRAY_HOST_DEVICE constexpr
-void R2TensorMultiplySubscript( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & a,
-                                LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const & b,
-                                LvArray::ArraySlice< VALUE_TYPE, 2, USD, INDEX_TYPE > const & c )
+void R2TensorMultiplySubscript( LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const a,
+                                LvArray::ArraySlice< VALUE_TYPE_CONST, 2, USD, INDEX_TYPE > const b,
+                                LvArray::ArraySlice< VALUE_TYPE, 2, USD, INDEX_TYPE > const c )
 { INNER_LOOP( a[ j ][ l ], b[ l ][ k ], c[ j ][ k ] ) }
 
 

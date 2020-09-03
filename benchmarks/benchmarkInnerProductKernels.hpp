@@ -60,15 +60,15 @@ public:
 
   void fortranView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toViewConst();
     TIMING_LOOP( fortranViewKernel( a, b ) );
   }
 
   void fortranSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( a, b ) );
   }
 
@@ -77,15 +77,15 @@ public:
 
   void subscriptView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toViewConst();
     TIMING_LOOP( subscriptViewKernel( a, b ) );
   }
 
   void subscriptSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( a, b ) );
   }
 
@@ -152,29 +152,29 @@ public:
 
   void fortranView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toViewConst();
     TIMING_LOOP( fortranViewKernel( a, b ) );
   }
 
   void fortranSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toSliceConst();
     TIMING_LOOP( fortranSliceKernel( a, b ) );
   }
 
   void subscriptView()
   {
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toViewConst();
-    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toViewConst();
     TIMING_LOOP( subscriptViewKernel( a, b ) );
   }
 
   void subscriptSlice()
   {
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & a = m_a.toSliceConst();
-    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const & b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, RAJA::PERM_I > const b = m_b.toSliceConst();
     TIMING_LOOP( subscriptSliceKernel( a, b ) );
   }
 

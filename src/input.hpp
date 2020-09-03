@@ -75,7 +75,7 @@ struct StringToArrayHelper
    */
   template< int NDIM, int USD >
   static void
-  Read( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & arraySlice,
+  Read( ArraySlice< T, NDIM, USD, INDEX_TYPE > const arraySlice,
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {

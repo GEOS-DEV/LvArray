@@ -59,16 +59,16 @@ public:
 
   void eigenvalues() const
   {
-    ArrayViewT< VALUE_TYPE const, PERM_2D > const & matrices = m_matrices.toViewConst();
-    ArrayViewT< FLOAT, PERM_2D > const & eigenvalues = m_eigenvalues.toView();
+    ArrayViewT< VALUE_TYPE const, PERM_2D > const matrices = m_matrices.toViewConst();
+    ArrayViewT< FLOAT, PERM_2D > const eigenvalues = m_eigenvalues.toView();
     TIMING_LOOP( eigenvaluesKernel( matrices, eigenvalues ) );
   }
 
   void eigenvectors() const
   {
-    ArrayViewT< VALUE_TYPE const, PERM_2D > const & matrices = m_matrices.toViewConst();
-    ArrayViewT< FLOAT, PERM_2D > const & eigenvalues = m_eigenvalues.toView();
-    ArrayViewT< FLOAT, PERM_3D > const & eigenvectors = m_eigenvectors.toView();
+    ArrayViewT< VALUE_TYPE const, PERM_2D > const matrices = m_matrices.toViewConst();
+    ArrayViewT< FLOAT, PERM_2D > const eigenvalues = m_eigenvalues.toView();
+    ArrayViewT< FLOAT, PERM_3D > const eigenvectors = m_eigenvectors.toView();
     TIMING_LOOP( eigenvectorsKernel( matrices, eigenvalues, eigenvectors ) );
   }
 

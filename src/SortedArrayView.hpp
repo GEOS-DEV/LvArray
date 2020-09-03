@@ -100,7 +100,7 @@ public:
    * @param buffer The values buffer, of size @p size.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  SortedArrayView( INDEX_TYPE const size, BUFFER_TYPE< T > const buffer ):
+  SortedArrayView( INDEX_TYPE const size, BUFFER_TYPE< T > const & buffer ):
     m_values( buffer ),
     m_size( size )
   {}

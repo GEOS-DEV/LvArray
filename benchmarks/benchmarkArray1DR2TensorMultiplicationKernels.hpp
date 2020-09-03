@@ -64,17 +64,17 @@ public:
 
   void fortranView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = m_c.toView();
     TIMING_LOOP( fortranViewKernel( a, b, c ) );
   }
 
   void fortranSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c.toSlice();
     TIMING_LOOP( fortranSliceKernel( a, b, c ) );
   }
 
@@ -83,17 +83,17 @@ public:
 
   void subscriptView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = m_c.toView();
     TIMING_LOOP( subscriptViewKernel( a, b, c ) );
   }
 
   void subscriptSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c.toSlice();
     TIMING_LOOP( subscriptSliceKernel( a, b, c ) );
   }
 
@@ -102,17 +102,17 @@ public:
 
   void tensorAbstractionFortranView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = m_c.toView();
     TIMING_LOOP( tensorAbstractionFortranViewKernel( a, b, c ) );
   }
 
   void tensorAbstractionFortranSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c.toSlice();
     TIMING_LOOP( tensorAbstractionFortranSliceKernel( a, b, c ) );
   }
 
@@ -121,17 +121,17 @@ public:
 
   void tensorAbstractionSubscriptView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = m_c.toView();
     TIMING_LOOP( tensorAbstractionSubscriptViewKernel( a, b, c ) );
   }
 
   void tensorAbstractionSubscriptSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = m_c.toSlice();
     TIMING_LOOP( tensorAbstractionSubscriptSliceKernel( a, b, c ) );
   }
 
@@ -244,65 +244,65 @@ public:
 
   void fortranView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toView();
     TIMING_LOOP( fortranViewKernel( a, b, c ) );
   }
 
   void fortranSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toSlice();
     TIMING_LOOP( fortranSliceKernel( a, b, c ) );
   }
 
   void subscriptView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toView();
     TIMING_LOOP( subscriptViewKernel( a, b, c ) );
   }
 
   void subscriptSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toSlice();
     TIMING_LOOP( subscriptSliceKernel( a, b, c ) );
   }
 
   void tensorAbstractionFortranView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toView();
     TIMING_LOOP( tensorAbstractionFortranViewKernel( a, b, c ) );
   }
 
   void tensorAbstractionFortranSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toSlice();
     TIMING_LOOP( tensorAbstractionFortranSliceKernel( a, b, c ) );
   }
 
   void tensorAbstractionSubscriptView() const
   {
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & a = this->m_a;
-    ArrayViewT< VALUE_TYPE const, PERMUTATION > const & b = this->m_b;
-    ArrayViewT< VALUE_TYPE, PERMUTATION > const & c = this->m_c;
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toViewConst();
+    ArrayViewT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toViewConst();
+    ArrayViewT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toView();
     TIMING_LOOP( tensorAbstractionSubscriptViewKernel( a, b, c ) );
   }
 
   void tensorAbstractionSubscriptSlice() const
   {
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a;
-    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b;
-    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c;
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const a = this->m_a.toSliceConst();
+    ArraySliceT< VALUE_TYPE const, PERMUTATION > const b = this->m_b.toSliceConst();
+    ArraySliceT< VALUE_TYPE, PERMUTATION > const c = this->m_c.toSlice();
     TIMING_LOOP( tensorAbstractionSubscriptSliceKernel( a, b, c ) );
   }
 

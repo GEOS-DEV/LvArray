@@ -21,8 +21,8 @@ public:
   using T = typename ARRAY::value_type;
   static constexpr int NDIM = ARRAY::NDIM;
 
-  using ViewType = std::remove_const_t< typename ARRAY::ViewType >;
-  using ViewTypeConst = std::remove_const_t< typename ARRAY::ViewTypeConst >;
+  using ViewType = typeManipulation::ViewType< ARRAY >;
+  using ViewTypeConst = typeManipulation::ViewTypeConst< ARRAY >;
 
   using SliceType = std::remove_const_t< typename ARRAY::SliceType >;
   using SliceTypeConst = std::remove_const_t< typename ARRAY::SliceTypeConst >;
@@ -96,13 +96,11 @@ public:
 
     {
       ViewType const view = array->toView();
-      EXPECT_EQ( &view, &view.toView() );
       ParentClass::compare( view.toView(), *array, true );
     }
 
     {
       ViewTypeConst const constView = array->toViewConst();
-      EXPECT_EQ( &constView, &constView.toView() );
       ParentClass::compare( constView.toView(), *array, true );
     }
   }
@@ -113,33 +111,12 @@ public:
 
     {
       ViewType const view = array->toView();
-      EXPECT_EQ( static_cast< void const * >( &view ), static_cast< void const * >( &view.toViewConst() ) );
       ParentClass::compare( view.toViewConst(), *array, true );
     }
 
     {
       ViewTypeConst const constView = array->toViewConst();
-      EXPECT_EQ( &constView, &constView.toViewConst() );
       ParentClass::compare( constView.toViewConst(), *array, true );
-    }
-  }
-
-  static void udcToViewConst()
-  {
-    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
-
-    {
-      ViewType const view = array->toView();
-      ViewTypeConst const & view2 = view;
-      EXPECT_EQ( static_cast< void const * >( &view2 ), static_cast< void const * >( &view ) );
-      ParentClass::compare( view2, *array, true );
-    }
-
-    {
-      ViewTypeConst const constView = array->toViewConst();
-      ViewTypeConst const & view2 = constView;
-      EXPECT_EQ( &view2, &constView );
-      ParentClass::compare( view2, *array, true );
     }
   }
 
@@ -156,23 +133,6 @@ public:
     {
       ViewTypeConst const constView = array->toViewConst();
       SliceTypeConst const constSlice = constView.toSlice();
-      ParentClass::compare( constSlice, *array, true );
-    }
-  }
-
-  static void udcToSlice()
-  {
-    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
-
-    {
-      ViewType const view = array->toView();
-      SliceType const slice = view;
-      ParentClass::compare( slice, *array, true );
-    }
-
-    {
-      ViewTypeConst const constView = array->toViewConst();
-      SliceTypeConst const constSlice = constView;
       ParentClass::compare( constSlice, *array, true );
     }
   }
@@ -194,6 +154,40 @@ public:
     }
   }
 
+  static void udcToViewConst()
+  {
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+
+    {
+      ViewType const view = array->toView();
+      ViewTypeConst const view2 = view;
+      ParentClass::compare( view2, *array, true );
+    }
+
+    {
+      ViewTypeConst const constView = array->toViewConst();
+      ViewTypeConst const view2 = constView;
+      ParentClass::compare( view2, *array, true );
+    }
+  }
+
+  static void udcToSlice()
+  {
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+
+    {
+      ViewType const view = array->toView();
+      SliceType const slice = view;
+      ParentClass::compare( slice, *array, true );
+    }
+
+    {
+      ViewTypeConst const constView = array->toViewConst();
+      SliceTypeConst const constSlice = constView;
+      ParentClass::compare( constSlice, *array, true );
+    }
+  }
+
   static void udcToSliceConst()
   {
     std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
@@ -210,6 +204,8 @@ public:
       ParentClass::compare( constSlice, *array, true );
     }
   }
+
+  IS_VALID_EXPRESSION( hasToSlice, T, std::declval< T >().toSlice() );
 };
 
 using ArrayViewTestTypes = ArrayTestTypes;
@@ -236,7 +232,7 @@ public:
   static void modifyInKernel()
   {
     std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
-    ViewType const & view = array->toView();
+    ViewType const view = array->toView();
     forall< POLICY >( array->size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           view.data()[ i ] += view.data()[ i ];
@@ -256,7 +252,7 @@ public:
   static void readInKernel()
   {
     std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
-    ViewTypeConst const & view = array->toViewConst();
+    ViewTypeConst const view = array->toViewConst();
     forall< POLICY >( array->size( 0 ), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           checkFillDevice( view, i );
@@ -336,7 +332,7 @@ public:
   {
     std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
 
-    ViewType const & view = array->toView();
+    ViewType const view = array->toView();
     forall< POLICY >( array->size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
           view.data()[ i ] += view.data()[ i ];

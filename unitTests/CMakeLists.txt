@@ -24,9 +24,6 @@ set(testSources
     testArrayView_toSliceConst.cpp
     testArrayView_toView.cpp
     testArrayView_toViewConst.cpp
-    testArrayView_udcToSlice.cpp
-    testArrayView_udcToSliceConst.cpp
-    testArrayView_udcToViewConst.cpp
     testArray_clear.cpp
     testArray_copyAssignmentOperator.cpp
     testArray_copyConstructor.cpp

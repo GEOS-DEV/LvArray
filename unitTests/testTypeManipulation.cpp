@@ -268,52 +268,79 @@ struct GetViewTypes : public ::testing::Test
   using VIEW = std::tuple_element_t< 1, T_VIEWS_TUPLE >;
   using VIEW_CONST_SIZES = std::tuple_element_t< 2, T_VIEWS_TUPLE >;
   using VIEW_CONST = std::tuple_element_t< 3, T_VIEWS_TUPLE >;
+  using NESTED_VIEW = std::tuple_element_t< 4, T_VIEWS_TUPLE >;
+  using NESTED_VIEW_CONST = std::tuple_element_t< 5, T_VIEWS_TUPLE >;
 
   void test()
   {
-    static_assert( std::is_same< VIEW, typeManipulation::ViewType< T > >::value, "Should be true." );
-    static_assert( std::is_same< VIEW_CONST_SIZES, typeManipulation::ViewTypeConstSizes< T > >::value, "Should be true." );
-    static_assert( std::is_same< VIEW_CONST, typeManipulation::ViewTypeConst< T > >::value, "Should be true." );
+    static_assert( std::is_same< VIEW, typeManipulation::ViewType< T > >::value, "" );
+    static_assert( std::is_same< VIEW_CONST_SIZES, typeManipulation::ViewTypeConstSizes< T > >::value, "" );
+    static_assert( std::is_same< VIEW_CONST, typeManipulation::ViewTypeConst< T > >::value, "" );
+    static_assert( std::is_same< NESTED_VIEW, typeManipulation::NestedViewType< T > >::value, "" );
+    static_assert( std::is_same< NESTED_VIEW_CONST, typeManipulation::NestedViewTypeConst< T > >::value, "" );
 
     // A reference to T should give the same type.
-    static_assert( std::is_same< VIEW, typeManipulation::ViewType< T & > >::value, "Should be true." );
-    static_assert( std::is_same< VIEW_CONST_SIZES, typeManipulation::ViewTypeConstSizes< T & > >::value, "Should be true." );
-    static_assert( std::is_same< VIEW_CONST, typeManipulation::ViewTypeConst< T & > >::value, "Should be true." );
+    static_assert( std::is_same< VIEW, typeManipulation::ViewType< T & > >::value, "" );
+    static_assert( std::is_same< VIEW_CONST_SIZES, typeManipulation::ViewTypeConstSizes< T & > >::value, "" );
+    static_assert( std::is_same< VIEW_CONST, typeManipulation::ViewTypeConst< T & > >::value, "" );
+    static_assert( std::is_same< NESTED_VIEW, typeManipulation::NestedViewType< T & > >::value, "" );
+    static_assert( std::is_same< NESTED_VIEW_CONST, typeManipulation::NestedViewTypeConst< T & > >::value, "" );
   }
 };
 
 using GetViewTypesTypes = ::testing::Types<
   std::tuple< ArrayT< int, 3, RAJA::PERM_IJK >,
-              ArrayViewT< int, 3, 2 > const,
+              ArrayViewT< int, 3, 2 >,
+              ArrayViewT< int, 3, 2 >,
+              ArrayViewT< int const, 3, 2 >,
               ArrayViewT< int, 3, 2 > const,
               ArrayViewT< int const, 3, 2 > const
               >
   , std::tuple< ArrayT< std::string, 4, RAJA::PERM_IKLJ > const,
-                ArrayViewT< std::string, 4, 1 > const,
+                ArrayViewT< std::string, 4, 1 >,
+                ArrayViewT< std::string, 4, 1 >,
+                ArrayViewT< std::string const, 4, 1 >,
                 ArrayViewT< std::string, 4, 1 > const,
                 ArrayViewT< std::string const, 4, 1 > const
                 >
-  , std::tuple< ArrayT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I > const,
-                ArrayViewT< ArrayViewT< int, 1, 0 > const, 1, 0 > const,
+  , std::tuple< ArrayT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, 0 >,
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, 0 >,
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I > const, 1, 0 >,
                 ArrayViewT< ArrayViewT< int, 1, 0 > const, 1, 0 > const,
                 ArrayViewT< ArrayViewT< int const, 1, 0 > const, 1, 0 > const
                 >
+  , std::tuple< ArrayT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, 0 >,
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, 0 >,
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I > const, 1, 0 >,
+                ArrayViewT< ArrayViewT< ArrayViewT< int, 2, 0 > const, 1, 0 > const, 1, 0 > const,
+                ArrayViewT< ArrayViewT< ArrayViewT< int const, 2, 0 > const, 1, 0 > const, 1, 0 > const
+                >
   , std::tuple< ArrayViewT< double, 2, 1 >,
-                ArrayViewT< double, 2, 1 > const,
+                ArrayViewT< double, 2, 1 >,
+                ArrayViewT< double, 2, 1 >,
+                ArrayViewT< double const, 2, 1 >,
                 ArrayViewT< double, 2, 1 > const,
                 ArrayViewT< double const, 2, 1 > const
                 >
   , std::tuple< ArrayViewT< char const, 4, 2 > const,
-                ArrayViewT< char const, 4, 2 > const,
+                ArrayViewT< char const, 4, 2 >,
+                ArrayViewT< char const, 4, 2 >,
+                ArrayViewT< char const, 4, 2 >,
                 ArrayViewT< char const, 4, 2 > const,
                 ArrayViewT< char const, 4, 2 > const
                 >
   , std::tuple< ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
-                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 > const,
+                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
+                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
+                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
                 ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 > const,
                 ArrayViewT< ArrayViewT< std::string const, 2, 0 > const, 3, 1 > const
                 >
   , std::tuple< SortedArrayT< float >,
+                SortedArrayViewT< float const >,
+                SortedArrayViewT< float const >,
                 SortedArrayViewT< float const >,
                 SortedArrayViewT< float const >,
                 SortedArrayViewT< float const >
@@ -321,19 +348,27 @@ using GetViewTypesTypes = ::testing::Types<
   , std::tuple< SortedArrayViewT< std::string >,
                 SortedArrayViewT< std::string const >,
                 SortedArrayViewT< std::string const >,
+                SortedArrayViewT< std::string const >,
+                SortedArrayViewT< std::string const >,
                 SortedArrayViewT< std::string const >
                 >
   , std::tuple< ArrayOfArraysT< int > const,
                 ArrayOfArraysViewT< int, false >,
                 ArrayOfArraysViewT< int, true >,
+                ArrayOfArraysViewT< int const, true >,
+                ArrayOfArraysViewT< int, false >,
                 ArrayOfArraysViewT< int const, true >
                 >
   , std::tuple< ArrayOfArraysViewT< double, true >,
                 ArrayOfArraysViewT< double, true >,
                 ArrayOfArraysViewT< double, true >,
+                ArrayOfArraysViewT< double const, true >,
+                ArrayOfArraysViewT< double, true >,
                 ArrayOfArraysViewT< double const, true >
                 >
   , std::tuple< ArrayOfArraysViewT< std::string const, true > const,
+                ArrayOfArraysViewT< std::string const, true >,
+                ArrayOfArraysViewT< std::string const, true >,
                 ArrayOfArraysViewT< std::string const, true >,
                 ArrayOfArraysViewT< std::string const, true >,
                 ArrayOfArraysViewT< std::string const, true >
@@ -341,14 +376,20 @@ using GetViewTypesTypes = ::testing::Types<
   , std::tuple< SparsityPatternT< int > const,
                 SparsityPatternViewT< int >,
                 SparsityPatternViewT< int >,
+                SparsityPatternViewT< int const >,
+                SparsityPatternViewT< int >,
                 SparsityPatternViewT< int const >
                 >
   , std::tuple< SparsityPatternViewT< long >,
                 SparsityPatternViewT< long >,
                 SparsityPatternViewT< long >,
+                SparsityPatternViewT< long const >,
+                SparsityPatternViewT< long >,
                 SparsityPatternViewT< long const >
                 >
   , std::tuple< SparsityPatternViewT< unsigned char const >,
+                SparsityPatternViewT< unsigned char const >,
+                SparsityPatternViewT< unsigned char const >,
                 SparsityPatternViewT< unsigned char const >,
                 SparsityPatternViewT< unsigned char const >,
                 SparsityPatternViewT< unsigned char const >
@@ -356,32 +397,94 @@ using GetViewTypesTypes = ::testing::Types<
   , std::tuple< CRSMatrixT< double, int >,
                 CRSMatrixViewT< double, int >,
                 CRSMatrixViewT< double, int const >,
+                CRSMatrixViewT< double const, int const >,
+                CRSMatrixViewT< double, int >,
                 CRSMatrixViewT< double const, int const >
                 >
   , std::tuple< CRSMatrixViewT< char, int > const,
                 CRSMatrixViewT< char, int >,
                 CRSMatrixViewT< char, int const >,
+                CRSMatrixViewT< char const, int const >,
+                CRSMatrixViewT< char, int >,
                 CRSMatrixViewT< char const, int const >
                 >
   , std::tuple< CRSMatrixViewT< int, long const >,
                 CRSMatrixViewT< int, long const >,
+                CRSMatrixViewT< int, long const >,
+                CRSMatrixViewT< int const, long const >,
                 CRSMatrixViewT< int, long const >,
                 CRSMatrixViewT< int const, long const >
                 >
   , std::tuple< CRSMatrixViewT< float const, long const >,
                 CRSMatrixViewT< float const, long const >,
                 CRSMatrixViewT< float const, long const >,
+                CRSMatrixViewT< float const, long const >,
+                CRSMatrixViewT< float const, long const >,
                 CRSMatrixViewT< float const, long const >
                 >
-  , std::tuple< int, int &, int &, int const & >
-  , std::tuple< int const, int const &, int const &, int const & >
-  , std::tuple< int const &, int const &, int const &, int const & >
-  , std::tuple< int *, int * &, int * &, int * const & >
-  , std::tuple< int const *, int const * &, int const * &, int const * const & >
-  , std::tuple< float, float &, float &, float const & >
-  , std::tuple< char[ 55 ], char (&)[ 55 ], char (&)[ 55 ], char const (&)[ 55 ] >
-  , std::tuple< std::string, std::string &, std::string &, std::string const & >
-  , std::tuple< std::vector< int >, std::vector< int > &, std::vector< int > &, std::vector< int > const & >
+  , std::tuple< int,
+                int &,
+                int &,
+                int const &,
+                int &,
+                int const &
+                >
+  , std::tuple< int const,
+                int const &,
+                int const &,
+                int const &,
+                int const &,
+                int const &
+                >
+  , std::tuple< int const &,
+                int const &,
+                int const &,
+                int const &,
+                int const &,
+                int const &
+                >
+  , std::tuple< int *,
+                int * &,
+                int * &,
+                int * const &,
+                int * &,
+                int * const &
+                >
+  , std::tuple< int const *,
+                int const * &,
+                int const * &,
+                int const * const &,
+                int const * &,
+                int const * const &
+                >
+  , std::tuple< float,
+                float &,
+                float &,
+                float const &,
+                float &,
+                float const &
+                >
+  , std::tuple< char[ 55 ],
+                char (&)[ 55 ],
+                char (&)[ 55 ],
+                char const (&)[ 55 ],
+                char (&)[ 55 ],
+                char const (&)[ 55 ]
+                >
+  , std::tuple< std::string,
+                std::string &,
+                std::string &,
+                std::string const &,
+                std::string &,
+                std::string const &
+                >
+  , std::tuple< std::vector< int >,
+                std::vector< int > &,
+                std::vector< int > &,
+                std::vector< int > const &,
+                std::vector< int > &,
+                std::vector< int > const &
+                >
   >;
 
 TYPED_TEST_SUITE( GetViewTypes, GetViewTypesTypes, );
