@@ -574,9 +574,10 @@ public:
   template< typename POLICY >
   void setValues( T const & value ) const
   {
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, this] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    auto const view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
-        data()[ i ] = value;
+        view.data()[ i ] = value;
       } );
   }
 
@@ -595,9 +596,10 @@ public:
                                "This method only works with Arrays with the same data layout." );
     }
 
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [rhs, this] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    auto const view = toView();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [view, rhs] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
-        data()[ i ] = rhs.data()[ i ];
+        view.data()[ i ] = rhs.data()[ i ];
       } );
   }
 
