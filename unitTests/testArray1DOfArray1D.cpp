@@ -5,8 +5,6 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
-#if 0
-
 // Source includes
 #include "Array.hpp"
 #include "output.hpp"
@@ -277,5 +275,3 @@ int main( int argc, char * * argv )
   int const result = RUN_ALL_TESTS();
   return result;
 }
-
-#endif
