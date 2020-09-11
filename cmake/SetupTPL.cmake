@@ -1,27 +1,19 @@
-set( thirdPartyLibs "")
+set(thirdPartyLibs "")
 
 ################################
 # RAJA
 ################################
-if( EXISTS ${RAJA_DIR})
-    message(STATUS "Using system RAJA found at ${RAJA_DIR}")
-else()
-    message(STATUS "Using RAJA from thirdPartyLibs")
+if(NOT EXISTS ${RAJA_DIR})
     set(RAJA_DIR ${GEOSX_TPL_DIR}/raja)
 endif()
 
-include(${CMAKE_SOURCE_DIR}/cmake/FindRAJA.cmake)
-if (NOT RAJA_FOUND)
-    message(FATAL_ERROR "RAJA not found in ${RAJA_DIR}. Maybe you need to build it")
-endif()
-blt_register_library( NAME RAJA
-                      INCLUDES ${RAJA_INCLUDE_DIRS}
-                      LIBRARIES ${RAJA_LIBRARY}
-                      TREAT_INCLUDES_AS_SYSTEM ON )
+message(STATUS "Using RAJA from ${RAJA_DIR}")
+
+find_package(RAJA REQUIRED PATHS ${RAJA_DIR})
 
 set(ENABLE_RAJA ON CACHE BOOL "")
 
-set( thirdPartyLibs ${thirdPartyLibs} raja )
+set(thirdPartyLibs ${thirdPartyLibs} RAJA)
 
 
 ###############################
@@ -45,7 +37,6 @@ endif()
 ################################
 # CHAI
 ################################
-# include(cmake/FindCHAI.cmake)
 if(ENABLE_CHAI)
     if(NOT ENABLE_UMPIRE)
         message(FATAL_ERROR "umpire must be enabled to use chai.")
@@ -77,7 +68,7 @@ endif()
 
 
 ################################
-# CALIPER and Adiak
+# CALIPER
 ################################
 if(ENABLE_CALIPER)
     if(NOT EXISTS ${CALIPER_DIR})
@@ -101,9 +92,9 @@ if(ENABLE_CALIPER)
                          TREAT_INCLUDES_AS_SYSTEM ON)
 
     set(thirdPartyLibs ${thirdPartyLibs} caliper)
+else()
+    message(STATUS "Not using caliper.")
 endif()
 
 
-
-
-set( thirdPartyLibs ${thirdPartyLibs} CACHE STRING "" )
+set(thirdPartyLibs ${thirdPartyLibs} CACHE STRING "")

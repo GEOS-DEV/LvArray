@@ -1,5 +1,10 @@
 cmake_minimum_required( VERSION 3.9 )
 
+# Set version number
+set( LVARRAY_VERSION_MAJOR 0 )
+set( LVARRAY_VERSION_MINOR 0 )
+set( LVARRAY_VERSION_PATCHLEVEL 0 )
+
 # check if LvArray is build as a submodule or a separate project
 get_directory_property( parent_dir PARENT_DIRECTORY )
 if(parent_dir)
@@ -58,7 +63,7 @@ if( ENABLE_OPENMP )
 endif()
 
 if( ENABLE_RAJA )
-    set( lvarray_dependencies ${lvarray_dependencies} raja )
+    set( lvarray_dependencies ${lvarray_dependencies} RAJA )
 endif()
 
 if( ENABLE_CALIPER )
