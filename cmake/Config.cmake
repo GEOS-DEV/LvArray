@@ -37,5 +37,13 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
                 ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/LvArrayConfig.hpp )
 
+# Install the generated header.
 install( FILES ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp
          DESTINATION include )
+
+# Configure and install the CMake config
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/lvarray-config.cmake.in
+                ${PROJECT_BINARY_DIR}/share/lvarray/cmake/lvarray-config.cmake)
+
+install( FILES ${PROJECT_BINARY_DIR}/share/lvarray/cmake/lvarray-config.cmake
+         DESTINATION share/lvarray/cmake/)
