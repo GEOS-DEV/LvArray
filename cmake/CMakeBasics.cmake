@@ -10,8 +10,8 @@ endif()
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
 
-if( ( NOT BLT_CXX_STD STREQUAL c++14 ) AND (NOT BLT_CXX_STD STREQUAL c++11))
-    MESSAGE(FATAL_ERROR "c++11/14 is NOT enabled. LvArray requires c++11/14")
+if( NOT BLT_CXX_STD STREQUAL c++14 )
+    MESSAGE(FATAL_ERROR "c++14 is NOT enabled. LvArray requires c++14")
 endif()
 
 

@@ -1,8 +1,8 @@
 ###############################################################################
-``Lvarray::ArrayOfSets``
+``LvArray::ArrayOfSets``
 ###############################################################################
 
-The ``LvArray::ArrayOfSets`` is very siilar to the ``LvArray::ArrayOfArrays`` except that the values of the inner arrays are sorted an unique like the ``LvArray::SortedArray``. If you are familiar with both of these classes the functionality of the ``LvArray::ArrayOfSets`` should be pretty straightforward.
+The ``LvArray::ArrayOfSets`` is very similar to the ``LvArray::ArrayOfArrays`` except that the values of the inner arrays are sorted an unique like the ``LvArray::SortedArray``. If you are familiar with both of these classes the functionality of the ``LvArray::ArrayOfSets`` should be pretty straightforward.
 
 Template arguments
 ------------------

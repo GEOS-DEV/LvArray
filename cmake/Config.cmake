@@ -12,7 +12,7 @@ foreach( DEP in ${PREPROCESSOR_DEFINES})
     endif()
 endforeach()
 
-if( USE_ADDR2LINE )
+if( ENABLE_ADDR2LINE )
     if ( NOT DEFINED ADDR2LINE_EXEC )
         set( ADDR2LINE_EXEC /usr/bin/addr2line CACHE PATH "" )
     endif()
