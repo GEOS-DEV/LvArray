@@ -586,7 +586,7 @@ TYPED_TEST( SparsityPatternTest, resizeFromRowCapacities )
     this->template resizeFromRowCapacities< serialPolicy >( 100, 75 );
     this->insertTest( MAX_INSERTS );
 
-#if defined( LVARRAY_USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
     this->template resizeFromRowCapacities< parallelHostPolicy >( 150, 200 );
     this->insertTest( MAX_INSERTS );
 #endif

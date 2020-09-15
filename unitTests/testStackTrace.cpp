@@ -37,7 +37,7 @@ std::string __attribute__((noinline)) foo()
   return result;
 }
 
-#if defined( LVARRAY_USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
 
 TEST( stackTrace, OpenMP )
 {

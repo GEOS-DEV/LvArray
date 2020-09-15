@@ -109,7 +109,7 @@ pointerKernel( INDEX_TYPE const N,
 
 template class InnerProductRAJA< serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class InnerProductRAJA< parallelHostPolicy >;
 #endif
 

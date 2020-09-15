@@ -3,7 +3,6 @@ set( PREPROCESSOR_DEFINES CHAI
                           CUDA
                           MPI
                           TOTALVIEW_OUTPUT
-                          OPENMP
                           CALIPER )
 
 set( USE_CONFIGFILE ON CACHE BOOL "" )
@@ -25,7 +24,7 @@ if( USE_ADDR2LINE )
     set( LVARRAY_ADDR2LINE_EXEC ${ADDR2LINE_EXEC} )
 endif()
 
-if( DEFINED LVARRAY_BOUNDS_CHECK )
+if( LVARRAY_BOUNDS_CHECK )
     message( STATUS "LvArray bounds checking enabled." )
 else()
     message( STATUS "LvArray bounds checking disabled." )

@@ -41,7 +41,7 @@ template class Eigendecomposition< 2, RAJA::PERM_JI, RAJA::PERM_KJI, serialPolic
 template class Eigendecomposition< 3, RAJA::PERM_IJ, RAJA::PERM_IJK, serialPolicy >;
 template class Eigendecomposition< 3, RAJA::PERM_JI, RAJA::PERM_KJI, serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class Eigendecomposition< 2, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelHostPolicy >;
 template class Eigendecomposition< 2, RAJA::PERM_JI, RAJA::PERM_KJI, parallelHostPolicy >;
 template class Eigendecomposition< 3, RAJA::PERM_IJ, RAJA::PERM_IJK, parallelHostPolicy >;

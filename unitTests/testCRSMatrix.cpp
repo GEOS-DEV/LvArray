@@ -559,7 +559,7 @@ TYPED_TEST( CRSMatrixTest, resizeFromRowCapacities )
     this->template resizeFromRowCapacities< serialPolicy >( DEFAULT_NROWS, DEFAULT_NCOLS );
     this->insert( DEFAULT_MAX_INSERTS, true );
 
-#if defined( LVARRAY_USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
     this->template resizeFromRowCapacities< parallelHostPolicy >( 2 * DEFAULT_NROWS, DEFAULT_NCOLS / 2 );
     this->insert( DEFAULT_MAX_INSERTS, true );
 #endif
@@ -1239,11 +1239,11 @@ using CRSMatrixViewAtomicTestTypes = ::testing::Types<
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
 #endif
-#if defined(LVARRAY_USE_OPENMP) && defined(LVARRAY_USE_CHAI)
+#if defined(RAJA_ENABLE_OPENMP) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
