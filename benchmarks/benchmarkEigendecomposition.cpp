@@ -38,7 +38,7 @@ void eigenvectors( benchmark::State & state )
 INDEX_TYPE const SERIAL_SIZE_2x2 = (2 << 22) - 87;
 INDEX_TYPE const SERIAL_SIZE_3x3 = (2 << 19) - 87;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 INDEX_TYPE const OMP_SIZE_2x2 = (2 << 24) - 87;
 INDEX_TYPE const OMP_SIZE_3x3 = (2 << 23) - 87;
 #endif
@@ -67,7 +67,7 @@ void registerBenchmarks()
                                 , std::make_tuple( SERIAL_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, serialPolicy {} )
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( OMP_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_SIZE_2x2, std::integral_constant< int, 2 > {}, RAJA::PERM_JI {}, RAJA::PERM_KJI {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_SIZE_3x3, std::integral_constant< int, 3 > {}, RAJA::PERM_IJ {}, RAJA::PERM_IJK {}, parallelHostPolicy {} )
@@ -97,7 +97,7 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial number of 2x2 matrices = " << LvArray::benchmarking::SERIAL_SIZE_2x2 );
   LVARRAY_LOG( "Serial number of 3x3 matrices = " << LvArray::benchmarking::SERIAL_SIZE_3x3 );
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   LVARRAY_LOG( "OMP number of 2x2 matrices = " << LvArray::benchmarking::OMP_SIZE_2x2 );
   LVARRAY_LOG( "OMP number of 3x3 matrices = " << LvArray::benchmarking::OMP_SIZE_3x3 );
 #endif

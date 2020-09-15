@@ -117,7 +117,7 @@ public:
     /// Iterate over all the nodes.
     m_sparsity.move( MemorySpace::CPU );
 
-    #if defined(LVARRAY_USE_OPENMP)
+    #if defined(RAJA_ENABLE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;
@@ -233,7 +233,7 @@ public:
   {
     this->resizeExact();
 
-    #if defined(LVARRAY_USE_OPENMP)
+    #if defined(RAJA_ENABLE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;
@@ -258,7 +258,7 @@ public:
     m_matrix.move( MemorySpace::CPU, false );
     this->m_nodeToElemMap.move( MemorySpace::CPU, false );
 
-    #if defined(LVARRAY_USE_OPENMP)
+    #if defined(RAJA_ENABLE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
     #else
     using EXEC_POLICY = serialPolicy;

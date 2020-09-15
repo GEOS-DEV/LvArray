@@ -121,7 +121,7 @@ INDEX_TYPE const SERIAL_N = (2 << 8) + 73;
 INDEX_TYPE const SERIAL_L = (2 << 8) - 71;
 INDEX_TYPE const SERIAL_M = (2 << 8) - 3;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 INDEX_TYPE const OMP_N = 4 * SERIAL_N;
 INDEX_TYPE const OMP_L = 4 * SERIAL_L;
 INDEX_TYPE const OMP_M = 4 * SERIAL_M;
@@ -169,7 +169,7 @@ void registerBenchmarks()
   },
                                 std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_L, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( OMP_N, OMP_L, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_N, OMP_L, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
@@ -196,7 +196,7 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_N << ", " <<
                LvArray::benchmarking::SERIAL_L << ", " << LvArray::benchmarking::SERIAL_M << " )." );
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_N << ", " <<
                LvArray::benchmarking::OMP_L << ", " << LvArray::benchmarking::OMP_M << " )." );
 #endif

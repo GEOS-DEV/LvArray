@@ -611,7 +611,7 @@ TYPED_TEST( ArrayOfSetsTest, resizeFromCapacities )
     this->template resizeFromCapacities< serialPolicy >( 100, DEFAULT_MAX_INSERTS );
     this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
 
-#if defined( LVARRAY_USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, DEFAULT_MAX_INSERTS );
     this->insertIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
 #endif

@@ -170,7 +170,7 @@ template class OuterProductNative< RAJA::PERM_JI >;
 template class OuterProductRAJA< RAJA::PERM_IJ, serialPolicy >;
 template class OuterProductRAJA< RAJA::PERM_JI, serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class OuterProductRAJA< RAJA::PERM_IJ, parallelHostPolicy >;
 template class OuterProductRAJA< RAJA::PERM_JI, parallelHostPolicy >;
 #endif

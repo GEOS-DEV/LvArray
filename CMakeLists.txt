@@ -25,14 +25,12 @@ if( NOT is_submodule )
     option( ENABLE_BENCHMARKS "Builds benchmarks" ON )
     option( ENABLE_DOCS "Builds documentation" ON )
 
-    option( ENABLE_UMPIRE "Build with UMPIRE" ON )
-    option( ENABLE_CHAI "Build with CHAI" ON )
-    option( ENABLE_MPI "Build with MPI" ON )
-    option( ENABLE_CUDA "Build with CUDA" OFF )
-    option( ENABLE_OPENMP "Build with OpenMP" ON )
-    option( ENABLE_CALIPER "Build with Caliper" ON )
-
     option( ENABLE_ADDR2LINE "Enable addr2line usage in stacktraces" ON )
+    option( ENABLE_CUDA "Build with CUDA" OFF )
+    option( ENABLE_UMPIRE "Build with UMPIRE" OFF )
+    option( ENABLE_CHAI "Build with CHAI" OFF )
+    option( ENABLE_MPI "Build with MPI" OFF )
+    option( ENABLE_CALIPER "Build with Caliper" OFF )
 
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
@@ -56,10 +54,6 @@ endif()
 
 if( ENABLE_CUDA )
     set( lvarray_dependencies ${lvarray_dependencies} cuda )
-endif()
-
-if( ENABLE_OPENMP )
-    set( lvarray_dependencies ${lvarray_dependencies} openmp )
 endif()
 
 if( ENABLE_RAJA )
