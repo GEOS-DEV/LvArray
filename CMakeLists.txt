@@ -29,7 +29,6 @@ if( NOT is_submodule )
     option( ENABLE_CUDA "Build with CUDA" OFF )
     option( ENABLE_UMPIRE "Build with UMPIRE" OFF )
     option( ENABLE_CHAI "Build with CHAI" OFF )
-    option( ENABLE_MPI "Build with MPI" OFF )
     option( ENABLE_CALIPER "Build with Caliper" OFF )
 
     include( cmake/blt/SetupBLT.cmake )
@@ -46,10 +45,6 @@ set( lvarray_dependencies dl )
 
 if( ENABLE_CHAI )
     set( lvarray_dependencies ${lvarray_dependencies} chai umpire )
-endif()
-
-if( ENABLE_MPI )
-    set( lvarray_dependencies ${lvarray_dependencies} mpi )
 endif()
 
 if( ENABLE_CUDA )

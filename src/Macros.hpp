@@ -110,7 +110,7 @@
       __oss << MSG << "\n"; \
       __oss << LvArray::system::stackTrace( true ); \
       std::cout << __oss.str() << std::endl; \
-      LvArray::system::abort(); \
+      LvArray::system::callErrorHandler(); \
     } \
   } while( false )
 #endif

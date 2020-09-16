@@ -1,7 +1,6 @@
 #
 set( PREPROCESSOR_DEFINES CHAI
                           CUDA
-                          MPI
                           TOTALVIEW_OUTPUT
                           CALIPER )
 
