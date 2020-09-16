@@ -506,6 +506,11 @@ void resetSignalHandling()
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int getDefaultFloatingPointExceptions()
+{
+  return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )
@@ -551,7 +556,7 @@ int disableFloatingPointExceptions( int const exceptions )
   {
     return -1;
   }
-  oldExcepts = fenv.__control & FE_ALL_EXCEPT;
+  oldExcepts = ~( fenv.__control & FE_ALL_EXCEPT );
 
   // mask
   fenv.__control |= newExcepts;
@@ -568,15 +573,15 @@ int disableFloatingPointExceptions( int const exceptions )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setFPE()
 {
-#if defined(__APPLE__) && defined(__MACH__)
-  fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
-#elif defined(__x86_64__)
-  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
-  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
-#endif
-#if defined(__x86_64__)
-  enableFloatingPointExceptions( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
-#endif
+//#if defined(__APPLE__) && defined(__MACH__)
+//  fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
+//#elif defined(__x86_64__)
+//  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
+//  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
+//#endif
+//#if defined(__x86_64__)
+  enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
+//#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
