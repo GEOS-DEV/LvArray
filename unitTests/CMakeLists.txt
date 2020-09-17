@@ -87,6 +87,11 @@ blt_add_executable( NAME testFloatingPointExceptions
                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
                     DEPENDS_ON gtest lvarray ${lvarray_dependencies} )
 
+# Need to avoid optimization to catch invalid operations
+if( APPLE AND ${CMAKE_CXX_COMPILER} MATCHES "clang" )
+  set_source_files_properties( testFloatingPointExceptionsHelpers.cpp PROPERTIES COMPILE_FLAGS "-O0" )
+endif()
+
 target_include_directories( testFloatingPointExceptions PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
 
 blt_add_test( NAME testFloatingPointExceptions
