@@ -520,14 +520,13 @@ int enableFloatingPointExceptions( int const exceptions )
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
   int const newExcepts = exceptions & FE_ALL_EXCEPT;
-  // previous masks
-  int oldExcepts;
 
   if( fegetenv( &fenv ))
   {
     return -1;
   }
-  oldExcepts = fenv.__control & FE_ALL_EXCEPT;
+  // all previous masks
+  int const oldExcepts = fenv.__control & FE_ALL_EXCEPT;
 
   // unmask
   fenv.__control &= ~newExcepts;
@@ -549,14 +548,13 @@ int disableFloatingPointExceptions( int const exceptions )
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
   int const newExcepts = exceptions & FE_ALL_EXCEPT;
-  // all previous masks
-  int oldExcepts;
 
   if( fegetenv( &fenv ))
   {
     return -1;
   }
-  oldExcepts = ~( fenv.__control & FE_ALL_EXCEPT );
+  // all previous masks
+  int const oldExcepts = ~( fenv.__control & FE_ALL_EXCEPT );
 
   // mask
   fenv.__control |= newExcepts;
@@ -573,20 +571,16 @@ int disableFloatingPointExceptions( int const exceptions )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setFPE()
 {
-//#if defined(__APPLE__) && defined(__MACH__)
-//  fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
-//#elif defined(__x86_64__)
-//  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
-//  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
-//#endif
-//#if defined(__x86_64__)
+#if defined(__APPLE__) && defined(__MACH__)
+  fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
+#elif defined(__x86_64__)
+  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
+  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
+#endif
+#if defined(__x86_64__)
   enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
-//#endif
+#endif
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int getAllExceptionsMask()
-{ return FE_ALL_EXCEPT; }
 
 } // namespace system
 } // namespace LvArray

@@ -83,7 +83,8 @@ void setSignalHandling( void (* handler)( int ) );
 void resetSignalHandling();
 
 /**
- * @brief Get the default set of exceptions to be checked.
+ * @brief Get the default set of exceptions to check.
+ * @return The default set of exceptions.
  */
 int getDefaultFloatingPointExceptions();
 
