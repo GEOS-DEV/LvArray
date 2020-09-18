@@ -372,12 +372,12 @@ public:
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
-
-    forall< POLICY >( 1, [vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorB_local, aSeed] LVARRAY_HOST_DEVICE ( int )
+    T const epsilon = NumericLimitsNC< T >{}.epsilon;
+    forall< POLICY >( 1, [vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorB_local, aSeed, epsilon] LVARRAY_HOST_DEVICE ( int )
         {
           #define _TEST( a, b ) \
             tensorOps::scaledAdd< N >( a, b, scale ); \
-            CHECK_EQUALITY_1D( N, a, result ); \
+            CHECK_NEAR_1D( N, a, result, result[ N - 1 ] * epsilon ); \
             fill( a, aSeed )
 
           #define _TEST_PERMS( a, b0, b1, b2 ) \
