@@ -372,8 +372,7 @@ public:
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA;
-    T const epsilon = NumericLimitsNC< T >{}.epsilon;
-    forall< POLICY >( 1, [vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorB_local, aSeed, epsilon] LVARRAY_HOST_DEVICE ( int )
+    forall< POLICY >( 1, [vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorB_local, aSeed] LVARRAY_HOST_DEVICE ( int )
         {
           #define _TEST( a, b ) \
             tensorOps::scaledAdd< N >( a, b, scale ); \
@@ -384,6 +383,8 @@ public:
             _TEST( a, b0 ); \
             _TEST( a, b1 ); \
             _TEST( a, b2 )
+
+          T const epsilon = NumericLimitsNC< T >{}.epsilon;
 
           T vectorA_local[ N ];
           fill( vectorA_local, aSeed );
