@@ -30,10 +30,12 @@ namespace internal
  * @param maxEntryAfterShift The amount the matrix is scaled by after the shift.
  * @note The resulting matrix is guaranteed to have a zero trace and its entries will be
  *   in [-2, 2].
+ * @note The size of @p matrix is SYM_SIZE< M >, but the intel compiler complains so the calculation
+ *   must be inlined.
  */
 template< std::ptrdiff_t M, typename FloatingPoint >
 LVARRAY_HOST_DEVICE inline
-static void shiftAndScale( FloatingPoint (& matrix)[ SYM_SIZE< M > ],
+static void shiftAndScale( FloatingPoint (& matrix)[ ( M * ( M + 1 ) ) / 2 ],
                            FloatingPoint & shift,
                            FloatingPoint & maxEntryAfterShift )
 {

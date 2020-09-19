@@ -20,6 +20,64 @@ namespace LvArray
 namespace testing
 {
 
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 2 >
+checkSymmetricToDense( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 2 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 2 >
+checkDenseToSymmetric( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 3 >
+checkSymmetricToDense( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 2 ], symMatrix[ 2 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 1 ], symMatrix[ 3 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 0 ], symMatrix[ 4 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 5 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 3 >
+checkDenseToSymmetric( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 2 ], symMatrix[ 2 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] );
+}
+
 template< typename T_N_POLICY_TUPLE >
 class FixedSizeSquareMatrixTest : public ::testing::Test
 {
@@ -310,22 +368,7 @@ public:
           #define _TEST( symMatrix, matrix ) \
             fill( matrix, matrixASeed ); \
             tensorOps::symmetricToDense< N >( matrix, symMatrix ); \
-            for( int j = 0; j < N; ++j ) \
-            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
-            if( N == 2 ) \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 2 ] ); \
-            } \
-            else \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 0 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 1 ], symMatrix[ 3 ] ); \
-            }
+            checkSymmetricToDense< N >( matrix, symMatrix );
 
           #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
             _TEST( symMatrix, matrix0 ) \
@@ -361,18 +404,7 @@ public:
           #define _TEST( symMatrix, matrix ) \
             fill( symMatrix, symMatrixASeed ); \
             tensorOps::denseToSymmetric< N >( symMatrix, matrix ); \
-            for( int j = 0; j < N; ++j ) \
-            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
-            if( N == 2 ) \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
-            } \
-            else \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
-            }
+            checkDenseToSymmetric< N >( matrix, symMatrix );
 
           #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
             _TEST( symMatrix, matrix0 ) \
