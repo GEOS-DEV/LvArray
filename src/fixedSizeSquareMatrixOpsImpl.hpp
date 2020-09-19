@@ -580,11 +580,30 @@ struct SquareMatrixOps< 3 >
   LVARRAY_HOST_DEVICE constexpr inline
   static auto invert( MATRIX && matrix )
   {
-    std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > temp[ 3 ][ 3 ];
-    auto const det = invert( temp, matrix );
-    copy< 3, 3 >( matrix, temp );
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+#if 0
+    realType temp[ 3 ][ 3 ];
+    copy< 3, 3 >( temp, matrix );
+    return invert( matrix, temp );
+#else
+    // cuda kernels use a couple fewer registers in some cases with this implementation.
+    realType const temp[3][3] =
+    { { matrix[1][1]*matrix[2][2] - matrix[1][2]*matrix[2][1], matrix[0][2]*matrix[2][1] - matrix[0][1]*matrix[2][2], matrix[0][1]*matrix[1][2] - matrix[0][2]*matrix[1][1] },
+      { matrix[1][2]*matrix[2][0] - matrix[1][0]*matrix[2][2], matrix[0][0]*matrix[2][2] - matrix[0][2]*matrix[2][0], matrix[0][2]*matrix[1][0] - matrix[0][0]*matrix[1][2] },
+      { matrix[1][0]*matrix[2][1] - matrix[1][1]*matrix[2][0], matrix[0][1]*matrix[2][0] - matrix[0][0]*matrix[2][1], matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0] } };
 
+    realType const det =  matrix[0][0] * temp[0][0] + matrix[1][0] * temp[0][1] + matrix[2][0] * temp[0][2];
+    realType const invDet = 1.0 / det;
+
+    for( int i=0; i<3; ++i )
+    {
+      for( int j=0; j<3; ++j )
+      {
+        matrix[i][j] = temp[i][j] * invDet;
+      }
+    }
     return det;
+#endif
   }
 
   /**

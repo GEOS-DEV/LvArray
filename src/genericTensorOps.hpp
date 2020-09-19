@@ -831,13 +831,11 @@ void AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
 
   for( std::ptrdiff_t i = 0; i < M; ++i )
   {
-    auto dot = matrixA[ i ][ 0 ] * vectorB[ 0 ];
+    dstVector[ i ] = matrixA[ i ][ 0 ] * vectorB[ 0 ];
     for( std::ptrdiff_t j = 1; j < N; ++j )
     {
-      dot = dot + matrixA[ i ][ j ] * vectorB[ j ];
+      dstVector[ i ] = dstVector[ i ] + matrixA[ i ][ j ] * vectorB[ j ];
     }
-
-    dstVector[ i ] = dot;
   }
 }
 
@@ -867,13 +865,10 @@ void plusAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
 
   for( std::ptrdiff_t i = 0; i < M; ++i )
   {
-    auto dot = matrixA[ i ][ 0 ] * vectorB[ 0 ];
-    for( std::ptrdiff_t j = 1; j < N; ++j )
+    for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      dot = dot + matrixA[ i ][ j ] * vectorB[ j ];
+      dstVector[ i ] = dstVector[ i ] + matrixA[ i ][ j ] * vectorB[ j ];
     }
-
-    dstVector[ i ] += dot;
   }
 }
 
@@ -904,13 +899,11 @@ void AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
 
   for( std::ptrdiff_t i = 0; i < M; ++i )
   {
-    auto dot = matrixA[ 0 ][ i ] * vectorB[ 0 ];
+    dstVector[ i ] = matrixA[ 0 ][ i ] * vectorB[ 0 ];
     for( std::ptrdiff_t j = 1; j < N; ++j )
     {
-      dot = dot + matrixA[ j ][ i ] * vectorB[ j ];
+      dstVector[ i ] = dstVector[ i ] + matrixA[ j ][ i ] * vectorB[ j ];
     }
-
-    dstVector[ i ] = dot;
   }
 }
 
@@ -941,13 +934,10 @@ void plusAjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
 
   for( std::ptrdiff_t i = 0; i < M; ++i )
   {
-    auto dot = matrixA[ 0 ][ i ] * vectorB[ 0 ];
-    for( std::ptrdiff_t j = 1; j < N; ++j )
+    for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      dot = dot + matrixA[ j ][ i ] * vectorB[ j ];
+      dstVector[ i ] = dstVector[ i ] + matrixA[ j ][ i ] * vectorB[ j ];
     }
-
-    dstVector[ i ] += dot;
   }
 }
 
@@ -1024,13 +1014,11 @@ void AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ i ][ 0 ] * matrixB[ 0 ][ j ];
+      dstMatrix[ i ][ j ] = matrixA[ i ][ 0 ] * matrixB[ 0 ][ j ];
       for( std::ptrdiff_t k = 1; k < P; ++k )
       {
-        dot = dot + matrixA[ i ][ k ] * matrixB[ k ][ j ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ i ][ k ] * matrixB[ k ][ j ];
       }
-
-      dstMatrix[ i ][ j ] = dot;
     }
   }
 }
@@ -1072,13 +1060,10 @@ void plusAikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ i ][ 0 ] * matrixB[ 0 ][ j ];
-      for( std::ptrdiff_t k = 1; k < P; ++k )
+      for( std::ptrdiff_t k = 0; k < P; ++k )
       {
-        dot = dot + matrixA[ i ][ k ] * matrixB[ k ][ j ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ i ][ k ] * matrixB[ k ][ j ];
       }
-
-      dstMatrix[ i ][ j ] += dot;
     }
   }
 }
@@ -1120,13 +1105,11 @@ void AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ i ][ 0 ] * matrixB[ j ][ 0 ];
+      dstMatrix[ i ][ j ] = matrixA[ i ][ 0 ] * matrixB[ j ][ 0 ];
       for( std::ptrdiff_t k = 1; k < P; ++k )
       {
-        dot = dot + matrixA[ i ][ k ] * matrixB[ j ][ k ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ i ][ k ] * matrixB[ j ][ k ];
       }
-
-      dstMatrix[ i ][ j ] = dot;
     }
   }
 }
@@ -1167,13 +1150,10 @@ void plusAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ i ][ 0 ] * matrixB[ j ][ 0 ];
-      for( std::ptrdiff_t k = 1; k < P; ++k )
+      for( std::ptrdiff_t k = 0; k < P; ++k )
       {
-        dot = dot + matrixA[ i ][ k ] * matrixB[ j ][ k ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ i ][ k ] * matrixB[ j ][ k ];
       }
-
-      dstMatrix[ i ][ j ] += dot;
     }
   }
 }
@@ -1206,13 +1186,10 @@ void plusAikAjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < M; ++j )
     {
-      auto dot = matrixA[ i ][ 0 ] * matrixA[ j ][ 0 ];
-      for( std::ptrdiff_t k = 1; k < N; ++k )
+      for( std::ptrdiff_t k = 0; k < N; ++k )
       {
-        dot = dot + matrixA[ i ][ k ] * matrixA[ j ][ k ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ i ][ k ] * matrixA[ j ][ k ];
       }
-
-      dstMatrix[ i ][ j ] += dot;
     }
   }
 }
@@ -1253,13 +1230,11 @@ void AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ 0 ][ i ] * matrixB[ 0 ][ j ];
+      dstMatrix[ i ][ j ] = matrixA[ 0 ][ i ] * matrixB[ 0 ][ j ];
       for( std::ptrdiff_t k = 1; k < P; ++k )
       {
-        dot = dot + matrixA[ k ][ i ] * matrixB[ k ][ j ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixB[ k ][ j ];
       }
-
-      dstMatrix[ i ][ j ] = dot;
     }
   }
 }
@@ -1300,13 +1275,10 @@ void plusAkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   {
     for( std::ptrdiff_t j = 0; j < N; ++j )
     {
-      auto dot = matrixA[ 0 ][ i ] * matrixB[ 0 ][ j ];
-      for( std::ptrdiff_t k = 1; k < P; ++k )
+      for( std::ptrdiff_t k = 0; k < P; ++k )
       {
-        dot = dot + matrixA[ k ][ i ] * matrixB[ k ][ j ];
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixB[ k ][ j ];
       }
-
-      dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + dot;
     }
   }
 }
