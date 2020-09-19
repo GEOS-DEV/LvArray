@@ -506,6 +506,11 @@ void resetSignalHandling()
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int getDefaultFloatingPointExceptions()
+{
+  return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )
@@ -515,14 +520,13 @@ int enableFloatingPointExceptions( int const exceptions )
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
   int const newExcepts = exceptions & FE_ALL_EXCEPT;
-  // previous masks
-  int oldExcepts;
 
   if( fegetenv( &fenv ))
   {
     return -1;
   }
-  oldExcepts = fenv.__control & FE_ALL_EXCEPT;
+  // all previous masks
+  int const oldExcepts = fenv.__control & FE_ALL_EXCEPT;
 
   // unmask
   fenv.__control &= ~newExcepts;
@@ -544,14 +548,13 @@ int disableFloatingPointExceptions( int const exceptions )
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
   int const newExcepts = exceptions & FE_ALL_EXCEPT;
-  // all previous masks
-  int oldExcepts;
 
   if( fegetenv( &fenv ))
   {
     return -1;
   }
-  oldExcepts = fenv.__control & FE_ALL_EXCEPT;
+  // all previous masks
+  int const oldExcepts = ~( fenv.__control & FE_ALL_EXCEPT );
 
   // mask
   fenv.__control |= newExcepts;
@@ -575,13 +578,9 @@ void setFPE()
   _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
 #endif
 #if defined(__x86_64__)
-  enableFloatingPointExceptions( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
+  enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
 #endif
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int getAllExceptionsMask()
-{ return FE_ALL_EXCEPT; }
 
 } // namespace system
 } // namespace LvArray

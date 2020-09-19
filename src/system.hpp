@@ -83,18 +83,24 @@ void setSignalHandling( void (* handler)( int ) );
 void resetSignalHandling();
 
 /**
+ * @brief Get the default set of exceptions to check.
+ * @return The default set of exceptions.
+ */
+int getDefaultFloatingPointExceptions();
+
+/**
  * @brief A wrapper around @c feenableexcept that work on OSX.
  * @param exceptions The set of floating point exceptions to enable.
  * @return The old exception mask or -1 if there was an error.
  */
-int enableFloatingPointExceptions( int const exceptions );
+int enableFloatingPointExceptions( int const exceptions = getDefaultFloatingPointExceptions() );
 
 /**
  * @brief A wrapper around @c fedisableexcept that work on OSX.
  * @param exceptions The set of floating point exceptions to disable.
  * @return The old exception mask or -1 if there was an error.
  */
-int disableFloatingPointExceptions( int const exceptions );
+int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPointExceptions() );
 
 /**
  * @brief Sets the floating point environment.
@@ -114,7 +120,7 @@ public:
    * @brief Disable the floating point exceptions given by @p exceptions.
    * @param exceptions The floating point exceptions to disable.
    */
-  FloatingPointExceptionGuard( int const exceptions ):
+  FloatingPointExceptionGuard( int const exceptions = getDefaultFloatingPointExceptions() ):
     m_previousExceptions( disableFloatingPointExceptions( exceptions ) )
   {}
 
