@@ -27,4 +27,7 @@ foreach(example ${exampleSources})
     blt_add_test( NAME ${example_name}
                   COMMAND ${example_name} )
 
+    install(TARGETS ${example_name}
+            DESTINATION bin)
+
 endforeach()

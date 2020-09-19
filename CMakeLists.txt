@@ -21,6 +21,7 @@ if( NOT is_submodule )
     set( ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "" )
 
     option( ENABLE_TESTS "Builds tests" ON )
+    option( DISABLE_UNIT_TESTS "Disables unit tests but builds gtest." OFF )
     option( ENABLE_EXAMPLES "Builds examples" ON )
     option( ENABLE_BENCHMARKS "Builds benchmarks" ON )
     option( ENABLE_DOCS "Builds documentation" ON )
@@ -60,7 +61,7 @@ if( ENABLE_CALIPER )
 endif()
 
 
-if( ENABLE_TESTS )
+if( ENABLE_TESTS AND NOT DISABLE_UNIT_TESTS )
     add_subdirectory( unitTests )
 endif()
 
