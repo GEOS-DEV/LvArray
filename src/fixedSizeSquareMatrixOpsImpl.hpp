@@ -223,7 +223,7 @@ struct SquareMatrixOps< 2 >
    */
   template< typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+  static void Ri_eq_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                         SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                         VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
   {
@@ -247,7 +247,7 @@ struct SquareMatrixOps< 2 >
    */
   template< typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void plusSymAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+  static void Ri_add_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                             SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                             VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
   {
@@ -272,7 +272,7 @@ struct SquareMatrixOps< 2 >
    */
   template< typename DST_MATRIX, typename SYM_MATRIX_A, typename MATRIX_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+  static void Rij_eq_symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                          SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                          MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
   {
@@ -302,7 +302,7 @@ struct SquareMatrixOps< 2 >
    */
   template< typename DST_SYM_MATRIX, typename MATRIX_A, typename SYM_MATRIX_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
+  static void Rij_eq_AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
                             MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                             SYM_MATRIX_B const & LVARRAY_RESTRICT_REF symMatrixB )
   {
@@ -693,7 +693,7 @@ struct SquareMatrixOps< 3 >
    */
   template< typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+  static void Ri_eq_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                         SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                         VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
   {
@@ -724,7 +724,7 @@ struct SquareMatrixOps< 3 >
    */
   template< typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void plusSymAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+  static void Ri_add_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                             SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                             VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
   {
@@ -759,7 +759,7 @@ struct SquareMatrixOps< 3 >
    */
   template< typename DST_MATRIX, typename SYM_MATRIX_A, typename MATRIX_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+  static void Rij_eq_symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                          SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                          MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
   {
@@ -813,7 +813,7 @@ struct SquareMatrixOps< 3 >
    */
   template< typename DST_SYM_MATRIX, typename MATRIX_A, typename SYM_MATRIX_B >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
+  static void Rij_eq_AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
                             MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                             SYM_MATRIX_B const & LVARRAY_RESTRICT_REF symMatrixB )
   {

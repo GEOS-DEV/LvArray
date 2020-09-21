@@ -97,11 +97,11 @@ auto invert( MATRIX && matrix )
  */
 template< std::ptrdiff_t M, typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_eq_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  internal::SquareMatrixOps< M >::symAijBj( std::forward< DST_VECTOR >( dstVector ),
+  internal::SquareMatrixOps< M >::Ri_eq_symAijBj( std::forward< DST_VECTOR >( dstVector ),
                                             symMatrixA,
                                             vectorB );
 }
@@ -119,11 +119,11 @@ void symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, typename DST_VECTOR, typename SYM_MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusSymAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_add_symAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                    SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                    VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  internal::SquareMatrixOps< M >::plusSymAijBj( std::forward< DST_VECTOR >( dstVector ),
+  internal::SquareMatrixOps< M >::Ri_add_symAijBj( std::forward< DST_VECTOR >( dstVector ),
                                                 symMatrixA,
                                                 vectorB );
 }
@@ -142,11 +142,11 @@ void plusSymAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, typename DST_MATRIX, typename SYM_MATRIX_A, typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_eq_symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                 SYM_MATRIX_A const & LVARRAY_RESTRICT_REF symMatrixA,
                 MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  internal::SquareMatrixOps< M >::symAikBjk( std::forward< DST_MATRIX >( dstMatrix ),
+  internal::SquareMatrixOps< M >::Rij_eq_symAikBjk( std::forward< DST_MATRIX >( dstMatrix ),
                                              symMatrixA,
                                              matrixB );
 }
@@ -167,11 +167,11 @@ void symAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
  */
 template< std::ptrdiff_t M, typename DST_SYM_MATRIX, typename MATRIX_A, typename SYM_MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
+void Rij_eq_AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
                    MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                    SYM_MATRIX_B const & LVARRAY_RESTRICT_REF symMatrixB )
 {
-  internal::SquareMatrixOps< M >::AikSymBklAjl( std::forward< DST_SYM_MATRIX >( dstSymMatrix ),
+  internal::SquareMatrixOps< M >::Rij_eq_AikSymBklAjl( std::forward< DST_SYM_MATRIX >( dstSymMatrix ),
                                                 matrixA,
                                                 symMatrixB );
 }

@@ -13,7 +13,7 @@ namespace LvArray
 namespace testing
 {
 
-TYPED_TEST( ThreeSizesTest, plusAikBjk )
+TYPED_TEST( ThreeSizesTest, Rij_add_AkiBkj )
 {
   this->testPlusAikBjk();
 }

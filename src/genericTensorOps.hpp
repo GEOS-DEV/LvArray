@@ -753,7 +753,7 @@ void crossProduct( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, std::ptrdiff_t N, typename DST_MATRIX, typename VECTOR_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_eq_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
            VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
            VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -786,7 +786,7 @@ void AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
  */
 template< std::ptrdiff_t N, std::ptrdiff_t M, typename DST_MATRIX, typename VECTOR_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_add_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
                VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -819,7 +819,7 @@ void plusAiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
  */
 template< std::ptrdiff_t M, std::ptrdiff_t N, typename DST_VECTOR, typename MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_eq_AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
             MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
             VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -853,7 +853,7 @@ void AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, std::ptrdiff_t N, typename DST_VECTOR, typename MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_add_AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                 MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                 VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -887,7 +887,7 @@ void plusAijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, std::ptrdiff_t N, typename DST_VECTOR, typename MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_eq_AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
             MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
             VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -922,7 +922,7 @@ void AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
  */
 template< std::ptrdiff_t M, std::ptrdiff_t N, typename DST_VECTOR, typename MATRIX_A, typename VECTOR_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+void Ri_add_AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                 MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                 VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
@@ -998,7 +998,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_eq_AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
              MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
              MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
@@ -1044,7 +1044,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_add_AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                  MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                  MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
@@ -1089,7 +1089,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_eq_AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
              MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
              MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
@@ -1135,7 +1135,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_add_AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                  MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                  MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
@@ -1174,7 +1174,7 @@ template< std::ptrdiff_t M,
           typename DST_MATRIX,
           typename MATRIX_A >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAikAjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_add_AikAjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                  MATRIX_A const & LVARRAY_RESTRICT_REF matrixA )
 {
   static_assert( M > 0, "M must be greater than zero." );
@@ -1215,7 +1215,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_eq_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
              MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
              MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
@@ -1260,7 +1260,7 @@ template< std::ptrdiff_t M,
           typename MATRIX_A,
           typename MATRIX_B >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void plusAkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+void Rij_add_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                  MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                  MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {

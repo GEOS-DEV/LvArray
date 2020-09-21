@@ -13,7 +13,7 @@ namespace LvArray
 namespace testing
 {
 
-TYPED_TEST( TwoSizesTest, plusAiBj )
+TYPED_TEST( TwoSizesTest, Rij_add_AiBj )
 {
   this->testPlusAiBj();
 }
@@ -23,7 +23,7 @@ TYPED_TEST( TwoSizesTest, AijBj )
   this->testAijBj();
 }
 
-TYPED_TEST( TwoSizesTest, plusAijBj )
+TYPED_TEST( TwoSizesTest, Ri_add_AijBj )
 {
   this->testPlusAijBj();
 }
