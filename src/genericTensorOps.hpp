@@ -270,7 +270,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto maxAbsoluteEntry( VECTOR && vector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   auto maxVal = math::abs( vector[ 0 ] );
@@ -294,7 +294,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void fill( VECTOR && vector, std::remove_reference_t< decltype( vector[ 0 ] ) > const value )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -316,8 +316,8 @@ template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void fill( MATRIX && matrix, std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > const value )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( matrix );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -368,8 +368,8 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void copy( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
            SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, JSIZE >( srcMatrix );
 
@@ -394,7 +394,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void scale( VECTOR && vector, std::remove_reference_t< decltype( vector[ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -416,8 +416,8 @@ template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void scale( MATRIX && matrix, std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( matrix );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -445,7 +445,7 @@ void scaledCopy( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                  SRC_VECTOR const & LVARRAY_RESTRICT_REF srcVector,
                  std::remove_reference_t< decltype( srcVector[ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE >( srcVector );
 
@@ -472,8 +472,8 @@ void scaledCopy( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                  SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix,
                  std::remove_reference_t< decltype( srcMatrix[ 0 ][ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, JSIZE >( srcMatrix );
 
@@ -500,7 +500,7 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void add( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
           SRC_VECTOR const & LVARRAY_RESTRICT_REF srcVector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE >( srcVector );
 
@@ -525,8 +525,8 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void add( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
           SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, JSIZE >( srcMatrix );
 
@@ -553,7 +553,7 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void subtract( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                SRC_VECTOR const & LVARRAY_RESTRICT_REF srcVector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE >( srcVector );
 
@@ -579,7 +579,7 @@ void scaledAdd( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                 SRC_VECTOR const & LVARRAY_RESTRICT_REF srcVector,
                 std::remove_reference_t< decltype( srcVector[ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE >( srcVector );
 
@@ -605,7 +605,7 @@ void hadamardProduct( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                       VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
                       VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE >( vectorA );
   internal::checkSizes< ISIZE >( vectorB );
@@ -634,7 +634,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto l2NormSquared( VECTOR const & vector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   auto norm = vector[ 0 ] * vector[ 0 ];
@@ -655,7 +655,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto l2Norm( VECTOR const & vector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   return math::sqrt( l2NormSquared< ISIZE >( vector ) );
@@ -672,7 +672,7 @@ template< std::ptrdiff_t ISIZE, typename VECTOR >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto normalize( VECTOR && vector )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( vector );
 
   auto const normInv = math::invSqrt( l2NormSquared< ISIZE >( vector ) );
@@ -694,7 +694,7 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto AiBi( VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
            VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< JSIZE >( vectorA );
   internal::checkSizes< JSIZE >( vectorB );
 
@@ -757,8 +757,8 @@ void Rij_eq_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                   VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
                   VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE >( vectorA );
   internal::checkSizes< JSIZE >( vectorB );
@@ -790,8 +790,8 @@ void Rij_add_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                    VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
                    VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( JSIZE > 0, "N must be greater than zero." );
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< JSIZE, ISIZE >( dstMatrix );
   internal::checkSizes< JSIZE >( vectorA );
   internal::checkSizes< ISIZE >( vectorB );
@@ -823,8 +823,8 @@ void Ri_eq_AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                   MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                   VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE, JSIZE >( matrixA );
   internal::checkSizes< JSIZE >( vectorB );
@@ -857,8 +857,8 @@ void Ri_add_AijBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                    MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                    VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< ISIZE, JSIZE >( matrixA );
   internal::checkSizes< JSIZE >( vectorB );
@@ -891,8 +891,8 @@ void Ri_eq_AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                   MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                   VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< JSIZE, ISIZE >( matrixA );
   internal::checkSizes< JSIZE >( vectorB );
@@ -926,8 +926,8 @@ void Ri_add_AjiBj( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
                    MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                    VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE >( dstVector );
   internal::checkSizes< JSIZE, ISIZE >( matrixA );
   internal::checkSizes< JSIZE >( vectorB );
@@ -963,8 +963,8 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void transpose( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                 SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< JSIZE, ISIZE >( srcMatrix );
 
@@ -1002,9 +1002,9 @@ void Rij_eq_AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                     MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                     MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( JSIZE > 0, "M must be greater than zero." );
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, KSIZE >( matrixA );
   internal::checkSizes< KSIZE, JSIZE >( matrixB );
@@ -1048,9 +1048,9 @@ void Rij_add_AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                      MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                      MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, KSIZE >( matrixA );
   internal::checkSizes< KSIZE, JSIZE >( matrixB );
@@ -1093,9 +1093,9 @@ void Rij_eq_AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                     MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                     MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, KSIZE >( matrixA );
   internal::checkSizes< JSIZE, KSIZE >( matrixB );
@@ -1139,9 +1139,9 @@ void Rij_add_AikBjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                      MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                      MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< ISIZE, KSIZE >( matrixA );
   internal::checkSizes< JSIZE, KSIZE >( matrixB );
@@ -1177,8 +1177,8 @@ LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void Rij_add_AikAjk( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                      MATRIX_A const & LVARRAY_RESTRICT_REF matrixA )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "N must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, ISIZE >( dstMatrix );
   internal::checkSizes< ISIZE, JSIZE >( matrixA );
 
@@ -1219,9 +1219,9 @@ void Rij_eq_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                     MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                     MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< KSIZE, ISIZE >( matrixA );
   internal::checkSizes< KSIZE, JSIZE >( matrixB );
@@ -1264,9 +1264,9 @@ void Rij_add_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                      MATRIX_A const & LVARRAY_RESTRICT_REF matrixA,
                      MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
-  static_assert( JSIZE > 0, "M must be greater than zero." );
-  static_assert( KSIZE > 0, "P must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
   internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
   internal::checkSizes< KSIZE, ISIZE >( matrixA );
   internal::checkSizes< KSIZE, JSIZE >( matrixB );
@@ -1301,7 +1301,7 @@ template< std::ptrdiff_t ISIZE, typename MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void transpose( MATRIX && LVARRAY_RESTRICT_REF matrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE, ISIZE >( matrix );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -1327,7 +1327,7 @@ template< std::ptrdiff_t ISIZE, typename MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void addIdentity( MATRIX && matrix, std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE, ISIZE >( matrix );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -1346,7 +1346,7 @@ template< std::ptrdiff_t ISIZE, typename MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto trace( MATRIX const & matrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< ISIZE, ISIZE >( matrix );
 
   auto trace = matrix[ 0 ][ 0 ];
@@ -1378,7 +1378,7 @@ template< std::ptrdiff_t ISIZE, typename SYM_MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void symAddIdentity( SYM_MATRIX && symMatrix, std::remove_reference_t< decltype( symMatrix[ 0 ] ) > const scale )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< SYM_SIZE< ISIZE > >( symMatrix );
 
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
@@ -1397,7 +1397,7 @@ template< std::ptrdiff_t ISIZE, typename SYM_MATRIX >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 auto symTrace( SYM_MATRIX const & symMatrix )
 {
-  static_assert( ISIZE > 0, "M must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< SYM_SIZE< ISIZE > >( symMatrix );
 
   auto trace = symMatrix[ 0 ];
