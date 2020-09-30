@@ -77,10 +77,21 @@ class ChaiBufferPrinter(BufferPrinter):
         return self.val['m_pointer']
 
 
+class MallocBufferPrinter(BufferPrinter):
+    """Pretty-print a MallocBuffer"""
+
+    def size(self):
+        return self.val['m_capacity']
+
+    def data(self):
+        return self.val['m_data']
+
+
 def build_buffer_printer():
     pp = gdb.printing.RegexpCollectionPrettyPrinter("LvArray-buffers")
     pp.add_printer('LvArray::StackBuffer', 'LvArray::StackBuffer<.*>', StackBufferPrinter)
     pp.add_printer('LvArray::ChaiBuffer', 'LvArray::ChaiBuffer<.*>', ChaiBufferPrinter)
+    pp.add_printer('LvArray::MallocBuffer', 'LvArray::MallocBuffer<.*>', MallocBufferPrinter)
     return pp
 
 
@@ -130,10 +141,10 @@ class ArrayViewPrinter(CxxUtilsPrinter):
         return self.val.type.template_argument(1)
 
     def dims(self):
-        return self.val['m_dims']
+        return self.val['m_dims']['data']
 
     def strides(self):
-        return self.val['m_strides']
+        return self.val['m_strides']['data']
 
     def data(self):
         return buffer_printer(self.val['m_dataBuffer']).data()

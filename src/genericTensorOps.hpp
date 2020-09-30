@@ -487,6 +487,28 @@ void scaledCopy( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
+ * @brief Add @p value to @p dstVector.
+ * @tparam M The length of @p dstVector.
+ * @tparam DST_VECTOR The type of @p dstVector.
+ * @param dstVector The destination vector, of length M.
+ * @param value The value to add.
+ * @details Performs the operation @code dstVector[ i ] += value @endcode
+ */
+template< std::ptrdiff_t M, typename DST_VECTOR >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void addScalar( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+                std::remove_reference_t< decltype( dstVector[0] ) > const value )
+{
+  static_assert( M > 0, "M must be greater than zero." );
+  internal::checkSizes< M >( dstVector );
+
+  for( std::ptrdiff_t i = 0; i < M; ++i )
+  {
+    dstVector[ i ] += value;
+  }
+}
+
+/**
  * @brief Add @p srcVector to @p dstVector.
  * @tparam ISIZE The length of @p dstVector and @p srcVector.
  * @tparam DST_VECTOR The type of @p dstVector.
@@ -536,6 +558,28 @@ void add( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
     {
       dstMatrix[ i ][ j ] += srcMatrix[ i ][ j ];
     }
+  }
+}
+
+/**
+ * @brief Subtract @p value to @p dstVector.
+ * @tparam M The length of @p dstVector.
+ * @tparam DST_VECTOR The type of @p dstVector.
+ * @param dstVector The destination vector, of length M.
+ * @param value The value to subtract.
+ * @details Performs the operation @code dstVector[ i ] -= value @endcode
+ */
+template< std::ptrdiff_t M, typename DST_VECTOR >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void subtractScalar( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
+                     std::remove_reference_t< decltype( dstVector[0] ) > const value )
+{
+  static_assert( M > 0, "M must be greater than zero." );
+  internal::checkSizes< M >( dstVector );
+
+  for( std::ptrdiff_t i = 0; i < M; ++i )
+  {
+    dstVector[ i ] -= value;
   }
 }
 
@@ -768,6 +812,33 @@ void Rij_eq_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
     for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
     {
       dstMatrix[ i ][ j ] = vectorA[ i ] * vectorB[ j ];
+    }
+  }
+}
+
+/**
+ * @brief Perform the outer product of @p vectorA with itself writing the result to @p dstMatrix.
+ * @tparam M The size of both dimensions of @p dstMatrix and the length of @p vectorA.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam VECTOR_A The type of @p vectorA.
+ * @param dstMatrix The matrix the result is written to, of size M x N.
+ * @param vectorA The first vector in the outer product, of length M.
+ * @details Performs the operations @code dstMatrix[ i ][ j ] = vectorA[ i ] * vectorA[ j ] @endcode
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename VECTOR_A >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_AiAj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                  VECTOR_A const & LVARRAY_RESTRICT_REF vectorA )
+{
+  static_assert( M > 0, "M must be greater than zero." );
+  internal::checkSizes< M, M >( dstMatrix );
+  internal::checkSizes< M >( vectorA );
+
+  for( std::ptrdiff_t i = 0; i < M; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < M; ++j )
+    {
+      dstMatrix[ i ][ j ] = vectorA[ i ] * vectorA[ j ];
     }
   }
 }
