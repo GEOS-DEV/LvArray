@@ -94,7 +94,7 @@ public:
         {
           #define _TEST( matrixNM, matrixML, matrixLM ) \
             fill( matrixNM, matrixNMSeed ); \
-            tensorOps::AikBkj< N, M, L >( matrixNM, matrixML, matrixLM ); \
+            tensorOps::Rij_eq_AikBkj< N, M, L >( matrixNM, matrixML, matrixLM ); \
             CHECK_EQUALITY_2D( N, M, matrixNM, result )
 
           #define _TEST_PERMS( matrixNM, matrixML, matrixLM0, matrixLM1, matrixLM2, matrixLM3 ) \
@@ -166,7 +166,7 @@ public:
         {
           #define _TEST( matrixNM, matrixML, matrixLM ) \
             fill( matrixNM, matrixNMSeed ); \
-            tensorOps::plusAikBkj< N, M, L >( matrixNM, matrixML, matrixLM ); \
+            tensorOps::Rij_add_AikBkj< N, M, L >( matrixNM, matrixML, matrixLM ); \
             CHECK_EQUALITY_2D( N, M, matrixNM, result )
 
           #define _TEST_PERMS( matrixNM, matrixML, matrixLM0, matrixLM1, matrixLM2, matrixLM3 ) \
@@ -238,7 +238,7 @@ public:
         {
           #define _TEST( matrixNM, matrixNL, matrixML ) \
             fill( matrixNM, matrixNMSeed ); \
-            tensorOps::AikBjk< N, M, L >( matrixNM, matrixNL, matrixML ); \
+            tensorOps::Rij_eq_AikBjk< N, M, L >( matrixNM, matrixNL, matrixML ); \
             CHECK_EQUALITY_2D( N, M, matrixNM, result )
 
           #define _TEST_PERMS( matrixNM, matrixNL, matrixML0, matrixML1, matrixML2, matrixML3 ) \
@@ -310,7 +310,7 @@ public:
         {
           #define _TEST( matrixNM, matrixNL, matrixML ) \
             fill( matrixNM, matrixNMSeed ); \
-            tensorOps::plusAikBjk< N, M, L >( matrixNM, matrixNL, matrixML ); \
+            tensorOps::Rij_add_AikBjk< N, M, L >( matrixNM, matrixNL, matrixML ); \
             CHECK_EQUALITY_2D( N, M, matrixNM, result )
 
           #define _TEST_PERMS( matrixNM, matrixNL, matrixML0, matrixML1, matrixML2, matrixML3 ) \
@@ -381,7 +381,7 @@ public:
         {
           #define _TEST( matrixML, matrixNM, matrixNL ) \
             fill( matrixML, matrixMLSeed ); \
-            tensorOps::AkiBkj< M, L, N >( matrixML, matrixNM, matrixNL ); \
+            tensorOps::Rij_eq_AkiBkj< M, L, N >( matrixML, matrixNM, matrixNL ); \
             CHECK_EQUALITY_2D( M, L, matrixML, result )
 
           #define _TEST_PERMS( matrixML, matrixNM, matrixNL0, matrixNL1, matrixNL2, matrixNL3 ) \
@@ -452,7 +452,7 @@ public:
         {
           #define _TEST( matrixML, matrixNM, matrixNL ) \
             fill( matrixML, matrixMLSeed ); \
-            tensorOps::plusAkiBkj< M, L, N >( matrixML, matrixNM, matrixNL ); \
+            tensorOps::Rij_add_AkiBkj< M, L, N >( matrixML, matrixNM, matrixNL ); \
             CHECK_EQUALITY_2D( M, L, matrixML, result )
 
           #define _TEST_PERMS( matrixML, matrixNM, matrixNL0, matrixNL1, matrixNL2, matrixNL3 ) \
