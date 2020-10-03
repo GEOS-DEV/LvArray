@@ -114,7 +114,6 @@ public:
    * @brief Copy constructor.
    * @param source object to copy.
    * @note Performs a deep copy of source
-   * @return *this.
    */
   LVARRAY_HOST_DEVICE
   Array( Array const & source ):
