@@ -133,7 +133,7 @@ public:
 
         // Check that the matrix scales the eigenvector by the eigenvalue.
         FLOAT output[ M ];
-        tensorOps::symAijBj< M >( output, matrices[ i ], eigenvectors[ i ][ j ] );
+        tensorOps::Ri_eq_symAijBj< M >( output, matrices[ i ], eigenvectors[ i ][ j ] );
 
         double diff = 0;
         for( int k = 0; k < M; ++k )
@@ -199,7 +199,7 @@ public:
       // Construct Q from the eigenvectors.
       FLOAT Q[ M ][ M ];
       tensorOps::transpose< M, M >( Q, eigenvectors[ i ] );
-      tensorOps::AikSymBklAjl< M >( matrices[ i ], Q, lambda );
+      tensorOps::Rij_eq_AikSymBklAjl< M >( matrices[ i ], Q, lambda );
     } );
   }
 

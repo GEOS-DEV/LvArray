@@ -103,12 +103,12 @@ Variables
 --------------------------------------------------------------------------------------------------
 Operation                                              Function 
 ====================================================== ===========================================
-:math:`\mathbf{A} \leftarrow x y^T`                    ``tensorOps::AiBj< m, n >( A, x, y )``
-:math:`\mathbf{A} \leftarrow \mathbf{A} + x y^T`       ``tensorOps::plusAiBj< m, n >( A, x, y )``
-:math:`x \leftarrow \mathbf{A} y`                      ``tensorOps::AijBj< m, n >( x, A, y )``
-:math:`x \leftarrow x + \mathbf{A} y`                  ``tensorOps::plusAijBj< m, n >( x, A, y )``
-:math:`y \leftarrow \mathbf{A}^T x`                    ``tensorOps::AjiBj< n, m >( y, A, x )``
-:math:`y \leftarrow y + \mathbf{A}^T x`                ``tensorOps::plusAjiBj< n, m >( y, A, x )``
+:math:`\mathbf{A} \leftarrow x y^T`                    ``tensorOps::Rij_eq_AiBj< m, n >( A, x, y )``
+:math:`\mathbf{A} \leftarrow \mathbf{A} + x y^T`       ``tensorOps::Rij_add_AiBj< m, n >( A, x, y )``
+:math:`x \leftarrow \mathbf{A} y`                      ``tensorOps::Ri_eq_AijBj< m, n >( x, A, y )``
+:math:`x \leftarrow x + \mathbf{A} y`                  ``tensorOps::Ri_add_AijBj< m, n >( x, A, y )``
+:math:`y \leftarrow \mathbf{A}^T x`                    ``tensorOps::Ri_eq_AjiBj< n, m >( y, A, x )``
+:math:`y \leftarrow y + \mathbf{A}^T x`                ``tensorOps::Ri_add_AjiBj< n, m >( y, A, x )``
 ====================================================== ===========================================
 
 Matrix operations
@@ -130,13 +130,13 @@ Variables
 Operation                                              Function 
 =================================================================== ===============================================
 :math:`\mathbf{A} \leftarrow \mathbf{D}^T`                          ``tensorOps::transpose< m, n >( A, D )``
-:math:`\mathbf{A} \leftarrow \mathbf{B} \mathbf{C}`                 ``tensorOps::AikBkj< m, n, p >( A, B, C )``
-:math:`\mathbf{A} \leftarrow \mathbf{A} + \mathbf{B} \mathbf{C}`    ``tensorOps::plusAikBkj< m, n, p >( A, B, C )``
-:math:`\mathbf{B} \leftarrow \mathbf{A} \mathbf{C}^T`               ``tensorOps::AikBjk< m, p, n >( B, A, C )``
-:math:`\mathbf{B} \leftarrow \mathbf{B} + \mathbf{A} \mathbf{C}^T`  ``tensorOps::plusAikBjk< m, p, n >( B, A, C )``
-:math:`\mathbf{E} \leftarrow \mathbf{E} + \mathbf{A} \mathbf{A}^T`  ``tensorOps::plusAikAjk< m, n >( E, A )``
-:math:`\mathbf{C} \leftarrow \mathbf{B}^T \mathbf{A}`               ``tensorOps::AkiBkj< p, n, m >( C, B, A )``
-:math:`\mathbf{C} \leftarrow \mathbf{C} + \mathbf{B}^T \mathbf{A}`  ``tensorOps::plusAkiBkj< p, n, m >( C, B, A )``
+:math:`\mathbf{A} \leftarrow \mathbf{B} \mathbf{C}`                 ``tensorOps::Rij_eq_AikBkj< m, n, p >( A, B, C )``
+:math:`\mathbf{A} \leftarrow \mathbf{A} + \mathbf{B} \mathbf{C}`    ``tensorOps::Rij_add_AikBkj< m, n, p >( A, B, C )``
+:math:`\mathbf{B} \leftarrow \mathbf{A} \mathbf{C}^T`               ``tensorOps::Rij_eq_AikBjk< m, p, n >( B, A, C )``
+:math:`\mathbf{B} \leftarrow \mathbf{B} + \mathbf{A} \mathbf{C}^T`  ``tensorOps::Rij_add_AikBjk< m, p, n >( B, A, C )``
+:math:`\mathbf{E} \leftarrow \mathbf{E} + \mathbf{A} \mathbf{A}^T`  ``tensorOps::Rij_add_AikAjk< m, n >( E, A )``
+:math:`\mathbf{C} \leftarrow \mathbf{B}^T \mathbf{A}`               ``tensorOps::Rij_eq_AkiBkj< p, n, m >( C, B, A )``
+:math:`\mathbf{C} \leftarrow \mathbf{C} + \mathbf{B}^T \mathbf{A}`  ``tensorOps::Rij_add_AkiBkj< p, n, m >( C, B, A )``
 =================================================================== ===============================================
 
 Square matrix operations
@@ -188,10 +188,10 @@ Operation                                                                       
 ================================================================================ ==============================================
 :math:`\mathbf{S} \leftarrow \mathbf{S} + \alpha \mathbf{I}`                     ``tensorOps::symAddIdentity< m >( S, alpha )``
 :math:`tr(\mathbf{S})`                                                           ``tensorOps::symTrace< m >( S )``
-:math:`x \leftarrow \mathbf{S} y`                                                ``tensorOps::symAijBj< m >( x, S ,y )``
-:math:`x \leftarrow x + \mathbf{S} y`                                            ``tensorOps::plusSymAijBj< m >( x, S ,y )``
-:math:`\mathbf{A} \leftarrow \mathbf{S} \mathbf{B}^T`                            ``tensorOps::symAikBjk< m >( A, S, B )``
-:math:`\mathbf{S} \leftarrow \mathbf{A} \mathbf{Q} \mathbf{A}^T`                 ``tensorOps::AikSymBklAjl< m >( S, A, Q )``
+:math:`x \leftarrow \mathbf{S} y`                                                ``tensorOps::Ri_eq_symAijBj< m >( x, S ,y )``
+:math:`x \leftarrow x + \mathbf{S} y`                                            ``tensorOps::Ri_add_symAijBj< m >( x, S ,y )``
+:math:`\mathbf{A} \leftarrow \mathbf{S} \mathbf{B}^T`                            ``tensorOps::Rij_eq_symAikBjk< m >( A, S, B )``
+:math:`\mathbf{S} \leftarrow \mathbf{A} \mathbf{Q} \mathbf{A}^T`                 ``tensorOps::Rij_eq_AikSymBklAjl< m >( S, A, Q )``
 :math:`|\mathbf{S}|`                                                             ``tensorOps::symDeterminant< m >( S )``
 :math:`\mathbf{S} \leftarrow \mathbf{Q}^-1`                                      ``tensorOps::symInvert< m >( S, Q )``
 :math:`\mathbf{S} \leftarrow \mathbf{S}^-1`                                      ``tensorOps::symInvert< m >( S )``

@@ -178,7 +178,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( matrix, matrixSeed ); \
-            tensorOps::AiBj< N, M >( matrix, vectorN, vectorM ); \
+            tensorOps::Rij_eq_AiBj< N, M >( matrix, vectorN, vectorM ); \
             CHECK_EQUALITY_2D( N, M, matrix, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -237,7 +237,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( matrix, matrixSeed ); \
-            tensorOps::plusAiBj< N, M >( matrix, vectorN, vectorM ); \
+            tensorOps::Rij_add_AiBj< N, M >( matrix, vectorN, vectorM ); \
             CHECK_EQUALITY_2D( N, M, matrix, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -298,7 +298,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorN, vectorNSeed ); \
-            tensorOps::AijBj< N, M >( vectorN, matrix, vectorM ); \
+            tensorOps::Ri_eq_AijBj< N, M >( vectorN, matrix, vectorM ); \
             CHECK_EQUALITY_1D( N, vectorN, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -359,7 +359,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorN, vectorNSeed ); \
-            tensorOps::plusAijBj< N, M >( vectorN, matrix, vectorM ); \
+            tensorOps::Ri_add_AijBj< N, M >( vectorN, matrix, vectorM ); \
             CHECK_EQUALITY_1D( N, vectorN, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -420,7 +420,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorM, vectorMSeed ); \
-            tensorOps::AjiBj< M, N >( vectorM, matrix, vectorN ); \
+            tensorOps::Ri_eq_AjiBj< M, N >( vectorM, matrix, vectorN ); \
             CHECK_EQUALITY_1D( M, vectorM, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -481,7 +481,7 @@ public:
         {
           #define _TEST( matrix, vectorN, vectorM ) \
             fill( vectorM, vectorMSeed ); \
-            tensorOps::plusAjiBj< M, N >( vectorM, matrix, vectorN ); \
+            tensorOps::Ri_add_AjiBj< M, N >( vectorM, matrix, vectorN ); \
             CHECK_EQUALITY_1D( M, vectorM, result )
 
           #define _TEST_PERMS( matrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
@@ -702,7 +702,7 @@ public:
         {
           #define _TEST( matrixNN, matrixA ) \
             fill( matrixNN, matrixNNSeed ); \
-            tensorOps::plusAikAjk< N, M >( matrixNN, matrixA ); \
+            tensorOps::Rij_add_AikAjk< N, M >( matrixNN, matrixA ); \
             CHECK_EQUALITY_2D( N, N, matrixNN, result )
 
           #define _TEST_PERMS( matrixNN, matrixA0, matrixA1, matrixA2, matrixA3 ) \

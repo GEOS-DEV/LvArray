@@ -98,7 +98,7 @@ CUDA_TEST( tensorOps, device )
     float x[ 3 ] = { 1.3f, 2.2f, 5.3f };
 
     // You can mix value types.
-    LvArray::tensorOps::symAijBj< 3 >( result, symmetricMatricesView[ i ], x );
+    LvArray::tensorOps::Ri_eq_symAijBj< 3 >( result, symmetricMatricesView[ i ], x );
 
     LVARRAY_ERROR_IF_NE( result[ 0 ], x[ 0 ] * symmetricMatricesView( i, 0 ) +
                          x[ 1 ] * symmetricMatricesView( i, 5 ) +
