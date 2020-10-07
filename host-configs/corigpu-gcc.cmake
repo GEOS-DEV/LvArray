@@ -4,19 +4,10 @@ set(CONFIG_NAME "corigpu-gcc7" CACHE PATH "")
 set(GEOSX_TPL_ROOT_DIR /global/cscratch1/sd/settgast/thirdPartyLibs/ CACHE PATH "")
 set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
 
-# C options
-set(CMAKE_C_COMPILER /opt/gcc/7.3.0/bin/gcc CACHE PATH "")
-#set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" CACHE STRING "")
-
 # C++ options
 set(CMAKE_CXX_COMPILER /opt/gcc/7.3.0/bin/g++ CACHE PATH "")
 #set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" CACHE STRING "")
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
-
-# Fortran options
-set(CMAKE_Fortran_COMPILER /opt/gcc/7.3.0/bin/gfortran CACHE PATH "")
-#set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -qarch=pwr9 -qtune=pwr9" CACHE STRING "")
-set(FORTRAN_MANGLE_NO_UNDERSCORE ON CACHE BOOL "")
 
 # OpenMP options
 set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
@@ -24,11 +15,6 @@ set(ENABLE_OPENMP ON CACHE BOOL "" FORCE)
 set(OpenMP_Fortran_LIB_NAMES "" CACHE STRING "")
 
 # MPI options
-set(ENABLE_MPI ON CACHE BOOL "")
-set(MPI_ROOT /usr/common/software/mvapich2/2.3/gnu/7.3.0 CACHE PATH "")
-set(MPI_C_COMPILER         ${MPI_ROOT}/bin/mpicc   CACHE PATH "")
-set(MPI_CXX_COMPILER       ${MPI_ROOT}/bin/mpicxx  CACHE PATH "")
-set(MPI_Fortran_COMPILER   ${MPI_ROOT}/bin/mpif90  CACHE PATH "")
 set(MPIEXEC                lrun CACHE STRING "")
 set(MPIEXEC_NUMPROC_FLAG   -n CACHE STRING "")
 set(ENABLE_WRAP_ALL_TESTS_WITH_MPIEXEC ON CACHE BOOL "")
