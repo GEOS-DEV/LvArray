@@ -101,8 +101,6 @@ CUDA_TEST( ChaiBuffer, captureOnDevice )
     buffer[ i ] += i;
   } );
 
-  LVARRAY_LOG_VAR( buffer.capacity() );
-
   // Capture buffer in a host kernel moving the data back to the host allocation.
   RAJA::forall< RAJA::loop_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, size ),
