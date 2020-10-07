@@ -1,0 +1,34 @@
+packages:
+  all:
+    target: [default]
+    compiler: [gcc, clang, intel]
+
+  cmake:
+    buildable: False
+    externals:
+    - spec: cmake@3.14.5
+      prefix: /usr/tce/packages/cmake/cmake-3.14.5
+
+  python:
+    buildable: False
+    externals:
+    - spec: python@3.8.2
+      prefix: /usr/tce/packages/python/python-3.8.2
+
+  py-sphinx:
+    buildable: False
+    externals:
+    - spec: py@1.6.3
+      prefix-sphinx: /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu
+
+  bison:
+    buildable: False
+    externals:
+    - spec: bison@3.0.4
+      prefix: /usr/bin/
+
+  flex:
+    buildable: False
+    externals:
+    - spec: flex@2.5.37
+      prefix: /usr/bin/
