@@ -26,6 +26,7 @@ set( lvarray_headers
      limits.hpp
      math.hpp
      output.hpp
+     carrayOutput.hpp
      sliceHelpers.hpp
      sortedArrayManipulation.hpp
      sortedArrayManipulationHelpers.hpp
