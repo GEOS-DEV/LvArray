@@ -21,7 +21,7 @@ blt_register_library( NAME RAJA
 
 set(ENABLE_RAJA ON CACHE BOOL "")
 
-set( thirdPartyLibs ${thirdPartyLibs} raja )
+set( thirdPartyLibs ${thirdPartyLibs} RAJA )
 
 
 ###############################

@@ -58,7 +58,7 @@ if( ENABLE_OPENMP )
 endif()
 
 if( ENABLE_RAJA )
-    set( lvarray_dependencies ${lvarray_dependencies} raja )
+    set( lvarray_dependencies ${lvarray_dependencies} RAJA )
 endif()
 
 if( ENABLE_CALIPER )
