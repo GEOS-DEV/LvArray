@@ -128,6 +128,7 @@ public:
    *   shallow copy that invalidates the contents of source. However this depends on the
    *   implementation of BUFFER_TYPE.
    */
+  LVARRAY_HOST_DEVICE
   Array( Array && source ):
     ParentClass( std::move( source ) )
   {
