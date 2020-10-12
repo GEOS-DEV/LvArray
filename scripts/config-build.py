@@ -24,7 +24,7 @@ def extract_cmake_location(file_path):
 
 
 
-parser = argparse.ArgumentParser(description="Configure cmake build.")
+parser = argparse.ArgumentParser(description="Configure cmake build. Unrecognized arguments are passed on to CMake.")
 
 parser.add_argument("-bp",
                     "--buildpath",

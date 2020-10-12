@@ -204,8 +204,6 @@ There are also two function ``tensorOps::denseToSymmetric`` and ``tensorOps::sym
 .. note::
   Apart from ``tensorOps::symAddIdentity`` and ``tensorOps::symTrace`` the symmetric matrix operations are only implemented for matrices of size :math:`2 \times 2` and :math:`3 \times 3`.
 
-``LvArray::tensorOps`` contains a lot of operations and it can be hard to remember the appropriate order to specify the function arguments and size template parameters. In general the arguments are provided in the order they appear in the equation describing the operation. This implies that the output variable is always the first argument. For example to compute the matrix matrix product :math:`\mathbf{A} \leftarrow \mathbf{B} \mathbf{C}` the arguments are ``A`` then ``B`` then ``C``. The order of the sizes is created from the sizes of the arguments after removing duplicates. If :math:`\mathbf{A} \in \mathbb{R}^m \times \mathbb{R}^n` and :math:`\mathbf{B} \in \mathbb{R}^m \times \mathbb{R}^p` then the sizes are ``m`` then ``n`` then ``p``. This leads to a call of ``LvArray::tensorOps::AikBkj< m, n, p >( A, B, C )``.
-
 Examples
 --------
 
