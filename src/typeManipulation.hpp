@@ -79,6 +79,24 @@ public: \
 #define HAS_MEMBER_FUNCTION_NO_RTYPE( NAME, ... ) \
   IS_VALID_EXPRESSION( HasMemberFunction_ ## NAME, CLASS, std::declval< CLASS >().NAME( __VA_ARGS__ ) )
 
+/**
+ * @brief Macro that expands to a static constexpr bool templated on a type that is only true when
+ *        the type has a nested type (or type alias) called @p NAME.
+ *        The name of the boolean variable is HasMemberType_ ## @p NAME.
+ * @param NAME The name of the type to look for.
+ */
+#define HAS_MEMBER_TYPE( NAME ) \
+  IS_VALID_EXPRESSION( HasMemberType_ ## NAME, CLASS, std::declval< typename CLASS::NAME >() )
+
+/**
+ * @brief Macro that expands to a static constexpr bool templated on a type that is only true when
+ *        the type has a static member called @p NAME.
+ *        The name of the boolean variable is HasStaticMember_ ## @p NAME.
+ * @param NAME The name of the variable to look for.
+ */
+#define HAS_STATIC_MEMBER( NAME ) \
+  IS_VALID_EXPRESSION( HasStaticMember_ ## NAME, CLASS, std::enable_if_t< !std::is_member_pointer< decltype( &CLASS::NAME ) >::value, bool >{} )
+
 namespace LvArray
 {
 

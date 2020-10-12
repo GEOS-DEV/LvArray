@@ -17,13 +17,6 @@
 #include "math.hpp"
 
 /**
- * @brief Forward declaration of R1Tensor for compatability with GEOSX.
- * @note Will be removed shortly.
- */
-template< int T_dim >
-class R1TensorT;
-
-/**
  * @name Initialization and assignment macros.
  * @brief Macros that aid in to initializng and assigning to common vector and matrix sizes.
  * @details Use these macros to initialize c-arrays from other c-arrays or Array objects and
@@ -156,18 +149,25 @@ namespace tensorOps
 namespace internal
 {
 
+HAS_STATIC_MEMBER( SIZE );
+HAS_STATIC_MEMBER( NDIM );
+
 /**
- * @brief Verify at compile time that the size of the R1Tensor is as expected.
- * @tparam PROVIDED_SIZE The size the R1Tensor should be.
- * @tparam INFERRED_SIZE The size of the R1Tensor.
- * TODO: Remove this.
+ * @brief Verify at compile time that the size of a user-provided type is as expected.
+ * @tparam ISIZE The size the array should be.
+ * @tparam T The provided type.
+ * @param src The value to check.
+ * @note This overload is enabled for user-defined types that expose a compile-time size
+ *       parameter through a public static integral member variable SIZE
  */
-template< std::ptrdiff_t PROVIDED_SIZE, int INFERRED_SIZE >
+template< std::ptrdiff_t ISIZE, typename T >
 LVARRAY_HOST_DEVICE inline constexpr
-void checkSizes( R1TensorT< INFERRED_SIZE > const & )
+std::enable_if_t< HasStaticMember_SIZE< T > >
+checkSizes( T const & src )
 {
-  static_assert( PROVIDED_SIZE == INFERRED_SIZE,
-                 "Expected the first dimension of size PROVIDED_N, got an array of size INFERRED_N." );
+  static_assert( ISIZE == T::SIZE,
+                 "Expected the first dimension of size ISIZE, got an type of size T::SIZE." );
+  LVARRAY_UNUSED_VARIABLE( src );
 }
 
 /**
@@ -216,7 +216,8 @@ void checkSizes( T const ( &src )[ INFERRED_M ][ INFERRED_N ] )
  */
 template< std::ptrdiff_t ISIZE, typename ARRAY >
 LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-void checkSizes( ARRAY const & array )
+std::enable_if_t< HasStaticMember_NDIM< ARRAY > >
+checkSizes( ARRAY const & array )
 {
   static_assert( ARRAY::NDIM == 1, "Must be a 1D array." );
   #ifdef LVARRAY_BOUNDS_CHECK
@@ -235,7 +236,8 @@ void checkSizes( ARRAY const & array )
  */
 template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename ARRAY >
 LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-void checkSizes( ARRAY const & array )
+std::enable_if_t< HasStaticMember_NDIM< ARRAY > >
+checkSizes( ARRAY const & array )
 {
   static_assert( ARRAY::NDIM == 2, "Must be a 1D array." );
 #ifdef LVARRAY_BOUNDS_CHECK
