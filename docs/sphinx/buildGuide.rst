@@ -52,6 +52,10 @@ In addition to the standard CMake and BLT options LvArray supports the following
     * ``ENABLE_TOTALVIEW_OUTPUT`` : default ``OFF``
         Makes it easier to inspect the ``LvArray::Array`` in TotalView. This functionality is highly dependent on the version of TotalView used.
 
+Using LvArray Your Application
+------------------------------
+Once LvArray has been installed if your application uses CMake importing LvArray is as simple as defining ``LVARRAY_DIR`` as the path to LvArray install directory and then adding ``find_package(LVARRAY)``. This will export a ``lvarray`` target that can then be used by ``target_link_libraries`` and the like.
+
 Host Configs
 ------------
 Host config files are a convenient way to group CMake options for a specific configuration together. There are a set of example host configs in the ``host-configs`` directory. Once you've created a host config file you can use ``scripts/config-build.py`` to create the build directory and run CMake for you. An example usage would be ``python ./scripts/config-build.py --hc host-configs/LLNL/quartz-clang@10.0.0.cmake``.
@@ -174,11 +178,13 @@ LvArray also has an ``uberenv`` based build which simplifies building LvArray's 
 Two simple examples are provided below.
 
 ::
+
     quartz2498 > ./scripts/uberenv/uberenv.py --install --spec="@develop %clang@10.0.1"
 
 This will build RAJA (LvArray's only hard dependency) and LvArray and install them in ``./uberenv_libs/linux-rhel7-ppc64le-clang@10.0.1``. By default libraries are built in the ``RelWithDebInfo`` CMake configuration.
 
 ::
+
     quartz2498 > ./scripts/uberenv/uberenv.py --spec="@develop %gcc@8.3.1 ^raja@0.12.1 build_type=Release"
 
 This will install RAJA in the same location but it will be built in the ``Release`` configuration and instead of building and installing LvArray a host-config will be generated and placed in the current directory. This can be useful for developing or debugging.
@@ -190,11 +196,13 @@ Adding support for a new system is easy too, you just need to create a directory
 For reference two more complicated specs are shown below
 
 ::
+
   lassen709 > ./scripts/uberenv/uberenv.py --install --run_tests --spec="@develop+umpire+chai+caliper+cuda %clang@10.0.1 cuda_arch=70 ^cuda@11.0.2 ^raja@0.12.1~examples~exercises cuda_arch=70 ^umpire@4.0.1~examples cuda_arch=70 ^chai@master~benchmarks~examples cuda_arch=70 ^caliper@2.4~adiak~mpi~dyninst~callpath~papi~libpfm~gotcha~sampler~sosflow"
 
 This will use ``clang@10.0.1`` and ``cuda@11.0.2`` to build and install RAJA v0.12.1 without examples or exercises, Umpire v4.0.1 without examples, the master branch of CHAI without benchmarks or examples, and caliper v2.4 without a bunch of options. Finally it will build and install LvArray after running the unit tests and verifying that they pass. Note that each package that depends on cuda gets the ``cuda_arch=70`` variable.
 
 ::
+
     quartz2498 > ./scripts/uberenv/uberenv.py --spec="@tribol+umpire %intel@19.1.2 ^raja@0.12.1 build_type=Release ^umpire@4.0.1 build_type=Release"
 
 This will use ``intel@19.1.2`` to build and install RAJA V0.12.1 in release and Umpire v4.0.1 in release. Finally it will generate a host config that can be used to build LvArray.
