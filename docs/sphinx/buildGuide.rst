@@ -195,6 +195,6 @@ For reference two more complicated specs are shown below
 This will use ``clang@10.0.1`` and ``cuda@11.0.2`` to build and install RAJA v0.12.1 without examples or exercises, Umpire v4.0.1 without examples, the master branch of CHAI without benchmarks or examples, and caliper v2.4 without a bunch of options. Finally it will build and install LvArray after running the unit tests and verifying that they pass. Note that each package that depends on cuda gets the ``cuda_arch=70`` variable.
 
 ::
-    quartz2498 > ./scripts/uberenv/uberenv.py --spec="@tribol+umpire+chai %intel@19.1.2 ^raja@0.12.1 build_type=Release ^umpire@4.0.1 build_type=Release"
+    quartz2498 > ./scripts/uberenv/uberenv.py --spec="@tribol+umpire %intel@19.1.2 ^raja@0.12.1 build_type=Release ^umpire@4.0.1 build_type=Release"
 
 This will use ``intel@19.1.2`` to build and install RAJA V0.12.1 in release and Umpire v4.0.1 in release. Finally it will generate a host config that can be used to build LvArray.
