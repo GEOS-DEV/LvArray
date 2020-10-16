@@ -161,7 +161,7 @@ void registerBenchmarks()
   },
                                 std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )
                                 , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_JI {}, parallelHostPolicy {} )
   #endif
@@ -188,7 +188,7 @@ int main( int argc, char * * argv )
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_N << ", " <<
                LvArray::benchmarking::SERIAL_M << " )." );
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_N << ", " <<
                LvArray::benchmarking::OMP_M << " )." );
 #endif

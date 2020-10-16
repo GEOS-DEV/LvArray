@@ -67,7 +67,7 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { nx, ny, nz } ), overAllocation, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { nx, ny, nz } ), resizeFromCapacities, POLICY );
   }, std::make_tuple( NX, NY, NZ, serialPolicy {} )
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( NX, NY, NZ, parallelHostPolicy {} )
   #endif
                                 );

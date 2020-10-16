@@ -140,7 +140,7 @@ resizeExact()
   CALI_CXX_MARK_SCOPE( "resizeExact" );
   std::vector< INDEX_TYPE > nnzPerRow( 3 * m_numNodes );
 
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
   using RESIZE_POLICY = std::conditional_t< std::is_same< serialPolicy, POLICY >::value, serialPolicy, parallelHostPolicy >;
   #else
   using RESIZE_POLICY = serialPolicy;
@@ -235,7 +235,7 @@ addKernel( CRSMatrixViewConstSizesT const & matrix,
 template class SparsityGenerationRAJA< serialPolicy >;
 template class CRSMatrixAddToRow< serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class SparsityGenerationRAJA< parallelHostPolicy >;
 template class CRSMatrixAddToRow< parallelHostPolicy >;
 #endif

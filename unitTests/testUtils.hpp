@@ -45,7 +45,7 @@ struct RAJAHelper< serialPolicy >
   static constexpr MemorySpace space = MemorySpace::CPU;
 };
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 
 using parallelHostPolicy = RAJA::omp_parallel_for_exec;
 

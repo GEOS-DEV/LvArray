@@ -117,7 +117,7 @@ void pointerRAJA( benchmark::State & state )
 }
 
 INDEX_TYPE const SERIAL_SIZE = (2 << 20) + 573;
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 INDEX_TYPE const OMP_SIZE = SERIAL_SIZE;
 #endif
 #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
@@ -149,7 +149,7 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( { size }, pointerRAJA, POLICY );
   },
                                 std::make_tuple( SERIAL_SIZE, serialPolicy {} )
-  #if defined(LVARRAY_USE_OPENMP)
+  #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( OMP_SIZE, parallelHostPolicy {} )
   #endif
   #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
@@ -175,7 +175,7 @@ int main( int argc, char * * argv )
 
   LVARRAY_LOG( "Serial problems of size ( " << LvArray::benchmarking::SERIAL_SIZE << " )." );
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   LVARRAY_LOG( "OMP problems of size ( " << LvArray::benchmarking::OMP_SIZE << " )." );
 #endif
 

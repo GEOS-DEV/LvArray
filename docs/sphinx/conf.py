@@ -37,8 +37,6 @@ if read_the_docs_build:
 
     doxyfile_src = os.path.join(docs_path, "Doxyfile.in")
     doxyfile_dst = os.path.join(build_path, "Doxyfile")
-    config_src = os.path.join(docs_path, "LvArrayConfig.hpp")
-    config_dst = os.path.join(src_path, "LvArrayConfig.hpp")
 
     input_dirs = [src_path]
 
@@ -48,10 +46,6 @@ if read_the_docs_build:
         f.write("\nINPUT = %s" % " ".join(input_dirs))
         f.write("\nOUTPUT_DIRECTORY = %s/doxygen" % html_path)
         f.write("\nHAVE_DOT = YES")
-
-    # Make a symlink to LvArrayConfig.hpp in common
-    if not os.path.exists(config_dst):
-        os.symlink(config_src, config_dst)
 
     # Call doxygen
     from subprocess import call

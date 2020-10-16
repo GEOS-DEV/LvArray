@@ -171,7 +171,7 @@ template class MatrixVectorNative< RAJA::PERM_JI >;
 template class MatrixVectorRAJA< RAJA::PERM_IJ, serialPolicy >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 
 template class MatrixVectorRAJA< RAJA::PERM_IJ, parallelHostPolicy >;
 template class MatrixVectorRAJA< RAJA::PERM_JI, parallelHostPolicy >;

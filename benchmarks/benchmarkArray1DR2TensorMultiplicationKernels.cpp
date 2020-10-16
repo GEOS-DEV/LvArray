@@ -290,7 +290,7 @@ template class ArrayOfR2TensorsNative< RAJA::PERM_KJI >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, serialPolicy >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_IJK, parallelHostPolicy >;
 template class ArrayOfR2TensorsRAJA< RAJA::PERM_KJI, parallelHostPolicy >;
 #endif

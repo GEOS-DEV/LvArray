@@ -95,7 +95,7 @@ TEST( ArrayOfArrays, modification )
 }
 // Sphinx end before examples
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 // Sphinx start after view
 TEST( ArrayOfArrays, view )
 {

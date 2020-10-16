@@ -3,3 +3,5 @@
 *.*~*
 .vscode
 docs/doxygen/LvArrayConfig.hpp
+uberenv_libs
+spack-*.txt

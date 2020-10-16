@@ -30,10 +30,6 @@
   #include <sys/wait.h>
 #endif
 
-#if defined( LVARRAY_USE_MPI )
-  #include <mpi.h>
-#endif
-
 /**
  * @struct UnwindState
  * @brief Holds info used in unwindCallback.
@@ -429,18 +425,27 @@ std::string calculateSize( size_t const bytes )
   return result;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void abort()
-{
-#ifdef LVARRAY_USE_MPI
-  int mpi = 0;
-  MPI_Initialized( &mpi );
-  if( mpi )
-  {
-    MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
-  }
+#if defined( __ibmxl__ )
+// For whatever reason XL emits an error when assigning std::abort to @c s_errorHandler.
+static void ibmAbort()
+{ std::abort(); }
+
+std::function< void() > s_errorHandler = ibmAbort;
+#else
+std::function< void() > s_errorHandler = std::abort;
 #endif
-  std::abort();
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void setErrorHandler( std::function< void() > const & handler )
+{
+  LVARRAY_ERROR_IF( handler == nullptr, "Error handler cannot be null." );
+  s_errorHandler = handler;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void callErrorHandler()
+{
+  s_errorHandler();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -467,7 +472,7 @@ void stackTraceHandler( int const sig, bool const exit )
     // An infinite loop was encountered when an FPE was received. Resetting the handlers didn't
     // fix it because they would just recurse. This does.
     setSignalHandling( nullptr );
-    abort();
+    callErrorHandler();
   }
 }
 

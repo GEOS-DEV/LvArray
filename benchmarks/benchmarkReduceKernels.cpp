@@ -81,7 +81,7 @@ VALUE_TYPE ReduceRAJA< POLICY >::pointerKernel( VALUE_TYPE const * const LVARRAY
 
 template class ReduceRAJA< serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class ReduceRAJA< parallelHostPolicy >;
 #endif
 

@@ -90,6 +90,20 @@ randomValue( T const maxVal, std::mt19937_64 & gen )
     { PORTABLE_EXPECT_EQ( A[ _i ], RESULT[ _i ] ); } \
   } while ( false )
 
+#define CHECK_NEAR_1D( N, A, RESULT, EPSILON ) \
+  tensorOps::internal::checkSizes< N >( A ); \
+  tensorOps::internal::checkSizes< N >( RESULT ); \
+  do \
+  { \
+    for( std::ptrdiff_t _i = 0; _i < N; ++_i ) \
+    { \
+      if( std::is_integral< std::remove_reference_t< decltype( A[ _i ] ) > >::value ) \
+      { PORTABLE_EXPECT_EQ( A[ _i ], RESULT[ _i ] ); } \
+      else \
+      { PORTABLE_EXPECT_NEAR( A[ _i ], RESULT[ _i ], EPSILON ); } \
+    } \
+  } while ( false )
+
 
 #define CHECK_EQUALITY_2D( N, M, A, RESULT ) \
   tensorOps::internal::checkSizes< N, M >( A ); \
