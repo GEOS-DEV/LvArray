@@ -1,6 +1,6 @@
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-10-08/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-10-15/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 
