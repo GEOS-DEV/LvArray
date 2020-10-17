@@ -4,8 +4,8 @@ Testing
 
 Testing is a crucial component of writing quality software and the nature LvArray lends itself nicely to unit tests.
 
-Building and running the test
------------------------------
+Building and Running the Tests
+------------------------------
 Tests are built by default, to disable the tests set the CMake variable ``ENABLE_TESTS`` to ``OFF``. The tests are output in the ``tests`` folder of the build directory.
 
 To run all the tests run ``make test`` in the build directory. To run a specific set of tests that match the regular expression ``REGEX`` run ``ctest -V -R REGEX``, to run just ``testCRSMatrix`` run ``./tests/testCRSMatrix``. LvArray uses `Google Test`_ for the testing framework and each test accepts a number of command line arguments.
@@ -73,13 +73,13 @@ The most useful of these is ``gtest_filter`` which lets you run a subset of test
 
 Test structure
 --------------
-The source for all the tests are all located in the ``unitTests`` directory, each tests consists of a ``cpp`` whose name begins with ``test`` followed by the name of the class or namespace that is tested. For example the tests for ``CRSMatrix`` and ``CRSMatrixView`` are in ``unitTests/testCRSMatrix.cpp`` and the tests for ``sortedArrayManipulation`` are in ``unitTests/testSortedArrayManipulation.cpp``. 
+The source for all the tests are all located in the ``unitTests`` directory, each tests consists of a ``cpp`` file whose name begins with ``test`` followed by the name of the class or namespace that is tested. For example the tests for ``CRSMatrix`` and ``CRSMatrixView`` are in ``unitTests/testCRSMatrix.cpp`` and the tests for ``sortedArrayManipulation`` are in ``unitTests/testSortedArrayManipulation.cpp``. 
 
 .. note::
   The tests for ``LvArray::Array``, ``LvArray::ArrayView`` and ``LvArray::tensorOps`` are spread across multiple ``cpp`` files in order to speed up compilation on multithreaded systems.
 
-Adding a new test
----------------------
+Adding a New Test
+-----------------
 Any time new functionality is added it should be tested. Before writing any test code it is highly recommended you familiarize yourself with the Google Test framework, see the `Google Test primer`_ and `Google Test advanced`_ documentation.
 
 As an example say you add a new class ``Foo``
@@ -168,7 +168,7 @@ Best practices
   - Whenever possible use typed tests.
   - Whenever possible do not write CUDA (or OpenMP) specific tests. Instead write tests a typed test that is templated on the RAJA policy and use a typed test to instantiate it with the appropriate policies.
   - When linking to gtest it is not necessary to include the ``main`` function in the executable because if it is not there ``gtest`` will link in its own ``main``. However you should include ``main`` in each test file to ease debugging. Furthermore if the executable needs some setup or cleanup such as initializing MPI it should be done in main. Note that while it is certainly possible to write tests which take command line arguments it is discouraged because then ``./tests/testThatTakesCommandLineArguments`` no longer works.
-  - For commonly called functions define a macro which first calls ``SCOPED_TRACE`` and then the the function. This helps illuminate exactly where errors are occuring.
+  - For commonly called functions define a macro which first calls ``SCOPED_TRACE`` and then the the function. This helps illuminate exactly where errors are occurring.
   - Prefer the ``EXPECT_`` family of macros to the ``ASSERT_`` family. 
   - Use the most specific ``EXPECT_`` macro applicable. So don't do ``EXPECT_TRUE( bar() == 5 )`` instead use ``EXPECT_EQ( bar(), 5 )``
 
@@ -176,4 +176,3 @@ Best practices
 .. _`Google Test primer`: https://github.com/google/googletest/blob/306f3754a71d6d1ac644681d3544d06744914228/googletest/docs/primer.md
 .. _`Google Test advanced`: https://github.com/google/googletest/blob/306f3754a71d6d1ac644681d3544d06744914228/googletest/docs/advanced.md
 .. _`typed tests`: https://github.com/google/googletest/blob/306f3754a71d6d1ac644681d3544d06744914228/googletest/docs/advanced.md#typed-tests
-

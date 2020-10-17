@@ -1,8 +1,10 @@
 set(CONFIG_NAME "lassen-clang@upstream" CACHE PATH "") 
 
+
 set(COMPILER_DIR /usr/tce/packages/clang/clang-upstream-2019.03.26 )
 set(CMAKE_C_COMPILER ${COMPILER_DIR}/bin/clang CACHE PATH "")
 set(CMAKE_CXX_COMPILER ${COMPILER_DIR}/bin/clang++ CACHE PATH "")
+
 
 # C++ options
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" CACHE STRING "")

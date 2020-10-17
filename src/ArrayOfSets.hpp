@@ -72,7 +72,6 @@ public:
 
   /**
    * @brief Default move constructor, performs a shallow copy.
-   * @return *this.
    */
   inline
   ArrayOfSets( ArrayOfSets && ) = default;

@@ -120,7 +120,6 @@ public:
    * @param source The object to copy.
    * @note Triggers the copy constructor for @tparam BUFFER_TYPE. When using the
    *   ChaiBuffer this can move the underlying buffer to a new memory space if the execution context is set.
-   * @return *this
    */
   DISABLE_HD_WARNING
   inline LVARRAY_HOST_DEVICE constexpr
@@ -134,7 +133,6 @@ public:
   /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
    * @param source object to move.
-   * @return *this.
    * @note Since this invalidates the source this should not be used when @p source is
    *   the parent of an Array. Do not do this:
    * @code
