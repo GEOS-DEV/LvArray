@@ -233,8 +233,9 @@ public:
     int curDim = 0;
     typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      this->m_dims[ curDim++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      this->m_dims[ curDim ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
       LVARRAY_ERROR_IF_LT( this->m_dims[ curDim ], 0 );
+      ++curDim;
     }, newDims ... );
 
     CalculateStrides();
@@ -262,8 +263,9 @@ public:
     int i = 0;
     typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      this->m_dims[ i++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      this->m_dims[ i ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
       LVARRAY_ERROR_IF_LT( this->m_dims[ i ], 0 );
+      ++i;
     }, newDims ... );
 
     CalculateStrides();
