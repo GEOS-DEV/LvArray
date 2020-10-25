@@ -89,7 +89,7 @@ public:
    * @brief Destructor, frees the values array.
    */
   inline
-  ~SortedArray() LVARRAY_RESTRICT_THIS
+  ~SortedArray()
   { bufferManipulation::free( this->m_values, size() ); }
 
   /**
@@ -98,7 +98,7 @@ public:
    * @return *this.
    */
   inline
-  SortedArray & operator=( SortedArray const & src ) LVARRAY_RESTRICT_THIS
+  SortedArray & operator=( SortedArray const & src )
   {
     bufferManipulation::copyInto( this->m_values, size(), src.m_values, src.size() );
     this->m_size = src.size();
@@ -127,8 +127,22 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const LVARRAY_RESTRICT_THIS
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const &
   { return ParentClass::toView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null SortedArrayView.
+   * @note This cannot be called on a rvalue since the @c SortedArrayView would
+   *   contain the buffer of the current @c SortedArray that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
+    return ParentClass::toView();
+  }
 
   /**
    * @copydoc ParentClass::toViewConst()
@@ -137,8 +151,22 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const LVARRAY_RESTRICT_THIS
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &
   { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null SortedArrayView.
+   * @note This cannot be called on a rvalue since the @c SortedArrayView would
+   *   contain the buffer of the current @c SortedArray that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE inline
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
+    return ParentClass::toViewConst();
+  }
 
   ///@}
 
@@ -197,7 +225,7 @@ public:
    * @return True iff the value was actually inserted.
    */
   inline
-  bool insert( T const & value ) LVARRAY_RESTRICT_THIS
+  bool insert( T const & value )
   {
     bool const success = sortedArrayManipulation::insert( this->m_values.data(),
                                                           size(),
@@ -216,7 +244,7 @@ public:
    * @note [ @p first, @p last ) must be sorted and unique.
    */
   template< typename ITER >
-  INDEX_TYPE insert( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  INDEX_TYPE insert( ITER const first, ITER const last )
   {
     INDEX_TYPE const nInserted = sortedArrayManipulation::insert( this->m_values.data(),
                                                                   size(),
@@ -233,7 +261,7 @@ public:
    * @return True iff the value was actually removed.
    */
   inline
-  bool remove( T const & value ) LVARRAY_RESTRICT_THIS
+  bool remove( T const & value )
   {
     bool const success = sortedArrayManipulation::remove( this->m_values.data(),
                                                           size(),
@@ -252,7 +280,7 @@ public:
    * @note [ @p first, @p last ) must be sorted and unique.
    */
   template< typename ITER >
-  INDEX_TYPE remove( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  INDEX_TYPE remove( ITER const first, ITER const last )
   {
     INDEX_TYPE const nRemoved = sortedArrayManipulation::remove( this->m_values.data(),
                                                                  size(),
@@ -274,7 +302,7 @@ public:
    * @brief Remove all the values from the array.
    */
   inline
-  void clear() LVARRAY_RESTRICT_THIS
+  void clear()
   {
     bufferManipulation::resize( this->m_values, size(), 0 );
     this->m_size = 0;
@@ -285,7 +313,7 @@ public:
    * @param nVals the number of values to reserve space for.
    */
   inline
-  void reserve( INDEX_TYPE const nVals ) LVARRAY_RESTRICT_THIS
+  void reserve( INDEX_TYPE const nVals )
   { bufferManipulation::reserve( this->m_values, size(), nVals ); }
 
   ///@}
@@ -302,7 +330,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   inline
-  void move( MemorySpace const space, bool const touch=true ) const LVARRAY_RESTRICT_THIS
+  void move( MemorySpace const space, bool const touch=true ) const
   { ParentClass::move( space, touch ); }
 
   ///@}
@@ -344,7 +372,7 @@ public:
      */
     inline
     T * incrementSize( T * const curPtr,
-                       INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+                       INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
       bufferManipulation::dynamicReserve( m_buffer, m_size, m_size + nToAdd );

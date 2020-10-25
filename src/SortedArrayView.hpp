@@ -138,7 +138,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   { return SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >( size(), m_values ); }
 
   /**
@@ -146,7 +146,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   { return toView(); }
 
   ///@}
@@ -241,7 +241,7 @@ public:
    *   to the GPU @p touch is set to false.
    */
   inline
-  void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
+  void move( MemorySpace const space, bool touch=true ) const
   {
   #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::GPU ) touch = false;

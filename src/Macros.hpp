@@ -405,18 +405,15 @@
 #if defined(__clang__)
 #define LVARRAY_RESTRICT __restrict__
 #define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
 #define LVARRAY_INTEL_CONSTEXPR constexpr
 #elif defined(__GNUC__)
   #if defined(__INTEL_COMPILER)
 #define LVARRAY_RESTRICT __restrict__
 #define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
 #define LVARRAY_INTEL_CONSTEXPR
   #else
 #define LVARRAY_RESTRICT __restrict__
 #define LVARRAY_RESTRICT_REF __restrict__
-#define LVARRAY_RESTRICT_THIS
 #define LVARRAY_INTEL_CONSTEXPR constexpr
   #endif
 #endif

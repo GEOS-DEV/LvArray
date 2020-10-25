@@ -197,6 +197,12 @@ public:
   ///@{
 
   /**
+   * @brief A constructor to create an uninitialized ArrayOfArraysView.
+   * @note An uninitialized ArrayOfArraysView should not be used until it is assigned to.
+   */
+  ArrayOfArraysView() = default;
+
+  /**
    * @brief Default copy constructor.
    * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE
    */
@@ -267,7 +273,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   {
     return ArrayOfArraysView< T, INDEX_TYPE const, CONST_SIZES, BUFFER_TYPE >( size(),
                                                                                this->m_offsets,
@@ -280,7 +286,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  toViewConstSizes() const
   {
     return ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
                                                                         this->m_offsets,
@@ -293,7 +299,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   {
     return ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
                                                                               this->m_offsets,
@@ -312,7 +318,7 @@ public:
    * @return Return the number of arrays.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC size() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC size() const
   { return m_numArrays; }
 
   /**
@@ -320,7 +326,7 @@ public:
    * @param i the array to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC sizeOfArray( INDEX_TYPE const i ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return m_sizes[ i ];
@@ -330,7 +336,7 @@ public:
    * @return Return the number of (zero length) arrays that can be stored before reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITH_NDEBUG inline
-  INDEX_TYPE_NC capacity() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC capacity() const
   {
     LVARRAY_ASSERT( m_sizes.capacity() < m_offsets.capacity());
     return m_sizes.capacity();
@@ -341,7 +347,7 @@ public:
    * @param i the array to query.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC capacityOfArray( INDEX_TYPE const i ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return m_offsets[ i + 1 ] - m_offsets[ i ];
@@ -351,7 +357,7 @@ public:
    * @return Return the total number values that can be stored before reallocation.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC valueCapacity() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC valueCapacity() const
   { return m_values.capacity(); }
 
   ///@}
@@ -366,7 +372,7 @@ public:
    * @param i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_values.data() + m_offsets[ i ], &m_sizes[ i ], nullptr );
@@ -378,7 +384,7 @@ public:
    * @param j the index within the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
+  T & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
     return m_values[m_offsets[ i ] + j];
@@ -401,7 +407,7 @@ public:
    */
   template< typename ... ARGS >
   LVARRAY_HOST_DEVICE inline
-  void emplaceBack( INDEX_TYPE const i, ARGS && ... args ) const LVARRAY_RESTRICT_THIS
+  void emplaceBack( INDEX_TYPE const i, ARGS && ... args ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -422,7 +428,7 @@ public:
    */
   template< typename POLICY, typename ... ARGS >
   LVARRAY_HOST_DEVICE inline
-  void emplaceBackAtomic( INDEX_TYPE const i, ARGS && ... args ) const LVARRAY_RESTRICT_THIS
+  void emplaceBackAtomic( INDEX_TYPE const i, ARGS && ... args ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -444,7 +450,7 @@ public:
    */
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -465,7 +471,7 @@ public:
    */
   template< typename ... ARGS >
   LVARRAY_HOST_DEVICE inline
-  void emplace( INDEX_TYPE const i, INDEX_TYPE const j, ARGS && ... args ) const LVARRAY_RESTRICT_THIS
+  void emplace( INDEX_TYPE const i, INDEX_TYPE const j, ARGS && ... args ) const
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
     ARRAYOFARRAYS_CAPACITY_CHECK( i, 1 );
@@ -490,7 +496,7 @@ public:
   void insertIntoArray( INDEX_TYPE const i,
                         INDEX_TYPE const j,
                         ITER const first,
-                        ITER const last ) const LVARRAY_RESTRICT_THIS
+                        ITER const last ) const
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j );
     INDEX_TYPE const n = arrayManipulation::iterDistance( first, last );
@@ -508,7 +514,7 @@ public:
    * @param n the number of values to erase.
    */
   LVARRAY_HOST_DEVICE inline
-  void eraseFromArray( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const n=1 ) const LVARRAY_RESTRICT_THIS
+  void eraseFromArray( INDEX_TYPE const i, INDEX_TYPE const j, INDEX_TYPE const n=1 ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS2( i, j );
 
@@ -564,9 +570,10 @@ protected:
   using PairOfBuffers = std::pair< BUFFER_TYPE< U > &, BUFFER_TYPE< U > const & >;
 
   /**
-   * @brief Default constructor.
+   * @brief Protected constructor to be used by parent classes.
+   * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  ArrayOfArraysView():
+  ArrayOfArraysView( bool ):
     m_numArrays( 0 ),
     m_offsets( true ),
     m_sizes( true ),

@@ -52,8 +52,8 @@ public:
    * @param defaultArrayCapacity the initial capacity of each array.
    */
   inline
-  ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    ParentClass()
+  ArrayOfArrays( INDEX_TYPE const numArrays=0, INDEX_TYPE const defaultArrayCapacity=0 ):
+    ParentClass( true )
   {
     resize( numArrays, defaultArrayCapacity );
     setName( "" );
@@ -65,7 +65,7 @@ public:
    */
   inline
   ArrayOfArrays( ArrayOfArrays const & src ):
-    ParentClass()
+    ParentClass( true )
   { *this = src; }
 
   /**
@@ -95,8 +95,23 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const &
   { return ParentClass::toView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfArraysView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
+   *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >
+  toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
+    return ParentClass::toView();
+  }
 
   /**
    * @copydoc ParentClass::toViewConstSizes
@@ -106,8 +121,23 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  toViewConstSizes() const &
   { return ParentClass::toViewConstSizes(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfArraysView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
+   *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
+  toViewConstSizes() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConstSizes on a rvalue." );
+    return ParentClass::toViewConstSizes();
+  }
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -117,8 +147,23 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const &
   { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfArraysView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
+   *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
+  toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
+    return ParentClass::toViewConst();
+  }
 
   ///@}
 
@@ -133,7 +178,7 @@ public:
    * @return *this.
    */
   inline
-  ArrayOfArrays & operator=( ArrayOfArrays const & src ) LVARRAY_RESTRICT_THIS
+  ArrayOfArrays & operator=( ArrayOfArrays const & src )
   {
     ParentClass::setEqualTo( src.m_numArrays,
                              src.m_offsets[ src.m_numArrays ],
@@ -183,7 +228,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   inline
-  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE size() const
   { return ParentClass::size(); }
 
   using ParentClass::sizeOfArray;
@@ -233,7 +278,7 @@ public:
    * @brief Append an array.
    * @param n the size of the array.
    */
-  void appendArray( INDEX_TYPE const n ) LVARRAY_RESTRICT_THIS
+  void appendArray( INDEX_TYPE const n )
   {
     LVARRAY_ASSERT( arrayManipulation::isPositive( n ) );
 
@@ -252,7 +297,7 @@ public:
    * @param last An iterator to the end of the array to append.
    */
   template< typename ITER >
-  void appendArray( ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  void appendArray( ITER const first, ITER const last )
   {
     INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
     bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
@@ -312,7 +357,7 @@ public:
    * @param args A variadic pack of arguments that are forwarded to construct the new value.
    */
   template< typename ... ARGS >
-  void emplaceBack( INDEX_TYPE const i, ARGS && ... args ) LVARRAY_RESTRICT_THIS
+  void emplaceBack( INDEX_TYPE const i, ARGS && ... args )
   {
     dynamicallyGrowArray( i, 1 );
     ParentClass::emplaceBack( i, std::forward< ARGS >( args )... );
@@ -326,7 +371,7 @@ public:
    * @param last An iterator to the end of the values to append.
    */
   template< typename ITER >
-  void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  void appendToArray( INDEX_TYPE const i, ITER const first, ITER const last )
   {
     INDEX_TYPE const n = arrayManipulation::iterDistance( first, last );
     dynamicallyGrowArray( i, n );

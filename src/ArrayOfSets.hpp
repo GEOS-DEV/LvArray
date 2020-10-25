@@ -54,8 +54,8 @@ public:
    * @param defaultSetCapacity the initial capacity of each set.
    */
   inline
-  ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    ParentClass()
+  ArrayOfSets( INDEX_TYPE const nsets=0, INDEX_TYPE defaultSetCapacity=0 ):
+    ParentClass( true )
   {
     resize( nsets, defaultSetCapacity );
     setName( "" );
@@ -66,8 +66,8 @@ public:
    * @param src the ArrayOfSets to copy.
    */
   inline
-  ArrayOfSets( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS:
-    ParentClass()
+  ArrayOfSets( ArrayOfSets const & src ):
+    ParentClass( true )
   { *this = src; }
 
   /**
@@ -80,7 +80,7 @@ public:
    * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
-  ~ArrayOfSets() LVARRAY_RESTRICT_THIS
+  ~ArrayOfSets()
   { ParentClass::free(); }
 
   ///@}
@@ -96,7 +96,7 @@ public:
    * @return *this.
    */
   inline
-  ArrayOfSets & operator=( ArrayOfSets const & src ) LVARRAY_RESTRICT_THIS
+  ArrayOfSets & operator=( ArrayOfSets const & src )
   {
     ParentClass::setEqualTo( src.m_numArrays,
                              src.m_offsets[ src.m_numArrays ],
@@ -127,7 +127,7 @@ public:
    */
   inline
   void assimilate( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > && src,
-                   sortedArrayManipulation::Description const desc ) LVARRAY_RESTRICT_THIS
+                   sortedArrayManipulation::Description const desc )
   {
     ParentClass::free();
     ParentClass::assimilate( reinterpret_cast< ParentClass && >( src ) );
@@ -189,8 +189,23 @@ public:
    */
   constexpr inline
   ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const &
   { return ParentClass::toView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfSetsView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfSetsView would
+   *   contain the buffers of the current @c ArrayOfSets that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >
+  toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
+    return ParentClass::toView();
+  }
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -200,8 +215,23 @@ public:
    */
   constexpr inline
   ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const &
   { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfSetsView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfSetsView would
+   *   contain the buffers of the current @c ArrayOfSets that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >
+  toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
+    return ParentClass::toViewConst();
+  }
 
   /**
    * @copydoc ParentClass::toArrayOfArraysView
@@ -211,8 +241,23 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
-  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  toArrayOfArraysView() const &
   { return ParentClass::toArrayOfArraysView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayOfSetsView.
+   * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
+   *   contain the buffers of the current @c ArrayOfSets that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
+  toArrayOfArraysView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toArrayOfArraysView on a rvalue." );
+    return ParentClass::toArrayOfArraysView();
+  }
 
   ///@}
 
@@ -228,7 +273,7 @@ public:
    *   IS_VALID_EXPRESSION and this fails with NVCC.
    */
   inline
-  INDEX_TYPE size() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE size() const
   { return ParentClass::size(); }
 
   using ParentClass::sizeOfSet;
@@ -282,7 +327,7 @@ public:
    * @param setCapacity The capacity of the set.
    */
   inline
-  void appendSet( INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
+  void appendSet( INDEX_TYPE const setCapacity=0 )
   {
     INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
     bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
@@ -298,7 +343,7 @@ public:
    * @param setCapacity The capacity of the set.
    */
   inline
-  void insertSet( INDEX_TYPE const i, INDEX_TYPE const setCapacity=0 ) LVARRAY_RESTRICT_THIS
+  void insertSet( INDEX_TYPE const i, INDEX_TYPE const setCapacity=0 )
   {
     ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i );
     LVARRAY_ASSERT( arrayManipulation::isPositive( setCapacity ) );
@@ -318,7 +363,7 @@ public:
    * @param i the position of the set to erase.
    */
   inline
-  void eraseSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
+  void eraseSet( INDEX_TYPE const i )
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -342,7 +387,7 @@ public:
    * @return True iff the value was inserted (the set did not already contain the value).
    */
   inline
-  bool insertIntoSet( INDEX_TYPE const i, T const & val ) LVARRAY_RESTRICT_THIS
+  bool insertIntoSet( INDEX_TYPE const i, T const & val )
   { return ParentClass::insertIntoSetImpl( i, val, CallBacks( *this, i ) ); }
 
   /**
@@ -356,7 +401,7 @@ public:
    */
   template< typename ITER >
   inline
-  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  INDEX_TYPE insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last )
   { return ParentClass::insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   /**
@@ -364,7 +409,7 @@ public:
    * @note This is not brought in with a @c using statement because it breaks doxygen.
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeFromSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
+  bool removeFromSet( INDEX_TYPE const i, T const & value ) const
   { return ParentClass::removeFromSet( i, value ); }
 
   /**
@@ -380,14 +425,14 @@ public:
    */
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const
   { return ParentClass::removeFromSet( i, first, last ); }
 
   /**
    * @brief Clear a set.
    * @param i the index of the set to clear.
    */
-  void clearSet( INDEX_TYPE const i ) LVARRAY_RESTRICT_THIS
+  void clearSet( INDEX_TYPE const i )
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -403,7 +448,7 @@ public:
    * @param newCapacity the value to set the capacity of the set to.
    */
   inline
-  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
+  void setCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity )
   { ParentClass::setCapacityOfArray( i, newCapacity ); }
 
   /**
@@ -412,7 +457,7 @@ public:
    * @param newCapacity the number of values to reserve space for.
    */
   inline
-  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
+  void reserveCapacityOfSet( INDEX_TYPE const i, INDEX_TYPE newCapacity )
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
     if( newCapacity > capacityOfSet( i ) ) setCapacityOfSet( i, newCapacity );
@@ -475,7 +520,7 @@ public:
      * @return a pointer to the sets values.
      */
     inline
-    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
       INDEX_TYPE const newNNZ = m_aos.sizeOfSet( m_i ) + nToAdd;

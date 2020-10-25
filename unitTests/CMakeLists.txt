@@ -62,6 +62,7 @@ set(testSources
     testTensorOpsSymInverseTwoArgs.cpp
     testTypeManipulation.cpp
     testStackTrace.cpp
+    testInvalidOperations.cpp
    )
 
 #

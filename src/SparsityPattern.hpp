@@ -51,8 +51,8 @@ public:
   inline
   SparsityPattern( INDEX_TYPE const nrows=0,
                    INDEX_TYPE const ncols=0,
-                   INDEX_TYPE initialRowCapacity=0 ) LVARRAY_RESTRICT_THIS:
-    ParentClass()
+                   INDEX_TYPE initialRowCapacity=0 ):
+    ParentClass( true )
   {
     resize( nrows, ncols, initialRowCapacity );
     setName( "" );
@@ -63,8 +63,8 @@ public:
    * @param src the SparsityPattern to copy.
    */
   inline
-  SparsityPattern( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS:
-    ParentClass()
+  SparsityPattern( SparsityPattern const & src ):
+    ParentClass( true )
   { *this = src; }
 
   /**
@@ -77,7 +77,7 @@ public:
    * @brief Destructor, frees the values, sizes and offsets Buffers.
    */
   inline
-  ~SparsityPattern() LVARRAY_RESTRICT_THIS
+  ~SparsityPattern()
   { ParentClass::free(); }
 
   ///@}
@@ -93,7 +93,7 @@ public:
    * @return *this.
    */
   inline
-  SparsityPattern & operator=( SparsityPattern const & src ) LVARRAY_RESTRICT_THIS
+  SparsityPattern & operator=( SparsityPattern const & src )
   {
     this->m_numCols = src.m_numCols;
     ParentClass::setEqualTo( src.m_numArrays,
@@ -152,8 +152,23 @@ public:
    */
   constexpr inline
   SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const &
   { return ParentClass::toView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null SparsityPatternView.
+   * @note This cannot be called on a rvalue since the @c SparsityPatternView would
+   *   contain the buffers of the current @c SparsityPattern that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
+  toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< COL_TYPE >, "Cannot call toView on a rvalue." );
+    return ParentClass::toView();
+  }
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -163,8 +178,23 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const &
   { return ParentClass::toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null SparsityPatternView.
+   * @note This cannot be called on a rvalue since the @c SparsityPatternView would
+   *   contain the buffers of the current @c SparsityPattern that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
+  toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< COL_TYPE >, "Cannot call toView on a rvalue." );
+    return ParentClass::toViewConst();
+  }
 
   ///@}
 
@@ -201,7 +231,7 @@ public:
    * @param rowCapacity The new minimum capacity for the number of rows.
    */
   inline
-  void reserveRows( INDEX_TYPE const rowCapacity ) LVARRAY_RESTRICT_THIS
+  void reserveRows( INDEX_TYPE const rowCapacity )
   { ParentClass::reserve( rowCapacity ); }
 
   /**
@@ -209,7 +239,7 @@ public:
    * @param nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
+  void reserveNonZeros( INDEX_TYPE const nnz )
   { ParentClass::reserveValues( nnz ); }
 
   /**
@@ -219,7 +249,7 @@ public:
    * @param nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
+  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz )
   {
     if( nonZeroCapacity( row ) >= nnz ) return;
     setRowCapacity( row, nnz );
@@ -236,7 +266,7 @@ public:
    *       min(newCapacity, numColumns()).
    */
   inline
-  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity ) LVARRAY_RESTRICT_THIS
+  void setRowCapacity( INDEX_TYPE const row, INDEX_TYPE newCapacity )
   {
     if( newCapacity > numColumns() ) newCapacity = numColumns();
     ParentClass::setCapacityOfArray( row, newCapacity );
@@ -248,7 +278,7 @@ public:
    * @note This method doesn't free any memory.
    */
   inline
-  void compress() LVARRAY_RESTRICT_THIS
+  void compress()
   { ParentClass::compress(); }
 
   ///@}
@@ -268,7 +298,7 @@ public:
    *   or where a specific column is greater than the number of columns in the matrix.
    *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity )
   { ParentClass::resize( nRows, nCols, initialRowCapacity ); }
 
 
@@ -277,7 +307,7 @@ public:
    * @param nzCapacity The non zero capacity of the row.
    */
   inline
-  void appendRow( INDEX_TYPE const nzCapacity=0 ) LVARRAY_RESTRICT_THIS
+  void appendRow( INDEX_TYPE const nzCapacity=0 )
   {
     INDEX_TYPE const maxOffset = this->m_offsets[ this->m_numArrays ];
     bufferManipulation::emplaceBack( this->m_offsets, this->m_numArrays + 1, maxOffset );
@@ -301,7 +331,7 @@ public:
    * @return True iff the entry was previously empty.
    */
   inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) LVARRAY_RESTRICT_THIS
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col )
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row ) ); }
 
   /**
@@ -315,7 +345,7 @@ public:
    */
   template< typename ITER >
   inline
-  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) LVARRAY_RESTRICT_THIS
+  INDEX_TYPE insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last )
   { return ParentClass::insertIntoSetImpl( row, first, last, CallBacks( *this, row ) ); }
 
   using ParentClass::removeNonZero;
@@ -326,7 +356,7 @@ public:
    */
   template< typename ITER >
   inline INDEX_TYPE
-  removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const
   { return ParentClass::removeNonZeros( row, first, last ); }
 
   ///@}
@@ -364,7 +394,7 @@ private:
    * @note This method over-allocates so that subsequent calls to insert don't have to reallocate.
    */
   inline
-  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ ) LVARRAY_RESTRICT_THIS
+  void dynamicallyGrowRow( INDEX_TYPE const row, INDEX_TYPE const newNNZ )
   { setRowCapacity( row, newNNZ * 2 ); }
 
   /**
@@ -394,7 +424,7 @@ public:
      * @return a pointer to the columns of the associated row.
      */
     inline
-    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
       INDEX_TYPE const newNNZ = m_sp.numNonZeros( m_row ) + nToAdd;

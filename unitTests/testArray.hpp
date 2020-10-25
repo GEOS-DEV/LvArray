@@ -9,7 +9,6 @@
 #include "Array.hpp"
 #include "output.hpp"
 #include "testUtils.hpp"
-#include "MallocBuffer.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>

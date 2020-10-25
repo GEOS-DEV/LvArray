@@ -432,6 +432,7 @@ static void ibmAbort()
 
 std::function< void() > s_errorHandler = ibmAbort;
 #else
+/// The error handler to use.
 std::function< void() > s_errorHandler = std::abort;
 #endif
 
