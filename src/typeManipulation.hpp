@@ -126,6 +126,14 @@ template< bool ... BOOLS >
 using all_of = camp::concepts::metalib::all_of< BOOLS ... >;
 
 /**
+ * @brief A template boolean that is always true.
+ * @note This is intended for use in @c static_assert where some template dependence is necessary
+ *   to only generate the assert when the function or method is actually instantiated.
+ */
+template< typename T >
+constexpr bool always_true = true;
+
+/**
  * @brief A struct that contains a static constexpr bool value that is true if all of TYPES::value are true.
  * @tparam TYPES A variadic pack of types all of which define a static constexpr bool value.
  * @note Not a static constexpr bool so it can be used on device.
@@ -270,6 +278,11 @@ struct GetViewTypeConst< T, true >
   using type = decltype( std::declval< T >().toViewConst() );
 };
 
+/**
+ * @struct GetNestedViewType
+ * @brief A helper struct used to get the nested view type of an object.
+ * @tparam T The type to get the nested view type of.
+ */
 template< typename T, bool=HasMemberFunction_toNestedView< T > >
 struct GetNestedViewType
 {
@@ -277,7 +290,12 @@ struct GetNestedViewType
   using type = typename GetViewType< T >::type;
 };
 
-
+/**
+ * @struct GetNestedViewType< T, true >
+ * @brief A helper struct used to get the nested view type of an object.
+ * @tparam T The type to get the nested view type of.
+ * @note This is a specialization for objects with a toNestedView method.
+ */
 template< typename T >
 struct GetNestedViewType< T, true >
 {
@@ -285,6 +303,11 @@ struct GetNestedViewType< T, true >
   using type = decltype( std::declval< T >().toNestedView() ) const;
 };
 
+/**
+ * @struct GetNestedViewTypeConst
+ * @brief A helper struct used to get the nested view const type of an object.
+ * @tparam T The type to get the nested view const type of.
+ */
 template< typename T, bool=HasMemberFunction_toNestedViewConst< T > >
 struct GetNestedViewTypeConst
 {
@@ -292,7 +315,12 @@ struct GetNestedViewTypeConst
   using type = typename GetViewTypeConst< T >::type;
 };
 
-
+/**
+ * @struct GetNestedViewTypeConst< T, true >
+ * @brief A helper struct used to get the nested view const type of an object.
+ * @tparam T The type to get the nested view const type of.
+ * @note This is a specialization for objects with a toNestedViewConst method.
+ */
 template< typename T >
 struct GetNestedViewTypeConst< T, true >
 {

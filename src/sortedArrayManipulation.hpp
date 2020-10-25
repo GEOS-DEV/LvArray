@@ -81,7 +81,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   T * incrementSize( T * const curPtr,
-                     std::ptrdiff_t const nToAdd ) LVARRAY_RESTRICT_THIS
+                     std::ptrdiff_t const nToAdd )
   {
     LVARRAY_UNUSED_VARIABLE( nToAdd );
     return curPtr;
@@ -92,7 +92,7 @@ public:
    * @param pos the position the value was inserted at.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  void insert( std::ptrdiff_t const pos )
   { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
@@ -103,7 +103,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   void set( std::ptrdiff_t const pos,
-            std::ptrdiff_t const valuePos ) LVARRAY_RESTRICT_THIS
+            std::ptrdiff_t const valuePos )
   {
     LVARRAY_UNUSED_VARIABLE( pos );
     LVARRAY_UNUSED_VARIABLE( valuePos );
@@ -122,7 +122,7 @@ public:
   void insert( std::ptrdiff_t const nLeftToInsert,
                std::ptrdiff_t const valuePos,
                std::ptrdiff_t const pos,
-               std::ptrdiff_t const prevPos ) LVARRAY_RESTRICT_THIS
+               std::ptrdiff_t const prevPos )
   {
     LVARRAY_UNUSED_VARIABLE( nLeftToInsert );
     LVARRAY_UNUSED_VARIABLE( valuePos );
@@ -135,7 +135,7 @@ public:
    * @param pos The position of the entry that was removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  void remove( std::ptrdiff_t const pos )
   { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
@@ -149,7 +149,7 @@ public:
   LVARRAY_HOST_DEVICE inline
   void remove( std::ptrdiff_t const nRemoved,
                std::ptrdiff_t const curPos,
-               std::ptrdiff_t const nextPos ) LVARRAY_RESTRICT_THIS
+               std::ptrdiff_t const nextPos )
   {
     LVARRAY_UNUSED_VARIABLE( nRemoved );
     LVARRAY_UNUSED_VARIABLE( curPos );
@@ -172,7 +172,7 @@ struct less
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
-  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  bool operator() ( T const & lhs, T const & rhs ) const
   { return lhs < rhs; }
 };
 
@@ -191,7 +191,7 @@ struct greater
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
-  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  bool operator() ( T const & lhs, T const & rhs ) const
   { return lhs > rhs; }
 };
 

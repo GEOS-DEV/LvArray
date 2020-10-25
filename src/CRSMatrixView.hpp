@@ -97,6 +97,12 @@ public:
   ///@{
 
   /**
+   * @brief A constructor to create an uninitialized CRSMatrixView.
+   * @note An uninitialized CRSMatrixView should not be used until it is assigned to.
+   */
+  CRSMatrixView() = default;
+
+  /**
    * @brief Default copy constructor.
    */
   CRSMatrixView( CRSMatrixView const & ) = default;
@@ -151,7 +157,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   {
     return CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                         numColumns(),
@@ -166,7 +172,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  toViewConstSizes() const
   {
     return CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                               numColumns(),
@@ -181,7 +187,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   {
     return CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                                     numColumns(),
@@ -196,7 +202,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toSparsityPatternView() const
+  toSparsityPatternView() const &
   {
     return SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                                  numColumns(),
@@ -230,7 +236,7 @@ public:
    * @param row The row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_entries.data() + this->m_offsets[ row ],
@@ -258,7 +264,7 @@ public:
    *   up to the user to ensure that the given row has enough space for the new entry.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const LVARRAY_RESTRICT_THIS
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
@@ -276,7 +282,7 @@ public:
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
                                 COL_TYPE const * const LVARRAY_RESTRICT cols,
                                 T const * const LVARRAY_RESTRICT entriesToInsert,
-                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+                                INDEX_TYPE const ncols ) const
   { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
@@ -286,7 +292,7 @@ public:
    * @return True iff the entry was removed (the entry was non-zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
+  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const
   { return ParentClass::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
 
   /**
@@ -301,7 +307,7 @@ public:
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row,
                                 COL_TYPE const * const LVARRAY_RESTRICT cols,
-                                INDEX_TYPE const ncols ) const LVARRAY_RESTRICT_THIS
+                                INDEX_TYPE const ncols ) const
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
@@ -505,11 +511,11 @@ public:
 protected:
 
   /**
-   * @brief Default constructor. Made protected since every CRSMatrixView should
-   *        either be the base of a CRSMatrix or copied from another CRSMatrixView.
+   * @brief Protected constructor to be used by the CRSMatrix class.
+   * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  CRSMatrixView():
-    ParentClass(),
+  CRSMatrixView( bool ):
+    ParentClass( true ),
     m_entries( true )
   {}
 

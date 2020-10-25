@@ -61,6 +61,12 @@ public:
   ///@{
 
   /**
+   * @brief A constructor to create an uninitialized ArrayOfSetsView.
+   * @note An uninitialized ArrayOfSetsView should not be used until it is assigned to.
+   */
+  ArrayOfSetsView() = default;
+
+  /**
    * @brief Default copy constructor. Performs a shallow copy and calls the
    *   chai::ManagedArray copy constructor.
    */
@@ -114,7 +120,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   {
     return ArrayOfSetsView< T, INDEX_TYPE const, BUFFER_TYPE >( size(),
                                                                 this->m_offsets,
@@ -127,7 +133,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   {
     return ArrayOfSetsView< T const, INDEX_TYPE const, BUFFER_TYPE >( size(),
                                                                       this->m_offsets,
@@ -140,7 +146,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
-  toArrayOfArraysView() const LVARRAY_RESTRICT_THIS
+  toArrayOfArraysView() const
   {
     return ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >( size(),
                                                                               this->m_offsets,
@@ -162,7 +168,7 @@ public:
    * @param i The set to get the size of.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC sizeOfSet( INDEX_TYPE const i ) const
   { return ParentClass::sizeOfArray( i ); }
 
   using ParentClass::capacity;
@@ -172,7 +178,7 @@ public:
    * @param i The set to get the capacity of.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC capacityOfSet( INDEX_TYPE const i ) const
   { return ParentClass::capacityOfArray( i ); }
 
   using ParentClass::valueCapacity;
@@ -183,7 +189,7 @@ public:
    * @param value the value to search for.
    */
   LVARRAY_HOST_DEVICE inline
-  bool contains( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
+  bool contains( INDEX_TYPE const i, T const & value ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -198,7 +204,7 @@ public:
    *   size and that each set is sorted unique.
    * @note The is intended for debugging.
    */
-  void consistencyCheck() const LVARRAY_RESTRICT_THIS
+  void consistencyCheck() const
   {
     INDEX_TYPE const numSets = size();
     for( INDEX_TYPE_NC i = 0; i < numSets; ++i )
@@ -224,7 +230,7 @@ public:
    * @param i The set to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -233,7 +239,7 @@ public:
    * @param j The index within the set to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const LVARRAY_RESTRICT_THIS
+  T const & operator()( INDEX_TYPE const i, INDEX_TYPE const j ) const
   { return ParentClass::operator()( i, j ); }
 
   ///@}
@@ -252,7 +258,7 @@ public:
    *   up to the user to ensure that the given set has enough space for the new entries.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertIntoSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
+  bool insertIntoSet( INDEX_TYPE const i, T const & value ) const
   { return insertIntoSetImpl( i, value, CallBacks( *this, i ) ); }
 
   /**
@@ -268,7 +274,7 @@ public:
    */
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC insertIntoSet( INDEX_TYPE const i, ITER const first, ITER const last ) const
   { return insertIntoSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   /**
@@ -278,7 +284,7 @@ public:
    * @return True iff the value was removed (the set previously contained the value).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeFromSet( INDEX_TYPE const i, T const & value ) const LVARRAY_RESTRICT_THIS
+  bool removeFromSet( INDEX_TYPE const i, T const & value ) const
   { return removeFromSetImpl( i, value, CallBacks( *this, i ) ); }
 
   /**
@@ -292,7 +298,7 @@ public:
    */
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeFromSet( INDEX_TYPE const i, ITER const first, ITER const last ) const
   { return removeFromSetImpl( i, first, last, CallBacks( *this, i ) ); }
 
   ///@}
@@ -319,11 +325,12 @@ public:
 protected:
 
   /**
-   * @brief Default constructor.
-   * @note Protected since every ArrayOfSetsView should either be the base of a ArrayOfSets
-   *   or copied from another ArrayOfSetsView.
+   * @brief Protected constructor to be used by parent classes.
+   * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  ArrayOfSetsView() = default;
+  ArrayOfSetsView( bool ):
+    ParentClass( true )
+  {}
 
   /**
    * @return Return an ArraySlice1d to the values of the given array.
@@ -331,7 +338,7 @@ protected:
    * @note Protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -349,7 +356,7 @@ protected:
    */
   template< typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+  bool insertIntoSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -377,7 +384,7 @@ protected:
   INDEX_TYPE_NC insertIntoSetImpl( INDEX_TYPE const i,
                                    ITER const first,
                                    ITER const last,
-                                   CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+                                   CALLBACKS && cbacks ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -403,7 +410,7 @@ protected:
    */
   template< typename CALLBACKS >
   LVARRAY_HOST_DEVICE inline
-  bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+  bool removeFromSetImpl( INDEX_TYPE const i, T const & value, CALLBACKS && cbacks ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -431,7 +438,7 @@ protected:
   INDEX_TYPE_NC removeFromSetImpl( INDEX_TYPE const i,
                                    ITER const first,
                                    ITER const last,
-                                   CALLBACKS && cbacks ) const LVARRAY_RESTRICT_THIS
+                                   CALLBACKS && cbacks ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
 
@@ -479,7 +486,7 @@ public:
      * @return a pointer to the sets values.
      */
     LVARRAY_HOST_DEVICE inline
-    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const LVARRAY_RESTRICT_THIS
+    T * incrementSize( T * const curPtr, INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef LVARRAY_BOUNDS_CHECK
