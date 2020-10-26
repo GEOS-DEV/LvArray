@@ -39,22 +39,34 @@ public:
    */
   void compareToReference() const
   {
-    ASSERT_EQ( m_set.size(), m_ref.size() );
-    ASSERT_EQ( m_set.empty(), m_ref.empty() );
+    EXPECT_EQ( m_set.size(), m_ref.size() );
+    EXPECT_EQ( m_set.empty(), m_ref.empty() );
     if( m_set.empty() )
     {
-      ASSERT_EQ( m_set.size(), 0 );
+      EXPECT_EQ( m_set.size(), 0 );
       return;
     }
 
     T const * ptr = m_set.data();
+    ArraySlice< T const, 1, 0, INDEX_TYPE > const slice = m_set.toSlice();
     typename std::set< T >::const_iterator it = m_ref.begin();
     for( int i = 0; i < m_set.size(); ++i )
     {
-      ASSERT_EQ( m_set[ i ], *it );
-      ASSERT_EQ( ptr[ i ], *it );
+      EXPECT_EQ( m_set[ i ], *it );
+      EXPECT_EQ( m_set( i ), *it );
+      EXPECT_EQ( ptr[ i ], *it );
+      EXPECT_EQ( slice[ i ], *it );
       ++it;
     }
+
+    it = m_ref.begin();
+    for( T const & val : m_set )
+    {
+      EXPECT_EQ( val, *it );
+      ++it;
+    }
+
+    EXPECT_EQ( it, m_ref.end() );
   }
 
   #define COMPARE_TO_REFERENCE { SCOPED_TRACE( "" ); compareToReference(); \
