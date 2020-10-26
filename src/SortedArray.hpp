@@ -168,6 +168,8 @@ public:
     return ParentClass::toViewConst();
   }
 
+  using ParentClass::toSlice;
+
   ///@}
 
   /**
@@ -198,6 +200,7 @@ public:
   ///@{
 
   using ParentClass::operator[];
+  using ParentClass::operator();
 
   /**
    * @copydoc SortedArrayView::data
