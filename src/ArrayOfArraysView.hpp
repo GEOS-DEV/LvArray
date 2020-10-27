@@ -964,7 +964,7 @@ private:
 
     typeManipulation::forEachArg( [this, begin, end] ( auto & buffer )
     {
-      if( !std::is_trivially_destructible< decltype( buffer[ 0 ] ) >::value )
+      if( !std::is_trivially_destructible< std::remove_reference_t< decltype( buffer[ 0 ] ) > >::value )
       {
         buffer.move( MemorySpace::CPU, true );
         for( INDEX_TYPE i = begin; i < end; ++i )
