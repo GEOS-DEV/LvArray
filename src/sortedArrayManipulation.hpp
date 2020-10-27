@@ -81,7 +81,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   T * incrementSize( T * const curPtr,
-                     std::ptrdiff_t const nToAdd ) LVARRAY_RESTRICT_THIS
+                     std::ptrdiff_t const nToAdd )
   {
     LVARRAY_UNUSED_VARIABLE( nToAdd );
     return curPtr;
@@ -92,7 +92,7 @@ public:
    * @param pos the position the value was inserted at.
    */
   LVARRAY_HOST_DEVICE inline
-  void insert( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  void insert( std::ptrdiff_t const pos )
   { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
@@ -103,7 +103,7 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   void set( std::ptrdiff_t const pos,
-            std::ptrdiff_t const valuePos ) LVARRAY_RESTRICT_THIS
+            std::ptrdiff_t const valuePos )
   {
     LVARRAY_UNUSED_VARIABLE( pos );
     LVARRAY_UNUSED_VARIABLE( valuePos );
@@ -122,7 +122,7 @@ public:
   void insert( std::ptrdiff_t const nLeftToInsert,
                std::ptrdiff_t const valuePos,
                std::ptrdiff_t const pos,
-               std::ptrdiff_t const prevPos ) LVARRAY_RESTRICT_THIS
+               std::ptrdiff_t const prevPos )
   {
     LVARRAY_UNUSED_VARIABLE( nLeftToInsert );
     LVARRAY_UNUSED_VARIABLE( valuePos );
@@ -135,7 +135,7 @@ public:
    * @param pos The position of the entry that was removed.
    */
   LVARRAY_HOST_DEVICE inline
-  void remove( std::ptrdiff_t const pos ) LVARRAY_RESTRICT_THIS
+  void remove( std::ptrdiff_t const pos )
   { LVARRAY_UNUSED_VARIABLE( pos ); }
 
   /**
@@ -149,7 +149,7 @@ public:
   LVARRAY_HOST_DEVICE inline
   void remove( std::ptrdiff_t const nRemoved,
                std::ptrdiff_t const curPos,
-               std::ptrdiff_t const nextPos ) LVARRAY_RESTRICT_THIS
+               std::ptrdiff_t const nextPos )
   {
     LVARRAY_UNUSED_VARIABLE( nRemoved );
     LVARRAY_UNUSED_VARIABLE( curPos );
@@ -172,7 +172,7 @@ struct less
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
-  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  bool operator() ( T const & lhs, T const & rhs ) const
   { return lhs < rhs; }
 };
 
@@ -191,7 +191,7 @@ struct greater
    */
   DISABLE_HD_WARNING
   constexpr LVARRAY_HOST_DEVICE inline
-  bool operator() ( T const & lhs, T const & rhs ) const LVARRAY_RESTRICT_THIS
+  bool operator() ( T const & lhs, T const & rhs ) const
   { return lhs > rhs; }
 };
 
@@ -315,20 +315,17 @@ std::ptrdiff_t removeDuplicates( ITER first, ITER const last, Compare && comp=Co
 
   std::ptrdiff_t numUnique = 1;
 
-  ITER next = first;
-
   /**
-   * For whatever reason the standard approach doesn't work with XL in release on device.
+   * The following statement should be
+   *   ITER next = first;
+   *   ++next;
+   * This works host only however with some host compilers (clang 10.0.1 and XL) it breaks on device in release.
    * It does some really strange things, for example `last - next == 0` and they can have identical
-   * values but `next != last`. If you print out the array each iteration it works as expected. I even
-   * tried substituting the example code for std::unique from cppreference and that exhibited the same problem.
-   * My guess is it's most likely a compiler bug.
+   * values but `next != last`. If you print out the array each iteration it works as expected. It's not a big deal
+   * since it amounts to just a single extra iteration, but very strange.
    */
-#if defined( __ibmxl__ ) && defined( __CUDA_ARCH__ )
-  while( arrayManipulation::iterDistance( ++next, last ) > 0 )
-#else
-  while( ++next != last )
-#endif
+  ITER next = first;
+  for(; next != last; ++next )
   {
     if( comp( *first, *next ) )
     {

@@ -261,7 +261,7 @@ private:
     T copy[ M ][ M ];
     T result[ M ][ M ];
     tensorOps::copy< M, M >( copy, matrix );
-    tensorOps::AikBkj< M, M, M >( result, copy, matrix );
+    tensorOps::Rij_eq_AikBkj< M, M, M >( result, copy, matrix );
 
     PORTABLE_EXPECT_NEAR( originalDet * originalDet, tensorOps::determinant< M >( result ), 4 * epsilonScale6 );
 
@@ -311,7 +311,7 @@ private:
     PORTABLE_EXPECT_NEAR( 1.0 / det, tensorOps::determinant< M >( inverse ), scale * epsilon );
 
     FLOAT product[ M ][ M ];
-    tensorOps::AikBkj< M, M, M >( product, inverse, source );
+    tensorOps::Rij_eq_AikBkj< M, M, M >( product, inverse, source );
 
     for( int i = 0; i < M; ++i )
     {
@@ -338,7 +338,7 @@ private:
     tensorOps::symmetricToDense< M >( denseSource, source );
 
     FLOAT product[ M ][ M ];
-    tensorOps::AikBkj< M, M, M >( product, denseInverse, denseSource );
+    tensorOps::Rij_eq_AikBkj< M, M, M >( product, denseInverse, denseSource );
 
     for( int i = 0; i < M; ++i )
     {

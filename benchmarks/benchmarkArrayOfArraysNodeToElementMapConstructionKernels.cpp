@@ -127,7 +127,7 @@ resizeFromCapacities( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUF
 // Explicit instantiation of NodeToElemMapConstruction.
 template class NodeToElemMapConstruction< serialPolicy >;
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 template class NodeToElemMapConstruction< parallelHostPolicy >;
 #endif
 

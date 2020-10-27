@@ -13,10 +13,9 @@
 #pragma once
 
 // System includes
-#include <vector>
-#include <array>
 #include <string>
 #include <typeinfo>
+#include <functional>
 
 namespace LvArray
 {
@@ -60,9 +59,16 @@ inline std::string demangleType( T const & )
 { return demangle( typeid( T ).name() ); }
 
 /**
- * @brief Abort the program, correctly finalizing MPI.
+ * @brief Set the error handler called by LVARRAY_ERROR and others.
+ * @param handler The error handler.
+ * @note By default the error handler is std::abort.
  */
-void abort();
+void setErrorHandler( std::function< void() > const & handler );
+
+/**
+ * @brief Call the error handler, by default this is std::abort.
+ */
+void callErrorHandler();
 
 /**
  * @brief Print signal information and a stack trace to standard out, optionally aborting.

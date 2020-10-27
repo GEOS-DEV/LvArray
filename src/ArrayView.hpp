@@ -120,7 +120,6 @@ public:
    * @param source The object to copy.
    * @note Triggers the copy constructor for @tparam BUFFER_TYPE. When using the
    *   ChaiBuffer this can move the underlying buffer to a new memory space if the execution context is set.
-   * @return *this
    */
   DISABLE_HD_WARNING
   inline LVARRAY_HOST_DEVICE constexpr
@@ -134,7 +133,6 @@ public:
   /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
    * @param source object to move.
-   * @return *this.
    * @note Since this invalidates the source this should not be used when @p source is
    *   the parent of an Array. Do not do this:
    * @code
@@ -231,17 +229,17 @@ public:
   ///@{
 
   /**
-   * @return Return *this after converting any nested arrays to const views.
+   * @return Return a new ArrayView.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView toView() const
+  ArrayView toView() const &
   { return ArrayView( m_dims, m_strides, m_singleParameterResizeIndex, m_dataBuffer ); }
 
   /**
-   * @return Return *this after converting any nested arrays to const views to const values.
+   * @return Return a new ArrayView where @c T is @c const.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const
+  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &
   {
     return ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >( m_dims,
                                                                      m_strides,
@@ -253,14 +251,14 @@ public:
    * @brief @return Return *this after converting any nested arrays to const views.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  NestedViewType toNestedView() const
+  NestedViewType toNestedView() const &
   { return reinterpret_cast< NestedViewType const & >( *this ); }
 
   /**
    * @brief @return Return *this after converting any nested arrays to const views to const values.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  NestedViewTypeConst toNestedViewConst() const
+  NestedViewTypeConst toNestedViewConst() const &
   { return reinterpret_cast< NestedViewTypeConst const & >( *this ); }
 
   /**
@@ -274,22 +272,21 @@ public:
   /**
    * @brief Overload for rvalues that raises a compilation error when used.
    * @return A null ArraySlice.
-   * @brief @c toSlice cannot be called on a rvalue since the @c ArraySlice would
-   *   contain pointers to the object that is about to be destroyed. This overload
-   *   prevents that from happening.
+   * @note This cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the dims and strides of the current @c ArrayView that is
+   *   about to be destroyed. This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T, NDIM, USD, INDEX_TYPE >
   toSlice() const && noexcept
   {
-    static_assert( NDIM < 0, "Cannot call toSlice on a rvalue." );
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toSlice on a rvalue." );
     return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
   /**
    * @return Return an immutable ArraySlice representing this ArrayView.
    */
-  template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const & noexcept
@@ -298,27 +295,44 @@ public:
   /**
    * @brief Overload for rvalues that raises a compilation error when used.
    * @return A null ArraySlice.
-   * @brief @c toSliceConst cannot be called on a rvalue since the @c ArraySlice would
-   *   contain pointers to the object that is about to be destroyed. This overload
-   *   prevents that from happening.
+   * @brief This cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the dims and strides of the current @c ArrayView that is
+   *   about to be destroyed. This overload prevents that from happening.
    */
-  template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const && noexcept
   {
-    static_assert( NDIM < 0, "Cannot call toSliceConst on a rvalue." );
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toSliceConst on a rvalue." );
     return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
   /**
-   * @return Return *this interpret as ArrayView<T const> const &.
+   * @brief A user defined conversion operator (UDC) to an ArrayView< T const, ... >.
+   * @return A new ArrayView where @c T is @c const.
    */
   template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< _T >::value,
-                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const noexcept
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const & noexcept
   { return toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayView.
+   * @brief This is valid when this is an @c ArrayView but invalid when this is an @c Array.
+   *   I have been unable to allow the @c ArrayView conversion while not allowing the @c Array.
+   *   Therefore the @c ArrayView conversion is not allowed, instead simply call @c toViewConst.
+   */
+  template< typename _T=T >
+  inline LVARRAY_HOST_DEVICE constexpr
+  operator std::enable_if_t< !std::is_const< _T >::value,
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const && noexcept
+  {
+    static_assert( !typeManipulation::always_true< T >,
+                   "Cannot call toViewConst on a rvalue. If called from ArrayView please use toViewConst()." );
+    return toViewConst();
+  }
 
   /**
    * @return Return an ArraySlice representing this ArrayView.
@@ -331,13 +345,13 @@ public:
    * @brief Overload for rvalues that raises a compilation error when used.
    * @return A null ArraySlice.
    * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
-   *   contain pointers to the object that is about to be destroyed. This overload
-   *   prevents that from happening.
+   *   contain pointers to the dims and strides of the current @c ArrayView that is
+   *   about to be destroyed. This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
   operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const && noexcept
   {
-    static_assert( NDIM < 0, "Cannot use to conversion to an ArraySlice< T, ... > on a rvalue." );
+    static_assert( !typeManipulation::always_true< T >, "Cannot use conversion to an ArraySlice< T, ... > on a rvalue." );
     return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
@@ -354,15 +368,15 @@ public:
    * @brief Overload for rvalues that raises a compilation error when used.
    * @return A null ArraySlice.
    * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
-   *   contain pointers to the object that is about to be destroyed. This overload
-   *   prevents that from happening.
+   *   contain pointers to the dims and strides of the current @c ArrayView that is
+   *   about to be destroyed. This overload prevents that from happening.
    */
   template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< _T >::value,
                              ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >() const && noexcept
   {
-    static_assert( NDIM < 0, "Cannot use to conversion to an ArraySlice< T const, ... > on a rvalue." );
+    static_assert( !typeManipulation::always_true< T >, "Cannot use conversion to an ArraySlice< T const, ... > on a rvalue." );
     return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
@@ -472,7 +486,7 @@ public:
   template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const & noexcept LVARRAY_RESTRICT_THIS
+  operator[]( INDEX_TYPE const index ) const & noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
@@ -491,10 +505,10 @@ public:
   template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const && noexcept LVARRAY_RESTRICT_THIS
+  operator[]( INDEX_TYPE const index ) const && noexcept
   {
     LVARRAY_UNUSED_VARIABLE( index );
-    static_assert( NDIM < 0, "Cannot call operator[] on an rvalue." );
+    static_assert( !typeManipulation::always_true< T >, "Cannot call multidimensional operator[] on an rvalue." );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( nullptr, nullptr, nullptr );
   }
 
@@ -506,7 +520,7 @@ public:
   template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< _NDIM == 1, T & >
-  operator[]( INDEX_TYPE const index ) const & noexcept LVARRAY_RESTRICT_THIS
+  operator[]( INDEX_TYPE const index ) const & noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return data()[ indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];

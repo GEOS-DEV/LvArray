@@ -144,7 +144,7 @@ public:
   template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
-  toSliceConst() const LVARRAY_RESTRICT_THIS noexcept
+  toSliceConst() const noexcept
   { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides ); }
 
   /**
@@ -154,7 +154,7 @@ public:
   LVARRAY_HOST_DEVICE inline constexpr
   operator std::enable_if_t< !std::is_const< U >::value,
                              ArraySlice< T const, NDIM, USD, INDEX_TYPE > >
-    () const LVARRAY_RESTRICT_THIS noexcept
+    () const noexcept
   { return toSliceConst(); }
 
   ///@}
@@ -264,7 +264,7 @@ public:
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE constexpr inline
   operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
-    () const noexcept LVARRAY_RESTRICT_THIS
+    () const noexcept
   { return m_data; }
 
   /**
@@ -275,7 +275,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  operator[]( INDEX_TYPE const index ) const noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
@@ -291,7 +291,7 @@ public:
   template< int U=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept LVARRAY_RESTRICT_THIS
+  operator[]( INDEX_TYPE const index ) const noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
     return m_data[ indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];

@@ -58,7 +58,7 @@ public:
   CRSMatrix( INDEX_TYPE const nrows=0,
              INDEX_TYPE const ncols=0,
              INDEX_TYPE const initialRowCapacity=0 ):
-    ParentClass()
+    ParentClass( true )
   {
     resize( nrows, ncols, initialRowCapacity );
     setName( "" );
@@ -70,7 +70,7 @@ public:
    */
   inline
   CRSMatrix( CRSMatrix const & src ):
-    ParentClass()
+    ParentClass( true )
   { *this = src; }
 
   /**
@@ -98,7 +98,7 @@ public:
    * @return *this.
    */
   inline
-  CRSMatrix & operator=( CRSMatrix const & src ) LVARRAY_RESTRICT_THIS
+  CRSMatrix & operator=( CRSMatrix const & src )
   {
     this->m_numCols = src.m_numCols;
     ParentClass::setEqualTo( src.m_numArrays,
@@ -199,8 +199,23 @@ public:
    */
   constexpr inline
   CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const &
   { return ParentClass::toView(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null CRSMatrixView.
+   * @note This cannot be called on a rvalue since the @c CRSMatrixView would
+   *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  constexpr inline
+  CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
+  toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
+    return ParentClass::toView();
+  }
 
   /**
    * @copydoc ParentClass::toViewConstSizes
@@ -210,8 +225,23 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConstSizes() const LVARRAY_RESTRICT_THIS
+  toViewConstSizes() const &
   { return ParentClass::toViewConstSizes(); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null CRSMatrixView.
+   * @note This cannot be called on a rvalue since the @c CRSMatrixView would
+   *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
+  toViewConstSizes() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConstSizes on a rvalue." );
+    return ParentClass::toViewConstSizes();
+  }
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -221,10 +251,40 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const &
   { return ParentClass::toViewConst(); }
 
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null CRSMatrixView.
+   * @note This cannot be called on a rvalue since the @c CRSMatrixView would
+   *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
+  toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
+    return ParentClass::toViewConst();
+  }
+
   using ParentClass::toSparsityPatternView;
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null CRSMatrixView.
+   * @note This cannot be called on a rvalue since the @c SparsityPatternView would
+   *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
+  toSparsityPatternView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toSparsityPatternView on a rvalue." );
+    return ParentClass::toSparsityPatternView();
+  }
 
   ///@}
 
@@ -262,7 +322,7 @@ public:
    * @param nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
+  void reserveNonZeros( INDEX_TYPE const nnz )
   { ParentClass::reserveValues( nnz, this->m_entries ); }
 
   /**
@@ -271,7 +331,7 @@ public:
    * @param nnz the number of no zero entries to reserve space for.
    */
   inline
-  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz ) LVARRAY_RESTRICT_THIS
+  void reserveNonZeros( INDEX_TYPE const row, INDEX_TYPE const nnz )
   {
     if( nonZeroCapacity( row ) >= nnz ) return;
     setRowCapacity( row, nnz );
@@ -304,7 +364,7 @@ public:
    *   or where a specific column is greater than the number of columns in the matrix.
    *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity ) LVARRAY_RESTRICT_THIS
+  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity )
   { ParentClass::resize( nRows, nCols, initialRowCapacity, this->m_entries ); }
 
   /**
@@ -313,7 +373,7 @@ public:
    * @note This method doesn't free any memory.
    */
   inline
-  void compress() LVARRAY_RESTRICT_THIS
+  void compress()
   { ParentClass::compress( this->m_entries ); }
 
   ///@}
@@ -331,7 +391,7 @@ public:
    * @return True iff the entry was inserted (the entry was zero before).
    */
   inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) LVARRAY_RESTRICT_THIS
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry )
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
@@ -348,7 +408,7 @@ public:
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
                              COL_TYPE const * const cols,
                              T const * const entriesToInsert,
-                             INDEX_TYPE const ncols ) LVARRAY_RESTRICT_THIS
+                             INDEX_TYPE const ncols )
   { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   using ParentClass::removeNonZero;

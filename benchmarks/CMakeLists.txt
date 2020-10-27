@@ -33,8 +33,10 @@ foreach(benchmark ${benchmarkSources})
     # blt_add_target_compile_flags( TO ${benchmark_name}
     #                               FLAGS -fsave-optimization-record )
 
-    blt_add_benchmark( NAME ${benchmark_name}
-                       COMMAND ${benchmark_name}
-                     )
+    blt_add_benchmark(NAME ${benchmark_name}
+                      COMMAND ${benchmark_name})
+
+    install(TARGETS ${benchmark_name}
+            DESTINATION bin)
 
 endforeach()

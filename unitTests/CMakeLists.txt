@@ -62,6 +62,7 @@ set(testSources
     testTensorOpsSymInverseTwoArgs.cpp
     testTypeManipulation.cpp
     testStackTrace.cpp
+    testInvalidOperations.cpp
    )
 
 #
@@ -78,6 +79,9 @@ foreach(test ${testSources})
 
     blt_add_test( NAME ${test_name}
                   COMMAND ${test_name} )
+
+    install(TARGETS ${test_name}
+            DESTINATION bin)
 
 endforeach()
 
@@ -96,6 +100,9 @@ target_include_directories( testFloatingPointExceptions PUBLIC ${CMAKE_CURRENT_L
 
 blt_add_test( NAME testFloatingPointExceptions
               COMMAND testFloatingPointExceptions )
+
+install(TARGETS testFloatingPointExceptions
+        DESTINATION bin)
 
 # Add testTensorOps which has multiple translation units to speed up compilation.
 blt_add_executable( NAME testTensorOps
@@ -120,3 +127,6 @@ target_include_directories( testTensorOps PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../sr
 
 blt_add_test( NAME testTensorOps
               COMMAND testTensorOps )
+
+install(TARGETS testTensorOps
+        DESTINATION bin)

@@ -1,9 +1,7 @@
 #
 set( PREPROCESSOR_DEFINES CHAI
                           CUDA
-                          MPI
                           TOTALVIEW_OUTPUT
-                          OPENMP
                           CALIPER )
 
 set( USE_CONFIGFILE ON CACHE BOOL "" )
@@ -13,7 +11,7 @@ foreach( DEP in ${PREPROCESSOR_DEFINES})
     endif()
 endforeach()
 
-if( USE_ADDR2LINE )
+if( ENABLE_ADDR2LINE )
     if ( NOT DEFINED ADDR2LINE_EXEC )
         set( ADDR2LINE_EXEC /usr/bin/addr2line CACHE PATH "" )
     endif()
@@ -25,7 +23,7 @@ if( USE_ADDR2LINE )
     set( LVARRAY_ADDR2LINE_EXEC ${ADDR2LINE_EXEC} )
 endif()
 
-if( DEFINED LVARRAY_BOUNDS_CHECK )
+if( LVARRAY_BOUNDS_CHECK )
     message( STATUS "LvArray bounds checking enabled." )
 else()
     message( STATUS "LvArray bounds checking disabled." )
@@ -37,5 +35,13 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
                 ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/LvArrayConfig.hpp )
 
+# Install the generated header.
 install( FILES ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp
          DESTINATION include )
+
+# Configure and install the CMake config
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/lvarray-config.cmake.in
+                ${PROJECT_BINARY_DIR}/share/lvarray/cmake/lvarray-config.cmake)
+
+install( FILES ${PROJECT_BINARY_DIR}/share/lvarray/cmake/lvarray-config.cmake
+         DESTINATION share/lvarray/cmake/)

@@ -151,7 +151,7 @@ TEST( CRSMatrix, assimilate )
 }
 // Sphinx end before assimilate
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
 // Sphinx start after views
 TEST( CRSMatrix, views )
 {

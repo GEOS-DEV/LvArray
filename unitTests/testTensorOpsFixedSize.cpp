@@ -20,6 +20,64 @@ namespace LvArray
 namespace testing
 {
 
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 2 >
+checkSymmetricToDense( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 2 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 2 >
+checkDenseToSymmetric( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 3 >
+checkSymmetricToDense( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 2 ], symMatrix[ 2 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 1 ], symMatrix[ 3 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 0 ], symMatrix[ 4 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 5 ] );
+}
+
+template< int M, typename MATRIX, typename SYM_MATRIX >
+LVARRAY_HOST_DEVICE inline
+std::enable_if_t< M == 3 >
+checkDenseToSymmetric( MATRIX const & matrix, SYM_MATRIX const symMatrix )
+{
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 0 ], symMatrix[ 0 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 1 ], symMatrix[ 1 ] );
+  PORTABLE_EXPECT_EQ( matrix[ 2 ][ 2 ], symMatrix[ 2 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] );
+
+  PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] );
+}
+
 template< typename T_N_POLICY_TUPLE >
 class FixedSizeSquareMatrixTest : public ::testing::Test
 {
@@ -66,7 +124,7 @@ public:
     {
       T denseSymA[ N ][ N ];
       tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
-      tensorOps::AijBj< N, N >( result, denseSymA, m_vectorB_local );
+      tensorOps::Ri_eq_AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
     ArrayViewT< T, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toView();
@@ -87,7 +145,7 @@ public:
         {
           #define _TEST( vectorA, symMatrix, vectorB ) \
             fill( vectorA, vectorASeed ); \
-            tensorOps::symAijBj< N >( vectorA, symMatrix, vectorB ); \
+            tensorOps::Ri_eq_symAijBj< N >( vectorA, symMatrix, vectorB ); \
             CHECK_EQUALITY_1D( N, vectorA, result )
 
           #define _TEST_PERMS( vectorA, symMatrix, vectorB0, vectorB1, vectorB2 ) \
@@ -114,14 +172,14 @@ public:
         } );
   }
 
-  void plusSymAijBj()
+  void Ri_add_symAijBj()
   {
     T result[ N ];
     tensorOps::copy< N >( result, m_vectorA_local );
     {
       T denseSymA[ N ][ N ];
       tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
-      tensorOps::plusAijBj< N, N >( result, denseSymA, m_vectorB_local );
+      tensorOps::Ri_add_AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
     ArrayViewT< T, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toView();
@@ -142,7 +200,7 @@ public:
         {
           #define _TEST( vectorA, symMatrix, vectorB ) \
             fill( vectorA, vectorASeed ); \
-            tensorOps::plusSymAijBj< N >( vectorA, symMatrix, vectorB ); \
+            tensorOps::Ri_add_symAijBj< N >( vectorA, symMatrix, vectorB ); \
             CHECK_EQUALITY_1D( N, vectorA, result )
 
           #define _TEST_PERMS( vectorA, symMatrix, vectorB0, vectorB1, vectorB2 ) \
@@ -175,7 +233,7 @@ public:
     {
       T denseSymA[ N ][ N ];
       tensorOps::symmetricToDense< N >( denseSymA, m_symMatrixA_local );
-      tensorOps::AikBjk< N, N, N >( result, denseSymA, m_matrixB_local );
+      tensorOps::Rij_eq_AikBjk< N, N, N >( result, denseSymA, m_matrixB_local );
     }
 
     ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
@@ -200,7 +258,7 @@ public:
         {
           #define _TEST( matrixA, symMatrix, matrixB ) \
             fill( matrixA, matrixASeed ); \
-            tensorOps::symAikBjk< N >( matrixA, symMatrix, matrixB ); \
+            tensorOps::Rij_eq_symAikBjk< N >( matrixA, symMatrix, matrixB ); \
             CHECK_EQUALITY_2D( N, N, matrixA, result )
 
           #define _TEST_PERMS( matrixA, symMatrix, matrixB0, matrixB1, matrixB2, matrixB3 ) \
@@ -229,7 +287,7 @@ public:
         } );
   }
 
-  void AikSymBklAjl()
+  void Rij_eq_AikSymBklAjl()
   {
     T result[ SYM_SIZE ];
     {
@@ -237,10 +295,10 @@ public:
       tensorOps::symmetricToDense< N >( denseSymB, m_symMatrixB_local );
 
       T temp[ N ][ N ];
-      tensorOps::AikBjk< N, N, N >( temp, denseSymB, m_matrixA_local );
+      tensorOps::Rij_eq_AikBjk< N, N, N >( temp, denseSymB, m_matrixA_local );
 
       T denseResult[ N ][ N ];
-      tensorOps::AikBkj< N, N, N >( denseResult, m_matrixA_local, temp );
+      tensorOps::Rij_eq_AikBkj< N, N, N >( denseResult, m_matrixA_local, temp );
       tensorOps::denseToSymmetric< N >( result, denseResult );
     }
 
@@ -265,7 +323,7 @@ public:
         {
           #define _TEST( symMatrixA, matrixA, symMatrixB ) \
             fill( symMatrixA, matrixASeed ); \
-            tensorOps::AikSymBklAjl< N >( symMatrixA, matrixA, symMatrixB ); \
+            tensorOps::Rij_eq_AikSymBklAjl< N >( symMatrixA, matrixA, symMatrixB ); \
             CHECK_EQUALITY_1D( SYM_SIZE, symMatrixA, result )
 
           #define _TEST_PERMS( matrixA, symMatrix, symMatrixB0, symMatrixB1, symMatrixB2 ) \
@@ -310,22 +368,7 @@ public:
           #define _TEST( symMatrix, matrix ) \
             fill( matrix, matrixASeed ); \
             tensorOps::symmetricToDense< N >( matrix, symMatrix ); \
-            for( int j = 0; j < N; ++j ) \
-            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
-            if( N == 2 ) \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 2 ] ); \
-            } \
-            else \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 0 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 0 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 2 ][ 1 ], symMatrix[ 3 ] ); \
-            }
+            checkSymmetricToDense< N >( matrix, symMatrix );
 
           #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
             _TEST( symMatrix, matrix0 ) \
@@ -361,18 +404,7 @@ public:
           #define _TEST( symMatrix, matrix ) \
             fill( symMatrix, symMatrixASeed ); \
             tensorOps::denseToSymmetric< N >( symMatrix, matrix ); \
-            for( int j = 0; j < N; ++j ) \
-            { PORTABLE_EXPECT_EQ( matrix[ j ][ j ], symMatrix[ j ] ); } \
-            if( N == 2 ) \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 2 ] ); \
-            } \
-            else \
-            { \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 1 ], symMatrix[ 5 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 0 ][ 2 ], symMatrix[ 4 ] ); \
-              PORTABLE_EXPECT_EQ( matrix[ 1 ][ 2 ], symMatrix[ 3 ] ); \
-            }
+            checkDenseToSymmetric< N >( matrix, symMatrix );
 
           #define _TEST_PERMS( symMatrix, matrix0, matrix1, matrix2, matrix3 ) \
             _TEST( symMatrix, matrix0 ) \
@@ -443,9 +475,9 @@ TYPED_TEST( FixedSizeSquareMatrixTest, symAijBj )
   this->symAijBj();
 }
 
-TYPED_TEST( FixedSizeSquareMatrixTest, plusSymAijBj )
+TYPED_TEST( FixedSizeSquareMatrixTest, Ri_add_symAijBj )
 {
-  this->plusSymAijBj();
+  this->Ri_add_symAijBj();
 }
 
 TYPED_TEST( FixedSizeSquareMatrixTest, symAikBjk )
@@ -453,9 +485,9 @@ TYPED_TEST( FixedSizeSquareMatrixTest, symAikBjk )
   this->symAikBjk();
 }
 
-TYPED_TEST( FixedSizeSquareMatrixTest, AikSymBklAjl )
+TYPED_TEST( FixedSizeSquareMatrixTest, Rij_eq_AikSymBklAjl )
 {
-  this->AikSymBklAjl();
+  this->Rij_eq_AikSymBklAjl();
 }
 
 TYPED_TEST( FixedSizeSquareMatrixTest, symmetricToDense )

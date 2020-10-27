@@ -13,12 +13,12 @@ namespace LvArray
 namespace testing
 {
 
-TYPED_TEST( TwoSizesTest, AjiBj )
+TYPED_TEST( TwoSizesTest, Ri_eq_AjiBj )
 {
   this->testAjiBj();
 }
 
-TYPED_TEST( TwoSizesTest, plusAjiBj )
+TYPED_TEST( TwoSizesTest, Ri_add_AjiBj )
 {
   this->testPlusAjiBj();
 }

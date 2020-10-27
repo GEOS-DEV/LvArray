@@ -181,9 +181,9 @@ protected:
 using SingleArrayTestTypes = ::testing::Types<
   std::tuple< int, sortedArrayManipulation::less< int >, serialPolicy >
   , std::tuple< int, sortedArrayManipulation::greater< int >, serialPolicy >
+  , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, serialPolicy >
   , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, serialPolicy >
-  , std::tuple< Tensor, sortedArrayManipulation::greater< Tensor >, serialPolicy >
-  , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
+  , std::tuple< TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
 #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
@@ -304,3 +304,11 @@ TYPED_TEST( DualArrayTest, makeSorted )
 
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

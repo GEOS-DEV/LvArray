@@ -1,5 +1,10 @@
 cmake_minimum_required( VERSION 3.9 )
 
+# Set version number
+set( LVARRAY_VERSION_MAJOR 0 )
+set( LVARRAY_VERSION_MINOR 1 )
+set( LVARRAY_VERSION_PATCHLEVEL 0 )
+
 # check if LvArray is build as a submodule or a separate project
 get_directory_property( parent_dir PARENT_DIRECTORY )
 if(parent_dir)
@@ -16,18 +21,16 @@ if( NOT is_submodule )
     set( ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "" )
 
     option( ENABLE_TESTS "Builds tests" ON )
+    option( DISABLE_UNIT_TESTS "Disables unit tests but builds gtest." OFF )
     option( ENABLE_EXAMPLES "Builds examples" ON )
     option( ENABLE_BENCHMARKS "Builds benchmarks" ON )
     option( ENABLE_DOCS "Builds documentation" ON )
 
-    option( ENABLE_UMPIRE "Build with UMPIRE" ON )
-    option( ENABLE_CHAI "Build with CHAI" ON )
-    option( ENABLE_MPI "Build with MPI" ON )
-    option( ENABLE_CUDA "Build with CUDA" OFF )
-    option( ENABLE_OPENMP "Build with OpenMP" ON )
-    option( ENABLE_CALIPER "Build with Caliper" ON )
-
     option( ENABLE_ADDR2LINE "Enable addr2line usage in stacktraces" ON )
+    option( ENABLE_CUDA "Build with CUDA" OFF )
+    option( ENABLE_UMPIRE "Build with UMPIRE" OFF )
+    option( ENABLE_CHAI "Build with CHAI" OFF )
+    option( ENABLE_CALIPER "Build with Caliper" OFF )
 
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
@@ -45,20 +48,12 @@ if( ENABLE_CHAI )
     set( lvarray_dependencies ${lvarray_dependencies} chai umpire )
 endif()
 
-if( ENABLE_MPI )
-    set( lvarray_dependencies ${lvarray_dependencies} mpi )
-endif()
-
 if( ENABLE_CUDA )
     set( lvarray_dependencies ${lvarray_dependencies} cuda )
 endif()
 
-if( ENABLE_OPENMP )
-    set( lvarray_dependencies ${lvarray_dependencies} openmp )
-endif()
-
 if( ENABLE_RAJA )
-    set( lvarray_dependencies ${lvarray_dependencies} raja )
+    set( lvarray_dependencies ${lvarray_dependencies} RAJA )
 endif()
 
 if( ENABLE_CALIPER )
@@ -66,7 +61,7 @@ if( ENABLE_CALIPER )
 endif()
 
 
-if( ENABLE_TESTS )
+if( ENABLE_TESTS AND NOT DISABLE_UNIT_TESTS )
     add_subdirectory( unitTests )
 endif()
 

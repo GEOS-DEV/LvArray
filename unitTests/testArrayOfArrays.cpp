@@ -742,7 +742,7 @@ TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
     this->template resizeFromCapacities< serialPolicy >( 100, 10 );
     this->emplace( 10 );
 
-#if defined( LVARRAY_USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
     this->emplace( 10 );
 #endif
@@ -1410,12 +1410,12 @@ using ArrayOfArraysViewAtomicTestTypes = ::testing::Types<
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(LVARRAY_USE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, MallocBuffer >, parallelHostPolicy >
 #endif
-#if defined(LVARRAY_USE_OPENMP) && defined(LVARRAY_USE_CHAI)
+#if defined(RAJA_ENABLE_OPENMP) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >

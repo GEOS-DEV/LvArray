@@ -1,27 +1,19 @@
-set( thirdPartyLibs "")
+set(thirdPartyLibs "")
 
 ################################
 # RAJA
 ################################
-if( EXISTS ${RAJA_DIR})
-    message(STATUS "Using system RAJA found at ${RAJA_DIR}")
-else()
-    message(STATUS "Using RAJA from thirdPartyLibs")
-    set(RAJA_DIR ${GEOSX_TPL_DIR}/raja)
+if(NOT EXISTS ${RAJA_DIR})
+    message(FATAL_ERROR "RAJA_DIR must be defined and point to a valid directory when using RAJA.")
 endif()
 
-include(${CMAKE_SOURCE_DIR}/cmake/FindRAJA.cmake)
-if (NOT RAJA_FOUND)
-    message(FATAL_ERROR "RAJA not found in ${RAJA_DIR}. Maybe you need to build it")
-endif()
-blt_register_library( NAME RAJA
-                      INCLUDES ${RAJA_INCLUDE_DIRS}
-                      LIBRARIES ${RAJA_LIBRARY}
-                      TREAT_INCLUDES_AS_SYSTEM ON )
+message(STATUS "Using RAJA from ${RAJA_DIR}")
+
+find_package(RAJA REQUIRED PATHS ${RAJA_DIR})
 
 set(ENABLE_RAJA ON CACHE BOOL "")
 
-set( thirdPartyLibs ${thirdPartyLibs} raja )
+set(thirdPartyLibs ${thirdPartyLibs} RAJA)
 
 
 ###############################
@@ -29,40 +21,39 @@ set( thirdPartyLibs ${thirdPartyLibs} raja )
 ###############################
 if(ENABLE_UMPIRE)
     if(NOT EXISTS ${UMPIRE_DIR})
-        set(UMPIRE_DIR ${GEOSX_TPL_DIR}/chai)
+        message(FATAL_ERROR "UMPIRE_DIR must be defined and point to a valid directory when using Umpire.")
     endif()
 
-    message(STATUS "Using umpire at ${UMPIRE_DIR}")
+    message(STATUS "Using Umpire from ${UMPIRE_DIR}")
 
     find_package(umpire REQUIRED
-                 PATHS ${UMPIRE_DIR}/share/umpire/cmake/)
+                 PATHS ${UMPIRE_DIR})
     
     set(thirdPartyLibs ${thirdPartyLibs} umpire)
 else()
-    message(STATUS "Not using umpire.")
+    message(STATUS "Not using Umpire.")
 endif()
 
 ################################
 # CHAI
 ################################
-# include(cmake/FindCHAI.cmake)
 if(ENABLE_CHAI)
     if(NOT ENABLE_UMPIRE)
-        message(FATAL_ERROR "umpire must be enabled to use chai.")
+        message(FATAL_ERROR "Umpire must be enabled to use CHAI.")
     endif()
 
     if(NOT ENABLE_RAJA)
-        message(FATAL_ERROR "RAJA must be enabled to use chai.")
+        message(FATAL_ERROR "RAJA must be enabled to use CHAI.")
     endif()
 
     if(NOT EXISTS ${CHAI_DIR})
-        set(CHAI_DIR ${GEOSX_TPL_DIR}/chai)
+        message(FATAL_ERROR "CHAI_DIR must be defined and point to a valid directory when using CHAI.")
     endif()
 
-    message(STATUS "Using chai at ${CHAI_DIR}")
+    message(STATUS "Using CHAI from ${CHAI_DIR}")
 
     find_package(chai REQUIRED
-                 PATHS ${CHAI_DIR}/share/chai/cmake/)
+                 PATHS ${CHAI_DIR})
 
     # If this isn't done chai will add -lRAJA to the link line, but we don't link to RAJA like that.
     get_target_property(CHAI_LINK_LIBRARIES chai INTERFACE_LINK_LIBRARIES)
@@ -72,38 +63,31 @@ if(ENABLE_CHAI)
 
     set(thirdPartyLibs ${thirdPartyLibs} chai)
 else()
-    message(STATUS "Not using chai.")
+    message(STATUS "Not using CHAI.")
 endif()
 
 
 ################################
-# CALIPER and Adiak
+# CALIPER
 ################################
 if(ENABLE_CALIPER)
     if(NOT EXISTS ${CALIPER_DIR})
-        set(CALIPER_DIR ${GEOSX_TPL_DIR}/caliper)
+        message(FATAL_ERROR "CALIPER_DIR must be defined and point to a valid directory when using caliper.")
     endif()
 
-    message(STATUS "Using caliper at ${CALIPER_DIR}")
+    message(STATUS "Using caliper from ${CALIPER_DIR}")
 
     find_package(caliper REQUIRED
-                 PATHS ${CALIPER_DIR}/share/cmake/caliper)
- 
-    if(ENABLE_MPI)
-        set(caliper_LIBRARIES caliper-mpi)
-    else()
-        set(caliper_LIBRARIES caliper)
-    endif()
+                 PATHS ${CALIPER_DIR})
 
     blt_register_library(NAME caliper
                          INCLUDES ${caliper_INCLUDE_PATH}
-                         LIBRARIES ${caliper_LIBRARIES}
+                         LIBRARIES caliper
                          TREAT_INCLUDES_AS_SYSTEM ON)
 
     set(thirdPartyLibs ${thirdPartyLibs} caliper)
+else()
+    message(STATUS "Not using caliper.")
 endif()
 
-
-
-
-set( thirdPartyLibs ${thirdPartyLibs} CACHE STRING "" )
+set(thirdPartyLibs ${thirdPartyLibs} CACHE STRING "")

@@ -57,8 +57,8 @@ install( TARGETS lvarray
 install( EXPORT lvarray
          DESTINATION share/lvarray/cmake/ )
 
-install( FILES ${lvarray_headers} DESTINATION include
-          )
+install( DIRECTORY . DESTINATION include/LvArray FILES_MATCHING PATTERN *.hpp )
+install( DIRECTORY . DESTINATION include/LvArray FILES_MATCHING PATTERN *.h )
 
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )

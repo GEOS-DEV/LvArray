@@ -13,6 +13,7 @@
 #pragma once
 
 // Source includes
+#include "ArraySlice.hpp"
 #include "bufferManipulation.hpp"
 #include "sortedArrayManipulation.hpp"
 
@@ -129,7 +130,7 @@ public:
   ///@}
 
   /**
-   * @name SortedArrayView creation methods
+   * @name SortedArrayView and ArraySlice creation methods
    */
   ///@{
 
@@ -138,7 +139,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   { return SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >( size(), m_values ); }
 
   /**
@@ -146,8 +147,29 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   { return toView(); }
+
+  /**
+   * @return Return an ArraySlice representing this SortedArrayView.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const &
+  { return ArraySlice< T const, 1, 0, INDEX_TYPE >( data(), &m_size, nullptr ); }
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArraySlice.
+   * @note This cannot be called on a rvalue since the @c ArraySlice would
+   *   contain pointers to the size of the current @c SortedArrayView that is
+   *   about to be destroyed. This overload prevents that from happening.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const &&
+  {
+    static_assert( typeManipulation::always_true< T >, "Cannot call toSlice on an rvalue." );
+    return ArraySlice< T const, 1, 0, INDEX_TYPE >( nullptr, nullptr, nullptr );
+  }
 
   ///@}
 
@@ -206,6 +228,17 @@ public:
   }
 
   /**
+   * @return Return the value at position @p i .
+   * @param i the index of the value to access.
+   */
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  T const & operator()( INDEX_TYPE const i ) const
+  {
+    SORTEDARRAY_CHECK_BOUNDS( i );
+    return data()[ i ];
+  }
+
+  /**
    * @return Return a pointer to the values.
    */
   LVARRAY_HOST_DEVICE constexpr inline
@@ -241,7 +274,7 @@ public:
    *   to the GPU @p touch is set to false.
    */
   inline
-  void move( MemorySpace const space, bool touch=true ) const LVARRAY_RESTRICT_THIS
+  void move( MemorySpace const space, bool touch=true ) const
   {
   #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::GPU ) touch = false;

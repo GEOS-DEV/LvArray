@@ -49,7 +49,7 @@ public:
   {
     CALI_CXX_MARK_SCOPE( "~NaiveNodeToElemMapConstruction" );
 
-    // #if defined(LVARRAY_USE_OPENMP)
+    // #if defined(RAJA_ENABLE_OPENMP)
     //   using EXEC_POLICY = parallelHostPolicy;
     // #else
     using EXEC_POLICY = serialPolicy;

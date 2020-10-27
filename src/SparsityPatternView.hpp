@@ -85,6 +85,12 @@ public:
   ///@{
 
   /**
+   * @brief A constructor to create an uninitialized SparsityPatternView.
+   * @note An uninitialized SparsityPatternView should not be used until it is assigned to.
+   */
+  SparsityPatternView() = default;
+
+  /**
    * @brief Default copy constructor.
    * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE
    */
@@ -153,7 +159,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const LVARRAY_RESTRICT_THIS
+  toView() const
   {
     return SparsityPatternView< COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                            numColumns(),
@@ -167,7 +173,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const LVARRAY_RESTRICT_THIS
+  toViewConst() const
   {
     return SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >( numRows(),
                                                                                  numColumns(),
@@ -187,21 +193,21 @@ public:
    * @return Return the number of rows in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numRows() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC numRows() const
   { return ParentClass::size(); }
 
   /**
    * @return Return the number of columns in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numColumns() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC numColumns() const
   { return m_numCols; }
 
   /**
    * @return Return the total number of non zero entries in the matrix.
    */
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC numNonZeros() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC numNonZeros() const
   {
     INDEX_TYPE_NC nnz = 0;
     for( INDEX_TYPE_NC row = 0; row < numRows(); ++row )
@@ -217,14 +223,14 @@ public:
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const
   { return ParentClass::sizeOfSet( row ); }
 
   /**
    * @return Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC nonZeroCapacity() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC nonZeroCapacity() const
   { return ParentClass::valueCapacity(); }
 
   /**
@@ -233,14 +239,14 @@ public:
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const
   { return ParentClass::capacityOfSet( row ); }
 
   /**
    * @return Return true iff the matrix is all zeros.
    */
   LVARRAY_HOST_DEVICE inline
-  bool empty() const LVARRAY_RESTRICT_THIS
+  bool empty() const
   { return numNonZeros() == 0; }
 
   /**
@@ -248,7 +254,7 @@ public:
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  bool empty( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  bool empty( INDEX_TYPE const row ) const
   { return numNonZeros( row ) == 0; }
 
   /**
@@ -257,7 +263,7 @@ public:
    * @param col the col to query.
    */
   LVARRAY_HOST_DEVICE inline
-  bool empty( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
+  bool empty( INDEX_TYPE const row, COL_TYPE const col ) const
   { return !ParentClass::contains( row, col ); }
 
   ///@}
@@ -272,14 +278,14 @@ public:
    * @param row the row to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC >getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
+  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC >getColumns( INDEX_TYPE const row ) const
   { return (*this)[row]; }
 
   /**
    * @return Return a pointer to the array of offsets, this array has length numRows() + 1.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE const * getOffsets() const
   { return this->m_offsets.data(); }
 
   ///@}
@@ -298,7 +304,7 @@ public:
    *       up to the user to ensure that the given row has enough space for the new entries.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
+  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
@@ -318,7 +324,7 @@ public:
    */
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
 
@@ -337,7 +343,7 @@ public:
    * @return True iff the column was removed (the entry was non zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const LVARRAY_RESTRICT_THIS
+  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
     SPARSITYPATTERN_COLUMN_CHECK( col );
@@ -356,7 +362,7 @@ public:
   DISABLE_HD_WARNING
   template< typename ITER >
   LVARRAY_HOST_DEVICE inline
-  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row, ITER const first, ITER const last ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
 
@@ -389,18 +395,22 @@ public:
 protected:
 
   /**
-   * @brief Default constructor.
-   * @note Protected since every SparsityPatternView should either be the base of a
-   *   SparsityPattern or copied from another SparsityPatternView.
+   * @brief Protected constructor to be used by parent classes.
+   * @note The unused boolean parameter is to distinguish this from the default constructor.
    */
-  SparsityPatternView() = default;
+  SparsityPatternView( bool ):
+    ParentClass( true )
+  {};
 
   /**
    * @brief Steal the resources of @p src, clearing it in the process.
    * @param src The SparsityPatternView to steal from.
    */
   void assimilate( SparsityPatternView && src )
-  { *this = std::move( src ); }
+  {
+    ParentClass::free();
+    *this = std::move( src );
+  }
 
   /**
    * @tparam BUFFERS A variadic pack of buffer types.

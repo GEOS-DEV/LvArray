@@ -71,11 +71,11 @@ public:
   using Permutation = PERMUTATION;
 
   /// Alias for the parent class.
-  using ParentClass = ArrayView< T,
-  NDIM,
-  typeManipulation::getStrideOneDimension( PERMUTATION {} ),
-  INDEX_TYPE,
-  BUFFER_TYPE >;
+  using ParentClass = ArrayView< T, NDIM, typeManipulation::getStrideOneDimension( Permutation {} ), INDEX_TYPE, BUFFER_TYPE >;
+
+  using ParentClass::USD;
+  using typename ParentClass::NestedViewType;
+  using typename ParentClass::NestedViewTypeConst;
 
   /**
    * @name Constructors, destructor and assignment operators.
@@ -114,7 +114,6 @@ public:
    * @brief Copy constructor.
    * @param source object to copy.
    * @note Performs a deep copy of source
-   * @return *this.
    */
   LVARRAY_HOST_DEVICE
   Array( Array const & source ):
@@ -128,6 +127,7 @@ public:
    *   shallow copy that invalidates the contents of source. However this depends on the
    *   implementation of BUFFER_TYPE.
    */
+  LVARRAY_HOST_DEVICE
   Array( Array && source ):
     ParentClass( std::move( source ) )
   {
@@ -187,6 +187,77 @@ public:
   ///@}
 
   /**
+   * @name ArrayView and ArraySlice creation methods and user defined conversions.
+   */
+  ///@{
+
+  using ParentClass::toView;
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayView.
+   * @note This cannot be called on a rvalue since the @c ArrayView would
+   *   contain the buffer of the current @c Array that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
+    return ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >();
+  }
+
+  using ParentClass::toViewConst;
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayView.
+   * @note This cannot be called on a rvalue since the @c ArrayView would
+   *   contain the buffer of the current @c Array that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
+    return ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >();
+  }
+
+  using ParentClass::toNestedView;
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayView.
+   * @note This cannot be called on a rvalue since the @c ArrayView would
+   *   contain the buffer of the current @c Array that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  NestedViewType toNestedView() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewNested on a rvalue." );
+    return NestedViewType();
+  }
+
+  using ParentClass::toNestedViewConst;
+
+  /**
+   * @brief Overload for rvalues that raises a compilation error when used.
+   * @return A null ArrayView.
+   * @note This cannot be called on a rvalue since the @c ArrayView would
+   *   contain the buffer of the current @c Array that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  NestedViewTypeConst toNestedViewConst() const &&
+  {
+    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewNestedConst on a rvalue." );
+    return NestedViewTypeConst();
+  }
+
+  ///@}
+
+  /**
    * @name Resizing methods.
    */
   ///@{
@@ -233,8 +304,9 @@ public:
     int curDim = 0;
     typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      this->m_dims[ curDim++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      this->m_dims[ curDim ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
       LVARRAY_ERROR_IF_LT( this->m_dims[ curDim ], 0 );
+      ++curDim;
     }, newDims ... );
 
     CalculateStrides();
@@ -262,8 +334,9 @@ public:
     int i = 0;
     typeManipulation::forEachArg( [&]( auto const newDim )
     {
-      this->m_dims[ i++ ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
+      this->m_dims[ i ] = LvArray::integerConversion< INDEX_TYPE >( newDim );
       LVARRAY_ERROR_IF_LT( this->m_dims[ i ], 0 );
+      ++i;
     }, newDims ... );
 
     CalculateStrides();
