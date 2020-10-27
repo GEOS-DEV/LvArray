@@ -332,6 +332,27 @@ public:
     return m_sizes[ i ];
   }
 
+  LVARRAY_HOST_DEVICE constexpr inline
+  SIZE_TYPE const * getSizes() const LVARRAY_RESTRICT_THIS
+  {
+    return m_sizes.data();
+  }
+
+
+  LVARRAY_HOST_DEVICE constexpr inline
+  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
+  {
+    return m_offsets.data();
+  }
+
+  LVARRAY_HOST_DEVICE constexpr inline
+  T const * getValues() const LVARRAY_RESTRICT_THIS
+  {
+    return m_values.data();
+  }
+
+
+
   /**
    * @return Return the number of (zero length) arrays that can be stored before reallocation.
    */
@@ -556,6 +577,12 @@ public:
     if( space == MemorySpace::GPU ) touch = false;
   #endif
     m_offsets.move( space, touch );
+  }
+
+
+  void moveValues( MemorySpace const space, bool touch=true ) const
+  {
+    m_values.move( space, touch );
   }
 
   ///@}
