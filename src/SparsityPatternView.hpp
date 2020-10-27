@@ -400,7 +400,10 @@ protected:
    * @param src The SparsityPatternView to steal from.
    */
   void assimilate( SparsityPatternView && src )
-  { *this = std::move( src ); }
+  {
+    ParentClass::free();
+    *this = std::move( src );
+  }
 
   /**
    * @tparam BUFFERS A variadic pack of buffer types.
