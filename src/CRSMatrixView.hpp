@@ -238,8 +238,15 @@ public:
                                                  nullptr );
   }
 
+  LVARRAY_HOST_DEVICE inline
+  T const * getEntries() const LVARRAY_RESTRICT_THIS
+  {
+    return m_entries.data();
+  }
+
   using ParentClass::getColumns;
   using ParentClass::getOffsets;
+  using ParentClass::getSizes;
 
   ///@}
 
@@ -499,6 +506,17 @@ public:
     ParentClass::move( space, touch );
     m_entries.move( space, touch );
   }
+
+  void moveEntries( MemorySpace const space, bool const touch=true ) const
+  {
+    m_entries.move( space, touch );
+  }
+
+  void moveColumns( MemorySpace const space, bool const touch=true ) const
+  {
+    this->moveValues( space, touch );
+  }
+
 
   ///@}
 

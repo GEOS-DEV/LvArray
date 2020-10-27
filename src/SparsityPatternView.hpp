@@ -275,12 +275,20 @@ public:
   ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC >getColumns( INDEX_TYPE const row ) const LVARRAY_RESTRICT_THIS
   { return (*this)[row]; }
 
-  /**
-   * @return Return a pointer to the array of offsets, this array has length numRows() + 1.
-   */
+//  /**
+//   * @return Return a pointer to the array of offsets, this array has length numRows() + 1.
+//   */
+//  LVARRAY_HOST_DEVICE constexpr inline
+//  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
+//  { return this->m_offsets.data(); }
+
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
-  { return this->m_offsets.data(); }
+  COL_TYPE const * getColumns() const LVARRAY_RESTRICT_THIS
+  {
+    return this->getValues();
+  }
+
+  using ParentClass::getSizes;
 
   ///@}
 
