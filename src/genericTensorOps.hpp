@@ -564,28 +564,6 @@ void add( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
- * @brief Subtract @p value to @p dstVector.
- * @tparam M The length of @p dstVector.
- * @tparam DST_VECTOR The type of @p dstVector.
- * @param dstVector The destination vector, of length M.
- * @param value The value to subtract.
- * @details Performs the operation @code dstVector[ i ] -= value @endcode
- */
-template< std::ptrdiff_t M, typename DST_VECTOR >
-LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void subtractScalar( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
-                     std::remove_reference_t< decltype( dstVector[0] ) > const value )
-{
-  static_assert( M > 0, "M must be greater than zero." );
-  internal::checkSizes< M >( dstVector );
-
-  for( std::ptrdiff_t i = 0; i < M; ++i )
-  {
-    dstVector[ i ] -= value;
-  }
-}
-
-/**
  * @brief Subtract @p srcVector from @p dstVector.
  * @tparam ISIZE The length of @p dstVector and @p srcVector.
  * @tparam DST_VECTOR The type of @p dstVector.
