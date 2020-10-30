@@ -10,7 +10,7 @@ def format_array(arr):
     return '[' + ']['.join([str(arr[i]) for i in range(array_length(arr))]) + ']'
 
 
-class CxxUtilsPrinter(gdb.printing.PrettyPrinter):
+class LvArrayPrinter(gdb.printing.PrettyPrinter):
     """Base printer for LvArray classes"""
 
     def __init__(self, val):
@@ -20,14 +20,14 @@ class CxxUtilsPrinter(gdb.printing.PrettyPrinter):
         return self.val.type.strip_typedefs()
 
     def to_string(self):
-        return self.real_type().name
+        return str(self.real_type())
 
     def children(self):
         return [(f.name, self.val.cast(f.type)) for f in self.real_type().fields() if f.is_base_class] \
              + [(f.name, self.val[f.name]) for f in self.real_type().fields() if not f.is_base_class]
 
 
-class BufferPrinter(CxxUtilsPrinter):
+class BufferPrinter(LvArrayPrinter):
     """Base class for printing buffer contents"""
 
     def size(self):
@@ -46,7 +46,7 @@ class BufferPrinter(CxxUtilsPrinter):
         self.data()[key] = value
 
     def to_string(self):
-        return '%s of size %d' % (self.real_type().name, self.size())
+        return '%s of size %d' % (self.real_type(), self.size())
 
     def children(self):
         if self.data() != 0:
@@ -54,7 +54,7 @@ class BufferPrinter(CxxUtilsPrinter):
             arr = self.data().dereference().cast(array_type)
         else:
             arr = self.data()
-        return [('gdb_view', arr)] + CxxUtilsPrinter.children(self)
+        return [('gdb_view', arr)] + LvArrayPrinter.children(self)
 
 
 class StackBufferPrinter(BufferPrinter):
@@ -103,7 +103,7 @@ except ImportError:
     pass
 
 
-class ArraySlicePrinter(CxxUtilsPrinter):
+class ArraySlicePrinter(LvArrayPrinter):
     """Pretty-print an ArraySlice"""
 
     def value_type(self):
@@ -122,16 +122,16 @@ class ArraySlicePrinter(CxxUtilsPrinter):
         return self.val['m_data']
 
     def to_string(self):
-        return '%s of size %s' % (self.real_type().name, format_array(self.dims()))
+        return '%s of size %s' % (self.real_type(), format_array(self.dims()))
 
     def children(self):
         array_type = self.value_type()
         for i in range(self.ndim()):
             array_type = array_type.array(self.dims()[self.ndim() - i - 1] - 1)
-        return [('gdb_view', self.data().dereference().cast(array_type))] + CxxUtilsPrinter.children(self)
+        return [('gdb_view', self.data().dereference().cast(array_type))] + LvArrayPrinter.children(self)
 
 
-class ArrayViewPrinter(CxxUtilsPrinter):
+class ArrayViewPrinter(LvArrayPrinter):
     """Pretty-print an ArrayView"""
 
     def value_type(self):
@@ -150,16 +150,16 @@ class ArrayViewPrinter(CxxUtilsPrinter):
         return buffer_printer(self.val['m_dataBuffer']).data()
 
     def to_string(self):
-        return '%s of size %s' % (self.real_type().name, format_array(self.dims()))
+        return '%s of size %s' % (self.real_type(), format_array(self.dims()))
 
     def children(self):
         array_type = self.value_type()
         for i in range(self.ndim()):
             array_type = array_type.array(self.dims()[self.ndim() - i - 1] - 1)
-        return [('gdb_view', self.data().dereference().cast(array_type))] + CxxUtilsPrinter.children(self)
+        return [('gdb_view', self.data().dereference().cast(array_type))] + LvArrayPrinter.children(self)
 
 
-class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
+class ArrayOfArraysViewPrinter(LvArrayPrinter):
     """Pretty-print an ArrayOfArraysView"""
 
     def value_type(self):
@@ -169,7 +169,7 @@ class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
         return buffer_printer(self.val['m_values']).data()
 
     def size(self):
-        return buffer_printer(self.val['m_sizes']).size()
+        return self.val['m_numArrays']
 
     def size_of_array(self, i):
         return buffer_printer(self.val['m_sizes'])[i]
@@ -184,14 +184,14 @@ class ArrayOfArraysViewPrinter(CxxUtilsPrinter):
         return self.ptr_to_array(i).dereference().cast(self.value_type().array(self.size_of_array(i)-1))
 
     def to_string(self):
-        return '%s of size %d' % (self.real_type().name, self.size())
+        return '%s of size %d' % (self.real_type(), self.size())
 
     def child_arrays(self):
         for i in range(self.size()):
             yield str(i), self.get_array(i)
 
     def children(self):
-        return itertools.chain(CxxUtilsPrinter.children(self), self.child_arrays())
+        return itertools.chain(LvArrayPrinter.children(self), self.child_arrays())
 
 
 def build_array_printer():
