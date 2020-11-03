@@ -245,7 +245,7 @@ public:
   }
 
   LVARRAY_HOST_DEVICE inline
-  T const * getEntries() const LVARRAY_RESTRICT_THIS
+  T const * getEntries() const
   {
     return m_entries.data();
   }

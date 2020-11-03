@@ -333,20 +333,20 @@ public:
   }
 
   LVARRAY_HOST_DEVICE constexpr inline
-  SIZE_TYPE const * getSizes() const LVARRAY_RESTRICT_THIS
+  SIZE_TYPE const * getSizes() const
   {
     return m_sizes.data();
   }
 
 
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE const * getOffsets() const LVARRAY_RESTRICT_THIS
+  INDEX_TYPE const * getOffsets() const
   {
     return m_offsets.data();
   }
 
   LVARRAY_HOST_DEVICE constexpr inline
-  T const * getValues() const LVARRAY_RESTRICT_THIS
+  T const * getValues() const
   {
     return m_values.data();
   }
