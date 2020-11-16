@@ -17,6 +17,11 @@
 #include "SortedArray.hpp"
 #include "ArrayOfArrays.hpp"
 #include "CRSMatrix.hpp"
+#include "Macros.hpp"
+
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
 
 // System includes
 #include <string>
@@ -188,6 +193,95 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
   stream << "}" << std::endl;
   return stream;
 }
+
+template<typename T>
+struct printf_Helper;
+
+template<>
+struct printf_Helper<int>
+{
+  constexpr static auto formatString="%4d";
+};
+
+template<>
+struct printf_Helper<long int>
+{
+  constexpr static auto formatString="%4ld";
+};
+
+template<>
+struct printf_Helper<long long int>
+{
+  constexpr static auto formatString="%4lld";
+};
+
+
+#if GEOSX_LOCALINDEX_TYPE_FLAG==0
+#define LITOKEN "d"
+#elif GEOSX_LOCALINDEX_TYPE_FLAG==1
+#define LITOKEN "ld"
+#elif GEOSX_LOCALINDEX_TYPE_FLAG==2
+#define LITOKEN "lld"
+#endif
+
+#if GEOSX_GLOBALINDEX_TYPE_FLAG==0
+#define GITOKEN "d"
+#elif GEOSX_GLOBALINDEX_TYPE_FLAG==1
+#define GITOKEN "ld"
+#elif GEOSX_GLOBALINDEX_TYPE_FLAG==2
+#define GITOKEN "lld"
+#endif
+
+/**
+ * @brief Print a CRSMatrixView in a format that can be easily xxdiff'ed on
+ *   the console.
+ * @tparam POLICY The policy for dummy kernel launch.
+ * @tparam T The type of the values in @p view.
+ * @tparam COL_TYPE The column index type used by @p view.
+ * @tparam INDEX_TYPE The index type used by @p view.
+ * @tparam BUFFER_TYPE The type of buffer used by @p view.
+ * @param view The matrix view object to print.
+ */
+template< typename POLICY, typename T, typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )
+{
+  INDEX_TYPE const numRows = view.numRows();
+
+
+  printf( "numRows = %4" LITOKEN " \n", numRows );
+  RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )
+  {
+    INDEX_TYPE const * const ncols = view.getSizes();
+    INDEX_TYPE const * const row_indexes = view.getOffsets();
+    COL_TYPE const * const cols = view.getColumns();
+    T const * const values = view.getEntries();
+
+    printf( "ncols       = { " ); for( INDEX_TYPE i=0 ; i<numRows ; ++i ) { printf( "%4" LITOKEN ", ",ncols[i] ); }        printf( " }\n" );
+    printf( "row_indexes = { " ); for( INDEX_TYPE i=0 ; i<numRows+1 ; ++i ) { printf( "%4" GITOKEN ", ",row_indexes[i] ); }  printf( " }\n" );
+
+
+    printf( "row      col      value \n");
+    printf( "----  --------- --------- \n");
+
+    for( INDEX_TYPE i=0 ; i<numRows ; ++i )
+    {
+      printf( "%4" LITOKEN "\n", ncols[i]);
+      for( INDEX_TYPE j=0 ; j<ncols[i] ; ++j )
+      {
+        printf( "%4" LITOKEN " %9" GITOKEN " %9.2g\n",
+                i,
+                cols[row_indexes[i] + j],
+                values[row_indexes[i] + j]);
+      }
+    }
+
+  });
+  std::cout<<std::endl;
+}
+
+#undef LITOKEN
+#undef GITOKEN
+
 
 /**
  * @brief Output a c-array to a stream.
