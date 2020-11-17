@@ -28,13 +28,14 @@ namespace testing
 {
 
 template< typename U, typename T >
-struct ToArray
+struct ToArray1D
 {};
 
 template< typename U, typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-struct ToArray< U, SparsityPattern< T, INDEX_TYPE, BUFFER_TYPE > >
+struct ToArray1D< U, SparsityPattern< T, INDEX_TYPE, BUFFER_TYPE > >
 {
-  using OneD = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using array = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using view = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
 };
 
 template< typename SPARSITY_PATTERN >
@@ -724,10 +725,10 @@ public:
   using typename ParentClass::ViewTypeConst;
 
   template< typename T >
-  using Array1D = typename ToArray< T, SPARSITY_PATTERN >::OneD;
+  using Array1D = typename ToArray1D< T, SPARSITY_PATTERN >::array;
 
   template< typename T >
-  using ArrayView1D = typeManipulation::ViewType< Array1D< T > >;
+  using ArrayView1D = typename ToArray1D< T, SPARSITY_PATTERN >::view;
 
   /**
    * @brief Test the SparsityPatternView copy constructor in regards to memory motion.

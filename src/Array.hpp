@@ -194,66 +194,70 @@ public:
   using ParentClass::toView;
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
-   * @return A null ArrayView.
+   * @brief Overload for rvalues that is deleted.
+   * @return None.
    * @note This cannot be called on a rvalue since the @c ArrayView would
    *   contain the buffer of the current @c Array that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
-    return ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >();
-  }
+  ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toView() const && = delete;
 
   using ParentClass::toViewConst;
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
-   * @return A null ArrayView.
+   * @brief Overload for rvalues that is deleted.
+   * @return None.
    * @note This cannot be called on a rvalue since the @c ArrayView would
    *   contain the buffer of the current @c Array that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
-    return ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >();
-  }
+  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const && = delete;
 
   using ParentClass::toNestedView;
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
-   * @return A null ArrayView.
+   * @brief Overload for rvalues that is deleted.
+   * @return None.
    * @note This cannot be called on a rvalue since the @c ArrayView would
    *   contain the buffer of the current @c Array that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  NestedViewType toNestedView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewNested on a rvalue." );
-    return NestedViewType();
-  }
+  NestedViewType toNestedView() const && = delete;
 
   using ParentClass::toNestedViewConst;
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
-   * @return A null ArrayView.
+   * @brief Overload for rvalues that is deleted.
+   * @return None.
    * @note This cannot be called on a rvalue since the @c ArrayView would
    *   contain the buffer of the current @c Array that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  NestedViewTypeConst toNestedViewConst() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewNestedConst on a rvalue." );
-    return NestedViewTypeConst();
-  }
+  NestedViewTypeConst toNestedViewConst() const && = delete;
+
+  /**
+   * @brief A user defined conversion operator (UDC) to an ArrayView< T const, ... >.
+   * @return A new ArrayView where @c T is @c const.
+   */
+  inline LVARRAY_HOST_DEVICE constexpr
+  operator ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >() const & noexcept
+  { return toViewConst(); }
+
+  /**
+   * @brief Overload for rvalues that is deleted.
+   * @return None.
+   * @note This cannot be called on a rvalue since the @c ArrayView would
+   *   contain the buffer of the current @c Array that is about to be destroyed.
+   *   This overload prevents that from happening.
+   */
+  template< typename _T=T >
+  inline LVARRAY_HOST_DEVICE constexpr
+  operator std::enable_if_t< !std::is_const< _T >::value,
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const && noexcept = delete;
 
   ///@}
 

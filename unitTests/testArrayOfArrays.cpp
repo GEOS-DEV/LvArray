@@ -877,7 +877,10 @@ template< typename U, typename T, typename INDEX_TYPE, template< typename > clas
 struct ToArray< U, ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > >
 {
   using OneD = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using OneDView = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
+
   using TwoD = Array< U, 2, RAJA::PERM_IJ, INDEX_TYPE, BUFFER_TYPE >;
+  using TwoDView = ArrayView< U, 2, 1, INDEX_TYPE, BUFFER_TYPE >;
 };
 
 
@@ -899,14 +902,13 @@ public:
   using Array1D = typename ToArray< U, ARRAY_OF_ARRAYS >::OneD;
 
   template< typename U >
-  using ArrayView1D = typeManipulation::ViewType< Array1D< U > >;
+  using ArrayView1D = typename ToArray< U, ARRAY_OF_ARRAYS >::OneDView;
 
   template< typename U >
   using Array2D = typename ToArray< U, ARRAY_OF_ARRAYS >::TwoD;
 
   template< typename U >
-  using ArrayView2D = typeManipulation::ViewType< Array2D< U > >;
-
+  using ArrayView2D = typename ToArray< U, ARRAY_OF_ARRAYS >::TwoDView;
 
   void modifyInKernel()
   {
