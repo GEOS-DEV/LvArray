@@ -203,7 +203,7 @@ public:
   { return ParentClass::toView(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null CRSMatrixView.
    * @note This cannot be called on a rvalue since the @c CRSMatrixView would
    *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
@@ -211,11 +211,7 @@ public:
    */
   constexpr inline
   CRSMatrixView< T, COL_TYPE, INDEX_TYPE const, BUFFER_TYPE >
-  toView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
-    return ParentClass::toView();
-  }
+  toView() const && = delete;
 
   /**
    * @copydoc ParentClass::toViewConstSizes
@@ -229,7 +225,7 @@ public:
   { return ParentClass::toViewConstSizes(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null CRSMatrixView.
    * @note This cannot be called on a rvalue since the @c CRSMatrixView would
    *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
@@ -237,11 +233,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConstSizes() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConstSizes on a rvalue." );
-    return ParentClass::toViewConstSizes();
-  }
+  toViewConstSizes() const && = delete;
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -255,7 +247,7 @@ public:
   { return ParentClass::toViewConst(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null CRSMatrixView.
    * @note This cannot be called on a rvalue since the @c CRSMatrixView would
    *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
@@ -263,16 +255,12 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toViewConst() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
-    return ParentClass::toViewConst();
-  }
+  toViewConst() const && = delete;
 
   using ParentClass::toSparsityPatternView;
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null CRSMatrixView.
    * @note This cannot be called on a rvalue since the @c SparsityPatternView would
    *   contain the buffers of the current @c CRSMatrix that is about to be destroyed.
@@ -280,11 +268,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView< COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE >
-  toSparsityPatternView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toSparsityPatternView on a rvalue." );
-    return ParentClass::toSparsityPatternView();
-  }
+  toSparsityPatternView() const && = delete;
 
   ///@}
 
