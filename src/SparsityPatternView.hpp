@@ -72,8 +72,6 @@ protected:
 public:
   static_assert( std::is_integral< COL_TYPE >::value, "COL_TYPE must be integral." );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
-  static_assert( std::numeric_limits< INDEX_TYPE >::max() >= std::numeric_limits< COL_TYPE >::max(),
-                 "INDEX_TYPE must be able to hold values at least as large as COL_TYPE." );
 
   /// The integer type used to enumerate the columns.
   using ColType = COL_TYPE;

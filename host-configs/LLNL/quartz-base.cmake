@@ -1,9 +1,8 @@
 set(ENABLE_FORTRAN OFF CACHE BOOL "")
 
-#set(GEOSX_TPL_ROOT_DIR /usr/WS1/GEOS/GEOSX/TPLs_boomerAMG-for-elasticity CACHE PATH "" FORCE)
-#set(GEOSX_TPL_DIR /usr/WS1/GEOS/GEOSX/TPLs_boomerAMG-for-elasticity/install-${CONFIG_NAME}-release CACHE PATH "" FORCE)
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-10-15/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR /usr/workspace/GEOS/GEOSX/geosx_hypre/thirdPartyLibs/install-${CONFIG_NAME}-release CACHE PATH "" )
+#set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2020-10-15/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 
