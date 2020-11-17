@@ -332,6 +332,9 @@ public:
     return m_sizes[ i ];
   }
 
+  /**
+   * @return Return a pointer to the sizes of each outer array.
+   */
   LVARRAY_HOST_DEVICE constexpr inline
   SIZE_TYPE const * getSizes() const
   {
@@ -339,12 +342,19 @@ public:
   }
 
 
+  /**
+   * @return Return a pointer to the value array offsets for each outer array
+   *   with an entry for the end of the values.
+   */
   LVARRAY_HOST_DEVICE constexpr inline
   INDEX_TYPE const * getOffsets() const
   {
     return m_offsets.data();
   }
 
+  /**
+   * @return Return a pointer to the values data.
+   */
   LVARRAY_HOST_DEVICE constexpr inline
   T const * getValues() const
   {
@@ -579,11 +589,6 @@ public:
     m_offsets.move( space, touch );
   }
 
-
-  void moveValues( MemorySpace const space, bool touch=true ) const
-  {
-    m_values.move( space, touch );
-  }
 
   ///@}
 
