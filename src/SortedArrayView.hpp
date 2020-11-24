@@ -158,18 +158,14 @@ public:
   { return ArraySlice< T const, 1, 0, INDEX_TYPE >( data(), &m_size, nullptr ); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArraySlice.
    * @note This cannot be called on a rvalue since the @c ArraySlice would
    *   contain pointers to the size of the current @c SortedArrayView that is
    *   about to be destroyed. This overload prevents that from happening.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const &&
-  {
-    static_assert( typeManipulation::always_true< T >, "Cannot call toSlice on an rvalue." );
-    return ArraySlice< T const, 1, 0, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const && = delete;
 
   ///@}
 

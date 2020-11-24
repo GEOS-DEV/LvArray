@@ -37,7 +37,8 @@ struct ToArray1D
 template< typename U, typename T, int NDIM, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 struct ToArray1D< U, Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > >
 {
-  using type = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using array = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using view = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
 };
 
 template< typename ARRAY1D_POLICY_PAIR >
@@ -51,10 +52,10 @@ public:
   using IndexType = typename ARRAY1D::IndexType;
 
   template< typename U >
-  using Array1D = typename ToArray1D< U, ARRAY1D >::type;
+  using Array1D = typename ToArray1D< U, ARRAY1D >::array;
 
   template< typename U >
-  using ArrayView1D = std::remove_const_t< typeManipulation::ViewType< Array1D< U > > >;
+  using ArrayView1D = typename ToArray1D< U, ARRAY1D >::view;
 
   void modifyInKernel()
   {

@@ -77,7 +77,7 @@ public: \
  * @note The class type is available through the name CLASS.
  */
 #define HAS_MEMBER_FUNCTION_NO_RTYPE( NAME, ... ) \
-  IS_VALID_EXPRESSION( HasMemberFunction_ ## NAME, CLASS, std::declval< CLASS >().NAME( __VA_ARGS__ ) )
+  IS_VALID_EXPRESSION( HasMemberFunction_ ## NAME, CLASS, std::declval< CLASS & >().NAME( __VA_ARGS__ ) )
 
 /**
  * @brief Macro that expands to a static constexpr bool templated on a type that is only true when
@@ -142,14 +142,6 @@ void forEachArg( F && f, ARG && arg, ARGS && ... args )
  */
 template< bool ... BOOLS >
 using all_of = camp::concepts::metalib::all_of< BOOLS ... >;
-
-/**
- * @brief A template boolean that is always true.
- * @note This is intended for use in @c static_assert where some template dependence is necessary
- *   to only generate the assert when the function or method is actually instantiated.
- */
-template< typename T >
-constexpr bool always_true = true;
 
 /**
  * @brief A struct that contains a static constexpr bool value that is true if all of TYPES::value are true.
@@ -241,7 +233,7 @@ template< typename T >
 struct GetViewType< T, true >
 {
   /// An alias for the view type.
-  using type = decltype( std::declval< T >().toView() );
+  using type = decltype( std::declval< T & >().toView() );
 };
 
 /**
@@ -267,7 +259,7 @@ template< typename T >
 struct GetViewTypeConstSizes< T, true >
 {
   /// An alias for the view type.
-  using type = decltype( std::declval< T >().toViewConstSizes() );
+  using type = decltype( std::declval< T & >().toViewConstSizes() );
 };
 
 /**
@@ -293,7 +285,7 @@ template< typename T >
 struct GetViewTypeConst< T, true >
 {
   /// An alias for the const view type.
-  using type = decltype( std::declval< T >().toViewConst() );
+  using type = decltype( std::declval< T & >().toViewConst() );
 };
 
 /**
@@ -318,7 +310,7 @@ template< typename T >
 struct GetNestedViewType< T, true >
 {
   /// An alias for the view type.
-  using type = decltype( std::declval< T >().toNestedView() ) const;
+  using type = decltype( std::declval< T & >().toNestedView() ) const;
 };
 
 /**
@@ -343,7 +335,7 @@ template< typename T >
 struct GetNestedViewTypeConst< T, true >
 {
   /// An alias for the view type.
-  using type = decltype( std::declval< T >().toNestedViewConst() ) const;
+  using type = decltype( std::declval< T & >().toNestedViewConst() ) const;
 };
 
 } // namespace internal

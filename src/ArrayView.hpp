@@ -270,7 +270,7 @@ public:
   { return ArraySlice< T, NDIM, USD, INDEX_TYPE >( data(), m_dims.data, m_strides.data ); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArraySlice.
    * @note This cannot be called on a rvalue since the @c ArraySlice would
    *   contain pointers to the dims and strides of the current @c ArrayView that is
@@ -278,11 +278,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T, NDIM, USD, INDEX_TYPE >
-  toSlice() const && noexcept
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toSlice on a rvalue." );
-    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+  toSlice() const && noexcept = delete;
 
   /**
    * @return Return an immutable ArraySlice representing this ArrayView.
@@ -293,7 +289,7 @@ public:
   { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( data(), m_dims.data, m_strides.data ); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArraySlice.
    * @brief This cannot be called on a rvalue since the @c ArraySlice would
    *   contain pointers to the dims and strides of the current @c ArrayView that is
@@ -301,11 +297,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
-  toSliceConst() const && noexcept
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toSliceConst on a rvalue." );
-    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+  toSliceConst() const && noexcept = delete;
 
   /**
    * @brief A user defined conversion operator (UDC) to an ArrayView< T const, ... >.
@@ -314,25 +306,8 @@ public:
   template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< _T >::value,
-                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const & noexcept
+                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const noexcept
   { return toViewConst(); }
-
-  /**
-   * @brief Overload for rvalues that raises a compilation error when used.
-   * @return A null ArrayView.
-   * @brief This is valid when this is an @c ArrayView but invalid when this is an @c Array.
-   *   I have been unable to allow the @c ArrayView conversion while not allowing the @c Array.
-   *   Therefore the @c ArrayView conversion is not allowed, instead simply call @c toViewConst.
-   */
-  template< typename _T=T >
-  inline LVARRAY_HOST_DEVICE constexpr
-  operator std::enable_if_t< !std::is_const< _T >::value,
-                             ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > >() const && noexcept
-  {
-    static_assert( !typeManipulation::always_true< T >,
-                   "Cannot call toViewConst on a rvalue. If called from ArrayView please use toViewConst()." );
-    return toViewConst();
-  }
 
   /**
    * @return Return an ArraySlice representing this ArrayView.
@@ -342,18 +317,14 @@ public:
   { return toSlice(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArraySlice.
    * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
    *   contain pointers to the dims and strides of the current @c ArrayView that is
    *   about to be destroyed. This overload prevents that from happening.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const && noexcept
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot use conversion to an ArraySlice< T, ... > on a rvalue." );
-    return ArraySlice< T, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+  operator ArraySlice< T, NDIM, USD, INDEX_TYPE >() const && noexcept = delete;
 
   /**
    * @return Return an immutable ArraySlice representing this ArrayView.
@@ -365,7 +336,7 @@ public:
   { return toSliceConst(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArraySlice.
    * @brief This conversion cannot be called on a rvalue since the @c ArraySlice would
    *   contain pointers to the dims and strides of the current @c ArrayView that is
@@ -374,11 +345,7 @@ public:
   template< typename _T=T >
   inline LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< _T >::value,
-                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >() const && noexcept
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot use conversion to an ArraySlice< T const, ... > on a rvalue." );
-    return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > const >() const && noexcept = delete;
 
   ///@}
 
@@ -495,7 +462,7 @@ public:
   }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @param index Not used.
    * @return A null ArraySlice.
    * @brief The multidimensional operator[] cannot be called on a rvalue since the @c ArraySlice
@@ -505,12 +472,7 @@ public:
   template< int _NDIM=NDIM >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const && noexcept
-  {
-    LVARRAY_UNUSED_VARIABLE( index );
-    static_assert( !typeManipulation::always_true< T >, "Cannot call multidimensional operator[] on an rvalue." );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( nullptr, nullptr, nullptr );
-  }
+  operator[]( INDEX_TYPE const index ) const && noexcept = delete;
 
   /**
    * @return Return a reference to the value at the given index.

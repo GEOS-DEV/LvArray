@@ -131,18 +131,14 @@ public:
   { return ParentClass::toView(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null SortedArrayView.
    * @note This cannot be called on a rvalue since the @c SortedArrayView would
    *   contain the buffer of the current @c SortedArray that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
-    return ParentClass::toView();
-  }
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toView() const && = delete;
 
   /**
    * @copydoc ParentClass::toViewConst()
@@ -155,18 +151,14 @@ public:
   { return ParentClass::toViewConst(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null SortedArrayView.
    * @note This cannot be called on a rvalue since the @c SortedArrayView would
    *   contain the buffer of the current @c SortedArray that is about to be destroyed.
    *   This overload prevents that from happening.
    */
   LVARRAY_HOST_DEVICE inline
-  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
-    return ParentClass::toViewConst();
-  }
+  SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > toViewConst() const && = delete;
 
   using ParentClass::toSlice;
 

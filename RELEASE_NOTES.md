@@ -12,6 +12,7 @@ Version vxx.yy.zz -- Release date 20yy-mm-dd
   * Fixed indexing bug that produced a compilation error with GCC 10.
   * Fixed a memory leak in `CRSMatrix::assimilate`.
   * Fixed a memory leak in `ArrayOfArraysView::free` with non-trivially destructable values.
+  * Fixed a compilation error with GCC 9.
 
 Version v0.1.0 -- Release date 2020-10-13
 =========================================
