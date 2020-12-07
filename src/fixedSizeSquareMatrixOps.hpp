@@ -176,6 +176,26 @@ void Rij_eq_AikSymBklAjl( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstSymMatrix,
                                                        symMatrixB );
 }
 
+
+/**
+ * @brief Perform the outer product of @p vectorA with itself writing the result to @p dstMatrix.
+ * @tparam M The size of both dimensions of @p dstMatrix and the length of @p vectorA.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam VECTOR_A The type of @p vectorA.
+ * @param dstMatrix The matrix the result is written to, of size M x N.
+ * @param vectorA The first vector in the outer product, of length M.
+ * @details Performs the operations @code dstMatrix[ i ][ j ] = vectorA[ i ] * vectorA[ j ] @endcode
+ */
+template< std::ptrdiff_t M, typename DST_SYM_MATRIX, typename VECTOR_A >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_AiAj( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                  VECTOR_A const & LVARRAY_RESTRICT_REF vectorA )
+{
+  internal::SquareMatrixOps< M >::Rij_eq_AiAj( std::forward< DST_SYM_MATRIX >( dstMatrix ),
+                                               vectorA );
+}
+
+
 /**
  * @return Return the determinant of the symmetric matrix @p symMatrix.
  * @tparam SYM_MATRIX The type of @p symMatrix.
