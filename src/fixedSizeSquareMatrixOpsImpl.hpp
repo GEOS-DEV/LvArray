@@ -959,9 +959,9 @@ struct SquareMatrixOps< 3 >
     internal::checkSizes< 3 >( vectorA );
     internal::checkSizes< 3 >( vectorB );
 
-    dstMatrix[ 0 ] = vectorA[ 0 ] * vectorB[ 0 ];
-    dstMatrix[ 1 ] = vectorA[ 1 ] * vectorB[ 1 ];
-    dstMatrix[ 2 ] = vectorA[ 2 ] * vectorB[ 2 ];
+    dstMatrix[ 0 ] = 2 * vectorA[ 0 ] * vectorB[ 0 ];
+    dstMatrix[ 1 ] = 2 * vectorA[ 1 ] * vectorB[ 1 ];
+    dstMatrix[ 2 ] = 2 * vectorA[ 2 ] * vectorB[ 2 ];
     dstMatrix[ 3 ] = vectorA[ 1 ] * vectorB[ 2 ] + vectorA[ 2 ] * vectorB[ 1 ];
     dstMatrix[ 4 ] = vectorA[ 0 ] * vectorB[ 2 ] + vectorA[ 2 ] * vectorB[ 0 ];
     dstMatrix[ 5 ] = vectorA[ 0 ] * vectorB[ 1 ] + vectorA[ 1 ] * vectorB[ 0 ];
