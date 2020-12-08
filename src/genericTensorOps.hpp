@@ -613,6 +613,38 @@ void scaledAdd( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
   }
 }
 
+
+/**
+ * @brief Add @p srcMatrix scaled by @p scale to @dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p dstMatrix and @p srcMatrix.
+ * @tparam JSIZE The size of the second dimension of @p dstMatrix and @p srcMatrix.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam SRC_MATRIX The type of @p srcMatrix.
+ * @param dstMatrix The destination matrix, of size ISIZE x N.
+ * @param srcMatrix The source matrix, of size ISIZE x N.
+ * @param scale The value to scale the entries of @p srcMatrix by.
+ * @details Performs the operation @code dstMatrix[ i ][ j ] += srcMatrix[ i ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename DST_MATRIX, typename SRC_MATRIX >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void scaledAdd( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix,
+                std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > const scale )
+{
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< ISIZE, JSIZE >( srcMatrix );
+
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] += scale * srcMatrix[ i ][ j ];
+    }
+  }
+}
+
 /**
  * @brief Multiply the elements of @p vectorA and @p vectorB putting the result into @p dstVector.
  * @tparam ISIZE The length of @p dstVector and @p srcVector.
