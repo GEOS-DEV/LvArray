@@ -937,6 +937,36 @@ struct SquareMatrixOps< 3 >
     dstMatrix[ 5 ] = vectorA[ 0 ] * vectorA[ 1 ];
   }
 
+
+  /**
+   * @brief Perform the unscaled symmetric outer product of @p vectorA and
+   *   @p vectorB with itself writing the result to @p dstMatrix.
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam VECTOR_A The type of @p vectorA.
+   * @tparam VECTOR_B The type of @p vectorB.
+   * @param dstMatrix The matrix the result is written to, of size M x N.
+   * @param vectorA The first vector in the outer product, of length M.
+   * @param vectorB The second vector in the outer product, of length M.
+   * @details Performs the operations @code dstMatrix[ i ][ j ] = vectorA[ i ] * vectorB[ j ] + vectorA[ j ] * vectorB[ i ] @endcode
+   */
+  template< typename DST_SYM_MATRIX, typename VECTOR_A, typename VECTOR_B >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static void Rij_eq_AiBj_plus_AjBi( DST_SYM_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                                     VECTOR_A const & LVARRAY_RESTRICT_REF vectorA,
+                                     VECTOR_B const & LVARRAY_RESTRICT_REF vectorB )
+  {
+    internal::checkSizes< 6 >( dstMatrix );
+    internal::checkSizes< 3 >( vectorA );
+    internal::checkSizes< 3 >( vectorB );
+
+    dstMatrix[ 0 ] = vectorA[ 0 ] * vectorB[ 0 ];
+    dstMatrix[ 1 ] = vectorA[ 1 ] * vectorB[ 1 ];
+    dstMatrix[ 2 ] = vectorA[ 2 ] * vectorB[ 2 ];
+    dstMatrix[ 3 ] = vectorA[ 1 ] * vectorB[ 2 ] + vectorA[ 2 ] * vectorB[ 1 ];
+    dstMatrix[ 4 ] = vectorA[ 0 ] * vectorB[ 2 ] + vectorA[ 2 ] * vectorB[ 0 ];
+    dstMatrix[ 5 ] = vectorA[ 0 ] * vectorB[ 1 ] + vectorA[ 1 ] * vectorB[ 0 ];
+  }
+
   /**
    * @brief Compute the eigenvalues of the symmetric matrix @p symMatrix.
    * @tparam DST_VECTOR The type of @p eigenvalues.
