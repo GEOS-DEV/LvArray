@@ -629,7 +629,7 @@ template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename DST_MATRIX, typen
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void scaledAdd( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                 SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix,
-                std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) > const scale )
+                std::remove_reference_t< decltype( srcMatrix[ 0 ][ 0 ] ) > const scale )
 {
   static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
