@@ -1316,16 +1316,20 @@ void Rij_eq_AkiAkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 {
   static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
-  internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
-  internal::checkSizes< ISIZE, JSIZE >( matrixA );
+  internal::checkSizes< ISIZE, ISIZE >( dstMatrix );
+  internal::checkSizes< JSIZE, ISIZE >( matrixA );
 
   for( std::ptrdiff_t  = 0; i < ISIZE; ++i )
   {
-    dstMatrix[ i ][ i ] = matrixA[ 0 ][ i ] * matrixA[ 0 ][ i ];
-    for( std::ptrdiff_t j = 1; j < JSIZE; ++j )
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
     {
-      dstMatrix[ i ][ i ] = dstMatrix[ i ][ i ] + matrixA[ i ][ j ] * matrixA[ i ][ j ];
+      dstMatrix[ i ][ j ] = matrixA[ 0 ][ i ] * matrixA[ 0 ][ j ];
+      for( std::ptrdiff_t k = 1; k < JSIZE; ++k )
+      {
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixA[ k ][ j ];
+      }
     }
+  }
   }
 }
 
