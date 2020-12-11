@@ -1296,6 +1296,46 @@ void Rij_eq_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
+ * @brief Multiply the transpose of @p matrixA with @p matrixA and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p dstMatrix and the second dimension of @p matrixA.
+ * @tparam JSIZE The size of the second dimension of @p dstMatrix.
+ * @tparam KSIZE The size of the first dimension of @p matrixA.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_A The type of @p matrixA.
+ * @param dstMatrix The matrix the result is written to, of size ISIZE x N.
+ * @param matrixA The left matrix in the multiplication, of size KSIZE x M.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixA[ k ][ i ] * matrixA[ k ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          std::ptrdiff_t KSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_A >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_AkiAkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_A const & LVARRAY_RESTRICT_REF matrixA )
+{
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( KSIZE > 0, "KSIZE must be greater than zero." );
+  internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< KSIZE, ISIZE >( matrixA );
+
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] = matrixA[ 0 ][ i ] * matrixA[ 0 ][ j ];
+      for( std::ptrdiff_t k = 1; k < KSIZE; ++k )
+      {
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixA[ k ][ j ];
+      }
+    }
+  }
+}
+
+/**
  * @brief Multiply the transpose of @p matrixA with @p matrixB and add the result into @p dstMatrix.
  * @tparam ISIZE The size of the first dimension of @p dstMatrix and the second dimension of @p matrixA.
  * @tparam JSIZE The size of the second dimension of @p dstMatrix and @p matrixB.
