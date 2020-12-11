@@ -23,6 +23,11 @@ TYPED_TEST( TwoSizesTest, add )
   this->testAdd();
 }
 
+TYPED_TEST( TwoSizesTest, scaledAdd )
+{
+  this->testScaledAdd();
+}
+
 TYPED_TEST( TwoSizesTest, Rij_add_AikAjk )
 {
   this->testPlusAikAjk();

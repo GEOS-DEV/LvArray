@@ -669,6 +669,65 @@ public:
         } );
   }
 
+  void testScaledAdd()
+  {
+    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+
+    ArrayViewT< T const, 3, 2 > const matrixB_IJK_view = m_matrixB_IJK.toView();
+    ArrayViewT< T const, 3, 1 > const matrixB_IKJ_view = m_matrixB_IKJ.toView();
+    ArrayViewT< T const, 3, 0 > const matrixB_KJI_view = m_matrixB_KJI.toView();
+
+    T const ( &matrixB_local )[ N ][ M ] = m_matrixB_local;
+
+    std::ptrdiff_t const matrixSeed = m_matrixASeed;
+
+    forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI, matrixB_IJK_view, matrixB_IKJ_view, matrixB_KJI_view, matrixB_local, matrixSeed ]
+                      LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( dstMatrix, srcMatrix ) \
+            fill( dstMatrix, matrixSeed ); \
+            tensorOps::scaledAdd< N, M >( dstMatrix, srcMatrix, scale ); \
+            CHECK_EQUALITY_2D( N, M, dstMatrix, result ); \
+
+          #define _TEST_PERMS( dstMatrix, srcMatrix0, srcMatrix1, srcMatrix2, srcMatrix3 ) \
+            _TEST( dstMatrix, srcMatrix0 ); \
+            _TEST( dstMatrix, srcMatrix1 ); \
+            _TEST( dstMatrix, srcMatrix2 ); \
+            _TEST( dstMatrix, srcMatrix3 )
+
+          T matrixA_local[ N ][ M ];
+          fill( matrixA_local, matrixSeed );
+
+          T const scale = T( 3.14 );
+          T result[ N ][ M ];
+          for( std::ptrdiff_t i = 0; i < N; ++i )
+          {
+            for( std::ptrdiff_t j = 0; j < M; ++j )
+            {
+              result[ i ][ j ] = matrixA_local[ i ][ j ] + scale * matrixB_local[ i ][ j ];
+            }
+          }
+
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_IJK[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_IKJ[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_KJI[ 0 ], matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_local, matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_local, matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+          _TEST_PERMS( matrixA_local, matrixB_IJK_view[ 0 ], matrixB_IKJ_view[ 0 ], matrixB_KJI_view[ 0 ], matrixB_local );
+
+            #undef _TEST_PERMS
+            #undef _TEST
+        } );
+  }
+
   void testPlusAikAjk()
   {
     T result[ N ][ N ];
