@@ -728,6 +728,60 @@ public:
         } );
   }
 
+  void testAkiAkj()
+  {
+    T result[ N ][ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < N; ++j )
+      {
+        T dot = 0;
+        for( std::ptrdiff_t k = 0; k < M; ++k )
+        {
+          dot += m_matrixMN_local[ k ][ i ] * m_matrixMN_local[ k ][ j ];
+        }
+        result[ i ][ j ] = dot;
+      }
+    }
+
+    ArrayViewT< T const, 3, 2 > const matrixMN_IJK = m_matrixMN_IJK.toViewConst();
+    ArrayViewT< T const, 3, 1 > const matrixMN_IKJ = m_matrixMN_IKJ.toViewConst();
+    ArrayViewT< T const, 3, 0 > const matrixMN_KJI = m_matrixMN_KJI.toViewConst();
+    T const ( &matrixMN_local )[ M ][ N ] = m_matrixMN_local;
+
+    ArrayViewT< T, 3, 2 > const matrixNN_IJK = m_matrixNN_IJK.toView();
+    ArrayViewT< T, 3, 1 > const matrixNN_IKJ = m_matrixNN_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const matrixNN_KJI = m_matrixNN_KJI.toView();
+
+    std::ptrdiff_t const matrixNNSeed = m_matrixNNSeed;
+    
+    forall< POLICY >( 1,
+                      [result, matrixMN_IJK, matrixMN_IKJ, matrixMN_KJI, matrixMN_local, matrixNN_IJK,
+                       matrixNN_IKJ, matrixNN_KJI, matrixNNSeed ] LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( matrixNN, matrixMN ) \
+            fill( matrixNN, matrixNNSeed ); \
+            tensorOps::Rij_eq_AkiAkj< N, M >( matrixNN, matrixMN ); \
+            CHECK_EQUALITY_2D( N, N, matrixNN, result )
+
+          #define _TEST_PERMS( matrixNN, matrixMN0, matrixMN1, matrixMN2, matrixMN3 ) \
+            _TEST( matrixNN, matrixMN0 ); \
+            _TEST( matrixNN, matrixMN1 ); \
+            _TEST( matrixNN, matrixMN2 ); \
+            _TEST( matrixNN, matrixMN3 )
+
+          T matrixNN_local[ N ][ N ];
+
+          _TEST_PERMS( matrixNN_IJK[ 0 ], matrixMN_IJK[ 0 ], matrixMN_IKJ[ 0 ], matrixMN_KJI[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixNN_IKJ[ 0 ], matrixMN_IJK[ 0 ], matrixMN_IKJ[ 0 ], matrixMN_KJI[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixNN_KJI[ 0 ], matrixMN_IJK[ 0 ], matrixMN_IKJ[ 0 ], matrixMN_KJI[ 0 ], matrixMN_local );
+          _TEST_PERMS( matrixNN_local, matrixMN_IJK[ 0 ], matrixMN_IKJ[ 0 ], matrixMN_KJI[ 0 ], matrixMN_local );
+
+          #undef _TEST_PERMS
+          #undef _TEST
+        } );
+  }
+    
   void testPlusAikAjk()
   {
     T result[ N ][ N ];

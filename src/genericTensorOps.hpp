@@ -615,7 +615,7 @@ void scaledAdd( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
 
 
 /**
- * @brief Add @p srcMatrix scaled by @p scale to @dstMatrix.
+ * @brief Add @p srcMatrix scaled by @p scale to @p dstMatrix.
  * @tparam ISIZE The size of the first dimension of @p dstMatrix and @p srcMatrix.
  * @tparam JSIZE The size of the second dimension of @p dstMatrix and @p srcMatrix.
  * @tparam DST_MATRIX The type of @p dstMatrix.
@@ -1297,8 +1297,8 @@ void Rij_eq_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 
 /**
  * @brief Multiply the transpose of @p matrixA with @p matrixA and put the result into @p dstMatrix.
- * @tparam ISIZE The size of the first dimension of @p dstMatrix and the second dimension of @p matrixA.
- * @tparam JSIZE The size of the second dimension of @p dstMatrix.
+ * @tparam ISIZE The size of both dimensions of @p dstMatrix and the second dimension of @p matrixA.
+ * @tparam JSIZE The size of the first dimension of @p matrixA.
  * @tparam DST_MATRIX The type of @p dstMatrix.
  * @tparam MATRIX_A The type of @p matrixA.
  * @param dstMatrix The matrix the result is written to, of size ISIZE x ISIZE.
@@ -1319,9 +1319,9 @@ void Rij_eq_AkiAkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   internal::checkSizes< ISIZE, ISIZE >( dstMatrix );
   internal::checkSizes< JSIZE, ISIZE >( matrixA );
 
-  for( std::ptrdiff_t  = 0; i < ISIZE; ++i )
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
   {
-    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    for( std::ptrdiff_t j = 0; j < ISIZE; ++j )
     {
       dstMatrix[ i ][ j ] = matrixA[ 0 ][ i ] * matrixA[ 0 ][ j ];
       for( std::ptrdiff_t k = 1; k < JSIZE; ++k )
@@ -1329,7 +1329,6 @@ void Rij_eq_AkiAkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
         dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixA[ k ][ j ];
       }
     }
-  }
   }
 }
 
