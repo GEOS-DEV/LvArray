@@ -32,7 +32,7 @@ TYPED_TEST( TwoSizesTest, Rij_eq_AkiAkj )
 {
   this->testAkiAkj();
 }
-  
+
 TYPED_TEST( TwoSizesTest, Rij_add_AikAjk )
 {
   this->testPlusAikAjk();

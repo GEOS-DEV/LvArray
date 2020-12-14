@@ -754,7 +754,7 @@ public:
     ArrayViewT< T, 3, 0 > const matrixNN_KJI = m_matrixNN_KJI.toView();
 
     std::ptrdiff_t const matrixNNSeed = m_matrixNNSeed;
-    
+
     forall< POLICY >( 1,
                       [result, matrixMN_IJK, matrixMN_IKJ, matrixMN_KJI, matrixMN_local, matrixNN_IJK,
                        matrixNN_IKJ, matrixNN_KJI, matrixNNSeed ] LVARRAY_HOST_DEVICE ( int )
@@ -781,7 +781,7 @@ public:
           #undef _TEST
         } );
   }
-    
+
   void testPlusAikAjk()
   {
     T result[ N ][ N ];
