@@ -613,6 +613,38 @@ void scaledAdd( DST_VECTOR && LVARRAY_RESTRICT_REF dstVector,
   }
 }
 
+
+/**
+ * @brief Add @p srcMatrix scaled by @p scale to @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p dstMatrix and @p srcMatrix.
+ * @tparam JSIZE The size of the second dimension of @p dstMatrix and @p srcMatrix.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam SRC_MATRIX The type of @p srcMatrix.
+ * @param dstMatrix The destination matrix, of size ISIZE x N.
+ * @param srcMatrix The source matrix, of size ISIZE x N.
+ * @param scale The value to scale the entries of @p srcMatrix by.
+ * @details Performs the operation @code dstMatrix[ i ][ j ] += srcMatrix[ i ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, typename DST_MATRIX, typename SRC_MATRIX >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void scaledAdd( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix,
+                std::remove_reference_t< decltype( srcMatrix[ 0 ][ 0 ] ) > const scale )
+{
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  internal::checkSizes< ISIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< ISIZE, JSIZE >( srcMatrix );
+
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] += scale * srcMatrix[ i ][ j ];
+    }
+  }
+}
+
 /**
  * @brief Multiply the elements of @p vectorA and @p vectorB putting the result into @p dstVector.
  * @tparam ISIZE The length of @p dstVector and @p srcVector.
@@ -792,33 +824,6 @@ void Rij_eq_AiBj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
     for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
     {
       dstMatrix[ i ][ j ] = vectorA[ i ] * vectorB[ j ];
-    }
-  }
-}
-
-/**
- * @brief Perform the outer product of @p vectorA with itself writing the result to @p dstMatrix.
- * @tparam M The size of both dimensions of @p dstMatrix and the length of @p vectorA.
- * @tparam DST_MATRIX The type of @p dstMatrix.
- * @tparam VECTOR_A The type of @p vectorA.
- * @param dstMatrix The matrix the result is written to, of size M x N.
- * @param vectorA The first vector in the outer product, of length M.
- * @details Performs the operations @code dstMatrix[ i ][ j ] = vectorA[ i ] * vectorA[ j ] @endcode
- */
-template< std::ptrdiff_t M, typename DST_MATRIX, typename VECTOR_A >
-LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-void Rij_eq_AiAj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
-                  VECTOR_A const & LVARRAY_RESTRICT_REF vectorA )
-{
-  static_assert( M > 0, "M must be greater than zero." );
-  internal::checkSizes< M, M >( dstMatrix );
-  internal::checkSizes< M >( vectorA );
-
-  for( std::ptrdiff_t i = 0; i < M; ++i )
-  {
-    for( std::ptrdiff_t j = 0; j < M; ++j )
-    {
-      dstMatrix[ i ][ j ] = vectorA[ i ] * vectorA[ j ];
     }
   }
 }
@@ -1285,6 +1290,43 @@ void Rij_eq_AkiBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
       for( std::ptrdiff_t k = 1; k < KSIZE; ++k )
       {
         dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixB[ k ][ j ];
+      }
+    }
+  }
+}
+
+/**
+ * @brief Multiply the transpose of @p matrixA with @p matrixA and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of both dimensions of @p dstMatrix and the second dimension of @p matrixA.
+ * @tparam JSIZE The size of the first dimension of @p matrixA.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_A The type of @p matrixA.
+ * @param dstMatrix The matrix the result is written to, of size ISIZE x ISIZE.
+ * @param matrixA The left matrix in the multiplication, of size JSIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixA[ k ][ i ] * matrixA[ k ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_A >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_AkiAkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_A const & LVARRAY_RESTRICT_REF matrixA )
+{
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  internal::checkSizes< ISIZE, ISIZE >( dstMatrix );
+  internal::checkSizes< JSIZE, ISIZE >( matrixA );
+
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
+  {
+    for( std::ptrdiff_t j = 0; j < ISIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] = matrixA[ 0 ][ i ] * matrixA[ 0 ][ j ];
+      for( std::ptrdiff_t k = 1; k < JSIZE; ++k )
+      {
+        dstMatrix[ i ][ j ] = dstMatrix[ i ][ j ] + matrixA[ k ][ i ] * matrixA[ k ][ j ];
       }
     }
   }

@@ -460,52 +460,6 @@ public:
         } );
   }
 
-  void testAiAj()
-  {
-    T result[ N ][ N ];
-    for( std::ptrdiff_t i = 0; i < N; ++i )
-    {
-      for( std::ptrdiff_t j = 0; j < N; ++j )
-      {
-        result[ i ][ j ] = m_vectorA_local[ i ] * m_vectorA_local[ j ];
-      }
-    }
-
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
-
-    ArrayViewT< T const, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA_JI = m_vectorA_JI.toViewConst();
-    T const ( &vectorA_local )[ N ] = m_vectorA_local;
-
-    std::ptrdiff_t const matrixSeed = m_seedMatrixA;
-
-    forall< POLICY >( 1, [result, matrixA_IJK, matrixA_IKJ, matrixA_KJI, vectorA_IJ, vectorA_JI, vectorA_local, matrixSeed]
-                      LVARRAY_HOST_DEVICE ( int )
-        {
-          #define _TEST( matrix, vectorN ) \
-            fill( matrix, matrixSeed ); \
-            tensorOps::Rij_eq_AiAj< N >( matrix, vectorN ); \
-            CHECK_EQUALITY_2D( N, N, matrix, result )
-
-          #define _TEST_PERMS( matrix, vectorN0, vectorN1, vectorN2 ) \
-            _TEST( matrix, vectorN0 ); \
-            _TEST( matrix, vectorN1 ); \
-            _TEST( matrix, vectorN2 )
-
-          T matrix_local[ N ][ N ];
-
-          _TEST_PERMS( matrixA_IJK[ 0 ], vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
-          _TEST_PERMS( matrixA_IKJ[ 0 ], vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
-          _TEST_PERMS( matrixA_KJI[ 0 ], vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
-          _TEST_PERMS( matrix_local, vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
-
-      #undef _TEST_PERMS
-      #undef _TEST
-        } );
-  }
-
   void testElementWiseMultiplication()
   {
     T result[ N ];
@@ -811,11 +765,6 @@ TYPED_TEST( OneSizeTest, scaledAdd )
 TYPED_TEST( OneSizeTest, AiBi )
 {
   this->testAiBi();
-}
-
-TYPED_TEST( OneSizeTest, AiAj )
-{
-  this->testAiAj();
 }
 
 TYPED_TEST( OneSizeTest, hadamardProduct )

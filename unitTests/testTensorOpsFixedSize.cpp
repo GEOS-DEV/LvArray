@@ -351,6 +351,113 @@ public:
         } );
   }
 
+  void testSymRij_eq_AiAj()
+  {
+    T result[ N ][ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < N; ++j )
+      {
+        result[ i ][ j ] = m_vectorA_local[ i ] * m_vectorA_local[ j ];
+      }
+    }
+
+    T symResult[ SYM_SIZE ];
+    tensorOps::denseToSymmetric< N >( symResult, result );
+
+    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+
+    ArrayViewT< T const, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const vectorA_JI = m_vectorA_JI.toViewConst();
+    T const ( &vectorA_local )[ N ] = m_vectorA_local;
+
+    std::ptrdiff_t const matrixSeed = m_seedSymMatrixA;
+
+    forall< POLICY >( 1, [symResult, symMatrixA_IJ, symMatrixA_JI, vectorA_IJ, vectorA_JI, vectorA_local, matrixSeed]
+                      LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( symMatrix, vectorN ) \
+            fill( symMatrix, matrixSeed ); \
+            tensorOps::symRij_eq_AiAj< N >( symMatrix, vectorN ); \
+            CHECK_EQUALITY_1D( SYM_SIZE, symMatrix, symResult )
+
+          #define _TEST_PERMS( symMatrix, vectorN0, vectorN1, vectorN2 ) \
+            _TEST( symMatrix, vectorN0 ); \
+            _TEST( symMatrix, vectorN1 ); \
+            _TEST( symMatrix, vectorN2 )
+
+          T symMatrix_local[ SYM_SIZE ];
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
+          _TEST_PERMS( symMatrix_local, vectorA_IJ[ 0 ], vectorA_JI[ 0 ], vectorA_local );
+
+          #undef _TEST_PERMS
+          #undef _TEST
+        } );
+  }
+
+  void testSymRij_eq_AiBj_plus_AjBi()
+  {
+    T result[ N ][ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < N; ++j )
+      {
+        result[ i ][ j ] = m_vectorA_local[ i ] * m_vectorB_local[ j ] + m_vectorA_local[ j ] * m_vectorB_local[ i ];
+      }
+    }
+
+    T symResult[ SYM_SIZE ];
+    tensorOps::denseToSymmetric< N >( symResult, result );
+
+    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+
+    ArrayViewT< T const, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const vectorA_JI = m_vectorA_JI.toViewConst();
+    T const ( &vectorA_local )[ N ] = m_vectorA_local;
+
+    ArrayViewT< T const, 2, 1 > const vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, 0 > const vectorB_JI = m_vectorB_JI.toViewConst();
+    T const ( &vectorB_local )[ N ] = m_vectorB_local;
+
+    std::ptrdiff_t const matrixSeed = m_seedSymMatrixA;
+
+    forall< POLICY >( 1, [symResult, symMatrixA_IJ, symMatrixA_JI, vectorA_IJ, vectorA_JI, vectorB_IJ, vectorB_JI, vectorA_local, vectorB_local, matrixSeed]
+                      LVARRAY_HOST_DEVICE ( int )
+        {
+          #define _TEST( symMatrix, vectorN, vectorM ) \
+            fill( symMatrix, matrixSeed ); \
+            tensorOps::symRij_eq_AiBj_plus_AjBi< N >( symMatrix, vectorN, vectorM ); \
+            CHECK_EQUALITY_1D( SYM_SIZE, symMatrix, symResult )
+
+          #define _TEST_PERMS( symMatrix, vectorN, vectorM0, vectorM1, vectorM2 ) \
+            _TEST( symMatrix, vectorN, vectorM0 ); \
+            _TEST( symMatrix, vectorN, vectorM1 ); \
+            _TEST( symMatrix, vectorN, vectorM2 )
+
+          T symMatrix_local[ SYM_SIZE ];
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], vectorA_IJ[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], vectorA_IJ[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], vectorA_JI[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], vectorA_JI[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+
+          _TEST_PERMS( symMatrixA_IJ[ 0 ], vectorA_local, vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+          _TEST_PERMS( symMatrixA_JI[ 0 ], vectorA_local, vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+
+          _TEST_PERMS( symMatrix_local, vectorA_IJ[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+          _TEST_PERMS( symMatrix_local, vectorA_JI[ 0 ], vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+          _TEST_PERMS( symMatrix_local, vectorA_local, vectorB_IJ[ 0 ], vectorB_JI[ 0 ], vectorB_local );
+
+         #undef _TEST_PERMS
+         #undef _TEST
+        } );
+  }
+
   void symmetricToDense()
   {
     ArrayViewT< T const, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
@@ -488,6 +595,16 @@ TYPED_TEST( FixedSizeSquareMatrixTest, symAikBjk )
 TYPED_TEST( FixedSizeSquareMatrixTest, Rij_eq_AikSymBklAjl )
 {
   this->Rij_eq_AikSymBklAjl();
+}
+
+TYPED_TEST( FixedSizeSquareMatrixTest, symRij_eq_AiAj )
+{
+  this->testSymRij_eq_AiAj();
+}
+
+TYPED_TEST( FixedSizeSquareMatrixTest, symRij_eq_AiBj_plus_AjBi )
+{
+  this->testSymRij_eq_AiBj_plus_AjBi();
 }
 
 TYPED_TEST( FixedSizeSquareMatrixTest, symmetricToDense )
