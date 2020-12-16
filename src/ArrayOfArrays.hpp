@@ -99,7 +99,7 @@ public:
   { return ParentClass::toView(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArrayOfArraysView.
    * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
    *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
@@ -107,11 +107,7 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, false, BUFFER_TYPE >
-  toView() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toView on a rvalue." );
-    return ParentClass::toView();
-  }
+  toView() const && = delete;
 
   /**
    * @copydoc ParentClass::toViewConstSizes
@@ -125,7 +121,7 @@ public:
   { return ParentClass::toViewConstSizes(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArrayOfArraysView.
    * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
    *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
@@ -133,11 +129,7 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConstSizes() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConstSizes on a rvalue." );
-    return ParentClass::toViewConstSizes();
-  }
+  toViewConstSizes() const && = delete;
 
   /**
    * @copydoc ParentClass::toViewConst
@@ -151,7 +143,7 @@ public:
   { return ParentClass::toViewConst(); }
 
   /**
-   * @brief Overload for rvalues that raises a compilation error when used.
+   * @brief Overload for rvalues that is deleted.
    * @return A null ArrayOfArraysView.
    * @note This cannot be called on a rvalue since the @c ArrayOfArraysView would
    *   contain the buffer of the current @c ArrayOfArrays that is about to be destroyed.
@@ -159,11 +151,7 @@ public:
    */
   constexpr inline
   ArrayOfArraysView< T const, INDEX_TYPE const, true, BUFFER_TYPE >
-  toViewConst() const &&
-  {
-    static_assert( !typeManipulation::always_true< T >, "Cannot call toViewConst on a rvalue." );
-    return ParentClass::toViewConst();
-  }
+  toViewConst() const && = delete;
 
   ///@}
 

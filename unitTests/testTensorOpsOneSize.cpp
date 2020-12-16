@@ -323,6 +323,33 @@ public:
         } );
   }
 
+  void testAddScalar()
+  {
+    T scalar = T( 3.14 );
+    T result[ N ];
+    for( std::ptrdiff_t i = 0; i < N; ++i )
+    { result[ i ] = m_vectorA_local[ i ] + scalar; }
+
+    ArrayViewT< T, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, 0 > const vectorA_JI = m_vectorA_JI.toView();
+
+    std::ptrdiff_t const aSeed = m_seedVectorA;
+
+    forall< POLICY >( 1, [scalar, result, vectorA_IJ, vectorA_JI, aSeed] LVARRAY_HOST_DEVICE ( int )
+        {
+          tensorOps::addScalar< N >( vectorA_IJ[ 0 ], scalar );
+          CHECK_EQUALITY_1D( N, vectorA_IJ[ 0 ], result );
+
+          tensorOps::addScalar< N >( vectorA_JI[ 0 ], scalar );
+          CHECK_EQUALITY_1D( N, vectorA_JI[ 0 ], result );
+
+          T vectorA_local[ N ];
+          fill( vectorA_local, aSeed );
+          tensorOps::addScalar< N >( vectorA_local, scalar );
+          CHECK_EQUALITY_1D( N, vectorA_local, result );
+        } );
+  }
+
   void testSubtract()
   {
     T result[ N ];
@@ -718,6 +745,11 @@ TYPED_TEST( OneSizeTest, scaledCopy )
 TYPED_TEST( OneSizeTest, add )
 {
   this->testAdd();
+}
+
+TYPED_TEST( OneSizeTest, addScalar )
+{
+  this->testAddScalar();
 }
 
 TYPED_TEST( OneSizeTest, subtract )

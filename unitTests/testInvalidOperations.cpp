@@ -17,323 +17,99 @@
 // TPL includes
 #include <gtest/gtest.h>
 
-/*
- * When ALLOW_INVALID_OPERATIONS is defined each of the tests below should have a compilation error from
- * attempting to perform an operation forbidden by LvArray.
- */
-// #define ALLOW_INVALID_OPERATIONS
+#define HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( NAME, ... ) \
+  IS_VALID_EXPRESSION( HasRvalueMemberFunction_ ## NAME, CLASS, std::declval< CLASS && >().NAME( __VA_ARGS__ ) )
 
 namespace LvArray
 {
 namespace testing
 {
 
-TEST( Array, toView )
-{
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toView, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toViewConst, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toNestedView, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toNestedViewConst, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toSlice, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toSliceConst, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toViewConstSizes, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toArrayOfArraysView, );
+HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toSparsityPatternView, );
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+IS_VALID_EXPRESSION( HasRvalueSubscriptOperator, CLASS, std::declval< CLASS && >()[ 0 ] );
 
-TEST( Array, toViewConst )
-{
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
+template< typename T >
+using ArrayT = Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer >;
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+template< typename T >
+using ArrayT2D = Array< T, 2, RAJA::PERM_IJ, std::ptrdiff_t, MallocBuffer >;
 
-TEST( Array, toNestedView )
-{
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array;
-  auto const & view = array.toNestedView();
-  LVARRAY_UNUSED_VARIABLE( view );
+template< typename T >
+using ArrayViewT = ArrayView< T, 1, 0, std::ptrdiff_t, MallocBuffer >;
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const & invalidView = std::move( array ).toNestedView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+template< typename T >
+using ArraySliceT = ArraySlice< T, 1, 0, std::ptrdiff_t >;
 
-TEST( Array, toNestedViewConst )
-{
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array;
-  auto const & view = array.toNestedViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
+// Array
+static_assert( !HasRvalueMemberFunction_toView< ArrayT< int > >,
+               "Cannot call toView on an Array rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< ArrayT< int > >,
+               "Cannot call toViewConst on an Array rvalue." );
+static_assert( !HasRvalueMemberFunction_toNestedView< ArrayT< int > >,
+               "Cannot call toNestedView on an Array rvalue." );
+static_assert( !HasRvalueMemberFunction_toNestedViewConst< ArrayT< int > >,
+               "Cannot call toNestedViewConst on an Array rvalue." );
+static_assert( !std::is_convertible< ArrayT< int > &&, ArrayViewT< int const > >::value,
+               "The conversion from an Array< T > rvalue to ArrayView< T const > is not allowed." );
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const & invalidView = std::move( array ).toNestedViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+// ArrayView
+static_assert( !HasRvalueMemberFunction_toSlice< ArrayViewT< int > >,
+               "Cannot call toSlice on an ArrayView rvalue." );
+static_assert( !HasRvalueMemberFunction_toSliceConst< ArrayViewT< int > >,
+               "Cannot call toSliceConst on an ArrayView rvalue." );
+static_assert( !std::is_convertible< ArrayViewT< int > &&, ArraySliceT< int > >::value,
+               "The conversion from an ArrayView< T > rvalue to an ArraySlice< T > is not allowed." );
+static_assert( !std::is_convertible< ArrayViewT< int > &&, ArraySliceT< int const > >::value,
+               "The conversion from an ArrayView< T > rvalue to an ArraySlice< T const > is not allowed." );
+static_assert( !HasRvalueSubscriptOperator< ArrayView< int, 2, 1, std::ptrdiff_t, MallocBuffer > >,
+               "The subscript operator on a multidimensional ArrayView rvalue is not allowed." );
 
-TEST( Array, toViewConstUDC )
-{
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer > array;
-  ArrayView< int const, 1, 0, std::ptrdiff_t, MallocBuffer > const view = array;
-  LVARRAY_UNUSED_VARIABLE( view );
+// SortedArrayView
+static_assert( !HasRvalueMemberFunction_toView< SortedArray< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toView on a SortedArray rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< SortedArray< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConst on a SortedArray rvalue." );
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  ArrayView< int const, 1, 0, std::ptrdiff_t, MallocBuffer > const invalidView = std::move( array );
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+// ArrayOfArrays
+static_assert( !HasRvalueMemberFunction_toView< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toView on an ArrayOfArrays rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConst on an ArrayOfArrays rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConstSizes< ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConstSizes on an ArrayOfArrays rvalue." );
 
-TEST( Array, accessOperator )
-{
-  Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, MallocBuffer > array( 5, 5 );
-  auto const slice = array[ 0 ];
-  LVARRAY_UNUSED_VARIABLE( slice );
+// ArrayOfSets
+static_assert( !HasRvalueMemberFunction_toView< ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toView on an ArrayOfSets rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConst on an ArrayOfSets rvalue." );
+static_assert( !HasRvalueMemberFunction_toArrayOfArraysView< ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toArrayOfArraysView on an ArrayOfSets rvalue." );
 
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidSlice = std::move( array )[ 0 ];
-  LVARRAY_UNUSED_VARIABLE( invalidSlice );
-#endif
-}
+// SparsityPattern
+static_assert( !HasRvalueMemberFunction_toView< SparsityPattern< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toView on a SparsityPattern rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< SparsityPattern< int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConst on a SparsityPattern rvalue." );
 
-TEST( ArrayView, toSlice )
-{
-  ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view;
-  auto const slice = view.toSlice();
-  LVARRAY_UNUSED_VARIABLE( slice );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidSlice = std::move( view ).toSlice();
-  LVARRAY_UNUSED_VARIABLE( invalidSlice );
-#endif
-}
-
-TEST( ArrayView, toSliceConst )
-{
-  ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view;
-  auto const slice = view.toSliceConst();
-  LVARRAY_UNUSED_VARIABLE( slice );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidSlice = std::move( view ).toSliceConst();
-  LVARRAY_UNUSED_VARIABLE( invalidSlice );
-#endif
-}
-
-TEST( ArrayView, toSliceUDC )
-{
-  ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view;
-  ArraySlice< int, 1, 0, std::ptrdiff_t > const slice = view;
-  LVARRAY_UNUSED_VARIABLE( slice );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  ArraySlice< int, 1, 0, std::ptrdiff_t > const invalidSlice = std::move( view );
-  LVARRAY_UNUSED_VARIABLE( invalidSlice );
-#endif
-}
-
-TEST( ArrayView, toSliceConstUDC )
-{
-  ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > view;
-  ArraySlice< int const, 1, 0, std::ptrdiff_t > const slice = view;
-  LVARRAY_UNUSED_VARIABLE( slice );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  ArraySlice< int const, 1, 0, std::ptrdiff_t > const invalidSlice = std::move( view );
-  LVARRAY_UNUSED_VARIABLE( invalidSlice );
-#endif
-}
-
-TEST( SortedArray, toView )
-{
-  SortedArray< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( SortedArray, toViewConst )
-{
-  SortedArray< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfArrays, toView )
-{
-  ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfArrays, toViewConstSizes )
-{
-  ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toViewConstSizes();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toViewConstSizes();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfArrays, toViewConst )
-{
-  ArrayOfArrays< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfSets, toView )
-{
-  ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfSets, toViewConst )
-{
-  ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( ArrayOfSets, toArrayOfArraysView )
-{
-  ArrayOfSets< int, std::ptrdiff_t, MallocBuffer > array;
-  auto const view = array.toArrayOfArraysView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( array ).toArrayOfArraysView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( SparsityPattern, toView )
-{
-  SparsityPattern< int, std::ptrdiff_t, MallocBuffer > sparsity;
-  auto const view = sparsity.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( sparsity ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( SparsityPattern, toViewConst )
-{
-  SparsityPattern< int, std::ptrdiff_t, MallocBuffer > sparsity;
-  auto const view = sparsity.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( sparsity ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( CRSMatrix, toView )
-{
-  CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > matrix;
-  auto const view = matrix.toView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( matrix ).toView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( CRSMatrix, toViewConstSizes )
-{
-  CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > matrix;
-  auto const view = matrix.toViewConstSizes();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( matrix ).toViewConstSizes();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( CRSMatrix, toViewConst )
-{
-  CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > matrix;
-  auto const view = matrix.toViewConst();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( matrix ).toViewConst();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
-
-TEST( CRSMatrix, toSparsityPatternView )
-{
-  CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > matrix;
-  auto const view = matrix.toSparsityPatternView();
-  LVARRAY_UNUSED_VARIABLE( view );
-
-#if defined(ALLOW_INVALID_OPERATIONS)
-  auto const invalidView = std::move( matrix ).toSparsityPatternView();
-  LVARRAY_UNUSED_VARIABLE( invalidView );
-  FAIL();
-#endif
-}
+// CRSMatrix
+static_assert( !HasRvalueMemberFunction_toView< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toView on a CRSMatrix rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConst< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConst on a CRSMatrix rvalue." );
+static_assert( !HasRvalueMemberFunction_toViewConstSizes< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toViewConstSizes on a CRSMatrix rvalue." );
+static_assert( !HasRvalueMemberFunction_toSparsityPatternView< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer > >,
+               "Cannot call toSparsityPatternView on a CRSMatrix rvalue." );
 
 } // namespace testing
 } // namespace LvArray

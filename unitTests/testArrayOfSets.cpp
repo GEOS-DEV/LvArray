@@ -32,6 +32,7 @@ template< typename U, typename T, typename INDEX_TYPE, template< typename > clas
 struct ToArray< U, ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > >
 {
   using OneD = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+  using OneDView = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
   using AoA = ArrayOfArrays< U, INDEX_TYPE, BUFFER_TYPE >;
 };
 
@@ -758,7 +759,7 @@ public:
   using Array1D = typename ToArray< U, ARRAY_OF_SETS >::OneD;
 
   template< typename U >
-  using ArrayView1D = typeManipulation::ViewType< Array1D< U > >;
+  using ArrayView1D = typename ToArray< U, ARRAY_OF_SETS >::OneDView;
 
   void memoryMotion()
   {
