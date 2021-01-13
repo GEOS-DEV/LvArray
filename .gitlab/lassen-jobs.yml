@@ -1,0 +1,13 @@
+lassen_clang_10_0_1:
+  variables:
+    NAME: lassen_clang_10_0_1
+    SPEC: "%clang@10.0.1 +cuda +umpire +chai +benchmarks +examples cuda_arch=70 ^cuda@10.1.243 ^raja@0.12.1 build_type=Release cuda_arch=70 ^umpire@4.1.2 build_type=Release cuda_arch=70 ^chai@2.2.0 build_type=Release cuda_arch=70"
+    BUILD_TYPE: "Debug Release"
+  extends: .build_and_test_on_lassen
+
+lassen_gcc_8_3_1:
+  variables:
+    NAME: lassen_gcc_8_3_1
+    SPEC: "%gcc@8.3.1 +cuda +umpire +chai +benchmarks +examples cuda_arch=70 ^cuda@10.1.243 ^raja@0.12.1 build_type=Release cuda_arch=70 ^umpire@4.1.2 build_type=Release cuda_arch=70 ^chai@2.2.0 build_type=Release cuda_arch=70"
+    BUILD_TYPE: "Debug Release"
+  extends: .build_and_test_on_lassen
