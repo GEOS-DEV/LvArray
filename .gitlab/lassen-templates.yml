@@ -1,0 +1,16 @@
+####
+# Shared configuration of jobs for lassen
+.on_lassen:
+  variables:
+  tags:
+    - shell
+    - lassen
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"'
+      when: never
+    - when: on_success
+
+.build_and_test_on_lassen:
+  stage: l_build_and_test
+  extends: [.build_blueos_3_ppc64le_ib_p9_script, .on_lassen]
+  needs: []
