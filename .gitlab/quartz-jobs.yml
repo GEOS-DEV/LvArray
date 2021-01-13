@@ -1,0 +1,13 @@
+quartz_clang_10_0_1:
+  variables:
+    NAME: quartz_clang_10_0_1
+    SPEC: "%clang@10.0.1 +umpire +chai +benchmarks +examples ^raja@0.12.1 build_type=Release ^umpire@4.1.2 build_type=Release ^chai@2.2.0 build_type=Release"
+    BUILD_TYPE: "Debug Release"
+  extends: .build_and_test_on_quartz
+
+quartz_gcc_8_3_1:
+  variables:
+    NAME: quartz_gcc_8_3_1
+    SPEC: "%gcc@8.3.1 +umpire +chai +benchmarks +examples ^raja@0.12.1 build_type=Release ^umpire@4.1.2 build_type=Release ^chai@2.2.0 build_type=Release"
+    BUILD_TYPE: "Debug Release"
+  extends: .build_and_test_on_quartz

@@ -4,7 +4,7 @@
   "package_final_phase" : "hostconfig",
   "package_source_dir" : "../..",
   "spack_url": "https://github.com/corbett5/spack",
-  "spack_branch": "feature/corbett/lvarray",
+  "spack_branch": "package/corbett/geosx",
   "spack_activate" : {},
   "spack_clean_packages": ["lvarray"],
   "build_jobs": 100
