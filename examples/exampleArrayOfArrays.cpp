@@ -279,14 +279,14 @@ TEST( ArrayOfArrays, resizeFromCapacities )
 // Sphinx start after ChaiBuffer
 CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 {
-  LvArray::ArrayOfArrays< int, std::ptrdiff_t, LvArray::MallocBuffer > arrayOfArrays( 10, 9 );
+  LvArray::ArrayOfArrays< int, std::ptrdiff_t, LvArray::ChaiBuffer > arrayOfArrays( 10, 9 );
 
   {
     // Create a view.
     LvArray::ArrayOfArraysView< int,
                                 std::ptrdiff_t const,
                                 false,
-                                LvArray::MallocBuffer > const view = arrayOfArrays.toView();
+                                LvArray::ChaiBuffer > const view = arrayOfArrays.toView();
 
     // Capture the view on device. This will copy the values, sizes and offsets.
     // The values and sizes will be touched.
@@ -307,7 +307,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
     LvArray::ArrayOfArraysView< int,
                                 std::ptrdiff_t const,
                                 true,
-                                LvArray::MallocBuffer > const viewConstSizes = arrayOfArrays.toViewConstSizes();
+                                LvArray::ChaiBuffer > const viewConstSizes = arrayOfArrays.toViewConstSizes();
 
     // Capture the view on the host. This will copy back the values and sizes since they were previously touched
     // on device. It will only touch the values on host.
@@ -328,7 +328,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
     LvArray::ArrayOfArraysView< int const,
                                 std::ptrdiff_t const,
                                 true,
-                                LvArray::MallocBuffer > const viewConst = arrayOfArrays.toViewConst();
+                                LvArray::ChaiBuffer > const viewConst = arrayOfArrays.toViewConst();
 
     // Capture the view on device. Since the values were previously touched on host it will copy them over.
     // Both the sizes and offsets are current on device so they are not copied over. Nothing is touched.
