@@ -222,6 +222,8 @@ struct printf_Helper<long long int>
 #define LITOKEN "ld"
 #elif GEOSX_LOCALINDEX_TYPE_FLAG==2
 #define LITOKEN "lld"
+#elif GEOSX_LOCALINDEX_TYPE_FLAG==3
+#define LITOKEN "lld"
 #endif
 
 #if GEOSX_GLOBALINDEX_TYPE_FLAG==0
