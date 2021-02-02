@@ -194,23 +194,23 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
   return stream;
 }
 
-template<typename T>
+template< typename T >
 struct printf_Helper;
 
 template<>
-struct printf_Helper<int>
+struct printf_Helper< int >
 {
   constexpr static auto formatString="%4d";
 };
 
 template<>
-struct printf_Helper<long int>
+struct printf_Helper< long int >
 {
   constexpr static auto formatString="%4ld";
 };
 
 template<>
-struct printf_Helper<long long int>
+struct printf_Helper< long long int >
 {
   constexpr static auto formatString="%4lld";
 };
@@ -252,32 +252,40 @@ void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYP
 
   printf( "numRows = %4" LITOKEN " \n", numRows );
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )
-  {
-    INDEX_TYPE const * const ncols = view.getSizes();
-    INDEX_TYPE const * const row_indexes = view.getOffsets();
-    COL_TYPE const * const cols = view.getColumns();
-    T const * const values = view.getEntries();
-
-    printf( "ncols       = { " ); for( INDEX_TYPE i=0 ; i<numRows ; ++i ) { printf( "%4" LITOKEN ", ",ncols[i] ); }        printf( " }\n" );
-    printf( "row_indexes = { " ); for( INDEX_TYPE i=0 ; i<numRows+1 ; ++i ) { printf( "%4" GITOKEN ", ",row_indexes[i] ); }  printf( " }\n" );
-
-
-    printf( "row      col      value \n");
-    printf( "----  --------- --------- \n");
-
-    for( INDEX_TYPE i=0 ; i<numRows ; ++i )
     {
-      printf( "%4" LITOKEN "\n", ncols[i]);
-      for( INDEX_TYPE j=0 ; j<ncols[i] ; ++j )
-      {
-        printf( "%4" LITOKEN " %9" GITOKEN " %9.2g\n",
-                i,
-                cols[row_indexes[i] + j],
-                values[row_indexes[i] + j]);
-      }
-    }
+      INDEX_TYPE const * const ncols = view.getSizes();
+      INDEX_TYPE const * const row_indexes = view.getOffsets();
+      COL_TYPE const * const cols = view.getColumns();
+      T const * const values = view.getEntries();
 
-  });
+      printf( "ncols       = { " ); for( INDEX_TYPE i=0; i<numRows; ++i )
+      {
+        printf( "%4" LITOKEN ", ", ncols[i] );
+      }
+      printf( " }\n" );
+      printf( "row_indexes = { " ); for( INDEX_TYPE i=0; i<numRows+1; ++i )
+      {
+        printf( "%4" GITOKEN ", ", row_indexes[i] );
+      }
+      printf( " }\n" );
+
+
+      printf( "row      col      value \n" );
+      printf( "----  --------- --------- \n" );
+
+      for( INDEX_TYPE i=0; i<numRows; ++i )
+      {
+        printf( "%4" LITOKEN "\n", ncols[i] );
+        for( INDEX_TYPE j=0; j<ncols[i]; ++j )
+        {
+          printf( "%4" LITOKEN " %9" GITOKEN " %9.2g\n",
+                  i,
+                  cols[row_indexes[i] + j],
+                  values[row_indexes[i] + j] );
+        }
+      }
+
+    } );
   std::cout<<std::endl;
 }
 
