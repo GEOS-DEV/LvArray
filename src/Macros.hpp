@@ -84,7 +84,7 @@
 /**
  * @brief Abort execution if @p EXP is true.
  * @param EXP The expression to check.
- * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
  * @note This macro can be used in both host and device code.
  * @note Tries to provide as much information about the location of the error
  *       as possible. On host this should result in the file and line of the error
@@ -117,7 +117,7 @@
 
 /**
  * @brief Abort execution.
- * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
  */
 #define LVARRAY_ERROR( MSG ) LVARRAY_ERROR_IF( true, MSG )
 
@@ -125,7 +125,7 @@
  * @brief Abort execution if @p EXP is false but only when
  *        NDEBUG is not defined..
  * @param EXP The expression to check.
- * @param MSG The message to associate with the error, can be anything streamable to std::cout.
+ * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
  * @note This macro can be used in both host and device code.
  * @note Tries to provide as much information about the location of the error
  *       as possible. On host this should result in the file and line of the error
@@ -138,13 +138,28 @@
 #define LVARRAY_ASSERT_MSG( EXP, MSG ) ((void) 0)
 #endif
 
+#define LVARRAY_THROW_IF( EXP, MSG, TYPE ) \
+  do \
+  { \
+    if( EXP ) \
+    { \
+      std::ostringstream __oss; \
+      __oss << "\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG << "\n"; \
+      __oss << LvArray::system::stackTrace( true ); \
+      throw TYPE( __oss.str() ); \
+    } \
+  } while( false )
+
 /// Assert @p EXP is true with no message.
 #define LVARRAY_ASSERT( EXP ) LVARRAY_ASSERT_MSG( EXP, "" )
 
 /**
  * @brief Print a warning if @p EXP is true.
  * @param EXP The expression to check.
- * @param MSG The message to associate with the warning, can be anything streamable to std::cout.
+ * @param MSG The message to associate with the warning, can be anything streamable to a std::ostream.
  */
 #define LVARRAY_WARNING_IF( EXP, MSG ) \
   do \
@@ -206,6 +221,13 @@
                     "  " << #lhs << " = " << lhs << "\n" << \
                     "  " << #rhs << " = " << rhs << "\n" )
 
+#define LVARRAY_THROW_IF_OP_MSG( lhs, OP, NOP, rhs, msg, TYPE ) \
+  LVARRAY_THROW_IF( lhs OP rhs, \
+                    msg << "\n" << \
+                    "Expected " << #lhs << " " << #NOP << " " << #rhs << "\n" << \
+                    "  " << #lhs << " = " << lhs << "\n" << \
+                    "  " << #rhs << " = " << rhs << "\n", TYPE )
+
 /**
  * @brief Raise a hard error if two values are equal.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
@@ -214,12 +236,16 @@
  */
 #define LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, ==, !=, rhs, msg )
 
+#define LVARRAY_THROW_IF_EQ_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, ==, !=, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if two values are equal.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_EQ( lhs, rhs, TYPE ) LVARRAY_THROW_IF_EQ_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Raise a hard error if two values are not equal.
@@ -229,12 +255,16 @@
  */
 #define LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, !=, ==, rhs, msg )
 
+#define LVARRAY_THROW_IF_NE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, !=, ==, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if two values are not equal.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_NE( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_NE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_NE_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Raise a hard error if one value compares greater than the other.
@@ -244,12 +274,16 @@
  */
 #define LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >, <=, rhs, msg )
 
+#define LVARRAY_THROW_IF_GT_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, >, <=, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if one value compares greater than the other.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_GT( lhs, rhs ) LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_GT( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GT_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Raise a hard error if one value compares greater than or equal to the other.
@@ -259,12 +293,17 @@
  */
 #define LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >=, <, rhs, msg )
 
+#define LVARRAY_THROW_IF_GE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, >=, <, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if one value compares greater than or equal to the other.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_GE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_GE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GE_MSG( lhs, rhs, "", TYPE )
+
 
 /**
  * @brief Raise a hard error if one value compares less than the other.
@@ -274,12 +313,16 @@
  */
 #define LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <, >=, rhs, msg )
 
+#define LVARRAY_THROW_IF_LT_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, <, >=, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if one value compares less than the other.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_LT( lhs, rhs ) LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_LT( lhs, rhs, TYPE ) LVARRAY_THROW_IF_LT_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Raise a hard error if one value compares less than or equal to the other.
@@ -289,12 +332,16 @@
  */
 #define LVARRAY_ERROR_IF_LE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <=, >, rhs, msg )
 
+#define LVARRAY_THROW_IF_LE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, <=, >, rhs, msg, TYPE )
+
 /**
  * @brief Raise a hard error if one value compares less than or equal to the other.
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
 #define LVARRAY_ERROR_IF_LE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
+
+#define LVARRAY_THROW_IF_LE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GE_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Abort execution if @p lhs @p OP @p rhs is false.

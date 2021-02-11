@@ -111,12 +111,17 @@ static std::string getFunctionNameFromFrame( void const * const address )
 {
   Dl_info dli;
   const bool dl_ok = dladdr( address, &dli );
-  if( dl_ok && dli.dli_sname )
+  if( dl_ok )
   {
-    return LvArray::system::demangle( dli.dli_sname );
+    if( dli.dli_sname )
+    {
+      return LvArray::system::demangle( dli.dli_sname );
+    }
+
+    return dli.dli_fname;
   }
 
-  return "";
+  return "Unknown";
 }
 
 #if defined( LVARRAY_ADDR2LINE_EXEC )
