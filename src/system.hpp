@@ -16,6 +16,7 @@
 #include <string>
 #include <typeinfo>
 #include <functional>
+#include <dlfcn.h>
 
 namespace LvArray
 {
@@ -52,11 +53,12 @@ inline std::string demangleType()
 
 /**
  * @return A demangled type name corresponding to the type @tparam T.
- * @tparam T The type to demangle.
+ * @tparam T The type of the object to demangle.
+ * @param var The variable to demangle the type of.
  */
 template< class T >
-inline std::string demangleType( T const & )
-{ return demangle( typeid( T ).name() ); }
+inline std::string demangleType( T const & var )
+{ return demangle( typeid( var ).name() ); }
 
 /**
  * @brief Set the error handler called by LVARRAY_ERROR and others.
