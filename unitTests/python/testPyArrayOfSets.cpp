@@ -23,7 +23,12 @@
 #include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
+namespace
+{
+
 static LvArray::ArrayOfSets< long long, std::ptrdiff_t, LvArray::MallocBuffer > arrayOfSets{ 5, 6 };
+
+} // namespace
 
 static PyObject * getArrayOfSets( PyObject * const self, PyObject * const args )
 {
