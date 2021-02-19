@@ -15,7 +15,6 @@
 import os
 import sys
 import shutil
-# sys.path.insert(0, os.path.abspath('.'))
 
 # Call doxygen in ReadtheDocs
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
@@ -75,7 +74,7 @@ release = u''
 # ones.
 extensions = [
 #    'sphinx.ext.mathjax'
-    'sphinx.ext.imgmath'
+    'sphinx.ext.imgmath',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -121,7 +120,7 @@ else:
     html_theme = 'sphinx_rtd_theme'
     html_theme_options = {}
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    
+
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 #html_title = None
@@ -259,7 +258,7 @@ latex_elements['preamble'] = '\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\us
 imgmath_image_format='svg'
 imgmath_font_size=14
 #####################################################
-# add LaTeX macros 
+# add LaTeX macros
 
 # f = open('docs/sphinx/latex_macros.sty')
 

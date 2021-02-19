@@ -62,3 +62,8 @@ install( DIRECTORY . DESTINATION include/LvArray FILES_MATCHING PATTERN *.h )
 
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )
+
+
+if( ENABLE_PYLVARRAY )
+    add_subdirectory( python )
+endif()
