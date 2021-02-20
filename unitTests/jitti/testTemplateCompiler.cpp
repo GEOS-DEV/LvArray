@@ -1,10 +1,34 @@
 // Source includes
-#include "testHelpers.hpp"
 #include "squareAllJIT.hpp"
 #include "../../src/jitti/jitti.hpp"
+#include "../../src/Array.hpp"
+#include "../../src/ChaiBuffer.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
+
+using SquareAllType = void (*)( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer > const &,
+                                LvArray::ArrayView< int const, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer > const & );
+
+using AddNType = SquareAllType;
+
+void test( SquareAllType squareAll )
+{
+  // Prepare the input.
+  LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::ChaiBuffer > output( 100 );
+  LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::ChaiBuffer > input( 100 );
+
+  for ( std::ptrdiff_t i = 0; i < input.size(); ++i )
+  { input[ i ] = i; }
+
+  // Call the function.
+  squareAll( output.toView(), input.toViewConst() );
+
+  // Check the output.
+  output.move( LvArray::MemorySpace::CPU );
+  for ( std::ptrdiff_t i = 0; i < output.size(); ++i )
+  { EXPECT_EQ( output[ i ], i * i ); }
+}
 
 TEST( TemplateCompiler, serial )
 {
@@ -28,10 +52,10 @@ TEST( TemplateCompiler, serial )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll, "RAJA::policy::loop::loop_exec" );
+  test( squareAll );
 }
 
-#if defined( USE_OPENMP )
+#if defined( RAJA_ENABLE_OPENMP )
 TEST( TemplateCompiler, OpenMP )
 {
   jitti::CompilationInfo const info = getCompilationInfo();
@@ -55,7 +79,7 @@ TEST( TemplateCompiler, OpenMP )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll, "RAJA::policy::omp::omp_parallel_for_exec" );
+  test( squareAll );
 }
 #endif
 

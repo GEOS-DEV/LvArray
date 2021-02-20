@@ -1,6 +1,5 @@
 set( jitti_headers
      jitti.hpp
-     json.hpp
    )
 
 set( jitti_sources

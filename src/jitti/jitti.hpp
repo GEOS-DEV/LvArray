@@ -2,7 +2,6 @@
 
 // Source includes
 #include "jittiConfig.hpp"
-#include "../StringUtilities.hpp"
 #include "../Macros.hpp"
 
 // System includes
@@ -11,6 +10,7 @@
 #include <typeindex>
 #include <string>
 #include <cstdlib>
+#include <vector>
 
 namespace jitti
 {
@@ -56,67 +56,39 @@ class TypedDynamicLibrary : public DynamicLibrary
 {
 
 public:
-  TypedDynamicLibrary( DynamicLibrary && dl );
+  TypedDynamicLibrary( char const * const path );
+
+  TypedDynamicLibrary( std::string const & path ):
+    TypedDynamicLibrary( path.data() )
+  {}
+
+  TypedDynamicLibrary( DynamicLibrary && src);
+
+  TypedDynamicLibrary( TypedDynamicLibrary const & ) = delete;
+
+  TypedDynamicLibrary( TypedDynamicLibrary && src );
 
   template< typename T >
   T getSymbol( char const * const name ) const
-  {
-    auto const iter = m_symbols.find( name );
-    LVARRAY_ERROR_IF( iter == m_symbols.end(),
-                      "Symbol \"" << name << "\" not found in the exported symbol table.\n" <<
-                      "table contains:\n" << m_symbols );
-
-    std::pair< void *, std::type_index > const value = iter->second;
-
-    LVARRAY_ERROR_IF( value.second != std::type_index( typeid( T ) ),
-                      "Symbol \"" << name << "\" found but it has type " <<
-                      LvArray::demangle( value.second.name() ) << " not " << LvArray::demangleType< T >() );
-
-    return reinterpret_cast< T >( value.first );
-  }
+  { return reinterpret_cast< T >( getSymbolCheckType( name, std::type_index( typeid( T ) ) ) ); }
 
 private:
-  SymbolTable getSymbolTable();
 
-  SymbolTable const m_symbols;
+  void * getSymbolCheckType( char const * const name, std::type_index const expectedType ) const;
+
+  SymbolTable m_symbols;
 };
 
 
 class Compiler
 {
 public:
-  Compiler( std::string const & compileCommand, std::string const & linker, std::string const & linkArgs ):
-    m_compileCommand( compileCommand ),
-    m_linker( linker ),
-    m_linkArgs( linkArgs )
-  {}
+  Compiler( std::string const & compileCommand, std::string const & linker, std::string const & linkArgs );
 
   DynamicLibrary createDynamicLibrary( std::string const & filePath,
                                        std::vector< std::string > const & defines,
                                        std::string const & outputObject,
-                                       std::string const & outputLibrary ) const
-  {
-  #if defined(__CUDACC__)
-    std::string compileCommand = m_compileCommand + " -Xcompiler -fPIC -c " + filePath + " -o " + outputObject;
-  #else
-    std::string compileCommand = m_compileCommand + " -fPIC -c " + filePath + " -o " + outputObject;
-  #endif
-
-    for ( std::string const & define : defines )
-    { compileCommand += " -D " + define; }
-
-    LVARRAY_LOG( "\nCompiling " << filePath );
-    LVARRAY_LOG_VAR( compileCommand );
-    LVARRAY_ERROR_IF( std::system( compileCommand.data() ) != 0, compileCommand );
-
-    std::string linkCommand = m_linker + " -shared " + outputObject + " " + m_linkArgs + " -o " + outputLibrary;
-
-    LVARRAY_LOG( "\nLinking " << outputObject );
-    LVARRAY_LOG_VAR( linkCommand );
-    LVARRAY_ERROR_IF( std::system( linkCommand.data() ) != 0, linkCommand );
-
-    return DynamicLibrary( outputLibrary );
-  }
+                                       std::string const & outputLibrary ) const;
 
 private:
   std::string const m_compileCommand;
@@ -138,21 +110,7 @@ public:
                                            std::string const & templateParams,
                                            std::string const & headerFile,
                                            std::string const & outputObject,
-                                           std::string const & outputLibrary ) const
-  {
-    char const * const sourceFile = "/usr/WS2/corbett5/LvArray/src/jitti/templateSource.cpp";
-
-    std::vector< std::string > defines = {
-      "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'",
-      "JITTI_TEMPLATE_FUNCTION=" + templateFunction,
-      "JITTI_TEMPLATE_PARAMS=\"" + templateParams + "\""
-    };
-
-    return Compiler::createDynamicLibrary( sourceFile,
-                                           defines,
-                                           outputObject,
-                                           outputLibrary );
-  }
+                                           std::string const & outputLibrary ) const;
 
 };
 
