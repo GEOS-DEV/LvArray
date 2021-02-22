@@ -228,17 +228,17 @@ struct printf_Helper< long long int >
  * @tparam BUFFER_TYPE The type of buffer used by @p view.
  * @param view The matrix view object to print.
  */
-#define MAKE_PRINT_MATVIEW(COL_TYPE, INDEX_TYPE, LITOKEN,GITOKEN) \
-template< typename POLICY,                                                                                                \
-          typename T,                                                                                                     \
-          template< typename > class BUFFER_TYPE >                                                                        \
-void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )                        \
-{                                                                                                                         \
-  INDEX_TYPE const numRows = view.numRows();                                                                              \
+#define MAKE_PRINT_MATVIEW( COL_TYPE, INDEX_TYPE, LITOKEN, GITOKEN ) \
+  template< typename POLICY,                                                                                                \
+            typename T,                                                                                                     \
+            template< typename > class BUFFER_TYPE >                                                                        \
+  void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )                        \
+  {                                                                                                                         \
+    INDEX_TYPE const numRows = view.numRows();                                                                              \
                                                                                                                           \
                                                                                                                           \
-  printf( "numRows = %4" LITOKEN " \n", numRows );                                                                        \
-  RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )     \
+    printf( "numRows = %4" LITOKEN " \n", numRows );                                                                        \
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )     \
     {                                                                                                                     \
       INDEX_TYPE const * const ncols = view.getSizes();                                                                   \
       INDEX_TYPE const * const row_indexes = view.getOffsets();                                                           \
@@ -273,13 +273,13 @@ void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYP
       }                                                                                                                   \
                                                                                                                           \
     } );                                                                                                                  \
-  std::cout<<std::endl;                                                                                                   \
-}
+    std::cout<<std::endl;                                                                                                   \
+  }
 
-MAKE_PRINT_MATVIEW( int, int, "d","d");
-MAKE_PRINT_MATVIEW( int, long long int, "d","lld");
-MAKE_PRINT_MATVIEW( long int, long long int, "ld","lld");
-MAKE_PRINT_MATVIEW( long long int, long long int, "lld","lld");
+MAKE_PRINT_MATVIEW( int, int, "d", "d" );
+MAKE_PRINT_MATVIEW( int, long long int, "d", "lld" );
+MAKE_PRINT_MATVIEW( long int, long long int, "ld", "lld" );
+MAKE_PRINT_MATVIEW( long long int, long long int, "lld", "lld" );
 
 
 /**
