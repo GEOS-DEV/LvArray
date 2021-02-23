@@ -41,7 +41,6 @@ def getLinkArgs( linkDirectories, linkLibraries ):
                 command.append( lib )
             else:
                 command.append( "-l" + lib )
-    
 
     print(command)
     return " ".join( command )
@@ -57,10 +56,12 @@ def main():
                          help="The path of the header file to generate." )
     parser.add_argument( "--linker", dest="linker", required=True, type=str,
                          help="The program to use for linking" )
-    parser.add_argument( "--linkDirectories", dest="linkDirectories", required=True, type=str, nargs="*",
-                         help="The directories to add to the library search path." )
-    parser.add_argument( "--linkLibraries", dest="linkLibraries", required=True, type=str, nargs="*",
-                         help="The libraries to link against")
+    parser.add_argument( "--includeDirectories", dest="includeDirectories", required=False, type=str, nargs="*",
+                         default=[], help="Extra directories to include." )
+    parser.add_argument( "--linkDirectories", dest="linkDirectories", required=False, type=str, nargs="*",
+                         default=[], help="The directories to add to the library search path." )
+    parser.add_argument( "--linkLibraries", dest="linkLibraries", required=False, type=str, nargs="*",
+                         default=[], help="The libraries to link against")
     args = parser.parse_args()
 
     compileCommandsPath = os.path.abspath( args.compileCommandsPath )
@@ -76,6 +77,9 @@ def main():
     headerFilePath = os.path.abspath( args.headerFilePath )
 
     compileCommand = getCompileCommand( compileCommandsPath, cppFilePath )
+    for includeDir in args.includeDirectories:
+        compileCommand += " -I" + includeDir
+
     linkCommand = getLinkArgs( args.linkDirectories, args.linkLibraries )
 
     includeGuard = "GUARD_" + str( abs( hash( compileCommand ) ) )

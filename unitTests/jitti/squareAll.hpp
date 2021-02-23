@@ -1,6 +1,7 @@
 // Source includes
 #include "../../src/ArrayView.hpp"
 #include "../../src/ChaiBuffer.hpp"
+#include "../../src/jitti/jitti.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>

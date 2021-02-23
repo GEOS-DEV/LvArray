@@ -179,13 +179,11 @@ DynamicLibrary Compiler::createDynamicLibrary( std::string const & filePath,
   for ( std::string const & define : defines )
   { compileCommand += " -D " + define; }
 
-  LVARRAY_LOG( "\nCompiling " << filePath );
   LVARRAY_LOG_VAR( compileCommand );
   LVARRAY_ERROR_IF( std::system( compileCommand.data() ) != 0, compileCommand );
 
   std::string linkCommand = m_linker + " -shared " + outputObject + " " + m_linkArgs + " -o " + outputLibrary;
 
-  LVARRAY_LOG( "\nLinking " << outputObject );
   LVARRAY_LOG_VAR( linkCommand );
   LVARRAY_ERROR_IF( std::system( linkCommand.data() ) != 0, linkCommand );
 
@@ -199,12 +197,15 @@ TypedDynamicLibrary TemplateCompiler::instantiateTemplate( std::string const & t
                                                            std::string const & outputObject,
                                                            std::string const & outputLibrary ) const
 {
-  char const * const sourceFile = "/usr/WS2/corbett5/LvArray/src/jitti/templateSource.cpp";
+  std::string const currentFile = __FILE__;
+  std::string const sourceFile = currentFile.substr( 0, currentFile.size() - ( sizeof( "jitti.cpp" ) - 1 ) )
+                                 + "templateSource.cpp";
 
   std::vector< std::string > defines = {
     "JITTI_TEMPLATE_HEADER_FILE='\"" + headerFile + "\"'",
     "JITTI_TEMPLATE_FUNCTION=" + templateFunction,
-    "JITTI_TEMPLATE_PARAMS=\"" + templateParams + "\""
+    "JITTI_TEMPLATE_PARAMS=\"" + templateParams + "\"",
+    "JITTI_TEMPLATE_PARAMS_STRING='\"" + templateParams + "\"'"
   };
 
   return Compiler::createDynamicLibrary( sourceFile, defines, outputObject, outputLibrary );

@@ -1,5 +1,3 @@
 #pragma once
 
 #cmakedefine JITTI_OUTPUT_DIR "@JITTI_OUTPUT_DIR@"
-
-#cmakedefine JITTI_RAJA_LIBRARY "@JITTI_RAJA_LIBRARY@"

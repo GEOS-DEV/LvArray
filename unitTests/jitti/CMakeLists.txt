@@ -10,8 +10,6 @@ blt_add_library( NAME squareAllJIT
 # The second set is to create the generated header. It parses the output compile_commands.json file to get the
 # command used to build squareAllJIT.cpp. It adapts this to compile the dynamic library. However we need to manually
 # specify the link commands. As with above we don't want to link to anything except if we're using cuda.
-# The CMake logic is actually simpler than the above cases because it naturally pulls out all the includes and 
-# by default doesn't link to anything.
 set( linkDirectories "" )
 set( linkLibraries "" )
 
