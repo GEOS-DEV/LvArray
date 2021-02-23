@@ -26,7 +26,8 @@ add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.
                                    --hpp ${CMAKE_BINARY_DIR}/include/squareAllCompileCommands.hpp
                                    --linker ${CMAKE_CXX_COMPILER}
                                    --linkDirectories ${linkDirectories}
-                                   --linkLibraries ${linkLibraries} )
+                                   --linkLibraries ${linkLibraries}
+                                   --includeDirectories ${CMAKE_BINARY_DIR}/include )
 
 blt_add_executable( NAME testTemplateCompiler
                     SOURCES testTemplateCompiler.cpp

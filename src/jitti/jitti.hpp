@@ -83,7 +83,10 @@ private:
 class Compiler
 {
 public:
-  Compiler( std::string const & compileCommand, std::string const & linker, std::string const & linkArgs );
+  Compiler( std::string const & compileCommand,
+            bool const cuda,
+            std::string const & linker,
+            std::string const & linkArgs );
 
   DynamicLibrary createDynamicLibrary( std::string const & filePath,
                                        std::vector< std::string > const & defines,
@@ -92,6 +95,7 @@ public:
 
 private:
   std::string const m_compileCommand;
+  bool const m_cuda;
   std::string const m_linker;
   std::string const m_linkArgs;
 };
@@ -101,9 +105,10 @@ class TemplateCompiler: private Compiler
 {
 public:
   TemplateCompiler( std::string const & compileCommand,
+                    bool const cuda,
                     std::string const & linker,
                     std::string const & linkArgs ) :
-    Compiler( compileCommand, linker, linkArgs )
+    Compiler( compileCommand, cuda, linker, linkArgs )
   {}
 
   TypedDynamicLibrary instantiateTemplate( std::string const & templateFunction,

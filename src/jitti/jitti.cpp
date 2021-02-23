@@ -3,6 +3,7 @@
 
 // System includes
 #include <dlfcn.h>
+#include <regex>
 
 namespace jitti
 {
@@ -158,8 +159,12 @@ void * TypedDynamicLibrary::getSymbolCheckType( char const * const name, std::ty
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Compiler::Compiler( std::string const & compileCommand, std::string const & linker, std::string const & linkArgs ):
+Compiler::Compiler( std::string const & compileCommand,
+                    bool const cuda,
+                    std::string const & linker,
+                    std::string const & linkArgs ):
   m_compileCommand( compileCommand ),
+  m_cuda( cuda ),
   m_linker( linker ),
   m_linkArgs( linkArgs )
 {}
@@ -170,14 +175,27 @@ DynamicLibrary Compiler::createDynamicLibrary( std::string const & filePath,
                                                std::string const & outputObject,
                                                std::string const & outputLibrary ) const
 {
-#if defined(__CUDACC__)
-  std::string compileCommand = m_compileCommand + " -Xcompiler -fPIC -c " + filePath + " -o " + outputObject;
-#else
-  std::string compileCommand = m_compileCommand + " -fPIC -c " + filePath + " -o " + outputObject;
-#endif
+  std::string compileCommand = m_compileCommand;
+  if( m_cuda )
+  {
+    compileCommand += " -Xcompiler";
+  }
 
+  compileCommand += " -fPIC -c " + filePath + " -o " + outputObject;
+
+  std::string joinedDefines;
   for ( std::string const & define : defines )
-  { compileCommand += " -D " + define; }
+  { joinedDefines += " -D " + define; }
+
+  // You need to escape commas for NVCC.
+  if( m_cuda )
+  {
+    compileCommand += std::regex_replace( joinedDefines, std::regex( "," ), "\\," );
+  }
+  else
+  {
+    compileCommand += joinedDefines;
+  }
 
   LVARRAY_LOG_VAR( compileCommand );
   LVARRAY_ERROR_IF( std::system( compileCommand.data() ) != 0, compileCommand );

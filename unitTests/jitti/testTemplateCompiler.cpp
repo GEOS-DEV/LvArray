@@ -12,6 +12,12 @@ using SquareAllType = void (*)( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, L
 
 using AddNType = SquareAllType;
 
+#if defined( LVARRAY_USE_CUDA )
+constexpr bool compilerIsNVCC = true;
+#else
+constexpr bool compilerIsNVCC = false;
+#endif
+
 void test( SquareAllType squareAll )
 {
   // Prepare the input.
@@ -40,7 +46,7 @@ TEST( TemplateCompiler, serial )
   std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITSerial.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
+  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
 
   // Compile the source and load it as a dynamic library.
   jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
@@ -66,7 +72,7 @@ TEST( TemplateCompiler, OpenMP )
   std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITOpenMP.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
+  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
 
   // Compile the source and load it as a dynamic library.
   jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
@@ -83,7 +89,7 @@ TEST( TemplateCompiler, OpenMP )
 }
 #endif
 
-#if defined( USE_CUDA )
+#if defined( LVARRAY_USE_CUDA )
 TEST( TemplateCompiler, CUDA )
 {
   jitti::CompilationInfo const info = getCompilationInfo();
@@ -94,7 +100,7 @@ TEST( TemplateCompiler, CUDA )
   std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITCUDA.so";
 
   // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
+  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
 
   // Compile the source and load it as a dynamic library.
   jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
@@ -107,7 +113,7 @@ TEST( TemplateCompiler, CUDA )
   std::string const name = info.function + "< " + templateParams + " >";
   SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
 
-  test( squareAll, "RAJA::policy::cuda::cuda_exec<32ul, false>" );
+  test( squareAll );
 }
 #endif
 
