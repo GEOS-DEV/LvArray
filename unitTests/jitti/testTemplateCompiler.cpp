@@ -12,13 +12,7 @@ using SquareAllType = void (*)( LvArray::ArrayView< int, 1, 0, std::ptrdiff_t, L
 
 using AddNType = SquareAllType;
 
-#if defined( LVARRAY_USE_CUDA )
-constexpr bool compilerIsNVCC = true;
-#else
-constexpr bool compilerIsNVCC = false;
-#endif
-
-void test( SquareAllType squareAll )
+void test( jitti::Function< SquareAllType > const & squareAll )
 {
   // Prepare the input.
   LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::ChaiBuffer > output( 100 );
@@ -36,61 +30,38 @@ void test( SquareAllType squareAll )
   { EXPECT_EQ( output[ i ], i * i ); }
 }
 
-TEST( TemplateCompiler, serial )
+TEST( compileTemplate, serial )
 {
-  jitti::CompilationInfo const info = getCompilationInfo();
+  jitti::CompilationInfo info = getCompilationInfo();
 
-  std::string const templateParams = "RAJA::loop_exec";
+  info.templateParams = "RAJA::loop_exec";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITSerial.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITSerial.so";
+  info.outputObject = JITTI_OUTPUT_DIR "/squareAllJITSerial.o";
+  info.outputLibrary = JITTI_OUTPUT_DIR "/libsquareAllJITSerial.so";
 
-  // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
-
-  // Compile the source and load it as a dynamic library.
-  jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
-                                                                templateParams,
-                                                                info.header,
-                                                                outputObject,
-                                                                outputLib );
-
-  std::string const name = info.function + "< " + templateParams + " >";
-  SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
+  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info );
 
   test( squareAll );
 }
 
 #if defined( RAJA_ENABLE_OPENMP )
-TEST( TemplateCompiler, OpenMP )
+TEST( compileTemplate, OpenMP )
 {
-  jitti::CompilationInfo const info = getCompilationInfo();
+  jitti::CompilationInfo info = getCompilationInfo();
 
-  std::string const templateParams = "RAJA::omp_parallel_for_exec";
+  info.templateParams = "RAJA::omp_parallel_for_exec";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITOpenMP.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITOpenMP.so";
+  info.outputObject = JITTI_OUTPUT_DIR "/squareAllJITOpenMP.o";
+  info.outputLibrary = JITTI_OUTPUT_DIR "/libsquareAllJITOpenMP.so";
 
-  // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
-
-  // Compile the source and load it as a dynamic library.
-  jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
-                                                                templateParams,
-                                                                info.header,
-                                                                outputObject,
-                                                                outputLib );
-
-  // Load the function from the library.
-  std::string const name = info.function + "< " + templateParams + " >";
-  SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
+  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info );
 
   test( squareAll );
 }
 #endif
 
 #if defined( LVARRAY_USE_CUDA )
-TEST( TemplateCompiler, CUDA )
+TEST( compileTemplate, CUDA )
 {
   jitti::CompilationInfo const info = getCompilationInfo();
 
@@ -99,23 +70,31 @@ TEST( TemplateCompiler, CUDA )
   std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITCUDA.o";
   std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITCUDA.so";
 
-  // The compiler to use and the standard compilation flags. These would be set by CMake in a header file.
-  jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
-
-  // Compile the source and load it as a dynamic library.
-  jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
-                                                                templateParams,
-                                                                info.header,
-                                                                outputObject,
-                                                                outputLib );
-
-  // Load the function from the library.
-  std::string const name = info.function + "< " + templateParams + " >";
-  SquareAllType const squareAll = dl.getSymbol< SquareAllType >( name.c_str() );
+  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info.compileCommand,
+                                                                                              compilerIsNVCC,
+                                                                                              info.linker,
+                                                                                              info.linkArgs,
+                                                                                              info.function,
+                                                                                              templateParams,
+                                                                                              info.header,
+                                                                                              outputObject,
+                                                                                              outputLib );
 
   test( squareAll );
 }
 #endif
+
+TEST( TypedCache, serial )
+{
+  jitti::CompilationInfo info = getCompilationInfo();
+  jitti::TypedCache< SquareAllType > cache( info.compilationTime, JITTI_OUTPUT_DIR );
+
+  info.templateParams = "RAJA::loop_exec";
+  
+  jitti::Function< SquareAllType > const & squareAll = cache.getOrLoadOrCompile( info );
+
+  test( squareAll );
+}
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )

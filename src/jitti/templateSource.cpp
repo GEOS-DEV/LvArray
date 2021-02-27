@@ -14,12 +14,18 @@
   #error JITTI_TEMPLATE_PARAMS_STRING must be defined!
 #endif
 
-// Include the header the template is defined in, this must include jitti.hpp.
+// Include the header the template is defined in.
 #include JITTI_TEMPLATE_HEADER_FILE
+
+#include <unordered_map>
+#include <typeindex>
+#include <string>
+
+using SymbolTable = std::unordered_map< std::string, std::pair< void *, std::type_index > >;
 
 auto instantiation = JITTI_TEMPLATE_FUNCTION< JITTI_TEMPLATE_PARAMS >;
 
-jitti::SymbolTable exportedSymbols = {
+SymbolTable exportedSymbols = {
   { std::string( STRINGIZE( JITTI_TEMPLATE_FUNCTION ) "< " JITTI_TEMPLATE_PARAMS_STRING " >" ),
      { reinterpret_cast< void * >( instantiation ), std::type_index( typeid( instantiation ) ) } }
 };
@@ -27,7 +33,7 @@ jitti::SymbolTable exportedSymbols = {
 extern "C"
 {
 
-jitti::SymbolTable const * getExportedSymbols()
+SymbolTable const * getExportedSymbols()
 { 
   return &exportedSymbols;
 }
