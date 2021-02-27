@@ -1,6 +1,8 @@
 // Source includes
+#include "jittiConfig.hpp"
 #include "squareAllJIT.hpp"
-#include "../../src/jitti/jitti.hpp"
+#include "../../src/jitti/Function.hpp"
+#include "../../src/jitti/Cache.hpp"
 #include "../../src/Array.hpp"
 #include "../../src/ChaiBuffer.hpp"
 
@@ -39,7 +41,7 @@ TEST( compileTemplate, serial )
   info.outputObject = JITTI_OUTPUT_DIR "/squareAllJITSerial.o";
   info.outputLibrary = JITTI_OUTPUT_DIR "/libsquareAllJITSerial.so";
 
-  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info );
+  jitti::Function< SquareAllType > const squareAll( info );
 
   test( squareAll );
 }
@@ -54,7 +56,7 @@ TEST( compileTemplate, OpenMP )
   info.outputObject = JITTI_OUTPUT_DIR "/squareAllJITOpenMP.o";
   info.outputLibrary = JITTI_OUTPUT_DIR "/libsquareAllJITOpenMP.so";
 
-  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info );
+  jitti::Function< SquareAllType > const squareAll( info );
 
   test( squareAll );
 }
@@ -63,31 +65,23 @@ TEST( compileTemplate, OpenMP )
 #if defined( LVARRAY_USE_CUDA )
 TEST( compileTemplate, CUDA )
 {
-  jitti::CompilationInfo const info = getCompilationInfo();
+  jitti::CompilationInfo info = getCompilationInfo();
 
-  std::string const templateParams = "RAJA::cuda_exec< 32 >";
+  info.templateParams = "RAJA::cuda_exec< 32 >";
   
-  std::string const outputObject = JITTI_OUTPUT_DIR "/squareAllJITCUDA.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libsquareAllJITCUDA.so";
+  info.outputObject = JITTI_OUTPUT_DIR "/squareAllJITCUDA.o";
+  info.outputLibrary = JITTI_OUTPUT_DIR "/libsquareAllJITCUDA.so";
 
-  jitti::Function< SquareAllType > const squareAll = jitti::compileTemplate< SquareAllType >( info.compileCommand,
-                                                                                              compilerIsNVCC,
-                                                                                              info.linker,
-                                                                                              info.linkArgs,
-                                                                                              info.function,
-                                                                                              templateParams,
-                                                                                              info.header,
-                                                                                              outputObject,
-                                                                                              outputLib );
+  jitti::Function< SquareAllType > const squareAll( info );
 
   test( squareAll );
 }
 #endif
 
-TEST( TypedCache, serial )
+TEST( Cache, serial )
 {
   jitti::CompilationInfo info = getCompilationInfo();
-  jitti::TypedCache< SquareAllType > cache( info.compilationTime, JITTI_OUTPUT_DIR );
+  jitti::Cache< SquareAllType > cache( info.compilationTime, JITTI_OUTPUT_DIR );
 
   info.templateParams = "RAJA::loop_exec";
   

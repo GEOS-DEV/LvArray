@@ -17,15 +17,11 @@
 // Include the header the template is defined in.
 #include JITTI_TEMPLATE_HEADER_FILE
 
-#include <unordered_map>
-#include <typeindex>
-#include <string>
-
-using SymbolTable = std::unordered_map< std::string, std::pair< void *, std::type_index > >;
+#include "types.hpp"
 
 auto instantiation = JITTI_TEMPLATE_FUNCTION< JITTI_TEMPLATE_PARAMS >;
 
-SymbolTable exportedSymbols = {
+jitti::SymbolTable exportedSymbols = {
   { std::string( STRINGIZE( JITTI_TEMPLATE_FUNCTION ) "< " JITTI_TEMPLATE_PARAMS_STRING " >" ),
      { reinterpret_cast< void * >( instantiation ), std::type_index( typeid( instantiation ) ) } }
 };
@@ -33,7 +29,7 @@ SymbolTable exportedSymbols = {
 extern "C"
 {
 
-SymbolTable const * getExportedSymbols()
+jitti::SymbolTable const * getExportedSymbols()
 { 
   return &exportedSymbols;
 }

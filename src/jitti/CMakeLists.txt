@@ -1,9 +1,15 @@
 set( jitti_headers
-     jitti.hpp
+     types.hpp
+     CompilationInfo.hpp
+     utils.hpp
+     Function.hpp
+     Cache.hpp
    )
 
 set( jitti_sources
-     jitti.cpp
+     CompilationInfo.cpp
+     Function.cpp
+     utils.cpp
     )
 
 blt_add_library( NAME             jitti
