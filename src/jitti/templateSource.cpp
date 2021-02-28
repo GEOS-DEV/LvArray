@@ -19,6 +19,12 @@
 
 #include "types.hpp"
 
+// Done so we don't have to #include ../Macros.hpp
+#if !defined( STRINGIZE )
+  #define STRINGIZE_NX( A ) #A
+  #define STRINGIZE( A ) STRINGIZE_NX( A )
+#endif
+
 auto instantiation = JITTI_TEMPLATE_FUNCTION< JITTI_TEMPLATE_PARAMS >;
 
 jitti::SymbolTable exportedSymbols = {

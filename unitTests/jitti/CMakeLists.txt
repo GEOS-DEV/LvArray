@@ -1,3 +1,32 @@
+#
+# Specify list of tests
+#
+set(testSources
+    testUtils.cpp
+    testCompilationInfo.cpp
+    testFunction.cpp
+   )
+
+#
+# Add gtest C++ based tests
+#
+foreach(test ${testSources})
+    get_filename_component( test_name ${test} NAME_WE )
+    blt_add_executable( NAME ${test_name}
+                        SOURCES ${test}
+                        OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
+                        DEPENDS_ON gtest jitti )
+
+    target_include_directories( ${test_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
+
+    blt_add_test( NAME ${test_name}
+                  COMMAND ${test_name} )
+
+    install(TARGETS ${test_name}
+            DESTINATION bin)
+
+endforeach()
+
 # Logic for testTemplateCompiler
 # The first step is to compile the library that will hold the compilation info. It doesn't have to be in a
 # separate library from the test executable but it makes the dependency on the generated header cleaner.

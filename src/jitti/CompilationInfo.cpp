@@ -47,7 +47,7 @@ time_t getCompileTime( char const * const date, char const * const time )
   struct tm dateTime {};
   dateTime.tm_mon = monthStringToInt( date );
   dateTime.tm_mday = std::atoi( date + 4 );
-  dateTime.tm_year = std::atoi( date + 7 );
+  dateTime.tm_year = std::atoi( date + 7 ) - 1900;
 
   dateTime.tm_hour = std::atoi( time );
   dateTime.tm_min = std::atoi( time + 3 );

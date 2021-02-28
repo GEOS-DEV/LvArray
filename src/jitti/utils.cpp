@@ -85,11 +85,10 @@ void readDirectoryFiles( time_t const time,
     if( fileName.size() > 3 && fileName.substr( fileName.size() - 3 ) == ".so" )
     {
       std::string const filePath = directory + "/" + fileName;
-
       struct stat fileInfo;
       LVARRAY_ERROR_IF( stat( filePath.c_str(), &fileInfo ) != 0, "Error stat'ing '" << filePath << "'" );
 
-      if( fileInfo.st_mtime > time )
+      if( fileInfo.st_mtime >= time )
       {
         auto const result = libraries.emplace( std::make_pair( std::move( fileName ), std::move( filePath ) ) );
         if( result.second )

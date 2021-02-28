@@ -20,7 +20,9 @@ blt_add_library( NAME             jitti
 
 target_include_directories( jitti PUBLIC ${CMAKE_BINARY_DIR}/include )
 
-set( JITTI_OUTPUT_DIR ${CMAKE_BINARY_DIR}/lib/jitti )
+set( JITTI_TEST_OUTPUT_DIR ${CMAKE_BINARY_DIR}/tests/lib )
+set( JITTI_CXX_COMPILER ${CMAKE_CXX_COMPILER} )
+set( JITTI_LINKER ${CMAKE_CXX_COMPILER} )
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/../../src/jitti/jittiConfig.hpp.in
                 ${CMAKE_BINARY_DIR}/include/jittiConfig.hpp )
 

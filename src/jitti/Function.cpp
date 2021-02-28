@@ -21,7 +21,16 @@ namespace internal
 TypedDynamicLibrary::TypedDynamicLibrary( std::string const & path ):
   m_handle( dlopen( path.c_str(), RTLD_LAZY ) )
 {
-  LVARRAY_ERROR_IF( m_handle == nullptr, "dlopen( " << path << " ) failed." );
+  if ( m_handle == nullptr )
+  {
+    char const * const error = dlerror();
+    if ( error != nullptr )
+    {
+      LVARRAY_ERROR( "dlopen( " << path << " ) failed.\n" << error );
+    }
+
+    LVARRAY_ERROR( "dlopen( " << path << " ) failed." );
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
