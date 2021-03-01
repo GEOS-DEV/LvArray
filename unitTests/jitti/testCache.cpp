@@ -19,21 +19,29 @@ namespace testing
   constexpr bool compilerIsNVCC = false;
 #endif
 
-// TEST( simpleTemplates, add )
-// {
-//   jitti::CompilationInfo info;
+TEST( simpleTemplates, add )
+{
+  jitti::CompilationInfo info;
 
-//   info.compileCommand = JITTI_CXX_COMPILER " -std=c++14";
-//   info.compilerIsNVCC = compilerIsNVCC;
-//   info.linker = JITTI_LINKER;
-//   info.linkArgs = "";
-//   info.templateFunction = "add";
-//   info.templateParams = "5";
-//   info.headerFile = simpleTemplatesPath;
+  info.compileCommand = JITTI_CXX_COMPILER " -std=c++14";
+  info.compilerIsNVCC = compilerIsNVCC;
+  info.linker = JITTI_LINKER;
+  info.linkArgs = "";
+  info.templateFunction = "add";
+  info.templateParams = "5";
+  info.headerFile = simpleTemplatesPath;
 
-//   info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_add_5.o";
-//   info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_add_5.so";
-// }
+  {
+    jitti::Cache< int (*)( int ) > cache( 0, JITTI_TEST_OUTPUT_DIR );
+    EXPECT_EQ( cache.getOrLoadOrCompile( info )( 7 ), 12 );
+    EXPECT_EQ( cache.get( "add< 5 >" )( 8 ), 13 );
+
+    info.templateParams = "5";
+    EXPECT_FALSE( cache.tryGetOrLoad( "add< 8 >" ) );
+    EXPECT_EQ( ache.getOrLoadOrCompile( info )( 8 ), 16 );
+  }
+
+}
 
 } // namespace testing
 } // namespace jitti

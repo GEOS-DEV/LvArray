@@ -12,6 +12,22 @@
 namespace jitti
 {
 
+template< typename ARG0, typename ... ARGS >
+std::string getInstantiationName( std::string const & templateName,
+                                  ARG0 const & firstTemplateParam,
+                                  ARGS const & ... remainingTemplateParams )
+{
+  std::string output = templateName;
+  output += "< " + firstTemplateParam;
+  LvArray::typeManipulation::forEachArg( [&stream] ( auto const & param )
+  {
+    output += ", " + param;
+  }, remainingTemplateParams... );
+
+  output += " >";
+  return output;
+}
+
 /**
  * 
  */
@@ -19,6 +35,10 @@ template< typename FUNC_POINTER >
 class Cache
 {
 public:
+
+  /**
+   * 
+   */
   Cache( time_t const compilationTime,
          std::string const & libraryOutputDir,
          std::vector< std::string > const & libraryDirs={} ):
@@ -31,6 +51,12 @@ public:
     refresh();
   }
 
+  Cache( Cache const & ) = delete;
+  Cache( Cache && ) = delete;
+
+  /**
+   * 
+   */
   void refresh() const
   {
     for( std::string const & libraryDir : m_libraryDirs )
@@ -39,73 +65,68 @@ public:
     }
   }
 
-  Function< FUNC_POINTER > const & get( std::string const & functionName ) const
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const * tryGet( std::string const & instantiationName )
   {
-    Function< FUNC_POINTER > const * const function = getImpl( functionName );
-    LVARRAY_ERROR_IF( function == nullptr,
-                      "Could not find a function called '" << functionName << "' in the cache. " <<
-                      "Maybe you need to compile it (use getOrLoadOrCompile)." );
-
-    return *function;
-  }
-
-  Function< FUNC_POINTER > const & getOrLoad( std::string const & functionName ) const
-  {
-    Function< FUNC_POINTER > const * const function = getOrLoadImpl( functionName );
-    LVARRAY_ERROR_IF( function == nullptr,
-                      "Could not find a function called '" << functionName << "' in the cache. " <<
-                      "Maybe you need to compile it (use getOrLoadOrCompile)." );
-
-    return *function;
-  }
-
-  Function< FUNC_POINTER > const & getOrLoadOrCompile( CompilationInfo & info )
-  {
-    std::string const functionName = info.templateFunction + "< " + info.templateParams + " >";
-
-    Function< FUNC_POINTER > const * function = getOrLoadImpl( functionName );
-    if( function != nullptr )
-    {
-      return *function;
-    }
-
-    // Otherwise we have to compile it.
-    info.outputLibrary = m_libraryOutputDir + "/" + getLibraryName( functionName );
-    info.outputObject = info.outputLibrary.substr( 0, info.outputLibrary.size() - 3 ) + ".o";
-    auto const result = m_cache.emplace( std::make_pair( functionName, Function< FUNC_POINTER >( info ) ) );
-    LVARRAY_ERROR_IF( !result.second, "This shouldn't be possible." );
-    return result.first->second;
-  }
-
-private:
-
-  Function< FUNC_POINTER > const * getImpl( std::string const & functionName )
-  {
-    auto const iter = m_cache.find( functionName );
+    auto const iter = m_cache.find( instantiationName );
     if( iter == m_cache.end() )
     { return nullptr; }
 
     return &iter->second;
   }
-
-  Function< FUNC_POINTER > const * getOrLoadImpl( std::string const & functionName )
+  
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const * tryGet( CompilationInfo const & info )
   {
-    Function< FUNC_POINTER > const * function = getImpl( functionName );
+    return tryGet( getInstantiationName( info.templateFunction, info.templateParams ) );
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const & get( std::string const & instantiationName ) const
+  {
+    Function< FUNC_POINTER > const * const function = tryGet( instantiationName );
+    LVARRAY_ERROR_IF( function == nullptr,
+                      "Could not find an instantiation called '" << instantiationName << "' in the cache. " <<
+                      "Maybe you need to compile it (use getOrLoadOrCompile)." );
+
+    return *function;
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const & get( CompilationInfo const & info ) const
+  {
+    return get( getInstantiationName( info.templateFunction, info.templateParams ) );
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const * tryGetOrLoad( std::string const & instantiationName )
+  {
+    Function< FUNC_POINTER > const * function = getImpl( instantiationName );
     if( function != nullptr )
     {
       return function;
     }
 
     // Then look among those already compiled.
-    std::string const libraryName = getLibraryName( functionName );
+    std::string const libraryName = getLibraryName( instantiationName );
     auto const iter = m_libraries.find( libraryName );
     if( iter != m_libraries.end() )
     {
-      auto const result = m_cache.emplace( std::make_pair( functionName, Function< FUNC_POINTER >( iter->second ) ) );
+      auto const result = m_cache.emplace( std::make_pair( instantiationName, Function< FUNC_POINTER >( iter->second ) ) );
       LVARRAY_ERROR_IF( !result.second, "This shouldn't be possible." );
 
       function = &result.first->second;
-      LVARRAY_ERROR_IF_NE_MSG( function->getName(), functionName,
+      LVARRAY_ERROR_IF_NE_MSG( function->getName(), instantiationName,
                                "Expected a different function at '" << iter->second << "'." );
 
       return function;
@@ -114,8 +135,60 @@ private:
     return nullptr;
   }
 
-  std::string getLibraryName( std::string const & functionName )
-  { return "lib" + std::to_string( std::hash< std::string >{}( functionName ) ) + ".so"; }
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const * tryGetOrLoad( CompilationInfo const & info )
+  {
+    return tryGetOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName ) const
+  {
+    Function< FUNC_POINTER > const * const function = tryGetOrLoad( instantiationName );
+    LVARRAY_ERROR_IF( function == nullptr,
+                      "Could not find an instantiation called '" << instantiationName << "' in the cache. " <<
+                      "Maybe you need to compile it (use getOrLoadOrCompile)." );
+
+    return *function;
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName ) const
+  {
+    return getOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
+  }
+
+  /**
+   * 
+   */
+  Function< FUNC_POINTER > const & getOrLoadOrCompile( CompilationInfo & info )
+  {
+    std::string const instantiationName = getInstantiationName( info.templateFunction, info.templateParams );
+
+    Function< FUNC_POINTER > const * function = getOrLoadImpl( instantiationName );
+    if( function != nullptr )
+    {
+      return *function;
+    }
+
+    // Otherwise we have to compile it.
+    info.outputLibrary = m_libraryOutputDir + "/" + getLibraryName( instantiationName );
+    info.outputObject = info.outputLibrary.substr( 0, info.outputLibrary.size() - 3 ) + ".o";
+    auto const result = m_cache.emplace( std::make_pair( instantiationName, Function< FUNC_POINTER >( info ) ) );
+    LVARRAY_ERROR_IF( !result.second, "This shouldn't be possible." );
+    return result.first->second;
+  }
+
+private:
+
+  std::string getLibraryName( std::string const & instantiationName )
+  { return "lib" + std::to_string( std::hash< std::string >{}( instantiationName ) ) + ".so"; }
 
   time_t const m_compilationTime;
 
