@@ -21,6 +21,8 @@ std::string compileTemplate( std::string const & compileCommand,
                              std::string const & outputObject,
                              std::string const & outputLibrary );
 
+void makeDirsForPath( std::string const & path );
+
 /**
  * 
  */

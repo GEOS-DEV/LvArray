@@ -1,4 +1,4 @@
-#include "jittiConfig.hpp"
+#include "jittiUnitTestConfig.hpp"
 #include "../../src/jitti/utils.hpp"
 #include "../../src/Macros.hpp"
 
@@ -75,20 +75,20 @@ TEST( utils, compileTemplate )
   std::string const headerFile = currentFile.substr( 0, currentFile.size() - ( sizeof( "testUtils.cpp" ) - 1 ) )
                                  + "simpleTemplates.hpp";
 
-  std::string const outputObject = JITTI_OUTPUT_DIR "/testUtilsAdd.o";
-  std::string const outputLib = JITTI_OUTPUT_DIR "/libtestUtilsAdd.so";
+  std::string const outputObject = JITTI_TEST_OUTPUT_DIR "/testUtilsAdd.o";
+  std::string const outputLib = JITTI_TEST_OUTPUT_DIR "/libtestUtilsAdd.so";
   remove( outputLib.c_str() );
   EXPECT_NE( access( outputLib.c_str(), R_OK | X_OK ), 0 ); 
 
-  std::string const ret = utils::compileTemplate( JITTI_CXX_COMPILER "-std=c++14",
-                                                   false,
-                                                   JITTI_LINKER,
-                                                   "",
-                                                   "add",
-                                                   "5",
-                                                   headerFile,
-                                                   outputObject,
-                                                   outputLib );
+  std::string const ret = utils::compileTemplate( JITTI_CXX_COMPILER " -std=c++14",
+                                                  false,
+                                                  JITTI_LINKER,
+                                                  "",
+                                                  "add",
+                                                  "5",
+                                                  headerFile,
+                                                  outputObject,
+                                                  outputLib );
 
   EXPECT_EQ( outputLib, ret );
   EXPECT_EQ( access( outputLib.c_str(), R_OK | X_OK ), 0 ); 

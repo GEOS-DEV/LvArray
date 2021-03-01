@@ -1,9 +1,14 @@
 // Source includes
-#include "jittiConfig.hpp"
-#include "../../src/jitti/Function.hpp"
+#include "jittiUnitTestConfig.hpp"
+#include "jitti/Function.hpp"
+
+#include "Array.hpp"
+#include "ChaiBuffer.hpp"
 
 #include "simpleTemplates.hpp"
 #include "moreComplicatedTemplates.hpp"
+#include "fullOnTemplates.hpp"
+#include "testFunctionCompileCommands.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
@@ -12,6 +17,12 @@ namespace jitti
 {
 namespace testing
 {
+
+#if defined(LVARRAY_USE_CUDA)
+  constexpr bool compilerIsNVCC = true;
+#else
+  constexpr bool compilerIsNVCC = false;
+#endif
 
 TEST( simpleTemplates, add )
 {
@@ -212,6 +223,139 @@ TEST( moreComplicatedTemplates, factory )
   EXPECT_EQ( LvArray::system::demangleType( *factoryDouble( 3.14 ) ), "Derived<double>" );
 }
 
+TEST( generatedCommands, add )
+{
+  jitti::CompilationInfo info;
+
+  info.compileCommand = testFunction_COMPILE_COMMAND;
+  info.compilerIsNVCC = compilerIsNVCC;
+  info.linker = testFunction_LINKER;
+  info.linkArgs = testFunction_LINK_ARGS;
+  info.templateFunction = "add";
+  info.templateParams = "7";
+  info.headerFile = simpleTemplatesPath;
+
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_generated_add7.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_generated_add7.so";
+
+  // Compile, load, and test add< 7 >.
+  jitti::Function< int (*)( int ) > const add7( info );
+  EXPECT_EQ( add7( 5 ), add< 7 >( 5 ) );
+}
+
+TEST( fullOnTemplates, getUmpireAllocatorName )
+{
+  jitti::CompilationInfo info;
+
+  info.compileCommand = testFunction_COMPILE_COMMAND;
+  info.compilerIsNVCC = compilerIsNVCC;
+  info.linker = testFunction_LINKER;
+  info.linkArgs = testFunction_LINK_ARGS;
+  info.templateFunction = "getUmpireAllocatorName";
+  info.templateParams = "int";
+  info.headerFile = fullOnTemplatesPath;
+
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_getUmpireAllocatorName_int.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_getUmpireAllocatorName_int.so";
+
+  // Compile, load, and test add< 7 >.
+  jitti::Function< std::string (*)( int * ) > const getUmpireAllocatorNameInt( info );
+  LvArray::Array< int, 1, RAJA::PERM_I, int, LvArray::ChaiBuffer > array( 10 );
+  EXPECT_EQ( getUmpireAllocatorNameInt( array.data() ), "HOST" );
+
+#if defined(LVARRAY_USE_CUDA)
+  array.move( LvArray::MemorySpace::GPU );
+  EXPECT_EQ( getUmpireAllocatorNameInt( array.data() ), "DEVICE" );
+#endif
+}
+
+TEST( fullOnTemplates, cubeAll )
+{
+  using FuncType = void (*)( LvArray::ArrayView< int, 1, 0, int, LvArray::ChaiBuffer > const &,
+                             LvArray::ArrayView< int const, 1, 0, int, LvArray::ChaiBuffer > const & );
+
+  jitti::CompilationInfo info;
+
+  info.compileCommand = testFunction_COMPILE_COMMAND;
+  info.compilerIsNVCC = compilerIsNVCC;
+  info.linker = testFunction_LINKER;
+  info.linkArgs = testFunction_LINK_ARGS;
+  info.templateFunction = "cubeAll";
+  info.templateParams = "RAJA::loop_exec";
+  info.headerFile = fullOnTemplatesPath;
+
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_fullOnTemplates_cubeAll_serial.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_fullOnTemplates_cubeAll_serial.so";
+
+  LvArray::Array< int, 1, RAJA::PERM_I, int, LvArray::ChaiBuffer > src( 10 );
+  LvArray::Array< int, 1, RAJA::PERM_I, int, LvArray::ChaiBuffer > dst( src );
+
+  for ( int i = 0; i < src.size(); ++i )
+  {
+    src[ i ] = i;
+  }
+
+  jitti::Function< FuncType > const cubeAll_loop_exec( info );
+  cubeAll_loop_exec( src, dst );
+
+  for( int i = 0; i < src.size(); ++i )
+  {
+    EXPECT_EQ( dst[ i ], src[ i ] * src[ i ] * src[ i ] );
+  }
+
+  dst.setValues< RAJA::loop_exec >( 0 );
+
+#if defined( RAJA_ENABLE_OPENMP )
+  info.templateParams = "RAJA::omp_parallel_for_exec";
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_fullOnTemplates_cubeAll_omp.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_fullOnTemplates_cubeAll_omp.so";
+  jitti::Function< FuncType > const cubeAll_omp( info );
+  cubeAll_omp( dst, src );
+
+  for( int i = 0; i < src.size(); ++i )
+  {
+    EXPECT_EQ( dst[ i ], src[ i ] * src[ i ] * src[ i ] );
+  }
+
+  dst.setValues< RAJA::loop_exec >( 0 );
+#endif
+
+#if defined( LVARRAY_USE_CUDA)
+  info.templateParams = "RAJA::cuda_exec< 32 >";
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_fullOnTemplates_cubeAll_cuda.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_fullOnTemplates_cubeAll_cuda.so";
+  jitti::Function< FuncType > const cubeAll_cuda( info );
+  cubeAll_cuda( dst, src );
+
+  dst.move( LvArray::MemorySpace::CPU );
+  for( int i = 0; i < src.size(); ++i )
+  {
+    EXPECT_EQ( dst[ i ], src[ i ] * src[ i ] * src[ i ] );
+  }
+#endif
+}
+
+TEST( Function, deathTest )
+{
+  jitti::CompilationInfo info;
+
+  info.compileCommand = JITTI_CXX_COMPILER " -std=c++14";
+  info.compilerIsNVCC = false;
+  info.linker = JITTI_LINKER;
+  info.linkArgs = "";
+  info.templateFunction = "add";
+  info.templateParams = "5";
+  info.headerFile = simpleTemplatesPath;
+
+  info.outputObject = JITTI_TEST_OUTPUT_DIR "/testFunction_add_5_deathTest.o";
+  info.outputLibrary = JITTI_TEST_OUTPUT_DIR "/libtestFunction_add_5_deathTest.so";
+
+  jitti::Function< int (*)( int ) > const add5( info );
+
+  EXPECT_DEATH_IF_SUPPORTED( jitti::Function< double (*)( int ) >( info.outputLibrary ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( jitti::Function< int (*)( int, int ) >( info.outputLibrary ), "" );
+}
+
 } // namespace testing
 } // namespace jitti
 
@@ -222,4 +366,3 @@ int main( int argc, char * * argv )
   int const result = RUN_ALL_TESTS();
   return result;
 }
-

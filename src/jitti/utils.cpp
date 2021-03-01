@@ -71,6 +71,22 @@ std::string compileTemplate( std::string const & compileCommand,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void makeDirsForPath( std::string const & path )
+{
+  constexpr mode_t mode = 0770;     // user and group rwx permissions
+
+  std::string::size_type pos = 0;
+  do
+  {
+    pos = path.find( '/', pos + 1 );
+    std::string dir_name = path.substr( 0, pos );
+    int const err = mkdir( dir_name.c_str(), mode );
+    LVARRAY_THROW_IF( err && ( errno != EEXIST ), "Failed to create a directories for " << path, std::runtime_error );
+  }
+  while (pos != std::string::npos);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void readDirectoryFiles( time_t const time,
                          std::string const & directory,
                          std::unordered_map< std::string, std::string > & libraries )

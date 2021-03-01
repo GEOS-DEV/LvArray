@@ -1,4 +1,4 @@
-#include "jittiConfig.hpp"
+#include "jittiUnitTestConfig.hpp"
 #include "../../src/jitti/CompilationInfo.hpp"
 #include "../../src/Macros.hpp"
 

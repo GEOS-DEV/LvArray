@@ -26,6 +26,7 @@ public:
     m_libraryOutputDir( libraryOutputDir ),
     m_libraryDirs( libraryDirs )
   {
+    utils::makeDirsForPath( libraryOutputDir );
     m_libraryDirs.push_back( libraryOutputDir );
     refresh();
   }
@@ -70,7 +71,7 @@ public:
 
     // Otherwise we have to compile it.
     info.outputLibrary = m_libraryOutputDir + "/" + getLibraryName( functionName );
-    info.outputObject = m_libraryOutputDir.substr( 0, m_libraryOutputDir.size() - 3 ) + ".o";
+    info.outputObject = info.outputLibrary.substr( 0, info.outputLibrary.size() - 3 ) + ".o";
     auto const result = m_cache.emplace( std::make_pair( functionName, Function< FUNC_POINTER >( info ) ) );
     LVARRAY_ERROR_IF( !result.second, "This shouldn't be possible." );
     return result.first->second;
