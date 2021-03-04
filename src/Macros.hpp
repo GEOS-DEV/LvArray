@@ -138,6 +138,12 @@
 #define LVARRAY_ASSERT_MSG( EXP, MSG ) ((void) 0)
 #endif
 
+/**
+ * @brief Conditionally throw an exception.
+ * @param EXP an expression that will be evaluated as a predicate
+ * @param MSG a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF( EXP, MSG, TYPE ) \
   do \
   { \
@@ -221,6 +227,15 @@
                     "  " << #lhs << " = " << lhs << "\n" << \
                     "  " << #rhs << " = " << rhs << "\n" )
 
+/**
+ * @brief Throw an exception if @p lhs @p OP @p rhs.
+ * @param lhs The left side of the operation.
+ * @param OP The operation to apply.
+ * @param NOP The opposite of @p OP, used in the message.
+ * @param rhs The right side of the operation.
+ * @param msg The message to diplay.
+ * @param TYPE the type of exception to throw.
+ */
 #define LVARRAY_THROW_IF_OP_MSG( lhs, OP, NOP, rhs, msg, TYPE ) \
   LVARRAY_THROW_IF( lhs OP rhs, \
                     msg << "\n" << \
@@ -236,6 +251,13 @@
  */
 #define LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, ==, !=, rhs, msg )
 
+/**
+ * @brief Throw an exception if two values are equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_EQ_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, ==, !=, rhs, msg, TYPE )
 
 /**
@@ -245,6 +267,12 @@
  */
 #define LVARRAY_ERROR_IF_EQ( lhs, rhs ) LVARRAY_ERROR_IF_EQ_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if two values are equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_EQ( lhs, rhs, TYPE ) LVARRAY_THROW_IF_EQ_MSG( lhs, rhs, "", TYPE )
 
 /**
@@ -255,6 +283,13 @@
  */
 #define LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, !=, ==, rhs, msg )
 
+/**
+ * @brief Throw an exception if two values are not equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_NE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, !=, ==, rhs, msg, TYPE )
 
 /**
@@ -264,6 +299,12 @@
  */
 #define LVARRAY_ERROR_IF_NE( lhs, rhs ) LVARRAY_ERROR_IF_NE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if two values are not equal.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_NE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_NE_MSG( lhs, rhs, "", TYPE )
 
 /**
@@ -274,6 +315,13 @@
  */
 #define LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >, <=, rhs, msg )
 
+/**
+ * @brief Throw an exception if one value compares greater than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_GT_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, >, <=, rhs, msg, TYPE )
 
 /**
@@ -283,6 +331,12 @@
  */
 #define LVARRAY_ERROR_IF_GT( lhs, rhs ) LVARRAY_ERROR_IF_GT_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if one value compares greater than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_GT( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GT_MSG( lhs, rhs, "", TYPE )
 
 /**
@@ -293,6 +347,13 @@
  */
 #define LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, >=, <, rhs, msg )
 
+/**
+ * @brief Throw an exception if one value compares greater than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_GE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, >=, <, rhs, msg, TYPE )
 
 /**
@@ -302,8 +363,13 @@
  */
 #define LVARRAY_ERROR_IF_GE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if one value compares greater than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_GE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GE_MSG( lhs, rhs, "", TYPE )
-
 
 /**
  * @brief Raise a hard error if one value compares less than the other.
@@ -313,6 +379,13 @@
  */
 #define LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <, >=, rhs, msg )
 
+/**
+ * @brief Throw an exception if one value compares less than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_LT_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, <, >=, rhs, msg, TYPE )
 
 /**
@@ -322,6 +395,12 @@
  */
 #define LVARRAY_ERROR_IF_LT( lhs, rhs ) LVARRAY_ERROR_IF_LT_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if one value compares less than the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_LT( lhs, rhs, TYPE ) LVARRAY_THROW_IF_LT_MSG( lhs, rhs, "", TYPE )
 
 /**
@@ -332,6 +411,13 @@
  */
 #define LVARRAY_ERROR_IF_LE_MSG( lhs, rhs, msg ) LVARRAY_ERROR_IF_OP_MSG( lhs, <=, >, rhs, msg )
 
+/**
+ * @brief Throw an exception if one value compares less than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param msg a message to log (any expression that can be stream inserted)
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_LE_MSG( lhs, rhs, msg, TYPE ) LVARRAY_THROW_IF_OP_MSG( lhs, <=, >, rhs, msg, TYPE )
 
 /**
@@ -341,6 +427,12 @@
  */
 #define LVARRAY_ERROR_IF_LE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
 
+/**
+ * @brief Throw an exception if one value compares less than or equal to the other.
+ * @param lhs expression to be evaluated and used as left-hand side in comparison
+ * @param rhs expression to be evaluated and used as right-hand side in comparison
+ * @param TYPE the type of exception to throw
+ */
 #define LVARRAY_THROW_IF_LE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GE_MSG( lhs, rhs, "", TYPE )
 
 /**
