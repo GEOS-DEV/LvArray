@@ -474,6 +474,18 @@ public:
     ParentClass::checkFill( array );
   }
 
+  static void getPointerInSpace()
+  {
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+    ViewTypeConst const & view = array->toViewConst();
+
+    EXPECT_EQ( view.data( MemorySpace::CPU ), view.data() );
+    view.move( RAJAHelper< POLICY >::space, false );
+    EXPECT_EQ( view.data( RAJAHelper< POLICY >::space ), view.data() );
+    view.move( MemorySpace::CPU, false );
+    EXPECT_EQ( view.data( MemorySpace::CPU ), view.data() );
+  }
+
 protected:
 
   template< typename ARRAY >

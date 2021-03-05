@@ -509,6 +509,14 @@ public:
   { return m_dataBuffer.data(); }
 
   /**
+   * @brief @return Return a pointer to the values in a particular memory space.
+   * @param space The target memory space.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  T * data( MemorySpace const space ) const
+  { return m_dataBuffer.data( space ); }
+
+  /**
    * @return Return an iterator to the begining of the data.
    */
   LVARRAY_HOST_DEVICE inline constexpr
