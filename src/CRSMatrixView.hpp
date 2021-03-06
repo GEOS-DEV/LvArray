@@ -244,6 +244,9 @@ public:
                                                  nullptr );
   }
 
+  /**
+   * @return A pointer to the values of m_entires(data) of the matrix.
+   */
   LVARRAY_HOST_DEVICE inline
   T const * getEntries() const
   {
@@ -512,17 +515,6 @@ public:
     ParentClass::move( space, touch );
     m_entries.move( space, touch );
   }
-
-  void moveEntries( MemorySpace const space, bool const touch=true ) const
-  {
-    m_entries.move( space, touch );
-  }
-
-  void moveColumns( MemorySpace const space, bool const touch=true ) const
-  {
-    this->moveValues( space, touch );
-  }
-
 
   ///@}
 

@@ -196,47 +196,29 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
   return stream;
 }
 
-template< typename T >
-struct printf_Helper;
-
-template<>
-struct printf_Helper< int >
-{
-  constexpr static auto formatString="%4d";
-};
-
-template<>
-struct printf_Helper< long int >
-{
-  constexpr static auto formatString="%4ld";
-};
-
-template<>
-struct printf_Helper< long long int >
-{
-  constexpr static auto formatString="%4lld";
-};
-
 
 /**
- * @brief Print a CRSMatrixView in a format that can be easily xxdiff'ed on
- *   the console.
- * @tparam POLICY The policy for dummy kernel launch.
- * @tparam T The type of the values in @p view.
- * @tparam COL_TYPE The column index type used by @p view.
- * @tparam INDEX_TYPE The index type used by @p view.
- * @tparam BUFFER_TYPE The type of buffer used by @p view.
- * @param view The matrix view object to print.
+ * @brief Macro to generate function to output a CRSMatrixView
+ * @param COL_TYPE The type of index used to specify the column of the matrix.
+ * @param INDEX_TYPE The type of index used to specify the row of the matrix.
+ * @param LITOKEN A string literal to give the printf token for the row index type.
+ * @param GITOKEN A string literal to give the printf token for the column index type.
  */
 #define MAKE_PRINT_MATVIEW( COL_TYPE, INDEX_TYPE, LITOKEN, GITOKEN ) \
+/** @brief Print a CRSMatrixView in a format that can be easily xxdiff'ed on */ \
+/**   the console.                                                                           */ \
+/** @tparam POLICY The policy for dummy kernel launch.                                       */ \
+/** @tparam T The type of the values in @p view.                                             */ \
+/** @tparam BUFFER_TYPE The type of buffer used by @p view.                                  */ \
+/** @param view The matrix view object to print.                                             */ \
   template< typename POLICY,                                                                                                \
             typename T,                                                                                                     \
             template< typename > class BUFFER_TYPE >                                                                        \
   void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )                        \
   {                                                                                                                         \
     INDEX_TYPE const numRows = view.numRows();                                                                              \
-                                                                                                                          \
-                                                                                                                          \
+                                                                                                                        \
+                                                                                                                        \
     printf( "numRows = %4" LITOKEN " \n", numRows );                                                                        \
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )     \
     {                                                                                                                     \
@@ -244,7 +226,7 @@ struct printf_Helper< long long int >
       INDEX_TYPE const * const row_indexes = view.getOffsets();                                                           \
       COL_TYPE const * const cols = view.getColumns();                                                                    \
       T const * const values = view.getEntries();                                                                         \
-                                                                                                                          \
+                                                                                                                        \
       printf( "ncols       = { " ); for( INDEX_TYPE i=0; i<numRows; ++i )                                                 \
       {                                                                                                                   \
         printf( "%4" LITOKEN ", ", ncols[i] );                                                                            \
@@ -255,11 +237,11 @@ struct printf_Helper< long long int >
         printf( "%4" GITOKEN ", ", row_indexes[i] );                                                                      \
       }                                                                                                                   \
       printf( " }\n" );                                                                                                   \
-                                                                                                                          \
-                                                                                                                          \
+                                                                                                                        \
+                                                                                                                        \
       printf( "row      col      value \n" );                                                                             \
       printf( "----  --------- --------- \n" );                                                                           \
-                                                                                                                          \
+                                                                                                                        \
       for( INDEX_TYPE i=0; i<numRows; ++i )                                                                               \
       {                                                                                                                   \
         printf( "%4" LITOKEN "\n", ncols[i] );                                                                            \
@@ -271,9 +253,9 @@ struct printf_Helper< long long int >
                   values[row_indexes[i] + j] );                                                                           \
         }                                                                                                                 \
       }                                                                                                                   \
-                                                                                                                          \
+                                                                                                                        \
     } );                                                                                                                  \
-    std::cout<<std::endl;                                                                                                   \
+    std::cout<<std::endl;                                                                                                  \
   }
 
 MAKE_PRINT_MATVIEW( int, int, "d", "d" );
