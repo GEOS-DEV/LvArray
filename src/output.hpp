@@ -258,10 +258,10 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
     std::cout<<std::endl;                                                                                                  \
   }
 
-MAKE_PRINT_MATVIEW( int, int, "d", "d" );
-MAKE_PRINT_MATVIEW( int, long long int, "d", "lld" );
-MAKE_PRINT_MATVIEW( long int, long long int, "ld", "lld" );
-MAKE_PRINT_MATVIEW( long long int, long long int, "lld", "lld" );
+MAKE_PRINT_MATVIEW( int, int, "d", "d" )
+MAKE_PRINT_MATVIEW( int, long long int, "d", "lld" )
+MAKE_PRINT_MATVIEW( long int, long long int, "ld", "lld" )
+MAKE_PRINT_MATVIEW( long long int, long long int, "lld", "lld" )
 
 
 /**
