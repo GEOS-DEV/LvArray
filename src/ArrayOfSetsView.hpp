@@ -322,6 +322,11 @@ public:
 
   ///@}
 
+
+  using ParentClass::getSizes;
+  using ParentClass::getOffsets;
+  using ParentClass::getValues;
+
 protected:
 
   /**

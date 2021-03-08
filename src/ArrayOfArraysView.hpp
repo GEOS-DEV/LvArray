@@ -333,6 +333,37 @@ public:
   }
 
   /**
+   * @return Return a pointer to the sizes of each outer array.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  SIZE_TYPE const * getSizes() const
+  {
+    return m_sizes.data();
+  }
+
+
+  /**
+   * @return Return a pointer to the value array offsets for each outer array
+   *   with an entry for the end of the values.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  INDEX_TYPE const * getOffsets() const
+  {
+    return m_offsets.data();
+  }
+
+  /**
+   * @return Return a pointer to the values data.
+   */
+  LVARRAY_HOST_DEVICE constexpr inline
+  T const * getValues() const
+  {
+    return m_values.data();
+  }
+
+
+
+  /**
    * @return Return the number of (zero length) arrays that can be stored before reallocation.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITH_NDEBUG inline
@@ -557,6 +588,7 @@ public:
   #endif
     m_offsets.move( space, touch );
   }
+
 
   ///@}
 

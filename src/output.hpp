@@ -17,6 +17,11 @@
 #include "SortedArray.hpp"
 #include "ArrayOfArrays.hpp"
 #include "CRSMatrix.hpp"
+#include "Macros.hpp"
+
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
 
 // System includes
 #include <string>
@@ -190,6 +195,74 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
   stream << "}" << std::endl;
   return stream;
 }
+
+
+/**
+ * @brief Macro to generate function to output a CRSMatrixView
+ * @param COL_TYPE The type of index used to specify the column of the matrix.
+ * @param INDEX_TYPE The type of index used to specify the row of the matrix.
+ * @param LITOKEN A string literal to give the printf token for the row index type.
+ * @param GITOKEN A string literal to give the printf token for the column index type.
+ */
+#define MAKE_PRINT_MATVIEW( COL_TYPE, INDEX_TYPE, LITOKEN, GITOKEN ) \
+/** @brief Print a CRSMatrixView in a format that can be easily xxdiff'ed on */ \
+/**   the console.                                                                           */ \
+/** @tparam POLICY The policy for dummy kernel launch.                                       */ \
+/** @tparam T The type of the values in @p view.                                             */ \
+/** @tparam BUFFER_TYPE The type of buffer used by @p view.                                  */ \
+/** @param view The matrix view object to print.                                             */ \
+  template< typename POLICY,                                                                                                \
+            typename T,                                                                                                     \
+            template< typename > class BUFFER_TYPE >                                                                        \
+  void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )                        \
+  {                                                                                                                         \
+    INDEX_TYPE const numRows = view.numRows();                                                                              \
+                                                                                                                        \
+                                                                                                                        \
+    printf( "numRows = %4" LITOKEN " \n", numRows );                                                                        \
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )     \
+    {                                                                                                                     \
+      INDEX_TYPE const * const ncols = view.getSizes();                                                                   \
+      INDEX_TYPE const * const row_indexes = view.getOffsets();                                                           \
+      COL_TYPE const * const cols = view.getColumns();                                                                    \
+      T const * const values = view.getEntries();                                                                         \
+                                                                                                                        \
+      printf( "ncols       = { " ); for( INDEX_TYPE i=0; i<numRows; ++i )                                                 \
+      {                                                                                                                   \
+        printf( "%4" LITOKEN ", ", ncols[i] );                                                                            \
+      }                                                                                                                   \
+      printf( " }\n" );                                                                                                   \
+      printf( "row_indexes = { " ); for( INDEX_TYPE i=0; i<numRows+1; ++i )                                               \
+      {                                                                                                                   \
+        printf( "%4" GITOKEN ", ", row_indexes[i] );                                                                      \
+      }                                                                                                                   \
+      printf( " }\n" );                                                                                                   \
+                                                                                                                        \
+                                                                                                                        \
+      printf( "row      col      value \n" );                                                                             \
+      printf( "----  --------- --------- \n" );                                                                           \
+                                                                                                                        \
+      for( INDEX_TYPE i=0; i<numRows; ++i )                                                                               \
+      {                                                                                                                   \
+        printf( "%4" LITOKEN "\n", ncols[i] );                                                                            \
+        for( INDEX_TYPE j=0; j<ncols[i]; ++j )                                                                            \
+        {                                                                                                                 \
+          printf( "%4" LITOKEN " %9" GITOKEN " %9.2g\n",                                                                  \
+                  i,                                                                                                      \
+                  cols[row_indexes[i] + j],                                                                               \
+                  values[row_indexes[i] + j] );                                                                           \
+        }                                                                                                                 \
+      }                                                                                                                   \
+                                                                                                                        \
+    } );                                                                                                                  \
+    std::cout<<std::endl;                                                                                                  \
+  }
+
+MAKE_PRINT_MATVIEW( int, int, "d", "d" )
+MAKE_PRINT_MATVIEW( int, long long int, "d", "lld" )
+MAKE_PRINT_MATVIEW( long int, long long int, "ld", "lld" )
+MAKE_PRINT_MATVIEW( long long int, long long int, "lld", "lld" )
+
 
 /**
  * @brief Output a c-array to a stream.
