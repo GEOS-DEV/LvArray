@@ -117,7 +117,8 @@ integerConversion( INPUT input )
   static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
-  return OUTPUT{ input };
+//  return OUTPUT{ input };
+  return static_cast< OUTPUT >(input);
 }
 
 /**

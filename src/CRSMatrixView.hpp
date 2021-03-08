@@ -244,8 +244,18 @@ public:
                                                  nullptr );
   }
 
+  /**
+   * @return A pointer to the values of m_entires(data) of the matrix.
+   */
+  LVARRAY_HOST_DEVICE inline
+  T const * getEntries() const
+  {
+    return m_entries.data();
+  }
+
   using ParentClass::getColumns;
   using ParentClass::getOffsets;
+  using ParentClass::getSizes;
 
   ///@}
 
