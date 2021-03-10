@@ -46,7 +46,6 @@ std::enable_if_t< std::is_arithmetic< T >::value, T >
 max( T const a, T const b )
 {
 #if defined(__CUDA_ARCH__)
-  static_assert( std::is_same< decltype( ::max( a, b ) ), T >::value, "Should return a T." );
   return ::max( a, b );
 #else
   return std::max( a, b );
@@ -65,7 +64,6 @@ std::enable_if_t< std::is_arithmetic< T >::value, T >
 min( T const a, T const b )
 {
 #if defined(__CUDA_ARCH__)
-  static_assert( std::is_same< decltype( ::min( a, b ) ), T >::value, "Should return a T." );
   return ::min( a, b );
 #else
   return std::min( a, b );
@@ -77,34 +75,23 @@ min( T const a, T const b )
  * @param x The number to get the absolute value of.
  * @note This set of overloads is valid for any numeric type.
  */
-LVARRAY_HOST_DEVICE inline
-float abs( float const x )
-{ return ::fabsf( x ); }
-
-/// @copydoc abs( float )
-LVARRAY_HOST_DEVICE inline
-double abs( double const x )
-{ return ::fabs( x ); }
-
-/**
- * @copydoc abs( float )
- * @tparam T An integral type.
- */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-std::enable_if_t< std::is_integral< T >::value, T >
-abs( T const x )
+T abs( T const x )
 {
 #if defined(__CUDA_ARCH__)
-  static_assert( std::is_same< decltype( ::abs( x ) ), T >::value, "Should return a T." );
   return ::abs( x );
 #else
-  static_assert( std::is_same< decltype( std::abs( x ) ), T >::value, "Should return a T." );
   return std::abs( x );
 #endif
 }
 
 ///@}
+
+template< typename T >
+LVARRAY_HOST_DEVICE inline constexpr
+T square( T const x )
+{ return x * x; }
 
 /**
  * @name Square root and inverse square root.
@@ -123,12 +110,10 @@ float sqrt( float const x )
 
 /**
  * @copydoc sqrt( float )
- * @tparam T An integral type.
  */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-std::enable_if_t< std::is_arithmetic< T >::value, double >
-sqrt( T const x )
+double sqrt( T const x )
 {
 #if defined(__CUDA_ARCH__)
   return ::sqrt( double( x ) );
@@ -155,12 +140,10 @@ float invSqrt( float const x )
 
 /**
  * @copydoc invSqrt( float )
- * @tparam T An integral type.
  */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-std::enable_if_t< std::is_arithmetic< T >::value, double >
-invSqrt( T const x )
+double invSqrt( T const x )
 {
 #if defined(__CUDACC__)
   return ::rsqrt( double( x ) );
@@ -179,41 +162,74 @@ invSqrt( T const x )
 /**
  * @return The sine of @p theta.
  * @param theta The angle in radians.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float sin( float const theta )
-{ return ::sinf( theta ); }
+float sin( float const x )
+{ return ::sinf( x ); }
 
-/// @copydoc sin( float )
+/**
+ * @copydoc sin( float )
+ */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double sin( double const theta )
-{ return ::sin( theta ); }
+double sin( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::sin( double( x ) );
+#else
+  return std::sin( x );
+#endif
+}
 
 /**
  * @return The cosine of @p theta.
  * @param theta The angle in radians.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float cos( float const theta )
-{ return ::cosf( theta ); }
+float cos( float const x )
+{ return ::cosf( x ); }
 
-/// @copydoc cos( float )
+/**
+ * @copydoc cos( float )
+ */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double cos( double const theta )
-{ return ::cos( theta ); }
+double cos( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::cos( double( x ) );
+#else
+  return std::cos( x );
+#endif
+}
 
 /**
  * @return The tangent of @p theta.
  * @param theta The angle in radians.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float tan( float const theta )
-{ return ::tanf( theta ); }
+float tan( float const x )
+{ return ::tanf( x ); }
 
-/// @copydoc tan( float )
+/**
+ * @copydoc tan( float )
+ */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double tan( double const theta )
-{ return ::tan( theta ); }
+double tan( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::tan( double( x ) );
+#else
+  return std::tan( x );
+#endif
+}
 
 /**
  * @brief Compute the sine and cosine of @p theta.
@@ -221,26 +237,15 @@ double tan( double const theta )
  * @param sinTheta The sine of @p theta.
  * @param cosTheta The cosine of @p theta.
  */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-void sincos( float const theta, float & sinTheta, float & cosTheta )
+void sincos( T const theta, T & sinTheta, T & cosTheta )
 {
-#if defined(__CUDACC__)
-  ::sincosf( theta, &sinTheta, &cosTheta );
-#else
-  sinTheta = ::sin( theta );
-  cosTheta = ::cos( theta );
-#endif
-}
-
-/// @copydoc sincos( float, float &, float & )
-LVARRAY_HOST_DEVICE inline
-void sincos( double const theta, double & sinTheta, double & cosTheta )
-{
-#if defined(__CUDACC__)
+#if defined(__CUDA_ARCH__)
   ::sincos( theta, &sinTheta, &cosTheta );
 #else
-  sinTheta = ::sin( theta );
-  cosTheta = ::cos( theta );
+  sinTheta = std::sin( theta );
+  cosTheta = std::cos( theta );
 #endif
 }
 
@@ -254,42 +259,128 @@ void sincos( double const theta, double & sinTheta, double & cosTheta )
 /**
  * @return The arcsine of the value @p x.
  * @param x The value to get the arcsine of, must be in [-1, 1].
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
 float asin( float const x )
 { return ::asinf( x ); }
 
-/// @copydoc asin( float )
+/**
+ * @copydoc asin( float )
+ */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double asin( double const x )
-{ return ::asin( x ); }
+double asin( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::asin( double( x ) );
+#else
+  return std::asin( x );
+#endif
+}
 
 /**
  * @return The arccosine of the value @p x.
  * @param x The value to get the arccosine of, must be in [-1, 1].
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
 float acos( float const x )
 { return ::acosf( x ); }
 
-/// @copydoc acos( float )
+/**
+ * @copydoc acos( float )
+ */
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double acos( double const x )
-{ return ::acos( x ); }
+double acos( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::acos( double( x ) );
+#else
+  return std::acos( x );
+#endif
+}
 
 /**
  * @return The angle corresponding to the point (x, y).
  * @param y The y coordinate.
  * @param x The x coordinate.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
 float atan2( float const y, float const x )
 { return ::atan2f( y, x ); }
 
 /// @copydoc atan2( float, float )
+template< typename T >
 LVARRAY_HOST_DEVICE inline
-double atan2( double const y, double const x )
-{ return ::atan2( y, x ); }
+double atan2( T const y, T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::atan2( y, x );
+#else
+  return std::atan2( y, x );
+#endif
+}
+
+///@}
+
+/**
+ * @name Exponential functions
+ */
+///@{
+
+/**
+ * @return e raised to the @p x.
+ * @param x The power to raise e to.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
+ */
+LVARRAY_HOST_DEVICE inline
+float exp( float const x )
+{ return ::expf( x ); }
+
+/**
+ * @copydoc exp( float )
+ */
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+double exp( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::exp( double( x ) );
+#else
+  return std::exp( x );
+#endif
+}
+
+/**
+ * @return The natural logarithm of @p x.
+ * @param x The number to get the natural logarithm of.
+ * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ *   it is converted to a double and the return type is double.
+ */
+LVARRAY_HOST_DEVICE inline
+float log( float const x )
+{ return ::logf( x ); }
+
+/**
+ * @copydoc log( float )
+ */
+template< typename T >
+LVARRAY_HOST_DEVICE inline
+double log( T const x )
+{
+#if defined(__CUDA_ARCH__)
+  return ::log( double( x ) );
+#else
+  return std::log( x );
+#endif
+}
 
 ///@}
 

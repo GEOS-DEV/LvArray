@@ -145,6 +145,28 @@ public:
     }
   }
 
+  ChaiBuffer( std::initializer_list< LvArray::MemorySpace > const & spaces,
+              std::initializer_list< umpire::Allocator > const & allocators ):
+    m_pointer( nullptr ),
+    m_capacity( 0 ),
+    m_pointerRecord( new chai::PointerRecord{} )
+  {
+    m_pointerRecord->m_size = 0;
+    setName( "" );
+
+    LVARRAY_ERROR_IF_NE( spaces.size(), allocators.size() );
+
+    for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
+    {
+      m_pointerRecord->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
+    }
+
+    for( std::size_t i = 0; i < spaces.size(); ++i )
+    {
+      m_pointerRecord->m_allocators[ internal::toChaiExecutionSpace( spaces.begin()[ i ] ) ] = allocators.begin()[ i ].getId();
+    }
+  }
+
   /**
    * @brief Copy constructor.
    * @param src The buffer to copy.
@@ -251,7 +273,7 @@ public:
    * @note This currently only reallocates the buffer on the CPU and it frees
    *   the buffer in every other memory space.
    */
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const newSpace, std::ptrdiff_t const newCapacity )
   {
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
@@ -262,21 +284,27 @@ public:
       newRecord->m_allocators[ space ] = m_pointerRecord->m_allocators[ space ];
     }
 
+    chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( newSpace );
+
     internal::chaiLock.lock();
-    internal::getArrayManager().allocate( newRecord, chai::CPU );
+    internal::getArrayManager().allocate( newRecord, chaiSpace );
     internal::chaiLock.unlock();
 
-    T * const newPointer = static_cast< T * >( newRecord->m_pointers[ chai::CPU ] );
+    T * const newPointer = static_cast< T * >( newRecord->m_pointers[ chaiSpace ] );
 
-    std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
-    arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
-    arrayManipulation::destroy( m_pointer, size );
+    if( size > 0 )
+    {
+      LVARRAY_ERROR_IF_NE_MSG( newSpace, MemorySpace::CPU, "Calling reallocate with a non-zero current size is not yet supporeted for the GPU." );
+      std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
+      arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
+      arrayManipulation::destroy( m_pointer, size );
+    }
 
     free();
     m_capacity = newCapacity;
     m_pointer = newPointer;
     m_pointerRecord = newRecord;
-    registerTouch( MemorySpace::CPU );
+    registerTouch( newSpace );
   }
 
   /**
@@ -382,6 +410,9 @@ public:
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
   }
+
+  MemorySpace getPreviousSpace() const
+  { return internal::toMemorySpace( m_pointerRecord->m_last_space ); }
 
   /**
    * @brief Touch the buffer in the given space.

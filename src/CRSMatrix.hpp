@@ -146,7 +146,7 @@ public:
     }
 
     // Reallocate to the appropriate length
-    bufferManipulation::reserve( this->m_entries, 0, src.nonZeroCapacity() );
+    bufferManipulation::reserve( this->m_entries, 0, MemorySpace::CPU, src.nonZeroCapacity() );
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 

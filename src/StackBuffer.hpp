@@ -83,9 +83,10 @@ public:
    * @param newCapacity the new capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
     LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( space );
     LVARRAY_ERROR_IF_GT( newCapacity, LENGTH );
   }
   /**

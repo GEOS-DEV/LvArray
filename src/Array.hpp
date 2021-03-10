@@ -89,7 +89,8 @@ public:
   inline Array():
     ParentClass( true )
   {
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
+
 #if !defined(__CUDA_ARCH__)
     setName( "" );
 #endif
@@ -109,6 +110,19 @@ public:
   inline explicit Array( DIMS const ... dims ):
     Array()
   { resize( dims ... ); }
+
+  Array( BUFFER_TYPE< T > && buffer ):
+    ParentClass( std::move( buffer ) )
+  {
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
+
+#if !defined(__CUDA_ARCH__)
+    setName( "" );
+#endif
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+    Array::TV_ttf_display_type( nullptr );
+#endif
+  }
 
   /**
    * @brief Copy constructor.
@@ -285,7 +299,7 @@ public:
       LVARRAY_ERROR_IF_LT( this->m_dims[ i ], 0 );
     }
 
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
     bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size() );
   }
@@ -313,7 +327,7 @@ public:
       ++curDim;
     }, newDims ... );
 
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
     bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size() );
   }
@@ -329,6 +343,13 @@ public:
   LVARRAY_HOST_DEVICE
   void resizeWithoutInitializationOrDestruction( DIMS const ... newDims )
   {
+    return resizeWithoutInitializationOrDestruction( MemorySpace::CPU, newDims ... );
+  }
+
+  template< typename ... DIMS >
+  LVARRAY_HOST_DEVICE
+  void resizeWithoutInitializationOrDestruction( MemorySpace const space, DIMS const ... newDims )
+  {
     static_assert( sizeof ... ( DIMS ) == NDIM, "The number of arguments provided does not equal NDIM!" );
     static_assert( std::is_trivially_destructible< T >::value,
                    "This function is only safe if T is trivially destructable." );
@@ -343,9 +364,9 @@ public:
       ++i;
     }, newDims ... );
 
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
-    bufferManipulation::reserve( this->m_dataBuffer, oldSize, this->size() );
+    bufferManipulation::reserve( this->m_dataBuffer, oldSize, space, this->size() );
   }
 
   /**
@@ -374,7 +395,7 @@ public:
       LVARRAY_ERROR_IF_LT( this->m_dims[ camp::get< 0 >( pair ) ], 0 );
     }, camp::make_tuple( INDICES, newDims )... );
 
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
     bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size() );
   }
@@ -411,7 +432,7 @@ public:
 
     this->m_dims[ this->getSingleParameterResizeIndex() ] = 0;
 
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
   }
 
   /**
@@ -439,7 +460,7 @@ public:
    *        capacity() >= newCapacity.
    */
   void reserve( INDEX_TYPE const newCapacity )
-  { bufferManipulation::reserve( this->m_dataBuffer, this->size(), newCapacity ); }
+  { bufferManipulation::reserve( this->m_dataBuffer, this->size(), MemorySpace::CPU, newCapacity ); }
 
   ///@}
 
@@ -545,31 +566,6 @@ public:
 private:
 
   /**
-   * @brief Calculate the strides given the dimensions and permutation.
-   * @note Adapted from RAJA::make_permuted_layout.
-   */
-  LVARRAY_HOST_DEVICE
-  void CalculateStrides()
-  {
-    constexpr typeManipulation::CArray< camp::idx_t, NDIM > perm = typeManipulation::asArray( PERMUTATION {} );
-    INDEX_TYPE foldedStrides[ NDIM ];
-
-    for( int i = 0; i < NDIM; ++i )
-    {
-      foldedStrides[ i ] = 1;
-      for( int j = i + 1; j < NDIM; ++j )
-      {
-        foldedStrides[ i ] *= this->m_dims[ perm[ j ] ];
-      }
-    }
-
-    for( int i = 0; i < NDIM; ++i )
-    {
-      this->m_strides[ perm[ i ] ] = foldedStrides[ i ];
-    }
-  }
-
-  /**
    * @brief Resize the default dimension of the Array.
    * @tparam ARGS variadic pack containing the types to initialize the new values with.
    * @param newDimLength the new size of the default dimension.
@@ -590,7 +586,8 @@ private:
     {
       INDEX_TYPE const oldSize = this->size();
       this->m_dims[ this->m_singleParameterResizeIndex ] = newDimLength;
-      CalculateStrides();
+      this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
+
       bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size(), std::forward< ARGS >( args )... );
       return;
     }
@@ -602,7 +599,8 @@ private:
 
     // Set the size of the dimension, recalculate the strides and get the new total size.
     this->m_dims[ this->m_singleParameterResizeIndex ] = newDimLength;
-    CalculateStrides();
+    this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
+
     INDEX_TYPE const newSize = this->size();
 
     // If we aren't changing the total size then we can return early.
@@ -612,7 +610,7 @@ private:
     if( newDimLength > curDimLength )
     {
       // Reserve space in the buffer but don't initialize the values.
-      bufferManipulation::reserve( this->m_dataBuffer, curSize, newSize );
+      bufferManipulation::reserve( this->m_dataBuffer, curSize, MemorySpace::CPU, newSize );
       T * const ptr = this->data();
 
       // The resizing consists of iterations where each iteration consists of the addition of a

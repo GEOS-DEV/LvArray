@@ -124,8 +124,10 @@ public:
    * @param size The number of values that are initialized in the buffer.
    * @param newCapacity The new capacity of the buffer.
    */
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+
     // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
     T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );
 

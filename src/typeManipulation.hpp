@@ -423,7 +423,7 @@ constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
  * @return The unit stride dimension, the last index in the sequence.
  */
 template< camp::idx_t... INDICES >
-constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
+LVARRAY_HOST_DEVICE constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
 {
   constexpr camp::idx_t dimension = camp::seq_at< sizeof...( INDICES ) - 1, camp::idx_seq< INDICES... > >::value;
   static_assert( dimension >= 0, "The dimension must be greater than zero." );
@@ -448,7 +448,7 @@ constexpr bool isValidPermutation( PERMUTATION )
  * @struct CArray
  * @brief A wrapper around a compile time c array.
  */
-template< typename T, std::ptrdiff_t N >
+template< typename T, camp::idx_t N >
 struct CArray
 {
   /**
@@ -456,7 +456,7 @@ struct CArray
    * @param i The position to access.
    */
   LVARRAY_INTEL_CONSTEXPR inline LVARRAY_HOST_DEVICE
-  T & operator[]( std::ptrdiff_t const i )
+  T & operator[]( camp::idx_t const i )
   { return data[ i ]; }
 
   /**
@@ -464,19 +464,18 @@ struct CArray
    * @param i The position to access.
    */
   constexpr inline LVARRAY_HOST_DEVICE
-  T const & operator[]( std::ptrdiff_t const i ) const
+  T const & operator[]( camp::idx_t const i ) const
   { return data[ i ]; }
 
   /**
    * @return Return the size of the array.
    */
   constexpr inline LVARRAY_HOST_DEVICE
-  std::ptrdiff_t size()
+  camp::idx_t size()
   { return N; }
 
   /// The backing c array, public so that aggregate initialization works.
-  /// The funny name is to dissuade the user from accessing it directly.
-  T data[ N ];
+  T data[ N ] = {};
 };
 
 /**
