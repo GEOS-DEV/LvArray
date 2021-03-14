@@ -159,6 +159,24 @@ double invSqrt( T const x )
  */
 ///@{
 
+#if defined(__CUDACC__)
+  LVARRAY_DEVICE inline
+  __half sin( __half const theta )
+  { return ::hsin( theta ); }
+
+  LVARRAY_DEVICE inline
+  __half cos( __half const theta )
+  { return ::hcos( theta ); }
+
+  template< typename T >
+  LVARRAY_DEVICE inline
+  void sincos( __half const theta, T & sinTheta, T & cosTheta )
+  {
+    sinTheta = ::hsin( theta );
+    cosTheta = ::hcos( theta );
+  }
+#endif
+
 /**
  * @return The sine of @p theta.
  * @param theta The angle in radians.
@@ -166,68 +184,68 @@ double invSqrt( T const x )
  *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float sin( float const x )
-{ return ::sinf( x ); }
+float sin( float const theta )
+{ return ::sinf( theta ); }
 
 /**
  * @copydoc sin( float )
  */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-double sin( T const x )
+double sin( T const theta )
 {
 #if defined(__CUDA_ARCH__)
-  return ::sin( double( x ) );
+  return ::sin( double( theta ) );
 #else
-  return std::sin( x );
+  return std::sin( theta );
 #endif
 }
 
 /**
  * @return The cosine of @p theta.
  * @param theta The angle in radians.
- * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float cos( float const x )
-{ return ::cosf( x ); }
+float cos( float const theta )
+{ return ::cosf( theta ); }
 
 /**
  * @copydoc cos( float )
  */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-double cos( T const x )
+double cos( T const theta )
 {
 #if defined(__CUDA_ARCH__)
-  return ::cos( double( x ) );
+  return ::cos( double( theta ) );
 #else
-  return std::cos( x );
+  return std::cos( theta );
 #endif
 }
 
 /**
  * @return The tangent of @p theta.
  * @param theta The angle in radians.
- * @note This set of overloads is valid for any numeric type. If @p x is not a float
+ * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
 LVARRAY_HOST_DEVICE inline
-float tan( float const x )
-{ return ::tanf( x ); }
+float tan( float const theta )
+{ return ::tanf( theta ); }
 
 /**
  * @copydoc tan( float )
  */
 template< typename T >
 LVARRAY_HOST_DEVICE inline
-double tan( T const x )
+double tan( T const theta )
 {
 #if defined(__CUDA_ARCH__)
-  return ::tan( double( x ) );
+  return ::tan( double( theta ) );
 #else
-  return std::tan( x );
+  return std::tan( theta );
 #endif
 }
 
