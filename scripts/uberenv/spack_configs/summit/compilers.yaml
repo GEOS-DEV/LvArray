@@ -1,0 +1,46 @@
+compilers:
+- compiler:
+    spec: gcc@10.2.0
+    paths:
+      cc: /sw/summit/gcc/10.2.0/bin/gcc
+      cxx: /sw/summit/gcc/10.2.0/bin/g++
+      f77:
+      fc:
+    flags:
+      cflags: -mcpu=native -mtune=native
+      cxxflags: -mcpu=native -mtune=native
+    operating_system: rhel7
+    target: ppc64le
+    modules: [gcc/10.2.0]
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@8.1.1
+    paths:
+      cc: /sw/summit/gcc/8.1.1/bin/gcc
+      cxx: /sw/summit/gcc/8.1.1/bin/g++
+      f77:
+      fc:
+    flags:
+      cflags: -mcpu=native -mtune=native
+      cxxflags: -mcpu=native -mtune=native
+    operating_system: rhel7
+    target: ppc64le
+    modules: [gcc/8.1.1]
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@7.4.0
+    paths:
+      cc: /sw/summit/gcc/7.4.0/bin/gcc
+      cxx: /sw/summit/gcc/7.4.0/bin/g++
+      f77:
+      fc:
+    flags:
+      cflags: -mcpu=native -mtune=native
+      cxxflags: -mcpu=native -mtune=native
+    operating_system: rhel7
+    target: ppc64le
+    modules: [gcc/7.4.0]
+    environment: {}
+    extra_rpaths: []
