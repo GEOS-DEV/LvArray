@@ -433,11 +433,11 @@ public:
                                                 RAJA::make_permuted_layout( dimensions,
                                                                             RAJA::as_array< PERMUTATION >::get() ) );
 
-    EXPECT_EQ( array.data(), view.data );
+    EXPECT_EQ( array.data(), view.get_data() );
     for( int dim = 0; dim < NDIM; ++dim )
     {
-      EXPECT_EQ( array.size( dim ), view.layout.sizes[ dim ] );
-      EXPECT_EQ( array.strides()[ dim ], view.layout.strides[ dim ] );
+      EXPECT_EQ( array.size( dim ), view.get_layout().sizes[ dim ] );
+      EXPECT_EQ( array.strides()[ dim ], view.get_layout().strides[ dim ] );
     }
 
     compareToRAJAView( array, view );

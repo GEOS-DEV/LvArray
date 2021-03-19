@@ -80,7 +80,7 @@ void MatrixVectorNative< PERMUTATION >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, RAJA::PERM_I > const & c )
-{ MATRIX_VECTOR_KERNEL( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
+{ MATRIX_VECTOR_KERNEL( a.get_layout().sizes[ 0 ], a.get_layout().sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
 
 template<>
 void MatrixVectorNative< RAJA::PERM_IJ >::
@@ -134,7 +134,7 @@ void MatrixVectorRAJA< PERMUTATION, POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, RAJA::PERM_I > const & c )
-{ MATRIX_VECTOR_KERNEL_RAJA( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
+{ MATRIX_VECTOR_KERNEL_RAJA( a.get_layout().sizes[ 0 ], a.get_layout().sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
 
 
 template< typename POLICY >

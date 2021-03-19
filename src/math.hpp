@@ -20,6 +20,10 @@
 #include <cmath>
 #include <type_traits>
 
+#if defined(__CUDACC__)
+  #include <cuda_fp16.h>
+#endif
+
 namespace LvArray
 {
 

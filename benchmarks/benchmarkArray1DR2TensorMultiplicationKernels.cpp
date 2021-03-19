@@ -156,7 +156,7 @@ void ArrayOfR2TensorsNative< PERMUTATION >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, PERMUTATION > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ KERNEL( a.layout.sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
+{ KERNEL( a.get_layout().sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template<>
 void ArrayOfR2TensorsNative< RAJA::PERM_IJK >::
@@ -245,7 +245,7 @@ void ArrayOfR2TensorsRAJA< PERMUTATION, POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, PERMUTATION > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ RAJA_KERNEL( a.layout.sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
+{ RAJA_KERNEL( a.get_layout().sizes[ 0 ], a( i, j, l ), b( i, l, k ), c( i, j, k ) ); }
 
 template< typename POLICY >
 void pointerRajaHelper( RAJA::PERM_IJK,
