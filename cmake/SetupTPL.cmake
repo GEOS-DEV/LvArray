@@ -80,7 +80,7 @@ if(ENABLE_CALIPER)
     find_package(caliper REQUIRED
                  PATHS ${CALIPER_DIR})
 
-    blt_register_library(NAME caliper
+    blt_import_library(NAME caliper
                          INCLUDES ${caliper_INCLUDE_PATH}
                          LIBRARIES caliper
                          TREAT_INCLUDES_AS_SYSTEM ON)
