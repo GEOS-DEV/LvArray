@@ -35,8 +35,12 @@ if( NOT is_submodule )
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
     include( cmake/SetupTPL.cmake )
+    set( LvArrayBuildAsObj FALSE)
+    
 else()
     include( cmake/CMakeBasics.cmake )
+    set( LvArrayBuildAsObj TRUE)
+    
 endif()
 
 include(cmake/Macros.cmake)
@@ -60,6 +64,7 @@ if( ENABLE_CALIPER )
     set( lvarray_dependencies ${lvarray_dependencies} caliper )
 endif()
 
+add_subdirectory( src )
 
 if( ENABLE_TESTS AND NOT DISABLE_UNIT_TESTS )
     add_subdirectory( unitTests )
@@ -85,5 +90,4 @@ if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
 
-add_subdirectory( src )
 

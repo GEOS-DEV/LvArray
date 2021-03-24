@@ -76,7 +76,7 @@ foreach(test ${testSources})
     blt_add_executable( NAME ${test_name}
                         SOURCES ${test}
                         OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
-                        DEPENDS_ON gtest lvarray ${lvarray_dependencies} )
+                        DEPENDS_ON gtest lvarray )
 
     target_include_directories( ${test_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
 

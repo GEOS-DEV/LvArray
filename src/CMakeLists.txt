@@ -41,8 +41,10 @@ set( lvarray_sources
 blt_add_library( NAME             lvarray
                  SOURCES          ${lvarray_sources}
                  HEADERS          ${lvarray_headers}
-                 DEPENDS_ON       ${lvarray_dependencies} )
-
+                 DEPENDS_ON       ${lvarray_dependencies}
+                 OBJECT           ${LvArrayBuildAsObj}
+                )
+                
 target_include_directories( lvarray
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
