@@ -179,6 +179,19 @@ double invSqrt( T const x )
     sinTheta = ::hsin( theta );
     cosTheta = ::hcos( theta );
   }
+
+  LVARRAY_DEVICE inline
+  void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
+  {
+    sinTheta = ::hsin( theta );
+    cosTheta = ::hcos( theta );
+  }
+
+  LVARRAY_DEVICE inline
+  __half sqrt( __half const x )
+  {
+    return ::hsqrt( x );
+  }
 #endif
 
 /**
