@@ -33,6 +33,47 @@ namespace LvArray
 namespace math
 {
 
+  template< typename T >
+  LVARRAY_DEVICE inline constexpr
+  int numValues( T const & )
+  { return 1; }
+
+#if defined(__CUDACC__)
+
+  LVARRAY_DEVICE inline constexpr
+  int numValues( __half2 const & )
+  { return 2; }
+
+  LVARRAY_DEVICE inline
+  __half sin( __half const theta )
+  { return ::hsin( theta ); }
+
+  LVARRAY_DEVICE inline
+  __half cos( __half const theta )
+  { return ::hcos( theta ); }
+
+  template< typename T >
+  LVARRAY_DEVICE inline
+  void sincos( __half const theta, T & sinTheta, T & cosTheta )
+  {
+    sinTheta = ::hsin( theta );
+    cosTheta = ::hcos( theta );
+  }
+
+  LVARRAY_DEVICE inline
+  void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
+  {
+    sinTheta = ::hsin( theta );
+    cosTheta = ::hcos( theta );
+  }
+
+  LVARRAY_DEVICE inline
+  __half sqrt( __half const x )
+  {
+    return ::hsqrt( x );
+  }
+#endif
+
 /**
  * @name General purpose functions
  */
@@ -162,37 +203,6 @@ double invSqrt( T const x )
  * @name Trigonometric functions
  */
 ///@{
-
-#if defined(__CUDACC__)
-  LVARRAY_DEVICE inline
-  __half sin( __half const theta )
-  { return ::hsin( theta ); }
-
-  LVARRAY_DEVICE inline
-  __half cos( __half const theta )
-  { return ::hcos( theta ); }
-
-  template< typename T >
-  LVARRAY_DEVICE inline
-  void sincos( __half const theta, T & sinTheta, T & cosTheta )
-  {
-    sinTheta = ::hsin( theta );
-    cosTheta = ::hcos( theta );
-  }
-
-  LVARRAY_DEVICE inline
-  void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
-  {
-    sinTheta = ::hsin( theta );
-    cosTheta = ::hcos( theta );
-  }
-
-  LVARRAY_DEVICE inline
-  __half sqrt( __half const x )
-  {
-    return ::hsqrt( x );
-  }
-#endif
 
 /**
  * @return The sine of @p theta.

@@ -130,6 +130,25 @@ public:
     m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
   {}
 
+  template< typename U, typename=std::enable_if_t< !std::is_same< T, U >::value > >
+  inline
+  explicit ArrayView( ArrayView< U, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & source ):
+    m_dims{ source.dimsArray() },
+    m_strides{ source.stridesArray() },
+    m_dataBuffer{ source.dataBuffer() },
+    m_singleParameterResizeIndex( source.getSingleParameterResizeIndex() )
+  {
+    m_dims[ USD ] = typeManipulation::convertSize< T, U >( m_dims[ USD ] );
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      if( i != USD )
+      {
+        m_strides[ i ] = typeManipulation::convertSize< T, U >( m_strides[ i ]);
+      }
+    }
+  }
+
   /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
    * @param source object to move.
@@ -431,12 +450,21 @@ public:
   INDEX_TYPE const * dims() const noexcept
   { return m_dims.data; }
 
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & dimsArray() const
+  { return m_dims; }
+
   /**
    * @return A pointer to the array containing the stride of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * strides() const noexcept
   { return m_strides.data; }
+
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & stridesArray() const
+  { return m_dims; }
+
+  BUFFER_TYPE< T > const & dataBuffer() const
+  { return m_dataBuffer; }
 
   ///@}
 

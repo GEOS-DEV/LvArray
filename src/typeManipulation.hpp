@@ -442,6 +442,39 @@ constexpr bool isValidPermutation( PERMUTATION )
   return internal::isValidPermutation( PERMUTATION {}, camp::make_idx_seq_t< NDIM > {} );
 }
 
+template< typename T, typename U, typename INDEX_TYPE >
+constexpr inline LVARRAY_HOST_DEVICE
+std::enable_if_t< sizeof( T ) == sizeof( U ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  return numU;
+}
+
+template< typename T, typename U, typename INDEX_TYPE >
+constexpr inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) < sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( T ) % sizeof( U ) == 0 || sizeof( U ) % sizeof( T ) == 0,
+                 "T and U need to have compatable sizes." );
+
+  return numU * sizeof( U ) / sizeof( T );
+}
+
+template< typename T, typename U, typename INDEX_TYPE >
+inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) > sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( T ) % sizeof( U ) == 0 || sizeof( U ) % sizeof( T ) == 0,
+                 "T and U need to have compatable sizes." );
+
+  INDEX_TYPE const numUPerT = sizeof( T ) / sizeof( U );
+  LVARRAY_ERROR_IF_NE( numU % numUPerT, 0 );
+
+  return numU / numUPerT;
+}
+
 /**
  * @tparam T The type of values stored in the array.
  * @tparam N The number of values in the array.
