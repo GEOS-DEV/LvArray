@@ -33,45 +33,83 @@ namespace LvArray
 namespace math
 {
 
-  template< typename T >
-  LVARRAY_DEVICE inline constexpr
-  int numValues( T const & )
-  { return 1; }
+namespace internal
+{
+
+template< typename T >
+struct ConversionHelper
+{
+  template< typename U >
+  LVARRAY_HOST_DEVICE inline constexpr static
+  T convert( U const u )
+  { return u; }
+};
+
+#if defined(__CUDACC__)
+template<>
+struct ConversionHelper< __half >
+{
+  template< typename U >
+  LVARRAY_HOST_DEVICE inline constexpr static
+  __half convert( U const u )
+  { return __float2half_rn( u ); }
+};
+
+template<>
+struct ConversionHelper< __half2 >
+{
+  template< typename U >
+  LVARRAY_HOST_DEVICE inline constexpr static
+  __half2 convert( U const u )
+  { return __float2half2_rn( u ); }
+};
+#endif
+} // namespace internal
+
+template< typename T >
+LVARRAY_HOST_DEVICE inline constexpr
+int numValues( T const & )
+{ return 1; }
+
+template< typename T, typename U >
+LVARRAY_HOST_DEVICE inline constexpr
+T convert( U const u )
+{ return internal::ConversionHelper< T >::convert( u ); }
 
 #if defined(__CUDACC__)
 
-  LVARRAY_DEVICE inline constexpr
-  int numValues( __half2 const & )
-  { return 2; }
+LVARRAY_DEVICE inline constexpr
+int numValues( __half2 const & )
+{ return 2; }
 
-  LVARRAY_DEVICE inline
-  __half sin( __half const theta )
-  { return ::hsin( theta ); }
+LVARRAY_DEVICE inline
+__half sin( __half const theta )
+{ return ::hsin( theta ); }
 
-  LVARRAY_DEVICE inline
-  __half cos( __half const theta )
-  { return ::hcos( theta ); }
+LVARRAY_DEVICE inline
+__half cos( __half const theta )
+{ return ::hcos( theta ); }
 
-  template< typename T >
-  LVARRAY_DEVICE inline
-  void sincos( __half const theta, T & sinTheta, T & cosTheta )
-  {
-    sinTheta = ::hsin( theta );
-    cosTheta = ::hcos( theta );
-  }
+template< typename T >
+LVARRAY_DEVICE inline
+void sincos( __half const theta, T & sinTheta, T & cosTheta )
+{
+  sinTheta = ::hsin( theta );
+  cosTheta = ::hcos( theta );
+}
 
-  LVARRAY_DEVICE inline
-  void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
-  {
-    sinTheta = ::hsin( theta );
-    cosTheta = ::hcos( theta );
-  }
+LVARRAY_DEVICE inline
+void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
+{
+  sinTheta = ::hsin( theta );
+  cosTheta = ::hcos( theta );
+}
 
-  LVARRAY_DEVICE inline
-  __half sqrt( __half const x )
-  {
-    return ::hsqrt( x );
-  }
+LVARRAY_DEVICE inline
+__half sqrt( __half const x )
+{
+  return ::hsqrt( x );
+}
 #endif
 
 /**
