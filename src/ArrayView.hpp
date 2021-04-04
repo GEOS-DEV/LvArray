@@ -131,7 +131,7 @@ public:
   {}
 
   template< typename U, typename=std::enable_if_t< !std::is_same< T, U >::value > >
-  inline
+  inline LVARRAY_HOST_DEVICE constexpr
   explicit ArrayView( ArrayView< U, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & source ):
     m_dims{ source.dimsArray() },
     m_strides{ source.stridesArray() },
@@ -450,6 +450,7 @@ public:
   INDEX_TYPE const * dims() const noexcept
   { return m_dims.data; }
 
+  LVARRAY_HOST_DEVICE inline constexpr
   typeManipulation::CArray< INDEX_TYPE, NDIM > const & dimsArray() const
   { return m_dims; }
 
@@ -460,9 +461,11 @@ public:
   INDEX_TYPE const * strides() const noexcept
   { return m_strides.data; }
 
+  LVARRAY_HOST_DEVICE inline constexpr
   typeManipulation::CArray< INDEX_TYPE, NDIM > const & stridesArray() const
   { return m_dims; }
 
+  LVARRAY_HOST_DEVICE inline constexpr
   BUFFER_TYPE< T > const & dataBuffer() const
   { return m_dataBuffer; }
 
