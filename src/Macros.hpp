@@ -93,26 +93,47 @@
  */
 #if defined(__CUDA_ARCH__)
   #if !defined(NDEBUG)
-#define LVARRAY_ERROR_IF( EXP, MSG ) assert( !(EXP) )
+    #define LVARRAY_ERROR_IF( EXP, MSG ) \
+      do \
+      { \
+        if( EXP ) \
+        { \
+          assert( false && "EXP = " STRINGIZE( EXP ) "MSG = " STRINGIZE( MSG ) ); \
+        } \
+      } while( false )
   #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) if( EXP ) asm ( "trap;" )
+    #define LVARRAY_ERROR_IF( EXP, MSG ) \
+      do \
+      { \
+        if( EXP ) \
+        { \
+          constexpr char const * formatString = "***** ERROR\n" \
+                                                "***** LOCATION: " LOCATION "\n" \
+                                                "***** Block: [%u, %u, %u]\n" \
+                                                "***** Thread: [%u, %u, %u]\n" \
+                                                "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                                "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+          printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
+          asm ( "trap;" ); \
+        } \
+      } while( false )
   #endif
 #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) \
-  do \
-  { \
-    if( EXP ) \
+  #define LVARRAY_ERROR_IF( EXP, MSG ) \
+    do \
     { \
-      std::ostringstream __oss; \
-      __oss << "***** ERROR\n"; \
-      __oss << "***** LOCATION: " LOCATION "\n"; \
-      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
-      __oss << MSG << "\n"; \
-      __oss << LvArray::system::stackTrace( true ); \
-      std::cout << __oss.str() << std::endl; \
-      LvArray::system::callErrorHandler(); \
-    } \
-  } while( false )
+      if( EXP ) \
+      { \
+        std::ostringstream __oss; \
+        __oss << "***** ERROR\n"; \
+        __oss << "***** LOCATION: " LOCATION "\n"; \
+        __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+        __oss << MSG << "\n"; \
+        __oss << LvArray::system::stackTrace( true ); \
+        std::cout << __oss.str() << std::endl; \
+        LvArray::system::callErrorHandler(); \
+      } \
+    } while( false )
 #endif
 
 /**
