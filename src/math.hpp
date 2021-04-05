@@ -87,9 +87,18 @@ __half sin( __half const theta )
 { return ::hsin( theta ); }
 
 LVARRAY_DEVICE inline
+__half2 sin( __half2 const theta )
+{ return ::h2sin( theta ); }
+
+LVARRAY_DEVICE inline
 __half cos( __half const theta )
 { return ::hcos( theta ); }
 
+LVARRAY_DEVICE inline
+__half2 cos( __half2 const theta )
+{ return ::h2cos( theta ); }
+
+// TODO(corbett5): get rid of this.
 template< typename T >
 LVARRAY_DEVICE inline
 void sincos( __half const theta, T & sinTheta, T & cosTheta )
@@ -103,6 +112,13 @@ void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
 {
   sinTheta = ::hsin( theta );
   cosTheta = ::hcos( theta );
+}
+
+LVARRAY_DEVICE inline
+void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
+{
+  sinTheta = ::h2sin( theta );
+  cosTheta = ::h2cos( theta );
 }
 
 LVARRAY_DEVICE inline
