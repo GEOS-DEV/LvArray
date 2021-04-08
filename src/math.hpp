@@ -129,6 +129,15 @@ LVARRAY_DEVICE inline
 __half log( __half const x )
 { return ::hlog( x ); }
 
+LVARRAY_DEVICE inline
+__half abs( __half const x )
+{
+#if CUDART_VERSION > 11000
+  return ::habs( x );
+#else
+  return x > __half( 0 ) ? x : -x;
+#endif
+}
 
 #endif
 
