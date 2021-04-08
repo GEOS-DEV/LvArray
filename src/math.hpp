@@ -123,9 +123,13 @@ void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
 
 LVARRAY_DEVICE inline
 __half sqrt( __half const x )
-{
-  return ::hsqrt( x );
-}
+{ return ::hsqrt( x ); }
+
+LVARRAY_DEVICE inline
+__half log( __half const x )
+{ return ::hlog( x ); }
+
+
 #endif
 
 /**
