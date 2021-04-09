@@ -9,7 +9,7 @@ endif()
 
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
-option( LvArrayBuildAsObj "" OFF )
+set( LvArrayBuildAsObj TRUE CACHE BOOL "" )
 
 
 if( NOT BLT_CXX_STD STREQUAL c++14 )
