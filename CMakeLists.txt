@@ -35,12 +35,8 @@ if( NOT is_submodule )
     include( cmake/blt/SetupBLT.cmake )
     include( cmake/CMakeBasics.cmake )
     include( cmake/SetupTPL.cmake )
-    set( LvArrayBuildAsObj FALSE)
-    
 else()
     include( cmake/CMakeBasics.cmake )
-    set( LvArrayBuildAsObj TRUE)
-    
 endif()
 
 include(cmake/Macros.cmake)

@@ -9,6 +9,8 @@ endif()
 
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
+option( LvArrayBuildAsObj "" OFF )
+
 
 if( NOT BLT_CXX_STD STREQUAL c++14 )
     MESSAGE(FATAL_ERROR "c++14 is NOT enabled. LvArray requires c++14")
