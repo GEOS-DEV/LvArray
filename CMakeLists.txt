@@ -60,6 +60,7 @@ if( ENABLE_CALIPER )
     set( lvarray_dependencies ${lvarray_dependencies} caliper )
 endif()
 
+add_subdirectory( src )
 
 if( ENABLE_TESTS AND NOT DISABLE_UNIT_TESTS )
     add_subdirectory( unitTests )
@@ -85,5 +86,4 @@ if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
 
-add_subdirectory( src )
 
