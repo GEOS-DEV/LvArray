@@ -42,7 +42,7 @@ blt_add_library( NAME             lvarray
                  SOURCES          ${lvarray_sources}
                  HEADERS          ${lvarray_headers}
                  DEPENDS_ON       ${lvarray_dependencies}
-                 OBJECT           ${LvArrayBuildAsObj}
+                 OBJECT           ${LVARRAY_BUILD_OBJ_LIBS}
                 )
                 
 target_include_directories( lvarray
