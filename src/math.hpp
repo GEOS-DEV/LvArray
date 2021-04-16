@@ -126,6 +126,10 @@ __half sqrt( __half const x )
 { return ::hsqrt( x ); }
 
 LVARRAY_DEVICE inline
+__half2 sqrt( __half2 const x )
+{ return ::h2sqrt( x ); }
+
+LVARRAY_DEVICE inline
 __half log( __half const x )
 { return ::hlog( x ); }
 
