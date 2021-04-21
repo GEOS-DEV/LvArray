@@ -376,7 +376,7 @@ public:
   /**
    * @return Return the allocated size.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
   {
   #if defined( __ibmxl__ )
@@ -396,14 +396,14 @@ public:
    * @return Return the length of the given dimension.
    * @param dim The dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ASSERT_GE( dim, 0 );
     LVARRAY_ASSERT_GT( NDIM, dim );
 #endif
-    return m_dims[dim];
+    return m_dims[ dim ];
   }
 
   /**
