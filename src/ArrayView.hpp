@@ -396,7 +396,7 @@ public:
    * @return Return the length of the given dimension.
    * @param dim The dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
