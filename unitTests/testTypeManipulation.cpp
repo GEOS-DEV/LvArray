@@ -683,5 +683,24 @@ TEST( Permutation, AsArray )
   }
 }
 
+TEST( typeManipulation, convertSize )
+{
+  EXPECT_EQ( ( typeManipulation::convertSize< char, int >( 40 ) ), 40 * sizeof( int ) / sizeof( char ) );
+
+  EXPECT_DEATH_IF_SUPPORTED( ( typeManipulation::convertSize< double, int >( 41 ) ), "" );
+
+  EXPECT_EQ( ( typeManipulation::convertSize< float[ 2 ], float >( 10 ) ), 10 * sizeof( float ) / sizeof( float[ 2 ] ) );
+
+  EXPECT_EQ( ( typeManipulation::convertSize< float, float[ 2 ] >( 13 ) ), 13 * sizeof( float[ 2 ] ) / sizeof( float ) );
+}
+
 } // namespace testing
 } // namespace LvArray
+
+// This is the default gtest main method. It is included for ease of debugging.
+int main( int argc, char * * argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  int const result = RUN_ALL_TESTS();
+  return result;
+}

@@ -443,6 +443,47 @@ constexpr bool isValidPermutation( PERMUTATION )
 }
 
 /**
+ * @brief Convert a number of values of type @c U to a number of values of type @c T.
+ * @tparam T The type to convert to.
+ * @tparam U The type to convert from.
+ * @tparam INDEX_TYPE The type of @p numU.
+ * @param numU The number of @c U to convert to number of @c T.
+ * @return @p numU converted to a number of types @p T.
+ * @details This is a specialization for when @code sizeof( T ) <= sizeof( U ) @endcode.
+ */
+template< typename T, typename U, typename INDEX_TYPE >
+constexpr inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) <= sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( U ) % sizeof( T ) == 0, "T and U need to have compatable sizes." );
+
+  return numU * sizeof( U ) / sizeof( T );
+}
+
+/**
+ * @brief Convert a number of values of type @c U to a number of values of type @c T.
+ * @tparam T The type to convert to.
+ * @tparam U The type to convert from.
+ * @tparam INDEX_TYPE The type of @p numU.
+ * @param numU The number of @c U to convert to number of @c T.
+ * @return @p numU converted to a number of types @p T.
+ * @details This is a specialization for when @code sizeof( T ) > sizeof( U ) @endcode.
+ */
+template< typename T, typename U, typename INDEX_TYPE >
+inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) > sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( T ) % sizeof( U ) == 0, "T and U need to have compatable sizes." );
+
+  INDEX_TYPE const numUPerT = sizeof( T ) / sizeof( U );
+  LVARRAY_ERROR_IF_NE( numU % numUPerT, 0 );
+
+  return numU / numUPerT;
+}
+
+/**
  * @tparam T The type of values stored in the array.
  * @tparam N The number of values in the array.
  * @struct CArray
@@ -475,6 +516,7 @@ struct CArray
   { return N; }
 
   /// The backing c array, public so that aggregate initialization works.
+  // TODO(corbett5) remove {}
   T data[ N ] = {};
 };
 

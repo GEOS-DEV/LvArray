@@ -131,6 +131,40 @@ public:
   {}
 
   /**
+   * @brief Construct a new ArrayView from an ArrayView with a different type.
+   * @tparam U The type to convert from.
+   * @param source The ArrayView to convert.
+   * @details If the size of @c T and @c U are different then either the size of @c T must be a
+   *   multiple of the size of @c U or vice versa. If the types have different size then size of the unit stride
+   *   dimension is changed accordingly.
+   * @note This is useful for converting between single values and SIMD types such as CUDA's @c __half and @c __half2.
+   * @code
+   *   Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, MallocBuffer > x( 5, 10 );
+   *   ArrayView< int[ 2 ], 2, 1, std::ptrdiff_t, MallocBuffer > y( x.toView() );
+   *   assert( y.size( 1 ) == x.size( 1 ) / 2 );
+   *   assert( y( 3, 4 )[ 0 ] == x( 3, 8 ) );
+   * @endcode
+   */
+  template< typename U, typename=std::enable_if_t< !std::is_same< T, U >::value > >
+  inline LVARRAY_HOST_DEVICE constexpr
+  explicit ArrayView( ArrayView< U, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & source ):
+    m_dims{ source.dimsArray() },
+    m_strides{ source.stridesArray() },
+    m_dataBuffer{ source.dataBuffer() },
+    m_singleParameterResizeIndex( source.getSingleParameterResizeIndex() )
+  {
+    m_dims[ USD ] = typeManipulation::convertSize< T, U >( m_dims[ USD ] );
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      if( i != USD )
+      {
+        m_strides[ i ] = typeManipulation::convertSize< T, U >( m_strides[ i ] );
+      }
+    }
+  }
+
+  /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
    * @param source object to move.
    * @note Since this invalidates the source this should not be used when @p source is
@@ -155,7 +189,7 @@ public:
    * @param singleParameterResizeIndex The single parameter resize index.
    * @param buffer The buffer to copy construct.
    */
-  inline LVARRAY_HOST_DEVICE constexpr
+  inline LVARRAY_HOST_DEVICE constexpr explicit
   ArrayView( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims,
              typeManipulation::CArray< INDEX_TYPE, NDIM > const & strides,
              int const singleParameterResizeIndex,
@@ -357,7 +391,7 @@ public:
   /**
    * @return Return the allocated size.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
   {
   #if defined( __ibmxl__ )
@@ -377,14 +411,14 @@ public:
    * @return Return the length of the given dimension.
    * @param dim The dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ASSERT_GE( dim, 0 );
     LVARRAY_ASSERT_GT( NDIM, dim );
 #endif
-    return m_dims[dim];
+    return m_dims[ dim ];
   }
 
   /**
@@ -432,11 +466,33 @@ public:
   { return m_dims.data; }
 
   /**
+   * @return The CArray containing the size of each dimension.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & dimsArray() const
+  { return m_dims; }
+
+  /**
    * @return A pointer to the array containing the stride of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * strides() const noexcept
   { return m_strides.data; }
+
+  /**
+   * @return The CArray containing the stride of each dimension.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & stridesArray() const
+  { return m_strides; }
+
+  /**
+   * @return A reference to the underlying buffer.
+   * @note Use with caution.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  BUFFER_TYPE< T > const & dataBuffer() const
+  { return m_dataBuffer; }
 
   ///@}
 

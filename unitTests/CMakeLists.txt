@@ -24,6 +24,7 @@ set( testSources
      testArrayView_toSliceConst.cpp
      testArrayView_toView.cpp
      testArrayView_toViewConst.cpp
+     testArrayView_typeConversion.cpp
      testArrayView_udcToSlice.cpp
      testArrayView_udcToSliceConst.cpp
      testArrayView_udcToViewConst.cpp

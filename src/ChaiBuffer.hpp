@@ -226,15 +226,15 @@ public:
   }
 
   /**
-   * @brief Create a copy of @p src with const T.
-   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @brief Create a shallow copy of @p src but with a different type.
+   * @tparam U The type to convert from.
    * @param src The buffer to copy.
    */
-  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  template< typename U >
   LVARRAY_HOST_DEVICE inline constexpr
-  ChaiBuffer( ChaiBuffer< std::remove_const_t< T > > const & src ):
-    m_pointer( src.data() ),
-    m_capacity( src.capacity() ),
+  ChaiBuffer( ChaiBuffer< U > const & src ):
+    m_pointer( reinterpret_cast< T * >( src.data() ) ),
+    m_capacity( typeManipulation::convertSize< T, U >( src.capacity() ) ),
     m_pointerRecord( &src.pointerRecord() )
   {}
 

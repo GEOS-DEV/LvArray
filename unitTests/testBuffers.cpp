@@ -157,21 +157,24 @@ TYPED_TEST( BufferAPITest, getPreviousSpace )
   bufferManipulation::free( buffer, 0 );
 }
 
-template< typename >
-struct ToBufferConst
+template< typename, typename >
+struct ToBufferT
 {};
 
-template< template< typename > class BUFFER, typename T >
-struct ToBufferConst< BUFFER< T > >
+template< typename T, template< typename > class BUFFER, typename U >
+struct ToBufferT< T, BUFFER< U > >
 {
-  using type = BUFFER< T const >;
+  using type = BUFFER< T >;
 };
 
-template< typename T, int N >
-struct ToBufferConst< StackBuffer< T, N > >
+template< typename T, typename U, int N >
+struct ToBufferT< T, StackBuffer< U, N > >
 {
-  using type = StackBuffer< T const, N >;
+  using type = StackBuffer< T, N >;
 };
+
+template< typename BUFFER >
+using ToBufferConst = typename ToBufferT< typename BUFFER::value_type const, BUFFER >::type;
 
 /**
  * @tparam BUFFER_TYPE the type of the Buffer to test.
@@ -511,7 +514,7 @@ TYPED_TEST( BufferTestNoRealloc, moveAssignmentOperator )
 TYPED_TEST( BufferTestNoRealloc, ConstConstructor )
 {
   this->emplaceBack( 100 );
-  typename ToBufferConst< TypeParam >::type copy( this->m_buffer );
+  ToBufferConst< TypeParam > copy( this->m_buffer );
 
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
 
@@ -525,6 +528,7 @@ TYPED_TEST( BufferTestNoRealloc, ConstConstructor )
   }
 
   COMPARE_TO_REFERENCE( copy, this->m_ref );
+  COMPARE_TO_REFERENCE( this->m_buffer, this->m_ref );
 }
 
 /**
@@ -664,6 +668,43 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
   }
+
+  void typeConversion()
+  {
+    this->resize( 60 );
+
+    typename ToBufferT< T[ 4 ], BUFFER_TYPE >::type buffer4( m_buffer );
+    EXPECT_EQ( buffer4.capacity(), m_buffer.capacity() / 4 );
+
+    if( BUFFER_TYPE::hasShallowCopy )
+    {
+      EXPECT_EQ( static_cast< void * >( buffer4.data() ), static_cast< void * >( m_buffer.data() ) );
+    }
+
+    for( std::ptrdiff_t i = 0; i < size() / 4; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < 4; ++j )
+      {
+        EXPECT_EQ( buffer4[ i ][ j ], m_buffer[ 4 * i + j ] );
+      }
+    }
+
+    typename ToBufferT< T[ 2 ], BUFFER_TYPE >::type buffer2( buffer4 );
+    EXPECT_EQ( buffer2.capacity(), m_buffer.capacity() / 2 );
+
+    if( BUFFER_TYPE::hasShallowCopy )
+    {
+      EXPECT_EQ( static_cast< void * >( buffer2.data() ), static_cast< void * >( m_buffer.data() ) );
+    }
+
+    for( std::ptrdiff_t i = 0; i < size() / 2; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < 2; ++j )
+      {
+        EXPECT_EQ( buffer2[ i ][ j ], m_buffer[ 2 * i + j ] );
+      }
+    }
+  }
 };
 
 /// The list of types to instantiate BufferTestWithRealloc with,
@@ -742,6 +783,13 @@ TYPED_TEST( BufferTestWithRealloc, combination )
   this->popBack( 100 );
 }
 
+/**
+ * @brief Test buffer type conversion.
+ */
+TYPED_TEST( BufferTestWithRealloc, typeConversion )
+{
+  this->typeConversion();
+}
 
 // TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
