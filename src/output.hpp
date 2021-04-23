@@ -27,6 +27,10 @@
 #include <string>
 #include <iostream>
 
+#if defined( LVARRAY_USE_CUDA )
+  #include <cuda_fp16.h>
+#endif
+
 namespace LvArray
 {
 
@@ -307,3 +311,28 @@ std::ostream & operator<< ( std::ostream & stream, T const ( &array )[ M ][ N ] 
 }
 
 } // namespace LvArray
+
+#if defined( LVARRAY_USE_CUDA )
+
+/**
+ * @brief Output a @c __half to a stream.
+ * @param stream The output stream to write to.
+ * @param x The value to ouput.
+ * @return @p stream.
+ */
+inline std::ostream & operator<<( std::ostream & stream, __half const x )
+{ return stream << float( x ); }
+
+/**
+ * @brief Output a @c __half2 to a stream.
+ * @param stream The output stream to write to.
+ * @param x The value to ouput.
+ * @return @p stream.
+ */
+inline std::ostream & operator<<( std::ostream & stream, __half2 const x )
+{
+  float2 const c = __half22float2( x );
+  return stream << c.x << ", " << c.y;
+}
+
+#endif

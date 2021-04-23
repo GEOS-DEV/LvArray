@@ -1211,8 +1211,8 @@ private:
 
     // roots are already sorted, since cos is monotonically decreasing on [0, pi]
     constexpr FloatingPoint squareRootThree = 1.73205080756887729352744;
-    eigenvalues[ 0 ] = -p * ( cosTheta + squareRootThree * sinTheta );  // == 2 * p * cos( theta + 2pi/3 )
-    eigenvalues[ 1 ] = -p * ( cosTheta - squareRootThree * sinTheta );  // == 2 * p * cos( theta +  pi/3 )
+    eigenvalues[ 0 ] = -p * ( cosTheta + squareRootThree * sinTheta ); // == 2 * p * cos( theta + 2pi/3 )
+    eigenvalues[ 1 ] = -p * ( cosTheta - squareRootThree * sinTheta ); // == 2 * p * cos( theta +  pi/3 )
     eigenvalues[ 2 ] = 2 * p * cosTheta;
   }
 
