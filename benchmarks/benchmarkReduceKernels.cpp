@@ -48,7 +48,7 @@ VALUE_TYPE ReduceNative::subscriptSliceKernel( ArraySliceT< VALUE_TYPE const, RA
 { REDUCE_KERNEL( a.size(), a[ i ] ); }
 
 VALUE_TYPE ReduceNative::RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a )
-{ REDUCE_KERNEL( a.layout.sizes[ 0 ], a( i ) ); }
+{ REDUCE_KERNEL( getRAJAViewLayout( a ).sizes[ 0 ], a( i ) ); }
 
 VALUE_TYPE ReduceNative::pointerKernel( VALUE_TYPE const * const LVARRAY_RESTRICT a,
                                         INDEX_TYPE const N )
@@ -72,7 +72,7 @@ VALUE_TYPE ReduceRAJA< POLICY >::subscriptSliceKernel( ArraySliceT< VALUE_TYPE c
 
 template< class POLICY >
 VALUE_TYPE ReduceRAJA< POLICY >::RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a )
-{ REDUCE_KERNEL_RAJA( a.layout.sizes[ 0 ], a( i ) ); }
+{ REDUCE_KERNEL_RAJA( getRAJAViewLayout( a ).sizes[ 0 ], a( i ) ); }
 
 template< class POLICY >
 VALUE_TYPE ReduceRAJA< POLICY >::pointerKernel( VALUE_TYPE const * const LVARRAY_RESTRICT a,

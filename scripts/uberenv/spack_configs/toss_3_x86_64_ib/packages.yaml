@@ -32,3 +32,9 @@ packages:
     externals:
     - spec: flex@2.5.37
       prefix: /usr/bin/
+
+  papi:
+    buildable: False
+    externals:
+    - spec: papi@5.4.3
+      prefix: /usr/tce/packages/papi/papi-5.4.3

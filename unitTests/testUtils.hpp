@@ -80,6 +80,29 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, max ), std::forward< LAMBDA >( body ) );
 }
 
+template< typename T, typename LAYOUT >
+LVARRAY_HOST_DEVICE inline constexpr
+T * getRAJAViewData( RAJA::View< T, LAYOUT > const & view )
+{
+#if RAJA_VERSION_MAJOR <= 0 && RAJA_VERSION_MINOR <= 13
+  return view.data;
+#else
+  return view.get_data();
+#endif
+}
+
+template< typename T, typename LAYOUT >
+LVARRAY_HOST_DEVICE inline constexpr
+LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
+{
+#if RAJA_VERSION_MAJOR <= 0 && RAJA_VERSION_MINOR <= 13
+  return view.layout;
+#else
+  return view.get_layout();
+#endif
+}
+
+
 #ifndef __CUDA_ARCH__
 #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) - ( R ) ), EPSILON ) << \

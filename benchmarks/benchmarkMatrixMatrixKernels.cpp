@@ -90,7 +90,7 @@ void MatrixMatrixNative< PERMUTATION >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, PERMUTATION > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ MATRIX_MATRIX_KERNEL( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], b.layout.sizes[ 1 ], a( i, k ), b( k, j ), c( i, j ) ); }
+{ MATRIX_MATRIX_KERNEL( getRAJAViewLayout( a ).sizes[ 0 ], getRAJAViewLayout( a ).sizes[ 1 ], getRAJAViewLayout( b ).sizes[ 1 ], a( i, k ), b( k, j ), c( i, j ) ); }
 
 template<>
 void MatrixMatrixNative< RAJA::PERM_IJ >::
@@ -155,7 +155,7 @@ void MatrixMatrixRAJA< PERMUTATION, POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, PERMUTATION > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ MATRIX_MATRIX_KERNEL_RAJA( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], b.layout.sizes[ 1 ], a( i, k ), b( k, j ), c( i, j ) ); }
+{ MATRIX_MATRIX_KERNEL_RAJA( getRAJAViewLayout( a ).sizes[ 0 ], getRAJAViewLayout( a ).sizes[ 1 ], getRAJAViewLayout( b ).sizes[ 1 ], a( i, k ), b( k, j ), c( i, j ) ); }
 
 template< typename POLICY >
 void RAJAPointerKernelHelper( RAJA::PERM_IJ,
