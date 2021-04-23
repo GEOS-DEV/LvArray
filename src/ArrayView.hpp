@@ -587,6 +587,12 @@ public:
   ///@{
 
   /**
+   * @return The last space the Array was moved to.
+   */
+  MemorySpace getPreviousSpace() const
+  { return m_dataBuffer.getPreviousSpace(); }
+
+  /**
    * @brief Touch the memory in @p space.
    * @param space The memory space in which a touch will be recorded.
    */
@@ -594,7 +600,6 @@ public:
   {
     m_dataBuffer.registerTouch( space );
   }
-
 
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
@@ -648,6 +653,20 @@ protected:
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }
+
+  /**
+   * @brief Protected constructor to be used by the Array class.
+   * @details Construct an empty ArrayView from @p buffer.
+   * @param buffer The buffer use.
+   */
+  DISABLE_HD_WARNING
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView( BUFFER_TYPE< T > && buffer ) noexcept:
+    m_dims{ 0 },
+    m_strides{ 0 },
+    m_dataBuffer{ std::move( buffer ) },
+    m_singleParameterResizeIndex{ 0 }
+  {}
 
   /// the dimensions of the array.
   typeManipulation::CArray< INDEX_TYPE, NDIM > m_dims = { 0 };

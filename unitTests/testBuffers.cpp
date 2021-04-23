@@ -147,6 +147,16 @@ TYPED_TEST( BufferAPITest, setName )
   bufferManipulation::free( buffer, 0 );
 }
 
+TYPED_TEST( BufferAPITest, getPreviousSpace )
+{
+  TypeParam buffer( true );
+
+  MemorySpace const previousSpace = buffer.getPreviousSpace();
+  LVARRAY_UNUSED_VARIABLE( previousSpace );
+
+  bufferManipulation::free( buffer, 0 );
+}
+
 template< typename >
 struct ToBufferConst
 {};
@@ -187,7 +197,7 @@ public:
    */
   void SetUp() override
   {
-    m_buffer.reallocate( 0, NO_REALLOC_CAPACITY );
+    m_buffer.reallocate( 0, MemorySpace::CPU, NO_REALLOC_CAPACITY );
   }
 
   /**
@@ -606,7 +616,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
@@ -617,7 +627,7 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() - 50 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() - 50 );
     m_ref.resize( size() - 50 );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
@@ -630,20 +640,20 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
     bufferManipulation::resize( m_buffer, size(), size() + 100, val );
     m_ref.resize( size() + 100, val );
 
-    bufferManipulation::reserve( m_buffer, size(), size() - 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::CPU, size() - 50 );
 
     EXPECT_EQ( ptr, m_buffer.data() );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::reserve( m_buffer, size(), size() + 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::CPU, size() + 50 );
     T const * const newPtr = m_buffer.data();
 
     T const newVal( randInt() );
@@ -735,8 +745,6 @@ TYPED_TEST( BufferTestWithRealloc, combination )
 
 // TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
-// Move tests with ChaiBuffer
-// Copy-capture tests with ChaiBuffer
 
 } // namespace testing
 } // namespace LvArray

@@ -208,6 +208,39 @@ LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
 { LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
 
+/**
+ * @brief Calculate the strides given the dimensions and permutation.
+ * @tparam PERMUTATION The permutation to apply to the dimensions to calculate the strides.
+ * @tparam INDEX_TYPE The integral type used for the dimensions of the space.
+ * @tparam NDIM The number of dimensions.
+ * @param dims The size of each dimension.
+ * @return The strides of each dimension.
+ * @note Adapted from RAJA::make_permuted_layout.
+ */
+template< typename PERMUTATION, typename INDEX_TYPE, camp::idx_t NDIM >
+LVARRAY_HOST_DEVICE inline
+typeManipulation::CArray< INDEX_TYPE, NDIM > calculateStrides( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims )
+{
+  constexpr typeManipulation::CArray< camp::idx_t, NDIM > perm = typeManipulation::asArray( PERMUTATION {} );
+  INDEX_TYPE foldedStrides[ NDIM ];
+
+  for( int i = 0; i < NDIM; ++i )
+  {
+    foldedStrides[ i ] = 1;
+    for( int j = i + 1; j < NDIM; ++j )
+    {
+      foldedStrides[ i ] *= dims[ perm[ j ] ];
+    }
+  }
+
+  typeManipulation::CArray< INDEX_TYPE, NDIM > strides;
+  for( int i = 0; i < NDIM; ++i )
+  {
+    strides[ perm[ i ] ] = foldedStrides[ i ];
+  }
+
+  return strides;
+}
 
 } // namespace indexing
 } // namespace LvArray

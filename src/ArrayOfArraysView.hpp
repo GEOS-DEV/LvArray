@@ -631,8 +631,8 @@ protected:
    */
   void reserve( INDEX_TYPE const newCapacity )
   {
-    bufferManipulation::reserve( m_offsets, m_numArrays + 1, newCapacity + 1 );
-    bufferManipulation::reserve( m_sizes, m_numArrays, newCapacity );
+    bufferManipulation::reserve( m_offsets, m_numArrays + 1, MemorySpace::CPU, newCapacity + 1 );
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::CPU, newCapacity );
   }
 
   /**
@@ -648,7 +648,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [newValueCapacity, maxOffset] ( auto & buffer )
     {
-      bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
+      bufferManipulation::reserve( buffer, maxOffset, MemorySpace::CPU, newValueCapacity );
     }, m_values, buffers ... );
   }
 
@@ -710,11 +710,11 @@ protected:
 
     destroyValues( 0, m_numArrays, buffers ... );
 
-    bufferManipulation::reserve( m_sizes, m_numArrays, numSubArrays );
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::CPU, numSubArrays );
     std::fill_n( m_sizes.data(), numSubArrays, 0 );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
+    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::CPU, numSubArrays + 1 );
 
     m_offsets[ 0 ] = 0;
     // RAJA::inclusive_scan fails on empty input range
@@ -730,7 +730,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
     {
-      bufferManipulation::reserve( buffer, 0, maxOffset );
+      bufferManipulation::reserve( buffer, 0, MemorySpace::CPU, maxOffset );
     }, m_values, buffers ... );
   }
 
@@ -787,7 +787,7 @@ protected:
         INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
         typeManipulation::forEachArg( [totalSize, maxOffset]( auto & buffer )
         {
-          bufferManipulation::reserve( buffer, maxOffset, totalSize );
+          bufferManipulation::reserve( buffer, maxOffset, MemorySpace::CPU, totalSize );
         }, m_values, buffers ... );
       }
     }
@@ -843,7 +843,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
     {
-      bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
+      bufferManipulation::reserve( dstBuffer, maxOffset, MemorySpace::CPU, srcMaxOffset );
     }, m_values, pairs.first ... );
 
     m_numArrays = srcNumArrays;

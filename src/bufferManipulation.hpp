@@ -107,6 +107,13 @@ struct VoidBuffer
   }
 
   /**
+   * @return The last space the buffer was moved to.
+   * @note The default behavior is that the Buffer can only exist on the CPU.
+   */
+  MemorySpace getPreviousSpace() const
+  { return MemorySpace::CPU; }
+
+  /**
    * @brief Touch the buffer in the given space.
    * @param space the space to touch.
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
@@ -199,15 +206,16 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
  * @tparam BUFFER the buffer type.
  * @param buf The buffer to set the capacity of.
  * @param size The size of the buffer.
+ * @param space The space to set the capacity in.
  * @param newCapacity The new capacity of the buffer.
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
 LVARRAY_HOST_DEVICE
-void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+void setCapacity( BUFFER & buf, std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
-  buf.reallocate( size, newCapacity );
+  buf.reallocate( size, space, newCapacity );
 }
 
 /**
@@ -215,17 +223,18 @@ void setCapacity( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const 
  * @tparam BUFFER the buffer type.
  * @param buf The buffer to reserve space in.
  * @param size The size of the buffer.
+ * @param space The space to perform the reserve in.
  * @param newCapacity The new minimum capacity of the buffer.
  */
 template< typename BUFFER >
 LVARRAY_HOST_DEVICE
-void reserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+void reserve( BUFFER & buf, std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
 {
   check( buf, size );
 
   if( newCapacity > buf.capacity() )
   {
-    setCapacity( buf, size, newCapacity );
+    setCapacity( buf, size, space, newCapacity );
   }
 }
 
@@ -246,7 +255,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
 
   if( newCapacity > buf.capacity() )
   {
-    setCapacity( buf, size, 2 * newCapacity );
+    setCapacity( buf, size, MemorySpace::CPU, 2 * newCapacity );
   }
 }
 
@@ -258,8 +267,6 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
  * @param size The current size of the buffer.
  * @param newSize The new size of the buffer.
  * @param args The arguments to initialize the new values with.
- * @note Use this in methods which increase the size of the buffer to efficiently grow
- *   the capacity.
  */
 template< typename BUFFER, typename ... ARGS >
 LVARRAY_HOST_DEVICE
@@ -267,7 +274,7 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 {
   check( buf, size );
 
-  reserve( buf, size, newSize );
+  reserve( buf, size, MemorySpace::CPU, newSize );
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 

@@ -259,7 +259,7 @@ public:
 
   /**
    * @return A raw pointer.
-   * @note This method is only active when NDIM == 0 and USD == 0.
+   * @note This method is only active when NDIM == 1 and USD == 0.
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE constexpr inline

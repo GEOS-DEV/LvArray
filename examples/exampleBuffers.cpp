@@ -30,7 +30,7 @@ TEST( MallocBuffer, copy )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::MallocBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::CPU, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -54,7 +54,7 @@ TEST( MallocBuffer, nonPOD )
 {
   constexpr std::ptrdiff_t size = 4;
   LvArray::MallocBuffer< std::string > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::CPU, size );
 
   // Buffers don't initialize data so placement new must be used.
   for( int i = 0; i < size; ++i )
@@ -85,7 +85,7 @@ CUDA_TEST( ChaiBuffer, captureOnDevice )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::CPU, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -118,7 +118,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::CPU, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -153,7 +153,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 TEST( ChaiBuffer, setName )
 {
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, 1024 );
+  buffer.reallocate( 0, LvArray::MemorySpace::CPU, 1024 );
 
   // Move to the device.
   buffer.move( LvArray::MemorySpace::GPU, true );
@@ -188,7 +188,7 @@ TEST( StackBuffer, example )
     EXPECT_EQ( buffer[ i ], i );
   }
 
-  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, 2 * size ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, LvArray::MemorySpace::CPU, 2 * size ), "" );
 
   // Not necessary with the StackBuffer but it's good practice.
   buffer.free();
