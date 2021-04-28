@@ -809,7 +809,7 @@ public:
           }
         } );
 
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     curIndex = 0;
     for( IndexType row = 0; row < numRows; ++row )
     {
@@ -849,7 +849,7 @@ public:
     }
 
     // Move the SparsityPattern back from device, this should be a no-op.
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -869,7 +869,7 @@ public:
           }
         } );
 
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -886,7 +886,7 @@ public:
           view.insertNonZeros( row, toInsertView[ row ].begin(), toInsertView[ row ].end() );
         } );
 
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -906,7 +906,7 @@ public:
           }
         } );
 
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -923,7 +923,7 @@ public:
           view.removeNonZeros( row, toRemoveView[ row ].begin(), toRemoveView[ row ].end() );
         } );
 
-    m_sp.move( MemorySpace::CPU );
+    m_sp.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -1125,7 +1125,7 @@ public:
   {
     CRS_MATRIX matrix;
     matrix.template assimilate< POLICY >( std::move( this->m_sp ) );
-    matrix.move( MemorySpace::CPU );
+    matrix.move( MemorySpace::host );
     this->compareToReference( matrix.toSparsityPatternView() );
 
     EXPECT_EQ( this->m_sp.numRows(), 0 );

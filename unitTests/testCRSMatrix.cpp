@@ -672,7 +672,7 @@ public:
   {
     memoryMotionInit();
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     IndexType curIndex = 0;
     for( IndexType row = 0; row < m_matrix.numRows(); ++row )
     {
@@ -703,7 +703,7 @@ public:
         } );
 
     // This should copy back the entries but not the columns.
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     for( IndexType row = 0; row < numRows; ++row )
     {
       ASSERT_EQ( m_matrix.numNonZeros( row ), this->m_ref[row].size());
@@ -748,7 +748,7 @@ public:
     this->insert( maxInserts );
 
     // Move the matrix back to the host, this should copy nothing.
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
 
     // And therefore the matrix should still equal the reference.
     COMPARE_TO_REFERENCE
@@ -767,7 +767,7 @@ public:
       }
     }
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -788,7 +788,7 @@ public:
       }
     }
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -849,7 +849,7 @@ public:
                         );
     }
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -903,7 +903,7 @@ public:
           } );
     }
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -1249,7 +1249,7 @@ public:
           } );
     }
 
-    this->m_matrix.move( MemorySpace::CPU );
+    this->m_matrix.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 

@@ -273,7 +273,7 @@ public:
   void move( MemorySpace const space, bool touch=true ) const
   {
   #if defined(LVARRAY_USE_CUDA)
-    if( space == MemorySpace::GPU ) touch = false;
+    if( space == MemorySpace::cuda ) touch = false;
   #endif
     m_values.move( space, touch );
   }

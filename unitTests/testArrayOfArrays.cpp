@@ -977,7 +977,7 @@ public:
     }
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1019,7 +1019,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1055,7 +1055,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1103,7 +1103,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1145,7 +1145,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1183,7 +1183,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1218,7 +1218,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE;
   }
 
@@ -1376,7 +1376,7 @@ public:
         } );
 
     // Now sort each array and check that the values are as expected.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     IndexType const appendsPerArray = numThreads * appendsPerArrayPerThread;
     for( IndexType i = 0; i < nArrays; ++i )
     {

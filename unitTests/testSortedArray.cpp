@@ -411,7 +411,7 @@ public:
     ASSERT_EQ( m_set.size(), size );
 
     // Move the array back to the host and check that the values haven't been overwritten.
-    m_set.move( MemorySpace::CPU );
+    m_set.move( MemorySpace::host );
     EXPECT_EQ( hostPointer, m_set.data() );
     for( INDEX_TYPE i = 0; i < size; ++i )
     {

@@ -115,7 +115,7 @@ public:
     INDEX_TYPE const nodeKp = nodeJp * ( m_numElemsY + 1 );
 
     /// Iterate over all the nodes.
-    m_sparsity.move( MemorySpace::CPU );
+    m_sparsity.move( MemorySpace::host );
 
     #if defined(RAJA_ENABLE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;
@@ -255,8 +255,8 @@ public:
     INDEX_TYPE const nodeJp = this->m_numElemsX + 1;
     INDEX_TYPE const nodeKp = nodeJp * ( this->m_numElemsY + 1 );
 
-    m_matrix.move( MemorySpace::CPU, false );
-    this->m_nodeToElemMap.move( MemorySpace::CPU, false );
+    m_matrix.move( MemorySpace::host, false );
+    this->m_nodeToElemMap.move( MemorySpace::host, false );
 
     #if defined(RAJA_ENABLE_OPENMP)
     using EXEC_POLICY = parallelHostPolicy;

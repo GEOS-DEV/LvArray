@@ -18,41 +18,40 @@
 #include "typeManipulation.hpp"
 #include "arrayManipulation.hpp"
 
+// TPL includes
+#include <camp/resource.hpp>
+
 // System includes
 #include <utility>
 
 namespace LvArray
 {
 
-/**
- * @enum MemorySpace
- * @brief An enum containing the available memory spaces.
- */
-enum class MemorySpace
-{
-  NONE
-  , CPU
-#if defined(LVARRAY_USE_CUDA)
-  , GPU
-#endif
-};
+/// @brief an alias for camp::resources::Platform.
+using MemorySpace = camp::resources::Platform;
 
 /**
- * @brief Output a MemorySpace enum to a stream.
+ * @brief Output a Platform enum to a stream.
  * @param os The output stream to write to.
  * @param space The MemorySpace to output.
  * @return @p os.
  */
 inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
 {
-  if( space == MemorySpace::NONE )
-    os << "NONE";
-  if( space == MemorySpace::CPU )
-    os << "CPU";
-#if defined(LVARRAY_USE_CUDA)
-  if( space == MemorySpace::GPU )
-    os << "GPU";
-#endif
+  if( space == MemorySpace::undefined )
+    return os << "undefined";
+  if( space == MemorySpace::host )
+    return os << "host";
+  if( space == MemorySpace::cuda )
+    return os << "cuda";
+  if( space == MemorySpace::omp_target )
+    return os << "omp_target";
+  if( space == MemorySpace::hip )
+    return os << "hip";
+  if( space == MemorySpace::sycl )
+    return os << "sycl";
+  
+  LVARRAY_ERROR( "Unrecognized memory space " << static_cast< int >( space ) );
   return os;
 }
 
@@ -68,7 +67,7 @@ namespace bufferManipulation
  *   that is true iff the class has a method move(MemorySpace, bool).
  * @tparam CLASS The type to test.
  */
-HAS_MEMBER_FUNCTION_NO_RTYPE( move, MemorySpace::CPU, true );
+HAS_MEMBER_FUNCTION_NO_RTYPE( move, MemorySpace::host, true );
 
 /**
  * @class VoidBuffer
@@ -90,7 +89,7 @@ struct VoidBuffer
   {
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -103,7 +102,7 @@ struct VoidBuffer
   void move( MemorySpace const space, bool const touch ) const
   {
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -111,7 +110,7 @@ struct VoidBuffer
    * @note The default behavior is that the Buffer can only exist on the CPU.
    */
   MemorySpace getPreviousSpace() const
-  { return MemorySpace::CPU; }
+  { return MemorySpace::host; }
 
   /**
    * @brief Touch the buffer in the given space.
@@ -120,7 +119,7 @@ struct VoidBuffer
    *   occurs if you try to move it to a different space.
    */
   void registerTouch( MemorySpace const space ) const
-  { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "This Buffer type can only be used on the CPU." ); }
+  { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @tparam The type of the owning object.
@@ -194,7 +193,7 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 
   if( !std::is_trivially_destructible< T >::value )
   {
-    buf.move( MemorySpace::CPU, true );
+    buf.move( MemorySpace::host, true );
     arrayManipulation::destroy( buf.data(), size );
   }
 
@@ -255,7 +254,7 @@ void dynamicReserve( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t con
 
   if( newCapacity > buf.capacity() )
   {
-    setCapacity( buf, size, MemorySpace::CPU, 2 * newCapacity );
+    setCapacity( buf, size, MemorySpace::host, 2 * newCapacity );
   }
 }
 
@@ -274,14 +273,14 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 {
   check( buf, size );
 
-  reserve( buf, size, MemorySpace::CPU, newSize );
+  reserve( buf, size, MemorySpace::host, newSize );
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 
 #if !defined(__CUDA_ARCH__)
   if( newSize > 0 )
   {
-    buf.registerTouch( MemorySpace::CPU );
+    buf.registerTouch( MemorySpace::host );
   }
 #endif
 }

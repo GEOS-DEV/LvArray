@@ -52,7 +52,7 @@ public:
       T const maxValue = math::min( scale, end );
 
       // Fill in the matrices
-      m_matrices.move( MemorySpace::CPU );
+      m_matrices.move( MemorySpace::host );
       for( T & value : m_matrices )
       { value = randomValue( maxValue, m_gen ); }
 

@@ -369,7 +369,7 @@ public:
   inline void zero() const
   {
   #if !defined( LVARRAY_USE_UMPIRE )
-    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::CPU, "Without Umpire only host memory is supported." );
+    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
   #endif
 
     ParentClass::move( m_entries.getPreviousSpace(), false );

@@ -42,7 +42,7 @@ struct RAJAHelper< serialPolicy >
 {
   using ReducePolicy = RAJA::seq_reduce;
   using AtomicPolicy = RAJA::seq_atomic;
-  static constexpr MemorySpace space = MemorySpace::CPU;
+  static constexpr MemorySpace space = MemorySpace::host;
 };
 
 #if defined(RAJA_ENABLE_OPENMP)
@@ -54,7 +54,7 @@ struct RAJAHelper< parallelHostPolicy >
 {
   using ReducePolicy = RAJA::omp_reduce;
   using AtomicPolicy = RAJA::omp_atomic;
-  static constexpr MemorySpace space = MemorySpace::CPU;
+  static constexpr MemorySpace space = MemorySpace::host;
 };
 
 #endif
@@ -69,7 +69,7 @@ struct RAJAHelper< RAJA::cuda_exec< N > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
-  static constexpr MemorySpace space = MemorySpace::GPU;
+  static constexpr MemorySpace space = MemorySpace::cuda;
 };
 
 #endif

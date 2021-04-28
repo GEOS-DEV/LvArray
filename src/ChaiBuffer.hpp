@@ -51,12 +51,12 @@ static std::mutex chaiLock;
  */
 inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 {
-  if( space == MemorySpace::NONE )
+  if( space == MemorySpace::undefined )
     return chai::NONE;
-  if( space == MemorySpace::CPU )
+  if( space == MemorySpace::host )
     return chai::CPU;
 #if defined(LVARRAY_USE_CUDA)
-  if( space == MemorySpace::GPU )
+  if( space == MemorySpace::cuda || space == MemorySpace::hip )
     return chai::GPU;
 #endif
 
@@ -72,17 +72,17 @@ inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
 {
   if( space == chai::NONE )
-    return MemorySpace::NONE;
+    return MemorySpace::undefined;
   if( space == chai::CPU )
-    return MemorySpace::CPU;
+    return MemorySpace::host;
 #if defined(LVARRAY_USE_CUDA)
   if( space == chai::GPU )
-    return MemorySpace::GPU;
+    return MemorySpace::cuda;
 #endif
 
   LVARRAY_ERROR( "Unrecognized execution space " << static_cast< int >( space ) );
 
-  return MemorySpace::NONE;
+  return MemorySpace::undefined;
 }
 
 } // namespace internal
@@ -299,7 +299,7 @@ public:
 
     if( size > 0 )
     {
-      LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::CPU, "Calling reallocate with a non-zero current size is not yet supporeted for the GPU." );
+      LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Calling reallocate with a non-zero current size is not yet supporeted for the GPU." );
       std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
       arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
       arrayManipulation::destroy( m_pointer, size );
@@ -383,7 +383,7 @@ public:
 
     if( prevSpace == chai::GPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
   #else
-    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
@@ -411,7 +411,7 @@ public:
     if( !std::is_const< T >::value && touch ) m_pointerRecord->m_touched[ chaiSpace ] = true;
     m_pointerRecord->m_last_space = chaiSpace;
   #else
-    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
   }
@@ -471,7 +471,7 @@ private:
   std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
   moveInnerData( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
-    if( space == MemorySpace::NONE ) return;
+    if( space == MemorySpace::undefined ) return;
 
     for( std::ptrdiff_t i = 0; i < size; ++i )
     {

@@ -117,8 +117,8 @@ TYPED_TEST( BufferAPITest, move )
 {
   TypeParam buffer( true );
 
-  buffer.moveNested( MemorySpace::CPU, 0, true );
-  buffer.move( MemorySpace::CPU, true );
+  buffer.moveNested( MemorySpace::host, 0, true );
+  buffer.move( MemorySpace::host, true );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -130,7 +130,7 @@ TYPED_TEST( BufferAPITest, registerTouch )
 {
   TypeParam buffer( true );
 
-  buffer.registerTouch( MemorySpace::CPU );
+  buffer.registerTouch( MemorySpace::host );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -200,7 +200,7 @@ public:
    */
   void SetUp() override
   {
-    m_buffer.reallocate( 0, MemorySpace::CPU, NO_REALLOC_CAPACITY );
+    m_buffer.reallocate( 0, MemorySpace::host, NO_REALLOC_CAPACITY );
   }
 
   /**
@@ -620,7 +620,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
@@ -631,7 +631,7 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() - 50 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() - 50 );
     m_ref.resize( size() - 50 );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
@@ -644,20 +644,20 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::CPU, size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
     bufferManipulation::resize( m_buffer, size(), size() + 100, val );
     m_ref.resize( size() + 100, val );
 
-    bufferManipulation::reserve( m_buffer, size(), MemorySpace::CPU, size() - 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::host, size() - 50 );
 
     EXPECT_EQ( ptr, m_buffer.data() );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::reserve( m_buffer, size(), MemorySpace::CPU, size() + 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::host, size() + 50 );
     T const * const newPtr = m_buffer.data();
 
     T const newVal( randInt() );

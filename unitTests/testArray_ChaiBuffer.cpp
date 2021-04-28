@@ -39,10 +39,10 @@ public:
 
   #if defined( LVARRAY_USE_CUDA )
     auto devicePool = rm.makeAllocator< umpire::strategy::DynamicPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
-    std::initializer_list< MemorySpace > const spaces = { MemorySpace::CPU, MemorySpace::GPU };
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else
-    std::initializer_list< MemorySpace > const spaces = { MemorySpace::CPU };
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };
   #endif
 
@@ -57,10 +57,10 @@ public:
     EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "HOST_pool" );
 
   #if defined( LVARRAY_USE_CUDA )
-    array.move( MemorySpace::GPU, true );
+    array.move( MemorySpace::cuda, true );
     EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "DEVICE_pool" );
 
-    array.move( MemorySpace::CPU, true );
+    array.move( MemorySpace::host, true );
     EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "HOST_pool" );
   #endif
   }
@@ -70,7 +70,7 @@ public:
   {
     Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array;
 
-    array.resizeWithoutInitializationOrDestruction( MemorySpace::GPU, 100 );
+    array.resizeWithoutInitializationOrDestruction( MemorySpace::cuda, 100 );
 
     T * const devPtr = array.data();
     forall< parallelDevicePolicy< 32 > >( array.size(), [devPtr] LVARRAY_DEVICE ( int const i )
@@ -78,7 +78,7 @@ public:
       new ( &devPtr[ i ] ) T( i );
     } );
 
-    array.move( MemorySpace::CPU, true );
+    array.move( MemorySpace::host, true );
     for( int i = 0; i < array.size(); ++i )
     {
       EXPECT_EQ( array[ i ], T( i ) );

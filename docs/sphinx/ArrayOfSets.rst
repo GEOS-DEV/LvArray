@@ -54,7 +54,7 @@ The two types of ``LvArray::ArrayOfSetsView`` obtainable from an ``LvArray::Arra
 - ``LvArray::ArrayOfSetsView< T, INDEX_TYPE const, LvArray::ChaiBuffer >``, obtained by calling ``toView()``. When it is moved to a new space the values are touched as well as the sizes. The offsets are not touched.
 - ``LvArray::ArrayOfSetsView< T const, INDEX_TYPE const, LvArray::ChaiBuffer >``, obtained by calling ``toViewConst()``. None of the buffers are touched in the new space.
 
-Calling the explicit ``move`` method with the touch parameter set to ``true`` on a view type has the behavior described above. However calling ``move( MemorySpace::CPU )`` on an ``LvArray::ArrayOfSets`` will also touch the offsets (if moving to the GPU the offsets aren't touched). This is the only way to touch the offsets so if an ``LvArray::ArrayOfSets`` was previously on the device then it must be explicitly moved and touched on the host before any modification to the offsets can safely take place.
+Calling the explicit ``move`` method with the touch parameter set to ``true`` on a view type has the behavior described above. However calling ``move( MemorySpace::host )`` on an ``LvArray::ArrayOfSets`` will also touch the offsets (if moving to the GPU the offsets aren't touched). This is the only way to touch the offsets so if an ``LvArray::ArrayOfSets`` was previously on the device then it must be explicitly moved and touched on the host before any modification to the offsets can safely take place.
 
 Usage with ``LVARRAY_BOUNDS_CHECK``
 -------------------------------------

@@ -309,7 +309,7 @@ public:
    */
   inline
   void reserve( INDEX_TYPE const nVals )
-  { bufferManipulation::reserve( this->m_values, size(), MemorySpace::CPU, nVals ); }
+  { bufferManipulation::reserve( this->m_values, size(), MemorySpace::host, nVals ); }
 
   ///@}
 

@@ -38,17 +38,17 @@ public:
 
   #if defined( LVARRAY_USE_CUDA )
     auto devicePool = rm.makeAllocator< umpire::strategy::DynamicPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
-    std::initializer_list< MemorySpace > const spaces = { MemorySpace::CPU, MemorySpace::GPU };
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else
-    std::initializer_list< MemorySpace > const spaces = { MemorySpace::CPU };
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };
   #endif
 
     ChaiBuffer< T > buffer( spaces, allocators );
 
     int const size = 100;
-    buffer.reallocate( 0, MemorySpace::CPU, size );
+    buffer.reallocate( 0, MemorySpace::host, size );
 
     for( int i = 0; i < size; ++i )
     {
@@ -58,10 +58,10 @@ public:
     EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "HOST_pool" );
 
   #if defined( LVARRAY_USE_CUDA )
-    buffer.move( MemorySpace::GPU, true );
+    buffer.move( MemorySpace::cuda, true );
     EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "DEVICE_pool" );
 
-    buffer.move( MemorySpace::CPU, true );
+    buffer.move( MemorySpace::host, true );
     EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "HOST_pool" );
   #endif
 
@@ -75,16 +75,16 @@ public:
     ChaiBuffer< T > buffer( true );
 
     int const size = 100;
-    buffer.reallocate( 0, MemorySpace::CPU, size );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
+    buffer.reallocate( 0, MemorySpace::host, size );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
 
     for( int i = 0; i < size; ++i )
     {
       new ( &buffer[ i ] ) T( i );
     }
 
-    buffer.move( MemorySpace::GPU, true );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::GPU );
+    buffer.move( MemorySpace::cuda, true );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
     T * const devPtr = buffer.data();
 
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
@@ -93,23 +93,23 @@ public:
     } );
 
     // Check that the device changes are seen on the host. Then modify the values without touching.
-    buffer.move( MemorySpace::CPU, false );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
+    buffer.move( MemorySpace::host, false );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
     for( int i = 0; i < size; ++i )
     {
       EXPECT_EQ( buffer[ i ], T( i ) + T( i ) );
       buffer[ i ] = T( 0 );
     }
 
-    buffer.move( MemorySpace::GPU, true );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::GPU );
+    buffer.move( MemorySpace::cuda, true );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
     {
       devPtr[ i ] += devPtr[ i ];
     } );
 
-    buffer.move( MemorySpace::CPU, false );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
+    buffer.move( MemorySpace::host, false );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
     for( int i = 0; i < size; ++i )
     {
       EXPECT_EQ( buffer[ i ], T( i ) + T( i ) + T( i ) + T( i ) );
@@ -123,8 +123,8 @@ public:
     ChaiBuffer< T > buffer( true );
 
     int const size = 100;
-    buffer.reallocate( 0, MemorySpace::CPU, size );
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
+    buffer.reallocate( 0, MemorySpace::host, size );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
 
     for( int i = 0; i < size; ++i )
     {
@@ -136,7 +136,7 @@ public:
       buffer[ i ] += buffer[ i ];
     } );
 
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::GPU );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
 
 
     // Check that the device changes are seen on the host. Then modify the values without touching.
@@ -147,23 +147,23 @@ public:
       const_cast< T & >( constBuffer[ i ] ) = T( 0 );
     } );
 
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
-    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::CPU );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::host );
 
     forall< parallelDevicePolicy< 32 > >( size, [buffer] LVARRAY_DEVICE ( int const i )
     {
       buffer[ i ] += buffer[ i ];
     } );
 
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::GPU );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
 
     forall< serialPolicy >( size, [constBuffer] ( int const i )
     {
       EXPECT_EQ( constBuffer[ i ], T( i ) + T( i ) + T( i ) + T( i ) );
     } );
 
-    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::CPU );
-    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::CPU );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::host );
 
     bufferManipulation::free( buffer, size );
   }
@@ -173,7 +173,7 @@ public:
     ChaiBuffer< T > buffer( true );
 
     int const size = 100;
-    buffer.reallocate( 0, MemorySpace::GPU, size );
+    buffer.reallocate( 0, MemorySpace::cuda, size );
 
     T * const devPtr = buffer.data();
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
@@ -181,7 +181,7 @@ public:
       new ( &devPtr[ i ] ) T( i );
     } );
 
-    buffer.move( MemorySpace::CPU, true );
+    buffer.move( MemorySpace::host, true );
     for( int i = 0; i < size; ++i )
     {
       EXPECT_EQ( buffer[ i ], T( i ) );

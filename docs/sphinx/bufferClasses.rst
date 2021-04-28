@@ -6,7 +6,7 @@ The buffer classes are the backbone of every LvArray class. A buffer class is re
 
 ``LvArray::MallocBuffer``
 -------------------------
-As you might have guessed ``LvArray::MallocBuffer`` uses ``malloc`` and ``free`` to handle its allocation. Copying a ``LvArray::MallocBuffer`` does not copy the allocation. The allocation of a ``LvArray::MallocBuffer`` lives exclusively on the host and as such it will abort the program if you try to move it to or touch it in any space other than ``MemorySpace::CPU``.
+As you might have guessed ``LvArray::MallocBuffer`` uses ``malloc`` and ``free`` to handle its allocation. Copying a ``LvArray::MallocBuffer`` does not copy the allocation. The allocation of a ``LvArray::MallocBuffer`` lives exclusively on the host and as such it will abort the program if you try to move it to or touch it in any space other than ``MemorySpace::host``.
 
 .. literalinclude:: ../../examples/exampleBuffers.cpp
   :language: c++

@@ -348,7 +348,7 @@ public:
   LVARRAY_HOST_DEVICE
   void resizeWithoutInitializationOrDestruction( DIMS const ... newDims )
   {
-    return resizeWithoutInitializationOrDestruction( MemorySpace::CPU, newDims ... );
+    return resizeWithoutInitializationOrDestruction( MemorySpace::host, newDims ... );
   }
   
   /**
@@ -473,7 +473,7 @@ public:
    *        capacity() >= newCapacity.
    */
   void reserve( INDEX_TYPE const newCapacity )
-  { bufferManipulation::reserve( this->m_dataBuffer, this->size(), MemorySpace::CPU, newCapacity ); }
+  { bufferManipulation::reserve( this->m_dataBuffer, this->size(), MemorySpace::host, newCapacity ); }
 
   ///@}
 
@@ -623,7 +623,7 @@ private:
     if( newDimLength > curDimLength )
     {
       // Reserve space in the buffer but don't initialize the values.
-      bufferManipulation::reserve( this->m_dataBuffer, curSize, MemorySpace::CPU, newSize );
+      bufferManipulation::reserve( this->m_dataBuffer, curSize, MemorySpace::host, newSize );
       T * const ptr = this->data();
 
       // The resizing consists of iterations where each iteration consists of the addition of a

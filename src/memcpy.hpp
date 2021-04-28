@@ -158,8 +158,8 @@ void memcpy( ArrayView< T, DST_NDIM, DST_USD, DST_INDEX_TYPE, DST_BUFFER > const
              std::array< SRC_INDEX_TYPE, N_SRC_INDICES > const & srcIndices )
 {
 #if !defined( LVARRAY_USE_UMPIRE )
-  LVARRAY_ERROR_IF_NE_MSG( dst.getPreviousSpace(), MemorySpace::CPU, "Without Umpire only host memory is supported." );
-  LVARRAY_ERROR_IF_NE_MSG( src.getPreviousSpace(), MemorySpace::CPU, "Without Umpire only host memory is supported." );
+  LVARRAY_ERROR_IF_NE_MSG( dst.getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
+  LVARRAY_ERROR_IF_NE_MSG( src.getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
 #endif
 
   dst.move( dst.getPreviousSpace(), true );

@@ -283,7 +283,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
 
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -318,7 +318,7 @@ public:
     for( INDEX_TYPE i = 0; i < array->size(); ++i )
     { hostPointer[ i ] += hostPointer[ i ]; }
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
     EXPECT_EQ( array->data(), hostPointer );
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -383,7 +383,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU );
+    array->move( MemorySpace::host );
     dataPointer = array->data();
     forall< serialPolicy >( array->size(), [dataPointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -397,7 +397,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
 
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -414,7 +414,7 @@ public:
   {
     ARRAY array;
     array.move( RAJAHelper< POLICY >::space );
-    array.move( MemorySpace::CPU );
+    array.move( MemorySpace::host );
   }
 
   static void setValues()
@@ -498,7 +498,7 @@ public:
     EXPECT_EQ( array.capacity(), arrayToCopy->size() );
     EXPECT_EQ( array.data(), initialPtr );
 
-    array.move( MemorySpace::CPU );
+    array.move( MemorySpace::host );
     ParentClass::checkFill( array );
   }
 

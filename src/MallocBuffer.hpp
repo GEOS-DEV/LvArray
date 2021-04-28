@@ -127,7 +127,7 @@ public:
    */
   void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
-    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
 
     // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
     T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );

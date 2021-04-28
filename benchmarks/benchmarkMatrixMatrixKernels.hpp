@@ -170,7 +170,7 @@ public:
   }
 
   ~MatrixMatrixRAJA()
-  { this->m_c.move( MemorySpace::CPU, false ); }
+  { this->m_c.move( MemorySpace::host, false ); }
 
   void fortranView() const
   {

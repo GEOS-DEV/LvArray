@@ -155,7 +155,7 @@ void testMemcpyDevice()
   }
 
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
-  y.move( MemorySpace::GPU );
+  y.move( MemorySpace::cuda );
   int * yPtr = y.data();
 
   memcpy< 0, 0 >( y, {}, x.toViewConst(), {} );
@@ -175,7 +175,7 @@ void testMemcpyDevice()
 
   // Move y to the CPU but then capture and modify a view on device. This way y's data pointer is still pointing
   // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
-  y.move( MemorySpace::CPU );
+  y.move( MemorySpace::host );
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
@@ -204,7 +204,7 @@ void testAsyncMemcpyDevice()
   }
 
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
-  y.move( MemorySpace::GPU );
+  y.move( MemorySpace::cuda );
   int * yPtr = y.data();
 
   camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
@@ -226,7 +226,7 @@ void testAsyncMemcpyDevice()
 
   // Move y to the CPU but then capture and modify a view on device. This way y's data pointer is still pointing
   // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
-  y.move( MemorySpace::CPU );
+  y.move( MemorySpace::host );
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
