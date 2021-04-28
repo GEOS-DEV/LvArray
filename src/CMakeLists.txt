@@ -55,7 +55,7 @@ blt_add_library( NAME             lvarray
                  DEPENDS_ON       ${lvarray_dependencies}
                  OBJECT           ${LVARRAY_BUILD_OBJ_LIBS}
                 )
-                
+
 target_include_directories( lvarray
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
@@ -75,7 +75,6 @@ install( DIRECTORY . DESTINATION include/LvArray FILES_MATCHING PATTERN *.h )
 
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )
-
 
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )

@@ -5,7 +5,7 @@ packages:
     providers:
       blas: [essl]
       lapack: [essl]
-  
+
   essl:
     buildable: False
     externals:
@@ -18,9 +18,18 @@ packages:
     - spec: cuda@10.1.243
       modules:
       - cuda/10.1.243
+    - spec: cuda@10.2.89
+      modules:
+      - cuda/10.2.89
     - spec: cuda@11.0.2
       modules:
       - cuda/11.0.2
+    - spec: cuda@11.1.1
+      modules:
+      - cuda/11.1.1
+    - spec: cuda@11.2.0
+      modules:
+      - cuda/11.2.0
 
   cmake:
     buildable: False

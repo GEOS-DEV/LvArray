@@ -109,7 +109,7 @@ void testTypeConversion()
       }
     }
   }
-};
+}
 
 TEST( ArrayView, MallocBuffer_TypeConversion )
 {
