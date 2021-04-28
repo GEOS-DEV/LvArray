@@ -1,3 +1,10 @@
+###################################################################################################
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
+# All rights reserved.
+# See the LICENSE file for details.
+# SPDX-License-Identifier: (BSD-3-Clause)
+###################################################################################################
+
 cmake_minimum_required( VERSION 3.9 )
 
 # Set version number
