@@ -28,6 +28,7 @@ set( testSources
      testArrayView_udcToSlice.cpp
      testArrayView_udcToSliceConst.cpp
      testArrayView_udcToViewConst.cpp
+     testArrayView_zero.cpp
      testArray_clear.cpp
      testArray_copyAssignmentOperator.cpp
      testArray_copyConstructor.cpp
@@ -52,6 +53,7 @@ set( testSources
      testInput.cpp
      testIntegerConversion.cpp
      testMath.cpp
+     testMemcpy.cpp
      testSliceHelpers.cpp
      testSortedArray.cpp
      testSortedArrayManipulation.cpp
@@ -69,9 +71,7 @@ set( testSources
      testInvalidOperations.cpp
    )
 
-if( ENABLE_CHAI )
-    set( testSources ${testSources} testChaiBuffer.cpp testArray_ChaiBuffer.cpp )
-endif()
+blt_list_append( TO testSources ELEMENTS testChaiBuffer.cpp testArray_ChaiBuffer.cpp IF ENABLE_CHAI )
 
 #
 # Add gtest C++ based tests

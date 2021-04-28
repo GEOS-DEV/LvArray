@@ -22,6 +22,18 @@
 // System includes
 #include <initializer_list>
 #include <utility>
+#include <type_traits>
+
+#if defined(__GLIBCXX__) && __GLIBCXX__ <= 20150626
+namespace std
+{
+  /**
+   * @brief This is a fix for LC's old standard library that doesn't conform to C++14.
+   */
+  template< typename T >
+  using is_trivially_default_constructible = has_trivial_default_constructor< T >;
+}
+#endif
 
 /**
  * @brief Macro that expands to a static constexpr bool with one template argument

@@ -771,6 +771,27 @@ public:
     COMPARE_TO_REFERENCE
   }
 
+  void zero()
+  {
+    // Kind of a hack, this shouldn't be tested with TestString.
+    if( std::is_same< T, TestString >::value )
+    { return; }
+
+    m_matrix.move( RAJAHelper< POLICY >::space );
+    this->m_matrix.zero();
+
+    for( auto & row : this->m_ref )
+    {
+      for( auto & kvPair : row )
+      {
+        kvPair.second = T{};
+      }
+    }
+
+    this->m_matrix.move( MemorySpace::CPU );
+    COMPARE_TO_REFERENCE
+  }
+
   /**
    * @brief Test the CRSMatrixView insert methods.
    * @param [in] maxInserts the maximum number of inserts.
@@ -1056,6 +1077,13 @@ TYPED_TEST( CRSMatrixViewTest, setValues )
   this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
   this->insert( DEFAULT_MAX_INSERTS );
   this->setValues();
+}
+
+TYPED_TEST( CRSMatrixViewTest, zero )
+{
+  this->resize( DEFAULT_NROWS, DEFAULT_NCOLS );
+  this->insert( DEFAULT_MAX_INSERTS );
+  this->zero();
 }
 
 TYPED_TEST( CRSMatrixViewTest, insert )

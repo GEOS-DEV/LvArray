@@ -12,7 +12,12 @@
 
 #pragma once
 
+// Source includes
 #include "Macros.hpp"
+#include "typeManipulation.hpp"
+
+// System includes
+#include <cstring>
 
 #ifdef LVARRAY_BOUNDS_CHECK
 
@@ -148,9 +153,12 @@ void destroy( T * const LVARRAY_RESTRICT ptr,
 {
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
 
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  if( !std::is_trivially_destructible< T >::value )
   {
-    ptr[ i ].~T();
+    for( std::ptrdiff_t i = 0; i < size; ++i )
+    {
+      ptr[ i ].~T();
+    }
   }
 }
 
@@ -284,9 +292,19 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   destroy( ptr + newSize, size - newSize );
 
   // Initialize things between size and newSize.
-  for( std::ptrdiff_t i = size; i < newSize; ++i )
+  if( sizeof ... ( ARGS ) == 0 && std::is_trivially_default_constructible< T >::value )
   {
-    new ( ptr + i ) T( std::forward< ARGS >( args )... );
+    if( newSize - size > 0 )
+    {
+      memset( reinterpret_cast< void * >( ptr + size ), 0, ( newSize - size ) * sizeof( T ) );
+    }
+  }
+  else
+  {
+    for( std::ptrdiff_t i = size; i < newSize; ++i )
+    {
+      new ( ptr + i ) T( std::forward< ARGS >( args )... );
+    }
   }
 }
 

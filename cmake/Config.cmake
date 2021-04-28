@@ -1,5 +1,6 @@
 #
-set( PREPROCESSOR_DEFINES CHAI
+set( PREPROCESSOR_DEFINES UMPIRE
+                          CHAI
                           CUDA
                           TOTALVIEW_OUTPUT
                           CALIPER )

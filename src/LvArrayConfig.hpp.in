@@ -20,6 +20,8 @@
 
 #cmakedefine LVARRAY_BOUNDS_CHECK
 
+#cmakedefine LVARRAY_USE_UMPIRE
+
 #cmakedefine LVARRAY_USE_CHAI
 
 #cmakedefine LVARRAY_USE_CUDA

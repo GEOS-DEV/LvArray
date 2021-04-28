@@ -218,9 +218,7 @@ private:
  */
 struct Tensor
 {
-  LVARRAY_HOST_DEVICE Tensor():
-    Tensor( 0 )
-  {}
+  Tensor() = default;
 
   template< class T >
   LVARRAY_HOST_DEVICE explicit Tensor( T val ):

@@ -401,7 +401,7 @@ public:
   ///@}
 
   /**
-   * @name Methods that modify the entires of the matrix
+   * @name Methods that modify the entries of the matrix
    */
   ///@{
 
@@ -413,6 +413,8 @@ public:
   inline
   void setValues( T const & value ) const
   { ParentClass::template setValues< POLICY >( value ); }
+
+  using ParentClass::zero;
 
   /**
    * @copydoc ParentClass::addToRow

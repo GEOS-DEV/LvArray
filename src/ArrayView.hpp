@@ -19,6 +19,7 @@
 #include "limits.hpp"
 #include "sliceHelpers.hpp"
 #include "bufferManipulation.hpp"
+#include "umpireInterface.hpp"
 
 // System includes
 #if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -601,16 +602,34 @@ public:
    * @brief Set all entries in the array to @p value.
    * @tparam POLICY The RAJA policy to use.
    * @param value The value to set entries to.
+   * @note The view is moved to and touched in the appropriate space.
    */
   DISABLE_HD_WARNING
   template< typename POLICY >
   void setValues( T const & value ) const
   {
     auto const view = toView();
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ),
+      [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
         view.data()[ i ] = value;
       } );
+  }
+
+  /**
+   * @brief Use memset to set all the values in the array to 0.
+   * @details This is preferred over setValues< POLICY >( 0 ) for numeric types since it is much faster in most cases.
+   *   If the buffer is allocated using Umpire then the Umpire ResouceManager is used, otherwise std::memset is used.
+   * @note The memset occurs in the last space the array was used in and the view is moved and touched in that space.
+   */
+  inline void zero() const
+  {
+  #if !defined( LVARRAY_USE_UMPIRE )
+    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::CPU, "Without Umpire only host memory is supported." );
+  #endif
+
+    move( getPreviousSpace(), true );
+    umpireInterface::memset( data(), 0, size() * sizeof( T ) );
   }
 
   /**
@@ -653,9 +672,7 @@ public:
    * @param space The memory space in which a touch will be recorded.
    */
   void registerTouch( MemorySpace const space ) const
-  {
-    m_dataBuffer.registerTouch( space );
-  }
+  { m_dataBuffer.registerTouch( space ); }
 
   /**
    * @brief Move the Array to the given execution space, optionally touching it.

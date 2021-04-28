@@ -8,7 +8,6 @@ set( lvarray_headers
      ArrayView.hpp
      CRSMatrix.hpp
      CRSMatrixView.hpp
-     ChaiBuffer.hpp
      Macros.hpp
      MallocBuffer.hpp
      SortedArray.hpp
@@ -25,6 +24,7 @@ set( lvarray_headers
      input.hpp
      limits.hpp
      math.hpp
+     memcpy.hpp
      output.hpp
      sliceHelpers.hpp
      sortedArrayManipulation.hpp
@@ -32,11 +32,15 @@ set( lvarray_headers
      system.hpp
      tensorOps.hpp
      totalview/tv_data_display.h
-     typeManipulation.hpp )
+     typeManipulation.hpp
+     umpireInterface.hpp )
+
+blt_list_append( TO lvarray_headers ELEMENTS ChaiBuffer.hpp IF ENABLE_CHAI )
 
 set( lvarray_sources
      system.cpp
-     totalview/tv_data_display.c )
+     totalview/tv_data_display.c
+     umpireInterface.cpp )
 
 blt_add_library( NAME             lvarray
                  SOURCES          ${lvarray_sources}

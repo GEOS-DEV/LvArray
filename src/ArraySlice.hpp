@@ -188,12 +188,25 @@ public:
    * @param dim the dimension to get the length of.
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE size( int dim ) const noexcept
+  INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
-    return m_dims[dim];
+    return m_dims[ dim ];
+  }
+
+  /**
+   * @return Return the stride of the given dimension.
+   * @param dim the dimension to get the stride of.
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  INDEX_TYPE stride( int const dim ) const noexcept
+  {
+#ifdef LVARRAY_BOUNDS_CHECK
+    LVARRAY_ERROR_IF_GE( dim, NDIM );
+#endif
+    return m_strides[ dim ];
   }
 
   /**

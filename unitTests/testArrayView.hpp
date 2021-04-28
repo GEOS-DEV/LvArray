@@ -448,6 +448,34 @@ public:
     { EXPECT_EQ( array->size( dim ), sizes[ dim ] ); }
   }
 
+  static void zero()
+  {
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+
+    INDEX_TYPE totalSize = 1;
+    std::array< INDEX_TYPE, NDIM > sizes;
+    for( int dim = 0; dim < NDIM; ++dim )
+    {
+      sizes[ dim ] = array->size( dim );
+      totalSize *= array->size( dim );
+    }
+
+    array->move( RAJAHelper< POLICY >::space );
+    array->zero();
+
+    ViewTypeConst const view = array->toViewConst();
+    forall< POLICY >( array->size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          PORTABLE_EXPECT_EQ( view.data()[ i ], T{} );
+        } );
+
+    EXPECT_EQ( array->size(), totalSize );
+    EXPECT_EQ( array->capacity(), totalSize );
+
+    for( int dim = 0; dim < NDIM; ++dim )
+    { EXPECT_EQ( array->size( dim ), sizes[ dim ] ); }
+  }
+
   static void setValuesFromView()
   {
     ARRAY array;
