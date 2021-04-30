@@ -457,7 +457,7 @@ T square( T const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is @c double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float sqrt( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -469,7 +469,7 @@ float sqrt( float const x )
 
 /// @copydoc sqrt( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double sqrt( T const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -499,7 +499,7 @@ __half2 sqrt( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float invSqrt( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -511,7 +511,7 @@ float invSqrt( float const x )
 
 /// @copydoc invSqrt( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double invSqrt( T const x )
 {
 #if defined( __CUDA_ARCH__ )
@@ -548,7 +548,7 @@ __half2 invSqrt( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float sin( float const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -560,7 +560,7 @@ float sin( float const theta )
 
 /// @copydoc sin( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double sin( T const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -590,7 +590,7 @@ __half2 sin( __half2 const theta )
  * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float cos( float const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -602,7 +602,7 @@ float cos( float const theta )
 
 /// @copydoc cos( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double cos( T const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -632,7 +632,7 @@ __half2 cos( __half2 const theta )
  * @param sinTheta The sine of @p theta.
  * @param cosTheta The cosine of @p theta.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 void sincos( float const theta, float & sinTheta, float & cosTheta )
 {
 #if defined(__CUDA_ARCH__)
@@ -645,7 +645,7 @@ void sincos( float const theta, float & sinTheta, float & cosTheta )
 
 /// @copydoc sincos( float, float &, float & )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 void sincos( double const theta, double & sinTheta, double & cosTheta )
 {
 #if defined(__CUDA_ARCH__)
@@ -658,7 +658,7 @@ void sincos( double const theta, double & sinTheta, double & cosTheta )
 
 /// @copydoc sincos( float, float &, float & )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 void sincos( T const theta, double & sinTheta, double & cosTheta )
 {
 #if defined(__CUDA_ARCH__)
@@ -698,7 +698,7 @@ void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
  * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float tan( float const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -710,7 +710,7 @@ float tan( float const theta )
 
 /// @copydoc tan( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double tan( T const theta )
 {
 #if defined(__CUDA_ARCH__)
@@ -764,7 +764,7 @@ namespace internal
  * @note Modified from https://developer.download.nvidia.com/cg/asin.html
  */
 template< typename T >
-LVARRAY_DEVICE inline constexpr
+LVARRAY_DEVICE inline
 T asinImpl( T const x )
 {
   T const negate = lessThan( x, math::convert< T >( 0 ) );
@@ -786,7 +786,7 @@ T asinImpl( T const x )
  * @note Modified from https://developer.download.nvidia.com/cg/acos.html
  */
 template< typename T >
-LVARRAY_DEVICE inline constexpr
+LVARRAY_DEVICE inline
 T acosImpl( T const x )
 {
   T const negate = lessThan( x, math::convert< T >( 0 ) );
@@ -808,7 +808,7 @@ T acosImpl( T const x )
  * @note Modified from https://developer.download.nvidia.com/cg/atan2.html
  */
 template< typename T >
-LVARRAY_DEVICE inline constexpr
+LVARRAY_DEVICE inline
 T atan2Impl( T const y, T const x )
 {
   T const absX = abs( x );
@@ -842,7 +842,7 @@ T atan2Impl( T const y, T const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float asin( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -854,7 +854,7 @@ float asin( float const x )
 
 /// @copydoc asin( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double asin( T const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -884,7 +884,7 @@ __half2 asin( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float acos( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -896,7 +896,7 @@ float acos( float const x )
 
 /// @copydoc acos( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double acos( T const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -927,7 +927,7 @@ __half2 acos( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float atan2( float const y, float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -939,7 +939,7 @@ float atan2( float const y, float const x )
 
 /// @copydoc atan2( float, float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double atan2( T const y, T const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -976,7 +976,7 @@ __half2 atan2( __half2 const y, __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float exp( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -988,7 +988,7 @@ float exp( float const x )
 
 /// @copydoc exp( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double exp( T const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -1018,7 +1018,7 @@ __half2 exp( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 float log( float const x )
 {
 #if defined(__CUDA_ARCH__)
@@ -1030,7 +1030,7 @@ float log( float const x )
 
 /// @copydoc log( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE inline
 double log( T const x )
 {
 #if defined(__CUDA_ARCH__)
