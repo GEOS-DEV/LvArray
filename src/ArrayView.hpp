@@ -628,8 +628,11 @@ public:
     LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
   #endif
 
-    move( getPreviousSpace(), true );
-    umpireInterface::memset( data(), 0, size() * sizeof( T ) );
+    if( size() > 0 )
+    {
+      move( getPreviousSpace(), true );
+      umpireInterface::memset( data(), 0, size() * sizeof( T ) );
+    }
   }
 
   /**

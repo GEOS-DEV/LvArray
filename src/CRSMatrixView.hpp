@@ -372,11 +372,14 @@ public:
     LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
   #endif
 
-    ParentClass::move( m_entries.getPreviousSpace(), false );
-    m_entries.move( m_entries.getPreviousSpace(), true );
+    if( m_entries.capacity() > 0 )
+    {
+      ParentClass::move( m_entries.getPreviousSpace(), false );
+      m_entries.move( m_entries.getPreviousSpace(), true );
 
-    INDEX_TYPE const numBytes = m_entries.capacity() * sizeof( T );
-    umpireInterface::memset( m_entries.data(), 0, numBytes );
+      INDEX_TYPE const numBytes = m_entries.capacity() * sizeof( T );
+      umpireInterface::memset( m_entries.data(), 0, numBytes );
+    }
   }
 
   /**
