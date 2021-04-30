@@ -37,7 +37,7 @@ namespace internal
  */
 template< int N_LEFT, typename T, int NDIM, int USD, typename INDEX_TYPE >
 std::enable_if_t< N_LEFT == 0, ArraySlice< T, NDIM, USD, INDEX_TYPE > >
-slice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const curSlice, INDEX_TYPE const *)
+slice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const curSlice, INDEX_TYPE const * )
 { return curSlice; }
 
 /**

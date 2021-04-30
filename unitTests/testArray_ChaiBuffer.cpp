@@ -74,9 +74,9 @@ public:
 
     T * const devPtr = array.data();
     forall< parallelDevicePolicy< 32 > >( array.size(), [devPtr] LVARRAY_DEVICE ( int const i )
-    {
-      new ( &devPtr[ i ] ) T( i );
-    } );
+        {
+          new ( &devPtr[ i ] ) T( i );
+        } );
 
     array.move( MemorySpace::host, true );
     for( int i = 0; i < array.size(); ++i )

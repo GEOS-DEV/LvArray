@@ -217,40 +217,40 @@ void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYP
 
   printf( "numRows = %4lld \n", integerConversion< long long >( numRows ) );
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, 1 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const )
-  {
-    INDEX_TYPE const * const ncols = view.getSizes();
-    INDEX_TYPE const * const row_indexes = view.getOffsets();
-    COL_TYPE const * const cols = view.getColumns();
-    T const * const values = view.getEntries();
-
-    printf( "ncols       = { " );
-    for( INDEX_TYPE i = 0; i < numRows; ++i )
     {
-      printf( "%4lld, ", integerConversion< long long >( ncols[ i ] ) );
-    }
-    printf( " }\n" );
+      INDEX_TYPE const * const ncols = view.getSizes();
+      INDEX_TYPE const * const row_indexes = view.getOffsets();
+      COL_TYPE const * const cols = view.getColumns();
+      T const * const values = view.getEntries();
 
-    printf( "row_indexes = { " );
-    for( INDEX_TYPE i = 0; i < numRows + 1; ++i )
-    {
-      printf( "%4lld, ", integerConversion< long long >( row_indexes[ i ] ) );
-    }
-    printf( " }\n" );
-
-    printf( "row      col      value \n" );
-    printf( "----  --------- --------- \n" );
-    for( INDEX_TYPE i = 0; i < numRows; ++i )
-    {
-      printf( "%4lld\n", integerConversion< long long >( ncols[ i ] ) );
-      for( INDEX_TYPE j = 0; j < ncols[ i ]; ++j )
+      printf( "ncols       = { " );
+      for( INDEX_TYPE i = 0; i < numRows; ++i )
       {
-        printf( "%4lld %9lld %9.2g\n",
-                integerConversion< long long >( i ),
-                integerConversion< long long >( cols[ row_indexes[ i ] + j ] ),
-                double( values[ row_indexes[ i ] + j ] ) );
+        printf( "%4lld, ", integerConversion< long long >( ncols[ i ] ) );
       }
-    }
-  } );
+      printf( " }\n" );
+
+      printf( "row_indexes = { " );
+      for( INDEX_TYPE i = 0; i < numRows + 1; ++i )
+      {
+        printf( "%4lld, ", integerConversion< long long >( row_indexes[ i ] ) );
+      }
+      printf( " }\n" );
+
+      printf( "row      col      value \n" );
+      printf( "----  --------- --------- \n" );
+      for( INDEX_TYPE i = 0; i < numRows; ++i )
+      {
+        printf( "%4lld\n", integerConversion< long long >( ncols[ i ] ) );
+        for( INDEX_TYPE j = 0; j < ncols[ i ]; ++j )
+        {
+          printf( "%4lld %9lld %9.2g\n",
+                  integerConversion< long long >( i ),
+                  integerConversion< long long >( cols[ row_indexes[ i ] + j ] ),
+                  double( values[ row_indexes[ i ] + j ] ) );
+        }
+      }
+    } );
 
   std::cout << std::endl;
 }

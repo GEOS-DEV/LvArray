@@ -161,10 +161,10 @@ void testMemcpyDevice()
   memcpy< 0, 0 >( y, {}, x.toViewConst(), {} );
 
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
-  {
-    PORTABLE_EXPECT_EQ( yPtr[ i ], i );
-    yPtr[ i ] *= 2;
-  } );
+      {
+        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        yPtr[ i ] *= 2;
+      } );
 
   memcpy< 0, 0 >( x, {}, y.toViewConst(), {} );
 
@@ -179,12 +179,12 @@ void testMemcpyDevice()
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
-  {
-    yView[ i ] = -i;
-  } );
+      {
+        yView[ i ] = -i;
+      } );
 
   memcpy< 0, 0 >( x, {}, y.toViewConst(), {} );
-  
+
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     EXPECT_EQ( x[ i ], -i );
@@ -211,10 +211,10 @@ void testAsyncMemcpyDevice()
   stream.wait_for( &e );
 
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
-  {
-    PORTABLE_EXPECT_EQ( yPtr[ i ], i );
-    yPtr[ i ] *= 2;
-  } );
+      {
+        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        yPtr[ i ] *= 2;
+      } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
   stream.wait_for( &e );
@@ -230,13 +230,13 @@ void testAsyncMemcpyDevice()
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
-  {
-    yView[ i ] = -i;
-  } );
+      {
+        yView[ i ] = -i;
+      } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
   stream.wait_for( &e );
-  
+
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     EXPECT_EQ( x[ i ], -i );

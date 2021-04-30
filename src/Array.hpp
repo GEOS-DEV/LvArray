@@ -350,7 +350,7 @@ public:
   {
     return resizeWithoutInitializationOrDestruction( MemorySpace::host, newDims ... );
   }
-  
+
   /**
    * @brief Resize the array without initializing any new values or destroying any old values.
    *   Only safe on POD data, however it is much faster for large allocations.

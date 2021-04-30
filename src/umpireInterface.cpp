@@ -37,7 +37,7 @@ void copy( void * const dstPointer, void * const srcPointer, std::size_t const s
   std::memcpy( dstPointer, srcPointer, size );
 }
 
-camp::resources::Event copy( void * const dstPointer, void * const srcPointer, 
+camp::resources::Event copy( void * const dstPointer, void * const srcPointer,
                              camp::resources::Resource & resource, std::size_t const size )
 {
 #if defined( LVARRAY_USE_UMPIRE )

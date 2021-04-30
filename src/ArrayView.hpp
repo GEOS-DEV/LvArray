@@ -610,7 +610,7 @@ public:
   {
     auto const view = toView();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ),
-      [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+                            [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
         view.data()[ i ] = value;
       } );

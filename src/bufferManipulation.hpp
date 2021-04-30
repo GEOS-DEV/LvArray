@@ -50,7 +50,7 @@ inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
     return os << "hip";
   if( space == MemorySpace::sycl )
     return os << "sycl";
-  
+
   LVARRAY_ERROR( "Unrecognized memory space " << static_cast< int >( space ) );
   return os;
 }

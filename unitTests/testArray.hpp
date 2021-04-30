@@ -434,7 +434,7 @@ public:
                                                                             RAJA::as_array< PERMUTATION >::get() ) );
 
     EXPECT_EQ( array.data(), getRAJAViewData( view ) );
-    
+
     RAJA::Layout< NDIM > const & layout = getRAJAViewLayout( view );
     for( int dim = 0; dim < NDIM; ++dim )
     {

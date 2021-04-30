@@ -88,9 +88,9 @@ public:
     T * const devPtr = buffer.data();
 
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
-    {
-      devPtr[ i ] += devPtr[ i ];
-    } );
+        {
+          devPtr[ i ] += devPtr[ i ];
+        } );
 
     // Check that the device changes are seen on the host. Then modify the values without touching.
     buffer.move( MemorySpace::host, false );
@@ -104,9 +104,9 @@ public:
     buffer.move( MemorySpace::cuda, true );
     EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
-    {
-      devPtr[ i ] += devPtr[ i ];
-    } );
+        {
+          devPtr[ i ] += devPtr[ i ];
+        } );
 
     buffer.move( MemorySpace::host, false );
     EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
@@ -132,9 +132,9 @@ public:
     }
 
     forall< parallelDevicePolicy< 32 > >( size, [buffer] LVARRAY_DEVICE ( int const i )
-    {
-      buffer[ i ] += buffer[ i ];
-    } );
+        {
+          buffer[ i ] += buffer[ i ];
+        } );
 
     EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
 
@@ -151,9 +151,9 @@ public:
     EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::host );
 
     forall< parallelDevicePolicy< 32 > >( size, [buffer] LVARRAY_DEVICE ( int const i )
-    {
-      buffer[ i ] += buffer[ i ];
-    } );
+        {
+          buffer[ i ] += buffer[ i ];
+        } );
 
     EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::cuda );
 
@@ -177,9 +177,9 @@ public:
 
     T * const devPtr = buffer.data();
     forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
-    {
-      new ( &devPtr[ i ] ) T( i );
-    } );
+        {
+          new ( &devPtr[ i ] ) T( i );
+        } );
 
     buffer.move( MemorySpace::host, true );
     for( int i = 0; i < size; ++i )
