@@ -490,7 +490,8 @@ convertSize( INDEX_TYPE const numU )
   static_assert( sizeof( T ) % sizeof( U ) == 0, "T and U need to have compatable sizes." );
 
   INDEX_TYPE const numUPerT = sizeof( T ) / sizeof( U );
-  LVARRAY_ERROR_IF_NE( numU % numUPerT, 0 );
+  INDEX_TYPE const remainder = numU % numUPerT;
+  LVARRAY_ERROR_IF_NE( remainder, 0 );
 
   return numU / numUPerT;
 }

@@ -323,7 +323,7 @@ max( T const a, T const b )
 LVARRAY_DEVICE inline
 __half max( __half const a, __half const b )
 {
-#if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmax( a, b );
 #else
   return a > b ? a : b;
@@ -334,7 +334,7 @@ __half max( __half const a, __half const b )
 LVARRAY_DEVICE inline
 __half2 max( __half2 const a, __half2 const b )
 {
-#if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmax2( a, b );
 #else
   __half2 const aFactor = __hge2( a, b );
@@ -370,7 +370,7 @@ min( T const a, T const b )
 LVARRAY_DEVICE inline
 __half min( __half const a, __half const b )
 {
-#if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin( a, b );
 #else
   return a < b ? a : b;
@@ -381,7 +381,7 @@ __half min( __half const a, __half const b )
 LVARRAY_DEVICE inline
 __half2 min( __half2 const a, __half2 const b )
 {
-#if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin2( a, b );
 #else
   __half2 const aFactor = __hle2( a, b );
