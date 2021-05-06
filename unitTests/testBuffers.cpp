@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -117,8 +117,8 @@ TYPED_TEST( BufferAPITest, move )
 {
   TypeParam buffer( true );
 
-  buffer.moveNested( MemorySpace::CPU, 0, true );
-  buffer.move( MemorySpace::CPU, true );
+  buffer.moveNested( MemorySpace::host, 0, true );
+  buffer.move( MemorySpace::host, true );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -130,7 +130,7 @@ TYPED_TEST( BufferAPITest, registerTouch )
 {
   TypeParam buffer( true );
 
-  buffer.registerTouch( MemorySpace::CPU );
+  buffer.registerTouch( MemorySpace::host );
 
   bufferManipulation::free( buffer, 0 );
 }
@@ -147,21 +147,34 @@ TYPED_TEST( BufferAPITest, setName )
   bufferManipulation::free( buffer, 0 );
 }
 
-template< typename >
-struct ToBufferConst
+TYPED_TEST( BufferAPITest, getPreviousSpace )
+{
+  TypeParam buffer( true );
+
+  MemorySpace const previousSpace = buffer.getPreviousSpace();
+  LVARRAY_UNUSED_VARIABLE( previousSpace );
+
+  bufferManipulation::free( buffer, 0 );
+}
+
+template< typename, typename >
+struct ToBufferT
 {};
 
-template< template< typename > class BUFFER, typename T >
-struct ToBufferConst< BUFFER< T > >
+template< typename T, template< typename > class BUFFER, typename U >
+struct ToBufferT< T, BUFFER< U > >
 {
-  using type = BUFFER< T const >;
+  using type = BUFFER< T >;
 };
 
-template< typename T, int N >
-struct ToBufferConst< StackBuffer< T, N > >
+template< typename T, typename U, int N >
+struct ToBufferT< T, StackBuffer< U, N > >
 {
-  using type = StackBuffer< T const, N >;
+  using type = StackBuffer< T, N >;
 };
+
+template< typename BUFFER >
+using ToBufferConst = typename ToBufferT< typename BUFFER::value_type const, BUFFER >::type;
 
 /**
  * @tparam BUFFER_TYPE the type of the Buffer to test.
@@ -187,7 +200,7 @@ public:
    */
   void SetUp() override
   {
-    m_buffer.reallocate( 0, NO_REALLOC_CAPACITY );
+    m_buffer.reallocate( 0, MemorySpace::host, NO_REALLOC_CAPACITY );
   }
 
   /**
@@ -501,7 +514,7 @@ TYPED_TEST( BufferTestNoRealloc, moveAssignmentOperator )
 TYPED_TEST( BufferTestNoRealloc, ConstConstructor )
 {
   this->emplaceBack( 100 );
-  typename ToBufferConst< TypeParam >::type copy( this->m_buffer );
+  ToBufferConst< TypeParam > copy( this->m_buffer );
 
   EXPECT_EQ( this->m_buffer.capacity(), copy.capacity() );
 
@@ -515,6 +528,7 @@ TYPED_TEST( BufferTestNoRealloc, ConstConstructor )
   }
 
   COMPARE_TO_REFERENCE( copy, this->m_ref );
+  COMPARE_TO_REFERENCE( this->m_buffer, this->m_ref );
 }
 
 /**
@@ -606,7 +620,7 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
@@ -617,7 +631,7 @@ public:
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() - 50 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() - 50 );
     m_ref.resize( size() - 50 );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
@@ -630,20 +644,20 @@ public:
   {
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::setCapacity( m_buffer, size(), size() + 100 );
+    bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() + 100 );
     T const * const ptr = m_buffer.data();
 
     T const val( randInt() );
     bufferManipulation::resize( m_buffer, size(), size() + 100, val );
     m_ref.resize( size() + 100, val );
 
-    bufferManipulation::reserve( m_buffer, size(), size() - 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::host, size() - 50 );
 
     EXPECT_EQ( ptr, m_buffer.data() );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
-    bufferManipulation::reserve( m_buffer, size(), size() + 50 );
+    bufferManipulation::reserve( m_buffer, size(), MemorySpace::host, size() + 50 );
     T const * const newPtr = m_buffer.data();
 
     T const newVal( randInt() );
@@ -653,6 +667,43 @@ public:
     EXPECT_EQ( newPtr, m_buffer.data() );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
+  }
+
+  void typeConversion()
+  {
+    this->resize( 60 );
+
+    typename ToBufferT< T[ 4 ], BUFFER_TYPE >::type buffer4( m_buffer );
+    EXPECT_EQ( buffer4.capacity(), m_buffer.capacity() / 4 );
+
+    if( BUFFER_TYPE::hasShallowCopy )
+    {
+      EXPECT_EQ( static_cast< void * >( buffer4.data() ), static_cast< void * >( m_buffer.data() ) );
+    }
+
+    for( std::ptrdiff_t i = 0; i < size() / 4; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < 4; ++j )
+      {
+        EXPECT_EQ( buffer4[ i ][ j ], m_buffer[ 4 * i + j ] );
+      }
+    }
+
+    typename ToBufferT< T[ 2 ], BUFFER_TYPE >::type buffer2( buffer4 );
+    EXPECT_EQ( buffer2.capacity(), m_buffer.capacity() / 2 );
+
+    if( BUFFER_TYPE::hasShallowCopy )
+    {
+      EXPECT_EQ( static_cast< void * >( buffer2.data() ), static_cast< void * >( m_buffer.data() ) );
+    }
+
+    for( std::ptrdiff_t i = 0; i < size() / 2; ++i )
+    {
+      for( std::ptrdiff_t j = 0; j < 2; ++j )
+      {
+        EXPECT_EQ( buffer2[ i ][ j ], m_buffer[ 2 * i + j ] );
+      }
+    }
   }
 };
 
@@ -732,11 +783,16 @@ TYPED_TEST( BufferTestWithRealloc, combination )
   this->popBack( 100 );
 }
 
+/**
+ * @brief Test buffer type conversion.
+ */
+TYPED_TEST( BufferTestWithRealloc, typeConversion )
+{
+  this->typeConversion();
+}
 
 // TODO:
 // BufferTestNoRealloc on device with StackBuffer + MallocBuffer
-// Move tests with ChaiBuffer
-// Copy-capture tests with ChaiBuffer
 
 } // namespace testing
 } // namespace LvArray

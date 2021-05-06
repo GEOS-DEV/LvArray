@@ -1,16 +1,19 @@
 #########################################################################################
-# Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
 # All rights reserved.
 # See the LICENSE file for details.
 # SPDX-License-Identifier: (BSD-3-Clause)
 #########################################################################################
 
-if (NOT LVARRAY_CONFIG_LOADED)
-  set(LVARRAY_CONFIG_LOADED TRUE)
-  include(@CMAKE_INSTALL_PREFIX@/share/lvarray/cmake/lvarray.cmake)
+if( NOT LVARRAY_CONFIG_LOADED )
+  set( LVARRAY_CONFIG_LOADED TRUE )
+  include( @CMAKE_INSTALL_PREFIX@/share/lvarray/cmake/lvarray.cmake )
+  if( @ENABLE_PYLVARRAY@ )
+    include( @CMAKE_INSTALL_PREFIX@/share/lvarray/cmake/pylvarray.cmake )
+  endif()
 endif()
 
 # Export version number
-set(LVARRAY_VERSION_MAJOR @LVARRAY_VERSION_MAJOR@)
-set(LVARRAY_VERSION_MINOR @LVARRAY_VERSION_MINOR@)
-set(LVARRAY_VERSION_PATCHLEVEL @LVARRAY_VERSION_PATCHLEVEL@)
+set( LVARRAY_VERSION_MAJOR @LVARRAY_VERSION_MAJOR@ )
+set( LVARRAY_VERSION_MINOR @LVARRAY_VERSION_MINOR@ )
+set( LVARRAY_VERSION_PATCHLEVEL @LVARRAY_VERSION_PATCHLEVEL@ )

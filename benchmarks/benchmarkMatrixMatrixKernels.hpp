@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -170,7 +170,7 @@ public:
   }
 
   ~MatrixMatrixRAJA()
-  { this->m_c.move( MemorySpace::CPU, false ); }
+  { this->m_c.move( MemorySpace::host, false ); }
 
   void fortranView() const
   {

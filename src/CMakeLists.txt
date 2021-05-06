@@ -1,3 +1,10 @@
+###################################################################################################
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
+# All rights reserved.
+# See the LICENSE file for details.
+# SPDX-License-Identifier: (BSD-3-Clause)
+###################################################################################################
+
 set( lvarray_headers
      Array.hpp
      ArrayOfArrays.hpp
@@ -8,7 +15,6 @@ set( lvarray_headers
      ArrayView.hpp
      CRSMatrix.hpp
      CRSMatrixView.hpp
-     ChaiBuffer.hpp
      Macros.hpp
      MallocBuffer.hpp
      SortedArray.hpp
@@ -25,6 +31,7 @@ set( lvarray_headers
      input.hpp
      limits.hpp
      math.hpp
+     memcpy.hpp
      output.hpp
      sliceHelpers.hpp
      sortedArrayManipulation.hpp
@@ -32,11 +39,15 @@ set( lvarray_headers
      system.hpp
      tensorOps.hpp
      totalview/tv_data_display.h
-     typeManipulation.hpp )
+     typeManipulation.hpp
+     umpireInterface.hpp )
+
+blt_list_append( TO lvarray_headers ELEMENTS ChaiBuffer.hpp IF ENABLE_CHAI )
 
 set( lvarray_sources
      system.cpp
-     totalview/tv_data_display.c )
+     totalview/tv_data_display.c
+     umpireInterface.cpp )
 
 blt_add_library( NAME             lvarray
                  SOURCES          ${lvarray_sources}
@@ -44,7 +55,7 @@ blt_add_library( NAME             lvarray
                  DEPENDS_ON       ${lvarray_dependencies}
                  OBJECT           ${LVARRAY_BUILD_OBJ_LIBS}
                 )
-                
+
 target_include_directories( lvarray
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
@@ -64,7 +75,6 @@ install( DIRECTORY . DESTINATION include/LvArray FILES_MATCHING PATTERN *.h )
 
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )
-
 
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -584,7 +584,7 @@ public:
     m_sizes.move( space, touch );
 
   #if defined(LVARRAY_USE_CUDA)
-    if( space == MemorySpace::GPU ) touch = false;
+    if( space == MemorySpace::cuda ) touch = false;
   #endif
     m_offsets.move( space, touch );
   }
@@ -631,8 +631,8 @@ protected:
    */
   void reserve( INDEX_TYPE const newCapacity )
   {
-    bufferManipulation::reserve( m_offsets, m_numArrays + 1, newCapacity + 1 );
-    bufferManipulation::reserve( m_sizes, m_numArrays, newCapacity );
+    bufferManipulation::reserve( m_offsets, m_numArrays + 1, MemorySpace::host, newCapacity + 1 );
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, newCapacity );
   }
 
   /**
@@ -648,7 +648,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [newValueCapacity, maxOffset] ( auto & buffer )
     {
-      bufferManipulation::reserve( buffer, maxOffset, newValueCapacity );
+      bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, newValueCapacity );
     }, m_values, buffers ... );
   }
 
@@ -710,11 +710,11 @@ protected:
 
     destroyValues( 0, m_numArrays, buffers ... );
 
-    bufferManipulation::reserve( m_sizes, m_numArrays, numSubArrays );
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, numSubArrays );
     std::fill_n( m_sizes.data(), numSubArrays, 0 );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    bufferManipulation::reserve( m_offsets, offsetsSize, numSubArrays + 1 );
+    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::host, numSubArrays + 1 );
 
     m_offsets[ 0 ] = 0;
     // RAJA::inclusive_scan fails on empty input range
@@ -730,7 +730,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
     {
-      bufferManipulation::reserve( buffer, 0, maxOffset );
+      bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
     }, m_values, buffers ... );
   }
 
@@ -787,7 +787,7 @@ protected:
         INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
         typeManipulation::forEachArg( [totalSize, maxOffset]( auto & buffer )
         {
-          bufferManipulation::reserve( buffer, maxOffset, totalSize );
+          bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, totalSize );
         }, m_values, buffers ... );
       }
     }
@@ -843,7 +843,7 @@ protected:
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
     {
-      bufferManipulation::reserve( dstBuffer, maxOffset, srcMaxOffset );
+      bufferManipulation::reserve( dstBuffer, maxOffset, MemorySpace::host, srcMaxOffset );
     }, m_values, pairs.first ... );
 
     m_numArrays = srcNumArrays;
@@ -938,7 +938,7 @@ protected:
     // We need to touch the offsets on the CPU because since it contains const data
     // when the ArrayOfArraysView gets copy constructed it doesn't get touched even though
     // it can then be modified via this method when called from a parent non-view class.
-    m_offsets.registerTouch( MemorySpace::CPU );
+    m_offsets.registerTouch( MemorySpace::host );
   }
 
   /**
@@ -992,13 +992,13 @@ private:
     // This moves m_sizes and m_offsets, m_values and buffers are moved inside the loop.
     if( !typeManipulation::all_of_t< std::is_trivially_destructible< T >,
                                      std::is_trivially_destructible< typename BUFFERS::value_type > ... >::value )
-    { move( MemorySpace::CPU, true ); }
+    { move( MemorySpace::host, true ); }
 
     typeManipulation::forEachArg( [this, begin, end] ( auto & buffer )
     {
       if( !std::is_trivially_destructible< std::remove_reference_t< decltype( buffer[ 0 ] ) > >::value )
       {
-        buffer.move( MemorySpace::CPU, true );
+        buffer.move( MemorySpace::host, true );
         for( INDEX_TYPE i = begin; i < end; ++i )
         {
           INDEX_TYPE const offset = m_offsets[ i ];

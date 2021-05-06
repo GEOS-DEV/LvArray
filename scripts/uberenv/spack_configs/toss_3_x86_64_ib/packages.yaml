@@ -18,8 +18,8 @@ packages:
   py-sphinx:
     buildable: False
     externals:
-    - spec: py@1.6.3
-      prefix-sphinx: /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu
+    - spec: py-sphinx@1.6.3
+      prefix: /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu
 
   bison:
     buildable: False
@@ -32,3 +32,9 @@ packages:
     externals:
     - spec: flex@2.5.37
       prefix: /usr/bin/
+
+  papi:
+    buildable: False
+    externals:
+    - spec: papi@5.4.3
+      prefix: /usr/tce/packages/papi/papi-5.4.3

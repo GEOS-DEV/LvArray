@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -80,15 +80,15 @@ public:
   }
 
   /**
-   * @brief Create a copy of @p src with const T.
-   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @brief Create a shallow copy of @p src but with a different type.
+   * @tparam U The type to convert from.
    * @param src The buffer to copy.
    */
-  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  template< typename U >
   LVARRAY_HOST_DEVICE inline constexpr
-  MallocBuffer( MallocBuffer< std::remove_const_t< T > > const & src ):
-    m_data( src.data() ),
-    m_capacity( src.capacity() )
+  MallocBuffer( MallocBuffer< U > const & src ):
+    m_data( reinterpret_cast< T * >( src.data() ) ),
+    m_capacity( typeManipulation::convertSize< T, U >( src.capacity() ) )
   {}
 
   /**
@@ -122,10 +122,13 @@ public:
   /**
    * @brief Reallocate the buffer to the new capacity.
    * @param size The number of values that are initialized in the buffer.
+   * @param space The space to perform the reallocation in, not used.
    * @param newCapacity The new capacity of the buffer.
    */
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
+
     // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
     T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );
 

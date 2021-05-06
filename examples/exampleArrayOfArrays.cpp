@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -346,7 +346,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 
   // This won't copy any data since everything is current on host. It will however touch the values,
   // sizes and offsets.
-  arrayOfArrays.move( LvArray::MemorySpace::CPU );
+  arrayOfArrays.move( LvArray::MemorySpace::host );
 
   // Verify that all the modifications are present in the parent ArrayOfArrays.
   EXPECT_EQ( arrayOfArrays.size(), 10 );

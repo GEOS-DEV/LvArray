@@ -76,11 +76,11 @@ static bool addConstants( PyObject * module )
                      "couldn't add constant", false );
   }
 
-  PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "CPU", static_cast< long >( LvArray::MemorySpace::CPU ) ), PyExc_RuntimeError,
+  PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "CPU", static_cast< long >( LvArray::MemorySpace::host ) ), PyExc_RuntimeError,
                    "couldn't add constant", false );
 
   #if defined(USE_CUDA)
-  PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "GPU", static_cast< long >( LvArray::MemorySpace::GPU ) ), PyExc_RuntimeError,
+  PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "GPU", static_cast< long >( LvArray::MemorySpace::cuda ) ), PyExc_RuntimeError,
                    "couldn't add constant", false );
   #endif
 

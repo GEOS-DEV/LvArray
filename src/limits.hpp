@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -18,6 +18,10 @@
 
 // System includes
 #include <limits>
+
+#if defined( LVARRAY_USE_CUDA )
+  #include <cuda_fp16.h>
+#endif
 
 namespace LvArray
 {
@@ -51,6 +55,32 @@ struct NumericLimits : public std::numeric_limits< T >
   static constexpr T denorm_min = std::numeric_limits< T >::denorm_min();
 };
 
+#if defined( LVARRAY_USE_CUDA )
+/**
+ * @brief An overload for half precision.
+ * @note The values here are stored as float so that they can be constexpr.
+ */
+template<>
+struct NumericLimits< __half >
+{
+  /// The smallest finite value T can hold.
+  static constexpr float min = 1.0 / 16384;
+  /// The lowest finite value T can hold.
+  static constexpr float lowest = -65504;
+  /// The largest finite value T can hold.
+  static constexpr float max = 65504;
+  /// The difference between 1.0 and the next representable value (if T is floating point).
+  static constexpr float epsilon = 1.0 / 1024;
+  /// The smallest positive subnormal value (if T is a floating point).
+  static constexpr float denorm_min = 1.0 / 16777216;
+};
+
+template<>
+struct NumericLimits< __half2 > : public NumericLimits< __half >
+{};
+
+#endif
+
 /**
  * @struct NumericLimitsNC
  * @brief The same as @c NumericLimits except the entries are not static or constexpr.
@@ -58,26 +88,18 @@ struct NumericLimits : public std::numeric_limits< T >
  * @tparam T the numeric type to query.
  */
 template< typename T >
-struct NumericLimitsNC : public std::numeric_limits< T >
+struct NumericLimitsNC
 {
   /// The smallest finite value T can hold.
-  T const min = std::numeric_limits< T >::min();
+  T const min = NumericLimits< T >::min;
   /// The lowest finite value T can hold.
-  T const lowest = std::numeric_limits< T >::lowest();
+  T const lowest = NumericLimits< T >::lowest;
   /// The largest finite value T can hold.
-  T const max = std::numeric_limits< T >::max();
+  T const max = NumericLimits< T >::max;
   /// The difference between 1.0 and the next representable value (if T is floating point).
-  T const epsilon = std::numeric_limits< T >::epsilon();
-  /// The maximum rounding error (if T is a floating point).
-  T const round_error = std::numeric_limits< T >::round_error();
-  /// A positive infinity value (if T is a floating point).
-  T const infinity = std::numeric_limits< T >::infinity();
-  /// A quiet NaN (if T is a floating point).
-  T const quiet_NaN = std::numeric_limits< T >::quiet_NaN();
-  /// A signaling NaN (if T is a floating point).
-  T const signaling_NaN = std::numeric_limits< T >::signaling_NaN();
+  T const epsilon = NumericLimits< T >::epsilon;
   /// The smallest positive subnormal value (if T is a floating point).
-  T const denorm_min = std::numeric_limits< T >::denorm_min();
+  T const denorm_min = NumericLimits< T >::denorm_min;
 };
 
 namespace internal

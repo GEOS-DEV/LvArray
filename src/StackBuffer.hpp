@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -80,12 +80,14 @@ public:
    * @brief Notionally this method reallocates the buffer, but since the StackBuffer is sized at
    *   compile time all this does is check that newCapacity doesn't exceed LENGTH.
    * @param size The current size of the buffer, not used.
+   * @param space The space to perform the reallocation in, not used.
    * @param newCapacity the new capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
     LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( space );
     LVARRAY_ERROR_IF_GT( newCapacity, LENGTH );
   }
   /**

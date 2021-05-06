@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -19,6 +19,7 @@
 #include "limits.hpp"
 #include "sliceHelpers.hpp"
 #include "bufferManipulation.hpp"
+#include "umpireInterface.hpp"
 
 // System includes
 #if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
@@ -131,6 +132,40 @@ public:
   {}
 
   /**
+   * @brief Construct a new ArrayView from an ArrayView with a different type.
+   * @tparam U The type to convert from.
+   * @param source The ArrayView to convert.
+   * @details If the size of @c T and @c U are different then either the size of @c T must be a
+   *   multiple of the size of @c U or vice versa. If the types have different size then size of the unit stride
+   *   dimension is changed accordingly.
+   * @note This is useful for converting between single values and SIMD types such as CUDA's @c __half and @c __half2.
+   * @code
+   *   Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, MallocBuffer > x( 5, 10 );
+   *   ArrayView< int[ 2 ], 2, 1, std::ptrdiff_t, MallocBuffer > y( x.toView() );
+   *   assert( y.size( 1 ) == x.size( 1 ) / 2 );
+   *   assert( y( 3, 4 )[ 0 ] == x( 3, 8 ) );
+   * @endcode
+   */
+  template< typename U, typename=std::enable_if_t< !std::is_same< T, U >::value > >
+  inline LVARRAY_HOST_DEVICE constexpr
+  explicit ArrayView( ArrayView< U, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & source ):
+    m_dims{ source.dimsArray() },
+    m_strides{ source.stridesArray() },
+    m_dataBuffer{ source.dataBuffer() },
+    m_singleParameterResizeIndex( source.getSingleParameterResizeIndex() )
+  {
+    m_dims[ USD ] = typeManipulation::convertSize< T, U >( m_dims[ USD ] );
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      if( i != USD )
+      {
+        m_strides[ i ] = typeManipulation::convertSize< T, U >( m_strides[ i ] );
+      }
+    }
+  }
+
+  /**
    * @brief Move constructor, creates a shallow copy and invalidates the source.
    * @param source object to move.
    * @note Since this invalidates the source this should not be used when @p source is
@@ -155,7 +190,7 @@ public:
    * @param singleParameterResizeIndex The single parameter resize index.
    * @param buffer The buffer to copy construct.
    */
-  inline LVARRAY_HOST_DEVICE constexpr
+  inline LVARRAY_HOST_DEVICE constexpr explicit
   ArrayView( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims,
              typeManipulation::CArray< INDEX_TYPE, NDIM > const & strides,
              int const singleParameterResizeIndex,
@@ -357,7 +392,7 @@ public:
   /**
    * @return Return the allocated size.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE size() const noexcept
   {
   #if defined( __ibmxl__ )
@@ -377,14 +412,14 @@ public:
    * @return Return the length of the given dimension.
    * @param dim The dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
   INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ASSERT_GE( dim, 0 );
     LVARRAY_ASSERT_GT( NDIM, dim );
 #endif
-    return m_dims[dim];
+    return m_dims[ dim ];
   }
 
   /**
@@ -432,11 +467,33 @@ public:
   { return m_dims.data; }
 
   /**
+   * @return The CArray containing the size of each dimension.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & dimsArray() const
+  { return m_dims; }
+
+  /**
    * @return A pointer to the array containing the stride of each dimension.
    */
   LVARRAY_HOST_DEVICE inline constexpr
   INDEX_TYPE const * strides() const noexcept
   { return m_strides.data; }
+
+  /**
+   * @return The CArray containing the stride of each dimension.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  typeManipulation::CArray< INDEX_TYPE, NDIM > const & stridesArray() const
+  { return m_strides; }
+
+  /**
+   * @return A reference to the underlying buffer.
+   * @note Use with caution.
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  BUFFER_TYPE< T > const & dataBuffer() const
+  { return m_dataBuffer; }
 
   ///@}
 
@@ -545,16 +602,37 @@ public:
    * @brief Set all entries in the array to @p value.
    * @tparam POLICY The RAJA policy to use.
    * @param value The value to set entries to.
+   * @note The view is moved to and touched in the appropriate space.
    */
   DISABLE_HD_WARNING
   template< typename POLICY >
   void setValues( T const & value ) const
   {
     auto const view = toView();
-    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ), [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, size() ),
+                            [value, view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
       {
         view.data()[ i ] = value;
       } );
+  }
+
+  /**
+   * @brief Use memset to set all the values in the array to 0.
+   * @details This is preferred over setValues< POLICY >( 0 ) for numeric types since it is much faster in most cases.
+   *   If the buffer is allocated using Umpire then the Umpire ResouceManager is used, otherwise std::memset is used.
+   * @note The memset occurs in the last space the array was used in and the view is moved and touched in that space.
+   */
+  inline void zero() const
+  {
+  #if !defined( LVARRAY_USE_UMPIRE )
+    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
+  #endif
+
+    if( size() > 0 )
+    {
+      move( getPreviousSpace(), true );
+      umpireInterface::memset( data(), 0, size() * sizeof( T ) );
+    }
   }
 
   /**
@@ -587,14 +665,17 @@ public:
   ///@{
 
   /**
+   * @return The last space the Array was moved to.
+   */
+  MemorySpace getPreviousSpace() const
+  { return m_dataBuffer.getPreviousSpace(); }
+
+  /**
    * @brief Touch the memory in @p space.
    * @param space The memory space in which a touch will be recorded.
    */
   void registerTouch( MemorySpace const space ) const
-  {
-    m_dataBuffer.registerTouch( space );
-  }
-
+  { m_dataBuffer.registerTouch( space ); }
 
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
@@ -648,6 +729,20 @@ protected:
     ArrayView::TV_ttf_display_type( nullptr );
 #endif
   }
+
+  /**
+   * @brief Protected constructor to be used by the Array class.
+   * @details Construct an empty ArrayView from @p buffer.
+   * @param buffer The buffer use.
+   */
+  DISABLE_HD_WARNING
+  inline LVARRAY_HOST_DEVICE constexpr
+  ArrayView( BUFFER_TYPE< T > && buffer ) noexcept:
+    m_dims{ 0 },
+    m_strides{ 0 },
+    m_dataBuffer{ std::move( buffer ) },
+    m_singleParameterResizeIndex{ 0 }
+  {}
 
   /// the dimensions of the array.
   typeManipulation::CArray< INDEX_TYPE, NDIM > m_dims = { 0 };

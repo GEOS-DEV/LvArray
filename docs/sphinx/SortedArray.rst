@@ -1,3 +1,11 @@
+.. ##
+.. ## Copyright (c) 2021, Lawrence Livermore National Security, LLC
+.. ## and LvArray project contributors. See the LICENCE file
+.. ## for details.
+.. ##
+.. ## SPDX-License-Identifier: (BSD-3-Clause)
+.. ##
+
 ########################
 ``LvArray::SortedArray``
 ########################
@@ -37,7 +45,7 @@ Usage with ``LvArray::ChaiBuffer``
 ----------------------------------
 When using the ``LvArray::ChaiBuffer`` as the buffer type the ``LvArray::SortedArray`` can exist in multiple memory spaces. It can be explicitly moved between spaces with the method ``move``. Because the ``SortedArrayView`` cannot modify the values the data is never touched when moving to device, even if the optional ``touch`` parameter is set to false.
 
-It is worth noting that after a ``LvArray::SortedArray`` is moved to the device it must be explicitly moved back to the host by calling ``move( MemorySpace::CPU )`` before it can be safely modified. This won't actually trigger a memory copy since the values weren't touched on device, its purpose is to let CHAI know that the values were touched on the host so that the next time it is moved to device it will copy the values back over.
+It is worth noting that after a ``LvArray::SortedArray`` is moved to the device it must be explicitly moved back to the host by calling ``move( MemorySpace::host )`` before it can be safely modified. This won't actually trigger a memory copy since the values weren't touched on device, its purpose is to let CHAI know that the values were touched on the host so that the next time it is moved to device it will copy the values back over.
 
 .. literalinclude:: ../../examples/exampleSortedArray.cpp
   :language: c++
