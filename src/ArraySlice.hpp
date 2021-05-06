@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -188,12 +188,25 @@ public:
    * @param dim the dimension to get the length of.
    */
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE size( int dim ) const noexcept
+  INDEX_TYPE size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
-    return m_dims[dim];
+    return m_dims[ dim ];
+  }
+
+  /**
+   * @return Return the stride of the given dimension.
+   * @param dim the dimension to get the stride of.
+   */
+  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  INDEX_TYPE stride( int const dim ) const noexcept
+  {
+#ifdef LVARRAY_BOUNDS_CHECK
+    LVARRAY_ERROR_IF_GE( dim, NDIM );
+#endif
+    return m_strides[ dim ];
   }
 
   /**
@@ -259,7 +272,7 @@ public:
 
   /**
    * @return A raw pointer.
-   * @note This method is only active when NDIM == 0 and USD == 0.
+   * @note This method is only active when NDIM == 1 and USD == 0.
    */
   template< int _NDIM=NDIM, int _USD=USD >
   LVARRAY_HOST_DEVICE constexpr inline

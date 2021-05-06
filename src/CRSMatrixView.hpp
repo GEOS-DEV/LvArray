@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -15,6 +15,7 @@
 #include "SparsityPatternView.hpp"
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
+#include "umpireInterface.hpp"
 
 namespace LvArray
 {
@@ -341,8 +342,7 @@ public:
    * @param value The value to set entries in the matrix to.
    */
   template< typename POLICY >
-  inline
-  void setValues( T const & value ) const
+  inline void setValues( T const & value ) const
   {
     CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConstSizes();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
@@ -354,6 +354,32 @@ public:
         for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
         { entries[ i ] = value; }
       } );
+  }
+
+  /**
+   * @brief Use memset to set all the values in the matrix to 0.
+   * @details This is preferred over setValues< POLICY >( 0 ) for numeric types since it is much faster in most cases.
+   *   If the buffer is allocated using Umpire then the Umpire ResouceManager is used, otherwise
+   *   std::memset is used. This zeroes out all of the memory spanned by m_entries including values that are
+   *   part of overallocated capacity so if you have a small matrix with a huge capacity it won't be as quick as
+   *   you might like.
+   * @note The memset occurs in the last space the matrix was used in and the matrix is moved and the entries are
+   *   touched in that space.
+   */
+  inline void zero() const
+  {
+  #if !defined( LVARRAY_USE_UMPIRE )
+    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
+  #endif
+
+    if( m_entries.capacity() > 0 )
+    {
+      ParentClass::move( m_entries.getPreviousSpace(), false );
+      m_entries.move( m_entries.getPreviousSpace(), true );
+
+      INDEX_TYPE const numBytes = m_entries.capacity() * sizeof( T );
+      umpireInterface::memset( m_entries.data(), 0, numBytes );
+    }
   }
 
   /**
@@ -505,7 +531,7 @@ public:
   ///@{
 
   /**
-   * @brief Move this SparsityPattern to the given memory space and touch the values, sizes and offsets.
+   * @brief Move this matrix to the given memory space and touch the values, sizes and offsets.
    * @param space the memory space to move to.
    * @param touch If true touch the values, sizes and offsets in the new space.
    * @note  When moving to the GPU since the offsets can't be modified on device they are not touched.

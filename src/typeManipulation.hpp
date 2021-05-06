@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -22,6 +22,18 @@
 // System includes
 #include <initializer_list>
 #include <utility>
+#include <type_traits>
+
+#if defined(__GLIBCXX__) && __GLIBCXX__ <= 20150626
+namespace std
+{
+/**
+ * @brief This is a fix for LC's old standard library that doesn't conform to C++14.
+ */
+template< typename T >
+using is_trivially_default_constructible = has_trivial_default_constructor< T >;
+}
+#endif
 
 /**
  * @brief Macro that expands to a static constexpr bool with one template argument
@@ -423,7 +435,7 @@ constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
  * @return The unit stride dimension, the last index in the sequence.
  */
 template< camp::idx_t... INDICES >
-constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
+LVARRAY_HOST_DEVICE constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< INDICES... > )
 {
   constexpr camp::idx_t dimension = camp::seq_at< sizeof...( INDICES ) - 1, camp::idx_seq< INDICES... > >::value;
   static_assert( dimension >= 0, "The dimension must be greater than zero." );
@@ -443,12 +455,54 @@ constexpr bool isValidPermutation( PERMUTATION )
 }
 
 /**
+ * @brief Convert a number of values of type @c U to a number of values of type @c T.
+ * @tparam T The type to convert to.
+ * @tparam U The type to convert from.
+ * @tparam INDEX_TYPE The type of @p numU.
+ * @param numU The number of @c U to convert to number of @c T.
+ * @return @p numU converted to a number of types @p T.
+ * @details This is a specialization for when @code sizeof( T ) <= sizeof( U ) @endcode.
+ */
+template< typename T, typename U, typename INDEX_TYPE >
+constexpr inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) <= sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( U ) % sizeof( T ) == 0, "T and U need to have compatable sizes." );
+
+  return numU * sizeof( U ) / sizeof( T );
+}
+
+/**
+ * @brief Convert a number of values of type @c U to a number of values of type @c T.
+ * @tparam T The type to convert to.
+ * @tparam U The type to convert from.
+ * @tparam INDEX_TYPE The type of @p numU.
+ * @param numU The number of @c U to convert to number of @c T.
+ * @return @p numU converted to a number of types @p T.
+ * @details This is a specialization for when @code sizeof( T ) > sizeof( U ) @endcode.
+ */
+template< typename T, typename U, typename INDEX_TYPE >
+inline LVARRAY_HOST_DEVICE
+std::enable_if_t< ( sizeof( T ) > sizeof( U ) ), INDEX_TYPE >
+convertSize( INDEX_TYPE const numU )
+{
+  static_assert( sizeof( T ) % sizeof( U ) == 0, "T and U need to have compatable sizes." );
+
+  INDEX_TYPE const numUPerT = sizeof( T ) / sizeof( U );
+  INDEX_TYPE const remainder = numU % numUPerT;
+  LVARRAY_ERROR_IF_NE( remainder, 0 );
+
+  return numU / numUPerT;
+}
+
+/**
  * @tparam T The type of values stored in the array.
  * @tparam N The number of values in the array.
  * @struct CArray
  * @brief A wrapper around a compile time c array.
  */
-template< typename T, std::ptrdiff_t N >
+template< typename T, camp::idx_t N >
 struct CArray
 {
   /**
@@ -456,7 +510,7 @@ struct CArray
    * @param i The position to access.
    */
   LVARRAY_INTEL_CONSTEXPR inline LVARRAY_HOST_DEVICE
-  T & operator[]( std::ptrdiff_t const i )
+  T & operator[]( camp::idx_t const i )
   { return data[ i ]; }
 
   /**
@@ -464,19 +518,19 @@ struct CArray
    * @param i The position to access.
    */
   constexpr inline LVARRAY_HOST_DEVICE
-  T const & operator[]( std::ptrdiff_t const i ) const
+  T const & operator[]( camp::idx_t const i ) const
   { return data[ i ]; }
 
   /**
    * @return Return the size of the array.
    */
   constexpr inline LVARRAY_HOST_DEVICE
-  std::ptrdiff_t size()
+  camp::idx_t size()
   { return N; }
 
   /// The backing c array, public so that aggregate initialization works.
-  /// The funny name is to dissuade the user from accessing it directly.
-  T data[ N ];
+  // TODO(corbett5) remove {}
+  T data[ N ] = {};
 };
 
 /**

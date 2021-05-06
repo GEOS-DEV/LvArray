@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -812,7 +812,7 @@ public:
         } );
 
     // Move the view back to the host and compare with the reference.
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -832,7 +832,7 @@ public:
           }
         } );
 
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -849,7 +849,7 @@ public:
           view.insertIntoSet( i, toInsertView[ i ].begin(), toInsertView[ i ].end() );
         } );
 
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -869,7 +869,7 @@ public:
           }
         } );
 
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 
@@ -886,7 +886,7 @@ public:
           view.removeFromSet( i, toRemoveView[ i ].begin(), toRemoveView[ i ].end() );
         } );
 
-    m_array.move( MemorySpace::CPU );
+    m_array.move( MemorySpace::host );
     COMPARE_TO_REFERENCE
   }
 

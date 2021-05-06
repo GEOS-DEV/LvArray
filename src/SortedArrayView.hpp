@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -273,7 +273,7 @@ public:
   void move( MemorySpace const space, bool touch=true ) const
   {
   #if defined(LVARRAY_USE_CUDA)
-    if( space == MemorySpace::GPU ) touch = false;
+    if( space == MemorySpace::cuda ) touch = false;
   #endif
     m_values.move( space, touch );
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -162,7 +162,7 @@ public:
           }
         } );
 
-    array.move( MemorySpace::CPU );
+    array.move( MemorySpace::host );
     dataPointer = array.data();
     forall< serialPolicy >( array.size(), [dataPointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -221,7 +221,7 @@ public:
     }
 
     // Check that the modifications are present in the original array after launching a host kernel.
-    array.move( MemorySpace::CPU, false );
+    array.move( MemorySpace::host, false );
     dataPointer = array.data();
     forall< serialPolicy >( array.size(), [dataPointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {

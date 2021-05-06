@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -93,9 +93,30 @@
  */
 #if defined(__CUDA_ARCH__)
   #if !defined(NDEBUG)
-#define LVARRAY_ERROR_IF( EXP, MSG ) assert( !(EXP) )
+#define LVARRAY_ERROR_IF( EXP, MSG ) \
+  do \
+  { \
+    if( EXP ) \
+    { \
+      assert( false && "EXP = " STRINGIZE( EXP ) "MSG = " STRINGIZE( MSG ) ); \
+    } \
+  } while( false )
   #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) if( EXP ) asm ( "trap;" )
+#define LVARRAY_ERROR_IF( EXP, MSG ) \
+  do \
+  { \
+    if( EXP ) \
+    { \
+      constexpr char const * formatString = "***** ERROR\n" \
+                                            "***** LOCATION: " LOCATION "\n" \
+                                                                        "***** Block: [%u, %u, %u]\n" \
+                                                                        "***** Thread: [%u, %u, %u]\n" \
+                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+      printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
+      asm ( "trap;" ); \
+    } \
+  } while( false )
   #endif
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \

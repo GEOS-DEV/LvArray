@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -67,7 +67,7 @@ public:
       EXPECT_EQ( resultOfFirstIsSorted.get(), isInitiallySorted );
       EXPECT_TRUE( resultOfSecondIsSorted.get() );
 
-      m_array.move( MemorySpace::CPU );
+      m_array.move( MemorySpace::host );
       checkEquality();
     }
   }
@@ -108,7 +108,7 @@ public:
       EXPECT_EQ( firstIsSortedUnique.get(), isInitiallySortedUnique );
       EXPECT_TRUE( secondIsSortedUnique.get() );
 
-      m_array.move( MemorySpace::CPU );
+      m_array.move( MemorySpace::host );
 
       EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
       m_array.resize( numUniqueValues.get() );
@@ -139,7 +139,7 @@ public:
             numUniqueValues += sortedArrayManipulation::makeSortedUnique( view.begin(), view.end(), comp );
           } );
 
-      m_array.move( MemorySpace::CPU );
+      m_array.move( MemorySpace::host );
 
       EXPECT_EQ( numUniqueValues.get(), m_ref.size() );
       m_array.resize( numUniqueValues.get() );
@@ -234,8 +234,8 @@ public:
             dualSort( keys.begin(), keys.end(), values.begin(), comp );
           } );
 
-      m_keys.move( MemorySpace::CPU );
-      m_values.move( MemorySpace::CPU );
+      m_keys.move( MemorySpace::host );
+      m_values.move( MemorySpace::host );
       checkEquality();
     }
   }

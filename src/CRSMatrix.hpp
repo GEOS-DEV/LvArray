@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -146,7 +146,7 @@ public:
     }
 
     // Reallocate to the appropriate length
-    bufferManipulation::reserve( this->m_entries, 0, src.nonZeroCapacity() );
+    bufferManipulation::reserve( this->m_entries, 0, MemorySpace::host, src.nonZeroCapacity() );
 
     ParentClass::assimilate( reinterpret_cast< SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE > && >( src ) );
 
@@ -401,7 +401,7 @@ public:
   ///@}
 
   /**
-   * @name Methods that modify the entires of the matrix
+   * @name Methods that modify the entries of the matrix
    */
   ///@{
 
@@ -413,6 +413,8 @@ public:
   inline
   void setValues( T const & value ) const
   { ParentClass::template setValues< POLICY >( value ); }
+
+  using ParentClass::zero;
 
   /**
    * @copydoc ParentClass::addToRow

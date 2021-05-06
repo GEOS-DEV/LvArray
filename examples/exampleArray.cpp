@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -332,7 +332,7 @@ CUDA_TEST( Array, chaiBuffer )
                   LvArray::ChaiBuffer > array( 5, 6 );
 
   // Move the array to the device.
-  array.move( LvArray::MemorySpace::GPU );
+  array.move( LvArray::MemorySpace::cuda );
   int * const devicePointer = array.data();
 
   RAJA::forall< RAJA::cuda_exec< 32 > >(
@@ -370,11 +370,11 @@ TEST( Array, setName )
                   LvArray::ChaiBuffer > array( 1024, 1024 );
 
   // Move the array to the device.
-  array.move( LvArray::MemorySpace::GPU );
+  array.move( LvArray::MemorySpace::cuda );
 
   // Provide a name and move the array to the host.
   array.setName( "my_array" );
-  array.move( LvArray::MemorySpace::CPU );
+  array.move( LvArray::MemorySpace::host );
 }
 // Sphinx end before setName
 

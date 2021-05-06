@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -30,7 +30,7 @@ TEST( MallocBuffer, copy )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::MallocBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -54,7 +54,7 @@ TEST( MallocBuffer, nonPOD )
 {
   constexpr std::ptrdiff_t size = 4;
   LvArray::MallocBuffer< std::string > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   // Buffers don't initialize data so placement new must be used.
   for( int i = 0; i < size; ++i )
@@ -85,7 +85,7 @@ CUDA_TEST( ChaiBuffer, captureOnDevice )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -118,7 +118,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -153,18 +153,18 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 TEST( ChaiBuffer, setName )
 {
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, 1024 );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, 1024 );
 
   // Move to the device.
-  buffer.move( LvArray::MemorySpace::GPU, true );
+  buffer.move( LvArray::MemorySpace::cuda, true );
 
   // Give buffer a name and move back to the host.
   buffer.setName( "my_buffer" );
-  buffer.move( LvArray::MemorySpace::CPU, true );
+  buffer.move( LvArray::MemorySpace::host, true );
 
   // Rename buffer and override the default type.
   buffer.setName< double >( "my_buffer_with_a_nonsensical_type" );
-  buffer.move( LvArray::MemorySpace::GPU, true );
+  buffer.move( LvArray::MemorySpace::cuda, true );
 }
 // Sphinx end before ChaiBuffer setName
 
@@ -188,7 +188,7 @@ TEST( StackBuffer, example )
     EXPECT_EQ( buffer[ i ], i );
   }
 
-  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, 2 * size ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, LvArray::MemorySpace::host, 2 * size ), "" );
 
   // Not necessary with the StackBuffer but it's good practice.
   buffer.free();
