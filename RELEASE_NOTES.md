@@ -9,7 +9,7 @@ Version vxx.yy.zz -- Release date 20yy-mm-dd
 
 * Bug fixes:
 
-Version v0.2.0 -- Release date 2020-04-30
+Version v0.2.0 -- Release date 2020-05-05
 ============================================
 
 * New features:
