@@ -10,7 +10,7 @@ cmake_minimum_required( VERSION 3.9 )
 # Set version number
 set( LVARRAY_VERSION_MAJOR 0 )
 set( LVARRAY_VERSION_MINOR 2 )
-set( LVARRAY_VERSION_PATCHLEVEL 0 )
+set( LVARRAY_VERSION_PATCHLEVEL 1 )
 
 # check if LvArray is build as a submodule or a separate project
 get_directory_property( parent_dir PARENT_DIRECTORY )

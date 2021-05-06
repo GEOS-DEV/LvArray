@@ -9,6 +9,12 @@ Version vxx.yy.zz -- Release date 20yy-mm-dd
 
 * Bug fixes:
 
+Version v0.2.1 -- Release date 2020-05-06
+============================================
+
+* Bug fixes:
+  * Fixed an issue when building without Umpire.
+
 Version v0.2.0 -- Release date 2020-05-05
 ============================================
 

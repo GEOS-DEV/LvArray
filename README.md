@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/132042682.svg)](https://zenodo.org/badge/latestdoi/132042682)
+
 # LvArray
 Description
 -----------
@@ -13,7 +15,6 @@ LvArray provides:
 All components of LvArray provide smart management of data motion between memory
 spaces on systems with hetergeneous memory (e.g. CPU/GPU) through lambda copy
 semantics in [RAJA](https://github.com/LLNL/RAJA), similar to the implementation of the [CHAI::ManagedArray](https://github.com/LLNL/CHAI)
- 
 
 Documentation
 -------------
