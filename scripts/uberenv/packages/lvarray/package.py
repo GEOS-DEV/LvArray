@@ -74,7 +74,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     depends_on('python +shared +pic', when='+pylvarray')
     depends_on('py-numpy@1.19: +blas +lapack +force-parallel-build', when='+pylvarray')
-    # depends_on('py-scipy@1.5.2: +force-parallel-build', when='+pylvarray')
+    depends_on('py-scipy@1.5.2: +force-parallel-build', when='+pylvarray')
     depends_on('py-pip', when='+pylvarray')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
