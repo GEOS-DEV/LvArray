@@ -24,11 +24,10 @@
 // System includes
 #include <utility>
 
-namespace LvArray
+namespace camp
 {
-
-/// @brief an alias for camp::resources::Platform.
-using MemorySpace = camp::resources::Platform;
+namespace resources
+{
 
 /**
  * @brief Output a Platform enum to a stream.
@@ -36,24 +35,33 @@ using MemorySpace = camp::resources::Platform;
  * @param space The MemorySpace to output.
  * @return @p os.
  */
-inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
+inline std::ostream & operator<<( std::ostream & os, Platform const space )
 {
-  if( space == MemorySpace::undefined )
+  if( space == Platform::undefined )
     return os << "undefined";
-  if( space == MemorySpace::host )
+  if( space == Platform::host )
     return os << "host";
-  if( space == MemorySpace::cuda )
+  if( space == Platform::cuda )
     return os << "cuda";
-  if( space == MemorySpace::omp_target )
+  if( space == Platform::omp_target )
     return os << "omp_target";
-  if( space == MemorySpace::hip )
+  if( space == Platform::hip )
     return os << "hip";
-  if( space == MemorySpace::sycl )
+  if( space == Platform::sycl )
     return os << "sycl";
 
   LVARRAY_ERROR( "Unrecognized memory space " << static_cast< int >( space ) );
   return os;
 }
+
+} // namespace camp
+} // namespace resources
+
+namespace LvArray
+{
+
+/// @brief an alias for camp::resources::Platform.
+using MemorySpace = camp::resources::Platform;
 
 /**
  * @brief Contains template functions for performing common operations on buffers.
