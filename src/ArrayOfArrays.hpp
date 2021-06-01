@@ -74,6 +74,16 @@ public:
   inline
   ArrayOfArrays( ArrayOfArrays && ) = default;
 
+  constexpr inline
+  ArrayOfArrays( BUFFER_TYPE< INDEX_TYPE > && offsets,
+                 BUFFER_TYPE< INDEX_TYPE > && sizes,
+                 BUFFER_TYPE< T > && values ):
+    ParentClass( std::move( offsets ), std::move( sizes ), std::move( values ) )
+  {
+    resize( 0, 0 );
+    setName( "" );
+  }
+
   /**
    * @brief Destructor, frees the values, sizes and offsets buffers.
    */
