@@ -222,6 +222,16 @@ public:
     m_values( std::move( src.m_values ) )
   { src.m_numArrays = 0; }
 
+  constexpr inline
+  ArrayOfArraysView( BUFFER_TYPE< INDEX_TYPE > && offsets,
+                     BUFFER_TYPE< SIZE_TYPE > && sizes,
+                     BUFFER_TYPE< T > && values ):
+    m_numArrays( 0 ),
+    m_offsets( std::move( offsets ) ),
+    m_sizes( std::move( sizes ) ),
+    m_values( std::move( values ) )
+  {}
+
   /**
    * @brief Construct a new ArrayOfArraysView from the given buffers.
    * @param numArrays The number of arrays.

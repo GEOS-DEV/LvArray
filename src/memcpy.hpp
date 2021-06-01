@@ -111,9 +111,14 @@ camp::resources::Event memcpy( camp::resources::Resource & resource,
 {
   LVARRAY_ERROR_IF_NE( dst.size(), src.size() );
 
-  for( int i = 0; i < NDIM; ++i )
+  // This is so that you can call this with a slice created from an ArrayOfArrays which doesn't
+  // have a valid stride pointer.
+  if ( NDIM != 1 && USD != 0 )
   {
-    LVARRAY_ERROR_IF_NE( dst.stride( i ), src.stride( i ) );
+    for( int i = 0; i < NDIM; ++i )
+    {
+      LVARRAY_ERROR_IF_NE( dst.stride( i ), src.stride( i ) );
+    }
   }
 
   T * const dstPointer = dst.dataIfContiguous();
