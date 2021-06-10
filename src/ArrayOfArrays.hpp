@@ -434,6 +434,20 @@ public:
     this->m_sizes[ i ] = newSize;
   }
 
+  template< class ... ARGS >
+  void resizeArrayWithoutInitializationOrDestruction( INDEX_TYPE const i, INDEX_TYPE const newSize )
+  {
+    ARRAYOFARRAYS_CHECK_BOUNDS( i );
+    LVARRAY_ASSERT( arrayManipulation::isPositive( newSize ) );
+
+    if( newSize > capacityOfArray( i ) )
+    {
+      setCapacityOfArray( i, newSize );
+    }
+
+    this->m_sizes[ i ] = newSize;
+  }
+
   /**
    * @brief Clear the given array.
    * @param i The index of the array to clear.
