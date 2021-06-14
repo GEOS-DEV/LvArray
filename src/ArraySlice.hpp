@@ -141,7 +141,6 @@ public:
   /**
    * @return Return a new immutable slice.
    */
-  template< typename U=T >
   LVARRAY_HOST_DEVICE inline constexpr
   ArraySlice< T const, NDIM, USD, INDEX_TYPE >
   toSliceConst() const noexcept
@@ -211,14 +210,12 @@ public:
 
   /**
    * @brief Check if the slice is contiguous in memory
-   * @tparam _USD dummy template parameter equal to USD; do not replace
    * @return @p true if represented slice is contiguous in memory
    */
-  template< int _USD = USD >
   LVARRAY_HOST_DEVICE inline constexpr
-  std::enable_if_t< ( _USD >= 0), bool >
-  isContiguous() const
+  bool isContiguous() const
   {
+    if( USD < 0 ) return false;
     if( NDIM == 1 && USD == 0 ) return true;
 
     bool rval = true;
@@ -234,18 +231,6 @@ public:
     }
     return rval;
   }
-
-  /**
-   * @brief Check if the slice is contiguous in memory
-   * @tparam USD_ dummy template parameter equal to USD; do not replace
-   * @return @p false, this overload is enabled for slices that
-   *         have already lost its unit stride dimension
-   */
-  template< int USD_ = USD >
-  LVARRAY_HOST_DEVICE inline constexpr
-  std::enable_if_t< (USD_ < 0), bool >
-  isContiguous() const
-  { return false; }
 
   /**
    * @tparam INDICES A variadic pack of integral types.
@@ -274,9 +259,9 @@ public:
    * @return A raw pointer.
    * @note This method is only active when NDIM == 1 and USD == 0.
    */
-  template< int _NDIM=NDIM, int _USD=USD >
+  template< int NDIM_=NDIM, int USD_=USD >
   LVARRAY_HOST_DEVICE constexpr inline
-  operator std::enable_if_t< _NDIM == 1 && _USD == 0, T * const LVARRAY_RESTRICT >
+  operator std::enable_if_t< NDIM_ == 1 && USD_ == 0, T * const LVARRAY_RESTRICT >
     () const noexcept
   { return m_data; }
 
@@ -325,12 +310,16 @@ public:
 
   /**
    * @return Return a pointer to the values.
+   * @tparam USD_ Dummy template parameter, do not specify.
    * @pre The slice must be contiguous.
    */
+  template< int USD_ = USD >
   LVARRAY_HOST_DEVICE inline
   T * dataIfContiguous() const
   {
-    LVARRAY_ERROR_IF( !isContiguous(), "The slice must be contiguous for direct data access" );
+    // Note: need both compile-time and runtime checks as USD >= 0 does not guarantee contiguous data.
+    static_assert( USD_ >= 0, "Direct data access not supported for non-contiguous slices" );
+    LVARRAY_ERROR_IF( !isContiguous(), "Direct data access not supported for non-contiguous slices" );
     return m_data;
   }
 
