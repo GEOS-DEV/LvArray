@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -51,12 +51,12 @@ static std::mutex chaiLock;
  */
 inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 {
-  if( space == MemorySpace::NONE )
+  if( space == MemorySpace::undefined )
     return chai::NONE;
-  if( space == MemorySpace::CPU )
+  if( space == MemorySpace::host )
     return chai::CPU;
 #if defined(LVARRAY_USE_CUDA)
-  if( space == MemorySpace::GPU )
+  if( space == MemorySpace::cuda || space == MemorySpace::hip )
     return chai::GPU;
 #endif
 
@@ -72,17 +72,17 @@ inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
 inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
 {
   if( space == chai::NONE )
-    return MemorySpace::NONE;
+    return MemorySpace::undefined;
   if( space == chai::CPU )
-    return MemorySpace::CPU;
+    return MemorySpace::host;
 #if defined(LVARRAY_USE_CUDA)
   if( space == chai::GPU )
-    return MemorySpace::GPU;
+    return MemorySpace::cuda;
 #endif
 
   LVARRAY_ERROR( "Unrecognized execution space " << static_cast< int >( space ) );
 
-  return MemorySpace::NONE;
+  return MemorySpace::undefined;
 }
 
 } // namespace internal
@@ -146,6 +146,34 @@ public:
   }
 
   /**
+   * @brief Construct a ChaiBuffer which uses the specific allocator for each space.
+   * @param spaces The list of spaces.
+   * @param allocators The allocators, must be the same length as @p spaces.
+   * @details @code allocator[ i ] @endcode is used for the memory space @code spaces[ i ] @endcode.
+   */
+  ChaiBuffer( std::initializer_list< MemorySpace > const & spaces,
+              std::initializer_list< umpire::Allocator > const & allocators ):
+    m_pointer( nullptr ),
+    m_capacity( 0 ),
+    m_pointerRecord( new chai::PointerRecord{} )
+  {
+    m_pointerRecord->m_size = 0;
+    setName( "" );
+
+    LVARRAY_ERROR_IF_NE( spaces.size(), allocators.size() );
+
+    for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
+    {
+      m_pointerRecord->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
+    }
+
+    for( std::size_t i = 0; i < spaces.size(); ++i )
+    {
+      m_pointerRecord->m_allocators[ internal::toChaiExecutionSpace( spaces.begin()[ i ] ) ] = allocators.begin()[ i ].getId();
+    }
+  }
+
+  /**
    * @brief Copy constructor.
    * @param src The buffer to copy.
    * @details In addition to performing a shallow copy of @p src if the chai execution space
@@ -198,15 +226,15 @@ public:
   }
 
   /**
-   * @brief Create a copy of @p src with const T.
-   * @tparam _T A dummy parameter to allow enable_if, do not specify.
+   * @brief Create a shallow copy of @p src but with a different type.
+   * @tparam U The type to convert from.
    * @param src The buffer to copy.
    */
-  template< typename _T=T, typename=std::enable_if_t< std::is_const< _T >::value > >
+  template< typename U >
   LVARRAY_HOST_DEVICE inline constexpr
-  ChaiBuffer( ChaiBuffer< std::remove_const_t< T > > const & src ):
-    m_pointer( src.data() ),
-    m_capacity( src.capacity() ),
+  ChaiBuffer( ChaiBuffer< U > const & src ):
+    m_pointer( reinterpret_cast< T * >( src.data() ) ),
+    m_capacity( typeManipulation::convertSize< T, U >( src.capacity() ) ),
     m_pointerRecord( &src.pointerRecord() )
   {}
 
@@ -245,38 +273,43 @@ public:
 
   /**
    * @brief Reallocate the buffer to the new capacity.
-   * @param size the number of values that are initialized in the buffer.
-   *   Values between [0, size) are destroyed.
+   * @param size the number of values that are initialized in the buffer. Values between [0, size) are destroyed.
+   * @param space The space to perform the reallocation in. If space is the CPU then the buffer is reallocated
+   *   only on the CPU and it is free'd in the other spaces. If the space is the GPU the the current size must be zero.
    * @param newCapacity the new capacity of the buffer.
-   * @note This currently only reallocates the buffer on the CPU and it frees
-   *   the buffer in every other memory space.
    */
-  void reallocate( std::ptrdiff_t const size, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
     newRecord->m_user_callback = m_pointerRecord->m_user_callback;
 
-    for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
+    for( int s = chai::CPU; s < chai::NUM_EXECUTION_SPACES; ++s )
     {
-      newRecord->m_allocators[ space ] = m_pointerRecord->m_allocators[ space ];
+      newRecord->m_allocators[ s ] = m_pointerRecord->m_allocators[ s ];
     }
 
+    chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
+
     internal::chaiLock.lock();
-    internal::getArrayManager().allocate( newRecord, chai::CPU );
+    internal::getArrayManager().allocate( newRecord, chaiSpace );
     internal::chaiLock.unlock();
 
-    T * const newPointer = static_cast< T * >( newRecord->m_pointers[ chai::CPU ] );
+    T * const newPointer = static_cast< T * >( newRecord->m_pointers[ chaiSpace ] );
 
-    std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
-    arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
-    arrayManipulation::destroy( m_pointer, size );
+    if( size > 0 )
+    {
+      LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Calling reallocate with a non-zero current size is not yet supporeted for the GPU." );
+      std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
+      arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
+      arrayManipulation::destroy( m_pointer, size );
+    }
 
     free();
     m_capacity = newCapacity;
     m_pointer = newPointer;
     m_pointerRecord = newRecord;
-    registerTouch( MemorySpace::CPU );
+    registerTouch( space );
   }
 
   /**
@@ -350,7 +383,7 @@ public:
 
     if( prevSpace == chai::GPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
   #else
-    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
@@ -378,10 +411,16 @@ public:
     if( !std::is_const< T >::value && touch ) m_pointerRecord->m_touched[ chaiSpace ] = true;
     m_pointerRecord->m_last_space = chaiSpace;
   #else
-    LVARRAY_ERROR_IF_NE( space, MemorySpace::CPU );
+    LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
     LVARRAY_UNUSED_VARIABLE( touch );
   #endif
   }
+
+  /**
+   * @return The last space the ChaiBuffer was moved to.
+   */
+  MemorySpace getPreviousSpace() const
+  { return internal::toMemorySpace( m_pointerRecord->m_last_space ); }
 
   /**
    * @brief Touch the buffer in the given space.
@@ -403,7 +442,7 @@ public:
   template< typename U=ChaiBuffer< T > >
   void setName( std::string const & name )
   {
-    std::string const typeString = LvArray::system::demangleType< U >();
+    std::string const typeString = system::demangleType< U >();
     m_pointerRecord->m_user_callback =
       [name, typeString]( chai::PointerRecord const * const record, chai::Action const act, chai::ExecutionSpace const s )
     {
@@ -432,7 +471,7 @@ private:
   std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
   moveInnerData( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
-    if( space == MemorySpace::NONE ) return;
+    if( space == MemorySpace::undefined ) return;
 
     for( std::ptrdiff_t i = 0; i < size; ++i )
     {

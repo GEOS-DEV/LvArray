@@ -1,9 +1,16 @@
+###################################################################################################
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
+# All rights reserved.
+# See the LICENSE file for details.
+# SPDX-License-Identifier: (BSD-3-Clause)
+###################################################################################################
+
 cmake_minimum_required( VERSION 3.9 )
 
 # Set version number
 set( LVARRAY_VERSION_MAJOR 0 )
-set( LVARRAY_VERSION_MINOR 1 )
-set( LVARRAY_VERSION_PATCHLEVEL 0 )
+set( LVARRAY_VERSION_MINOR 2 )
+set( LVARRAY_VERSION_PATCHLEVEL 1 )
 
 # check if LvArray is build as a submodule or a separate project
 get_directory_property( parent_dir PARENT_DIRECTORY )
@@ -32,33 +39,50 @@ if( NOT is_submodule )
     option( ENABLE_CHAI "Build with CHAI" OFF )
     option( ENABLE_CALIPER "Build with Caliper" OFF )
 
-    include( cmake/blt/SetupBLT.cmake )
+    if( NOT BLT_LOADED )
+        if( DEFINED BLT_SOURCE_DIR )
+            if( NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake )
+                message( FATAL_ERROR "Given BLT_SOURCE_DIR does not contain SetupBLT.cmake" )
+            endif()
+        else ()
+            set( BLT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/cmake/blt CACHE PATH "" )
+
+            if( NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake )
+                message( FATAL_ERROR "The BLT submodule is not present. If in git repository run the following two commands:\n \
+                git submodule init\n \
+                git submodule update" )
+            endif ()
+        endif ()
+
+        include( ${BLT_SOURCE_DIR}/SetupBLT.cmake )
+    endif()
+
     include( cmake/CMakeBasics.cmake )
     include( cmake/SetupTPL.cmake )
 else()
+    if( NOT BLT_LOADED )
+        message( FATAL_ERROR "When using LvArray as a submodule you must have already loaded BLT." )
+    endif()
+
     include( cmake/CMakeBasics.cmake )
 endif()
 
-include(cmake/Macros.cmake)
-include(cmake/Config.cmake)
+include( cmake/Macros.cmake )
+include( cmake/Config.cmake )
 
 set( lvarray_dependencies dl )
 
-if( ENABLE_CHAI )
-    set( lvarray_dependencies ${lvarray_dependencies} chai umpire )
-endif()
+blt_list_append( TO lvarray_dependencies ELEMENTS camp RAJA )
 
-if( ENABLE_CUDA )
-    set( lvarray_dependencies ${lvarray_dependencies} cuda )
-endif()
+blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 
-if( ENABLE_RAJA )
-    set( lvarray_dependencies ${lvarray_dependencies} RAJA )
-endif()
+blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
-if( ENABLE_CALIPER )
-    set( lvarray_dependencies ${lvarray_dependencies} caliper )
-endif()
+blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
+
+blt_list_append( TO lvarray_dependencies ELEMENTS caliper IF ENABLE_CALIPER )
+
+add_subdirectory( src )
 
 add_subdirectory( src )
 
@@ -85,3 +109,8 @@ endif()
 if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> develop

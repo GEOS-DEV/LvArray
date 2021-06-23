@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -80,7 +80,7 @@ void MatrixVectorNative< PERMUTATION >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, RAJA::PERM_I > const & c )
-{ MATRIX_VECTOR_KERNEL( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
+{ MATRIX_VECTOR_KERNEL( getRAJAViewLayout( a ).sizes[ 0 ], getRAJAViewLayout( a ).sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
 
 template<>
 void MatrixVectorNative< RAJA::PERM_IJ >::
@@ -134,7 +134,7 @@ void MatrixVectorRAJA< PERMUTATION, POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, PERMUTATION > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, RAJA::PERM_I > const & c )
-{ MATRIX_VECTOR_KERNEL_RAJA( a.layout.sizes[ 0 ], a.layout.sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
+{ MATRIX_VECTOR_KERNEL_RAJA( getRAJAViewLayout( a ).sizes[ 0 ], getRAJAViewLayout( a ).sizes[ 1 ], a( i, j ), b( j ), c( i ) ); }
 
 
 template< typename POLICY >

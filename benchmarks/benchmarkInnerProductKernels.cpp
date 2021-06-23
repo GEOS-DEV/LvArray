@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -62,7 +62,7 @@ VALUE_TYPE InnerProductNative::
 VALUE_TYPE InnerProductNative::
   RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                   RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b )
-{ INNER_PRODUCT_KERNEL( a.layout.sizes[ 0 ], a( i ), b( i ) ); }
+{ INNER_PRODUCT_KERNEL( getRAJAViewLayout( a ).sizes[ 0 ], a( i ), b( i ) ); }
 
 VALUE_TYPE InnerProductNative::
   pointerKernel( INDEX_TYPE const N,
@@ -98,7 +98,7 @@ template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b )
-{ INNER_PRODUCT_KERNEL_RAJA( a.layout.sizes[ 0 ], a( i ), b( i ) ); }
+{ INNER_PRODUCT_KERNEL_RAJA( getRAJAViewLayout( a ).sizes[ 0 ], a( i ), b( i ) ); }
 
 template< typename POLICY >
 VALUE_TYPE InnerProductRAJA< POLICY >::

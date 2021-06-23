@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -1211,8 +1211,8 @@ private:
 
     // roots are already sorted, since cos is monotonically decreasing on [0, pi]
     constexpr FloatingPoint squareRootThree = 1.73205080756887729352744;
-    eigenvalues[ 0 ] = -p * ( cosTheta + squareRootThree * sinTheta );  // == 2 * p * cos( theta + 2pi/3 )
-    eigenvalues[ 1 ] = -p * ( cosTheta - squareRootThree * sinTheta );  // == 2 * p * cos( theta +  pi/3 )
+    eigenvalues[ 0 ] = -p * ( cosTheta + squareRootThree * sinTheta ); // == 2 * p * cos( theta + 2pi/3 )
+    eigenvalues[ 1 ] = -p * ( cosTheta - squareRootThree * sinTheta ); // == 2 * p * cos( theta +  pi/3 )
     eigenvalues[ 2 ] = 2 * p * cosTheta;
   }
 

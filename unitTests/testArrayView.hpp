@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -283,7 +283,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
 
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -318,7 +318,7 @@ public:
     for( INDEX_TYPE i = 0; i < array->size(); ++i )
     { hostPointer[ i ] += hostPointer[ i ]; }
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
     EXPECT_EQ( array->data(), hostPointer );
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -383,7 +383,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU );
+    array->move( MemorySpace::host );
     dataPointer = array->data();
     forall< serialPolicy >( array->size(), [dataPointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -397,7 +397,7 @@ public:
           dataPointer[ i ] += dataPointer[ i ];
         } );
 
-    array->move( MemorySpace::CPU, false );
+    array->move( MemorySpace::host, false );
 
     forValuesInSliceWithIndices( array->toSliceConst(), [] ( T const & value, auto const ... indices )
     {
@@ -414,7 +414,7 @@ public:
   {
     ARRAY array;
     array.move( RAJAHelper< POLICY >::space );
-    array.move( MemorySpace::CPU );
+    array.move( MemorySpace::host );
   }
 
   static void setValues()
@@ -448,6 +448,34 @@ public:
     { EXPECT_EQ( array->size( dim ), sizes[ dim ] ); }
   }
 
+  static void zero()
+  {
+    std::unique_ptr< ARRAY > array = ParentClass::sizedConstructor();
+
+    INDEX_TYPE totalSize = 1;
+    std::array< INDEX_TYPE, NDIM > sizes;
+    for( int dim = 0; dim < NDIM; ++dim )
+    {
+      sizes[ dim ] = array->size( dim );
+      totalSize *= array->size( dim );
+    }
+
+    array->move( RAJAHelper< POLICY >::space );
+    array->zero();
+
+    ViewTypeConst const view = array->toViewConst();
+    forall< POLICY >( array->size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          PORTABLE_EXPECT_EQ( view.data()[ i ], T{} );
+        } );
+
+    EXPECT_EQ( array->size(), totalSize );
+    EXPECT_EQ( array->capacity(), totalSize );
+
+    for( int dim = 0; dim < NDIM; ++dim )
+    { EXPECT_EQ( array->size( dim ), sizes[ dim ] ); }
+  }
+
   static void setValuesFromView()
   {
     ARRAY array;
@@ -470,7 +498,7 @@ public:
     EXPECT_EQ( array.capacity(), arrayToCopy->size() );
     EXPECT_EQ( array.data(), initialPtr );
 
-    array.move( MemorySpace::CPU );
+    array.move( MemorySpace::host );
     ParentClass::checkFill( array );
   }
 

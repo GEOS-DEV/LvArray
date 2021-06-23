@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -80,7 +80,7 @@ void OuterProductNative< PERMUTATION >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ OUTER_PRODUCT_KERNEL( c.layout.sizes[ 0 ], c.layout.sizes[ 1 ], a( i ), b( j ), c( i, j ) ); }
+{ OUTER_PRODUCT_KERNEL( getRAJAViewLayout( c ).sizes[ 0 ], getRAJAViewLayout( c ).sizes[ 1 ], a( i ), b( j ), c( i, j ) ); }
 
 template<>
 void OuterProductNative< RAJA::PERM_IJ >::
@@ -133,7 +133,7 @@ void OuterProductRAJA< PERMUTATION, POLICY >::
 RAJAViewKernel( RajaView< VALUE_TYPE const, RAJA::PERM_I > const & a,
                 RajaView< VALUE_TYPE const, RAJA::PERM_I > const & b,
                 RajaView< VALUE_TYPE, PERMUTATION > const & c )
-{ OUTER_PRODUCT_KERNEL_RAJA( c.layout.sizes[ 0 ], c.layout.sizes[ 1 ], a( i ), b( j ), c( i, j ) ); }
+{ OUTER_PRODUCT_KERNEL_RAJA( getRAJAViewLayout( c ).sizes[ 0 ], getRAJAViewLayout( c ).sizes[ 1 ], a( i ), b( j ), c( i, j ) ); }
 
 
 template< typename POLICY >

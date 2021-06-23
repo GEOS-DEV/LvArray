@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -80,7 +80,7 @@ CUDA_TEST( SortedArray, ChaiBuffer )
     );
 
   // Move the set back to the CPU and modify it.
-  set.move( LvArray::MemorySpace::CPU );
+  set.move( LvArray::MemorySpace::host );
   set.insert( 6 );
 
   // Verify that the modification is seen on device.

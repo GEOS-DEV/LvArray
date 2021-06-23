@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC
+# and LvArray project contributors. See the LICENCE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################

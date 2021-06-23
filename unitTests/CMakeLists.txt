@@ -1,72 +1,84 @@
+###################################################################################################
+# Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
+# All rights reserved.
+# See the LICENSE file for details.
+# SPDX-License-Identifier: (BSD-3-Clause)
+###################################################################################################
+
 #
 # Specify list of tests
 #
-set(testSources
-    testArray1D.cpp
-    testArray1DOfArray1D.cpp
-    testArray1DOfArray1DOfArray1D.cpp
-    testArrayOfArrays.cpp
-    testArrayOfSets.cpp
-    testArraySlice.cpp
-    testArrayView_copyAssignmentOperator.cpp
-    testArrayView_copyConstructor.cpp
-    testArrayView_defaultConstructor.cpp
-    testArrayView_emptyMove.cpp
-    testArrayView_modifyInKernel.cpp
-    testArrayView_modifyInMultipleKernels.cpp
-    testArrayView_move.cpp
-    testArrayView_moveMultipleTimes.cpp
-    testArrayView_moveNoTouch.cpp
-    testArrayView_readInKernel.cpp
-    testArrayView_setValues.cpp
-    testArrayView_setValuesFromView.cpp
-    testArrayView_toSlice.cpp
-    testArrayView_toSliceConst.cpp
-    testArrayView_toView.cpp
-    testArrayView_toViewConst.cpp
-    testArrayView_udcToSlice.cpp
-    testArrayView_udcToSliceConst.cpp
-    testArrayView_udcToViewConst.cpp
-    testArray_clear.cpp
-    testArray_copyAssignmentOperator.cpp
-    testArray_copyConstructor.cpp
-    testArray_defaultConstructor.cpp
-    testArray_getSetSingleParameterResizeIndex.cpp
-    testArray_indexing.cpp
-    testArray_moveAssignmentOperator.cpp
-    testArray_moveConstructor.cpp
-    testArray_reserveAndCapacity.cpp
-    testArray_resize.cpp
-    testArray_resizeDefault.cpp
-    testArray_resizeDimension.cpp
-    testArray_resizeFromArgs.cpp
-    testArray_resizeFromPointer.cpp
-    testArray_resizeWithoutInitializationOrDestruction.cpp
-    testArray_sizedConstructor.cpp
-    testArray_toView.cpp
-    testArray_toViewConst.cpp
-    testBuffers.cpp
-    testCRSMatrix.cpp
-    testIndexing.cpp
-    testInput.cpp
-    testIntegerConversion.cpp
-    testMath.cpp
-    testSliceHelpers.cpp
-    testSortedArray.cpp
-    testSortedArrayManipulation.cpp
-    testSparsityPattern.cpp
-    testStackArray.cpp
-    testTensorOpsDeterminant.cpp
-    testTensorOpsEigen.cpp
-    testTensorOpsInverseOneArg.cpp
-    testTensorOpsInverseTwoArgs.cpp
-    testTensorOpsSymDeterminant.cpp
-    testTensorOpsSymInverseOneArg.cpp
-    testTensorOpsSymInverseTwoArgs.cpp
-    testTypeManipulation.cpp
-    testStackTrace.cpp
-    testInvalidOperations.cpp
+set( testSources
+     testArray1D.cpp
+     testArray1DOfArray1D.cpp
+     testArray1DOfArray1DOfArray1D.cpp
+     testArrayOfArrays.cpp
+     testArrayOfSets.cpp
+     testArraySlice.cpp
+     testArrayView_copyAssignmentOperator.cpp
+     testArrayView_copyConstructor.cpp
+     testArrayView_defaultConstructor.cpp
+     testArrayView_emptyMove.cpp
+     testArrayView_modifyInKernel.cpp
+     testArrayView_modifyInMultipleKernels.cpp
+     testArrayView_move.cpp
+     testArrayView_moveMultipleTimes.cpp
+     testArrayView_moveNoTouch.cpp
+     testArrayView_readInKernel.cpp
+     testArrayView_setValues.cpp
+     testArrayView_setValuesFromView.cpp
+     testArrayView_toSlice.cpp
+     testArrayView_toSliceConst.cpp
+     testArrayView_toView.cpp
+     testArrayView_toViewConst.cpp
+     testArrayView_typeConversion.cpp
+     testArrayView_udcToSlice.cpp
+     testArrayView_udcToSliceConst.cpp
+     testArrayView_udcToViewConst.cpp
+     testArrayView_zero.cpp
+     testArray_clear.cpp
+     testArray_copyAssignmentOperator.cpp
+     testArray_copyConstructor.cpp
+     testArray_defaultConstructor.cpp
+     testArray_getSetSingleParameterResizeIndex.cpp
+     testArray_indexing.cpp
+     testArray_moveAssignmentOperator.cpp
+     testArray_moveConstructor.cpp
+     testArray_reserveAndCapacity.cpp
+     testArray_resize.cpp
+     testArray_resizeDefault.cpp
+     testArray_resizeDimension.cpp
+     testArray_resizeFromArgs.cpp
+     testArray_resizeFromPointer.cpp
+     testArray_resizeWithoutInitializationOrDestruction.cpp
+     testArray_sizedConstructor.cpp
+     testArray_toView.cpp
+     testArray_toViewConst.cpp
+     testBuffers.cpp
+     testCRSMatrix.cpp
+     testIndexing.cpp
+     testInput.cpp
+     testIntegerConversion.cpp
+     testMath.cpp
+     testMemcpy.cpp
+     testSliceHelpers.cpp
+     testSortedArray.cpp
+     testSortedArrayManipulation.cpp
+     testSparsityPattern.cpp
+     testStackArray.cpp
+     testTensorOpsDeterminant.cpp
+     testTensorOpsEigen.cpp
+     testTensorOpsInverseOneArg.cpp
+     testTensorOpsInverseTwoArgs.cpp
+     testTensorOpsSymDeterminant.cpp
+     testTensorOpsSymInverseOneArg.cpp
+     testTensorOpsSymInverseTwoArgs.cpp
+     testTypeManipulation.cpp
+     testStackTrace.cpp
+     testInvalidOperations.cpp
    )
+
+blt_list_append( TO testSources ELEMENTS testChaiBuffer.cpp testArray_ChaiBuffer.cpp IF ENABLE_CHAI )
 
 #
 # Add gtest C++ based tests

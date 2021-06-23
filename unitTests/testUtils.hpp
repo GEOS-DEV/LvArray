@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Lawrence Livermore National Security, LLC and LvArray contributors.
+ * Copyright (c) 2021, Lawrence Livermore National Security, LLC and LvArray contributors.
  * All rights reserved.
  * See the LICENSE file for details.
  * SPDX-License-Identifier: (BSD-3-Clause)
@@ -42,7 +42,7 @@ struct RAJAHelper< serialPolicy >
 {
   using ReducePolicy = RAJA::seq_reduce;
   using AtomicPolicy = RAJA::seq_atomic;
-  static constexpr MemorySpace space = MemorySpace::CPU;
+  static constexpr MemorySpace space = MemorySpace::host;
 };
 
 #if defined(RAJA_ENABLE_OPENMP)
@@ -54,7 +54,7 @@ struct RAJAHelper< parallelHostPolicy >
 {
   using ReducePolicy = RAJA::omp_reduce;
   using AtomicPolicy = RAJA::omp_atomic;
-  static constexpr MemorySpace space = MemorySpace::CPU;
+  static constexpr MemorySpace space = MemorySpace::host;
 };
 
 #endif
@@ -69,7 +69,7 @@ struct RAJAHelper< RAJA::cuda_exec< N > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
-  static constexpr MemorySpace space = MemorySpace::GPU;
+  static constexpr MemorySpace space = MemorySpace::cuda;
 };
 
 #endif
@@ -79,6 +79,29 @@ inline void forall( INDEX_TYPE const max, LAMBDA && body )
 {
   RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, max ), std::forward< LAMBDA >( body ) );
 }
+
+template< typename T, typename LAYOUT >
+LVARRAY_HOST_DEVICE inline constexpr
+T * getRAJAViewData( RAJA::View< T, LAYOUT > const & view )
+{
+#if RAJA_VERSION_MAJOR <= 0 && RAJA_VERSION_MINOR <= 13
+  return view.data;
+#else
+  return view.get_data();
+#endif
+}
+
+template< typename T, typename LAYOUT >
+LVARRAY_HOST_DEVICE inline constexpr
+LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
+{
+#if RAJA_VERSION_MAJOR <= 0 && RAJA_VERSION_MINOR <= 13
+  return view.layout;
+#else
+  return view.get_layout();
+#endif
+}
+
 
 #ifndef __CUDA_ARCH__
 #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
@@ -195,9 +218,7 @@ private:
  */
 struct Tensor
 {
-  LVARRAY_HOST_DEVICE Tensor():
-    Tensor( 0 )
-  {}
+  Tensor() = default;
 
   template< class T >
   LVARRAY_HOST_DEVICE explicit Tensor( T val ):

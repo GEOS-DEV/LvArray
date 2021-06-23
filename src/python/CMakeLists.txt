@@ -31,6 +31,18 @@ blt_add_library( NAME             pylvarray
                  CLEAR_PREFIX TRUE
                  )
 
-target_include_directories( pylvarray PUBLIC ${CMAKE_BINARY_DIR}/include )
+target_include_directories( pylvarray
+                            PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+                            $<INSTALL_INTERFACE:include> )
+
+install( TARGETS pylvarray
+         EXPORT pylvarray
+         ARCHIVE DESTINATION lib
+         LIBRARY DESTINATION lib
+         RUNTIME DESTINATION lib )
+
+install( EXPORT pylvarray
+         DESTINATION share/lvarray/cmake/ )
 
 lvarray_add_code_checks( PREFIX pylvarray )

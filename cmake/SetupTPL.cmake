@@ -1,6 +1,21 @@
 set(thirdPartyLibs "")
 
 ################################
+# CAMP
+################################
+if(NOT EXISTS ${CAMP_DIR})
+    message(FATAL_ERROR "CAMP_DIR must be defined and point to a valid directory when using CAMP.")
+endif()
+
+message(STATUS "Using CAMP from ${CAMP_DIR}")
+
+find_package(camp REQUIRED PATHS ${CAMP_DIR})
+
+set(ENABLE_CAMP ON CACHE BOOL "")
+
+set(thirdPartyLibs ${thirdPartyLibs} camp)
+
+################################
 # RAJA
 ################################
 if(NOT EXISTS ${RAJA_DIR})

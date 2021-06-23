@@ -1,0 +1,28 @@
+packages:
+  all:
+    target: [default]
+    compiler: [gcc]
+
+  cuda:
+    buildable: False
+    externals:
+    - spec: cuda@10.1.243
+      modules:
+      - cuda/10.1.243
+    - spec: cuda@11.2.0
+      modules:
+      - cuda/11.2.0
+
+  cmake:
+    buildable: False
+    externals:
+    - spec: cmake@3.14.5
+      modules:
+      - cmake/3.14.2
+
+  python:
+    buildable: False
+    externals:
+    - spec: python@3.7.0
+      modules:
+      - python/3.7.0
