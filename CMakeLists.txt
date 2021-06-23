@@ -109,8 +109,3 @@ endif()
 if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
-<<<<<<< HEAD
-=======
-
-
->>>>>>> develop
