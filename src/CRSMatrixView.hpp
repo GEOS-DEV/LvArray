@@ -377,8 +377,10 @@ public:
       ParentClass::move( m_entries.getPreviousSpace(), false );
       m_entries.move( m_entries.getPreviousSpace(), true );
 
-      INDEX_TYPE const numBytes = m_entries.capacity() * sizeof( T );
+      size_t const numBytes = m_entries.capacity() * sizeof( T );
+
       umpireInterface::memset( m_entries.data(), 0, numBytes );
+
     }
   }
 
