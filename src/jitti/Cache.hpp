@@ -4,6 +4,7 @@
 #include "utils.hpp"
 #include "CompilationInfo.hpp"
 #include "../Macros.hpp"
+#include "../typeManipulation.hpp"
 
 #include <string>
 #include <vector>
@@ -19,7 +20,7 @@ std::string getInstantiationName( std::string const & templateName,
 {
   std::string output = templateName;
   output += "< " + firstTemplateParam;
-  LvArray::typeManipulation::forEachArg( [&stream] ( auto const & param )
+  LvArray::typeManipulation::forEachArg( [&output] ( auto const & param )
   {
     output += ", " + param;
   }, remainingTemplateParams... );
@@ -68,7 +69,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const * tryGet( std::string const & instantiationName )
+  Function< FUNC_POINTER > const * tryGet( std::string const & instantiationName ) const
   {
     auto const iter = m_cache.find( instantiationName );
     if( iter == m_cache.end() )
@@ -80,7 +81,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const * tryGet( CompilationInfo const & info )
+  Function< FUNC_POINTER > const * tryGet( CompilationInfo const & info ) const
   {
     return tryGet( getInstantiationName( info.templateFunction, info.templateParams ) );
   }
@@ -111,7 +112,7 @@ public:
    */
   Function< FUNC_POINTER > const * tryGetOrLoad( std::string const & instantiationName )
   {
-    Function< FUNC_POINTER > const * function = getImpl( instantiationName );
+    Function< FUNC_POINTER > const * function = tryGet( instantiationName );
     if( function != nullptr )
     {
       return function;
@@ -138,7 +139,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const * tryGetOrLoad( CompilationInfo const & info )
+  Function< FUNC_POINTER > const * tryGetOrLoad( CompilationInfo const & info ) const
   {
     return tryGetOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
   }
@@ -148,7 +149,7 @@ public:
    */
   Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName ) const
   {
-    Function< FUNC_POINTER > const * const function = tryGetOrLoad( instantiationName );
+    Function< FUNC_POINTER > const * function = tryGetOrLoad( instantiationName );
     LVARRAY_ERROR_IF( function == nullptr,
                       "Could not find an instantiation called '" << instantiationName << "' in the cache. " <<
                       "Maybe you need to compile it (use getOrLoadOrCompile)." );
@@ -159,7 +160,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName ) const
+  Function< FUNC_POINTER > const & getOrLoad( CompilationInfo & info ) const
   {
     return getOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
   }
@@ -171,7 +172,7 @@ public:
   {
     std::string const instantiationName = getInstantiationName( info.templateFunction, info.templateParams );
 
-    Function< FUNC_POINTER > const * function = getOrLoadImpl( instantiationName );
+    Function< FUNC_POINTER > const * function = tryGetOrLoad( instantiationName );
     if( function != nullptr )
     {
       return *function;
@@ -187,7 +188,7 @@ public:
 
 private:
 
-  std::string getLibraryName( std::string const & instantiationName )
+  std::string getLibraryName( std::string const & instantiationName ) const
   { return "lib" + std::to_string( std::hash< std::string >{}( instantiationName ) ) + ".so"; }
 
   time_t const m_compilationTime;

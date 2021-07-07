@@ -38,7 +38,7 @@ TEST( simpleTemplates, add )
 
     info.templateParams = "5";
     EXPECT_FALSE( cache.tryGetOrLoad( "add< 8 >" ) );
-    EXPECT_EQ( ache.getOrLoadOrCompile( info )( 8 ), 16 );
+    EXPECT_EQ( cache.getOrLoadOrCompile( info )( 8 ), 13 );
   }
 
 }
