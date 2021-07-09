@@ -474,7 +474,7 @@
  * @param lhs expression to be evaluated and used as left-hand side in comparison
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  */
-#define LVARRAY_ERROR_IF_LE( lhs, rhs ) LVARRAY_ERROR_IF_GE_MSG( lhs, rhs, "" )
+#define LVARRAY_ERROR_IF_LE( lhs, rhs ) LVARRAY_ERROR_IF_LE_MSG( lhs, rhs, "" )
 
 /**
  * @brief Throw an exception if one value compares less than or equal to the other.
@@ -482,7 +482,7 @@
  * @param rhs expression to be evaluated and used as right-hand side in comparison
  * @param TYPE the type of exception to throw
  */
-#define LVARRAY_THROW_IF_LE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_GE_MSG( lhs, rhs, "", TYPE )
+#define LVARRAY_THROW_IF_LE( lhs, rhs, TYPE ) LVARRAY_THROW_IF_LE_MSG( lhs, rhs, "", TYPE )
 
 /**
  * @brief Abort execution if @p lhs @p OP @p rhs is false.
