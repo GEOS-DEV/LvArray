@@ -280,6 +280,7 @@ public:
    */
   void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
+    move( space, true );
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
     newRecord->m_user_callback = m_pointerRecord->m_user_callback;
