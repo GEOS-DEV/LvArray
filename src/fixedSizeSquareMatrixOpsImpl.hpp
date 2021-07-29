@@ -89,17 +89,9 @@ struct SquareMatrixOps< 2 >
   {
     checkSizes< 2, 2 >( matrix );
 
-    // Aliases for matrix [[a, b],[c, d]] for improved readability
-    auto const & a = matrix[0][0];
-    auto const & b = matrix[0][1];
-    auto const & c = matrix[1][0];
-    auto const & d = matrix[1][1];
-
     // Using the more precise Kahan method to compute the 2x2 determinant.
-    auto const w = b * c;
-    auto const e = fma( -b, c, w );
-    auto const f = fma( a, d, -w );
-    return f + e;
+    auto const tmp = matrix[0][1] * matrix[1][0];
+    return math::fma( -matrix[0][1], matrix[1][0], tmp ) + math::fma( matrix[0][0], matrix[1][1], -tmp );
   }
 
   /**
