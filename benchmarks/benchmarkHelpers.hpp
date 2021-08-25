@@ -66,24 +66,24 @@ inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_K
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = LvArray::Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = LvArray::Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
 using ArrayViewT = LvArray::ArrayView< T,
-typeManipulation::getDimension( PERMUTATION {} ),
+typeManipulation::getDimension< PERMUTATION >,
 typeManipulation::getStrideOneDimension( PERMUTATION {} ),
 INDEX_TYPE,
 DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
 using ArraySliceT = LvArray::ArraySlice< T,
-typeManipulation::getDimension( PERMUTATION {} ),
+typeManipulation::getDimension< PERMUTATION >,
 typeManipulation::getStrideOneDimension( PERMUTATION {} ),
 INDEX_TYPE >;
 
 template< typename T, typename PERMUTATION >
 using RajaView = RAJA::View< T,
-RAJA::Layout< typeManipulation::getDimension( PERMUTATION {} ),
+RAJA::Layout< typeManipulation::getDimension< PERMUTATION >,
 INDEX_TYPE,
 typeManipulation::getStrideOneDimension( PERMUTATION {} ) >>;
 
@@ -166,7 +166,7 @@ void initialize( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, int & iter 
 template< typename T, typename PERMUTATION >
 RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array )
 {
-  constexpr int NDIM = typeManipulation::getDimension( PERMUTATION {} );
+  constexpr int NDIM = typeManipulation::getDimension< PERMUTATION >;
   std::array< INDEX_TYPE, NDIM > sizes;
 
   for( int i = 0; i < NDIM; ++i )

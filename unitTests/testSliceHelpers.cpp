@@ -20,7 +20,7 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
 
 template< typename T >
 void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const slice )
