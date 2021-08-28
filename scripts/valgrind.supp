@@ -160,7 +160,7 @@
 # OpenMP suppressions
 ################################################################################
 {
-   libomp
+   libomp leak
    Memcheck:Leak
    ...
    obj:/*/libomp.so*
@@ -177,29 +177,18 @@
 }
 
 {
-   gomp realloc
+   gomp leak
    Memcheck:Leak
-   fun:realloc
-   fun:gomp_realloc
+   ...
+   obj:/*/libgomp.so*
    ...
 }
 
-
-# For blueos
 {
-   libxlsmp
+   libxlsmp leak
    Memcheck:Leak
    ...
    obj:/*/libxlsmp.so*
-   ...
-}
-
-{
-   libcuda malloc
-   Memcheck:Leak
-   fun:malloc
-   obj:/*/valgrind/*
-   obj:/*/libcuda.so*
    ...
 }
 
@@ -207,10 +196,19 @@
 # CUDA suppressions
 ################################################################################
 {
+   libcuda malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:/*/libcuda.so*
+   ...
+}
+
+{
    libcuda realloc
    Memcheck:Leak
    fun:realloc
-   obj:/*/valgrind/*
+   ...
    obj:/*/libcuda.so*
    ...
 }
@@ -219,21 +217,13 @@
    libcuda calloc
    Memcheck:Leak
    fun:calloc
+   ...
    obj:/*/libcuda.so*
    ...
 }
 
 {
-   libcuda strdup malloc
-   Memcheck:Leak
-   fun:malloc
-   fun:strdup
-   obj:/*/libcuda.so*
-   ...
-}
-
-{
-   cudaGetSymbolAddress
+   cudaGetSymbolAddress leak
    Memcheck:Leak
    ...
    fun:cudaGetSymbolAddress
@@ -241,10 +231,26 @@
 }
 
 {
-   cudaGetDeviceCount
+   cudaGetDeviceCount leak
    Memcheck:Leak
    ...
    fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaGetDeviceCount conditional
+   Memcheck:Cond
+   ...
+   fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaStreamCreate leak
+   Memcheck:Leak
+   ...
+   fun:cudaStreamCreate
    ...
 }
 
@@ -254,6 +260,24 @@
    fun:malloc
    ...
    fun:__cudaPushCallConfiguration
+   ...
+}
+
+{
+   cudaGetDeviceCount Value8
+   Memcheck:Value8
+   ...
+   fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaMalloc reachable leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:cudaMalloc
    ...
 }
 
