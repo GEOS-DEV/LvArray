@@ -3,8 +3,21 @@
 # See https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
 # Some of these are included in the default suppression file on LC. If you
 # believe they are hiding real errors you can disable the default suppressions
-# with --default-suppressions=no (not reccomended).
+# with --default-suppressions=no (not recommended).
 ################################################################################
+
+################################################################################
+# LvArray
+################################################################################
+{
+   Static chai::ArrayManager leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   fun:_ZN4chai12ArrayManagerC1Ev
+   fun:_ZN4chai12ArrayManager11getInstanceEv
+   ...
+}
 
 ################################################################################
 # mpi suppressions
