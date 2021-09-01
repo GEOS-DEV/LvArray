@@ -13,6 +13,34 @@
 namespace jitti
 {
 
+// template < const char * TYPE, const char * HEADER >
+// struct constexpr_jitti_info
+// {
+//   constexpr static const char * typeName = TYPE;
+//   constexpr static const char * headerFile = HEADER;
+// };
+
+//
+// NOTE: The TYPE value in the following macros needs to be *FULLY SCOPED*!
+//
+#if JITTI == 1
+  //  We can't programmatically get a constexpr expression with the name of the type without fully 
+  //   specifying the type e.g. specifying all the template parameters
+  //  Since JIITTI is based around delaying that specification until we JIT a function, we can't 
+  //   use templates to derive this info, it can only happen via preprocessing
+  //
+  // C++20 will allow using string literals as template parameters, until then we have to
+  //  declare/define a constexpr character array and use a pointer to that instead
+  //  but when it is available we can obsolete the JITTI_DECL macro, and jitti::Name struct entirely
+  #define JITTI_DECL( VARNAME, TYPE, HEADER ) \
+constexpr const char VARNAME##Name[] = STRINGIZE( TYPE ); \
+constexpr const char VARNAME##Header[] = HEADER;
+  #define JITTI_TPARAM( VARNAME, TYPE ) VARNAME##Name, VARNAME##Header
+#else 
+  #define JITTI_DECL( VARNAME, TYPE, HEADER )
+  #define JITTI_TPARAM( VARNAME, TYPE ) TYPE
+#endif
+
 template< typename ARG0, typename ... ARGS >
 std::string getInstantiationName( std::string const & templateName,
                                   ARG0 const & firstTemplateParam,
@@ -139,7 +167,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const * tryGetOrLoad( CompilationInfo const & info ) const
+  Function< FUNC_POINTER > const * tryGetOrLoad( CompilationInfo const & info )
   {
     return tryGetOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
   }
@@ -147,7 +175,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName ) const
+  Function< FUNC_POINTER > const & getOrLoad( std::string const & instantiationName )
   {
     Function< FUNC_POINTER > const * function = tryGetOrLoad( instantiationName );
     LVARRAY_ERROR_IF( function == nullptr,
@@ -160,7 +188,7 @@ public:
   /**
    * 
    */
-  Function< FUNC_POINTER > const & getOrLoad( CompilationInfo & info ) const
+  Function< FUNC_POINTER > const & getOrLoad( CompilationInfo & info )
   {
     return getOrLoad( getInstantiationName( info.templateFunction, info.templateParams ) );
   }
