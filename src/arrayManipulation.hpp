@@ -301,7 +301,7 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   }
   else
   {
-    for( std::ptrdiff_t i = size; i < newSize; ++i )
+    for( std::size_t i = size; i < std::size_t( newSize ); ++i )
     {
       new ( ptr + i ) T( std::forward< ARGS >( args )... );
     }
