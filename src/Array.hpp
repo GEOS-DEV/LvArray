@@ -192,6 +192,8 @@ public:
   LVARRAY_HOST_DEVICE
   Array & operator=( Array && rhs )
   {
+    bufferManipulation::free( this->m_dataBuffer, this->size() );
+
     ParentClass::operator=( std::move( rhs ) );
 
     for( int i = 0; i < NDIM; ++i )

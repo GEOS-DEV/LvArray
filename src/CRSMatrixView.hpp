@@ -500,7 +500,7 @@ public:
    *   to use when @p nCols is much less than numNonZeros( @p row ).
    * @tparam AtomicPolicy the policy to use when adding to the values.
    * @param row The row to access.
-   * @param cols The columns to add to, must be sorted, unique and of length @p nCols.
+   * @param cols The columns to add to, unsorted, of length @p nCols.
    * @param vals The values to add, of length @p nCols.
    * @param nCols The number of columns to add to.
    */

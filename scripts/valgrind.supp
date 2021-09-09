@@ -3,8 +3,21 @@
 # See https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
 # Some of these are included in the default suppression file on LC. If you
 # believe they are hiding real errors you can disable the default suppressions
-# with --default-suppressions=no (not reccomended).
+# with --default-suppressions=no (not recommended).
 ################################################################################
+
+################################################################################
+# LvArray
+################################################################################
+{
+   Static chai::ArrayManager leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_Znwm
+   fun:_ZN4chai12ArrayManagerC1Ev
+   fun:_ZN4chai12ArrayManager11getInstanceEv
+   ...
+}
 
 ################################################################################
 # mpi suppressions
@@ -160,7 +173,7 @@
 # OpenMP suppressions
 ################################################################################
 {
-   libomp
+   libomp leak
    Memcheck:Leak
    ...
    obj:/*/libomp.so*
@@ -177,29 +190,18 @@
 }
 
 {
-   gomp realloc
+   gomp leak
    Memcheck:Leak
-   fun:realloc
-   fun:gomp_realloc
+   ...
+   obj:/*/libgomp.so*
    ...
 }
 
-
-# For blueos
 {
-   libxlsmp
+   libxlsmp leak
    Memcheck:Leak
    ...
    obj:/*/libxlsmp.so*
-   ...
-}
-
-{
-   libcuda malloc
-   Memcheck:Leak
-   fun:malloc
-   obj:/*/valgrind/*
-   obj:/*/libcuda.so*
    ...
 }
 
@@ -207,10 +209,19 @@
 # CUDA suppressions
 ################################################################################
 {
+   libcuda malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:/*/libcuda.so*
+   ...
+}
+
+{
    libcuda realloc
    Memcheck:Leak
    fun:realloc
-   obj:/*/valgrind/*
+   ...
    obj:/*/libcuda.so*
    ...
 }
@@ -219,21 +230,13 @@
    libcuda calloc
    Memcheck:Leak
    fun:calloc
+   ...
    obj:/*/libcuda.so*
    ...
 }
 
 {
-   libcuda strdup malloc
-   Memcheck:Leak
-   fun:malloc
-   fun:strdup
-   obj:/*/libcuda.so*
-   ...
-}
-
-{
-   cudaGetSymbolAddress
+   cudaGetSymbolAddress leak
    Memcheck:Leak
    ...
    fun:cudaGetSymbolAddress
@@ -241,10 +244,26 @@
 }
 
 {
-   cudaGetDeviceCount
+   cudaGetDeviceCount leak
    Memcheck:Leak
    ...
    fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaGetDeviceCount conditional
+   Memcheck:Cond
+   ...
+   fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaStreamCreate leak
+   Memcheck:Leak
+   ...
+   fun:cudaStreamCreate
    ...
 }
 
@@ -254,6 +273,24 @@
    fun:malloc
    ...
    fun:__cudaPushCallConfiguration
+   ...
+}
+
+{
+   cudaGetDeviceCount Value8
+   Memcheck:Value8
+   ...
+   fun:cudaGetDeviceCount
+   ...
+}
+
+{
+   cudaMalloc reachable leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:cudaMalloc
    ...
 }
 

@@ -111,7 +111,12 @@ public:
    * @return *this.
    */
   inline
-  SortedArray & operator=( SortedArray && src ) = default;
+  SortedArray & operator=( SortedArray && src )
+  {
+    bufferManipulation::free( this->m_values, size() );
+    ParentClass::operator=( std::move( src ) );
+    return *this;
+  }
 
   ///@}
 

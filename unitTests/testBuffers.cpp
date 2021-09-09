@@ -14,6 +14,7 @@
 #include "bufferManipulation.hpp"
 #include "StackBuffer.hpp"
 #include "math.hpp"
+#include "limits.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
@@ -632,13 +633,13 @@ public:
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
 
     bufferManipulation::setCapacity( m_buffer, size(), MemorySpace::host, size() - 50 );
-    m_ref.resize( size() - 50 );
+    m_ref.resize( integerConversion< std::size_t >( size() - 50 ) );
 
     COMPARE_TO_REFERENCE( m_buffer, m_ref );
   }
 
   /**
-   * @brief Test setCapacity.
+   * @brief Test reserve.
    */
   void reserve()
   {
