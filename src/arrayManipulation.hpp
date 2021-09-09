@@ -296,11 +296,12 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   {
     if( newSize - size > 0 )
     {
-      memset( reinterpret_cast< void * >( ptr + size ), 0, ( newSize - size ) * sizeof( T ) );
+      std::memset( reinterpret_cast< void * >( ptr + size ), 0, ( newSize - size ) * sizeof( T ) );
     }
   }
   else
   {
+    // Use std::size_t so that when GCC optimizes this it doesn't produce sign warnings.
     for( std::size_t i = size; i < std::size_t( newSize ); ++i )
     {
       new ( ptr + i ) T( std::forward< ARGS >( args )... );
