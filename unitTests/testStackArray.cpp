@@ -39,7 +39,7 @@ template< typename PERMUTATION >
 class StackArrayTest : public ::testing::Test
 {
 public:
-  static constexpr int NDIM = typeManipulation::getDimension( PERMUTATION {} );
+  static constexpr int NDIM = typeManipulation::getDimension< PERMUTATION >;
 
   void resize()
   {
@@ -208,7 +208,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 1 >
+  static std::enable_if_t< typeManipulation::getDimension< _PERMUTATION > == 1 >
   sizedConstructorInLambda()
   {
     INDEX_TYPE const capacity = CAPACITY;
@@ -222,7 +222,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 2 >
+  static std::enable_if_t< typeManipulation::getDimension< _PERMUTATION > == 2 >
   sizedConstructorInLambda()
   {
     INDEX_TYPE const capacity = CAPACITY;
@@ -238,7 +238,7 @@ public:
   }
 
   template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 3 >
+  static std::enable_if_t< typeManipulation::getDimension< _PERMUTATION > == 3 >
   sizedConstructorInLambda()
   {
     INDEX_TYPE const capacity = CAPACITY;
