@@ -27,7 +27,7 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, DEFAULT_BUFFER >;
+using ArrayT = Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, std::ptrdiff_t, DEFAULT_BUFFER >;
 
 template< typename T, int NDIM, int USD >
 using ArrayViewT = ArrayView< T, NDIM, USD, std::ptrdiff_t, DEFAULT_BUFFER >;

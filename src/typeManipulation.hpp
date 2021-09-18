@@ -420,8 +420,6 @@ template< typename PERMUTATION, camp::idx_t... INDICES >
 constexpr bool isValidPermutation( PERMUTATION, camp::idx_seq< INDICES... > )
 { return all_of< contains< INDICES >( PERMUTATION {} )... >::value; }
 
-} // namespace internal
-
 /**
  * @tparam INDICES A variadic list of indices.
  * @return The number of indices.
@@ -429,6 +427,11 @@ constexpr bool isValidPermutation( PERMUTATION, camp::idx_seq< INDICES... > )
 template< camp::idx_t... INDICES >
 constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
 { return sizeof...( INDICES ); }
+
+} // namespace internal
+
+template< typename T >
+static constexpr camp::idx_t getDimension = internal::getDimension( T {} );
 
 /**
  * @tparam INDICES A variadic list of indices.
@@ -450,7 +453,7 @@ LVARRAY_HOST_DEVICE constexpr camp::idx_t getStrideOneDimension( camp::idx_seq< 
 template< typename PERMUTATION >
 constexpr bool isValidPermutation( PERMUTATION )
 {
-  constexpr int NDIM = getDimension( PERMUTATION {} );
+  constexpr int NDIM = getDimension< PERMUTATION >;
   return internal::isValidPermutation( PERMUTATION {}, camp::make_idx_seq_t< NDIM > {} );
 }
 

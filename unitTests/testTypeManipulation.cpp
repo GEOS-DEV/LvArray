@@ -497,45 +497,45 @@ TYPED_TEST( GetViewTypes, test )
 TEST( Permutations, getDimension )
 {
   // 1D
-  static_assert( typeManipulation::getDimension( RAJA::PERM_I {} ) == 1, "Dimension should be 1." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_I > == 1, "Dimension should be 1." );
 
   // 2D
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IJ {} ) == 2, "Dimension should be 2." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JI {} ) == 2, "Dimension should be 2." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IJ > == 2, "Dimension should be 2." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JI > == 2, "Dimension should be 2." );
 
   // 3D
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IJK {} ) == 3, "Dimension should be 3." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JIK {} ) == 3, "Dimension should be 3." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IKJ {} ) == 3, "Dimension should be 3." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KIJ {} ) == 3, "Dimension should be 3." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JKI {} ) == 3, "Dimension should be 3." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KJI {} ) == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IJK > == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JIK > == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IKJ > == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KIJ > == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JKI > == 3, "Dimension should be 3." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KJI > == 3, "Dimension should be 3." );
 
   // 4D
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IJKL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JIKL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IKJL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KIJL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JKIL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KJIL {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IJLK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JILK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_ILJK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LIJK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JLIK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LJIK {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_IKLJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KILJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_ILKJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LIKJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KLIJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LKIJ {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JKLI {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KJLI {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_JLKI {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LJKI {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_KLJI {} ) == 4, "Dimension should be 4." );
-  static_assert( typeManipulation::getDimension( RAJA::PERM_LKJI {} ) == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IJKL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JIKL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IKJL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KIJL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JKIL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KJIL > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IJLK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JILK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_ILJK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LIJK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JLIK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LJIK > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_IKLJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KILJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_ILKJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LIKJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KLIJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LKIJ > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JKLI > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KJLI > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_JLKI > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LJKI > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_KLJI > == 4, "Dimension should be 4." );
+  static_assert( typeManipulation::getDimension< RAJA::PERM_LKJI > == 4, "Dimension should be 4." );
 }
 
 TEST( Permutations, getStrideOneDimension )

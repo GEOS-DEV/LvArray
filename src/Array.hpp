@@ -63,7 +63,7 @@ public:
   // Check that the template arguments are valid.
   static_assert( NDIM >= 0, "The dimension of the Array must be positive." );
   static_assert( typeManipulation::isValidPermutation( PERMUTATION {} ), "The permutation must be valid." );
-  static_assert( typeManipulation::getDimension( PERMUTATION {} ) == NDIM,
+  static_assert( typeManipulation::getDimension< PERMUTATION > == NDIM,
                  "The dimension of the permutation must match the dimension of the Array." );
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
 
