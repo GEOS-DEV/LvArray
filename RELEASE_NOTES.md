@@ -9,6 +9,18 @@ Version vxx.yy.zz -- Release date 20yy-mm-dd
 
 * Bug fixes:
 
+Version v0.2.2 -- Release date 2021-09-09
+============================================
+
+* Build changes/improvements:
+  * Added support for running the unit tests through Valgrind.
+
+* Bug fixes:
+  * Calling begin/end on an ArraySlice with non-unit stride is a compile time error.
+  * Fixed a bug in the testBuffers with GCC 7.5.0.
+  * Fixed a memory leak in Array and SortedArray move assignment operators.
+  * Fixed a compiler warning with GCC in release.
+
 Version v0.2.1 -- Release date 2020-05-06
 ============================================
 
