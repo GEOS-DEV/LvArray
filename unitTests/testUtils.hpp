@@ -119,7 +119,7 @@ struct PairComp
 {
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
-  constexpr bool operator()( const std::pair< A, B > & lhs, const std::pair< A, B > & rhs ) const
+  constexpr bool operator()( std::pair< A, B > const & lhs, std::pair< A, B > const & rhs ) const
   {
     return COMP()( lhs.first, rhs.first );
   }

@@ -207,9 +207,7 @@ public:
         } );
   }
 
-  template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 1 >
-  sizedConstructorInLambda()
+  static void sizedConstructorInLambda( std::array< int, 1 > )
   {
     INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [capacity] LVARRAY_DEVICE ( int )
@@ -221,9 +219,7 @@ public:
         } );
   }
 
-  template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 2 >
-  sizedConstructorInLambda()
+  static void sizedConstructorInLambda( std::array< int, 2 > )
   {
     INDEX_TYPE const capacity = CAPACITY;
     int const size = 8;
@@ -237,9 +233,7 @@ public:
         } );
   }
 
-  template< typename _PERMUTATION=PERMUTATION >
-  static std::enable_if_t< typeManipulation::getDimension( _PERMUTATION {} ) == 3 >
-  sizedConstructorInLambda()
+  static void sizedConstructorInLambda( std::array< int, 3 > )
   {
     INDEX_TYPE const capacity = CAPACITY;
     int const size = 8;
@@ -318,7 +312,8 @@ TYPED_TEST( StackArrayCaptureTest, resizeMultipleInLambda )
 
 TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 {
-  this->sizedConstructorInLambda();
+  std::array< int, typeManipulation::getDimension( typename TestFixture::PERMUTATION {} ) > dummy {};
+  this->sizedConstructorInLambda( dummy );
 }
 
 } // namespace testing
