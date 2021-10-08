@@ -224,7 +224,7 @@ public:
     for( INDEX_TYPE size = 0; size < maxSize; size = INDEX_TYPE( size * 1.5 + 1 ))
     {
       fillArrays( size );
-      std::sort( m_ref.begin(), m_ref.end(), PairComp< KEY, T, COMP >());
+      makeSorted( m_ref.begin(), m_ref.end(), PairComp< KEY, T, COMP >() );
 
       ArrayView1D< KEY > const & keys = m_keys;
       ArrayView1D< T > const & values = m_values;
