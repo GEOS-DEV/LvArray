@@ -730,10 +730,15 @@ protected:
     // RAJA::inclusive_scan fails on empty input range
     if( numSubArrays > 0 )
     {
-      // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
-                                      m_offsets.data() + 1 );
+      #if 100 * 100 * RAJA_VERSION_MAJOR + 100 * RAJA_VERSION_MINOR + RAJA_VERSION_PATCHLEVEL < 1400
+        // const_cast needed because of bug in RAJA.
+        RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
+                                        const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+                                        m_offsets.data() + 1 );
+      #else
+        RAJA::inclusive_scan< POLICY >( RAJA::make_span( capacities, numSubArrays ),
+                                        RAJA::make_span( m_offsets.data() + 1, numSubArrays ) );
+      #endif
     }
 
     m_numArrays = numSubArrays;

@@ -74,9 +74,9 @@ set( lvarray_dependencies dl )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS camp RAJA )
 
-blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
-
 blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
+
+blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
 

@@ -14,6 +14,13 @@
 #include "ChaiBuffer.hpp"
 
 // TPL includes
+#define UMPIRE_VERSION 10000 * UMPIRE_VERSION_MAJOR + 100 * UMPIRE_VERSION_MINOR + UMPIRE_VERSION_PATCH
+#if UMPIRE_VERSION > 600
+  #include <umpire/strategy/QuickPool.hpp>
+  using UmpirePool = umpire::strategy::QuickPool;
+#else
+  using UmpirePool = umpire::strategy::DynamicPool;
+#endif
 #include <gtest/gtest.h>
 
 // System includes
@@ -34,10 +41,10 @@ public:
   void testAllocatorConstruction()
   {
     umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
-    auto hostPool = rm.makeAllocator< umpire::strategy::DynamicPool >( "HOST_pool", rm.getAllocator( "HOST" ) );
+    auto hostPool = rm.makeAllocator< UmpirePool >( "HOST_pool", rm.getAllocator( "HOST" ) );
 
   #if defined( LVARRAY_USE_CUDA )
-    auto devicePool = rm.makeAllocator< umpire::strategy::DynamicPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
+    auto devicePool = rm.makeAllocator< UmpirePool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else
