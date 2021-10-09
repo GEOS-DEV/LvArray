@@ -15,6 +15,13 @@
 #include "umpire/strategy/QuickPool.hpp"
 
 // TPL includes
+#define UMPIRE_VERSION 10000 * UMPIRE_VERSION_MAJOR + 100 * UMPIRE_VERSION_MINOR + UMPIRE_VERSION_PATCH
+#if UMPIRE_VERSION > 600
+  #include <umpire/strategy/QuickPool.hpp>
+  using UmpirePool = umpire::strategy::QuickPool;
+#else
+  using UmpirePool = umpire::strategy::DynamicPool;
+#endif
 #include <gtest/gtest.h>
 
 // System includes
