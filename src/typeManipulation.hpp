@@ -430,6 +430,10 @@ constexpr camp::idx_t getDimension( camp::idx_seq< INDICES... > )
 
 } // namespace internal
 
+/**
+ * @tparam T The type for which the number of indices is requested.
+ * @return the number of indices for type T
+ */
 template< typename T >
 static constexpr camp::idx_t getDimension = internal::getDimension( T {} );
 
