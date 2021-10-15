@@ -16,7 +16,7 @@ namespace LvArray
 {
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, typeManipulation::getDimension( PERMUTATION {} ), PERMUTATION, std::ptrdiff_t, MallocBuffer >;
+using ArrayT = Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, std::ptrdiff_t, MallocBuffer >;
 
 template< typename ARRAY >
 class ArraySliceTest : public ::testing::Test
