@@ -233,6 +233,13 @@
  */
 #define LVARRAY_INFO( msg ) LVARRAY_INFO_IF( true, msg )
 
+#define LVARRAY_ERROR_IF_NOT_IN_CLOSED_RANGE( value, begin, end ) \
+  LVARRAY_ERROR_IF( value < begin || value > end, \
+                    msg << "\n" << \
+                    "Got " << value << " valid range is [" << begin  << ", " << end << "]" << "\n" )
+
+
+
 /**
  * @brief Abort execution if @p lhs @p OP @p rhs.
  * @param lhs The left side of the operation.
