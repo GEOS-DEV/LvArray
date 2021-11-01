@@ -165,20 +165,20 @@ HAS_STATIC_MEMBER( NDIM );
 
 /**
  * @brief Verify at compile time that the size of a user-provided type is as expected.
- * @tparam ISIZE The size the array should be.
+ * @tparam PROVIDED_SIZE The size the array should be.
  * @tparam T The provided type.
  * @param src The value to check.
  * @note This overload is enabled for user-defined types that expose a compile-time size
  *   parameter through a public static integral member variable SIZE
  * @return None.
  */
-template< std::ptrdiff_t ISIZE, typename T >
+template< std::ptrdiff_t PROVIDED_SIZE, typename T >
 LVARRAY_HOST_DEVICE inline constexpr
 std::enable_if_t< HasStaticMember_SIZE< T > >
 checkSizes( T const & src )
 {
-  static_assert( ISIZE == T::SIZE,
-                 "Expected the first dimension of size ISIZE, got an type of size T::SIZE." );
+  static_assert( PROVIDED_SIZE == T::SIZE,
+                 "Expected the first dimension of size PROVIDED_SIZE, got an type of size T::SIZE." );
   LVARRAY_UNUSED_VARIABLE( src );
 }
 
@@ -194,7 +194,7 @@ LVARRAY_HOST_DEVICE inline constexpr
 void checkSizes( T const ( &src )[ INFERRED_SIZE ] )
 {
   static_assert( PROVIDED_SIZE == INFERRED_SIZE,
-                 "Expected the first dimension of size PROVIDED_N, got an array of size INFERRED_N." );
+                 "Expected the first dimension of size PROVIDED_SIZE, got an array of size INFERRED_SIZE." );
   LVARRAY_UNUSED_VARIABLE( src );
 }
 
@@ -214,6 +214,34 @@ template< std::ptrdiff_t PROVIDED_M,
           std::ptrdiff_t INFERRED_N >
 LVARRAY_HOST_DEVICE inline constexpr
 void checkSizes( T const ( &src )[ INFERRED_M ][ INFERRED_N ] )
+{
+  static_assert( PROVIDED_M == INFERRED_M, "Expected the first dimension of size PROVIDED_M, got an array of size INFERRED_M." );
+  static_assert( PROVIDED_N == INFERRED_N, "Expected the second dimension of size PROVIDED_N, got an array of size INFERRED_N." );
+  LVARRAY_UNUSED_VARIABLE( src );
+}
+
+/**
+ *
+ */
+template< std::ptrdiff_t PROVIDED_SIZE, typename T, std::ptrdiff_t INFERRED_SIZE >
+LVARRAY_HOST_DEVICE inline constexpr
+void checkSizes( typeManipulation::CArray< T, INFERRED_SIZE > const & src )
+{
+  static_assert( PROVIDED_SIZE == INFERRED_SIZE,
+                 "Expected the first dimension of size PROVIDED_SIZE, got an array of size INFERRED_SIZE." );
+  LVARRAY_UNUSED_VARIABLE( src );
+}
+
+/**
+ *
+ */
+template< std::ptrdiff_t PROVIDED_M,
+          std::ptrdiff_t PROVIDED_N,
+          typename T,
+          std::ptrdiff_t INFERRED_M,
+          std::ptrdiff_t INFERRED_N >
+LVARRAY_HOST_DEVICE inline constexpr
+void checkSizes( typeManipulation::CArray< typeManipulation::CArray< T, INFERRED_N >, INFERRED_M > const & src )
 {
   static_assert( PROVIDED_M == INFERRED_M, "Expected the first dimension of size PROVIDED_M, got an array of size INFERRED_M." );
   static_assert( PROVIDED_N == INFERRED_N, "Expected the second dimension of size PROVIDED_N, got an array of size INFERRED_N." );
