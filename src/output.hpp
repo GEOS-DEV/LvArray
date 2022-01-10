@@ -297,6 +297,25 @@ std::ostream & operator<< ( std::ostream & stream, T const ( &array )[ M ][ N ] 
   return stream;
 }
 
+namespace typeManipulation
+{
+
+/**
+ * 
+ */
+template< typename T, camp::idx_t N >
+std::ostream & operator<< (std::ostream & stream, CArray< T, N > const & array )
+{
+  stream << "{ " << array[ 0 ];
+  for( int i = 1; i < N; ++i )
+  {
+    stream << ", " << array[ i ];
+  }
+  stream << " }";
+  return stream;
+}
+
+} // namespace typeManipulation
 } // namespace LvArray
 
 #if defined( LVARRAY_USE_CUDA )

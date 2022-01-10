@@ -394,6 +394,7 @@ void erase( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const pos )
  * @param dstSize The size of the destination buffer.
  * @param src The source buffer.
  * @param srcSize The size of the source buffer.
+ * TODO: this won't work when buffers not on host.
  */
 DISABLE_HD_WARNING
 template< typename DST_BUFFER, typename SRC_BUFFER >
