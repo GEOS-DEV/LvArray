@@ -638,10 +638,11 @@ public:
   /**
    * @brief Set entries to values from another compatible ArrayView.
    * @tparam POLICY The RAJA policy to use.
+   * @tparam U The type of the source values.
    * @param rhs The source array view, must have the same dimensions and strides as *this.
    */
-  template< typename POLICY >
-  void setValues( ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & rhs ) const
+  template< typename POLICY, typename U >
+  void setValues( ArrayView< U const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & rhs ) const
   {
     for( int dim = 0; dim < NDIM; ++dim )
     {
