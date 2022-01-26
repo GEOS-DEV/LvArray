@@ -393,6 +393,9 @@ public:
    */
   ///@{
 
+  static constexpr int ndim()
+  { return NDIM; }
+
   /**
    * @return Return the allocated size.
    */
