@@ -97,7 +97,7 @@ if(ENABLE_CALIPER)
 
     blt_register_library(NAME caliper
                          INCLUDES ${caliper_INCLUDE_PATH}
-                         LIBRARIES caliper
+                         LIBRARIES caliper ${CUPTI_LIB}
                          TREAT_INCLUDES_AS_SYSTEM ON)
 
     set(thirdPartyLibs ${thirdPartyLibs} caliper)
