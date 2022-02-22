@@ -720,10 +720,10 @@ protected:
     // RAJA::inclusive_scan fails on empty input range
     if( numSubArrays > 0 )
     {
+      bufferManipulation::ContainerShim< INDEX_TYPE const > capacitiesShim( capacities, capacities + numSubArrays );
+      bufferManipulation::ContainerShim< INDEX_TYPE > offsetsShim( m_offsets.data() + 1, m_offsets.data() + numSubArrays );
       // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
-                                      m_offsets.data() + 1 );
+      RAJA::inclusive_scan< POLICY >( capacitiesShim, offsetsShim );
     }
 
     m_numArrays = numSubArrays;

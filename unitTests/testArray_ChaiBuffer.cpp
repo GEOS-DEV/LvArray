@@ -35,10 +35,10 @@ public:
   void testAllocatorConstruction()
   {
     umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
-    auto hostPool = rm.makeAllocator< umpire::strategy::DynamicPool >( "HOST_pool", rm.getAllocator( "HOST" ) );
+    auto hostPool = rm.makeAllocator< umpire::strategy::QuickPool >( "HOST_pool", rm.getAllocator( "HOST" ) );
 
   #if defined( LVARRAY_USE_CUDA )
-    auto devicePool = rm.makeAllocator< umpire::strategy::DynamicPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
+    auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else

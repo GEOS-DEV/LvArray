@@ -35,6 +35,7 @@ if( NOT is_submodule )
 
     option( ENABLE_ADDR2LINE "Enable addr2line usage in stacktraces" ON )
     option( ENABLE_CUDA "Build with CUDA" OFF )
+    option( ENABLE_HIP "Build with HIP" OFF )
     option( ENABLE_UMPIRE "Build with UMPIRE" OFF )
     option( ENABLE_CHAI "Build with CHAI" OFF )
     option( ENABLE_CALIPER "Build with Caliper" OFF )
@@ -79,6 +80,8 @@ blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
+
+blt_list_append( TO lvarray_dependencies ELEMENTS hip hip_runtime IF ENABLE_HIP )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS caliper IF ENABLE_CALIPER )
 
