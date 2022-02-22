@@ -38,7 +38,7 @@ set( lvarray_headers
      sortedArrayManipulationHelpers.hpp
      system.hpp
      tensorOps.hpp
-     totalview/tv_data_display.h
+#     totalview/tv_data_display.h
      typeManipulation.hpp
      umpireInterface.hpp )
 
@@ -46,7 +46,7 @@ blt_list_append( TO lvarray_headers ELEMENTS ChaiBuffer.hpp IF ENABLE_CHAI )
 
 set( lvarray_sources
      system.cpp
-     totalview/tv_data_display.c
+#     totalview/tv_data_display.c
      umpireInterface.cpp )
 
 blt_add_library( NAME             lvarray

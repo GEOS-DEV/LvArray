@@ -20,6 +20,7 @@
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
+#include <umpire/strategy/QuickPool.hpp>
 #include <gtest/gtest.h>
 
 // System includes
