@@ -13,6 +13,7 @@
 #pragma once
 
 // Source includes
+#include "limits.hpp"
 #include "Macros.hpp"
 #include "typeManipulation.hpp"
 
@@ -296,7 +297,8 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   {
     if( newSize - size > 0 )
     {
-      std::memset( reinterpret_cast< void * >( ptr + size ), 0, ( newSize - size ) * sizeof( T ) );
+     std::size_t const sizeDiff = integerConversion< std::size_t >( newSize - size );
+      std::memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
     }
   }
   else
