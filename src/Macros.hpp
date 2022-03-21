@@ -22,7 +22,7 @@
 #include <iostream>
 #include <type_traits>
 
-#if defined(LVARRAY_USE_CUDA)
+#if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
   #include <cassert>
 #endif
 
@@ -91,7 +91,7 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   #if !defined(NDEBUG)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
@@ -529,7 +529,7 @@
  */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-#if defined(LVARRAY_USE_CUDA) && defined(__CUDACC__)
+#if ( defined(LVARRAY_USE_CUDA) && defined(__CUDACC__) ) || ( defined(LVARRAY_USE_HIP) && defined(__HIPCC__) )
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
 

@@ -186,7 +186,7 @@ using SingleArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >
@@ -286,7 +286,7 @@ using DualArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) )&& defined(LVARRAY_USE_CHAI)
   , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >

@@ -73,6 +73,19 @@ struct RAJAHelper< RAJA::cuda_exec< N > >
   static constexpr MemorySpace space = MemorySpace::cuda;
 };
 
+#elif defined(LVARRAY_USE_HIP)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
+
+template< unsigned long N >
+struct RAJAHelper< RAJA::hip_exec< N > >
+{
+  using ReducePolicy = RAJA::hip_reduce;
+  using AtomicPolicy = RAJA::hip_atomic;
+  static constexpr MemorySpace space = MemorySpace::hip;
+};
+  
 #endif
 
 template< typename POLICY, typename INDEX_TYPE, typename LAMBDA >
@@ -104,14 +117,14 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 }
 
 
-#ifndef __CUDA_ARCH__
-#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
-#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
-    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
-#else
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GE_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
                                                                        STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
+#else
+#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
+    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
 #endif
 
 // Comparator that compares a std::pair by it's first object.

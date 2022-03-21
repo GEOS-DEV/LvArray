@@ -40,6 +40,10 @@ public:
     auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
+  #elif defined( LVARRAY_USE_HIP )
+    auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::hip };
+    std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };    
   #else
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };
@@ -59,6 +63,12 @@ public:
 
   #if defined( LVARRAY_USE_CUDA )
     buffer.move( MemorySpace::cuda, true );
+    EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "DEVICE_pool" );
+
+    buffer.move( MemorySpace::host, true );
+    EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "HOST_pool" );
+  #elif defined(LVARRAY_USE_HIP)
+    buffer.move( MemorySpace::hip, true );
     EXPECT_EQ( rm.getAllocator( buffer.data() ).getName(), "DEVICE_pool" );
 
     buffer.move( MemorySpace::host, true );
@@ -189,6 +199,126 @@ public:
 
     bufferManipulation::free( buffer, size );
   }
+#elif defined( LVARRAY_USE_HIP )
+  void testMove()
+  {
+    ChaiBuffer< T > buffer( true );
+
+    int const size = 100;
+    buffer.reallocate( 0, MemorySpace::host, size );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+
+    for( int i = 0; i < size; ++i )
+    {
+      new ( &buffer[ i ] ) T( i );
+    }
+
+    buffer.move( MemorySpace::hip, true );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::hip );
+    T * const devPtr = buffer.data();
+
+    forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
+        {
+          devPtr[ i ] += devPtr[ i ];
+        } );
+
+    // Check that the device changes are seen on the host. Then modify the values without touching.
+    buffer.move( MemorySpace::host, false );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    for( int i = 0; i < size; ++i )
+    {
+      EXPECT_EQ( buffer[ i ], T( i ) + T( i ) );
+      buffer[ i ] = T( 0 );
+    }
+
+    buffer.move( MemorySpace::hip, true );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::hip );
+    forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
+        {
+          devPtr[ i ] += devPtr[ i ];
+        } );
+
+    buffer.move( MemorySpace::host, false );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    for( int i = 0; i < size; ++i )
+    {
+      EXPECT_EQ( buffer[ i ], T( i ) + T( i ) + T( i ) + T( i ) );
+    }
+
+    bufferManipulation::free( buffer, size );
+  }
+
+  void testCapture()
+  {
+    ChaiBuffer< T > buffer( true );
+
+    int const size = 100;
+    buffer.reallocate( 0, MemorySpace::host, size );
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+
+    for( int i = 0; i < size; ++i )
+    {
+      new ( &buffer[ i ] ) T( i );
+    }
+
+    forall< parallelDevicePolicy< 32 > >( size, [buffer] LVARRAY_DEVICE ( int const i )
+        {
+          buffer[ i ] += buffer[ i ];
+        } );
+
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::hip );
+
+
+    // Check that the device changes are seen on the host. Then modify the values without touching.
+    ChaiBuffer< T const > constBuffer( buffer );
+    forall< serialPolicy >( size, [constBuffer] ( int const i )
+    {
+      EXPECT_EQ( constBuffer[ i ], T( i ) + T( i ) );
+      const_cast< T & >( constBuffer[ i ] ) = T( 0 );
+    } );
+
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::host );
+
+    forall< parallelDevicePolicy< 32 > >( size, [buffer] LVARRAY_DEVICE ( int const i )
+        {
+          buffer[ i ] += buffer[ i ];
+        } );
+
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::hip );
+
+    forall< serialPolicy >( size, [constBuffer] ( int const i )
+    {
+      EXPECT_EQ( constBuffer[ i ], T( i ) + T( i ) + T( i ) + T( i ) );
+    } );
+
+    EXPECT_EQ( buffer.getPreviousSpace(), MemorySpace::host );
+    EXPECT_EQ( constBuffer.getPreviousSpace(), MemorySpace::host );
+
+    bufferManipulation::free( buffer, size );
+  }
+
+  void testDeviceRealloc()
+  {
+    ChaiBuffer< T > buffer( true );
+
+    int const size = 100;
+    buffer.reallocate( 0, MemorySpace::hip, size );
+
+    T * const devPtr = buffer.data();
+    forall< parallelDevicePolicy< 32 > >( size, [devPtr] LVARRAY_DEVICE ( int const i )
+        {
+          new ( &devPtr[ i ] ) T( i );
+        } );
+
+    buffer.move( MemorySpace::host, true );
+    for( int i = 0; i < size; ++i )
+    {
+      EXPECT_EQ( buffer[ i ], T( i ) );
+    }
+
+    bufferManipulation::free( buffer, size );
+  }
 #endif
 };
 
@@ -204,7 +334,7 @@ TYPED_TEST( ChaiBufferTest, AllocatorConstruction )
   this->testAllocatorConstruction();
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
 
 TYPED_TEST( ChaiBufferTest, Move )
 {

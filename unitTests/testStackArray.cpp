@@ -281,7 +281,7 @@ using StackArrayCaptureTestTypes = ::testing::Types<
   , std::pair< RAJA::PERM_KIJ, serialPolicy >
   , std::pair< RAJA::PERM_KJI, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA)
+#if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
   , std::pair< RAJA::PERM_I, parallelDevicePolicy< 32 > >
   , std::pair< RAJA::PERM_IJ, parallelDevicePolicy< 32 > >
   , std::pair< RAJA::PERM_JI, parallelDevicePolicy< 32 > >

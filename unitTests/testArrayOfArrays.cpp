@@ -1240,7 +1240,7 @@ using ArrayOfArraysViewTestTypes = ::testing::Types<
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
@@ -1423,7 +1423,7 @@ using ArrayOfArraysViewAtomicTestTypes = ::testing::Types<
   , std::pair< ArrayOfArrays< TestString, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfArrays< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfArrays< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
