@@ -81,6 +81,23 @@ CUDA_TEST( typeManipulation, forEachArg )
   EXPECT_EQ( intReducer.get(), 2 );
   EXPECT_EQ( floatReducer.get(), 4 );
   EXPECT_EQ( doubleReducer.get(), 7 );
+#eli defined(LVARRAY_USE_HIP)
+  // Test on device.
+  RAJA::ReduceSum< RAJA::hip_reduce, int > intReducer( 1 );
+  RAJA::ReduceSum< RAJA::hip_reduce, float > floatReducer( 3 );
+  RAJA::ReduceSum< RAJA::hip_reduce, double > doubleReducer( 6 );
+  forall< parallelDevicePolicy< 32 > >( 1, [intReducer, floatReducer, doubleReducer] LVARRAY_DEVICE ( int )
+      {
+        // This has to be a host-device lambda to avoid errors.
+        typeManipulation::forEachArg( [] LVARRAY_HOST_DEVICE ( auto & reducer )
+        {
+          reducer += 1;
+        }, intReducer, floatReducer, doubleReducer );
+      } );
+
+  EXPECT_EQ( intReducer.get(), 2 );
+  EXPECT_EQ( floatReducer.get(), 4 );
+  EXPECT_EQ( doubleReducer.get(), 7 );
 #endif
 }
 

@@ -145,14 +145,15 @@ using TestMathTypes = ::testing::Types<
   , std::pair< long long int, serialPolicy >
   , std::pair< float, serialPolicy >
   , std::pair< double, serialPolicy >
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
   , std::pair< int, parallelDevicePolicy< 32 > >
   , std::pair< long int, parallelDevicePolicy< 32 > >
   , std::pair< long long int, parallelDevicePolicy< 32 > >
   , std::pair< float, parallelDevicePolicy< 32 > >
   , std::pair< double, parallelDevicePolicy< 32 > >
-  , std::pair< __half, parallelDevicePolicy< 32 > >
 #endif
+#if defined( LVARRAY_USE_CUDA )
+  , std::pair< __half, parallelDevicePolicy< 32 > >
   >;
 
 TYPED_TEST_SUITE( TestMath, TestMathTypes, );
@@ -331,7 +332,7 @@ struct TestMath2 : public ::testing::Test
   }
 };
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
 
 using TestMath2Types = ::testing::Types<
   std::pair< __half2, parallelDevicePolicy< 32 > >
@@ -403,7 +404,8 @@ void forAllHalvesinMinus1to1( bool const include1, LAMBDA && lambda )
         }
       } );
 }
-
+#endif
+#if defined(LVARRAY_USE_CUDA)
 void asinHalfAccuracy()
 {
   RAJA::ReduceMax< RAJA::cuda_reduce, double > maxDiff( 0 );

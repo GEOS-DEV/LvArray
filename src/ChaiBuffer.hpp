@@ -56,7 +56,11 @@ inline chai::ExecutionSpace toChaiExecutionSpace( MemorySpace const space )
   if( space == MemorySpace::host )
     return chai::CPU;
 #if defined(LVARRAY_USE_CUDA)
-  if( space == MemorySpace::cuda || space == MemorySpace::hip )
+  if( space == MemorySpace::cuda )
+    return chai::GPU;
+#endif
+#if defined(LVARRAY_USE_HIP)
+  if( space == MemorySpace::hip )
     return chai::GPU;
 #endif
 
@@ -78,6 +82,10 @@ inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
 #if defined(LVARRAY_USE_CUDA)
   if( space == chai::GPU )
     return MemorySpace::cuda;
+#endif
+#if defined(LVARRAY_USE_HIP)
+  if( space == chai::GPU )
+    return MemorySpace::hip;
 #endif
 
   LVARRAY_ERROR( "Unrecognized execution space " << static_cast< int >( space ) );
@@ -185,7 +193,7 @@ public:
     m_capacity( src.m_capacity ),
     m_pointerRecord( src.m_pointerRecord )
   {
-  #if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
+  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_ARCH__) )
     move( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), true );
   #endif
   }
@@ -203,7 +211,7 @@ public:
     m_capacity( src.m_capacity ),
     m_pointerRecord( src.m_pointerRecord )
   {
-  #if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
+  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_ARCH__) )
     moveNested( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), size, true );
   #else
     LVARRAY_UNUSED_VARIABLE( size );
@@ -370,7 +378,7 @@ public:
   inline
   void moveNested( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
   {
-  #if defined(LVARRAY_USE_CUDA)
+  #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP )
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
     if( m_pointerRecord == nullptr ||
         m_capacity == 0 ||
@@ -398,7 +406,7 @@ public:
    */
   void move( MemorySpace const space, bool const touch ) const
   {
-  #if defined(LVARRAY_USE_CUDA)
+  #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
     chai::ExecutionSpace const chaiSpace = internal::toChaiExecutionSpace( space );
     if( m_pointerRecord == nullptr ||
         m_capacity == 0 ||

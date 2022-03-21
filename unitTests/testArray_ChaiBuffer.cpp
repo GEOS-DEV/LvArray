@@ -42,6 +42,10 @@ public:
     auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::cuda };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
+  #elif defined(LVARRAY_USE_HIP)
+    auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
+    std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::hip };
+    std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };
@@ -63,15 +67,41 @@ public:
 
     array.move( MemorySpace::host, true );
     EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "HOST_pool" );
+  #elif defined(LVARRAY_USE_HIP)
+    array.move( MemorySpace::hip, true );
+    EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "DEVICE_pool" );
+
+    array.move( MemorySpace::host, true );
+    EXPECT_EQ( rm.getAllocator( array.data() ).getName(), "HOST_pool" );
   #endif
   }
 
 #if defined( LVARRAY_USE_CUDA )
-  void testDeviceAlloc()
+  void testCudaDeviceAlloc()
   {
     Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array;
 
     array.resizeWithoutInitializationOrDestruction( MemorySpace::cuda, 100 );
+
+    T * const devPtr = array.data();
+    forall< parallelDevicePolicy< 32 > >( array.size(), [devPtr] LVARRAY_DEVICE ( int const i )
+        {
+          new ( &devPtr[ i ] ) T( i );
+        } );
+
+    array.move( MemorySpace::host, true );
+    for( int i = 0; i < array.size(); ++i )
+    {
+      EXPECT_EQ( array[ i ], T( i ) );
+    }
+  }
+#endif
+#if defined(LVARRAY_USE_HIP)
+  void testHIPDeviceAlloc()
+  {
+    Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array;
+
+    array.resizeWithoutInitializationOrDestruction( MemorySpace::hip, 100 );
 
     T * const devPtr = array.data();
     forall< parallelDevicePolicy< 32 > >( array.size(), [devPtr] LVARRAY_DEVICE ( int const i )
@@ -104,9 +134,17 @@ TYPED_TEST( ArrayTest, AllocatorConstruction )
 
 TYPED_TEST( ArrayTest, DeviceAlloc )
 {
-  this->testDeviceAlloc();
+  this->testCudaDeviceAlloc();
 }
 
+#endif
+#if defined(LVARRAY_USE_HIP)
+
+TYPED_TEST( ArrayTest, DeviceAlloc )
+{
+  this->testHIPDeviceAlloc();
+}
+  
 #endif
 
 } // namespace testing
