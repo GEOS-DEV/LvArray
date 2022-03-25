@@ -33,8 +33,8 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i ) \
-  LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size(), \
-                    "Bounds Check Failed: i=" << i << " size()=" << this->size() )
+  LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i >= this->size(), \
+                           "Bounds Check Failed: i=%" PRId64 " size()=%" PRId64, (int64_t)i, (int64_t)this->size() )
 
 /**
  * @brief Check that @p i is a valid array index and that @p j is a valid index into that array.
@@ -43,10 +43,11 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS2( i, j ) \
-  LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
-                    !arrayManipulation::isPositive( j ) || j >= this->m_sizes[ i ], \
-                    "Bounds Check Failed: i=" << i << " size()=" << this->size() << \
-                    " j=" << j << " m_sizes[ i ]=" << this->m_sizes[ i ] )
+  LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
+                           !arrayManipulation::isPositive( j ) || j >= this->m_sizes[ i ], \
+                           "Bounds Check Failed: i=%" PRId64 " size()=%" PRId64 \
+                           " j=%" PRId64 " m_sizes[ i ]=%" PRId64,      \
+                           (int64_t)i, (int64_t)this->size(), (int64_t)j, (int64_t)this->m_sizes[ i ] )
 
 /**
  * @brief Check that @p i is a valid index to insert an array at.
@@ -54,8 +55,9 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i ) \
-  LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i > this->size(), \
-                    "Insert Bounds Check Failed: i=" << i << " size()=" << this->size() )
+  LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i > this->size(), \
+                           "Insert Bounds Check Failed: i=%" PRId64 " size()=%" PRId64, \
+                           (int64_t)i,  (int64_t)this->size() )
 
 /**
  * @brief Check that @p i is a valid array index and that @p j is a valid insertion index into that array.
@@ -64,10 +66,10 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j ) \
-  LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
-                    !arrayManipulation::isPositive( j ) || j > this->sizeOfArray( i ), \
-                    "Insert Bounds Check Failed: i=" << i << " size()=" << this->size() << \
-                    " j=" << j << " sizeOfArray( i )=" << this->sizeOfArray( i ) )
+  LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
+                           !arrayManipulation::isPositive( j ) || j > this->sizeOfArray( i ), \
+                           "Insert Bounds Check Failed: i=%" PRId64 " size()=%" PRId64 " j=%" PRId64 " sizeOfArray( i )=%" PRId64, \
+                           (int64_t)i , (int64_t)this->size(), (int64_t)j, (int64_t)this->sizeOfArray( i ) )
 
 /**
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
@@ -76,10 +78,10 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_CAPACITY_CHECK( i, increase ) \
-  LVARRAY_ERROR_IF( this->sizeOfArray( i ) + increase > this->capacityOfArray( i ), \
-                    "Capacity Check Failed: i=" << i << " increase=" << increase << \
-                    " sizeOfArray( i )=" << this->sizeOfArray( i ) << " capacityOfArray( i )=" << \
-                    this->capacityOfArray( i ) )
+  LVARRAY_ERROR_IF_PRINTF( this->sizeOfArray( i ) + increase > this->capacityOfArray( i ), \
+                           "Capacity Check Failed: i=%" PRId64 " increase=%" PRId64 \
+                           " sizeOfArray( i )=%" PRId64 " capacityOfArray( i )=%" PRId64, \
+                           (int64_t)i, (int64_t)increase, (int64_t)this->sizeOfArray( i ), (int64_t)this->capacityOfArray( i ) )
 
 /**
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
@@ -89,10 +91,10 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase ) \
-  LVARRAY_ERROR_IF( previousSize + increase > this->capacityOfArray( i ), \
-                    "Capacity Check Failed: i=" << i << " increase=" << increase << \
-                    " sizeOfArray( i )=" << previousSize << " capacityOfArray( i )=" << \
-                    this->capacityOfArray( i ) )
+  LVARRAY_ERROR_IF_PRINTF( previousSize + increase > this->capacityOfArray( i ), \
+                           "Capacity Check Failed: i=%" PRId64 " increase=%" PRId64 \
+                           " sizeOfArray( i )=%" PRId64 " capacityOfArray( i )=%" PRId64, \
+                           (int64_t)i, (int64_t)increase, (int64_t)previousSize, (int64_t)this->capacityOfArray( i ) )
 
 #else // LVARRAY_BOUNDS_CHECK
 
