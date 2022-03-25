@@ -28,8 +28,9 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
-  LVARRAY_ERROR_IF( !isPositive( index ) || index >= size, \
-                    "Array Bounds Check Failed: index=" << index << " size()=" << size )
+  LVARRAY_ERROR_IF_PRINTF( !isPositive( index ) || index >= size, \
+                           "Array Bounds Check Failed: index=%" PRId64 " size()=%" PRId64, \
+                           (int64_t)(index), (int64_t)size )
 
 /**
  * @brief Check that @p index is a valid insertion position in the array.
@@ -37,8 +38,9 @@
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
-  LVARRAY_ERROR_IF( !isPositive( index ) || index > size, \
-                    "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
+  LVARRAY_ERROR_IF_PRINTF( !isPositive( index ) || index > size, \
+                           "Array Bounds Insert Check Failed: index=%" PRId64 " size()=%" PRId64, \
+                           (int64_t)(index), (int64_t)size )
 
 #else // LVARRAY_BOUNDS_CHECK
 

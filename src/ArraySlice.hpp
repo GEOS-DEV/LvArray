@@ -53,8 +53,9 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" )
  * @note This is only active when LVARRAY_BOUNDS_CHECK is defined.
  */
 #define ARRAY_SLICE_CHECK_BOUNDS( index ) \
-  LVARRAY_ERROR_IF( index < 0 || index >= m_dims[ 0 ], \
-                    "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
+  LVARRAY_ERROR_IF_PRINTF( index < 0 || index >= m_dims[ 0 ], \
+                           "Array Bounds Check Failed: index=%" PRId64 " m_dims[0]=%" PRId64, \
+                           ((int64_t)index), ((int64_t)m_dims[0]) )
 
 #else // LVARRAY_BOUNDS_CHECK
 

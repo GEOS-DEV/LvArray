@@ -26,8 +26,9 @@
  * @note This macro is only active with LVARRAY_BOUNDS_CHECK.
  */
 #define SPARSITYPATTERN_COLUMN_CHECK( col ) \
-  LVARRAY_ERROR_IF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
-                    "Column Check Failed: col=" << col << " numColumns=" << this->numColumns() )
+  LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
+                           "Column Check Failed: col=%" PRId64 " numColumns=%" PRId64, \
+                           (int64_t)(col), (int64_t)this->numColumns() )
 
 #else // LVARRAY_BOUNDS_CHECK
 
@@ -438,8 +439,8 @@ protected:
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
-    LVARRAY_ERROR_IF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
-                      "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
+    LVARRAY_ERROR_IF_PRINTF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
+                      "COL_TYPE must be able to hold the range of columns: [0, %" PRId64 "].", (int64_t)(ncols - 1) );
 
     m_numCols = ncols;
     ParentClass::resizeImpl( nrows, initialRowCapacity, buffers ... );

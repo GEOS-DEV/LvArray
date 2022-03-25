@@ -22,6 +22,9 @@
 #include <iostream>
 #include <type_traits>
 
+#include <inttypes.h>
+#include <cstdio>
+
 #if defined(LVARRAY_USE_CUDA)
   #include <cassert>
 #endif
@@ -81,10 +84,47 @@
  */
 #define LVARRAY_LOG_VAR( ... ) LVARRAY_LOG( STRINGIZE( __VA_ARGS__ ) << " = " << __VA_ARGS__ )
 
+#if defined(__CUDA_ARCH__)
+#  define CUDA_INFORMATION_FMT "***** Block: [%u, %u, %u]\n***** Thread: [%u, %u, %u]\n%s"
+#  define CUDA_INFORMATION_PARAMS blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z, ""
+#  define CALL_ERROR_HANDLER() do { asm ( "trap;" ); } while ( false )
+#else
+#  define CUDA_INFORMATION_FMT "%s"
+#  define CUDA_INFORMATION_PARAMS ""
+#  define CALL_ERROR_HANDLER() do { LvArray::system::callErrorHandler(); } while ( false )
+#endif
+
 /**
  * @brief Abort execution if @p EXP is true.
  * @param EXP The expression to check.
- * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
+ * @param MSG_FMT The format of the message to associate with the error, can be anything understood by printf().
+ * @param ... Variadic arguments to pass to printf (cannot be empty)
+ * @note This macro can be used in both host and device code.
+ * @note Tries to provide as much information about the location of the error
+ *       as possible. On host this should result in the file and line of the error
+ *       and a stack trace along with the provided message. On device none of this is
+ *       guaranteed. In fact it is only guaranteed to abort the current kernel.
+ */
+#define LVARRAY_ERROR_IF_PRINTF( EXP, MSG_FMT, ... )                    \
+  do                                                                    \
+    {                                                                   \
+    if( EXP )                                                           \
+    {                                                                   \
+      printf( "***** ERROR\n"                                           \
+              "***** LOCATION: " LOCATION "\n"                          \
+              CUDA_INFORMATION_FMT                                      \
+              "***** Controlling expression (should be false): "        \
+              STRINGIZE( EXP ) "\n"                                     \
+              "***** MSG: " MSG_FMT "\n\n",                             \
+              CUDA_INFORMATION_PARAMS, __VA_ARGS__ );                   \
+      CALL_ERROR_HANDLER();                                             \
+    }                                                                   \
+  } while( false )
+
+/**
+ * @brief Abort execution if @p EXP is true.
+ * @param EXP The expression to check.
+ * @param MSG The format of the message to associate with the error, can be anything streamable to a std::ostream.
  * @note This macro can be used in both host and device code.
  * @note Tries to provide as much information about the location of the error
  *       as possible. On host this should result in the file and line of the error
@@ -92,47 +132,36 @@
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
 #if defined(__CUDA_ARCH__)
-  #if !defined(NDEBUG)
-#define LVARRAY_ERROR_IF( EXP, MSG ) \
-  do \
-  { \
-    if( EXP ) \
-    { \
-      assert( false && "EXP = " STRINGIZE( EXP ) "MSG = " STRINGIZE( MSG ) ); \
-    } \
+#  define LVARRAY_ERROR_IF( EXP, MSG )                                  \
+  do                                                                    \
+  {                                                                     \
+    if( EXP )                                                           \
+    {                                                                   \
+      printf("***** ERROR\n"                                            \
+             "***** LOCATION: " LOCATION "\n"                           \
+             CUDA_INFORMATION_FMT                                       \
+             "***** Controlling expression (should be false): "         \
+             STRINGIZE( EXP ) "\n"                                      \
+             "***** MSG: " STRINGIZE(MSG) "\n\n",                       \
+             CUDA_INFORMATION_PARAMS);                                  \
+      CALL_ERROR_HANDLER();                                             \
+    }                                                                   \
   } while( false )
-  #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) \
-  do \
-  { \
-    if( EXP ) \
-    { \
-      constexpr char const * formatString = "***** ERROR\n" \
-                                            "***** LOCATION: " LOCATION "\n" \
-                                                                        "***** Block: [%u, %u, %u]\n" \
-                                                                        "***** Thread: [%u, %u, %u]\n" \
-                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
-      printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
-      asm ( "trap;" ); \
-    } \
-  } while( false )
-  #endif
 #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) \
-  do \
-  { \
-    if( EXP ) \
-    { \
-      std::ostringstream __oss; \
-      __oss << "***** ERROR\n"; \
-      __oss << "***** LOCATION: " LOCATION "\n"; \
-      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
-      __oss << MSG << "\n"; \
-      __oss << LvArray::system::stackTrace( true ); \
-      std::cout << __oss.str() << std::endl; \
-      LvArray::system::callErrorHandler(); \
-    } \
+#  define LVARRAY_ERROR_IF( EXP, MSG )                                  \
+  do                                                                    \
+  {                                                                     \
+    if( EXP )                                                           \
+    {                                                                   \
+      std::ostringstream __oss;                                         \
+      __oss << "***** ERROR\n";                                         \
+      __oss << "***** LOCATION: " LOCATION "\n";                        \
+      __oss << "***** Controlling expression (should be false): ";      \
+      __oss << STRINGIZE( EXP ) << "\n";                                \
+      __oss << "***** MSG: " << MSG << "\n";                            \
+      std::cout << __oss.str() << std::endl;                            \
+      CALL_ERROR_HANDLER();                                             \
+    }                                                                   \
   } while( false )
 #endif
 
