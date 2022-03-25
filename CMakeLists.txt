@@ -81,7 +81,7 @@ blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
 
-blt_list_append( TO lvarray_dependencies ELEMENTS hip hip_runtime IF ENABLE_HIP )
+blt_list_append( TO lvarray_dependencies ELEMENTS blt::hip IF ENABLE_HIP )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS caliper IF ENABLE_CALIPER )
 

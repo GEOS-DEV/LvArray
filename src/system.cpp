@@ -417,10 +417,15 @@ std::string calculateSize( size_t const bytes )
     suffix = "MB";
     shift = 20;
   }
-  else
+  else if( bytes >> 10 != 0 )
   {
     suffix = "KB";
     shift = 10;
+  }
+  else
+  {
+    suffix = "B";
+    shift = 0;
   }
 
   double const units = double( bytes ) / ( 1 << shift );

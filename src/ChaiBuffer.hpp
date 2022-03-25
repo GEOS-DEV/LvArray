@@ -78,14 +78,20 @@ inline MemorySpace toMemorySpace( chai::ExecutionSpace const space )
   if( space == chai::NONE )
     return MemorySpace::undefined;
   if( space == chai::CPU )
+  {
+    std::cout << "toHost" << std::endl;
     return MemorySpace::host;
+  }
 #if defined(LVARRAY_USE_CUDA)
   if( space == chai::GPU )
     return MemorySpace::cuda;
 #endif
 #if defined(LVARRAY_USE_HIP)
   if( space == chai::GPU )
+  {
+    std::cout << "toHIPGPU" << std::endl;
     return MemorySpace::hip;
+  }
 #endif
 
   LVARRAY_ERROR( "Unrecognized execution space " << static_cast< int >( space ) );
@@ -149,6 +155,7 @@ public:
 
     for( int space = chai::CPU; space < chai::NUM_EXECUTION_SPACES; ++space )
     {
+      // std::cout << space << std::endl
       m_pointerRecord->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
     }
   }
@@ -193,7 +200,7 @@ public:
     m_capacity( src.m_capacity ),
     m_pointerRecord( src.m_pointerRecord )
   {
-  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_ARCH__) )
+  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_DEVICE_COMPILE__) )
     move( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), true );
   #endif
   }
@@ -211,7 +218,7 @@ public:
     m_capacity( src.m_capacity ),
     m_pointerRecord( src.m_pointerRecord )
   {
-  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_ARCH__) )
+  #if ( defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__) ) || ( defined(LVARRAY_USE_HIP) && !defined(__HIP_DEVICE_COMPILE__) )
     moveNested( internal::toMemorySpace( internal::getArrayManager().getExecutionSpace() ), size, true );
   #else
     LVARRAY_UNUSED_VARIABLE( size );

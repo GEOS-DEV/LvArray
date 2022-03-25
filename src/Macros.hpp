@@ -22,7 +22,20 @@
 #include <iostream>
 #include <type_traits>
 
-#if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
+#if defined(LVARRAY_USE_CUDA)
+  #define LVARRAY_GPU_LANG CUDA
+#elif defined(LVARRAY_USE_HIP)
+  #define LVARRAY_GPU_LANG HIP
+#endif
+
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+  #define LVARRAY_ON_DEVICE 1
+#else
+  #define LVARRAY_ON_DEVICE 0
+#endif
+
+
+#if defined(LVARRAY_GPU_LANG)
   #include <cassert>
 #endif
 
@@ -91,7 +104,7 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#if defined(__CUDA_ARCH__)
   #if !defined(NDEBUG)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
@@ -118,6 +131,7 @@
     } \
   } while( false )
   #endif
+//#elif defined(__HIP_DEVICE_COMPILE__)
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
@@ -529,7 +543,7 @@
  */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-#if ( defined(LVARRAY_USE_CUDA) && defined(__CUDACC__) ) || ( defined(LVARRAY_USE_HIP) && defined(__HIPCC__) )
+#if ( defined(LVARRAY_USE_CUDA) && defined(__CUDACC__) ) || ( defined(LVARRAY_USE_HIP) && defined(__HIP_DEVICE_COMPILE__) )
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
 
@@ -543,7 +557,11 @@
  *   call host only code. This is safe as long as the host only instantiations are only called on
  *   the host. To use place directly above a the template.
  */
-#define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
+#if defined(LVARRAY_USE_CUDA)
+  #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
+#else
+  #define DISABLE_HD_WARNING
+#endif
 #else
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE
