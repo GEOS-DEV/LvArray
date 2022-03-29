@@ -130,8 +130,8 @@ public:
   void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
-    LVARRAY_ERROR_IF_PRINTF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
-                             "COL_TYPE must be able to hold the range of columns: [0, %" PRId64 "].", (int64_t)(nCols - 1) );
+    LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
+                      "COL_TYPE must be able to hold the range of columns: [0, " << nCols - 1 << "]." );
 
     this->m_numCols = nCols;
     ParentClass::template resizeFromCapacities< POLICY >( nRows, rowCapacities );
