@@ -15,6 +15,7 @@
 // Source includes
 #include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
+#include "sortedArrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "typeManipulation.hpp"
 #include "math.hpp"
@@ -720,15 +721,48 @@ protected:
     // RAJA::inclusive_scan fails on empty input range
     if( numSubArrays > 0 )
     {
-      // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+      RAJA::inclusive_scan< POLICY >( capacities,
+                                      capacities + numSubArrays,
                                       m_offsets.data() + 1 );
     }
 
     m_numArrays = numSubArrays;
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
+    {
+      bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
+    }, m_values, buffers ... );
+  }
+
+  /**
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param offsets A pointer to an array of length @p numSubArrays+1 containing the offset
+   *   of each new sub array. Offsets are precomputed by the caller.
+   * @param buffers A variadic pack of buffers to treat similarly to m_values.
+   */
+  template< typename ... BUFFERS >
+  void resizeFromOffsets( INDEX_TYPE const numSubArrays,
+                          INDEX_TYPE const * const offsets,
+                          BUFFERS & ... buffers )
+  {
+    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
+    LVARRAY_ASSERT_EQ( offsets[0], 0 );
+    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( offsets, offsets + numSubArrays + 1 ) );
+
+    destroyValues( 0, m_numArrays, buffers ... );
+
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, numSubArrays );
+    std::fill_n( m_sizes.data(), numSubArrays, 0 );
+
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
+    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::host, numSubArrays + 1 );
+
+    arrayManipulation::uninitializedCopy( offsets, offsets + numSubArrays + 1, m_offsets.data() );
+
+    m_numArrays = numSubArrays;
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    typeManipulation::forEachArg( [ maxOffset ] ( auto & buffer )
     {
       bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
     }, m_values, buffers ... );
