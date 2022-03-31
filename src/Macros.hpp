@@ -87,11 +87,11 @@
 #if defined(__CUDA_ARCH__)
 #  define CUDA_INFORMATION_FMT "***** Block: [%u, %u, %u]\n***** Thread: [%u, %u, %u]\n%s"
 #  define CUDA_INFORMATION_PARAMS blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z, ""
-#  define CALL_ERROR_HANDLER() do { asm ( "trap;" ); } while ( false )
+#  define CALL_ERROR_HANDLER() do { asm ( "trap;" ); } while( false )
 #else
 #  define CUDA_INFORMATION_FMT "%s"
 #  define CUDA_INFORMATION_PARAMS ""
-#  define CALL_ERROR_HANDLER() do { LvArray::system::callErrorHandler(); } while ( false )
+#  define CALL_ERROR_HANDLER() do { LvArray::system::callErrorHandler(); } while( false )
 #endif
 
 /**
@@ -107,7 +107,7 @@
  */
 #define LVARRAY_ERROR_IF_PRINTF( EXP, MSG_FMT, ... )                    \
   do                                                                    \
-    {                                                                   \
+  {                                                                     \
     if( EXP )                                                           \
     {                                                                   \
       printf( "***** ERROR\n"                                           \
@@ -115,7 +115,7 @@
               CUDA_INFORMATION_FMT                                      \
               "***** Controlling expression (should be false): "        \
               STRINGIZE( EXP ) "\n"                                     \
-              "***** MSG: " MSG_FMT "\n\n",                             \
+                               "***** MSG: " MSG_FMT "\n\n",            \
               CUDA_INFORMATION_PARAMS, __VA_ARGS__ );                   \
       CALL_ERROR_HANDLER();                                             \
     }                                                                   \
@@ -137,13 +137,13 @@
   {                                                                     \
     if( EXP )                                                           \
     {                                                                   \
-      printf("***** ERROR\n"                                            \
-             "***** LOCATION: " LOCATION "\n"                           \
-             CUDA_INFORMATION_FMT                                       \
-             "***** Controlling expression (should be false): "         \
-             STRINGIZE( EXP ) "\n"                                      \
-             "***** MSG: " STRINGIZE(MSG) "\n\n",                       \
-             CUDA_INFORMATION_PARAMS);                                  \
+      printf( "***** ERROR\n"                                           \
+              "***** LOCATION: " LOCATION "\n"                          \
+              CUDA_INFORMATION_FMT                                      \
+              "***** Controlling expression (should be false): "        \
+              STRINGIZE( EXP ) "\n"                                     \
+                               "***** MSG: " STRINGIZE( MSG ) "\n\n",   \
+              CUDA_INFORMATION_PARAMS );                                \
       CALL_ERROR_HANDLER();                                             \
     }                                                                   \
   } while( false )

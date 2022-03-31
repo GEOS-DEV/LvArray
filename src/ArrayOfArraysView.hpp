@@ -59,7 +59,7 @@
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i ) \
   LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i > this->size(), \
                            "Insert Bounds Check Failed: i=%" PRId64 " size()=%" PRId64, \
-                           (int64_t)i,  (int64_t)this->size() )
+                           (int64_t)i, (int64_t)this->size() )
 
 /**
  * @brief Check that @p i is a valid array index and that @p j is a valid insertion index into that array.
@@ -71,7 +71,7 @@
   LVARRAY_ERROR_IF_PRINTF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
                            !arrayManipulation::isPositive( j ) || j > this->sizeOfArray( i ), \
                            "Insert Bounds Check Failed: i=%" PRId64 " size()=%" PRId64 " j=%" PRId64 " sizeOfArray( i )=%" PRId64, \
-                           (int64_t)i , (int64_t)this->size(), (int64_t)j, (int64_t)this->sizeOfArray( i ) )
+                           (int64_t)i, (int64_t)this->size(), (int64_t)j, (int64_t)this->sizeOfArray( i ) )
 
 /**
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
