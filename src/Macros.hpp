@@ -85,8 +85,17 @@
 #define LVARRAY_LOG_VAR( ... ) LVARRAY_LOG( STRINGIZE( __VA_ARGS__ ) << " = " << __VA_ARGS__ )
 
 #if defined(__CUDA_ARCH__)
+/**
+ * @brief Format given to printf to print clockIdx and ThreadIdx informations.
+ */
 #  define CUDA_INFORMATION_FMT "***** Block: [%u, %u, %u]\n***** Thread: [%u, %u, %u]\n%s"
+/**
+ * @brief Parameters corresponding to the CUDA_INFORMATION_FMT
+ */
 #  define CUDA_INFORMATION_PARAMS blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z, ""
+/**
+ * @brief Code called to stop the execution when an error is raised.
+ */
 #  define CALL_ERROR_HANDLER() do { asm ( "trap;" ); } while( false )
 #else
 #  define CUDA_INFORMATION_FMT "%s"
