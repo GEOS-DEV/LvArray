@@ -98,8 +98,17 @@
  */
 #  define CALL_ERROR_HANDLER() do { asm ( "trap;" ); } while( false )
 #else
+/**
+ * @brief Format given to printf to print clockIdx and ThreadIdx informations.
+ */
 #  define CUDA_INFORMATION_FMT "%s"
+/**
+ * @brief Parameters corresponding to the CUDA_INFORMATION_FMT
+ */
 #  define CUDA_INFORMATION_PARAMS ""
+/**
+ * @brief Code called to stop the execution when an error is raised.
+ */
 #  define CALL_ERROR_HANDLER() do { LvArray::system::callErrorHandler(); } while( false )
 #endif
 
