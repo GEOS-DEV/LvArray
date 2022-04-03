@@ -429,45 +429,6 @@ public:
     }
   }
 
-  void assimilate( IndexType const maxValue, IndexType const maxInserts, sortedArrayManipulation::Description const desc )
-  {
-    IndexType const nSets = m_array.size();
-    ArrayOfArraysT arrayToSteal( nSets );
-
-    for( IndexType i = 0; i < nSets; ++i )
-    {
-      IndexType const nValues = rand( 0, maxInserts );
-
-      for( IndexType j = 0; j < nValues; ++j )
-      {
-        T const value = T( rand( 0, maxValue ));
-        bool const insertSuccess = m_ref[ i ].insert( value ).second;
-
-        if( sortedArrayManipulation::isUnique( desc ))
-        {
-          if( insertSuccess )
-          {
-            arrayToSteal.emplaceBack( i, value );
-          }
-        }
-        else
-        {
-          arrayToSteal.emplaceBack( i, value );
-        }
-      }
-
-      if( sortedArrayManipulation::isSorted( desc ))
-      {
-        T * const values = arrayToSteal[ i ];
-        std::sort( values, values + arrayToSteal.sizeOfArray( i ));
-      }
-    }
-
-    m_array.assimilate( std::move( arrayToSteal ), desc );
-
-    COMPARE_TO_REFERENCE
-  }
-
 protected:
 
   template< typename CONTAINER >
@@ -691,30 +652,6 @@ TYPED_TEST( ArrayOfSetsTest, shallowCopy )
   this->shallowCopy();
 }
 
-TYPED_TEST( ArrayOfSetsTest, assimilateSortedUnique )
-{
-  this->resize( 50 );
-  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE );
-}
-
-TYPED_TEST( ArrayOfSetsTest, assimilateUnsortedNoDuplicates )
-{
-  this->resize( 50 );
-  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES );
-}
-
-TYPED_TEST( ArrayOfSetsTest, assimilateSortedWithDuplicates )
-{
-  this->resize( 50 );
-  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES );
-}
-
-TYPED_TEST( ArrayOfSetsTest, assimilateUnsortedWithDuplicates )
-{
-  this->resize( 50 );
-  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_WITH_DUPLICATES );
-}
-
 // This is testing capabilities of the ArrayOfArrays class, however it needs to first populate
 // the ArrayOfSets so it involves less code duplication to put it here.
 TYPED_TEST( ArrayOfSetsTest, ArrayOfArraysStealFrom )
@@ -754,6 +691,7 @@ public:
   using typename ParentClass::IndexType;
   using typename ParentClass::ViewType;
   using typename ParentClass::ViewTypeConst;
+  using typename ParentClass::ArrayOfArraysT;
 
   template< typename U >
   using Array1D = typename ToArray< U, ARRAY_OF_SETS >::OneD;
@@ -890,6 +828,47 @@ public:
     COMPARE_TO_REFERENCE
   }
 
+  // This is not a View test, but it needs a POLICY type argument, so it's placed here for convenience
+  void assimilate( IndexType const maxValue, IndexType const maxInserts, sortedArrayManipulation::Description const desc )
+  {
+    IndexType const nSets = m_array.size();
+    ArrayOfArraysT arrayToSteal( nSets );
+
+    for( IndexType i = 0; i < nSets; ++i )
+    {
+      IndexType const nValues = rand( 0, maxInserts );
+
+      for( IndexType j = 0; j < nValues; ++j )
+      {
+        T const value = T( rand( 0, maxValue ));
+        bool const insertSuccess = m_ref[ i ].insert( value ).second;
+
+        if( sortedArrayManipulation::isUnique( desc ))
+        {
+          if( insertSuccess )
+          {
+            arrayToSteal.emplaceBack( i, value );
+          }
+        }
+        else
+        {
+          arrayToSteal.emplaceBack( i, value );
+        }
+      }
+
+      if( sortedArrayManipulation::isSorted( desc ))
+      {
+        T * const values = arrayToSteal[ i ];
+        std::sort( values, values + arrayToSteal.sizeOfArray( i ));
+      }
+    }
+
+    m_array.template assimilate< POLICY >( std::move( arrayToSteal ), desc );
+
+    m_array.move( MemorySpace::host );
+    COMPARE_TO_REFERENCE
+  }
+
 protected:
 
   Array1D< Array1D< T > > createValues( bool const insert, bool const sortedUnique )
@@ -1010,6 +989,30 @@ TYPED_TEST( ArrayOfSetsViewTest, removeMultiple )
     this->insertMultipleIntoSet( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE );
     this->removeMultipleView();
   }
+}
+
+TYPED_TEST( ArrayOfSetsViewTest, assimilateSortedUnique )
+{
+  this->resize( 50 );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_UNIQUE );
+}
+
+TYPED_TEST( ArrayOfSetsViewTest, assimilateUnsortedNoDuplicates )
+{
+  this->resize( 50 );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_NO_DUPLICATES );
+}
+
+TYPED_TEST( ArrayOfSetsViewTest, assimilateSortedWithDuplicates )
+{
+  this->resize( 50 );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::SORTED_WITH_DUPLICATES );
+}
+
+TYPED_TEST( ArrayOfSetsViewTest, assimilateUnsortedWithDuplicates )
+{
+  this->resize( 50 );
+  this->assimilate( DEFAULT_MAX_INSERTS, DEFAULT_MAX_VALUE, sortedArrayManipulation::UNSORTED_WITH_DUPLICATES );
 }
 
 } // namespace testing

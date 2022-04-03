@@ -201,6 +201,7 @@ public:
   }
 
   using ParentClass::resizeFromCapacities;
+  using ParentClass::resizeFromOffsets;
 
   ///@}
 

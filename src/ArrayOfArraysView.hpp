@@ -15,9 +15,11 @@
 // Source includes
 #include "bufferManipulation.hpp"
 #include "arrayManipulation.hpp"
+#include "sortedArrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "typeManipulation.hpp"
 #include "math.hpp"
+#include "umpireInterface.hpp"
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
@@ -686,6 +688,27 @@ protected:
   }
 
   /**
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param offsets A pointer to an array of length @p numSubArrays+1 containing the offset
+   *   of each new sub array. Offsets are precomputed by the caller.
+   * @param buffers A variadic pack of buffers to treat similarly to m_values.
+   */
+  template< typename ... BUFFERS >
+  void resizeFromOffsets( INDEX_TYPE const numSubArrays,
+                          INDEX_TYPE const * const offsets,
+                          BUFFERS & ... buffers )
+  {
+    auto const fillOffsets = [&]()
+    {
+      arrayManipulation::uninitializedCopy( offsets,
+                                            offsets + numSubArrays + 1,
+                                            m_offsets.data() );
+    };
+    resizeFromOffsetsImpl( numSubArrays, fillOffsets, buffers ... );
+  }
+
+  /**
    * @tparam POLICY The RAJA policy used to convert @p capacities into the offsets array.
    *   Should NOT be a device policy.
    * @brief Clears the array and creates a new array with the given number of sub-arrays.
@@ -699,39 +722,14 @@ protected:
                              INDEX_TYPE const * const capacities,
                              BUFFERS & ... buffers )
   {
-    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
-
-  #ifdef LVARRAY_BOUNDS_CHECK
-    for( INDEX_TYPE i = 0; i < numSubArrays; ++i )
+    auto const fillOffsets = [&]()
     {
-      LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );
-    }
-  #endif
-
-    destroyValues( 0, m_numArrays, buffers ... );
-
-    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, numSubArrays );
-    std::fill_n( m_sizes.data(), numSubArrays, 0 );
-
-    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::host, numSubArrays + 1 );
-
-    m_offsets[ 0 ] = 0;
-    // RAJA::inclusive_scan fails on empty input range
-    if( numSubArrays > 0 )
-    {
-      // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( const_cast< INDEX_TYPE * >( capacities ),
-                                      const_cast< INDEX_TYPE * >( capacities + numSubArrays ),
+      m_offsets[ 0 ] = 0;
+      RAJA::inclusive_scan< POLICY >( capacities,
+                                      capacities + numSubArrays,
                                       m_offsets.data() + 1 );
-    }
-
-    m_numArrays = numSubArrays;
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
-    {
-      bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
-    }, m_values, buffers ... );
+    };
+    resizeFromOffsetsImpl( numSubArrays, fillOffsets, buffers ... );
   }
 
   ///@}
@@ -1006,6 +1004,40 @@ private:
           arrayManipulation::destroy( &buffer[ offset ], arraySize );
         }
       }
+    }, m_values, buffers ... );
+  }
+
+  /**
+   * @brief Clears the array and creates a new array with the given number of sub-arrays.
+   * @param numSubArrays The new number of arrays.
+   * @param fillOffsets A function that will be called to populate sub-array offsets.
+   * @param buffers A variadic pack of buffers to treat similarly to m_values.
+   * @note This is to be called by other resizeFrom functions.
+   */
+  template< typename FUNC, typename ... BUFFERS >
+  void resizeFromOffsetsImpl( INDEX_TYPE const numSubArrays,
+                              FUNC && fillOffsets,
+                              BUFFERS & ... buffers )
+  {
+    LVARRAY_ASSERT( arrayManipulation::isPositive( numSubArrays ) );
+
+    destroyValues( 0, m_numArrays, buffers ... );
+
+    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, numSubArrays );
+    umpireInterface::memset( m_sizes.data(), 0, m_sizes.capacity() * sizeof( INDEX_TYPE ) );
+
+    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
+    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::host, numSubArrays + 1 );
+
+    fillOffsets();
+    LVARRAY_ASSERT_EQ( m_offsets[0], 0 );
+    LVARRAY_ASSERT( sortedArrayManipulation::isSorted( m_offsets.data(), m_offsets.data() + numSubArrays + 1 ) );
+
+    m_numArrays = numSubArrays;
+    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+    typeManipulation::forEachArg( [ maxOffset ] ( auto & buffer )
+    {
+      bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
     }, m_values, buffers ... );
   }
 };

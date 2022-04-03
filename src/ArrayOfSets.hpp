@@ -121,10 +121,11 @@ public:
 
   /**
    * @brief Steal the resources from an ArrayOfArrays and convert it to an ArrayOfSets.
+   * @tparam POLICY a RAJA execution policy to use when sorting/removing duplicates in sub-arrays.
    * @param src the ArrayOfArrays to convert.
    * @param desc describes the type of data in the source.
-   * TODO: Add a RAJA policy template parameter.
    */
+  template< typename POLICY >
   inline
   void assimilate( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > && src,
                    sortedArrayManipulation::Description const desc )
@@ -133,38 +134,43 @@ public:
     ParentClass::assimilate( reinterpret_cast< ParentClass && >( src ) );
 
     INDEX_TYPE const numSets = size();
+    ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE > const view =
+      ArrayOfArraysView< T, INDEX_TYPE const, true, BUFFER_TYPE >( numSets,
+                                                                   this->m_offsets,
+                                                                   this->m_sizes,
+                                                                   this->m_values );
+    BUFFER_TYPE< INDEX_TYPE > const sizes = this->m_sizes;
+
     if( desc == sortedArrayManipulation::UNSORTED_NO_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0; i < numSets; ++i )
-      {
-        T * const setValues = getSetValues( i );
-        INDEX_TYPE const numValues = sizeOfSet( i );
-        std::sort( setValues, setValues + numValues );
-      }
+      RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
+                              [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[i];
+          sortedArrayManipulation::makeSorted( setValues.begin(), setValues.end() );
+        } );
     }
-    if( desc == sortedArrayManipulation::SORTED_WITH_DUPLICATES )
+    else if( desc == sortedArrayManipulation::SORTED_WITH_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0; i < numSets; ++i )
-      {
-        T * const setValues = getSetValues( i );
-        INDEX_TYPE const numValues = sizeOfSet( i );
-
-        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues, setValues + numValues );
-        arrayManipulation::resize( setValues, numValues, numUniqueValues );
-        this->m_sizes[ i ] = numUniqueValues;
-      }
+      RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
+                              [view, sizes] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[i];
+          INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues.begin(), setValues.end() );
+          arrayManipulation::resize< T >( setValues, setValues.size(), numUniqueValues );
+          sizes[ i ] = numUniqueValues;
+        } );
     }
-    if( desc == sortedArrayManipulation::UNSORTED_WITH_DUPLICATES )
+    else if( desc == sortedArrayManipulation::UNSORTED_WITH_DUPLICATES )
     {
-      for( INDEX_TYPE i = 0; i < numSets; ++i )
-      {
-        T * const setValues = getSetValues( i );
-        INDEX_TYPE const numValues = sizeOfSet( i );
-
-        INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( setValues, setValues + numValues );
-        arrayManipulation::resize( setValues, numValues, numUniqueValues );
-        this->m_sizes[ i ] = numUniqueValues;
-      }
+      RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
+                              [view, sizes] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[ i ];
+          INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( setValues.begin(), setValues.end() );
+          arrayManipulation::resize< T >( setValues, setValues.size(), numUniqueValues );
+          sizes[ i ] = numUniqueValues;
+        } );
     }
 
 #ifdef ARRAY_BOUNDS_CHECK
