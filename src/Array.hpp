@@ -91,10 +91,10 @@ public:
   {
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
-#if !defined(__CUDA_ARCH__)
+#if !defined(LVARRAY_DEVICE_COMPILE) 
     setName( "" );
 #endif
-#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE)
     Array::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -121,10 +121,10 @@ public:
   {
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
-#if !defined(__CUDA_ARCH__)
+#if !defined(LVARRAY_DEVICE_COMPILE)
     setName( "" );
 #endif
-#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE)
     Array::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -566,7 +566,7 @@ public:
   void setName( std::string const & name )
   { this->m_dataBuffer.template setName< decltype(*this) >( name ); }
 
-#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.

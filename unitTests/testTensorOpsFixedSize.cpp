@@ -616,6 +616,5 @@ TYPED_TEST( FixedSizeSquareMatrixTest, denseToSymmetric )
 {
   this->denseToSymmetric();
 }
-
 } // namespace testing
 } // namespace LvArray

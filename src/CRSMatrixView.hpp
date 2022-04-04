@@ -106,12 +106,13 @@ public:
   /**
    * @brief Default copy constructor.
    */
+  LVARRAY_HOST_DEVICE
   CRSMatrixView( CRSMatrixView const & ) = default;
 
   /**
    * @brief Default move constructor.
    */
-  inline
+  LVARRAY_HOST_DEVICE inline
   CRSMatrixView( CRSMatrixView && ) = default;
 
   /**
