@@ -126,7 +126,7 @@ public:
     m_dims( inputDimensions ),
     m_strides( inputStrides )
   {
-#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(LVARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE) && defined(LVARRAY_BOUNDS_CHECK)
     ArraySlice::TV_ttf_display_type( nullptr );
 #endif
   }
@@ -341,7 +341,7 @@ public:
 
   ///@}
 
-#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__) && defined(LVARRAY_BOUNDS_CHECK)
+#if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE) && defined(LVARRAY_BOUNDS_CHECK)
   /**
    * @brief Static function that will be used by Totalview to display the array contents.
    * @param av A pointer to the array that is being displayed.

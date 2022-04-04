@@ -1,21 +1,19 @@
+
 set(CONFIG_NAME "crusher-cce@13.0.1" CACHE PATH "") 
 
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR "/gpfs/alpine/geo127/world-shared/cray-sles15-zen2/cce-13.0.1" CACHE PATH "")
 set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR} CACHE PATH "")
 
-#set(BLT_DIR "${GEOSX_TPL_DIR}/blt-0.4.1-3zz2mkf2wvglevvl4ozepe4tzhwtchoa/" CACHE PATH "" )
-#set(CAMP_DIR "${GEOSX_TPL_DIR}/camp-0.2.2-3qpdz6h2dzvfm5t7uabpz2ykiheza5b4/" CACHE PATH "" )
 set(CAMP_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/camp-0.2.2-oogry5gz2fts7jufeykxzmowajtmgzi3" CACHE PATH "" )
 
+set(RAJA_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/raja-2022.03.0-ex5v5y6jtotfxxvwcs7bblwvy4ktjykq" CACHE PATH "" )
+
 set(ENABLE_UMPIRE TRUE CACHE BOOL "" )
-set(UMPIRE_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/umpire-develop-xpf6nnrxjhhggterbeto5ugxdgftpmon" CACHE PATH "" )
+set(UMPIRE_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/umpire-develop-jqqth57w2ets75sljw7lc5uxoi5wwi3c" CACHE PATH "" )
 
 set(ENABLE_CHAI TRUE CACHE BOOL "" )
-set(CHAI_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/chai-develop-6yofhoaebc3bnz5wbzqnweeknbpomgrt" CACHE PATH "" )
-
-#set(RAJA_DIR "${GEOSX_TPL_DIR}/raja-0.14.0-twro7k3cfsmp7s6mkiugsqncivj6w327/" CACHE PATH "" )
-set(RAJA_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/raja-develop-6rh55pqg6dxvconxa52itkvdnptm3mfl" CACHE PATH "" )
+set(CHAI_DIR "/gpfs/alpine/geo127/scratch/tobin6/spack/opt/spack/cray-sles15-zen3/cce-13.0.1/chai-2022.03.0-w7lka3bkp36mbk5kzucgtp3eowomllgl" CACHE PATH "" )
 
 set(METIS_DIR "${GEOSX_TPL_DIR}/metis-5.1.0-zcfkawg5ifqpzcihrc3i6cdrrijusc2p/" CACHE PATH "" )
 set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis-4.0.3-t2amifl5hh7yewre24gn2x3mlrz7qkl5/" CACHE PATH "" )
@@ -45,10 +43,13 @@ set( AMDGPU_TARGETS "${CMAKE_HIP_ARCHITECTURES}" CACHE STRING "" FORCE )
 # set( HIP_HIPCC_INCLUDE_ARGS "$<$<BOOL:/opt/cray/pe/mpich/8.1.12/ofi/crayclang/10.0/include>:-I/opt/cray/pe/mpich/8.1.12/ofi/crayclang/10.0/include>" CACHE STRING "" FORCE )
 # set( HIP_HIPCC_FLAGS "-std=c++14" CACHE STRING "" FORCE ) # -fgpu-rdc" CACHE STRING "" FORCE )
 
-# set( CMAKE_EXE_LINKER_FLAGS "-L/opt/cray/pe/mpich/8.1.12/ofi/crayclang/10.0/lib -lmpi -L/opt/cray/pe/mpich/8.1.12/gtl/lib -lmpi_gtl_hsa" CACHE STRING "" FORCE ) # -fpgu-rdc --hip-link
+# set( CMAKE_EXE_LINKER_FLAGS "-L/opt/cray/pe/mpich/8.1.12/ofi/crayclang/10.0/lib -lmpi -L/opt/cray/pe/mpich/8.1.12/gtl/lib -lmpi_gtl_hsa" CACHE STRING "" FORCE ) # -fgpu-rdc --hip-link
 # set( CMAKE_CXX_LINK_FLAGS ${CMAKE_EXE_LINKER_FLAGS} )
 
-set(CMAKE_CXX_FLAGS "-D__HIP_ARCH_GFX90A__=1" CACHE STRING "" FORCE)
+# BLT WTF
+#set(CMAKE_CXX_FLAGS "-fgpu-rdc" CACHE STRING "" FORCE)
+#set(CMAKE_CXX_LINK_FLAGS "-fgpu-rdc" CACHE STRING "" FORCE)
+
 set(ENABLE_WARNINGS_AS_ERRORS FALSE CACHE BOOL "" FORCE ) #suppress adding -Werror
 
 # GTEST options
@@ -56,7 +57,7 @@ set(ENABLE_GTEST_DEATH_TESTS OFF CACHE BOOL "")
 set(gtest_disable_pthreads ON CACHE BOOL "")
 
 set(ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-#set(DISABLE_UNIT_TESTS ON CACHE BOOL "" FORCE)
+set(DISABLE_UNIT_TESTS ON CACHE BOOL "" FORCE)
 set(ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE)
 set(ENABLE_DOCS OFF CACHE BOOL "" FORCE)

@@ -202,12 +202,14 @@ public:
    * @brief A constructor to create an uninitialized ArrayOfArraysView.
    * @note An uninitialized ArrayOfArraysView should not be used until it is assigned to.
    */
+  LVARRAY_HOST_DEVICE
   ArrayOfArraysView() = default;
 
   /**
    * @brief Default copy constructor.
    * @note The copy constructor will trigger the copy constructor for @tparam BUFFER_TYPE
    */
+  LVARRAY_HOST_DEVICE
   ArrayOfArraysView( ArrayOfArraysView const & ) = default;
 
   /**
@@ -244,6 +246,7 @@ public:
    * @brief Default copy assignment operator.
    * @return *this.
    */
+  LVARRAY_HOST_DEVICE
   inline
   ArrayOfArraysView & operator=( ArrayOfArraysView const & ) = default;
 
@@ -252,6 +255,7 @@ public:
    * @param src the SparsityPatternView to be moved from.
    * @return *this.
    */
+  LVARRAY_HOST_DEVICE
   inline
   ArrayOfArraysView & operator=( ArrayOfArraysView && src )
   {

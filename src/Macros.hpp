@@ -12,6 +12,8 @@
 
 #pragma once
 
+#pragma clang diagnostic ignored "-Wfloat-equal"
+
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "system.hpp"
@@ -22,22 +24,23 @@
 #include <iostream>
 #include <type_traits>
 
-#if defined(LVARRAY_USE_CUDA)
-  #define LVARRAY_GPU_LANG CUDA
-#elif defined(LVARRAY_USE_HIP)
-  #define LVARRAY_GPU_LANG HIP
+
+#if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
+  #define LVARRAY_USE_DEVICE
 #endif
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
-  #define LVARRAY_ON_DEVICE 1
-#else
-  #define LVARRAY_ON_DEVICE 0
+  #define LVARRAY_DEVICE_COMPILE
+#endif
+
+#if defined(__CUDACC__) || defined(__HIPCC__)
+  #define LVARRAY_DECORATE
 #endif
 
 
-#if defined(LVARRAY_GPU_LANG)
+//#if !defined(NDEBUG) && defined(LVARRAY_DEVICE_COMPILE)
   #include <cassert>
-#endif
+//#endif
 
 /**
  * @brief Convert @p A into a string.
@@ -50,6 +53,8 @@
  * @param A the token to convert to a string.
  */
 #define STRINGIZE( A ) STRINGIZE_NX( A )
+
+//#pragma message "LVARRAY_DEVICE_COMPILE: " STRINGIZE(LVARRAY_DEVICE_COMPILE)
 
 /**
  * @brief Mark @p X as an unused argument, used to silence compiler warnings.
@@ -104,8 +109,8 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
-#if defined(__CUDA_ARCH__)
-  #if !defined(NDEBUG)
+#if defined(LVARRAY_DEVICE_COMPILE)
+//  #if !defined(NDEBUG)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
@@ -114,24 +119,23 @@
       assert( false && "EXP = " STRINGIZE( EXP ) "MSG = " STRINGIZE( MSG ) ); \
     } \
   } while( false )
-  #else
-#define LVARRAY_ERROR_IF( EXP, MSG ) \
-  do \
-  { \
-    if( EXP ) \
-    { \
-      constexpr char const * formatString = "***** ERROR\n" \
-                                            "***** LOCATION: " LOCATION "\n" \
-                                                                        "***** Block: [%u, %u, %u]\n" \
-                                                                        "***** Thread: [%u, %u, %u]\n" \
-                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
-      printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
-      asm ( "trap;" ); \
-    } \
-  } while( false )
-  #endif
-//#elif defined(__HIP_DEVICE_COMPILE__)
+//   #else
+// #define LVARRAY_ERROR_IF( EXP, MSG ) \
+//   do \
+//   { \
+//     if( EXP ) \
+//     { \
+//       constexpr char const * formatString = "***** ERROR\n" \
+//                                             "***** LOCATION: " LOCATION "\n" \
+//                                                                         "***** Block: [%u, %u, %u]\n" \
+//                                                                         "***** Thread: [%u, %u, %u]\n" \
+//                                                                         "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+//                                                                                                                                             "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+//       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
+//       asm ( "trap;" ); \
+//     } \
+//   } while( false )
+//   #endif
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
@@ -549,7 +553,7 @@
  */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-#if ( defined(LVARRAY_USE_CUDA) && defined(__CUDACC__) ) || ( defined(LVARRAY_USE_HIP) && defined(__HIP_DEVICE_COMPILE__) )
+#if defined(LVARRAY_DECORATE)
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
 

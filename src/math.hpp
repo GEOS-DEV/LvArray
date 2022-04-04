@@ -134,7 +134,7 @@ __half2 convert( __half2 const, U const u )
 LVARRAY_HOST_DEVICE inline
 __half2 convert( __half2 const, __half const u )
 {
-#if defined( __CUDA_ARCH__ )
+#if defined( LVARRAY_DEVICE_COMPILE )
   return __half2half2( u );
 #else
   return __float2half2_rn( u );
@@ -164,7 +164,7 @@ __half2 convert( __half2 const, U const u, V const v )
 LVARRAY_HOST_DEVICE inline
 __half2 convert( __half2 const, __half const u, __half const v )
 {
-#if defined( __CUDA_ARCH__ )
+#if defined( LVARRAY_DEVICE_COMPILE )
   return __halves2half2( u, v );
 #else
   return __floats2half2_rn( u, v );
@@ -310,7 +310,7 @@ LVARRAY_HOST_DEVICE inline constexpr
 std::enable_if_t< std::is_arithmetic< T >::value, T >
 max( T const a, T const b )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::max( a, b );
 #else
   return std::max( a, b );
@@ -323,8 +323,10 @@ max( T const a, T const b )
 LVARRAY_DEVICE inline
 __half max( __half const a, __half const b )
 {
-#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmax( a, b );
+#elif defined(LVARRAY_USE_HIP)
+  return __hgt( a, b ) ? a : b;
 #else
   return a > b ? a : b;
 #endif
@@ -334,8 +336,10 @@ __half max( __half const a, __half const b )
 LVARRAY_DEVICE inline
 __half2 max( __half2 const a, __half2 const b )
 {
-#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
-  return __hmax2( a, b );
+#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+    return __hmax2( a, b );
+#elif defined(LVARRAY_USE_HIP)
+    return __hgt2( a, b ) ? a : b;
 #else
   __half2 const aFactor = __hge2( a, b );
   __half2 const bFactor = convert< __half2 >( 1 ) - aFactor;
@@ -357,7 +361,7 @@ LVARRAY_HOST_DEVICE inline constexpr
 std::enable_if_t< std::is_arithmetic< T >::value, T >
 min( T const a, T const b )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::min( a, b );
 #else
   return std::min( a, b );
@@ -370,8 +374,10 @@ min( T const a, T const b )
 LVARRAY_DEVICE inline
 __half min( __half const a, __half const b )
 {
-#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin( a, b );
+#elif defined(LVARRAY_USE_HIP)
+  return __hlt( a, b ) ? a : b;
 #else
   return a < b ? a : b;
 #endif
@@ -381,8 +387,10 @@ __half min( __half const a, __half const b )
 LVARRAY_DEVICE inline
 __half2 min( __half2 const a, __half2 const b )
 {
-#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin2( a, b );
+#elif defined(LVARRAY_USE_HIP) 
+  return __hlt2( a, b ) ? a : b;
 #else
   __half2 const aFactor = __hle2( a, b );
   __half2 const bFactor = convert< __half2 >( 1 ) - aFactor;
@@ -401,7 +409,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline constexpr
 T abs( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::abs( x );
 #else
   return std::abs( x );
@@ -460,7 +468,7 @@ T square( T const x )
 LVARRAY_HOST_DEVICE inline
 float sqrt( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::sqrtf( x );
 #else
   return std::sqrt( x );
@@ -472,7 +480,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double sqrt( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::sqrt( double( x ) );
 #else
   return std::sqrt( x );
@@ -502,7 +510,7 @@ __half2 sqrt( __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float invSqrt( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::rsqrtf( x );
 #else
   return 1 / std::sqrt( x );
@@ -514,7 +522,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double invSqrt( T const x )
 {
-#if defined( __CUDA_ARCH__ )
+#if defined( LVARRAY_DEVICE_COMPILE )
   return ::rsqrt( double( x ) );
 #else
   return 1 / std::sqrt( x );
@@ -551,7 +559,7 @@ __half2 invSqrt( __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float sin( float const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::sinf( theta );
 #else
   return std::sin( theta );
@@ -563,7 +571,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double sin( T const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::sin( double( theta ) );
 #else
   return std::sin( theta );
@@ -593,7 +601,7 @@ __half2 sin( __half2 const theta )
 LVARRAY_HOST_DEVICE inline
 float cos( float const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::cosf( theta );
 #else
   return std::cos( theta );
@@ -605,7 +613,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double cos( T const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::cos( double( theta ) );
 #else
   return std::cos( theta );
@@ -635,8 +643,12 @@ __half2 cos( __half2 const theta )
 LVARRAY_HOST_DEVICE inline
 void sincos( float const theta, float & sinTheta, float & cosTheta )
 {
-#if defined(__CUDA_ARCH__)
-  ::sincos( theta, &sinTheta, &cosTheta );
+#if defined(LVARRAY_DEVICE_COMPILE)
+  #if defined(LVARRAY_USE_CUDA)
+    ::sincos( theta, &sinTheta, &cosTheta );
+  #elif defined(LVARRAY_USE_HIP)
+    ::sincosf( theta, &sinTheta, &cosTheta );
+  #endif
 #else
   sinTheta = std::sin( theta );
   cosTheta = std::cos( theta );
@@ -648,8 +660,8 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 void sincos( double const theta, double & sinTheta, double & cosTheta )
 {
-#if defined(__CUDA_ARCH__)
-  ::sincos( theta, &sinTheta, &cosTheta );
+#if defined(LVARRAY_DEVICE_COMPILE)
+  ::sincos( theta, &sinTheta, &cosTheta ); // hip and cuda versions both use double
 #else
   sinTheta = std::sin( theta );
   cosTheta = std::cos( theta );
@@ -661,7 +673,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 void sincos( T const theta, double & sinTheta, double & cosTheta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   double s, c;
   ::sincos( theta, &s, &c );
   sinTheta = s;
@@ -701,7 +713,7 @@ void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
 LVARRAY_HOST_DEVICE inline
 float tan( float const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::tanf( theta );
 #else
   return std::tan( theta );
@@ -713,7 +725,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double tan( T const theta )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::tan( double( theta ) );
 #else
   return std::tan( theta );
@@ -845,7 +857,7 @@ T atan2Impl( T const y, T const x )
 LVARRAY_HOST_DEVICE inline
 float asin( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::asinf( x );
 #else
   return std::asin( x );
@@ -857,7 +869,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double asin( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::asin( double( x ) );
 #else
   return std::asin( x );
@@ -887,7 +899,7 @@ __half2 asin( __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float acos( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::acosf( x );
 #else
   return std::acos( x );
@@ -899,7 +911,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double acos( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::acos( double( x ) );
 #else
   return std::acos( x );
@@ -930,7 +942,7 @@ __half2 acos( __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float atan2( float const y, float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::atan2f( y, x );
 #else
   return std::atan2( y, x );
@@ -942,7 +954,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double atan2( T const y, T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::atan2( double( y ), double( x ) );
 #else
   return std::atan2( y, x );
@@ -979,7 +991,7 @@ __half2 atan2( __half2 const y, __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float exp( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::expf( x );
 #else
   return std::exp( x );
@@ -991,7 +1003,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double exp( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::exp( double( x ) );
 #else
   return std::exp( x );
@@ -1021,7 +1033,7 @@ __half2 exp( __half2 const x )
 LVARRAY_HOST_DEVICE inline
 float log( float const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::logf( x );
 #else
   return std::log( x );
@@ -1033,7 +1045,7 @@ template< typename T >
 LVARRAY_HOST_DEVICE inline
 double log( T const x )
 {
-#if defined(__CUDA_ARCH__)
+#if defined(LVARRAY_DEVICE_COMPILE)
   return ::log( double( x ) );
 #else
   return std::log( x );
