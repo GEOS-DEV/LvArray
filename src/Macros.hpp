@@ -132,8 +132,8 @@
               "***** LOCATION: " LOCATION "\n"                          \
               CUDA_INFORMATION_FMT                                      \
               "***** Controlling expression (should be false): "        \
-              STRINGIZE( EXP ) "\n"                                     \
-                               "***** MSG: " MSG_FMT "\n\n",            \
+              "" STRINGIZE( EXP ) "\n"                                  \
+              "***** MSG: " MSG_FMT "\n\n",                             \
               CUDA_INFORMATION_PARAMS, __VA_ARGS__ );                   \
       CALL_ERROR_HANDLER();                                             \
     }                                                                   \
@@ -159,8 +159,8 @@
               "***** LOCATION: " LOCATION "\n"                          \
               CUDA_INFORMATION_FMT                                      \
               "***** Controlling expression (should be false): "        \
-              STRINGIZE( EXP ) "\n"                                     \
-                               "***** MSG: " STRINGIZE( MSG ) "\n\n",   \
+              "" STRINGIZE( EXP ) "\n"                                  \
+              "***** MSG: " STRINGIZE( MSG ) "\n\n",                    \
               CUDA_INFORMATION_PARAMS );                                \
       CALL_ERROR_HANDLER();                                             \
     }                                                                   \
@@ -177,6 +177,7 @@
       __oss << "***** Controlling expression (should be false): ";      \
       __oss << STRINGIZE( EXP ) << "\n";                                \
       __oss << "***** MSG: " << MSG << "\n";                            \
+      __oss << LvArray::system::stackTrace( true );                     \
       std::cout << __oss.str() << std::endl;                            \
       CALL_ERROR_HANDLER();                                             \
     }                                                                   \
