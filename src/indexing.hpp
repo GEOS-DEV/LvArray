@@ -45,7 +45,7 @@ struct ConditionalMultiply
    */
   template< typename A, typename B >
   static inline LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
-  { return integerConversion<std::size_t>( a ) * integerConversion<std:size_t>( b ); }
+  { return integerConversion< std::size_t >( a ) * integerConversion< std:size_t >( b ); }
 };
 
 /**
@@ -64,7 +64,7 @@ struct ConditionalMultiply< true >
    */
   template< typename A, typename B >
   static inline LVARRAY_HOST_DEVICE constexpr std::size_t multiply( A const a, B const & )
-  { return integerConversion<std::size_t>( a ); }
+  { return integerConversion< std::size_t >( a ); }
 };
 
 /**
