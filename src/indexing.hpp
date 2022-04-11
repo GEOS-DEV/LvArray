@@ -45,7 +45,7 @@ struct ConditionalMultiply
    */
   template< typename A, typename B >
   static inline LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
-  { return a * b; }
+  { return integerConversion<std::size_t>( a ) * integerConversion<std:size_t>( b ); }
 };
 
 /**
@@ -63,8 +63,8 @@ struct ConditionalMultiply< true >
    * @code  ConditionalMultiply< true >( 5, *static_cast< int * >( nullptr ) ) @endcode.
    */
   template< typename A, typename B >
-  static inline LVARRAY_HOST_DEVICE constexpr A multiply( A const a, B const & )
-  { return a; }
+  static inline LVARRAY_HOST_DEVICE constexpr std::size_t multiply( A const a, B const & )
+  { return integerConversion<std::size_t>( a ); }
 };
 
 /**
@@ -103,7 +103,7 @@ multiplyAll( T const * const LVARRAY_RESTRICT values )
  */
 template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE inline constexpr
-INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
+std::size_t getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
 { return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ); }
 
 /**
@@ -120,7 +120,7 @@ INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, IN
  */
 template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_INDICES >
 LVARRAY_HOST_DEVICE inline constexpr
-INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
+std::size_t getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
   return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ) +
          getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );

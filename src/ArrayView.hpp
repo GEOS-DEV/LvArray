@@ -450,7 +450,7 @@ public:
    */
   template< typename ... INDICES >
   LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE linearIndex( INDICES const ... indices ) const
+  std::size_t linearIndex( INDICES const ... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
 #ifdef LVARRAY_BOUNDS_CHECK
