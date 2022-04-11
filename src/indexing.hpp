@@ -45,7 +45,7 @@ struct ConditionalMultiply
    */
   template< typename A, typename B >
   static inline LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
-  { return integerConversion< std::size_t >( a ) * integerConversion< std:size_t >( b ); }
+  { return integerConversion< std::size_t >( a ) * integerConversion< std::size_t >( b ); }
 };
 
 /**
@@ -123,7 +123,7 @@ LVARRAY_HOST_DEVICE inline constexpr
 std::size_t getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
   return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ) +
-         getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
+         getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES ... >( strides + 1, indices ... );
 }
 
 /// @return A string representing an empty set of indices.
