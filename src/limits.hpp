@@ -156,7 +156,7 @@ std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
 inline LVARRAY_HOST_DEVICE
 integerConversion( INPUT input )
 {
-  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< INPUT >::value || std::is_enum< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
   LVARRAY_ERROR_IF_GT( input, NumericLimits< OUTPUT >::max );
@@ -177,7 +177,7 @@ std::enable_if_t< !internal::canEasilyConvert< INPUT, OUTPUT > &&
 inline LVARRAY_HOST_DEVICE
 integerConversion( INPUT input )
 {
-  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< INPUT >::value || std::is_enum< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
   LVARRAY_ERROR_IF_LT( input, std::make_signed_t< OUTPUT >{ NumericLimits< OUTPUT >::min } );
