@@ -136,7 +136,7 @@ std::enable_if_t< internal::canEasilyConvert< INPUT, OUTPUT >, OUTPUT >
 inline constexpr LVARRAY_HOST_DEVICE
 integerConversion( INPUT input )
 {
-  static_assert( std::is_integral< INPUT >::value, "INPUT must be an integral type." );
+  static_assert( std::is_integral< INPUT >::value || std::is_enum< INPUT >::value, "INPUT must be an integral type." );
   static_assert( std::is_integral< OUTPUT >::value, "OUTPUT must be an integral type." );
 
 //  return OUTPUT{ input };
