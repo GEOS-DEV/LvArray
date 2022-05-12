@@ -110,7 +110,7 @@
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
 #if defined(LVARRAY_DEVICE_COMPILE)
-//  #if !defined(NDEBUG)
+  #if !defined(NDEBUG)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
@@ -119,23 +119,24 @@
       assert( false && "EXP = " STRINGIZE( EXP ) "MSG = " STRINGIZE( MSG ) ); \
     } \
   } while( false )
-//   #else
-// #define LVARRAY_ERROR_IF( EXP, MSG ) \
-//   do \
-//   { \
-//     if( EXP ) \
-//     { \
-//       constexpr char const * formatString = "***** ERROR\n" \
-//                                             "***** LOCATION: " LOCATION "\n" \
-//                                                                         "***** Block: [%u, %u, %u]\n" \
-//                                                                         "***** Thread: [%u, %u, %u]\n" \
-//                                                                         "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-//                                                                                                                                             "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
-//       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
-//       asm ( "trap;" ); \
-//     } \
-//   } while( false )
-//   #endif
+  #else
+#define LVARRAY_ERROR_IF( EXP, MSG ) \
+  do \
+  { \
+    if( EXP ) \
+    { \
+      constexpr char const * formatString = "***** ERROR\n" \
+                                            "***** LOCATION: " LOCATION "\n" \
+                                                                        "***** Block: [%u, %u, %u]\n" \
+                                                                        "***** Thread: [%u, %u, %u]\n" \
+                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+      printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
+      asm ( "trap;" ); \
+    } \
+  } while( false )
+  #endif
+
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
