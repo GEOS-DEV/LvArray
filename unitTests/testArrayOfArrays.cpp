@@ -233,6 +233,41 @@ public:
     COMPARE_TO_REFERENCE;
   }
 
+  void resizeFromOffsets( IndexType const newSize, IndexType const maxCapacity )
+  {
+    COMPARE_TO_REFERENCE;
+
+    std::vector< IndexType > newCapacities( newSize );
+
+    for( IndexType & capacity : newCapacities )
+    {
+      capacity = rand( 0, maxCapacity );
+    }
+
+    std::vector< IndexType > newOffsets( newSize + 1 );
+
+    IndexType totalOffset = 0;
+    for( IndexType i = 0; i < newSize; ++i )
+    {
+      newOffsets[i] = totalOffset;
+      totalOffset += newCapacities[i];
+    }
+    newOffsets.back() = totalOffset;
+
+    m_array.resizeFromOffsets( newSize, newOffsets.data() );
+
+    EXPECT_EQ( m_array.size(), newSize );
+    for( IndexType i = 0; i < m_array.size(); ++i )
+    {
+      EXPECT_EQ( m_array.sizeOfArray( i ), 0 );
+      EXPECT_EQ( m_array.capacityOfArray( i ), newCapacities[ i ] );
+    }
+
+    m_ref.clear();
+    m_ref.resize( newSize );
+    COMPARE_TO_REFERENCE;
+  }
+
   void resize()
   {
     COMPARE_TO_REFERENCE;
@@ -746,6 +781,15 @@ TYPED_TEST( ArrayOfArraysTest, resizeFromCapacities )
     this->template resizeFromCapacities< parallelHostPolicy >( 150, 10 );
     this->emplace( 10 );
 #endif
+  }
+}
+
+TYPED_TEST( ArrayOfArraysTest, resizeFromOffsets )
+{
+  for( int i = 0; i < 3; ++i )
+  {
+    this->resizeFromOffsets( 100, 10 );
+    this->emplace( 10 );
   }
 }
 
