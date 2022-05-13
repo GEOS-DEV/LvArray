@@ -297,7 +297,8 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   {
     if( newSize - size > 0 )
     {
-      memset( reinterpret_cast< void * >( ptr + size ), 0, ( newSize - size ) * sizeof( T ) );
+      std::size_t const sizeDiff = integerConversion< std::size_t >( newSize - size );
+      memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
     }
   }
   else
