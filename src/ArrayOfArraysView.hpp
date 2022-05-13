@@ -732,9 +732,7 @@ protected:
     auto const fillOffsets = [&]()
     {
       m_offsets[ 0 ] = 0;
-      RAJA::inclusive_scan< POLICY >( capacities,
-                                      capacities + numSubArrays,
-                                      m_offsets.data() + 1 );
+      RAJA::inclusive_scan< POLICY >( RAJA::make_span(capacities, numSubArrays), RAJA::make_span(m_offsets.data() + 1, numSubArrays) );
     };
     resizeFromOffsetsImpl( numSubArrays, fillOffsets, buffers ... );
   }
