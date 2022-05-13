@@ -182,7 +182,7 @@ public:
    * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > anotherView = std::move( view );
    * @endcode
    */
-  //LVARRAY_HOST_DEVICE
+  LVARRAY_HOST_DEVICE
   ArrayView( ArrayView && source ) = default;
 
   /**
@@ -511,7 +511,7 @@ public:
    * @note This method is only active when NDIM > 1.
    */
   template< int _NDIM=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  LVARRAY_HOST_DEVICE __forceinline__ CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const & noexcept
   {
@@ -530,7 +530,7 @@ public:
    *   prevents that from happening.
    */
   template< int _NDIM=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  LVARRAY_HOST_DEVICE __forceinline__ CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< (_NDIM > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
   operator[]( INDEX_TYPE const index ) const && noexcept = delete;
 
@@ -540,7 +540,7 @@ public:
    * @note This method is only active when NDIM == 1.
    */
   template< int _NDIM=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  LVARRAY_HOST_DEVICE __forceinline__ CONSTEXPR_WITHOUT_BOUNDS_CHECK
   std::enable_if_t< _NDIM == 1, T & >
   operator[]( INDEX_TYPE const index ) const & noexcept
   {
@@ -554,7 +554,7 @@ public:
    * @param indices The indices of the value to access.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE __forceinline__ constexpr
   T & operator()( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
