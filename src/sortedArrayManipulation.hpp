@@ -407,7 +407,7 @@ bool isSortedUnique( ITER first, ITER const last, Compare && comp=Compare() )
  */
 DISABLE_HD_WARNING
 template< typename T, typename Compare=less< T > >
-LVARRAY_HOST_DEVICE __forceinline__
+LVARRAY_HOST_DEVICE inline
 std::ptrdiff_t find( T const * const LVARRAY_RESTRICT ptr,
                      std::ptrdiff_t const size,
                      T const & value,
