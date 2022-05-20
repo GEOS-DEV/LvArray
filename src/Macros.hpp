@@ -109,8 +109,11 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
+// cce processes __host__ functions with __hip_device_compile__=1 when -x hip?
+// the entire compilation unit has __hip_device_compile__=1, whereas __cuda_arch__
+// seems to be scope-defined as it isn't defined in __host__ functions
 #if defined(LVARRAY_DEVICE_COMPILE)
-  #if !defined(NDEBUG)
+  #if !defined(NDEBUG) || __HIP_DEVICE_COMPILE__
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
@@ -127,16 +130,15 @@
     { \
       constexpr char const * formatString = "***** ERROR\n" \
                                             "***** LOCATION: " LOCATION "\n" \
-                                                                        "***** Block: [%u, %u, %u]\n" \
-                                                                        "***** Thread: [%u, %u, %u]\n" \
-                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+                                            "***** Block: [%u, %u, %u]\n" \
+                                            "***** Thread: [%u, %u, %u]\n" \
+                                            "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
       asm ( "trap;" ); \
     } \
   } while( false )
   #endif
-
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
