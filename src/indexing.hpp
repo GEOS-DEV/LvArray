@@ -44,7 +44,7 @@ struct ConditionalMultiply
    * @param b The right multiplication operand.
    */
   template< typename A, typename B >
-  static __forceinline__ LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
+  static inline LVARRAY_HOST_DEVICE constexpr auto multiply( A const a, B const b )
   { return a * b; }
 };
 

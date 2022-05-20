@@ -6,15 +6,15 @@ set(GEOSX_TPL_ROOT_DIR "/gpfs/alpine/geo127/world-shared/cray-sles15-zen2/cce-13
 set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR} CACHE PATH "")
 set(GEOSX_TPL_DIR2 "/gpfs/alpine/geo127/world-shared/cray-sles15-zen3/cce-13.0.1" CACHE PATH "")
 
-set(CAMP_DIR "${GEOSX_TPL_DIR2}/camp-0.2.2-oogry5gz2fts7jufeykxzmowajtmgzi3" CACHE PATH "" )
+set(CAMP_DIR "${GEOSX_TPL_DIR2}/camp-0.2.2-mej6trivmy7o5vlr6a52cml6tzxb5fvk" CACHE PATH "" )
 
-set(RAJA_DIR "${GEOSX_TPL_DIR2}/raja-2022.03.0-ex5v5y6jtotfxxvwcs7bblwvy4ktjykq" CACHE PATH "" )
+set(RAJA_DIR "${GEOSX_TPL_DIR2}/raja-2022.03.0-tmukf35ms7f2pkfswpejbnt3jtnpkakc" CACHE PATH "" )
 
 set(ENABLE_UMPIRE TRUE CACHE BOOL "" )
-set(UMPIRE_DIR "${GEOSX_TPL_DIR2}/umpire-develop-jqqth57w2ets75sljw7lc5uxoi5wwi3c" CACHE PATH "" )
+set(UMPIRE_DIR "${GEOSX_TPL_DIR2}/umpire-2022.03.0-unirfq5er4vtyr2koymgi3xxq6h2f5l5" CACHE PATH "" )
 
 set(ENABLE_CHAI TRUE CACHE BOOL "" )
-set(CHAI_DIR "${GEOSX_TPL_DIR2}/chai-2022.03.0-w7lka3bkp36mbk5kzucgtp3eowomllgl" CACHE PATH "" )
+set(CHAI_DIR "${GEOSX_TPL_DIR2}/chai-2022.03.0-aggyh463v2rz6s44laqshylc4xeeg4h7" CACHE PATH "" )
 
 set(METIS_DIR "${GEOSX_TPL_DIR}/metis-5.1.0-zcfkawg5ifqpzcihrc3i6cdrrijusc2p/" CACHE PATH "" )
 set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis-4.0.3-t2amifl5hh7yewre24gn2x3mlrz7qkl5/" CACHE PATH "" )
@@ -30,7 +30,7 @@ set( ENABLE_MPI ON CACHE BOOL "" FORCE )
 set( ENABLE_FIND_MPI ON CACHE BOOL "" FORCE )
 
 # HIP Options
-set( ENABLE_HIP ON CACHE BOOL "" FORCE )
+set( ENABLE_HIP OFF CACHE BOOL "" FORCE )
 
 if( ENABLE_HIP )
   set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE ) # don't invoke hipcc, rely on cce link-time compilation
@@ -44,7 +44,7 @@ if( ENABLE_HIP )
   set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
 
-set( ENABLE_WARNINGS_AS_ERRORS FALSE CACHE BOOL "" FORCE ) #suppress adding -Werror
+set(ENABLE_WARNINGS_AS_ERRORS FALSE CACHE BOOL "" FORCE ) #suppress adding -Werror
 
 # GTEST options
 set(ENABLE_GTEST_DEATH_TESTS OFF CACHE BOOL "")
