@@ -31,11 +31,15 @@
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   #define LVARRAY_DEVICE_COMPILE
+  #define LVARRAY_FORCE_INLINE __forceinline__
+#else
+  #define LVARRAY_FORCE_INLINE inline
 #endif
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
   #define LVARRAY_DECORATE
 #endif
+
 
 
 //#if !defined(NDEBUG) && defined(LVARRAY_DEVICE_COMPILE)
