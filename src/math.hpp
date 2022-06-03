@@ -45,7 +45,7 @@ namespace internal
  * @return @p u converted to @tparam T.
  */
 template< typename T, typename U >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 T convert( T const, U const u )
 { return u; }
 
@@ -55,7 +55,7 @@ T convert( T const, U const u )
  * @return The number of values stored in @tparam T, by default this is 1.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 int numValues( T const )
 { return 1; }
 
@@ -76,7 +76,7 @@ struct SingleType
  * @param x The value to return.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 SingleType< T > getFirst( T const x )
 { return x; }
 
@@ -86,7 +86,7 @@ SingleType< T > getFirst( T const x )
  * @param x The value to return.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 SingleType< T > getSecond( T const x )
 { return x; }
 
@@ -96,10 +96,17 @@ SingleType< T > getSecond( T const x )
  * @param x The first value.
  * @param y The second value.
  */
-template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
-T lessThan( T const x, T const y )
-{ return __hlt( x, y ); }
+  LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+__half lessThan( __half const x, __half const y )
+{
+  return __hlt( x, y );
+}
+
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+__half2 lessThan( __half2 const x, __half2 const y )
+{
+  return __hlt2( x, y );
+}
 
 #if defined( LVARRAY_USE_CUDA )
 /**
@@ -110,7 +117,7 @@ T lessThan( T const x, T const y )
  * @return @p u converted to @c __half.
  */
 template< typename U >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 __half convert( __half const, U const u )
 { return __float2half_rn( u ); }
 
@@ -122,7 +129,7 @@ __half convert( __half const, U const u )
  * @return A @c __half2 with both halves having value @p u converted to @c __half.
  */
 template< typename U >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 __half2 convert( __half2 const, U const u )
 { return __float2half2_rn( u ); }
 
@@ -131,7 +138,7 @@ __half2 convert( __half2 const, U const u )
  * @param u The value to convert.
  * @return A @c __half2 with both halves having value @p u.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 __half2 convert( __half2 const, __half const u )
 {
 #if defined( LVARRAY_DEVICE_COMPILE )
@@ -151,7 +158,7 @@ __half2 convert( __half2 const, __half const u )
  * @return A @c __half2 containing @p u as the first value and @p v as the second.
  */
 template< typename U, typename V >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 __half2 convert( __half2 const, U const u, V const v )
 { return __floats2half2_rn( u, v ); }
 
@@ -161,7 +168,7 @@ __half2 convert( __half2 const, U const u, V const v )
  * @param v The second value to convert.
  * @return A @c __half2 containing @p u as the first value and @p v as the second.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 __half2 convert( __half2 const, __half const u, __half const v )
 {
 #if defined( LVARRAY_DEVICE_COMPILE )
@@ -175,7 +182,7 @@ __half2 convert( __half2 const, __half const u, __half const v )
  * @brief Return the number of values stored in a @c __half2, which is 2.
  * @return The number of values stored in a @c __half2, which is 2.
  */
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 int numValues( __half2 const & )
 { return 2; }
 
@@ -193,7 +200,7 @@ struct SingleType< __half2 >
  * @return The fist @c __half in @p x.
  * @param x The value to query.
  */
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half getFirst( __half2 const x )
 { return __low2half( x ); }
 
@@ -201,7 +208,7 @@ __half getFirst( __half2 const x )
  * @return The second @c __half in @p x.
  * @param x The value to query.
  */
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half getSecond( __half2 const x )
 { return __high2half( x ); }
 
@@ -210,7 +217,7 @@ __half getSecond( __half2 const x )
  * @param x The first value.
  * @param y The second value.
  */
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half lessThan( __half const x, __half const y )
 { return __hlt( x, y ); }
 
@@ -219,7 +226,7 @@ __half lessThan( __half const x, __half const y )
  * @param x The first value.
  * @param y The second value.
  */
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 lessThan( __half2 const x, __half2 const y )
 { return __hlt2( x, y ); }
 
@@ -238,7 +245,7 @@ __half2 lessThan( __half2 const x, __half2 const y )
  * @return The number of values stored in type @tparam T.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 int numValues()
 { return internal::numValues( T() ); }
 
@@ -258,7 +265,7 @@ using SingleType = typename internal::SingleType< T >::type;
  * @return @p u converted to @tparam T.
  */
 template< typename T, typename U >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 T convert( U const u )
 { return internal::convert( T(), u ); }
 
@@ -273,7 +280,7 @@ T convert( U const u )
  * @return @p u, @p v converted to @tparam T.
  */
 template< typename T, typename U, typename V >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 T convert( U const u, V const v )
 { return internal::convert( T(), u, v ); }
 
@@ -284,7 +291,7 @@ T convert( U const u, V const v )
  * @note If @code numValues< T >() == 1 @endcode then @p x is returned.
  */
 template< typename T >
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 SingleType< T > getFirst( T const x )
 { return internal::getFirst( x ); }
 
@@ -295,7 +302,7 @@ SingleType< T > getFirst( T const x )
  * @note If @code numValues< T >() == 1 @endcode then @p x is returned.
  */
 template< typename T >
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 SingleType< T > getSecond( T const x )
 { return internal::getSecond( x ); }
 
@@ -306,7 +313,7 @@ SingleType< T > getSecond( T const x )
  * @param b The second number.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 std::enable_if_t< std::is_arithmetic< T >::value, T >
 max( T const a, T const b )
 {
@@ -317,10 +324,10 @@ max( T const a, T const b )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc max( T, T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half max( __half const a, __half const b )
 {
 #if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
@@ -333,13 +340,11 @@ __half max( __half const a, __half const b )
 }
 
 /// @copydoc max( T, T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 max( __half2 const a, __half2 const b )
 {
 #if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
     return __hmax2( a, b );
-#elif defined(LVARRAY_USE_HIP)
-    return __hgt2( a, b ) ? a : b;
 #else
   __half2 const aFactor = __hge2( a, b );
   __half2 const bFactor = convert< __half2 >( 1 ) - aFactor;
@@ -357,7 +362,7 @@ __half2 max( __half2 const a, __half2 const b )
  * @param b The second number.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 std::enable_if_t< std::is_arithmetic< T >::value, T >
 min( T const a, T const b )
 {
@@ -371,26 +376,24 @@ min( T const a, T const b )
 #if defined( LVARRAY_USE_CUDA )
 
 /// @copydoc min( T, T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE
+LVARRAY_FORCE_INLINE
 __half min( __half const a, __half const b )
 {
-#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin( a, b );
-#elif defined(LVARRAY_USE_HIP)
-  return __hlt( a, b ) ? a : b;
 #else
   return a < b ? a : b;
 #endif
 }
 
 /// @copydoc min( T, T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE
+LVARRAY_FORCE_INLINE
 __half2 min( __half2 const a, __half2 const b )
 {
-#if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+#if CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
   return __hmin2( a, b );
-#elif defined(LVARRAY_USE_HIP) 
-  return __hlt2( a, b ) ? a : b;
 #else
   __half2 const aFactor = __hle2( a, b );
   __half2 const bFactor = convert< __half2 >( 1 ) - aFactor;
@@ -406,7 +409,7 @@ __half2 min( __half2 const a, __half2 const b )
  * @note This set of overloads is valid for any numeric type.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 T abs( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -416,10 +419,10 @@ T abs( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc abs( T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half abs( __half const x )
 {
 #if CUDART_VERSION > 11000
@@ -430,7 +433,7 @@ __half abs( __half const x )
 }
 
 /// @copydoc abs( T )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 abs( __half2 const x )
 {
 #if CUDART_VERSION > 11000
@@ -448,7 +451,7 @@ __half2 abs( __half2 const x )
  * @param x The value to square.
  */
 template< typename T >
-LVARRAY_HOST_DEVICE inline constexpr
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 T square( T const x )
 { return x * x; }
 
@@ -465,7 +468,7 @@ T square( T const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is @c double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float sqrt( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -477,7 +480,7 @@ float sqrt( float const x )
 
 /// @copydoc sqrt( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double sqrt( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -487,15 +490,15 @@ double sqrt( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc sqrt( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half sqrt( __half const x )
 { return ::hsqrt( x ); }
 
 /// @copydoc sqrt( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 sqrt( __half2 const x )
 { return ::h2sqrt( x ); }
 
@@ -507,7 +510,7 @@ __half2 sqrt( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float invSqrt( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -519,7 +522,7 @@ float invSqrt( float const x )
 
 /// @copydoc invSqrt( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double invSqrt( T const x )
 {
 #if defined( LVARRAY_DEVICE_COMPILE )
@@ -529,15 +532,15 @@ double invSqrt( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc invSqrt( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half invSqrt( __half const x )
 { return ::hrsqrt( x ); }
 
 /// @copydoc invSqrt( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 invSqrt( __half2 const x )
 { return ::h2rsqrt( x ); }
 
@@ -556,7 +559,7 @@ __half2 invSqrt( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float sin( float const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -568,7 +571,7 @@ float sin( float const theta )
 
 /// @copydoc sin( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double sin( T const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -578,15 +581,15 @@ double sin( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc sin( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half sin( __half const theta )
 { return ::hsin( theta ); }
 
 /// @copydoc sin( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 sin( __half2 const theta )
 { return ::h2sin( theta ); }
 
@@ -598,7 +601,7 @@ __half2 sin( __half2 const theta )
  * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float cos( float const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -610,7 +613,7 @@ float cos( float const theta )
 
 /// @copydoc cos( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double cos( T const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -620,15 +623,15 @@ double cos( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc cos( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half cos( __half const theta )
 { return ::hcos( theta ); }
 
 /// @copydoc cos( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 cos( __half2 const theta )
 { return ::h2cos( theta ); }
 
@@ -640,7 +643,7 @@ __half2 cos( __half2 const theta )
  * @param sinTheta The sine of @p theta.
  * @param cosTheta The cosine of @p theta.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 void sincos( float const theta, float & sinTheta, float & cosTheta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -657,7 +660,7 @@ void sincos( float const theta, float & sinTheta, float & cosTheta )
 
 /// @copydoc sincos( float, float &, float & )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 void sincos( double const theta, double & sinTheta, double & cosTheta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -670,7 +673,7 @@ void sincos( double const theta, double & sinTheta, double & cosTheta )
 
 /// @copydoc sincos( float, float &, float & )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 void sincos( T const theta, double & sinTheta, double & cosTheta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -684,10 +687,10 @@ void sincos( T const theta, double & sinTheta, double & cosTheta )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc sincos( float, float &, float & )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
 {
   sinTheta = ::hsin( theta );
@@ -695,7 +698,7 @@ void sincos( __half const theta, __half & sinTheta, __half & cosTheta )
 }
 
 /// @copydoc sincos( float, float &, float & )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
 {
   sinTheta = ::h2sin( theta );
@@ -710,7 +713,7 @@ void sincos( __half2 const theta, __half2 & sinTheta, __half2 & cosTheta )
  * @note This set of overloads is valid for any numeric type. If @p theta is not a float
  *   it is converted to a double and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float tan( float const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -722,7 +725,7 @@ float tan( float const theta )
 
 /// @copydoc tan( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double tan( T const theta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -732,10 +735,10 @@ double tan( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc tan( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half tan( __half const theta )
 {
   __half s, c;
@@ -744,7 +747,7 @@ __half tan( __half const theta )
 }
 
 /// @copydoc tan( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 tan( __half2 const theta )
 {
   __half2 s, c;
@@ -776,7 +779,7 @@ namespace internal
  * @note Modified from https://developer.download.nvidia.com/cg/asin.html
  */
 template< typename T >
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 T asinImpl( T const x )
 {
   T const negate = lessThan( x, math::convert< T >( 0 ) );
@@ -798,7 +801,7 @@ T asinImpl( T const x )
  * @note Modified from https://developer.download.nvidia.com/cg/acos.html
  */
 template< typename T >
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 T acosImpl( T const x )
 {
   T const negate = lessThan( x, math::convert< T >( 0 ) );
@@ -820,7 +823,8 @@ T acosImpl( T const x )
  * @note Modified from https://developer.download.nvidia.com/cg/atan2.html
  */
 template< typename T >
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE
+LVARRAY_FORCE_INLINE
 T atan2Impl( T const y, T const x )
 {
   T const absX = abs( x );
@@ -854,7 +858,7 @@ T atan2Impl( T const y, T const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float asin( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -866,7 +870,7 @@ float asin( float const x )
 
 /// @copydoc asin( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double asin( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -876,15 +880,15 @@ double asin( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc asin( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half asin( __half const x )
 { return internal::asinImpl( x ); }
 
 /// @copydoc asin( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 asin( __half2 const x )
 { return internal::asinImpl( x ); }
 
@@ -896,7 +900,7 @@ __half2 asin( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float acos( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -908,7 +912,7 @@ float acos( float const x )
 
 /// @copydoc acos( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double acos( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -918,15 +922,15 @@ double acos( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc acos( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half acos( __half const x )
 { return internal::acosImpl( x ); }
 
 /// @copydoc acos( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 acos( __half2 const x )
 { return internal::acosImpl( x ); }
 
@@ -939,7 +943,7 @@ __half2 acos( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float atan2( float const y, float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -951,7 +955,7 @@ float atan2( float const y, float const x )
 
 /// @copydoc atan2( float, float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double atan2( T const y, T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -964,12 +968,12 @@ double atan2( T const y, T const x )
 #if defined( LVARRAY_USE_CUDA )
 
 /// @copydoc atan2( float, float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half atan2( __half const y, __half const x )
 { return internal::atan2Impl( y, x ); }
 
 /// @copydoc atan2( float, float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 atan2( __half2 const y, __half2 const x )
 { return internal::atan2Impl( y, x ); }
 
@@ -988,7 +992,7 @@ __half2 atan2( __half2 const y, __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float exp( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -1000,7 +1004,7 @@ float exp( float const x )
 
 /// @copydoc exp( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double exp( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -1010,15 +1014,15 @@ double exp( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc exp( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half exp( __half const x )
 { return ::hexp( x ); }
 
 /// @copydoc exp( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 exp( __half2 const x )
 { return ::h2exp( x ); }
 
@@ -1030,7 +1034,7 @@ __half2 exp( __half2 const x )
  * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
  *   and the return type is double.
  */
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float log( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -1042,7 +1046,7 @@ float log( float const x )
 
 /// @copydoc log( float )
 template< typename T >
-LVARRAY_HOST_DEVICE inline
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 double log( T const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
@@ -1052,15 +1056,15 @@ double log( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_DEVICE )
 
 /// @copydoc log( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half log( __half const x )
 { return ::hlog( x ); }
 
 /// @copydoc log( float )
-LVARRAY_DEVICE inline
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 log( __half2 const x )
 { return ::h2log( x ); }
 
