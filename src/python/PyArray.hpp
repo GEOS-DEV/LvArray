@@ -208,7 +208,10 @@ public:
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual PyObject * toNumPy() const final override
-  { return toNumPyImpl(); };
+  {
+    m_array.move(MemorySpace::host, (m_accessLevel == static_cast< int >(LvArray::python::PyModify::READ_ONLY))?false:true);
+    return toNumPyImpl();
+  };
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::type_index valueType() const final override
