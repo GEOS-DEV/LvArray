@@ -1,5 +1,6 @@
 
 set(CONFIG_NAME "crusher-cce@14.0.0" CACHE PATH "")
+include( crusher-base.cmake )
 
 # Set up the tpls
 set(SYSTEM_TPL_DIR "/sw/crusher/spack-envs/base/opt/cray-sles15-zen3/cce-14.0.0" CACHE PATH "")
@@ -25,43 +26,17 @@ set(CMAKE_C_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/cc" CACHE PATH "
 set(CMAKE_CXX_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/CC" CACHE PATH "")
 set(CMAKE_Fortran_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/ftn" CACHE PATH "")
 
-set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
-
-set( ENABLE_MPI ON CACHE BOOL "" FORCE )
-set( ENABLE_FIND_MPI ON CACHE BOOL "" FORCE )
-
-# HIP Options
-set( ENABLE_HIP ON CACHE BOOL "" FORCE )
-
 if( ENABLE_HIP )
   set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE ) # don't invoke hipcc, rely on cce link-time compilation
 
   set( HIP_VERSION_STRING "5.1.0" CACHE STRING "" )
   set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
-  
+
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
   set( AMDGPU_TARGETS "${CMAKE_HIP_ARCHITECTURES}" CACHE STRING "" FORCE )
   set( CMAKE_CXX_FLAGS "-fgpu-rdc" CACHE STRING "" FORCE )
   set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
-
-# suppress -Werror for now
-set( ENABLE_WARNINGS_AS_ERRORS FALSE CACHE BOOL "" FORCE )
-
-# GTEST
-set(ENABLE_GTEST_DEATH_TESTS OFF CACHE BOOL "")
-set(gtest_disable_pthreads ON CACHE BOOL "")
-
-# disable most binaries and doc generation
-set(ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-set(DISABLE_UNIT_TESTS ON CACHE BOOL "" FORCE)
-set(ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE)
-set(ENABLE_DOCS OFF CACHE BOOL "" FORCE)
-
-# BLT trying to find MPI fails on cray with cce
-set(ENABLE_FIND_MPI FALSE CACHE BOOL "")
-
 
 
 
