@@ -729,8 +729,8 @@ protected:
 //                                      capacities + numSubArrays,
 //                                      m_offsets.data() + 1 );
 
-      RAJA::inclusive_scan< POLICY >( RAJA::make_span<INDEX_TYPE const * >(capacities, numSubArrays),
-                                      RAJA::make_span<INDEX_TYPE * >(m_offsets.data()+1, numSubArrays) );
+      RAJA::inclusive_scan< POLICY >( RAJA::make_span< INDEX_TYPE const * >( capacities, numSubArrays ),
+                                      RAJA::make_span< INDEX_TYPE * >( m_offsets.data()+1, numSubArrays ) );
     };
     resizeFromOffsetsImpl( numSubArrays, fillOffsets, buffers ... );
   }
