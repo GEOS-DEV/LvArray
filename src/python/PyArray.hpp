@@ -209,7 +209,7 @@ public:
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual PyObject * toNumPy() const final override
   {
-    m_array.move(MemorySpace::host, (m_accessLevel == static_cast< int >(LvArray::python::PyModify::READ_ONLY))?false:true);
+    m_array.move( MemorySpace::host, (m_accessLevel == static_cast< int >(LvArray::python::PyModify::READ_ONLY))?false:true );
     return toNumPyImpl();
   };
 
