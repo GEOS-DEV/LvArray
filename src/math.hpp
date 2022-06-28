@@ -90,24 +90,6 @@ LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
 SingleType< T > getSecond( T const x )
 { return x; }
 
-/**
- * @return 1 if @p x is less than @p y, else 0.
- * @tparam T The type of @p x and @p y.
- * @param x The first value.
- * @param y The second value.
- */
-  LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
-__half lessThan( __half const x, __half const y )
-{
-  return __hlt( x, y );
-}
-
-LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
-__half2 lessThan( __half2 const x, __half2 const y )
-{
-  return __hlt2( x, y );
-}
-
 #if defined( LVARRAY_USE_CUDA )
 /**
  * @brief Convert @p u to @c __half.
@@ -212,6 +194,9 @@ LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half getSecond( __half2 const x )
 { return __high2half( x ); }
 
+#endif
+
+#if defined( LVARRAY_USE_DEVICE )
 /**
  * @return 1 if @p x is less than @p y, else 0.
  * @param x The first value.
@@ -229,7 +214,6 @@ __half lessThan( __half const x, __half const y )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 lessThan( __half2 const x, __half2 const y )
 { return __hlt2( x, y ); }
-
 #endif
 
 } // namespace internal
