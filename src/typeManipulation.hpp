@@ -528,6 +528,45 @@ struct CArray
   camp::idx_t size()
   { return N; }
 
+  constexpr inline LVARRAY_HOST_DEVICE
+  T * begin()
+  { return data; }
+
+  constexpr inline LVARRAY_HOST_DEVICE
+  T * end()
+  { return data + N; }
+
+  constexpr inline LVARRAY_HOST_DEVICE
+  T const * begin() const
+  { return data; }
+
+  constexpr inline LVARRAY_HOST_DEVICE
+  T const * end() const
+  { return data + N; }
+
+  constexpr inline LVARRAY_HOST_DEVICE
+  bool operator==( CArray< T, N > const & rhs ) const
+  {
+    for( int i = 0; i < N; ++i )
+    {
+      if( data[ i ] != rhs[ i ] ) return false;
+    }
+
+    return true;
+  }
+
+  constexpr inline LVARRAY_HOST_DEVICE
+  bool operator<( CArray< T, N > const & rhs ) const
+  {
+    for( int i = 0; i < N; ++i )
+    {
+      if( data[ i ] < rhs[ i ] ) return true;
+      if( data[ i ] > rhs[ i ] ) return false;
+    }
+
+    return false;
+  }
+
   /// The backing c array, public so that aggregate initialization works.
   // TODO(corbett5) remove {}
   T data[ N ] = {};
