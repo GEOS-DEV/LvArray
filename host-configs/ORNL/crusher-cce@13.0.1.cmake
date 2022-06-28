@@ -1,5 +1,6 @@
 
 set(CONFIG_NAME "crusher-cce@13.0.1" CACHE PATH "")
+include( ${CMAKE_CURRENT_LIST_DIR}/crusher-base.cmake )
 
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR "/gpfs/alpine/geo127/world-shared/cray-sles15-zen2/cce-13.0.1" CACHE PATH "")
