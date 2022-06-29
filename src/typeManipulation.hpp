@@ -556,6 +556,17 @@ struct CArray
   }
 
   constexpr inline LVARRAY_HOST_DEVICE
+  bool operator!=( CArray< T, N > const & rhs ) const
+  {
+    for( int i = 0; i < N; ++i )
+    {
+      if( data[ i ] != rhs[ i ] ) return true;
+    }
+
+    return false;
+  }
+
+  constexpr inline LVARRAY_HOST_DEVICE
   bool operator<( CArray< T, N > const & rhs ) const
   {
     for( int i = 0; i < N; ++i )
