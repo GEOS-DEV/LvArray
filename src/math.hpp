@@ -339,7 +339,7 @@ LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 max( __half2 const a, __half2 const b )
 {
 #if defined(LVARRAY_USE_CUDA) && CUDART_VERSION > 11000 && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
-    return __hmax2( a, b );
+  return __hmax2( a, b );
 #else
   __half2 const aFactor = __hge2( a, b );
   __half2 const bFactor = convert< __half2 >( 1 ) - aFactor;
@@ -643,9 +643,9 @@ void sincos( float const theta, float & sinTheta, float & cosTheta )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
   #if defined(LVARRAY_USE_CUDA)
-    ::sincos( theta, &sinTheta, &cosTheta );
+  ::sincos( theta, &sinTheta, &cosTheta );
   #elif defined(LVARRAY_USE_HIP)
-    ::sincosf( theta, &sinTheta, &cosTheta );
+  ::sincosf( theta, &sinTheta, &cosTheta );
   #endif
 #else
   sinTheta = std::sin( theta );

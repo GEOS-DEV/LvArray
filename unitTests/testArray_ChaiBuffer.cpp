@@ -144,7 +144,7 @@ TYPED_TEST( ArrayTest, DeviceAlloc )
 {
   this->testHIPDeviceAlloc();
 }
-  
+
 #endif
 
 } // namespace testing

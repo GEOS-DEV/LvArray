@@ -85,7 +85,7 @@ struct RAJAHelper< RAJA::hip_exec< N > >
   using AtomicPolicy = RAJA::hip_atomic;
   static constexpr MemorySpace space = MemorySpace::hip;
 };
-  
+
 #endif
 
 template< typename POLICY, typename INDEX_TYPE, typename LAMBDA >

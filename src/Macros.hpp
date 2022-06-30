@@ -24,23 +24,23 @@
 
 
 #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
-  /// Macro defined when using a device.
-  #define LVARRAY_USE_DEVICE
+/// Macro defined when using a device.
+#define LVARRAY_USE_DEVICE
 #endif
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
-  /// Macro defined when currently compiling on device (only defined in the device context).
-  #define LVARRAY_DEVICE_COMPILE
-  /// Marks a function/lambda for inlining
-  #define LVARRAY_FORCE_INLINE __forceinline__
+/// Macro defined when currently compiling on device (only defined in the device context).
+#define LVARRAY_DEVICE_COMPILE
+/// Marks a function/lambda for inlining
+#define LVARRAY_FORCE_INLINE __forceinline__
 #else
-  /// Marks a function/lambda for inlining
-  #define LVARRAY_FORCE_INLINE inline
+/// Marks a function/lambda for inlining
+#define LVARRAY_FORCE_INLINE inline
 #endif
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
-  // Denotes whether to define decorator macros later in this file.
-  #define LVARRAY_DECORATE
+// Denotes whether to define decorator macros later in this file.
+#define LVARRAY_DECORATE
 #endif
 
 
@@ -137,10 +137,10 @@
     { \
       constexpr char const * formatString = "***** ERROR\n" \
                                             "***** LOCATION: " LOCATION "\n" \
-                                            "***** Block: [%u, %u, %u]\n" \
-                                            "***** Thread: [%u, %u, %u]\n" \
-                                            "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+                                                                        "***** Block: [%u, %u, %u]\n" \
+                                                                        "***** Thread: [%u, %u, %u]\n" \
+                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
       asm ( "trap;" ); \
     } \
@@ -578,9 +578,9 @@
  *   the host. To use place directly above a the template.
  */
 #if defined(LVARRAY_USE_CUDA)
-  #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
+#define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
 #else
-  #define DISABLE_HD_WARNING
+#define DISABLE_HD_WARNING
 #endif
 #else
 /// Mark a function for both host and device usage.
