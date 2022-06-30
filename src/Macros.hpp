@@ -24,17 +24,22 @@
 
 
 #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
+  /// Macro defined when using a device.
   #define LVARRAY_USE_DEVICE
 #endif
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+  /// Macro defined when currently compiling on device (only defined in the device context).
   #define LVARRAY_DEVICE_COMPILE
+  /// Marks a function/lambda for inlining
   #define LVARRAY_FORCE_INLINE __forceinline__
 #else
+  /// Marks a function/lambda for inlining
   #define LVARRAY_FORCE_INLINE inline
 #endif
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
+  // Denotes whether to define decorator macros later in this file.
   #define LVARRAY_DECORATE
 #endif
 
