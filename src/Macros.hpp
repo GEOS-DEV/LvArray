@@ -12,8 +12,6 @@
 
 #pragma once
 
-#pragma clang diagnostic ignored "-Wfloat-equal"
-
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "system.hpp"
