@@ -938,9 +938,9 @@ using TwoSizesTestTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_SUITE( TwoSizesTest, TwoSizesTestTypes );
+TYPED_TEST_SUITE( TwoSizesTest, TwoSizesTestTypes, );
 
-  
+
 TYPED_TEST( TwoSizesTest, scale )
 {
   this->testScale();

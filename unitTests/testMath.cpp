@@ -145,6 +145,7 @@ using TestMathTypes = ::testing::Types<
 #endif
 #if defined( LVARRAY_USE_CUDA )
   , std::pair< __half, parallelDevicePolicy< 32 > >
+#endif
   >;
 
 TYPED_TEST_SUITE( TestMath, TestMathTypes, );

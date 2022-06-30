@@ -451,7 +451,7 @@ using SortedArrayViewTestTypes = ::testing::Types<
   std::pair< SortedArray< int, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
   , std::pair< SortedArray< Tensor, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
   , std::pair< SortedArray< TestString, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-#if ( defined(LVARRAY_USE_CUDA) || defined( LVARRAY_USE_HIP ) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined( LVARRAY_USE_HIP ) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< SortedArray< int, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< SortedArray< Tensor, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

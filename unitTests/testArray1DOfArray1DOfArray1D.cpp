@@ -272,7 +272,7 @@ using Array1DOfArray1DOfArray1DTestTypes = ::testing::Types<
   , std::pair< Array1D< Tensor, ChaiBuffer >, serialPolicy >
   , std::pair< Array1D< TestString, ChaiBuffer >, serialPolicy >
 #endif
-#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP ) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP ) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< Array1D< int, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< Array1D< Tensor, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
