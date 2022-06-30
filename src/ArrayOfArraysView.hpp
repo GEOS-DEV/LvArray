@@ -733,7 +733,7 @@ protected:
     {
       m_offsets[ 0 ] = 0;
 #if RAJA_VERSION_MAJOR >= 1 && RAJA_VERSION_MINOR >= 13
-      RAJA::inclusive_scan< POLICY >( RAJA::make_span(capacities, numSubArrays), RAJA::make_span(m_offsets.data() + 1, numSubArrays) );
+      RAJA::inclusive_scan< POLICY >( RAJA::make_span( capacities, numSubArrays ), RAJA::make_span( m_offsets.data() + 1, numSubArrays ) );
 #else
       RAJA::inclusive_scan< POLICY >( capacities, capacities + numSubArrays, m_offsets.data() + 1 );
 #endif

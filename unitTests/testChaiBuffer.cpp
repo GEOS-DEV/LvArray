@@ -43,7 +43,7 @@ public:
   #elif defined( LVARRAY_USE_HIP )
     auto devicePool = rm.makeAllocator< umpire::strategy::QuickPool >( "DEVICE_pool", rm.getAllocator( "DEVICE" ) );
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host, MemorySpace::hip };
-    std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };    
+    std::initializer_list< umpire::Allocator > const allocators = { hostPool, devicePool };
   #else
     std::initializer_list< MemorySpace > const spaces = { MemorySpace::host };
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };

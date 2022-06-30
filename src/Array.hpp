@@ -91,7 +91,7 @@ public:
   {
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
-#if !defined(LVARRAY_DEVICE_COMPILE) 
+#if !defined(LVARRAY_DEVICE_COMPILE)
     setName( "" );
 #endif
 #if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE)

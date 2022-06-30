@@ -139,7 +139,7 @@ public:
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                               [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
         {
-	  INDEX_TYPE const nnz = view.numNonZeros( row );
+          INDEX_TYPE const nnz = view.numNonZeros( row );
           T * const entries = view.getEntries( row );
           arrayManipulation::destroy( entries, nnz );
         } );
