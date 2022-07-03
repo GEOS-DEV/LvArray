@@ -406,7 +406,7 @@ std::string demangle( char const * const name )
 std::string calculateSize( size_t const bytes )
 {
   char const * suffix;
-  uint shift;
+  unsigned shift;
   if( bytes >> 30 != 0 )
   {
     suffix = "GB";
