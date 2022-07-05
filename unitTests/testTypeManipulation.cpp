@@ -81,7 +81,7 @@ CUDA_TEST( typeManipulation, forEachArg )
   EXPECT_EQ( intReducer.get(), 2 );
   EXPECT_EQ( floatReducer.get(), 4 );
   EXPECT_EQ( doubleReducer.get(), 7 );
-#eli defined(LVARRAY_USE_HIP)
+#elif defined(LVARRAY_USE_HIP)
   // Test on device.
   RAJA::ReduceSum< RAJA::hip_reduce, int > intReducer( 1 );
   RAJA::ReduceSum< RAJA::hip_reduce, float > floatReducer( 3 );

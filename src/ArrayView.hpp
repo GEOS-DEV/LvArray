@@ -114,7 +114,6 @@ public:
    * @brief A constructor to create an uninitialized ArrayView.
    * @note An uninitialized ArrayView should not be used until it is assigned to.
    */
-  LVARRAY_HOST_DEVICE
   ArrayView() = default;
 
   /**
@@ -182,7 +181,6 @@ public:
    * ArrayView< int, 1, 0, std::ptrdiff_t, MallocBuffer > anotherView = std::move( view );
    * @endcode
    */
-  LVARRAY_HOST_DEVICE
   ArrayView( ArrayView && source ) = default;
 
   /**
@@ -204,7 +202,6 @@ public:
   {}
 
   /// The default destructor.
-  LVARRAY_HOST_DEVICE
   ~ArrayView() = default;
 
   /**
