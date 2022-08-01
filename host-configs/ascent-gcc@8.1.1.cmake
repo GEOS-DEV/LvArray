@@ -25,9 +25,6 @@ set(CUDA_ARCH sm_70 CACHE STRING "")
 set(CMAKE_CUDA_STANDARD 14 CACHE STRING "")
 # -std=c++14 needed to work around cuda/gcc bug
 set(CMAKE_CUDA_FLAGS "-std=c++14 -Xcompiler -mno-float128 -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr -Werror cross-execution-space-call,reorder,deprecated-declarations" CACHE STRING "")
-#set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -Xcompiler -DNDEBUG -Xcompiler -O3 -Xcompiler -mcpu=powerpc64le -Xcompiler -mtune=powerpc64le" CACHE STRING "")
-#set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-g -lineinfo ${CMAKE_CUDA_FLAGS_RELEASE}" CACHE STRING "")
-#set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 # Uncomment this line to make nvcc output register usage for each kernel.
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --resource-usage" CACHE STRING "" FORCE)
