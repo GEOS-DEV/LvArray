@@ -532,7 +532,15 @@ void atan2HalfAccuracy()
         // atan2( x, -1 )
         {
           double const result = math::atan2( x, __half( -1.0 ) );
-          double const expected = math::atan2( double( x ), -1.0 );
+
+          // For -0.0 __half case
+          double x_dbl = double( x );
+          if( x_dbl == 0.0 )
+          {
+            x_dbl = 0.0;
+          }
+
+          double const expected = math::atan2( x_dbl, -1.0 );
 
           double const diff = LvArray::math::abs( result - expected );
           double const rdiff = abs( diff / expected );
@@ -583,8 +591,16 @@ void atan2Half2Accuracy()
         // atan2( x, -1 ), atan2( 1, x );
         {
           __half2 const result = math::atan2( math::convert< __half2 >( x, 1 ), math::convert< __half2 >( -1, x ) );
-          double const expected0 = math::atan2( double( x ), -1 );
-          double const expected1 = math::atan2( 1, double( x ) );
+
+          // For -0.0 __half case
+          double x_dbl = double( x );
+          if( x_dbl == 0.0 )
+          {
+            x_dbl = 0.0;
+          }
+
+          double const expected0 = math::atan2( x_dbl, -1 );
+          double const expected1 = math::atan2( 1, x_dbl );
 
           {
             double const diff0 = LvArray::math::abs( double( math::getFirst( result ) ) - expected0 );
