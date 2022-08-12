@@ -83,8 +83,8 @@ public:
         std::set< T, COMP > refSet( m_ref.begin(), m_ref.end(), m_comp );
         isInitiallySortedUnique = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp ) &&
                                   ( m_ref.size() == refSet.size() );
-        m_ref.clear();
-        m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+
+        m_ref = std::vector< T >( refSet.begin(), refSet.end() );
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }
 
