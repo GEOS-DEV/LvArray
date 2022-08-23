@@ -412,10 +412,9 @@ public:
         m_capacity == 0 ||
         chaiSpace == chai::NONE ) return;
 
+    auto & am = internal::getArrayManager();
     const_cast< T * & >( m_pointer ) =
-      static_cast< T * >( internal::getArrayManager().move( const_cast< T_non_const * >( m_pointer ),
-                                                            m_pointerRecord,
-                                                            chaiSpace ) );
+      static_cast< T * >( am.move( const_cast< T_non_const * >( m_pointer ), m_pointerRecord, chaiSpace ) );
 
     if( !std::is_const< T >::value && touch ) m_pointerRecord->m_touched[ chaiSpace ] = true;
     m_pointerRecord->m_last_space = chaiSpace;
