@@ -13,6 +13,7 @@
 #include "testUtils.hpp"
 #include "ChaiBuffer.hpp"
 #include "Array.hpp"
+#include "umpire/strategy/QuickPool.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>

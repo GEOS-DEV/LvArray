@@ -12,6 +12,7 @@
 // Source includes
 #include "testUtils.hpp"
 #include "ChaiBuffer.hpp"
+#include "umpire/strategy/QuickPool.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
