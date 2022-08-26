@@ -19,8 +19,9 @@ namespace LvArray
 LVARRAY_DEVICE
 double diffModulo2PI( double result, double expected )
 {
-  double diff = LvArray::math::abs( fmod(result - expected, 2*M_PI) );
-  if (diff > M_PI) diff = LvArray::math::abs( diff - 2 * M_PI );
+  double diff = LvArray::math::abs( fmod( result - expected, 2*M_PI ) );
+  if( diff > M_PI )
+    diff = LvArray::math::abs( diff - 2 * M_PI );
   return diff;
 }
 
@@ -595,7 +596,7 @@ void atan2Half2Accuracy()
           double const expected1 = math::atan2( 1, double( x ) );
 
           {
-            double const diff0 = diffModulo2PI( double( math::getFirst(  result ) ), expected0 );
+            double const diff0 = diffModulo2PI( double( math::getFirst( result ) ), expected0 );
             double const rdiff0 = math::abs( diff0 / expected0 );
             maxDiff.max( diff0 );
             maxRDiff.max( rdiff0 );
