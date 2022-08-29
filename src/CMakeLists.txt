@@ -79,3 +79,7 @@ lvarray_add_code_checks( PREFIX lvarray
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )
 endif()
+
+if( ENABLE_LAPACK )
+    add_subdirectory( dense )
+endif()

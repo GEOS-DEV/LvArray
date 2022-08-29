@@ -2,6 +2,15 @@ packages:
   all:
     target: [default]
     compiler: [gcc, clang, intel]
+    providers:
+      blas: [intel-mkl]
+      lapack: [intel-mkl]
+
+  intel-mkl:
+    buildable: False
+    externals:
+      - spec: intel-mkl@2020.0.166 threads=openmp
+        prefix: /usr/tce/packages/mkl/mkl-2020.0/
 
   cmake:
     buildable: False
