@@ -53,6 +53,12 @@ endif()
 # CHAI
 ################################
 if(ENABLE_CHAI)
+    if(NOT EXISTS ${CHAI_DIR})
+        message(FATAL_ERROR "CHAI_DIR must be defined and point to a valid directory when using CHAI.")
+    endif()
+
+    message(STATUS "Using CHAI from ${CHAI_DIR}")
+
     if(NOT ENABLE_UMPIRE)
         message(FATAL_ERROR "Umpire must be enabled to use CHAI.")
     endif()
@@ -60,12 +66,6 @@ if(ENABLE_CHAI)
     if(NOT ENABLE_RAJA)
         message(FATAL_ERROR "RAJA must be enabled to use CHAI.")
     endif()
-
-    if(NOT EXISTS ${CHAI_DIR})
-        message(FATAL_ERROR "CHAI_DIR must be defined and point to a valid directory when using CHAI.")
-    endif()
-
-    message(STATUS "Using CHAI from ${CHAI_DIR}")
 
     find_package(chai REQUIRED
                  PATHS ${CHAI_DIR})
@@ -108,16 +108,57 @@ endif()
 ################################
 # Python
 ################################
-if ( ENABLE_PYLVARRAY )
-    message( STATUS "Python3_EXECUTABLE=${Python3_EXECUTABLE}" )
-    find_package( Python3 REQUIRED
-                  COMPONENTS Development NumPy )
+if(ENABLE_PYLVARRAY)
+    message(STATUS "Python3_EXECUTABLE=${Python3_EXECUTABLE}")
+    find_package(Python3 REQUIRED
+                 COMPONENTS Development NumPy)
 
-    message( STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}" )
-    message( STATUS "Python3_LIBRARY_DIRS = ${Python3_LIBRARY_DIRS}" )
-    message( STATUS "Python3_NumPy_INCLUDE_DIRS = ${Python3_NumPy_INCLUDE_DIRS}" )
+    message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
+    message(STATUS "Python3_LIBRARY_DIRS = ${Python3_LIBRARY_DIRS}")
+    message(STATUS "Python3_NumPy_INCLUDE_DIRS = ${Python3_NumPy_INCLUDE_DIRS}")
 
-    set( thirdPartyLibs ${thirdPartyLibs} Python3::Python Python3::NumPy )
+    set(thirdPartyLibs ${thirdPartyLibs} Python3::Python Python3::NumPy)
+else()
+    message(STATUS "Not building pylvarray")
+endif()
+
+################################
+# LAPACK/BLAS
+################################
+if(ENABLE_LAPACK)
+    message(STATUS "BLAS_LIBRARIES = ${BLAS_LIBRARIES}")
+    message(STATUS "LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}")
+
+    blt_import_library(NAME blas
+                       TREAT_INCLUDES_AS_SYSTEM ON
+                       LIBRARIES ${BLAS_LIBRARIES})
+
+    blt_import_library(NAME lapack
+                       DEPENDS_ON blas
+                       TREAT_INCLUDES_AS_SYSTEM ON
+                       LIBRARIES ${LAPACK_LIBRARIES})
+
+    set(thirdPartyLibs ${thirdPartyLibs} blas lapack)
+else()
+    message(STATUS "Not using LAPACK or BLAS.")
+endif()
+
+################################
+# MAGMA
+################################
+if(ENABLE_MAGMA)
+    message(STATUS "Using MAGMA from ${MAGMA_DIR}")
+
+    if(NOT ENABLE_LAPACK)
+        message(FATAL_ERROR "LAPACK must be enabled to use MAGMA.")
+    endif()
+
+    find_package(magma REQUIRED
+                 PATHS ${MAGMA_DIR})
+    
+    set(thirdPartyLibs ${thirdPartyLibs} magma)
+else()
+    message(STATUS "Not using MAGMA.")
 endif()
 
 set( thirdPartyLibs ${thirdPartyLibs} CACHE STRING "" )
