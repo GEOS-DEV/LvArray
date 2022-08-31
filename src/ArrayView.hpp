@@ -85,6 +85,10 @@ public:
   /// The integer type used for indexing.
   using IndexType = INDEX_TYPE;
 
+  /// The type when the data type is const.
+  using ViewTypeConst = ArrayView< std::remove_const_t< T > const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
+
+
   /// The type when all inner array classes are converted to const views.
   using NestedViewType = ArrayView< std::remove_reference_t< typeManipulation::NestedViewType< T > >,
                                     NDIM, USD, INDEX_TYPE, BUFFER_TYPE >;
@@ -274,12 +278,12 @@ public:
    * @return Return a new ArrayView where @c T is @c const.
    */
   inline LVARRAY_HOST_DEVICE constexpr
-  ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > toViewConst() const &
+  ViewTypeConst toViewConst() const &
   {
-    return ArrayView< T const, NDIM, USD, INDEX_TYPE, BUFFER_TYPE >( m_dims,
-                                                                     m_strides,
-                                                                     m_singleParameterResizeIndex,
-                                                                     m_dataBuffer );
+    return ViewTypeConst( m_dims,
+                          m_strides,
+                          m_singleParameterResizeIndex,
+                          m_dataBuffer );
   }
 
   /**
