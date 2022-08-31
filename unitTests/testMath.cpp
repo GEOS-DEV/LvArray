@@ -16,6 +16,15 @@
 
 namespace LvArray
 {
+LVARRAY_DEVICE
+double diffModulo2PI( double result, double expected )
+{
+  double diff = LvArray::math::abs( fmod( result - expected, 2*M_PI ) );
+  if( diff > M_PI )
+    diff = LvArray::math::abs( diff - 2 * M_PI );
+  return diff;
+}
+
 namespace testing
 {
 
@@ -522,7 +531,7 @@ void atan2HalfAccuracy()
           double const result = math::atan2( x, __half( 1.0 ) );
           double const expected = math::atan2( double( x ), 1.0 );
 
-          double const diff = LvArray::math::abs( result - expected );
+          double const diff = diffModulo2PI( result, expected );
           double const rdiff = abs( diff / expected );
 
           maxDiff.max( diff );
@@ -534,7 +543,7 @@ void atan2HalfAccuracy()
           double const result = math::atan2( x, __half( -1.0 ) );
           double const expected = math::atan2( double( x ), -1.0 );
 
-          double const diff = LvArray::math::abs( result - expected );
+          double const diff = diffModulo2PI( result, expected );
           double const rdiff = abs( diff / expected );
 
           maxDiff.max( diff );
@@ -546,7 +555,7 @@ void atan2HalfAccuracy()
           double const result = math::atan2( __half( 1.0 ), x );
           double const expected = math::atan2( 1.0, double( x ) );
 
-          double const diff = LvArray::math::abs( result - expected );
+          double const diff = diffModulo2PI( result, expected );
           double const rdiff = abs( diff / expected );
 
           maxDiff.max( diff );
@@ -558,7 +567,7 @@ void atan2HalfAccuracy()
           double const result = math::atan2( __half( -1.0 ), x );
           double const expected = math::atan2( -1.0, double( x ) );
 
-          double const diff = LvArray::math::abs( result - expected );
+          double const diff = diffModulo2PI( result, expected );
           double const rdiff = abs( diff / expected );
 
           maxDiff.max( diff );
@@ -587,14 +596,14 @@ void atan2Half2Accuracy()
           double const expected1 = math::atan2( 1, double( x ) );
 
           {
-            double const diff0 = LvArray::math::abs( double( math::getFirst( result ) ) - expected0 );
+            double const diff0 = diffModulo2PI( double( math::getFirst( result ) ), expected0 );
             double const rdiff0 = math::abs( diff0 / expected0 );
             maxDiff.max( diff0 );
             maxRDiff.max( rdiff0 );
           }
 
           {
-            double const diff1 = LvArray::math::abs( double( math::getSecond( result ) ) - expected1 );
+            double const diff1 = diffModulo2PI( double( math::getSecond( result ) ), expected1 );
             double const rdiff1 = math::abs( diff1 / expected1 );
             maxDiff.max( diff1 );
             maxRDiff.max( rdiff1 );
@@ -608,14 +617,14 @@ void atan2Half2Accuracy()
           double const expected1 = math::atan2( -1, double( x ) );
 
           {
-            double const diff0 = LvArray::math::abs( double( math::getFirst( result ) ) - expected0 );
+            double const diff0 = diffModulo2PI( double( math::getFirst( result ) ), expected0 );
             double const rdiff0 = math::abs( diff0 / expected0 );
             maxDiff.max( diff0 );
             maxRDiff.max( rdiff0 );
           }
 
           {
-            double const diff1 = LvArray::math::abs( double( math::getSecond( result ) ) - expected1 );
+            double const diff1 = diffModulo2PI( double( math::getSecond( result ) ), expected1 );
             double const rdiff1 = math::abs( diff1 / expected1 );
             maxDiff.max( diff1 );
             maxRDiff.max( rdiff1 );
