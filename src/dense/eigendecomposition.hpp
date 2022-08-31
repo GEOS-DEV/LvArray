@@ -21,30 +21,38 @@ struct EigenDecompositionOptions
   enum Range
   {
     ALL,
-    IN_RANGE,
+    IN_INTERVAL,
     BY_INDEX,
   };
 
-  Type const m_type;
-  Range const m_range;
+  char const * typeArg() const
+  {
+    static constexpr char const * const eigenvalueString = "N";
+    static constexpr char const * const eigenvectorString = "V";
+
+    return type == Type::EIGENVALUES ? eigenvalueString : eigenvectorString;
+  }
+
+  char const * rangeArg() const
+  {
+    static constexpr char const * const allString = "A";
+    static constexpr char const * const intervalString = "V";
+    static constexpr char const * const indexString = "I";
+
+    if( range == Range::ALL )
+    { return allString; }
+
+    return range == Range::IN_INTERVAL ? intervalString : indexString;
+  }
+
+  Type const type;
+  Range const range;
   double const rangeMin;
   double const rangeMax;
   int const indexMin;
   int const indexMax;
+  double const abstol;
 };
-
-/**
- *
- */
-template< typename T, INDEX_TYPE >
-void heev(
-  MemorySpace const space,
-  EigenDecompositionOption const options,
-  ArraySlice< std::complex< T >, 2, 1, INDEX_TYPE > const & A,
-  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
-  Workspace< T > & workspace,
-  SymmetricMatrixStorageType const storageType = SymmetricMatrixStorageType::UPPER_TRIANGULAR
-);
 
 } // namespace dense
 } // namespace LvArray

@@ -148,20 +148,20 @@
   #endif
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
-  // do \
-  // { \
-  //   if( EXP ) \
-  //   { \
-  //     std::ostringstream __oss; \
-  //     __oss << "***** ERROR\n"; \
-  //     __oss << "***** LOCATION: " LOCATION "\n"; \
-  //     __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
-  //     __oss << MSG << "\n"; \
-  //     __oss << LvArray::system::stackTrace( true ); \
-  //     std::cout << __oss.str() << std::endl; \
-  //     LvArray::system::callErrorHandler(); \
-  //   } \
-  // } while( false )
+  do \
+  { \
+    if( EXP ) \
+    { \
+      std::ostringstream __oss; \
+      __oss << "***** ERROR\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG << "\n"; \
+      __oss << LvArray::system::stackTrace( true ); \
+      std::cout << __oss.str() << std::endl; \
+      LvArray::system::callErrorHandler(); \
+    } \
+  } while( false )
 #endif
 
 /**

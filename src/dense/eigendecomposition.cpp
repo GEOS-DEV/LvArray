@@ -52,14 +52,14 @@ void LVARRAY_ZHEEVR(
   double const * ABSTOL,
   int * M,
   double * W,
-  double * Z,
+  std::complex< double > * Z,
   int const * LDZ,
   int * ISUPPZ,
   std::complex< double > * WORK,
   int const * LWORK,
   double * RWORK,
-  int * LRWORK,
-  int const * IWORK,
+  int const * LRWORK,
+  int * IWORK,
   int const * LIWORK,
   int * INFO );
 
@@ -73,157 +73,169 @@ namespace dense
 namespace internal
 {
 
-/**
- *
- */
-char const * getOption( EigenDecompositionOption const option )
-{
-  static constexpr char const * const eigenvalueString = "N";
-  static constexpr char const * const eigenvectorString = "V";
-
-  return option == EigenDecompositionOption::EIGENVALUES ? eigenvalueString : eigenvectorString;
-}
-
-struct HEEVR_status
-{
-  int LWORK;
-  int LRWORK;
-  int LIWORK;
-  bool success
-};
-
-
-template< typename T, typename INDEX_TYPE >
-HEEVR_Sizes heevr(
-  EigenDecompositionOption const decompositionOptions,
-  ArraySlice< std::complex< T >, 2, 1, INDEX_TYPE > const & A,
-  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
-  Workspace< T > & workspace,
+template< typename T >
+int heevr(
+  MemorySpace const space,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Vector< T > const & eigenValues,
+  Matrix< std::complex< T > > const & eigenVectors,
+  Vector< int > const & support,
+  Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType,
   bool const compute )
+{
+  LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Device not yet supported." );
+
+  LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
+
+  char const * const JOBZ = decompositionOptions.typeArg();
+  char const * const RANGE = decompositionOptions.rangeArg();
+  char const * const UPLO = getOption( storageType );
+  int const N = integerConversion< int >( A.nCols );
+  int const LDA = A.stride;
+
+  T const VL = decompositionOptions.rangeMin;
+  T const VU = decompositionOptions.rangeMax;
+
+  if( decompositionOptions.range == EigenDecompositionOptions::Range::IN_INTERVAL )
+  {
+    LVARRAY_ERROR_IF_GE( VL, VU );
+  }
+
+  int maxEigenvaluesToFind = N;
+  int const IL = decompositionOptions.indexMin;
+  int const IU = decompositionOptions.indexMax;
+  if( decompositionOptions.range == EigenDecompositionOptions::Range::BY_INDEX )
+  {
+    LVARRAY_ERROR_IF_LT( IL, 1 );
+    LVARRAY_ERROR_IF_GT( IU, N );
+    LVARRAY_ERROR_IF_GT( IL, IU );
+
+    maxEigenvaluesToFind = IU - IL + 1;
+  }
+
+  LVARRAY_ERROR_IF_LT( eigenValues.n, maxEigenvaluesToFind );
+
+  int const ABSTOL = decompositionOptions.abstol;
+  int M = 0;
+
+  if( decompositionOptions.type == EigenDecompositionOptions::Type::EIGENVALUES_AND_VECTORS )
+  {
+    LVARRAY_ERROR_IF_NE( eigenVectors.nRows, N );
+    LVARRAY_ERROR_IF_LT( eigenVectors.nCols, maxEigenvaluesToFind );
+  }
+
+  int const LDZ = eigenVectors.stride;
+
+  // TODO: check ISUPPZ
+
+  int const LWORK = compute ? integerConversion< int >( workspace.work.size() ) : -1;
+  int const LRWORK = integerConversion< int >( workspace.rwork.size() );
+  int const LIWORK = integerConversion< int >( workspace.iwork.size() );
+
+  int INFO = 0;
+
+  // With C++ 17 we can remove the reinterpret_cast with constexpr if.
+  if( std::is_same< T, float >::value )
+  {
+  }
+  else
+  {
+    LVARRAY_ZHEEVR(
+      JOBZ,
+      RANGE,
+      UPLO,
+      &N,
+      reinterpret_cast< std::complex< double > * >( A.data ),
+      &LDA,
+      reinterpret_cast< double const * >( &VL ),
+      reinterpret_cast< double const * >( &VU ),
+      &IL,
+      &IU,
+      reinterpret_cast< double const * >( &ABSTOL ),
+      &M,
+      reinterpret_cast< double * >( eigenValues.data ),
+      reinterpret_cast< std::complex< double > * >( eigenVectors.data ),
+      &LDZ,
+      support.data,
+      reinterpret_cast< std::complex< double > * >( workspace.work.data() ),
+      &LWORK,
+      reinterpret_cast< double * >( workspace.rwork.data() ),
+      &LRWORK,
+      workspace.iwork.data(),
+      &LIWORK,
+      &INFO );
+  }
+
+  LVARRAY_ERROR_IF_NE( INFO, 0 );
+
+  return M;
+}
 
 } // namespace internal
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template< typename T, typename INDEX_TYPE >
-void heev(
+
+template< typename T >
+int heevr(
   MemorySpace const space,
-  EigenDecompositionOption const decompositionType,
-  ArraySlice< std::complex< T >, 2, 1, INDEX_TYPE > const & A,
-  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
-  Workspace< T > & workspace,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Vector< T > const & eigenValues,
+  Matrix< std::complex< T > > const & eigenVectors,
+  Vector< int > const & support,
+  Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
 {
-  LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::cpu, "Device not yet supported." );
+  bool const reallocateWork = workspace.work.size() < 2 * A.nRows;
+  bool const reallocateRWork = workspace.rwork.size() < 24 * A.nRows;
+  bool const reallocateIWork = workspace.iwork.size() < 10 * A.nRows;
 
-  LVARRAY_ASSERT_EQ_MSG( A.size( 0 ), A.size( 1 ),
-    "The matrix A must be square." );
-
-  LVARRAY_ASSERT_EQ_MSG( A.size( 0 ), eigenValues.size(),
-    "The matrix A and lambda have incompatible sizes." );
-
-  // define the arguments of zheev
-  int const N = LvArray::integerConversion< int >( A.size( 0 ) );
-  int const LDA = N;
-  int INFO;
-
-  // Make sure that the workspace is the right size.
-  workspace.rWork.resizeWithoutInitializationOrDestruction( std::max( 1, 3 * N - 2 ) );
-
-  if( workspace.workComplex.size() < std::max( 1, 2 * N - 1 ) );
+  if( reallocateWork || reallocateRWork || reallocateIWork )
   {
-    std::complex< T > optimalWorkSize{ 0, 0 };
+    Workspace< std::complex< T > > optimalSizes( 1 );
+    internal::heevr( MemorySpace::host, decompositionOptions, A, eigenValues, eigenVectors, support, optimalSizes, storageType, false );
     
-    int LWORK = -1;
-
-    if( std::is_same_v< T, float > )
+    if( reallocateWork )
     {
-      LVARRAY_CHEEV(
-        getOption( decompositionType ),
-        getOption( storageType ),
-        &N,
-        nullptr,
-        &LDA,
-        nullptr,
-        &optimalWorkSize,
-        &LWORK,
-        nullptr,
-        &INFO );
-    }
-    else
-    {
-      LVARRAY_ZHEEV(
-        getOption( decompositionType ),
-        getOption( storageType ),
-        &N,
-        nullptr,
-        &LDA,
-        nullptr,
-        &optimalWorkSize,
-        &LWORK,
-        nullptr,
-        &INFO );
+      workspace.work.resizeWithoutInitializationOrDestruction( space, static_cast< std::ptrdiff_t >( optimalSizes.work[ 0 ].real() ) );
     }
 
-    LVARRAY_ERROR_IF_NE_MSG( INFO, 0,
-      "Error in computing the optimal workspace size." );
-    
-    workspace.workComplex.resizeWithoutInitializationOrDestruction(
-      static_cast< INDEX_TYPE >( optimalWorkSize.real() ) );
+    if( reallocateRWork )
+    {
+      workspace.rwork.resizeWithoutInitializationOrDestruction( space, static_cast< std::ptrdiff_t >( optimalSizes.rwork[ 0 ] ) );
+    }
+
+    if( reallocateIWork )
+    {
+      workspace.rwork.resizeWithoutInitializationOrDestruction( space, optimalSizes.iwork[ 0 ] );
+    }
   }
 
-  int const LWORK = integerConversion< int >( workspace.workComplex.size() );
-
-  if( std::is_same< T, float >::value )
-  {
-    LVARRAY_CHEEV(
-      getOption( decompositionType ),
-      getOption( storageType ),
-      &N,
-      A.data(),
-      &LDA,
-      eigenValues.data(),
-      workspace.workComplex.data(),
-      &LWORK,
-      workspace.rWork.data(),
-      &INFO );
-  }
-  else
-  {
-    LVARRAY_ZHEEV(
-      getOption( decompositionType ),
-      getOption( storageType ),
-      &N,
-      A.data(),
-      &LDA,
-      eigenValues.data(),
-      workspace.workComplex.data(),
-      &LWORK,
-      workspace.rWork.data(),
-      &INFO );
-  }
-  
-  LVARRAY_ERROR_IF_NE_MSG( INFO, 0,
-    "Error in computing the eigen decomposition." );
-}`
-
+  return internal::heevr( space, decompositionOptions, A, eigenValues, eigenVectors, support, workspace, storageType, true );
+}
 
 // explicit instantiations.
-template void heev< float >(
+template int heevr< float >(
   MemorySpace const space,
-  EigenDecompositionOption const decompositionType,
-  ArraySlice< std::complex< float >, 2, 1, INDEX_TYPE > const & A,
-  ArraySlice< float, 1, 0, INDEX_TYPE > const & eigenValues,
-  Workspace< float > & workspace,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< float > > const & A,
+  Vector< float > const & eigenValues,
+  Matrix< std::complex< float > > const & eigenVectors,
+  Vector< int > const & support,
+  Workspace< std::complex< float > > & workspace,
   SymmetricMatrixStorageType const storageType );
 
-template void heev< double >(
-  MemorySpace const space,
-  EigenDecompositionOption const decompositionType,
-  ArraySlice< std::complex< double >, 2, 1, INDEX_TYPE > const & A,
-  ArraySlice< double, 1, 0, INDEX_TYPE > const & eigenValues,
-  Workspace< double > & workspace,
-  SymmetricMatrixStorageType const storageType );
+// template int heevr< double >(
+//   MemorySpace const space,
+//   EigenDecompositionOptions const decompositionOptions,
+//   Matrix< std::complex< double > > const & A,
+//   Vector< double > const & eigenValues,
+//   Matrix< std::complex< double > > const & eigenVectors,
+//   Vector< int > const & support,
+//   Workspace< std::complex< double > > & workspace,
+//   SymmetricMatrixStorageType const storageType );
 
 } // namespace dense
 } // namespace LvArray
