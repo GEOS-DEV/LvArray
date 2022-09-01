@@ -65,11 +65,21 @@ struct Matrix
    *
    */
   template< typename INDEX_TYPE  >
-  Matrix( ArraySlice< T, 2, 1, INDEX_TYPE > const & slice ):
+  Matrix( ArraySlice< T, 2, 0, INDEX_TYPE > const & slice ):
     nRows{ integerConversion< DenseInt >( slice.size( 1 ) ) },
     nCols{ integerConversion< DenseInt >( slice.size( 0 ) ) },
-    stride{ integerConversion< DenseInt >( slice.strides()[ 0 ] ) },
-    data{ &slice( 0, 0 ) }
+    stride{ integerConversion< DenseInt >( slice.stride( 1 ) ) },
+    columnMajor{ true },
+    data{ slice.data() }
+  {}
+
+  template< typename INDEX_TYPE  >
+  Matrix( T & value ):
+    nRows{ 1 },
+    nCols{ 1 },
+    stride{ 1 },
+    columnMajor{ true },
+    data{ &value }
   {}
 
   /**
@@ -83,6 +93,7 @@ struct Matrix
   DenseInt const nRows;
   DenseInt const nCols;
   DenseInt const stride;
+  bool const columnMajor;
   T * const data;
 };
 
@@ -94,38 +105,121 @@ struct Vector
 {
   template< int USD, typename INDEX_TYPE >
   Vector( ArraySlice< T, 1, USD, INDEX_TYPE > const & slice ):
-    n{ integerConversion< DenseInt >( slice.size() ) },
-    stride{ integerConversion< DenseInt >( slice.strides()[ 0 ] )  },
-    data{ &slice[ 0 ] }
+    size{ integerConversion< DenseInt >( slice.size() ) },
+    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) },
+    data{ slice.data() }
   {}
 
-  DenseInt const n;
+  Vector( T & value ):
+    size{ 1 },
+    stride{ 1 },
+    data{ &value }
+  {}
+
+  DenseInt const size;
   DenseInt const stride;
   T * const data;
 };
 
 /**
- * TODO(corbett5): Make this into a virtual heirarchy so we can get rid of ChaiBuffer here.
- * Also add a version that is only for computing sizes so no dynamic allocation needed.
- * When that is done you can get rid of the constructor here.
+ *
  */
 template< typename T >
 struct Workspace
 {
-  Workspace()
+  virtual ~Workspace()
+  {};
+
+  virtual Vector< T > work() = 0;
+
+  virtual Vector< RealVersion< T > > rwork() = 0;
+
+  virtual Vector< DenseInt > iwork() = 0;
+
+  virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) = 0;
+
+  virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) = 0;
+
+  virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) = 0;
+};
+
+/**
+ *
+ */
+template< typename T, template< typename > class BUFFER_TYPE >
+struct ArrayWorkspace : public Workspace< T >
+{
+  ArrayWorkspace()
   {}
 
-  Workspace( std::ptrdiff_t initialSize ):
-    work( initialSize ),
-    rwork( initialSize ),
-    iwork( initialSize )
+  virtual Vector< T > work() override
+  { return m_work.toSlice(); }
+
+  virtual Vector< RealVersion< T > > rwork() override
+  { return m_rwork.toSlice(); }
+
+  virtual Vector< DenseInt > iwork() override
+  { return m_iwork.toSlice(); }
+
+  virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) override
+  { m_work.resizeWithoutInitializationOrDestruction( space, newSize ); }
+ 
+  virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) override
+  { m_rwork.resizeWithoutInitializationOrDestruction( space, newSize ); }
+
+  virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) override
+  { m_iwork.resizeWithoutInitializationOrDestruction( space, newSize ); }
+
+private:
+  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work;
+
+  Array< RealVersion< T >, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_rwork;
+
+  Array< DenseInt, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_iwork;
+};
+
+/**
+ *
+ */
+template< typename T >
+struct OptimalSizeCalculation : public Workspace< T >
+{
+  OptimalSizeCalculation()
   {}
 
-  Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, ChaiBuffer > work;
+  virtual Vector< T > work() override
+  { return m_work; }
 
-  Array< RealVersion< T >, 1, RAJA::PERM_I, std::ptrdiff_t, ChaiBuffer > rwork;
+  virtual Vector< RealVersion< T > > rwork() override
+  { return m_rwork; }
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, ChaiBuffer > iwork;
+  virtual Vector< int > iwork() override
+  { return m_iwork; }
+
+  virtual void resizeWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
+
+  virtual void resizeRWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
+
+  virtual void resizeIWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
+
+  DenseInt optimalWorkSize() const
+  { return static_cast< DenseInt >( m_work.real() ); }
+
+  DenseInt optimalRWorkSize() const
+  { return static_cast< DenseInt >( m_rwork ); }
+
+  DenseInt optimalIWorkSize() const
+  { return m_iwork; }
+
+private:
+  T m_work;
+
+  RealVersion< T > m_rwork;
+
+  DenseInt m_iwork;
 };
 
 } // namespace dense

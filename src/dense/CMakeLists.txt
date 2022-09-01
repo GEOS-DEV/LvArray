@@ -1,11 +1,11 @@
 set( lvarraydense_headers
      common.hpp
-     eigendecomposition.hpp
+     eigenDecomposition.hpp
     )
 
 set( lvarraydense_sources
      common.cpp
-     eigendecomposition.cpp
+     eigenDecomposition.cpp
     )
 
 blt_add_library( NAME             lvarraydense

@@ -18,6 +18,12 @@ def cmake_cache_entry(name, value, comment=""):
 
     return 'set(%s "%s" CACHE PATH "%s")\n\n' % (name, value, comment)
 
+def cmake_cache_list(name, value, comment=""):
+    """Generate a list for a cmake cache variable"""
+
+    indent = 5 + len(name)
+    join_str = '\n' + ' ' * indent
+    return 'set(%s %s CACHE STRING "%s")\n\n' % (name, join_str.join(value), comment)
 
 def cmake_cache_string(name, string, comment=""):
     """Generate a string for a cmake cache variable"""
@@ -50,7 +56,7 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('chai', default=False, description='Build Chai support')
     variant('caliper', default=False, description='Build Caliper support')
     variant('pylvarray', default=False, description='Build Python support')
-    # variant('lapack', default=False, description='Build LAPACK and BLAS support')
+    variant('lapack', default=False, description='Build LAPACK and BLAS support')
     # variant('magma', default=False, description='Build MAGMA support')
     variant('tests', default=True, description='Build tests')
     variant('benchmarks', default=False, description='Build benchmarks')
@@ -61,7 +67,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     # conflicts('~lapack', when='+magma')
 
-    depends_on('blt', when='@0.2.0:', type='build')
+    depends_on('blt@0.4.1:', when='@0.2.0:', type='build')
 
     depends_on('camp')
     depends_on('camp+cuda', when='+cuda')
@@ -83,8 +89,8 @@ class Lvarray(CMakePackage, CudaPackage):
     depends_on('py-scipy@1.5.2: +force-parallel-build', when='+pylvarray')
     depends_on('py-pip', when='+pylvarray')
 
-    # depends_on('blas', when='+lapack')
-    # depends_on('lapack', when='+lapack')
+    depends_on('blas', when='+lapack')
+    depends_on('lapack', when='+lapack')
     # depends_on('magma', when='+magma')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
@@ -166,194 +172,195 @@ class Lvarray(CMakePackage, CudaPackage):
         cmake_exe = os.path.realpath(cmake_exe)
 
         host_config_path = self._get_host_config_path(spec)
-        cfg = open(host_config_path, "w")
-        cfg.write("#{0}\n".format("#" * 80))
-        cfg.write("# Generated host-config - Edit at own risk!\n")
-        cfg.write("#{0}\n".format("#" * 80))
+        with open(host_config_path, "w") as cfg:
+            cfg.write("#{0}\n".format("#" * 80))
+            cfg.write("# Generated host-config - Edit at own risk!\n")
+            cfg.write("#{0}\n".format("#" * 80))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# SYS_TYPE: {0}\n".format(sys_type))
-        cfg.write("# Compiler Spec: {0}\n".format(spec.compiler))
-        cfg.write("# CMake executable path: %s\n" % cmake_exe)
-        cfg.write("#{0}\n\n".format("-" * 80))
-
-        if 'blt' in spec:
-            cfg.write(cmake_cache_entry('BLT_SOURCE_DIR', spec['blt'].prefix))
-
-        #######################
-        # Compiler Settings
-        #######################
-
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Compilers\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
-        cfg.write(cmake_cache_entry("CMAKE_C_COMPILER", c_compiler))
-        cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
-
-        # use global spack compiler flags
-        cflags = ' '.join(spec.compiler_flags['cflags'])
-        cxxflags = ' '.join(spec.compiler_flags['cxxflags'])
-
-        if "%intel" in spec:
-            cflags += ' -qoverride-limits'
-            cxxflags += ' -qoverride-limits'
-
-        if cflags:
-            cfg.write(cmake_cache_entry("CMAKE_C_FLAGS", cflags))
-
-        if cxxflags:
-            cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
-
-        release_flags = "-O3 -DNDEBUG"
-        cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_RELEASE",
-                                     release_flags))
-        reldebinf_flags = "-O3 -g -DNDEBUG"
-        cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_RELWITHDEBINFO",
-                                     reldebinf_flags))
-        debug_flags = "-O0 -g"
-        cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
-
-        if "%clang arch=linux-rhel7-ppc64le" in spec:
-            cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
-
-        if "+cuda" in spec:
             cfg.write("#{0}\n".format("-" * 80))
-            cfg.write("# Cuda\n")
+            cfg.write("# SYS_TYPE: {0}\n".format(sys_type))
+            cfg.write("# Compiler Spec: {0}\n".format(spec.compiler))
+            cfg.write("# Spec: {0}\n".format(spec))
+            cfg.write("# CMake executable path: %s\n" % cmake_exe)
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            cfg.write(cmake_cache_option("ENABLE_CUDA", True))
-            cfg.write(cmake_cache_entry("CMAKE_CUDA_STANDARD", 14))
+            if 'blt' in spec:
+                cfg.write(cmake_cache_entry('BLT_SOURCE_DIR', spec['blt'].prefix))
 
-            cudatoolkitdir = spec['cuda'].prefix
-            cfg.write(cmake_cache_entry("CUDA_TOOLKIT_ROOT_DIR",
-                                        cudatoolkitdir))
-            cudacompiler = "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc"
-            cfg.write(cmake_cache_entry("CMAKE_CUDA_COMPILER", cudacompiler))
+            #######################
+            # Compiler Settings
+            #######################
 
-            cmake_cuda_flags = ('-restrict --expt-extended-lambda -Werror '
-                                'cross-execution-space-call,reorder,'
-                                'deprecated-declarations')
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# Compilers\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+            cfg.write(cmake_cache_entry("CMAKE_C_COMPILER", c_compiler))
+            cfg.write(cmake_cache_entry("CMAKE_CXX_COMPILER", cpp_compiler))
 
-            archSpecifiers = ("-mtune", "-mcpu", "-march", "-qtune", "-qarch")
-            for archSpecifier in archSpecifiers:
-                for compilerArg in spec.compiler_flags['cxxflags']:
-                    if compilerArg.startswith(archSpecifier):
-                        cmake_cuda_flags += ' -Xcompiler ' + compilerArg
+            # use global spack compiler flags
+            cflags = ' '.join(spec.compiler_flags['cflags'])
+            cxxflags = ' '.join(spec.compiler_flags['cxxflags'])
 
-            if not spec.satisfies('cuda_arch=none'):
-                cuda_arch = spec.variants['cuda_arch'].value
-                cmake_cuda_flags += ' -arch sm_{0}'.format(cuda_arch[0])
+            if "%intel" in spec:
+                cflags += ' -qoverride-limits'
+                cxxflags += ' -qoverride-limits'
 
-            cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS", cmake_cuda_flags))
+            if cflags:
+                cfg.write(cmake_cache_entry("CMAKE_C_FLAGS", cflags))
 
-            cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE",
-                                         "-O3 -Xcompiler -O3 -DNDEBUG"))
-            cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO",
-                                         "-O3 -g -lineinfo -Xcompiler -O3"))
-            cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_DEBUG",
-                                         "-O0 -Xcompiler -O0 -g -G"))
+            if cxxflags:
+                cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
 
-        else:
-            cfg.write(cmake_cache_option("ENABLE_CUDA", False))
+            release_flags = "-O3 -DNDEBUG"
+            cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_RELEASE",
+                                        release_flags))
+            reldebinf_flags = "-O3 -g -DNDEBUG"
+            cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_RELWITHDEBINFO",
+                                        reldebinf_flags))
+            debug_flags = "-O0 -g"
+            cfg.write(cmake_cache_string("CMAKE_CXX_FLAGS_DEBUG", debug_flags))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# CAMP\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+            if "%clang arch=linux-rhel7-ppc64le" in spec:
+                cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", "-Wl,--no-toc-optimize"))
 
-        cfg.write(cmake_cache_entry("CAMP_DIR", spec['camp'].prefix))
+            if "+cuda" in spec:
+                cfg.write("#{0}\n".format("-" * 80))
+                cfg.write("# Cuda\n")
+                cfg.write("#{0}\n\n".format("-" * 80))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# RAJA\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+                cfg.write(cmake_cache_option("ENABLE_CUDA", True))
+                cfg.write(cmake_cache_entry("CMAKE_CUDA_STANDARD", 14))
 
-        cfg.write(cmake_cache_entry("RAJA_DIR", spec['raja'].prefix))
+                cudatoolkitdir = spec['cuda'].prefix
+                cfg.write(cmake_cache_entry("CUDA_TOOLKIT_ROOT_DIR",
+                                            cudatoolkitdir))
+                cudacompiler = "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc"
+                cfg.write(cmake_cache_entry("CMAKE_CUDA_COMPILER", cudacompiler))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Umpire\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+                cmake_cuda_flags = ('-restrict --expt-extended-lambda -Werror '
+                                    'cross-execution-space-call,reorder,'
+                                    'deprecated-declarations')
 
-        if "+umpire" in spec:
-            cfg.write(cmake_cache_option("ENABLE_UMPIRE", True))
-            cfg.write(cmake_cache_entry("UMPIRE_DIR", spec['umpire'].prefix))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_UMPIRE", False))
+                archSpecifiers = ("-mtune", "-mcpu", "-march", "-qtune", "-qarch")
+                for archSpecifier in archSpecifiers:
+                    for compilerArg in spec.compiler_flags['cxxflags']:
+                        if compilerArg.startswith(archSpecifier):
+                            cmake_cuda_flags += ' -Xcompiler ' + compilerArg
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# CHAI\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+                if not spec.satisfies('cuda_arch=none'):
+                    cuda_arch = spec.variants['cuda_arch'].value
+                    cmake_cuda_flags += ' -arch sm_{0}'.format(cuda_arch[0])
 
-        if "+chai" in spec:
-            cfg.write(cmake_cache_option("ENABLE_CHAI", True))
-            cfg.write(cmake_cache_entry("CHAI_DIR", spec['chai'].prefix))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_CHAI", False))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS", cmake_cuda_flags))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Caliper\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE",
+                                            "-O3 -Xcompiler -O3 -DNDEBUG"))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO",
+                                            "-O3 -g -lineinfo -Xcompiler -O3"))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_DEBUG",
+                                            "-O0 -Xcompiler -O0 -g -G"))
 
-        if "+caliper" in spec:
+            else:
+                cfg.write(cmake_cache_option("ENABLE_CUDA", False))
+
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# CAMP\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+
+            cfg.write(cmake_cache_entry("CAMP_DIR", spec['camp'].prefix))
+
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# RAJA\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+
+            cfg.write(cmake_cache_entry("RAJA_DIR", spec['raja'].prefix))
+
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# Umpire\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+
+            if "+umpire" in spec:
+                cfg.write(cmake_cache_option("ENABLE_UMPIRE", True))
+                cfg.write(cmake_cache_entry("UMPIRE_DIR", spec['umpire'].prefix))
+            else:
+                cfg.write(cmake_cache_option("ENABLE_UMPIRE", False))
+
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# CHAI\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+
+            if "+chai" in spec:
+                cfg.write(cmake_cache_option("ENABLE_CHAI", True))
+                cfg.write(cmake_cache_entry("CHAI_DIR", spec['chai'].prefix))
+            else:
+                cfg.write(cmake_cache_option("ENABLE_CHAI", False))
+
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Caliper\n")
             cfg.write("#{0}\n\n".format("-" * 80))
 
-            cfg.write(cmake_cache_option("ENABLE_CALIPER", True))
-            cfg.write(cmake_cache_entry("CALIPER_DIR", spec['caliper'].prefix))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_CALIPER", False))
+            if "+caliper" in spec:
+                cfg.write("#{0}\n".format("-" * 80))
+                cfg.write("# Caliper\n")
+                cfg.write("#{0}\n\n".format("-" * 80))
 
-        cfg.write('#{0}\n'.format('-' * 80))
-        cfg.write('# Python\n')
-        cfg.write('#{0}\n\n'.format('-' * 80))
-        if '+pylvarray' in spec:
-            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
-            cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
-        else:
-            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', False))
+                cfg.write(cmake_cache_option("ENABLE_CALIPER", True))
+                cfg.write(cmake_cache_entry("CALIPER_DIR", spec['caliper'].prefix))
+            else:
+                cfg.write(cmake_cache_option("ENABLE_CALIPER", False))
 
-        # cfg.write('#{0}\n'.format('-' * 80))
-        # cfg.write('# Math libraries\n')
-        # cfg.write('#{0}\n\n'.format('-' * 80))
-        # if '+lapack' in spec:
-        #     cfg.write(cmake_cache_option('ENABLE_LAPACK', True))
-        #     cfg.write(cmake_cache_list('BLAS_LIBRARIES', spec['blas'].libs))
-        #     cfg.write(cmake_cache_list('LAPACK_LIBRARIES', spec['lapack'].libs))
-        # else:
-        #     cfg.write(cmake_cache_option('ENABLE_LAPACK', False))
+            cfg.write('#{0}\n'.format('-' * 80))
+            cfg.write('# Python\n')
+            cfg.write('#{0}\n\n'.format('-' * 80))
+            if '+pylvarray' in spec:
+                cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
+                cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
+            else:
+                cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', False))
 
-        # if '+magma' in spec:
-        #     cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
-        #     cfg.write(cmake_cache_list('MAGMA_DIR', spec['magma'].prefix))
-        # else:
-        #     cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
+            cfg.write('#{0}\n'.format('-' * 80))
+            cfg.write('# Math libraries\n')
+            cfg.write('#{0}\n\n'.format('-' * 80))
+            if '+lapack' in spec:
+                cfg.write(cmake_cache_option('ENABLE_LAPACK', True))
+                cfg.write(cmake_cache_list('BLAS_LIBRARIES', spec['blas'].libs))
+                cfg.write(cmake_cache_list('LAPACK_LIBRARIES', spec['lapack'].libs))
+            else:
+                cfg.write(cmake_cache_option('ENABLE_LAPACK', False))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Documentation\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
-        if "+docs" in spec:
-            cfg.write(cmake_cache_option("ENABLE_DOCS", True))
-            sphinx_dir = spec['py-sphinx'].prefix
-            cfg.write(cmake_cache_string('SPHINX_EXECUTABLE',
-                                         os.path.join(sphinx_dir,
-                                                      'bin',
-                                                      'sphinx-build')))
+            # if '+magma' in spec:
+            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
+            #     cfg.write(cmake_cache_list('MAGMA_DIR', spec['magma'].prefix))
+            # else:
+            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
 
-            doxygen_dir = spec['doxygen'].prefix
-            cfg.write(cmake_cache_string('DOXYGEN_EXECUTABLE',
-                                         os.path.join(doxygen_dir,
-                                                      'bin',
-                                                      'doxygen')))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_DOCS", False))
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# Documentation\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+            if "+docs" in spec:
+                cfg.write(cmake_cache_option("ENABLE_DOCS", True))
+                sphinx_dir = spec['py-sphinx'].prefix
+                cfg.write(cmake_cache_string('SPHINX_EXECUTABLE',
+                                            os.path.join(sphinx_dir,
+                                                        'bin',
+                                                        'sphinx-build')))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# addr2line\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
-        cfg.write(cmake_cache_option('ENABLE_ADDR2LINE', '+addr2line' in spec))
+                doxygen_dir = spec['doxygen'].prefix
+                cfg.write(cmake_cache_string('DOXYGEN_EXECUTABLE',
+                                            os.path.join(doxygen_dir,
+                                                        'bin',
+                                                        'doxygen')))
+            else:
+                cfg.write(cmake_cache_option("ENABLE_DOCS", False))
 
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Other\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# addr2line\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
+            cfg.write(cmake_cache_option('ENABLE_ADDR2LINE', '+addr2line' in spec))
+
+            cfg.write("#{0}\n".format("-" * 80))
+            cfg.write("# Other\n")
+            cfg.write("#{0}\n\n".format("-" * 80))
 
     def cmake_args(self):
         spec = self.spec
