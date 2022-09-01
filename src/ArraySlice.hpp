@@ -309,6 +309,15 @@ public:
   }
 
   /**
+   * @brief 
+   */
+  LVARRAY_HOST_DEVICE inline constexpr
+  T * data() const
+  {
+    return m_data;
+  }
+
+  /**
    * @return Return a pointer to the values.
    * @tparam USD_ Dummy template parameter, do not specify.
    * @pre The slice must be contiguous.
