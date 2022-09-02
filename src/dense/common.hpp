@@ -53,6 +53,26 @@ template< typename T >
 using RealVersion = typename internal::RealVersion< T >::Type;
 
 
+/**
+ *
+ */
+enum class BuiltInBackends
+{
+  LAPACK,
+#if defined( LVARRAY_USE_MAGMA )
+  MAGMA,
+  MAGMA_GPU,
+#endif
+};
+
+/**
+ *
+ */
+MemorySpace getSpaceForBackend( BuiltInBackends const backend );
+
+/**
+ *
+ */
 using DenseInt = int;
 
 /**
@@ -73,7 +93,9 @@ struct Matrix
     data{ slice.data() }
   {}
 
-  template< typename INDEX_TYPE  >
+  /**
+   *
+   */
   Matrix( T & value ):
     nRows{ 1 },
     nCols{ 1 },
@@ -132,11 +154,19 @@ struct Workspace
 
   virtual Vector< T > work() = 0;
 
+  virtual Vector< T > work2() = 0;
+
+  virtual Vector< T > work3() = 0;
+
   virtual Vector< RealVersion< T > > rwork() = 0;
 
   virtual Vector< DenseInt > iwork() = 0;
 
   virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) = 0;
+
+  virtual void resizeWork2( MemorySpace const space, DenseInt const newSize ) = 0;
+
+  virtual void resizeWork3( MemorySpace const space, DenseInt const newSize ) = 0;
 
   virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) = 0;
 
@@ -155,6 +185,12 @@ struct ArrayWorkspace : public Workspace< T >
   virtual Vector< T > work() override
   { return m_work.toSlice(); }
 
+  virtual Vector< T > work2() override
+  { return m_work2.toSlice(); }
+
+  virtual Vector< T > work3() override
+  { return m_work3.toSlice(); }
+
   virtual Vector< RealVersion< T > > rwork() override
   { return m_rwork.toSlice(); }
 
@@ -163,15 +199,27 @@ struct ArrayWorkspace : public Workspace< T >
 
   virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) override
   { m_work.resizeWithoutInitializationOrDestruction( space, newSize ); }
+
+  virtual void resizeWork2( MemorySpace const space, DenseInt const newSize ) override
+  { m_work2.resizeWithoutInitializationOrDestruction( space, newSize ); }
+
+  virtual void resizeWork3( MemorySpace const space, DenseInt const newSize ) override
+  { m_work3.resizeWithoutInitializationOrDestruction( space, newSize ); }
  
   virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) override
   { m_rwork.resizeWithoutInitializationOrDestruction( space, newSize ); }
 
   virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) override
-  { m_iwork.resizeWithoutInitializationOrDestruction( space, newSize ); }
+  {
+    m_iwork.resizeWithoutInitializationOrDestruction( space, newSize );
+  }
 
 private:
   Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work;
+
+  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work2;
+
+  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work3;
 
   Array< RealVersion< T >, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_rwork;
 
@@ -190,6 +238,12 @@ struct OptimalSizeCalculation : public Workspace< T >
   virtual Vector< T > work() override
   { return m_work; }
 
+  virtual Vector< T > work2() override
+  { return m_work2; }
+
+  virtual Vector< T > work3() override
+  { return m_work3; }
+
   virtual Vector< RealVersion< T > > rwork() override
   { return m_rwork; }
 
@@ -197,6 +251,12 @@ struct OptimalSizeCalculation : public Workspace< T >
   { return m_iwork; }
 
   virtual void resizeWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
+
+  virtual void resizeWork2( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
+
+  virtual void resizeWork3( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
   virtual void resizeRWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
@@ -215,11 +275,15 @@ struct OptimalSizeCalculation : public Workspace< T >
   { return m_iwork; }
 
 private:
-  T m_work;
+  T m_work { -1 };
 
-  RealVersion< T > m_rwork;
+  T m_work2 { -1 };
 
-  DenseInt m_iwork;
+  T m_work3 { -1 };
+
+  RealVersion< T > m_rwork { -1 };
+
+  DenseInt m_iwork { -1 };
 };
 
 } // namespace dense

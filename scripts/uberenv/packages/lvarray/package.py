@@ -57,7 +57,7 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('caliper', default=False, description='Build Caliper support')
     variant('pylvarray', default=False, description='Build Python support')
     variant('lapack', default=False, description='Build LAPACK and BLAS support')
-    # variant('magma', default=False, description='Build MAGMA support')
+    variant('magma', default=False, description='Build MAGMA support')
     variant('tests', default=True, description='Build tests')
     variant('benchmarks', default=False, description='Build benchmarks')
     variant('examples', default=False, description='Build examples')
@@ -65,7 +65,7 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('addr2line', default=True,
             description='Build support for addr2line.')
 
-    # conflicts('~lapack', when='+magma')
+    conflicts('~lapack', when='+magma')
 
     depends_on('blt@0.4.1:', when='@0.2.0:', type='build')
 
@@ -91,7 +91,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     depends_on('blas', when='+lapack')
     depends_on('lapack', when='+lapack')
-    # depends_on('magma', when='+magma')
+    depends_on('magma', when='+magma')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
     depends_on('py-sphinx@1.6.3:', when='+docs', type='build')
@@ -328,11 +328,11 @@ class Lvarray(CMakePackage, CudaPackage):
             else:
                 cfg.write(cmake_cache_option('ENABLE_LAPACK', False))
 
-            # if '+magma' in spec:
-            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
-            #     cfg.write(cmake_cache_list('MAGMA_DIR', spec['magma'].prefix))
-            # else:
-            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
+            if '+magma' in spec:
+                cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
+                cfg.write(cmake_cache_entry('MAGMA_DIR', spec['magma'].prefix))
+            else:
+                cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
 
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Documentation\n")

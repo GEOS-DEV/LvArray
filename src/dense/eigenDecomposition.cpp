@@ -1,5 +1,9 @@
 #include "eigenDecomposition.hpp"
 
+#if defined( LVARRAY_USE_MAGMA )
+  #include <magma.h>
+#endif
+
 /// This macro provide a flexible interface for Fortran naming convention for compiled objects
 // #ifdef FORTRAN_MANGLE_NO_UNDERSCORE
 #define FORTRAN_MANGLE( name ) name
@@ -79,17 +83,17 @@ namespace internal
  */
 template< typename T >
 DenseInt heevr(
-  MemorySpace const space,
+  BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
-  Vector< T > const & eigenValues,
-  Matrix< std::complex< T > > const & eigenVectors,
+  Vector< T > const & eigenvalues,
+  Matrix< std::complex< T > > const & eigenvectors,
   Vector< DenseInt > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType,
   bool const compute )
 {
-  LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Device not yet supported." );
+  LVARRAY_UNUSED_VARIABLE( backend );
 
   LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
 
@@ -105,27 +109,27 @@ DenseInt heevr(
   DenseInt maxEigenvaluesToFind = N;
   DenseInt const IL = decompositionOptions.indexMin;
   DenseInt const IU = decompositionOptions.indexMax;
-  if( decompositionOptions.range == EigenDecompositionOptions::Range::BY_INDEX )
+  if( decompositionOptions.range == EigenDecompositionOptions::BY_INDEX )
   {
     LVARRAY_ERROR_IF_GT( IU, N );
     maxEigenvaluesToFind = IU - IL + 1;
   }
 
-  LVARRAY_ERROR_IF_LT( eigenValues.size, maxEigenvaluesToFind );
+  LVARRAY_ERROR_IF_LT( eigenvalues.size, maxEigenvaluesToFind );
 
   DenseInt const ABSTOL = decompositionOptions.abstol;
   DenseInt M = 0;
 
-  if( decompositionOptions.type == EigenDecompositionOptions::Type::EIGENVALUES_AND_VECTORS )
+  if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_VECTORS )
   {
-    LVARRAY_ERROR_IF_NE( eigenVectors.nRows, N );
-    LVARRAY_ERROR_IF_LT( eigenVectors.nCols, maxEigenvaluesToFind );
+    LVARRAY_ERROR_IF_NE( eigenvectors.nRows, N );
+    LVARRAY_ERROR_IF_LT( eigenvectors.nCols, maxEigenvaluesToFind );
   }
 
-  DenseInt const LDZ = std::max( 1, eigenVectors.stride );
+  DenseInt const LDZ = std::max( 1, eigenvectors.stride );
 
-  if( decompositionOptions.range == EigenDecompositionOptions::Range::ALL ||
-      ( decompositionOptions.range == EigenDecompositionOptions::Range::BY_INDEX &&
+  if( decompositionOptions.range == EigenDecompositionOptions::ALL ||
+      ( decompositionOptions.range == EigenDecompositionOptions::BY_INDEX &&
         maxEigenvaluesToFind == N ) )
   {
     LVARRAY_ERROR_IF_LT( support.size, 2 * maxEigenvaluesToFind );
@@ -138,59 +142,178 @@ DenseInt heevr(
   DenseInt INFO = 0;
 
   // With C++ 17 we can remove the reinterpret_cast with constexpr if.
-  if( std::is_same< T, float >::value )
+  if( backend == BuiltInBackends::LAPACK )
   {
-    LVARRAY_CHEEVR(
-      JOBZ,
-      RANGE,
-      UPLO,
-      &N,
-      reinterpret_cast< std::complex< float > * >( A.data ),
-      &LDA,
-      reinterpret_cast< float const * >( &VL ),
-      reinterpret_cast< float const * >( &VU ),
-      &IL,
-      &IU,
-      reinterpret_cast< float const * >( &ABSTOL ),
-      &M,
-      reinterpret_cast< float * >( eigenValues.data ),
-      reinterpret_cast< std::complex< float > * >( eigenVectors.data ),
-      &LDZ,
-      support.data,
-      reinterpret_cast< std::complex< float > * >( workspace.work().data ),
-      &LWORK,
-      reinterpret_cast< float * >( workspace.rwork().data ),
-      &LRWORK,
-      workspace.iwork().data,
-      &LIWORK,
-      &INFO );
+    if( std::is_same< T, float >::value )
+    {
+      LVARRAY_CHEEVR(
+        JOBZ,
+        RANGE,
+        UPLO,
+        &N,
+        reinterpret_cast< std::complex< float > * >( A.data ),
+        &LDA,
+        reinterpret_cast< float const * >( &VL ),
+        reinterpret_cast< float const * >( &VU ),
+        &IL,
+        &IU,
+        reinterpret_cast< float const * >( &ABSTOL ),
+        &M,
+        reinterpret_cast< float * >( eigenvalues.data ),
+        reinterpret_cast< std::complex< float > * >( eigenvectors.data ),
+        &LDZ,
+        support.data,
+        reinterpret_cast< std::complex< float > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< float * >( workspace.rwork().data ),
+        &LRWORK,
+        workspace.iwork().data,
+        &LIWORK,
+        &INFO );
+    }
+    else
+    {
+      LVARRAY_ZHEEVR(
+        JOBZ,
+        RANGE,
+        UPLO,
+        &N,
+        reinterpret_cast< std::complex< double > * >( A.data ),
+        &LDA,
+        reinterpret_cast< double const * >( &VL ),
+        reinterpret_cast< double const * >( &VU ),
+        &IL,
+        &IU,
+        reinterpret_cast< double const * >( &ABSTOL ),
+        &M,
+        reinterpret_cast< double * >( eigenvalues.data ),
+        reinterpret_cast< std::complex< double > * >( eigenvectors.data ),
+        &LDZ,
+        support.data,
+        reinterpret_cast< std::complex< double > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< double * >( workspace.rwork().data ),
+        &LRWORK,
+        workspace.iwork().data,
+        &LIWORK,
+        &INFO );
+    }
   }
+#if defined( LVARRAY_USE_MAGMA )
+  else if( backend == BuiltInBackends::MAGMA )
+  {
+    if( std::is_same< T, float >::value )
+    {
+      magma_cheevr(
+        magma_vec_const( *JOBZ ),
+        magma_range_const( *RANGE ),
+        magma_uplo_const( *UPLO ),
+        N,
+        reinterpret_cast< magmaFloatComplex * >( A.data ),
+        LDA,
+        VL,
+        VU,
+        IL,
+        IU,
+        ABSTOL,
+        &M,
+        reinterpret_cast< float * >( eigenvalues.data ),
+        reinterpret_cast< magmaFloatComplex * >( eigenvectors.data ),
+        LDZ,
+        support.data,
+        reinterpret_cast< magmaFloatComplex * >( workspace.work().data ),
+        LWORK,
+        reinterpret_cast< float * >( workspace.rwork().data ),
+        LRWORK,
+        workspace.iwork().data,
+        LIWORK,
+        &INFO );
+    }
+    else
+    {
+      magma_zheevr(
+        magma_vec_const( *JOBZ ),
+        magma_range_const( *RANGE ),
+        magma_uplo_const( *UPLO ),
+        N,
+        reinterpret_cast< magmaDoubleComplex * >( A.data ),
+        LDA,
+        VL,
+        VU,
+        IL,
+        IU,
+        ABSTOL,
+        &M,
+        reinterpret_cast< double * >( eigenvalues.data ),
+        reinterpret_cast< magmaDoubleComplex * >( eigenvectors.data ),
+        LDZ,
+        support.data,
+        reinterpret_cast< magmaDoubleComplex * >( workspace.work().data ),
+        LWORK,
+        reinterpret_cast< double * >( workspace.rwork().data ),
+        LRWORK,
+        workspace.iwork().data,
+        LIWORK,
+        &INFO );
+    }
+  }
+  else if( backend == BuiltInBackends::MAGMA_GPU )
+  {
+    int LDWA = N;
+    int LDWZ = 1;
+
+    if( compute )
+    {
+      workspace.resizeWork2( MemorySpace::cuda, LDWA * N );
+
+      if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_VECTORS )
+      {
+        LDWZ = N;
+      }
+
+      workspace.resizeWork3( MemorySpace::cuda, LDWZ * maxEigenvaluesToFind );
+    }
+
+    if( std::is_same< T, float >::value )
+    {
+      magma_cheevr_gpu(
+        magma_vec_const( *JOBZ ),
+        magma_range_const( *RANGE ),
+        magma_uplo_const( *UPLO ),
+        N,
+        reinterpret_cast< magmaFloatComplex * >( A.data ),
+        LDA,
+        VL,
+        VU,
+        IL,
+        IU,
+        ABSTOL,
+        &M,
+        reinterpret_cast< float * >( eigenvalues.data ),
+        reinterpret_cast< magmaFloatComplex * >( eigenvectors.data ),
+        LDZ,
+        support.data,
+        reinterpret_cast< magmaFloatComplex * >( workspace.work2().data ),
+        LDWA,
+        reinterpret_cast< magmaFloatComplex * >( workspace.work3().data ),
+        LDWZ,
+        reinterpret_cast< magmaFloatComplex * >( workspace.work().data ),
+        LWORK,
+        reinterpret_cast< float * >( workspace.rwork().data ),
+        LRWORK,
+        workspace.iwork().data,
+        LIWORK,
+        &INFO );
+    }
+    else
+    {
+      LVARRAY_ERROR( "Not supported." );
+    }
+  }
+#endif
   else
   {
-    LVARRAY_ZHEEVR(
-      JOBZ,
-      RANGE,
-      UPLO,
-      &N,
-      reinterpret_cast< std::complex< double > * >( A.data ),
-      &LDA,
-      reinterpret_cast< double const * >( &VL ),
-      reinterpret_cast< double const * >( &VU ),
-      &IL,
-      &IU,
-      reinterpret_cast< double const * >( &ABSTOL ),
-      &M,
-      reinterpret_cast< double * >( eigenValues.data ),
-      reinterpret_cast< std::complex< double > * >( eigenVectors.data ),
-      &LDZ,
-      support.data,
-      reinterpret_cast< std::complex< double > * >( workspace.work().data ),
-      &LWORK,
-      reinterpret_cast< double * >( workspace.rwork().data ),
-      &LRWORK,
-      workspace.iwork().data,
-      &LIWORK,
-      &INFO );
+    LVARRAY_ERROR( "Unknown built in backend: " << static_cast< int >( backend ) );
   }
 
   LVARRAY_ERROR_IF_NE( INFO, 0 );
@@ -203,15 +326,20 @@ DenseInt heevr(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename T >
 DenseInt heevr(
-  MemorySpace const space,
+  BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
-  Vector< T > const & eigenValues,
-  Matrix< std::complex< T > > const & eigenVectors,
+  Vector< T > const & eigenvalues,
+  Matrix< std::complex< T > > const & eigenvectors,
   Vector< DenseInt > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
 {
+  // TODO(corbett5): I think we can support row major by simply complex-conjugating all entries.
+  // I'm not sure exactly how this would work for the eigenvectors though.
+  LVARRAY_ERROR_IF( !A.columnMajor, "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !eigenvectors.columnMajor, "Row major is not yet supported." );
+
   bool const reallocateWork = workspace.work().size < 2 * A.nRows;
   bool const reallocateRWork = workspace.rwork().size < 24 * A.nRows;
   bool const reallocateIWork = workspace.iwork().size < 10 * A.nRows;
@@ -219,25 +347,30 @@ DenseInt heevr(
   if( reallocateWork || reallocateRWork || reallocateIWork )
   {
     OptimalSizeCalculation< std::complex< T > > optimalSizes;
-    internal::heevr( MemorySpace::host, decompositionOptions, A, eigenValues, eigenVectors, support, optimalSizes, storageType, false );
+    internal::heevr( backend, decompositionOptions, A, eigenvalues, eigenvectors, support, optimalSizes, storageType, false );
     
+    MemorySpace const space = getSpaceForBackend( backend );
+
     if( reallocateWork )
     {
+      LVARRAY_LOG_VAR( optimalSizes.optimalWorkSize() );
       workspace.resizeWork( space, optimalSizes.optimalWorkSize() );
     }
 
     if( reallocateRWork )
     {
+      LVARRAY_LOG_VAR( optimalSizes.optimalRWorkSize() );
       workspace.resizeRWork( space, optimalSizes.optimalRWorkSize() );
     }
 
     if( reallocateIWork )
     {
+      LVARRAY_LOG_VAR( optimalSizes.optimalIWorkSize() );
       workspace.resizeIWork( space, optimalSizes.optimalIWorkSize() );
     }
   }
 
-  return internal::heevr( space, decompositionOptions, A, eigenValues, eigenVectors, support, workspace, storageType, true );
+  return internal::heevr( backend, decompositionOptions, A, eigenvalues, eigenvectors, support, workspace, storageType, true );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,22 +379,22 @@ DenseInt heevr(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template DenseInt heevr< float >(
-  MemorySpace const space,
+  BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< float > > const & A,
-  Vector< float > const & eigenValues,
-  Matrix< std::complex< float > > const & eigenVectors,
+  Vector< float > const & eigenvalues,
+  Matrix< std::complex< float > > const & eigenvectors,
   Vector< DenseInt > const & support,
   Workspace< std::complex< float > > & workspace,
   SymmetricMatrixStorageType const storageType );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template DenseInt heevr< double >(
-  MemorySpace const space,
+  BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< double > > const & A,
-  Vector< double > const & eigenValues,
-  Matrix< std::complex< double > > const & eigenVectors,
+  Vector< double > const & eigenvalues,
+  Matrix< std::complex< double > > const & eigenvectors,
   Vector< DenseInt > const & support,
   Workspace< std::complex< double > > & workspace,
   SymmetricMatrixStorageType const storageType );
