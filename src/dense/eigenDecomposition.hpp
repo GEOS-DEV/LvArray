@@ -37,7 +37,9 @@ struct EigenDecompositionOptions
   EigenDecompositionOptions( Type const typeP, double const abstolP=0 ):
     type{ typeP },
     abstol{ abstolP }
-  {}
+  {
+    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
+  }
 
   /**
    *
@@ -48,11 +50,12 @@ struct EigenDecompositionOptions
     double const rangeMaxP,
     double const abstolP ):
     type{ typeP },
-    range{ Range::IN_INTERVAL },
+    range{ IN_INTERVAL },
     rangeMin{ rangeMinP },
     rangeMax{ rangeMaxP },
     abstol{ abstolP }
   {
+    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
     LVARRAY_ERROR_IF_GE( rangeMin, rangeMax );
   }
 
@@ -65,11 +68,12 @@ struct EigenDecompositionOptions
     DenseInt const indexMaxP,
     double const abstolP ):
     type{ typeP },
-    range{ Range::IN_INTERVAL },
+    range{ IN_INTERVAL },
     indexMin{ indexMinP },
     indexMax{ indexMaxP },
     abstol{ abstolP }
   {
+    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
     LVARRAY_ERROR_IF_LT( indexMin, 1 );
     LVARRAY_ERROR_IF_GT( indexMin, indexMax );
   }
@@ -82,7 +86,7 @@ struct EigenDecompositionOptions
     static constexpr char const * const eigenvalueString = "N";
     static constexpr char const * const eigenvectorString = "V";
 
-    return type == Type::EIGENVALUES ? eigenvalueString : eigenvectorString;
+    return type == EIGENVALUES ? eigenvalueString : eigenvectorString;
   }
 
   /**
@@ -94,17 +98,17 @@ struct EigenDecompositionOptions
     static constexpr char const * const intervalString = "V";
     static constexpr char const * const indexString = "I";
 
-    if( range == Range::ALL )
+    if( range == ALL )
     { return allString; }
 
-    return range == Range::IN_INTERVAL ? intervalString : indexString;
+    return range == IN_INTERVAL ? intervalString : indexString;
   }
 
   ///
   Type const type;
 
   ///
-  Range const range = Range::ALL;
+  Range const range = ALL;
   
   ///
   double const rangeMin = std::numeric_limits< double >::max();
@@ -128,7 +132,7 @@ struct EigenDecompositionOptions
  */
 template< typename T >
 DenseInt heevr(
-  MemorySpace const space,
+  BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
   Vector< T > const & eigenValues,
@@ -140,9 +144,9 @@ DenseInt heevr(
 /**
  *
  */
-template< typename T, int USD, typename INDEX_TYPE >
+template< typename BACK_END, typename T, int USD, typename INDEX_TYPE >
 DenseInt heevr(
-  MemorySpace const space,
+  BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
   ArraySlice< std::complex< T >, 2, USD, INDEX_TYPE > const & A,
   ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
@@ -157,7 +161,7 @@ DenseInt heevr(
   Vector< DenseInt > supportVector( support );
 
   return heevr(
-    space,
+    std::forward< BACK_END >( backend ),
     decompositionOptions,
     AMatrix,
     eigenValuesVector,
@@ -170,9 +174,9 @@ DenseInt heevr(
 /**
  *
  */
-template< typename T, int USD, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+template< typename BACK_END, typename T, int USD, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 DenseInt heevr(
-  MemorySpace const space,
+  BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
   ArrayView< std::complex< T >, 2, USD, INDEX_TYPE, BUFFER_TYPE > const & A,
   ArrayView< T, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & eigenValues,
@@ -182,13 +186,14 @@ DenseInt heevr(
   SymmetricMatrixStorageType const storageType )
 {
   // Unclear about the touch here since half of A is destroyed, maybe it's not necessary.
+  MemorySpace const space = getSpaceForBackend( backend );
   A.move( space, true );
   eigenValues.move( space, true );
   eigenVectors.move( space, true );
   support.move( space, true );
 
   return heevr(
-    space,
+    std::forward< BACK_END >( backend ),
     decompositionOptions,
     A.toSlice(),
     eigenValues.toSlice(),

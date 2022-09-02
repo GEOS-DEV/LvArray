@@ -2,6 +2,15 @@ packages:
   all:
     target: [default]
     compiler: [gcc, clang, xl]
+    providers:
+      blas: [netlib-lapack]
+      lapack: [netlib-lapack]
+  
+  netlib-lapack:
+    buildable: False
+    externals:
+    - spec: netlib-lapack@3.10.0 ~external-blas
+      prefix: /usr/tcetmp/packages/lapack/lapack-3.10.0-P9-xl-2022.03.10/
 
   cuda:
     buildable: False

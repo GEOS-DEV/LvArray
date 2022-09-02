@@ -8,10 +8,17 @@ set( lvarraydense_sources
      eigenDecomposition.cpp
     )
 
+set( dependencies lvarray ${lvarray_dependencies} blas lapack )
+
+if( ENABLE_MAGMA )
+    set( dependencies ${dependencies} magma )
+endif()
+    
+
 blt_add_library( NAME             lvarraydense
                  SOURCES          ${lvarraydense_sources}
                  HEADERS          ${lvarraydense_headers}
-                 DEPENDS_ON       lvarray ${lvarray_dependencies} blas lapack
+                 DEPENDS_ON       ${dependencies}
                  SHARED TRUE
                  CLEAR_PREFIX TRUE
                  )

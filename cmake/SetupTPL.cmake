@@ -1,3 +1,60 @@
+macro(find_and_register)
+    set(singleValueArgs NAME HEADER)
+    set(multiValueArgs INCLUDE_DIRECTORIES
+                       LIBRARY_DIRECTORIES
+                       LIBRARIES
+                       EXTRA_LIBRARIES
+                       DEPENDS )
+
+    ## parse the arguments
+    cmake_parse_arguments(arg
+                          "${options}" "${singleValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(NOT DEFINED arg_NAME)
+        message(FATAL_ERROR "The find_and_register required parameter NAME specifies the name of the library to register.")
+    endif()
+
+    if(NOT DEFINED arg_INCLUDE_DIRECTORIES)
+        message(FATAL_ERROR "The find_and_register required parameter INCLUDE_DIRECTORIES specifies the directories to search for the given header.")
+    endif()
+
+    if(NOT DEFINED arg_LIBRARY_DIRECTORIES)
+        message(FATAL_ERROR "The find_and_register required parameter LIBRARY_DIRECTORIES specifies the directories to search for the given libraries.")
+    endif()
+
+    if(NOT DEFINED arg_HEADER)
+        message(FATAL_ERROR "The find_and_register required parameter HEADER specifies the header to search for.")
+    endif()
+
+    if(NOT DEFINED arg_LIBRARIES)
+        message(FATAL_ERROR "The find_and_register required parameter LIBRARIES specifies the libraries to search for.")
+    endif()
+
+    find_path(${arg_NAME}_INCLUDE_DIR ${arg_HEADER}
+              PATHS ${arg_INCLUDE_DIRECTORIES}
+              NO_DEFAULT_PATH
+              NO_CMAKE_ENVIRONMENT_PATH
+              NO_CMAKE_PATH
+              NO_SYSTEM_ENVIRONMENT_PATH
+              NO_CMAKE_SYSTEM_PATH)
+
+    if(${arg_NAME}_INCLUDE_DIR STREQUAL ${arg_NAME}_INCLUDE_DIR-NOTFOUND)
+        message(FATAL_ERROR "Could not find '${arg_HEADER}' in '${arg_INCLUDE_DIRECTORIES}'")
+    endif()
+
+    blt_find_libraries(FOUND_LIBS ${arg_NAME}_LIBRARIES
+                       NAMES ${arg_LIBRARIES}
+                       PATHS ${arg_LIBRARY_DIRECTORIES}
+                       REQUIRED ON)
+
+    blt_import_library(NAME ${arg_NAME}
+                         INCLUDES ${${arg_NAME}_INCLUDE_DIR}
+                         LIBRARIES ${${arg_NAME}_LIBRARIES} ${arg_EXTRA_LIBRARIES}
+                         TREAT_INCLUDES_AS_SYSTEM ON
+                         DEPENDS_ON ${arg_DEPENDS})
+
+endmacro(find_and_register)
+
 set(thirdPartyLibs "")
 
 ###############################
@@ -162,8 +219,11 @@ if(ENABLE_MAGMA)
         message(FATAL_ERROR "LAPACK must be enabled to use MAGMA.")
     endif()
 
-    find_package(magma REQUIRED
-                 PATHS ${MAGMA_DIR})
+    find_and_register(NAME magma
+                      INCLUDE_DIRECTORIES ${MAGMA_DIR}/include
+                      LIBRARY_DIRECTORIES ${MAGMA_DIR}/lib
+                      HEADER magma.h
+                      LIBRARIES magma)
     
     set(thirdPartyLibs ${thirdPartyLibs} magma)
 else()

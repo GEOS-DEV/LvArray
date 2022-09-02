@@ -15,39 +15,103 @@ namespace LvArray
 namespace testing
 {
 
+using namespace dense;
+
 template< typename T >
 using Array1d = Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, DEFAULT_BUFFER >;
 
 template< typename T, typename PERM >
 using Array2d = Array< T, 2, PERM, std::ptrdiff_t, DEFAULT_BUFFER >;
 
-
-TEST( heevr, allEigenvalues )
+template< typename T >
+struct HEEVR_TEST
 {
-  Array2d< std::complex< double >, RAJA::PERM_JI > matrix( 3, 3 );
-  matrix( 1, 1 ) = 2;
-  matrix( 0, 0 ) = 3;
-  matrix( 2, 2 ) = -4;
+  HEEVR_TEST( BuiltInBackends const backend ):
+    m_backend( backend )
+  {}
+  
+  void threeByThreeEigenvalues()
+  {
+    resize( 3, 3, 0 );
 
-  Array1d< double > eigenvalues( 3 );
-  Array2d< std::complex< double >, RAJA::PERM_JI > eigenvectors;
-  Array1d< int > support( 6 );
-  dense::ArrayWorkspace< std::complex< double >, ChaiBuffer > workspace;
-  dense::SymmetricMatrixStorageType storageType = dense::SymmetricMatrixStorageType::UPPER_TRIANGULAR;
+    m_matrix( 1, 1 ) = 2;
+    m_matrix( 0, 0 ) = 3;
+    m_matrix( 2, 2 ) = -4;
 
-  dense::heevr< double >(
-    MemorySpace::host,
-    dense::EigenDecompositionOptions( dense::EigenDecompositionOptions::Type::EIGENVALUES ),
-    matrix.toView(),
-    eigenvalues.toView(),
-    eigenvectors.toView(),
-    support,
-    workspace,
-    storageType );
+    SymmetricMatrixStorageType storageType = SymmetricMatrixStorageType::UPPER_TRIANGULAR;
 
-  EXPECT_DOUBLE_EQ( eigenvalues[ 0 ], -4 );
-  EXPECT_DOUBLE_EQ( eigenvalues[ 1 ], 2 );
-  EXPECT_DOUBLE_EQ( eigenvalues[ 2 ], 3 );
+    heevr(
+      m_backend,
+      EigenDecompositionOptions( EigenDecompositionOptions::EIGENVALUES ),
+      m_matrix.toView(),
+      m_eigenvalues.toView(),
+      m_eigenvectors.toView(),
+      m_support,
+      m_workspace,
+      storageType );
+
+    EXPECT_DOUBLE_EQ( m_eigenvalues[ 0 ], -4 );
+    EXPECT_DOUBLE_EQ( m_eigenvalues[ 1 ], 2 );
+    EXPECT_DOUBLE_EQ( m_eigenvalues[ 2 ], 3 );
+  }
+
+private:
+  void resize( DenseInt const n, DenseInt const nvals, DenseInt const nvec )
+  {
+    m_matrix.resize( n, n );
+    m_eigenvalues.resize( nvals );
+    m_eigenvectors.resize( n, nvec );;
+    m_support.resize( 2 * n );
+  }
+
+  BuiltInBackends const m_backend;
+  Array2d< std::complex< T >, RAJA::PERM_JI > m_matrix;
+  Array1d< T > m_eigenvalues;
+  Array2d< std::complex< T >, RAJA::PERM_JI > m_eigenvectors;
+  Array1d< int > m_support;
+  ArrayWorkspace< std::complex< T >, ChaiBuffer > m_workspace;
+};
+
+TEST( eigenvalues_float, lapack )
+{
+  HEEVR_TEST< float > test( BuiltInBackends::LAPACK );
+
+  test.threeByThreeEigenvalues();
+}
+
+TEST( eigenvalues_double, lapack )
+{
+  HEEVR_TEST< double > test( BuiltInBackends::LAPACK );
+
+  test.threeByThreeEigenvalues();
+}
+
+TEST( eigenvalues_float, magma )
+{
+  HEEVR_TEST< float > test( BuiltInBackends::MAGMA );
+
+  test.threeByThreeEigenvalues();
+}
+
+TEST( eigenvalues_double, magma )
+{
+  HEEVR_TEST< double > test( BuiltInBackends::MAGMA );
+
+  test.threeByThreeEigenvalues();
+}
+
+TEST( eigenvalues_float, magma_gpu )
+{
+  HEEVR_TEST< float > test( BuiltInBackends::MAGMA_GPU );
+
+  test.threeByThreeEigenvalues();
+}
+
+TEST( eigenvalues_double, magma_gpu )
+{
+  HEEVR_TEST< double > test( BuiltInBackends::MAGMA_GPU );
+
+  test.threeByThreeEigenvalues();
 }
 
 } // namespace testing

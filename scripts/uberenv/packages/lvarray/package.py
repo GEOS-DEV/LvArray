@@ -57,7 +57,7 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('caliper', default=False, description='Build Caliper support')
     variant('pylvarray', default=False, description='Build Python support')
     variant('lapack', default=False, description='Build LAPACK and BLAS support')
-    # variant('magma', default=False, description='Build MAGMA support')
+    variant('magma', default=False, description='Build MAGMA support')
     variant('tests', default=True, description='Build tests')
     variant('benchmarks', default=False, description='Build benchmarks')
     variant('examples', default=False, description='Build examples')
@@ -65,11 +65,15 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('addr2line', default=True,
             description='Build support for addr2line.')
 
+<<<<<<< HEAD
     variant('tpl_build_type', default='none', description='TPL build type',
             values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel', 'none'))
         
 
     # conflicts('~lapack', when='+magma')
+=======
+    conflicts('~lapack', when='+magma')
+>>>>>>> cde43f2 (Building and compiling with MAGMA. GPU not yet working, think it's something to do with the new workspaces.)
 
     depends_on('blt@0.4.1:', when='@0.2.0:', type='build')
 
@@ -90,7 +94,7 @@ class Lvarray(CMakePackage, CudaPackage):
 
     depends_on('blas', when='+lapack')
     depends_on('lapack', when='+lapack')
-    # depends_on('magma', when='+magma')
+    depends_on('magma', when='+magma')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
     depends_on('py-sphinx@1.6.3:', when='+docs', type='build')
@@ -310,59 +314,6 @@ class Lvarray(CMakePackage, CudaPackage):
             else:
                 cfg.write(cmake_cache_option("ENABLE_CHAI", False))
 
-<<<<<<< HEAD
-        if "+caliper" in spec:
-            cfg.write(cmake_cache_option("ENABLE_CALIPER", True))
-            cfg.write(cmake_cache_entry("CALIPER_DIR", spec['caliper'].prefix))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_CALIPER", False))
-
-        cfg.write('#{0}\n'.format('-' * 80))
-        cfg.write('# Python\n')
-        cfg.write('#{0}\n\n'.format('-' * 80))
-
-        if '+pylvarray' in spec:
-            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
-            cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
-        else:
-            cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', False))
-
-        # cfg.write('#{0}\n'.format('-' * 80))
-        # cfg.write('# Math libraries\n')
-        # cfg.write('#{0}\n\n'.format('-' * 80))
-        # if '+lapack' in spec:
-        #     cfg.write(cmake_cache_option('ENABLE_LAPACK', True))
-        #     cfg.write(cmake_cache_list('BLAS_LIBRARIES', spec['blas'].libs))
-        #     cfg.write(cmake_cache_list('LAPACK_LIBRARIES', spec['lapack'].libs))
-        # else:
-        #     cfg.write(cmake_cache_option('ENABLE_LAPACK', False))
-
-        # if '+magma' in spec:
-        #     cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
-        #     cfg.write(cmake_cache_list('MAGMA_DIR', spec['magma'].prefix))
-        # else:
-        #     cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
-
-        cfg.write("#{0}\n".format("-" * 80))
-        cfg.write("# Documentation\n")
-        cfg.write("#{0}\n\n".format("-" * 80))
-
-        if "+docs" in spec:
-            cfg.write(cmake_cache_option("ENABLE_DOCS", True))
-            sphinx_dir = spec['py-sphinx'].prefix
-            cfg.write(cmake_cache_string('SPHINX_EXECUTABLE',
-                                         os.path.join(sphinx_dir,
-                                                      'bin',
-                                                      'sphinx-build')))
-
-            doxygen_dir = spec['doxygen'].prefix
-            cfg.write(cmake_cache_string('DOXYGEN_EXECUTABLE',
-                                         os.path.join(doxygen_dir,
-                                                      'bin',
-                                                      'doxygen')))
-        else:
-            cfg.write(cmake_cache_option("ENABLE_DOCS", False))
-=======
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Caliper\n")
             cfg.write("#{0}\n\n".format("-" * 80))
@@ -396,11 +347,11 @@ class Lvarray(CMakePackage, CudaPackage):
             else:
                 cfg.write(cmake_cache_option('ENABLE_LAPACK', False))
 
-            # if '+magma' in spec:
-            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
-            #     cfg.write(cmake_cache_list('MAGMA_DIR', spec['magma'].prefix))
-            # else:
-            #     cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
+            if '+magma' in spec:
+                cfg.write(cmake_cache_option('ENABLE_MAGMA', True))
+                cfg.write(cmake_cache_entry('MAGMA_DIR', spec['magma'].prefix))
+            else:
+                cfg.write(cmake_cache_option('ENABLE_MAGMA', False))
 
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# Documentation\n")
@@ -420,7 +371,6 @@ class Lvarray(CMakePackage, CudaPackage):
                                                         'doxygen')))
             else:
                 cfg.write(cmake_cache_option("ENABLE_DOCS", False))
->>>>>>> f6cec78 (Eigen stuff seems to be at least partialy working.)
 
             cfg.write("#{0}\n".format("-" * 80))
             cfg.write("# addr2line\n")

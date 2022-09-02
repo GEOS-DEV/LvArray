@@ -2,9 +2,10 @@
 set( PREPROCESSOR_DEFINES UMPIRE
                           CHAI
                           CUDA
-			  HIP
+                          HIP
                           TOTALVIEW_OUTPUT
-                          CALIPER )
+                          CALIPER
+                          MAGMA )
 
 set( USE_CONFIGFILE ON CACHE BOOL "" )
 foreach( DEP in ${PREPROCESSOR_DEFINES})
