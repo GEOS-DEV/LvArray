@@ -184,6 +184,11 @@ public:
     return *this;
   }
 
+  /**
+   * @brief Copy assignment operator, performs a deep copy of rhs.
+   * @param rhs Source for the assignment.
+   * @return *this.
+   */
   LVARRAY_HOST_DEVICE
   Array & operator=( typename ParentClass::ViewTypeConst const & rhs )
   {
