@@ -185,6 +185,28 @@ public:
   }
 
   /**
+   * @brief Copy assignment operator, performs a deep copy of rhs.
+   * @param rhs Source for the assignment.
+   * @return *this.
+   */
+  LVARRAY_HOST_DEVICE
+  Array & operator=( typename ParentClass::ViewTypeConst const & rhs )
+  {
+    bufferManipulation::copyInto( this->m_dataBuffer, this->size(), rhs.dataBuffer(), rhs.size() );
+
+    INDEX_TYPE const * const dims = rhs.dims();
+    INDEX_TYPE const * const strides = rhs.strides();
+    for( int i = 0; i < NDIM; ++i )
+    {
+      this->m_dims[ i ] = dims[ i ];
+      this->m_strides[ i ] = strides[ i ];
+    }
+
+    setSingleParameterResizeIndex( rhs.getSingleParameterResizeIndex() );
+    return *this;
+  }
+
+  /**
    * @brief Move assignment operator, performs a shallow copy of rhs.
    * @param rhs Source for the assignment.
    * @return *this.
