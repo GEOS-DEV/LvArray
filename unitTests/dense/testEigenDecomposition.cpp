@@ -10,6 +10,10 @@
 
 #include "../testUtils.hpp"
 
+#if defined( LVARRAY_USE_MAGMA )
+  #include <magma.h>
+#endif
+
 namespace LvArray
 {
 namespace testing
@@ -18,21 +22,28 @@ namespace testing
 using namespace dense;
 
 template< typename T >
-using Array1d = Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, DEFAULT_BUFFER >;
+using Array1d = Array< T, 1, RAJA::PERM_I, DenseInt, DEFAULT_BUFFER >;
 
 template< typename T, typename PERM >
-using Array2d = Array< T, 2, PERM, std::ptrdiff_t, DEFAULT_BUFFER >;
+using Array2d = Array< T, 2, PERM, DenseInt, DEFAULT_BUFFER >;
+
+// TODO(corbett5): significantly improve this test.
 
 template< typename T >
 struct HEEVR_TEST
 {
   HEEVR_TEST( BuiltInBackends const backend ):
     m_backend( backend )
-  {}
+  {
+    m_matrix.setName( "matrix" );
+    m_eigenvalues.setName( "m_eigenvalues" );
+    m_eigenvectors.setName( "eigenvectors" );
+    m_support.setName( "support" );
+  }
   
   void threeByThreeEigenvalues()
   {
-    resize( 3, 3, 0 );
+    resize( 20, 20, 0 );
 
     m_matrix( 1, 1 ) = 2;
     m_matrix( 0, 0 ) = 3;
@@ -60,7 +71,7 @@ private:
   {
     m_matrix.resize( n, n );
     m_eigenvalues.resize( nvals );
-    m_eigenvectors.resize( n, nvec );;
+    m_eigenvectors.resize( n, nvec );
     m_support.resize( 2 * n );
   }
 
@@ -85,6 +96,8 @@ TEST( eigenvalues_double, lapack )
 
   test.threeByThreeEigenvalues();
 }
+
+#if defined( LVARRAY_USE_MAGMA )
 
 TEST( eigenvalues_float, magma )
 {
@@ -114,13 +127,24 @@ TEST( eigenvalues_double, magma_gpu )
   test.threeByThreeEigenvalues();
 }
 
+#endif
+
 } // namespace testing
 } // namespace LvArray
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
 {
+#if defined( LVARRAY_USE_MAGMA )
+  magma_init();
+#endif
+
   ::testing::InitGoogleTest( &argc, argv );
   int const result = RUN_ALL_TESTS();
+
+#if defined( LVARRAY_USE_MAGMA )
+  magma_finalize();
+#endif
+
   return result;
 }

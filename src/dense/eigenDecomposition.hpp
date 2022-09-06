@@ -144,13 +144,13 @@ DenseInt heevr(
 /**
  *
  */
-template< typename BACK_END, typename T, int USD, typename INDEX_TYPE >
+template< typename BACK_END, typename T, int USD_A, int USD_V, typename INDEX_TYPE >
 DenseInt heevr(
   BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
-  ArraySlice< std::complex< T >, 2, USD, INDEX_TYPE > const & A,
+  ArraySlice< std::complex< T >, 2, USD_A, INDEX_TYPE > const & A,
   ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
-  ArraySlice< std::complex< T >, 2, USD, INDEX_TYPE > const & eigenVectors,
+  ArraySlice< std::complex< T >, 2, USD_V, INDEX_TYPE > const & eigenVectors,
   ArraySlice< DenseInt, 1, 0, INDEX_TYPE > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
@@ -174,23 +174,36 @@ DenseInt heevr(
 /**
  *
  */
-template< typename BACK_END, typename T, int USD, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+template< typename BACK_END, typename T, int USD_A, int USD_V, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 DenseInt heevr(
   BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
-  ArrayView< std::complex< T >, 2, USD, INDEX_TYPE, BUFFER_TYPE > const & A,
+  ArrayView< std::complex< T >, 2, USD_A, INDEX_TYPE, BUFFER_TYPE > const & A,
   ArrayView< T, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & eigenValues,
-  ArrayView< std::complex< T >, 2, USD, INDEX_TYPE, BUFFER_TYPE > const & eigenVectors,
+  ArrayView< std::complex< T >, 2, USD_V, INDEX_TYPE, BUFFER_TYPE > const & eigenVectors,
   ArrayView< DenseInt, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
 {
-  // Unclear about the touch here since half of A is destroyed, maybe it's not necessary.
   MemorySpace const space = getSpaceForBackend( backend );
-  A.move( space, true );
-  eigenValues.move( space, true );
+  
+  // The A matrix isn't touched because it is destroyed.
+  A.move( space, false );
   eigenVectors.move( space, true );
-  support.move( space, true );
+
+#if defined( LVARRAY_USE_MAGMA )
+  // MAGMA wants the eigenvalues and support on the CPU.
+  if( backend == BuiltInBackends::MAGMA_GPU )
+  {
+    eigenValues.move( MemorySpace::host, true );
+    support.move( MemorySpace::host, true );
+  }
+  else
+#endif
+  {
+    eigenValues.move( space, true );
+    support.move( space, true );
+  }
 
   return heevr(
     std::forward< BACK_END >( backend ),

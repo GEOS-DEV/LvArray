@@ -10,6 +10,7 @@
 #
 set( testSources
      testEigenDecomposition.cpp
+     testLinearSolve.cpp
    )
 
 #

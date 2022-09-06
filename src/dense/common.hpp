@@ -52,6 +52,17 @@ char const * getOption( SymmetricMatrixStorageType const option );
 template< typename T >
 using RealVersion = typename internal::RealVersion< T >::Type;
 
+/**
+ *
+ */
+template< typename T >
+static constexpr bool IsComplex = !std::is_same< RealVersion< T >, T >::value;
+
+/**
+ *
+ */
+template< typename T, typename U >
+static constexpr bool IsComplexT = IsComplex< T > && std::is_same< RealVersion< T >, U >::value;
 
 /**
  *
@@ -86,10 +97,22 @@ struct Matrix
    */
   template< typename INDEX_TYPE  >
   Matrix( ArraySlice< T, 2, 0, INDEX_TYPE > const & slice ):
-    nRows{ integerConversion< DenseInt >( slice.size( 1 ) ) },
-    nCols{ integerConversion< DenseInt >( slice.size( 0 ) ) },
+    nRows{ integerConversion< DenseInt >( slice.size( 0 ) ) },
+    nCols{ integerConversion< DenseInt >( slice.size( 1 ) ) },
     stride{ integerConversion< DenseInt >( slice.stride( 1 ) ) },
-    columnMajor{ true },
+    isColumnMajor{ true },
+    data{ slice.data() }
+  {}
+
+  /**
+   *
+   */
+  template< typename INDEX_TYPE, int USD >
+  Matrix( ArraySlice< T, 1, USD, INDEX_TYPE > const & slice ):
+    nRows{ integerConversion< DenseInt >( slice.size( 1 ) ) },
+    nCols{ integerConversion< DenseInt >( 1 ) },
+    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) },
+    isColumnMajor{ true },
     data{ slice.data() }
   {}
 
@@ -100,7 +123,7 @@ struct Matrix
     nRows{ 1 },
     nCols{ 1 },
     stride{ 1 },
-    columnMajor{ true },
+    isColumnMajor{ true },
     data{ &value }
   {}
 
@@ -115,7 +138,7 @@ struct Matrix
   DenseInt const nRows;
   DenseInt const nCols;
   DenseInt const stride;
-  bool const columnMajor;
+  bool const isColumnMajor;
   T * const data;
 };
 
@@ -180,7 +203,13 @@ template< typename T, template< typename > class BUFFER_TYPE >
 struct ArrayWorkspace : public Workspace< T >
 {
   ArrayWorkspace()
-  {}
+  {
+    m_work.setName( "ArrayWorkspace::m_work" );
+    m_work2.setName( "ArrayWorkspace::m_work2" );
+    m_work3.setName( "ArrayWorkspace::m_work3" );
+    m_rwork.setName( "ArrayWorkspace::m_rwork" );
+    m_iwork.setName( "ArrayWorkspace::m_iwork" );
+  }
 
   virtual Vector< T > work() override
   { return m_work.toSlice(); }
@@ -198,16 +227,24 @@ struct ArrayWorkspace : public Workspace< T >
   { return m_iwork.toSlice(); }
 
   virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) override
-  { m_work.resizeWithoutInitializationOrDestruction( space, newSize ); }
+  {
+    m_work.resizeWithoutInitializationOrDestruction( space, newSize );
+  }
 
   virtual void resizeWork2( MemorySpace const space, DenseInt const newSize ) override
-  { m_work2.resizeWithoutInitializationOrDestruction( space, newSize ); }
+  {
+    m_work2.resizeWithoutInitializationOrDestruction( space, newSize );
+  }
 
   virtual void resizeWork3( MemorySpace const space, DenseInt const newSize ) override
-  { m_work3.resizeWithoutInitializationOrDestruction( space, newSize ); }
+  {
+    m_work3.resizeWithoutInitializationOrDestruction( space, newSize );
+  }
  
   virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) override
-  { m_rwork.resizeWithoutInitializationOrDestruction( space, newSize ); }
+  {
+    m_rwork.resizeWithoutInitializationOrDestruction( space, newSize );
+  }
 
   virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) override
   {

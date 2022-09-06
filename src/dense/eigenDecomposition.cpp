@@ -1,21 +1,11 @@
 #include "eigenDecomposition.hpp"
-
-#if defined( LVARRAY_USE_MAGMA )
-  #include <magma.h>
-#endif
-
-/// This macro provide a flexible interface for Fortran naming convention for compiled objects
-// #ifdef FORTRAN_MANGLE_NO_UNDERSCORE
-#define FORTRAN_MANGLE( name ) name
-// #else
-// #define FORTRAN_MANGLE( name ) name ## _
-// #endif
+#include "backendHelpers.hpp"
 
 extern "C"
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#define LVARRAY_CHEEVR FORTRAN_MANGLE( cheevr )
+#define LVARRAY_CHEEVR LVARRAY_LAPACK_FORTRAN_MANGLE( cheevr )
 void LVARRAY_CHEEVR( 
   char const * JOBZ,
   char const * RANGE,
@@ -42,7 +32,7 @@ void LVARRAY_CHEEVR(
   LvArray::dense::DenseInt * INFO );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#define LVARRAY_ZHEEVR FORTRAN_MANGLE( zheevr )
+#define LVARRAY_ZHEEVR LVARRAY_LAPACK_FORTRAN_MANGLE( zheevr )
 void LVARRAY_ZHEEVR( 
   char const * JOBZ,
   char const * RANGE,
@@ -260,18 +250,12 @@ DenseInt heevr(
   else if( backend == BuiltInBackends::MAGMA_GPU )
   {
     int LDWA = N;
-    int LDWZ = 1;
+    int LDWZ = N;
 
     if( compute )
     {
-      workspace.resizeWork2( MemorySpace::cuda, LDWA * N );
-
-      if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_VECTORS )
-      {
-        LDWZ = N;
-      }
-
-      workspace.resizeWork3( MemorySpace::cuda, LDWZ * maxEigenvaluesToFind );
+      workspace.resizeWork2( MemorySpace::host, LDWA * N );
+      workspace.resizeWork3( MemorySpace::host, LDWZ * maxEigenvaluesToFind );
     }
 
     if( std::is_same< T, float >::value )
@@ -307,7 +291,34 @@ DenseInt heevr(
     }
     else
     {
-      LVARRAY_ERROR( "Not supported." );
+      magma_zheevr_gpu(
+        magma_vec_const( *JOBZ ),
+        magma_range_const( *RANGE ),
+        magma_uplo_const( *UPLO ),
+        N,
+        reinterpret_cast< magmaDoubleComplex * >( A.data ),
+        LDA,
+        VL,
+        VU,
+        IL,
+        IU,
+        ABSTOL,
+        &M,
+        reinterpret_cast< double * >( eigenvalues.data ),
+        reinterpret_cast< magmaDoubleComplex * >( eigenvectors.data ),
+        LDZ,
+        support.data,
+        reinterpret_cast< magmaDoubleComplex * >( workspace.work2().data ),
+        LDWA,
+        reinterpret_cast< magmaDoubleComplex * >( workspace.work3().data ),
+        LDWZ,
+        reinterpret_cast< magmaDoubleComplex * >( workspace.work().data ),
+        LWORK,
+        reinterpret_cast< double * >( workspace.rwork().data ),
+        LRWORK,
+        workspace.iwork().data,
+        LIWORK,
+        &INFO );
     }
   }
 #endif
@@ -337,8 +348,8 @@ DenseInt heevr(
 {
   // TODO(corbett5): I think we can support row major by simply complex-conjugating all entries.
   // I'm not sure exactly how this would work for the eigenvectors though.
-  LVARRAY_ERROR_IF( !A.columnMajor, "Row major is not yet supported." );
-  LVARRAY_ERROR_IF( !eigenvectors.columnMajor, "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !eigenvectors.isColumnMajor, "Row major is not yet supported." );
 
   bool const reallocateWork = workspace.work().size < 2 * A.nRows;
   bool const reallocateRWork = workspace.rwork().size < 24 * A.nRows;
@@ -349,24 +360,19 @@ DenseInt heevr(
     OptimalSizeCalculation< std::complex< T > > optimalSizes;
     internal::heevr( backend, decompositionOptions, A, eigenvalues, eigenvectors, support, optimalSizes, storageType, false );
     
-    MemorySpace const space = getSpaceForBackend( backend );
-
     if( reallocateWork )
     {
-      LVARRAY_LOG_VAR( optimalSizes.optimalWorkSize() );
-      workspace.resizeWork( space, optimalSizes.optimalWorkSize() );
+      workspace.resizeWork( MemorySpace::host, optimalSizes.optimalWorkSize() );
     }
 
     if( reallocateRWork )
     {
-      LVARRAY_LOG_VAR( optimalSizes.optimalRWorkSize() );
-      workspace.resizeRWork( space, optimalSizes.optimalRWorkSize() );
+      workspace.resizeRWork( MemorySpace::host, optimalSizes.optimalRWorkSize() );
     }
 
     if( reallocateIWork )
     {
-      LVARRAY_LOG_VAR( optimalSizes.optimalIWorkSize() );
-      workspace.resizeIWork( space, optimalSizes.optimalIWorkSize() );
+      workspace.resizeIWork( MemorySpace::host, optimalSizes.optimalIWorkSize() );
     }
   }
 
