@@ -3,14 +3,20 @@ packages:
     target: [default]
     compiler: [gcc, clang, xl]
     providers:
-      blas: [netlib-lapack]
-      lapack: [netlib-lapack]
+      blas: [netlib-lapack, essl]
+      lapack: [netlib-lapack, essl]
   
   netlib-lapack:
     buildable: False
     externals:
     - spec: netlib-lapack@3.10.0 ~external-blas
       prefix: /usr/tcetmp/packages/lapack/lapack-3.10.0-P9-xl-2022.03.10/
+  
+  essl:
+    buildable: False
+    externals:
+      - spec: essl@6.2.1 ~ilp64 threads=openmp +cuda +lapack
+        prefix: /usr/tcetmp/packages/essl/essl-6.2.1/
 
   cuda:
     buildable: False
