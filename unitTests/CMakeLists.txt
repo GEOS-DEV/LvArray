@@ -149,3 +149,8 @@ install(TARGETS testTensorOps
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )
 endif()
+
+if( ENABLE_LAPACK )
+    add_subdirectory( dense )
+endif()
+
