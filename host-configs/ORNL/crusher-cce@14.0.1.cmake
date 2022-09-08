@@ -34,6 +34,6 @@ if( ENABLE_HIP )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
   set( AMDGPU_TARGETS "${CMAKE_HIP_ARCHITECTURES}" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_FLAGS "-fgpu-rdc" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
   set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()

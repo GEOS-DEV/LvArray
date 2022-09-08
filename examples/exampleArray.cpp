@@ -332,7 +332,7 @@ CUDA_TEST( Array, chaiBuffer )
                   LvArray::ChaiBuffer > array( 5, 6 );
 
   // Move the array to the device.
-  array.move( LvArray::MemorySpace::cuda );
+  array.move( parallelDeviceMemorySpace );
   int * const devicePointer = array.data();
 
   RAJA::forall< RAJA::cuda_exec< 32 > >(
@@ -370,11 +370,11 @@ TEST( Array, setName )
                   LvArray::ChaiBuffer > array( 1024, 1024 );
 
   // Move the array to the device.
-  array.move( LvArray::MemorySpace::cuda );
+  array.move( parallelDeviceMemorySpace );
 
   // Provide a name and move the array to the host.
   array.setName( "my_array" );
-  array.move( LvArray::MemorySpace::host );
+  array.move( hostMemorySpace );
 }
 // Sphinx end before setName
 

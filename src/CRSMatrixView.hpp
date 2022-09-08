@@ -101,16 +101,19 @@ public:
    * @brief A constructor to create an uninitialized CRSMatrixView.
    * @note An uninitialized CRSMatrixView should not be used until it is assigned to.
    */
+  LVARRAY_HOST_DEVICE
   CRSMatrixView() = default;
 
   /**
    * @brief Default copy constructor.
    */
+  LVARRAY_HOST_DEVICE
   CRSMatrixView( CRSMatrixView const & ) = default;
 
   /**
    * @brief Default move constructor.
    */
+  LVARRAY_HOST_DEVICE
   CRSMatrixView( CRSMatrixView && ) = default;
 
   /**

@@ -370,12 +370,12 @@ static PyObject * PyCRSMatrix_setAccessLevel( PyCRSMatrix * const self, PyObject
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  int newSpace = static_cast< int >( LvArray::MemorySpace::host );
+  int newSpace = static_cast< int >( hostMemorySpace );
   if( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   {
     return nullptr;
   }
-  if( newSpace != static_cast< int >( LvArray::MemorySpace::host ) )
+  if( newSpace != static_cast< int >( hostMemorySpace ) )
   {
     PyErr_SetString( PyExc_ValueError, "Invalid space" );
     return nullptr;

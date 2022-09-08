@@ -28,6 +28,12 @@
 #define LVARRAY_USE_DEVICE
 #endif
 
+#if defined(LVARRAY_USE_CUDA)
+#define LVARRAY_DEFAULT_DEVICE_SPACE MemorySpace::cuda
+#elif defined(LVARRAY_USE_HIP)
+#define LVARRAY_DEFAULT_DEVICE_SPACE MemorySpace::hip
+#endif
+
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 /// Macro defined when currently compiling on device (only defined in the device context).
 #define LVARRAY_DEVICE_COMPILE
@@ -42,7 +48,6 @@
 // Denotes whether to define decorator macros later in this file.
 #define LVARRAY_DECORATE
 #endif
-
 
 
 //#if !defined(NDEBUG) && defined(LVARRAY_DEVICE_COMPILE)
@@ -148,20 +153,20 @@
   #endif
 #else
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
-  // do \
-  // { \
-  //   if( EXP ) \
-  //   { \
-  //     std::ostringstream __oss; \
-  //     __oss << "***** ERROR\n"; \
-  //     __oss << "***** LOCATION: " LOCATION "\n"; \
-  //     __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
-  //     __oss << MSG << "\n"; \
-  //     __oss << LvArray::system::stackTrace( true ); \
-  //     std::cout << __oss.str() << std::endl; \
-  //     LvArray::system::callErrorHandler(); \
-  //   } \
-  // } while( false )
+  do \
+  { \
+    if( EXP ) \
+    { \
+      std::ostringstream __oss; \
+      __oss << "***** ERROR\n"; \
+      __oss << "***** LOCATION: " LOCATION "\n"; \
+      __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
+      __oss << MSG << "\n"; \
+      __oss << LvArray::system::stackTrace( true ); \
+      std::cout << __oss.str() << std::endl; \
+      LvArray::system::callErrorHandler(); \
+    } \
+  } while( false )
 #endif
 
 /**

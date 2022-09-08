@@ -346,7 +346,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 
   // This won't copy any data since everything is current on host. It will however touch the values,
   // sizes and offsets.
-  arrayOfArrays.move( LvArray::MemorySpace::host );
+  arrayOfArrays.move( hostMemorySpace );
 
   // Verify that all the modifications are present in the parent ArrayOfArrays.
   EXPECT_EQ( arrayOfArrays.size(), 10 );
