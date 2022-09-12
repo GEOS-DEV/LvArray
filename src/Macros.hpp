@@ -121,11 +121,9 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
-// cce processes __host__ functions with __hip_device_compile__=1 when -x hip?
-// the entire compilation unit has __hip_device_compile__=1, whereas __cuda_arch__
-// seems to be scope-defined as it isn't defined in __host__ functions
+
 #if defined(LVARRAY_DEVICE_COMPILE)
-  #if !defined(NDEBUG) || __HIP_DEVICE_COMPILE__
+  #if !defined(NDEBUG) || __HIP_DEVICE_COMPILE__ == 1
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \

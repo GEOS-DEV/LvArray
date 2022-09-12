@@ -5,7 +5,6 @@ include( ${CMAKE_CURRENT_LIST_DIR}/crusher-base.cmake )
 # Set up the tpls
 set(SYSTEM_TPL_DIR "/sw/crusher/spack-envs/base/opt/cray-sles15-zen3/cce-14.0.0" CACHE PATH "")
 set(GEOSX_TPL_DIR "/gpfs/alpine/geo127/world-shared/cray-sles15-zen3/cce-14.0.0" CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR} CACHE PATH "")
 
 set(CAMP_DIR "${GEOSX_TPL_DIR}/camp-0.2.2-r3wj7xcb7xycpqhda7rf5b2lekrsqx4w" CACHE PATH "" )
 
