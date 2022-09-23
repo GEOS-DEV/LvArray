@@ -528,21 +528,22 @@ int getDefaultFloatingPointExceptions()
   return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 }
 
-
+#if defined(__APPLE__) && defined(__MACH__)&& !defined(__x86_64__)
 static void
 fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
 {
-    int fe_code = sip->si_code;
+  int fe_code = sip->si_code;
 
-    printf("In signal handler : ");
+  printf( "In signal handler : " );
 
-    if (fe_code == ILL_ILLTRP)
-        printf("Illegal trap detected\n");
-    else
-        printf("Code detected : %d\n",fe_code);
+  if( fe_code == ILL_ILLTRP )
+    printf( "Illegal trap detected\n" );
+  else
+    printf( "Code detected : %d\n", fe_code );
 
-    abort();
+  abort();
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )
@@ -550,16 +551,16 @@ int enableFloatingPointExceptions( int const exceptions )
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
   fenv_t env;
-  fegetenv(&env);
+  fegetenv( &env );
 
   env.__fpcr = env.__fpcr | __fpcr_trap_invalid;
-  fesetenv(&env);
-  
+  fesetenv( &env );
+
   struct sigaction act;
   act.sa_sigaction = fpe_signal_handler;
-  sigemptyset (&act.sa_mask);
+  sigemptyset ( &act.sa_mask );
   act.sa_flags = SA_SIGINFO;
-  sigaction(SIGILL, &act, NULL);
+  sigaction( SIGILL, &act, NULL );
   return 0;
 #else
   // Public domain polyfill for feenableexcept on OS X
