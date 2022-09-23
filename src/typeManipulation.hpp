@@ -147,6 +147,18 @@ void forEachArg( F && f, ARG && arg, ARGS && ... args )
   forEachArg( std::forward< F >( f ), std::forward< ARGS >( args ) ... );
 }
 
+DISABLE_HD_WARNING
+template< typename F, typename TUPLE >
+inline constexpr LVARRAY_HOST_DEVICE
+void forEachInTuple( F && f, TUPLE && tuple )
+{
+  std::apply(
+    [=] ( auto && ... args )
+    {
+      forEachArg( f, std::forward< decltype( args ) >( args )... );
+    }, std::forward< TUPLE >( tuple ) );
+}
+
 /**
  * @brief A struct that contains a static constexpr bool value that is true if all of BOOLS are true.
  * @tparam BOOLS A variadic pack of bool.
@@ -512,6 +524,8 @@ convertSize( INDEX_TYPE const numU )
 template< typename T, camp::idx_t N >
 struct CArray
 {
+  using value_type = T;
+
   /**
    * @return Return a reference to the value at position @p i.
    * @param i The position to access.
@@ -532,7 +546,7 @@ struct CArray
    * @return Return the size of the array.
    */
   constexpr inline LVARRAY_HOST_DEVICE
-  camp::idx_t size()
+  camp::idx_t size() const
   { return N; }
 
   constexpr inline LVARRAY_HOST_DEVICE
