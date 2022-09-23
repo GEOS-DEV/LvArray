@@ -532,6 +532,9 @@ int getDefaultFloatingPointExceptions()
 static void
 fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
 {
+  LVARRAY_UNUSED_VARIABLE( sig );
+  LVARRAY_UNUSED_VARIABLE( scp );
+
   int fe_code = sip->si_code;
 
   printf( "In signal handler : " );
@@ -550,6 +553,9 @@ int enableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
+
+  LVARRAY_UNUSED_VARIABLE( exceptions );
+
   fenv_t env;
   fegetenv( &env );
 
@@ -593,6 +599,7 @@ int disableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
+  LVARRAY_UNUSED_VARIABLE( exceptions );
   return 0;
 #else
   // Public domain polyfill for feenableexcept on OS X
