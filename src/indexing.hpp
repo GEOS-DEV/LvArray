@@ -186,12 +186,15 @@ LVARRAY_HOST_DEVICE inline constexpr
 bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
 {
   int curDim = 0;
+  int * const p_curDim = &curDim;
+
   bool invalid = false;
-  typeManipulation::forEachArg( [dims, &curDim, &invalid]( auto const index )
-  {
-    invalid = invalid || ( index < 0 ) || ( index >= dims[ curDim ] );
-    ++curDim;
-  }, indices ... );
+  bool * const p_invalid = &invalid;
+  typeManipulation::forEachArg( [dims, p_curDim, p_invalid] LVARRAY_HOST_DEVICE ( INDEX_TYPE const index )
+      {
+        *(p_invalid) = *(p_invalid) || ( index < 0 ) || ( index >= dims[ *p_curDim ] );
+        ++(*p_curDim);
+      }, indices ... );
 
   return invalid;
 }
