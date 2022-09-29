@@ -56,6 +56,12 @@ using RealVersion = typename internal::RealVersion< T >::Type;
  *
  */
 template< typename T >
+using ComplexVersion = typename std::complex< RealVersion< T > >;
+
+/**
+ *
+ */
+template< typename T >
 static constexpr bool IsComplex = !std::is_same< RealVersion< T >, T >::value;
 
 /**
@@ -148,22 +154,24 @@ struct Matrix
 template< typename T >
 struct Vector
 {
+  Vector() = default;
+  
   template< int USD, typename INDEX_TYPE >
   Vector( ArraySlice< T, 1, USD, INDEX_TYPE > const & slice ):
+    data{ slice.data() },
     size{ integerConversion< DenseInt >( slice.size() ) },
-    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) },
-    data{ slice.data() }
+    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) }
   {}
 
   Vector( T & value ):
+    data{ &value },
     size{ 1 },
-    stride{ 1 },
-    data{ &value }
+    stride{ 1 }
   {}
 
-  DenseInt const size;
-  DenseInt const stride;
-  T * const data;
+  T * const data = nullptr;
+  DenseInt const size = 0;
+  DenseInt const stride = 0;
 };
 
 /**
@@ -303,7 +311,7 @@ struct OptimalSizeCalculation : public Workspace< T >
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
   DenseInt optimalWorkSize() const
-  { return static_cast< DenseInt >( m_work.real() ); }
+  { return static_cast< DenseInt >( std::real( m_work ) ); }
 
   DenseInt optimalRWorkSize() const
   { return static_cast< DenseInt >( m_rwork ); }

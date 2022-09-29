@@ -15,10 +15,13 @@ struct EigenDecompositionOptions
   /**
    *
    */
+  // TODO(corbett5): Move these enums out into their own enum classes.
   enum Type
   {
     EIGENVALUES,
-    EIGENVALUES_AND_VECTORS,
+    EIGENVALUES_AND_LEFT_VECTORS,
+    EIGENVALUES_AND_RIGHT_VECTORS,
+    EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS,
   };
 
   /**
@@ -38,7 +41,12 @@ struct EigenDecompositionOptions
     type{ typeP },
     abstol{ abstolP }
   {
-    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
+    LVARRAY_ERROR_IF(
+      type != EIGENVALUES &&
+      type != EIGENVALUES_AND_LEFT_VECTORS &&
+      type != EIGENVALUES_AND_RIGHT_VECTORS &&
+      type != EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS,
+      "Wrong type provided: type = " << type );
   }
 
   /**
@@ -48,14 +56,20 @@ struct EigenDecompositionOptions
     Type const typeP,
     double const rangeMinP,
     double const rangeMaxP,
-    double const abstolP ):
+    double const abstolP=0 ):
     type{ typeP },
     range{ IN_INTERVAL },
     rangeMin{ rangeMinP },
     rangeMax{ rangeMaxP },
     abstol{ abstolP }
   {
-    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
+    LVARRAY_ERROR_IF(
+      type != EIGENVALUES &&
+      type != EIGENVALUES_AND_LEFT_VECTORS &&
+      type != EIGENVALUES_AND_RIGHT_VECTORS &&
+      type != EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS,
+      "Wrong type provided: type = " << type );
+
     LVARRAY_ERROR_IF_GE( rangeMin, rangeMax );
   }
 
@@ -66,14 +80,20 @@ struct EigenDecompositionOptions
     Type const typeP,
     DenseInt const indexMinP,
     DenseInt const indexMaxP,
-    double const abstolP ):
+    double const abstolP=0 ):
     type{ typeP },
-    range{ IN_INTERVAL },
+    range{ BY_INDEX },
     indexMin{ indexMinP },
     indexMax{ indexMaxP },
     abstol{ abstolP }
   {
-    LVARRAY_ERROR_IF( type != EIGENVALUES && type != EIGENVALUES_AND_VECTORS, "Wrong type provided: type = " << type );
+    LVARRAY_ERROR_IF(
+      type != EIGENVALUES &&
+      type != EIGENVALUES_AND_LEFT_VECTORS &&
+      type != EIGENVALUES_AND_RIGHT_VECTORS &&
+      type != EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS,
+      "Wrong type provided: type = " << type );
+
     LVARRAY_ERROR_IF_LT( indexMin, 1 );
     LVARRAY_ERROR_IF_GT( indexMin, indexMax );
   }
@@ -102,6 +122,46 @@ struct EigenDecompositionOptions
     { return allString; }
 
     return range == IN_INTERVAL ? intervalString : indexString;
+  }
+
+  /**
+   *
+   */
+  bool computeLeftEigenvectors() const
+  {
+    return type == EIGENVALUES_AND_LEFT_VECTORS ||
+           type == EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS;
+  }
+
+  /**
+   *
+   */
+  bool computeRightEigenvectors() const
+  {
+    return type == EIGENVALUES_AND_RIGHT_VECTORS ||
+           type == EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS;
+  }
+
+  /**
+   *
+   */
+  char const * leftArg() const
+  {
+    static constexpr char const * const eigenvalueString = "N";
+    static constexpr char const * const eigenvectorString = "V";
+
+    return computeLeftEigenvectors() ? eigenvalueString : eigenvectorString;
+  }
+
+  /**
+   *
+   */
+  char const * rightArg() const
+  {
+    static constexpr char const * const eigenvalueString = "N";
+    static constexpr char const * const eigenvectorString = "V";
+
+    return computeRightEigenvectors() ? eigenvalueString : eigenvectorString;
   }
 
   ///
@@ -215,6 +275,33 @@ DenseInt heevr(
     workspace,
     storageType );
 }
+
+/**
+ * Real valued A.
+ */
+template< typename T >
+void geev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< T > const & A,
+  Vector< T > const & eigenValuesReal,
+  Vector< T > const & eigenValuesImag,
+  Matrix< T > const & leftEigenvectors,
+  Matrix< T > const & rightEigenvectors,
+  Workspace< T > & workspace );
+
+/**
+ * Complex valued A.
+ */
+template< typename T >
+void geev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Vector< std::complex< T > > const & eigenValues,
+  Matrix< std::complex< T > > const & leftEigenvectors,
+  Matrix< std::complex< T > > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace );
 
 } // namespace dense
 } // namespace LvArray

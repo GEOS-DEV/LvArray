@@ -58,6 +58,82 @@ void LVARRAY_ZHEEVR(
   LvArray::dense::DenseInt const * LIWORK,
   LvArray::dense::DenseInt * INFO );
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_SGEEV LVARRAY_LAPACK_FORTRAN_MANGLE( sgeev )
+void LVARRAY_SGEEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  float * A,
+  LvArray::dense::DenseInt const * LDA,
+  float * WR,
+  float * WI,
+  float * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  float * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  float * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  LvArray::dense::DenseInt * INFO
+);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_DGEEV LVARRAY_LAPACK_FORTRAN_MANGLE( dgeev )
+void LVARRAY_DGEEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  double * A,
+  LvArray::dense::DenseInt const * LDA,
+  double * WR,
+  double * WI,
+  double * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  double * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  double * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  LvArray::dense::DenseInt * INFO
+);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_CGEEV LVARRAY_LAPACK_FORTRAN_MANGLE( cgeev )
+void LVARRAY_CGEEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  std::complex< float > * A,
+  LvArray::dense::DenseInt const * LDA,
+  std::complex< float > * W,
+  std::complex< float > * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  std::complex< float > * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  std::complex< float > * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  float * RWORK,
+  LvArray::dense::DenseInt * INFO
+);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_ZGEEV LVARRAY_LAPACK_FORTRAN_MANGLE( zgeev )
+void LVARRAY_ZGEEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  std::complex< double > * A,
+  LvArray::dense::DenseInt const * LDA,
+  std::complex< double > * W,
+  std::complex< double > * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  std::complex< double > * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  std::complex< double > * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  double * RWORK,
+  LvArray::dense::DenseInt * INFO
+);
+
 
 } // extern "C"
 
@@ -83,10 +159,6 @@ DenseInt heevr(
   SymmetricMatrixStorageType const storageType,
   bool const compute )
 {
-  LVARRAY_UNUSED_VARIABLE( backend );
-
-  LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
-
   char const * const JOBZ = decompositionOptions.typeArg();
   char const * const RANGE = decompositionOptions.rangeArg();
   char const * const UPLO = getOption( storageType );
@@ -110,7 +182,7 @@ DenseInt heevr(
   DenseInt const ABSTOL = decompositionOptions.abstol;
   DenseInt M = 0;
 
-  if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_VECTORS )
+  if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_RIGHT_VECTORS )
   {
     LVARRAY_ERROR_IF_NE( eigenvectors.nRows, N );
     LVARRAY_ERROR_IF_LT( eigenvectors.nCols, maxEigenvaluesToFind );
@@ -332,8 +404,117 @@ DenseInt heevr(
   return M;
 }
 
+/**
+ *
+ */
+template< typename T >
+void geev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< T > const & A,
+  Vector< T > const & eigenValuesReal,
+  Vector< T > const & eigenValuesImag,
+  Matrix< T > const & leftEigenvectors,
+  Matrix< T > const & rightEigenvectors,
+  Workspace< T > & workspace,
+  bool const compute )
+{
+  char const * const JOBVL = decompositionOptions.leftArg();
+  char const * const JOBVR = decompositionOptions.rightArg();
+  DenseInt const N = A.nCols;
+  DenseInt const LDA = A.stride;
+  DenseInt LDVL = std::max( 1, leftEigenvectors.stride );
+  DenseInt LDVR = std::max( 1, rightEigenvectors.stride );
+
+  DenseInt const LWORK = compute ? workspace.work().size : -1;
+  DenseInt INFO = 0;
+
+  if( backend == BuiltInBackends::LAPACK )
+  {
+    if( std::is_same< T, float >::value )
+    {
+      LVARRAY_SGEEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< float * >( A.data ),
+        &LDA,
+        reinterpret_cast< float * >( eigenValuesReal.data ),
+        reinterpret_cast< float * >( eigenValuesImag.data ),
+        reinterpret_cast< float * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< float * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< float * >( workspace.work().data ),
+        &LWORK,
+        &INFO );
+    }
+    if( std::is_same< T, double >::value )
+    {
+      LVARRAY_DGEEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< double * >( A.data ),
+        &LDA,
+        reinterpret_cast< double * >( eigenValuesReal.data ),
+        reinterpret_cast< double * >( eigenValuesImag.data ),
+        reinterpret_cast< double * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< double * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< double * >( workspace.work().data ),
+        &LWORK,
+        &INFO );
+    }
+    if( std::is_same< T, std::complex< float > >::value )
+    {
+      LVARRAY_CGEEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< std::complex< float > * >( A.data ),
+        &LDA,
+        reinterpret_cast< std::complex< float > * >( eigenValuesReal.data ),
+        reinterpret_cast< std::complex< float > * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< std::complex< float > * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< std::complex< float > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< float * >( workspace.rwork().data ),
+        &INFO );
+    }
+    if( std::is_same< T, std::complex< double > >::value )
+    {
+      LVARRAY_ZGEEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< std::complex< double > * >( A.data ),
+        &LDA,
+        reinterpret_cast< std::complex< double > * >( eigenValuesReal.data ),
+        reinterpret_cast< std::complex< double > * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< std::complex< double > * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< std::complex< double > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< double * >( workspace.rwork().data ),
+        &INFO );
+    }
+  }
+  else
+  {
+    LVARRAY_ERROR( "Unknown built in backend: " << static_cast< int >( backend ) );
+  }
+
+  LVARRAY_ERROR_IF_NE( INFO, 0 );
+}
+
 } // namespace internal
 
+// TODO(corbett5): Add support for symmetric matrices.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template< typename T >
 DenseInt heevr(
@@ -346,6 +527,11 @@ DenseInt heevr(
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
 {
+  LVARRAY_ERROR_IF_EQ( decompositionOptions.type, EigenDecompositionOptions::EIGENVALUES_AND_LEFT_VECTORS );
+  LVARRAY_ERROR_IF_EQ( decompositionOptions.type, EigenDecompositionOptions::EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS );
+
+  LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
+
   // TODO(corbett5): I think we can support row major by simply complex-conjugating all entries.
   // I'm not sure exactly how this would work for the eigenvectors though.
   LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
@@ -358,7 +544,16 @@ DenseInt heevr(
   if( reallocateWork || reallocateRWork || reallocateIWork )
   {
     OptimalSizeCalculation< std::complex< T > > optimalSizes;
-    internal::heevr( backend, decompositionOptions, A, eigenvalues, eigenvectors, support, optimalSizes, storageType, false );
+    internal::heevr(
+      backend,
+      decompositionOptions,
+      A,
+      eigenvalues,
+      eigenvectors,
+      support,
+      optimalSizes,
+      storageType,
+      false );
     
     if( reallocateWork )
     {
@@ -376,7 +571,120 @@ DenseInt heevr(
     }
   }
 
-  return internal::heevr( backend, decompositionOptions, A, eigenvalues, eigenvectors, support, workspace, storageType, true );
+  return internal::heevr(
+    backend,
+    decompositionOptions,
+    A,
+    eigenvalues,
+    eigenvectors,
+    support,
+    workspace,
+    storageType,
+    true );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename T >
+void geev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< T > const & A,
+  Vector< T > const & eigenValuesReal,
+  Vector< T > const & eigenValuesImag,
+  Matrix< T > const & leftEigenvectors,
+  Matrix< T > const & rightEigenvectors,
+  Workspace< T > & workspace )
+{
+  // TODO(corbett5): I think we can support row major by switching between left and right eigenvectors.
+  LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
+
+  LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
+
+  LVARRAY_ERROR_IF_NE( decompositionOptions.range, EigenDecompositionOptions::ALL );
+
+  LVARRAY_ERROR_IF_NE( eigenValuesReal.size, A.nCols );
+  if( !IsComplex< T > )
+  {
+    LVARRAY_ERROR_IF_NE( eigenValuesImag.size, A.nCols );
+  }
+
+  if( decompositionOptions.computeLeftEigenvectors() )
+  {
+    LVARRAY_ERROR_IF( !leftEigenvectors.isColumnMajor, "Row major is not yet supported." );
+    LVARRAY_ERROR_IF_NE( leftEigenvectors.nRows, A.nCols );
+    LVARRAY_ERROR_IF_LT( leftEigenvectors.nCols, A.nCols );
+  }
+  if( decompositionOptions.computeRightEigenvectors() )
+  {
+    LVARRAY_ERROR_IF( !rightEigenvectors.isColumnMajor, "Row major is not yet supported." );
+    LVARRAY_ERROR_IF_NE( rightEigenvectors.nRows, A.nCols );
+    LVARRAY_ERROR_IF_LT( rightEigenvectors.nCols, A.nCols );
+  }
+  
+  bool reallocateWork;
+  if( !IsComplex< T > )
+  {
+    bool const computeVectors = decompositionOptions.type != EigenDecompositionOptions::EIGENVALUES;
+    reallocateWork = workspace.work().size < (3 + computeVectors) * A.nRows;
+  }
+  else
+  {
+    reallocateWork = workspace.work().size < 2 * A.nRows;
+    workspace.resizeRWork( MemorySpace::host, 2 * A.nCols );
+  }
+
+  if( reallocateWork )
+  {
+    OptimalSizeCalculation< T > optimalSizes;
+    internal::geev(
+      backend,
+      decompositionOptions,
+      A,
+      eigenValuesReal,
+      eigenValuesImag,
+      leftEigenvectors,
+      rightEigenvectors,
+      optimalSizes,
+      false );
+    
+    if( reallocateWork )
+    {
+      workspace.resizeWork( MemorySpace::host, optimalSizes.optimalWorkSize() );
+    }
+  }
+
+  return internal::geev(
+    backend,
+    decompositionOptions,
+    A,
+    eigenValuesReal,
+    eigenValuesImag,
+    leftEigenvectors,
+    rightEigenvectors,
+    workspace,
+    true );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename T >
+void geev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Vector< std::complex< T > > const & eigenValues,
+  Matrix< std::complex< T > > const & leftEigenvectors,
+  Matrix< std::complex< T > > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace )
+{
+  return geev(
+    backend,
+    decompositionOptions,
+    A,
+    eigenValues,
+    Vector< std::complex< T > > {},
+    leftEigenvectors,
+    rightEigenvectors,
+    workspace );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,6 +712,48 @@ template DenseInt heevr< double >(
   Vector< DenseInt > const & support,
   Workspace< std::complex< double > > & workspace,
   SymmetricMatrixStorageType const storageType );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void geev< float >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< float > const & A,
+  Vector< float > const & eigenValuesReal,
+  Vector< float > const & eigenValuesImag,
+  Matrix< float > const & leftEigenvectors,
+  Matrix< float > const & rightEigenvectors,
+  Workspace< float > & workspace );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void geev< double >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< double > const & A,
+  Vector< double > const & eigenValuesReal,
+  Vector< double > const & eigenValuesImag,
+  Matrix< double > const & leftEigenvectors,
+  Matrix< double > const & rightEigenvectors,
+  Workspace< double > & workspace );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void geev< float >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< float > > const & A,
+  Vector< ComplexVersion< std::complex< float > > > const & eigenValues,
+  Matrix< ComplexVersion< std::complex< float > > > const & leftEigenvectors,
+  Matrix< ComplexVersion< std::complex< float > > > const & rightEigenvectors,
+  Workspace< std::complex< float > > & workspace );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void geev< double >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< double > > const & A,
+  Vector< ComplexVersion< std::complex< double > > > const & eigenValues,
+  Matrix< ComplexVersion< std::complex< double > > > const & leftEigenvectors,
+  Matrix< ComplexVersion< std::complex< double > > > const & rightEigenvectors,
+  Workspace< std::complex< double > > & workspace );
 
 } // namespace dense
 } // namespace LvArray
