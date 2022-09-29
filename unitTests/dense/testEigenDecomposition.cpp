@@ -43,7 +43,7 @@ struct HEEVR_TEST
   
   void threeByThreeEigenvalues()
   {
-    resize( 20, 20, 0 );
+    resize( 3, 3, 0 );
 
     m_matrix( 1, 1 ) = 2;
     m_matrix( 0, 0 ) = 3;

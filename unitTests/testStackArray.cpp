@@ -312,7 +312,7 @@ TYPED_TEST( StackArrayCaptureTest, resizeMultipleInLambda )
 
 TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 {
-  std::array< int, typeManipulation::getDimension( typename TestFixture::PERMUTATION {} ) > dummy {};
+  std::array< int, typeManipulation::getDimension< typename TestFixture::PERMUTATION > > dummy {};
   this->sizedConstructorInLambda( dummy );
 }
 

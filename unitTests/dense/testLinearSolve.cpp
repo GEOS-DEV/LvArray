@@ -16,6 +16,8 @@
   #include <magma.h>
 #endif
 
+#include <random>
+
 #define EXPECT_COMPLEX_NEAR( z1, z2, absError ) \
   EXPECT_NEAR( std::real( z1 ), std::real( z2 ), absError ); \
   EXPECT_NEAR( std::imag( z1 ), std::imag( z2 ), absError )
