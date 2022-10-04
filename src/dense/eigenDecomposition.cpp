@@ -412,8 +412,8 @@ void geev(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< T > const & A,
-  Vector< T > const & eigenValuesReal,
-  Vector< T > const & eigenValuesImag,
+  Vector< T > const & eigenvaluesReal,
+  Vector< T > const & eigenvaluesImag,
   Matrix< T > const & leftEigenvectors,
   Matrix< T > const & rightEigenvectors,
   Workspace< T > & workspace,
@@ -423,8 +423,8 @@ void geev(
   char const * const JOBVR = decompositionOptions.rightArg();
   DenseInt const N = A.nCols;
   DenseInt const LDA = A.stride;
-  DenseInt LDVL = std::max( 1, leftEigenvectors.stride );
-  DenseInt LDVR = std::max( 1, rightEigenvectors.stride );
+  DenseInt const LDVL = std::max( 1, leftEigenvectors.stride );
+  DenseInt const LDVR = std::max( 1, rightEigenvectors.stride );
 
   DenseInt const LWORK = compute ? workspace.work().size : -1;
   DenseInt INFO = 0;
@@ -439,8 +439,8 @@ void geev(
         &N,
         reinterpret_cast< float * >( A.data ),
         &LDA,
-        reinterpret_cast< float * >( eigenValuesReal.data ),
-        reinterpret_cast< float * >( eigenValuesImag.data ),
+        reinterpret_cast< float * >( eigenvaluesReal.data ),
+        reinterpret_cast< float * >( eigenvaluesImag.data ),
         reinterpret_cast< float * >( leftEigenvectors.data ),
         &LDVL,
         reinterpret_cast< float * >( rightEigenvectors.data ),
@@ -457,8 +457,8 @@ void geev(
         &N,
         reinterpret_cast< double * >( A.data ),
         &LDA,
-        reinterpret_cast< double * >( eigenValuesReal.data ),
-        reinterpret_cast< double * >( eigenValuesImag.data ),
+        reinterpret_cast< double * >( eigenvaluesReal.data ),
+        reinterpret_cast< double * >( eigenvaluesImag.data ),
         reinterpret_cast< double * >( leftEigenvectors.data ),
         &LDVL,
         reinterpret_cast< double * >( rightEigenvectors.data ),
@@ -475,7 +475,7 @@ void geev(
         &N,
         reinterpret_cast< std::complex< float > * >( A.data ),
         &LDA,
-        reinterpret_cast< std::complex< float > * >( eigenValuesReal.data ),
+        reinterpret_cast< std::complex< float > * >( eigenvaluesReal.data ),
         reinterpret_cast< std::complex< float > * >( leftEigenvectors.data ),
         &LDVL,
         reinterpret_cast< std::complex< float > * >( rightEigenvectors.data ),
@@ -493,7 +493,7 @@ void geev(
         &N,
         reinterpret_cast< std::complex< double > * >( A.data ),
         &LDA,
-        reinterpret_cast< std::complex< double > * >( eigenValuesReal.data ),
+        reinterpret_cast< std::complex< double > * >( eigenvaluesReal.data ),
         reinterpret_cast< std::complex< double > * >( leftEigenvectors.data ),
         &LDVL,
         reinterpret_cast< std::complex< double > * >( rightEigenvectors.data ),
@@ -589,8 +589,8 @@ void geev(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< T > const & A,
-  Vector< T > const & eigenValuesReal,
-  Vector< T > const & eigenValuesImag,
+  Vector< T > const & eigenvaluesReal,
+  Vector< T > const & eigenvaluesImag,
   Matrix< T > const & leftEigenvectors,
   Matrix< T > const & rightEigenvectors,
   Workspace< T > & workspace )
@@ -602,10 +602,10 @@ void geev(
 
   LVARRAY_ERROR_IF_NE( decompositionOptions.range, EigenDecompositionOptions::ALL );
 
-  LVARRAY_ERROR_IF_NE( eigenValuesReal.size, A.nCols );
+  LVARRAY_ERROR_IF_NE( eigenvaluesReal.size, A.nCols );
   if( !IsComplex< T > )
   {
-    LVARRAY_ERROR_IF_NE( eigenValuesImag.size, A.nCols );
+    LVARRAY_ERROR_IF_NE( eigenvaluesImag.size, A.nCols );
   }
 
   if( decompositionOptions.computeLeftEigenvectors() )
@@ -640,8 +640,8 @@ void geev(
       backend,
       decompositionOptions,
       A,
-      eigenValuesReal,
-      eigenValuesImag,
+      eigenvaluesReal,
+      eigenvaluesImag,
       leftEigenvectors,
       rightEigenvectors,
       optimalSizes,
@@ -657,8 +657,8 @@ void geev(
     backend,
     decompositionOptions,
     A,
-    eigenValuesReal,
-    eigenValuesImag,
+    eigenvaluesReal,
+    eigenvaluesImag,
     leftEigenvectors,
     rightEigenvectors,
     workspace,
@@ -671,7 +671,7 @@ void geev(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
-  Vector< std::complex< T > > const & eigenValues,
+  Vector< std::complex< T > > const & eigenvalues,
   Matrix< std::complex< T > > const & leftEigenvectors,
   Matrix< std::complex< T > > const & rightEigenvectors,
   Workspace< std::complex< T > > & workspace )
@@ -680,7 +680,7 @@ void geev(
     backend,
     decompositionOptions,
     A,
-    eigenValues,
+    eigenvalues,
     Vector< std::complex< T > > {},
     leftEigenvectors,
     rightEigenvectors,
@@ -718,8 +718,8 @@ template void geev< float >(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< float > const & A,
-  Vector< float > const & eigenValuesReal,
-  Vector< float > const & eigenValuesImag,
+  Vector< float > const & eigenvaluesReal,
+  Vector< float > const & eigenvaluesImag,
   Matrix< float > const & leftEigenvectors,
   Matrix< float > const & rightEigenvectors,
   Workspace< float > & workspace );
@@ -729,8 +729,8 @@ template void geev< double >(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< double > const & A,
-  Vector< double > const & eigenValuesReal,
-  Vector< double > const & eigenValuesImag,
+  Vector< double > const & eigenvaluesReal,
+  Vector< double > const & eigenvaluesImag,
   Matrix< double > const & leftEigenvectors,
   Matrix< double > const & rightEigenvectors,
   Workspace< double > & workspace );
@@ -740,7 +740,7 @@ template void geev< float >(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< float > > const & A,
-  Vector< ComplexVersion< std::complex< float > > > const & eigenValues,
+  Vector< ComplexVersion< std::complex< float > > > const & eigenvalues,
   Matrix< ComplexVersion< std::complex< float > > > const & leftEigenvectors,
   Matrix< ComplexVersion< std::complex< float > > > const & rightEigenvectors,
   Workspace< std::complex< float > > & workspace );
@@ -750,7 +750,7 @@ template void geev< double >(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< double > > const & A,
-  Vector< ComplexVersion< std::complex< double > > > const & eigenValues,
+  Vector< ComplexVersion< std::complex< double > > > const & eigenvalues,
   Matrix< ComplexVersion< std::complex< double > > > const & leftEigenvectors,
   Matrix< ComplexVersion< std::complex< double > > > const & rightEigenvectors,
   Workspace< std::complex< double > > & workspace );

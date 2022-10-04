@@ -150,7 +150,7 @@ struct EigenDecompositionOptions
     static constexpr char const * const eigenvalueString = "N";
     static constexpr char const * const eigenvectorString = "V";
 
-    return computeLeftEigenvectors() ? eigenvalueString : eigenvectorString;
+    return computeLeftEigenvectors() ? eigenvectorString : eigenvalueString;
   }
 
   /**
@@ -161,7 +161,7 @@ struct EigenDecompositionOptions
     static constexpr char const * const eigenvalueString = "N";
     static constexpr char const * const eigenvectorString = "V";
 
-    return computeRightEigenvectors() ? eigenvalueString : eigenvectorString;
+    return computeRightEigenvectors() ? eigenvectorString : eigenvalueString;
   }
 
   ///
@@ -195,8 +195,8 @@ DenseInt heevr(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
-  Vector< T > const & eigenValues,
-  Matrix< std::complex< T > > const & eigenVectors,
+  Vector< T > const & eigenvalues,
+  Matrix< std::complex< T > > const & eigenvectors,
   Vector< DenseInt > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType );
@@ -209,23 +209,23 @@ DenseInt heevr(
   BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
   ArraySlice< std::complex< T >, 2, USD_A, INDEX_TYPE > const & A,
-  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenValues,
-  ArraySlice< std::complex< T >, 2, USD_V, INDEX_TYPE > const & eigenVectors,
+  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenvalues,
+  ArraySlice< std::complex< T >, 2, USD_V, INDEX_TYPE > const & eigenvectors,
   ArraySlice< DenseInt, 1, 0, INDEX_TYPE > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
 {
   Matrix< std::complex< T > > AMatrix( A );
-  Vector< T > eigenValuesVector( eigenValues );
-  Matrix< std::complex< T > > eigenVectorsMatrix( eigenVectors );
+  Vector< T > eigenvaluesVector( eigenvalues );
+  Matrix< std::complex< T > > eigenvectorsMatrix( eigenvectors );
   Vector< DenseInt > supportVector( support );
 
   return heevr(
     std::forward< BACK_END >( backend ),
     decompositionOptions,
     AMatrix,
-    eigenValuesVector,
-    eigenVectorsMatrix,
+    eigenvaluesVector,
+    eigenvectorsMatrix,
     supportVector,
     workspace,
     storageType );
@@ -239,8 +239,8 @@ DenseInt heevr(
   BACK_END && backend,
   EigenDecompositionOptions const decompositionOptions,
   ArrayView< std::complex< T >, 2, USD_A, INDEX_TYPE, BUFFER_TYPE > const & A,
-  ArrayView< T, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & eigenValues,
-  ArrayView< std::complex< T >, 2, USD_V, INDEX_TYPE, BUFFER_TYPE > const & eigenVectors,
+  ArrayView< T, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & eigenvalues,
+  ArrayView< std::complex< T >, 2, USD_V, INDEX_TYPE, BUFFER_TYPE > const & eigenvectors,
   ArrayView< DenseInt, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & support,
   Workspace< std::complex< T > > & workspace,
   SymmetricMatrixStorageType const storageType )
@@ -249,19 +249,19 @@ DenseInt heevr(
   
   // The A matrix isn't touched because it is destroyed.
   A.move( space, false );
-  eigenVectors.move( space, true );
+  eigenvectors.move( space, true );
 
 #if defined( LVARRAY_USE_MAGMA )
   // MAGMA wants the eigenvalues and support on the CPU.
   if( backend == BuiltInBackends::MAGMA_GPU )
   {
-    eigenValues.move( MemorySpace::host, true );
+    eigenvalues.move( MemorySpace::host, true );
     support.move( MemorySpace::host, true );
   }
   else
 #endif
   {
-    eigenValues.move( space, true );
+    eigenvalues.move( space, true );
     support.move( space, true );
   }
 
@@ -269,8 +269,8 @@ DenseInt heevr(
     std::forward< BACK_END >( backend ),
     decompositionOptions,
     A.toSlice(),
-    eigenValues.toSlice(),
-    eigenVectors.toSlice(),
+    eigenvalues.toSlice(),
+    eigenvectors.toSlice(),
     support.toSlice(),
     workspace,
     storageType );
@@ -284,8 +284,8 @@ void geev(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< T > const & A,
-  Vector< T > const & eigenValuesReal,
-  Vector< T > const & eigenValuesImag,
+  Vector< T > const & eigenvaluesReal,
+  Vector< T > const & eigenvaluesImag,
   Matrix< T > const & leftEigenvectors,
   Matrix< T > const & rightEigenvectors,
   Workspace< T > & workspace );
@@ -298,10 +298,62 @@ void geev(
   BuiltInBackends const backend,
   EigenDecompositionOptions const decompositionOptions,
   Matrix< std::complex< T > > const & A,
-  Vector< std::complex< T > > const & eigenValues,
+  Vector< std::complex< T > > const & eigenvalues,
   Matrix< std::complex< T > > const & leftEigenvectors,
   Matrix< std::complex< T > > const & rightEigenvectors,
   Workspace< std::complex< T > > & workspace );
+
+/**
+ *
+ */
+template< typename BACK_END, typename T, int USD_A, int USD_VL, int USD_VR, typename INDEX_TYPE >
+void geev(
+  BACK_END && backend,
+  EigenDecompositionOptions const decompositionOptions,
+  ArraySlice< std::complex< T >, 2, USD_A, INDEX_TYPE > const & A,
+  ArraySlice< std::complex< T >, 1, 0, INDEX_TYPE > const & eigenvalues,
+  ArraySlice< std::complex< T >, 2, USD_VL, INDEX_TYPE > const & leftEigenvectors,
+  ArraySlice< std::complex< T >, 2, USD_VR, INDEX_TYPE > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace )
+{
+  Matrix< std::complex< T > > AMatrix( A );
+  Vector< std::complex< T > > eigenvaluesVector( eigenvalues );
+  Matrix< std::complex< T > > leftEigenvectorsMatrix( leftEigenvectors );
+  Matrix< std::complex< T > > rightEigenvectorsMatrix( rightEigenvectors );
+
+  geev(
+    std::forward< BACK_END >( backend ),
+    decompositionOptions,
+    AMatrix,
+    eigenvaluesVector,
+    leftEigenvectorsMatrix,
+    rightEigenvectorsMatrix,
+    workspace );
+}
+
+/**
+ *
+ */
+template< typename BACK_END, typename T, int USD_A, int USD_VL, int USD_VR, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+void geev(
+  BACK_END && backend,
+  EigenDecompositionOptions const decompositionOptions,
+  ArrayView< std::complex< T >, 2, USD_A, INDEX_TYPE, BUFFER_TYPE > const & A,
+  ArrayView< std::complex< T >, 1, 0, INDEX_TYPE, BUFFER_TYPE > const & eigenvalues,
+  ArrayView< std::complex< T >, 2, USD_VL, INDEX_TYPE, BUFFER_TYPE > const & leftEigenvectors,
+  ArrayView< std::complex< T >, 2, USD_VR, INDEX_TYPE, BUFFER_TYPE > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace )
+{
+  // TODO(corbett5): fill this in with magma spaces
+  geev(
+    std::forward< BACK_END >( backend ),
+    decompositionOptions,
+    A.toSlice(),
+    eigenvalues.toSlice(),
+    leftEigenvectors.toSlice(),
+    rightEigenvectors.toSlice(),
+    workspace );
+}
 
 } // namespace dense
 } // namespace LvArray
