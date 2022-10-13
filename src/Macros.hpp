@@ -140,10 +140,10 @@
     { \
       constexpr char const * formatString = "***** ERROR\n" \
                                             "***** LOCATION: " LOCATION "\n" \
-                                                                        "***** Block: [%u, %u, %u]\n" \
-                                                                        "***** Thread: [%u, %u, %u]\n" \
-                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+                                            "***** Block: [%u, %u, %u]\n" \
+                                            "***** Thread: [%u, %u, %u]\n" \
+                                            "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
       asm ( "trap;" ); \
     } \
@@ -564,6 +564,12 @@
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
 
+#if defined( LVARRAY_USE_HIP )
+#define LVARRAY_HOST_DEVICE_HIP __host__ __device__
+#else
+#define LVARRAY_HOST_DEVICE_HIP
+#endif
+
 /// Mark a function for only device usage.
 #define LVARRAY_DEVICE __device__
 
@@ -582,6 +588,7 @@
 #else
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE
+#define LVARRAY_HOST_DEVICE_HIP
 
 /// Mark a function for only device usage.
 #define LVARRAY_DEVICE
