@@ -533,10 +533,47 @@ int getDefaultFloatingPointExceptions()
   return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 }
 
+#if defined(__APPLE__) && defined(__MACH__)&& !defined(__x86_64__)
+static void
+fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
+{
+  LVARRAY_UNUSED_VARIABLE( sig );
+  LVARRAY_UNUSED_VARIABLE( scp );
+
+  int fe_code = sip->si_code;
+
+  printf( "In signal handler : " );
+
+  if( fe_code == ILL_ILLTRP )
+    printf( "Illegal trap detected\n" );
+  else
+    printf( "Code detected : %d\n", fe_code );
+
+  abort();
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
+#if !defined(__x86_64__)
+
+  LVARRAY_UNUSED_VARIABLE( exceptions );
+
+  fenv_t env;
+  fegetenv( &env );
+
+  env.__fpcr = env.__fpcr | __fpcr_trap_invalid;
+  fesetenv( &env );
+
+  struct sigaction act;
+  act.sa_sigaction = fpe_signal_handler;
+  sigemptyset ( &act.sa_mask );
+  act.sa_flags = SA_SIGINFO;
+  sigaction( SIGILL, &act, NULL );
+  return 0;
+#else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
@@ -554,6 +591,7 @@ int enableFloatingPointExceptions( int const exceptions )
   fenv.__mxcsr   &= ~(newExcepts << 7);
 
   return fesetenv( &fenv ) ? -1 : oldExcepts;
+#endif
 #else
   int const oldExceptions = feenableexcept( exceptions );
   LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
@@ -565,6 +603,10 @@ int enableFloatingPointExceptions( int const exceptions )
 int disableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
+#if !defined(__x86_64__)
+  LVARRAY_UNUSED_VARIABLE( exceptions );
+  return 0;
+#else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
   static fenv_t fenv;
@@ -582,6 +624,7 @@ int disableFloatingPointExceptions( int const exceptions )
   fenv.__mxcsr   |= newExcepts << 7;
 
   return fesetenv( &fenv ) ? -1 : oldExcepts;
+#endif
 #else
   int const oldExceptions = fedisableexcept( exceptions );
   LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
@@ -593,7 +636,11 @@ int disableFloatingPointExceptions( int const exceptions )
 void setFPE()
 {
 #if defined(__APPLE__) && defined(__MACH__)
+#if !defined(__x86_64__)
+
+#else
   fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
+#endif
 #elif defined(__x86_64__)
   _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
   _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
