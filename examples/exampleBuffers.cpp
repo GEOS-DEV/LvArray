@@ -30,7 +30,7 @@ TEST( MallocBuffer, copy )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::MallocBuffer< int > buffer( true );
-  buffer.reallocate( 0, hostMemorySpace, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -54,7 +54,7 @@ TEST( MallocBuffer, nonPOD )
 {
   constexpr std::ptrdiff_t size = 4;
   LvArray::MallocBuffer< std::string > buffer( true );
-  buffer.reallocate( 0, hostMemorySpace, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   // Buffers don't initialize data so placement new must be used.
   for( int i = 0; i < size; ++i )
@@ -85,7 +85,7 @@ CUDA_TEST( ChaiBuffer, captureOnDevice )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, hostMemorySpace, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -188,7 +188,7 @@ TEST( StackBuffer, example )
     EXPECT_EQ( buffer[ i ], i );
   }
 
-  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, hostMemorySpace, 2 * size ), "" );
+  EXPECT_DEATH_IF_SUPPORTED( buffer.reallocate( size, LvArray::MemorySpace::host, 2 * size ), "" );
 
   // Not necessary with the StackBuffer but it's good practice.
   buffer.free();
