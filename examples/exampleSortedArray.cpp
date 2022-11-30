@@ -80,7 +80,7 @@ CUDA_TEST( SortedArray, ChaiBuffer )
     );
 
   // Move the set back to the CPU and modify it.
-  set.move( hostMemorySpace );
+  set.move( LvArray::MemorySpace::host );
   set.insert( 6 );
 
   // Verify that the modification is seen on device.

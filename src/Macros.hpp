@@ -140,10 +140,10 @@
     { \
       constexpr char const * formatString = "***** ERROR\n" \
                                             "***** LOCATION: " LOCATION "\n" \
-                                            "***** Block: [%u, %u, %u]\n" \
-                                            "***** Thread: [%u, %u, %u]\n" \
-                                            "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
-                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
+                                                                        "***** Block: [%u, %u, %u]\n" \
+                                                                        "***** Thread: [%u, %u, %u]\n" \
+                                                                        "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n" \
+                                                                                                                                            "***** MSG: " STRINGIZE( MSG ) "\n\n"; \
       printf( formatString, blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z ); \
       asm ( "trap;" ); \
     } \

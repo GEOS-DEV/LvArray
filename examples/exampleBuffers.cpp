@@ -118,7 +118,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 {
   constexpr std::ptrdiff_t size = 55;
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, hostMemorySpace, size );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, size );
 
   for( int i = 0; i < size; ++i )
   {
@@ -153,18 +153,18 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
 TEST( ChaiBuffer, setName )
 {
   LvArray::ChaiBuffer< int > buffer( true );
-  buffer.reallocate( 0, hostMemorySpace, 1024 );
+  buffer.reallocate( 0, LvArray::MemorySpace::host, 1024 );
 
   // Move to the device.
-  buffer.move( parallelDeviceMemorySpace, true );
+  buffer.move( LvArray::MemorySpace::cuda, true );
 
   // Give buffer a name and move back to the host.
   buffer.setName( "my_buffer" );
-  buffer.move( hostMemorySpace, true );
+  buffer.move( LvArray::MemorySpace::host, true );
 
   // Rename buffer and override the default type.
   buffer.setName< double >( "my_buffer_with_a_nonsensical_type" );
-  buffer.move( parallelDeviceMemorySpace, true );
+  buffer.move( LvArray::MemorySpace::cuda, true );
 }
 // Sphinx end before ChaiBuffer setName
 
