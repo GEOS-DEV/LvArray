@@ -27,6 +27,17 @@ struct EigenDecompositionOptions
   /**
    *
    */
+  enum GeneralizedType
+  {
+    Ax_eq_lambdax = 0,
+    Ax_eq_lambdaBx = 1,
+    ABx_eq_lambdax = 2,
+    BAx_eq_lambdax = 3,
+  };
+
+  /**
+   *
+   */
   enum Range
   {
     ALL,
@@ -40,6 +51,21 @@ struct EigenDecompositionOptions
   EigenDecompositionOptions( Type const typeP, double const abstolP=0 ):
     type{ typeP },
     abstol{ abstolP }
+  {
+    LVARRAY_ERROR_IF(
+      type != EIGENVALUES &&
+      type != EIGENVALUES_AND_LEFT_VECTORS &&
+      type != EIGENVALUES_AND_RIGHT_VECTORS &&
+      type != EIGENVALUES_AND_LEFT_AND_RIGHT_VECTORS,
+      "Wrong type provided: type = " << type );
+  }
+
+  /**
+   *
+   */
+  EigenDecompositionOptions( Type const typeP, GeneralizedType const genTypeP ):
+    type{ typeP },
+    generalizedType{ genTypeP }
   {
     LVARRAY_ERROR_IF(
       type != EIGENVALUES &&
@@ -166,6 +192,9 @@ struct EigenDecompositionOptions
 
   ///
   Type const type;
+
+  ///
+  GeneralizedType const generalizedType = Ax_eq_lambdax;
 
   ///
   Range const range = ALL;
@@ -353,6 +382,46 @@ void geev(
     leftEigenvectors.toSlice(),
     rightEigenvectors.toSlice(),
     workspace );
+}
+
+/**
+ *
+ */
+template< typename T >
+void hegvd(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Matrix< std::complex< T > > const & B,
+  Vector< T > const & eigenvalues,
+  Workspace< std::complex< T > > & workspace,
+  SymmetricMatrixStorageType const storageType );
+
+/**
+ *
+ */
+template< typename BACK_END, typename T, int USD_A, int USD_B, typename INDEX_TYPE >
+void hegvd(
+  BACK_END && backend,
+  EigenDecompositionOptions const decompositionOptions,
+  ArraySlice< std::complex< T >, 2, USD_A, INDEX_TYPE > const & A,
+  ArraySlice< std::complex< T >, 2, USD_B, INDEX_TYPE > const & B,
+  ArraySlice< T, 1, 0, INDEX_TYPE > const & eigenvalues,
+  Workspace< std::complex< T > > & workspace,
+  SymmetricMatrixStorageType const storageType )
+{
+  Matrix< std::complex< T > > AMatrix( A );
+  Matrix< std::complex< T > > BMatrix( B );
+  Vector< T > eigenvaluesVector( eigenvalues );
+
+  hegvd(
+    std::forward< BACK_END >( backend ),
+    decompositionOptions,
+    AMatrix,
+    BMatrix,
+    eigenvaluesVector,
+    workspace,
+    storageType );
 }
 
 } // namespace dense

@@ -12,6 +12,25 @@ namespace dense
 namespace internal
 {
 
+// TODO: Make the backends into a virtual class. For example
+// class LapackInterface
+// {
+//   virtual bool zheevrCheckWorkspace(
+//     EigenDecompositionOptions const decompositionOptions,
+//     Matrix< std::complex< double > > const & A,
+//     Workspace< std::complex< double > > & workspace );
+
+//   virtual void zheevr(
+//     BuiltInBackends const backend,
+//     EigenDecompositionOptions const decompositionOptions,
+//     Matrix< std::complex< double > > const & A,
+//     Vector< double > const & eigenvalues,
+//     Matrix< std::complex< double > > const & eigenvectors,
+//     Vector< DenseInt > const & support,
+//     Workspace< std::complex< double > > & workspace,
+//     SymmetricMatrixStorageType const storageType );
+// };
+
 /**
  * TODO make a complex type and add it to the main LvArray. Make a uniform way of interacting with various complex number implementations.
  */
