@@ -21,7 +21,7 @@ foreach(test ${pythonTests})
     target_include_directories( ${test_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../src )
 
 
-    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}Driver.py ${CMAKE_CURRENT_BINARY_DIR}/${test_name}Driver.py COPY_ONLY )
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}Driver.py ${CMAKE_CURRENT_BINARY_DIR}/${test_name}Driver.py COPYONLY )
 
     add_test( NAME ${test_name}
               COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}Driver.py )
