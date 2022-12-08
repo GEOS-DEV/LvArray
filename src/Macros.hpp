@@ -565,8 +565,10 @@
 #define LVARRAY_HOST_DEVICE __host__ __device__
 
 #if defined( LVARRAY_USE_HIP )
+/// Mark a function for both host and device usage when using HIP only.
 #define LVARRAY_HOST_DEVICE_HIP __host__ __device__
 #else
+/// Mark a function for both host and device usage when using HIP only.
 #define LVARRAY_HOST_DEVICE_HIP
 #endif
 
@@ -588,6 +590,7 @@
 #else
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE
+/// Mark a function for both host and device usage when using HIP only.
 #define LVARRAY_HOST_DEVICE_HIP
 
 /// Mark a function for only device usage.
