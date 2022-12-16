@@ -186,6 +186,52 @@ void LVARRAY_ZHEGVD(
   LvArray::dense::DenseInt const * LIWORK,
   LvArray::dense::DenseInt * INFO );
 
+///
+/// General matrix generalized eigensolvers.
+///
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_CGGEV LVARRAY_LAPACK_FORTRAN_MANGLE( cggev )
+void LVARRAY_CGGEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  std::complex< float > * A,
+  LvArray::dense::DenseInt const * LDA,
+  std::complex< float > * B,
+  LvArray::dense::DenseInt const * LDB,
+  std::complex< float > * alpha,
+  std::complex< float > * beta,
+  std::complex< float > * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  std::complex< float > * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  std::complex< float > * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  float * RWORK,
+  LvArray::dense::DenseInt * INFO );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#define LVARRAY_ZGGEV LVARRAY_LAPACK_FORTRAN_MANGLE( zggev )
+void LVARRAY_ZGGEV(
+  char const * JOBVL,
+  char const * JOBVR,
+  LvArray::dense::DenseInt const * N,
+  std::complex< double > * A,
+  LvArray::dense::DenseInt const * LDA,
+  std::complex< double > * B,
+  LvArray::dense::DenseInt const * LDB,
+  std::complex< double > * alpha,
+  std::complex< double > * beta,
+  std::complex< double > * VL,
+  LvArray::dense::DenseInt const * LDVL,
+  std::complex< double > * VR,
+  LvArray::dense::DenseInt const * LDVR,
+  std::complex< double > * WORK,
+  LvArray::dense::DenseInt const * LWORK,
+  double * RWORK,
+  LvArray::dense::DenseInt * INFO );
+
 } // extern "C"
 
 namespace LvArray
@@ -579,15 +625,11 @@ void hegvd(
 {
   int const ITYPE = decompositionOptions.generalizedType;
   char const * const JOBZ = decompositionOptions.typeArg();
-  LVARRAY_ERROR_IF_NE( decompositionOptions.range, EigenDecompositionOptions::ALL );
   char const * const UPLO = getOption( storageType );
   DenseInt const N = A.nCols;
   DenseInt const LDA = A.stride;
 
-  LVARRAY_ERROR_IF_NE( B.nCols, N );
   DenseInt const LDB = B.stride;
-
-  LVARRAY_ERROR_IF_LT( eigenvalues.size, N );
 
   DenseInt const LWORK = compute ? workspace.work().size : -1;
   DenseInt const LRWORK = compute ? workspace.rwork().size : -1;
@@ -655,9 +697,118 @@ void hegvd(
   }
   else if( INFO != 0 )
   {
-    LVARRAY_ERROR( "The leading minor of order " << INFO - N << " of B is not positive definite. " <<
-      "The factorization of B could not be completed and no eigenvalues or eigenvectors were computed." );
+    LVARRAY_THROW_IF( true, "The leading minor of order " << INFO - N << " of B is not positive definite. " <<
+      "The factorization of B could not be completed and no eigenvalues or eigenvectors were computed.", PositiveDefiniteError );
   }
+
+  return;
+}
+
+/**
+ * 
+ */
+template< typename T >
+void ggev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Matrix< std::complex< T > > const & B,
+  Vector< std::complex< T > > const & alpha,
+  Vector< std::complex< T > > const & beta,
+  Matrix< std::complex< T > > const & leftEigenvectors,
+  Matrix< std::complex< T > > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace,
+  bool const compute )
+{
+  char const * const JOBVL = decompositionOptions.leftArg();
+  char const * const JOBVR = decompositionOptions.rightArg();
+  DenseInt const N = A.nCols;
+  DenseInt const LDA = A.stride;
+
+  DenseInt const LDB = B.stride;
+
+  DenseInt const LDVL = std::max( 1, leftEigenvectors.stride );
+  DenseInt const LDVR = std::max( 1, rightEigenvectors.stride );
+
+  DenseInt const LWORK = compute ? workspace.work().size : -1;
+  DenseInt INFO = 0;
+
+  // With C++ 17 we can remove the reinterpret_cast with constexpr if.
+  if( backend == BuiltInBackends::LAPACK )
+  {
+    if( std::is_same< T, float >::value )
+    {
+      LVARRAY_CGGEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< std::complex< float > * >( A.data ),
+        &LDA,
+        reinterpret_cast< std::complex< float > * >( B.data ),
+        &LDB,
+        reinterpret_cast< std::complex< float > * >( alpha.data ),
+        reinterpret_cast< std::complex< float > * >( beta.data ),
+        reinterpret_cast< std::complex< float > * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< std::complex< float > * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< std::complex< float > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< float * >( workspace.rwork().data ),
+        &INFO );
+    }
+    else
+    {
+      // LVARRAY_LOG_VAR( JOBVL );
+      // LVARRAY_LOG_VAR( JOBVR );
+      // LVARRAY_LOG_VAR( N );
+      // LVARRAY_LOG_VAR( A.data );
+      // LVARRAY_LOG_VAR( LDA );
+      // LVARRAY_LOG_VAR( B.data );
+      // LVARRAY_LOG_VAR( LDB );
+      // LVARRAY_LOG_VAR( alpha.data );
+      // LVARRAY_LOG_VAR( beta.data );
+      // LVARRAY_LOG_VAR( leftEigenvectors.data );
+      // LVARRAY_LOG_VAR( LDVL );
+      // LVARRAY_LOG_VAR( rightEigenvectors.data );
+      // LVARRAY_LOG_VAR( LDVR );
+      // LVARRAY_LOG_VAR( workspace.work().data );
+      // LVARRAY_LOG_VAR( workspace.work().size );
+      // LVARRAY_LOG_VAR( LWORK );
+      // LVARRAY_LOG_VAR( workspace.rwork().data );
+      // LVARRAY_LOG_VAR( workspace.rwork().size );
+      
+      LVARRAY_ZGGEV(
+        JOBVL,
+        JOBVR,
+        &N,
+        reinterpret_cast< std::complex< double > * >( A.data ),
+        &LDA,
+        reinterpret_cast< std::complex< double > * >( B.data ),
+        &LDB,
+        reinterpret_cast< std::complex< double > * >( alpha.data ),
+        reinterpret_cast< std::complex< double > * >( beta.data ),
+        reinterpret_cast< std::complex< double > * >( leftEigenvectors.data ),
+        &LDVL,
+        reinterpret_cast< std::complex< double > * >( rightEigenvectors.data ),
+        &LDVR,
+        reinterpret_cast< std::complex< double > * >( workspace.work().data ),
+        &LWORK,
+        reinterpret_cast< double * >( workspace.rwork().data ),
+        &INFO );
+    }
+  }
+  else
+  {
+    LVARRAY_ERROR( "Unknown built in backend: " << static_cast< int >( backend ) );
+  }
+
+  LVARRAY_ERROR_IF_LT_MSG( INFO, 0, "The " << -INFO << "th argument had an illegal value." );
+  
+  LVARRAY_THROW_IF( INFO != 0 && INFO <= N, "The QZ iteration failed.  No eigenvectors have been calculated, " <<
+                   "but ALPHA(j) and BETA(j) should be correct for j= " << INFO + 1 << ",...,N", IterationError );
+  
+  LVARRAY_ERROR_IF( INFO != 0, "Something else broke: " << INFO );
 
   return;
 }
@@ -859,6 +1010,11 @@ void hegvd(
   LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
   LVARRAY_ERROR_IF( !B.isColumnMajor, "Row major is not yet supported." );
 
+  LVARRAY_ERROR_IF_NE( decompositionOptions.range, EigenDecompositionOptions::ALL );
+  LVARRAY_ERROR_IF_NE( B.nCols, A.nCols );
+  LVARRAY_ERROR_IF_LT( eigenvalues.size, A.nCols );
+
+
   bool reallocateWork = workspace.work().size == 0;
   bool reallocateRWork = workspace.rwork().size == 0;
   bool reallocateIWork = workspace.iwork().size == 0;
@@ -911,6 +1067,81 @@ void hegvd(
     eigenvalues,
     workspace,
     storageType,
+    true );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template< typename T >
+void ggev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Matrix< std::complex< T > > const & B,
+  Vector< std::complex< T > > const & alpha,
+  Vector< std::complex< T > > const & beta,
+  Matrix< std::complex< T > > const & leftEigenvectors,
+  Matrix< std::complex< T > > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace )
+{
+  LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
+
+  // TODO(corbett5): I think we can support row major by simply complex-conjugating all entries.
+  // I'm not sure exactly how this would work for the eigenvectors though.
+  LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !B.isColumnMajor, "Row major is not yet supported." );
+
+  LVARRAY_ERROR_IF_NE( decompositionOptions.range, EigenDecompositionOptions::ALL );
+  LVARRAY_ERROR_IF_NE( B.nCols, A.nCols );
+  LVARRAY_ERROR_IF_LT( alpha.size, A.nCols );
+  LVARRAY_ERROR_IF_LT( beta.size, A.nCols );
+
+  if( decompositionOptions.computeLeftEigenvectors() )
+  {
+    LVARRAY_ERROR_IF_NE( leftEigenvectors.nCols, A.nCols );
+  }
+  if( decompositionOptions.computeRightEigenvectors() )
+  {
+    LVARRAY_ERROR_IF_NE( rightEigenvectors.nCols, A.nCols );
+  }
+
+  bool const reallocateWork = workspace.work().size < std::max( 1, 2 * A.nCols );
+  bool const reallocateRWork = workspace.rwork().size < 8 * A.nCols;
+
+  if( reallocateWork )
+  {
+    OptimalSizeCalculation< std::complex< T > > optimalSizes;
+    internal::ggev(
+      backend,
+      decompositionOptions,
+      A,
+      B,
+      alpha,
+      beta,
+      leftEigenvectors,
+      rightEigenvectors,
+      optimalSizes,
+      false );
+    
+    if( reallocateWork )
+    {
+      workspace.resizeWork( MemorySpace::host, optimalSizes.optimalWorkSize() );
+    }
+  }
+  if( reallocateRWork)
+  {
+    workspace.resizeRWork( MemorySpace::host, 8 * A.nCols );
+  }
+
+  internal::ggev(
+    backend,
+    decompositionOptions,
+    A,
+    B,
+    alpha,
+    beta,
+    leftEigenvectors,
+    rightEigenvectors,
+    workspace,
     true );
 }
 
@@ -1001,6 +1232,30 @@ template void hegvd< double >(
   Vector< double > const & eigenvalues,
   Workspace< std::complex< double > > & workspace,
   SymmetricMatrixStorageType const storageType );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void ggev< float >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< float > > const & A,
+  Matrix< std::complex< float > > const & B,
+  Vector< std::complex< float > > const & alpha,
+  Vector< std::complex< float > > const & beta,
+  Matrix< std::complex< float > > const & leftEigenvectors,
+  Matrix< std::complex< float > > const & rightEigenvectors,
+  Workspace< std::complex< float > > & workspace );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+template void ggev< double >(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< double > > const & A,
+  Matrix< std::complex< double > > const & B,
+  Vector< std::complex< double > > const & alpha,
+  Vector< std::complex< double > > const & beta,
+  Matrix< std::complex< double > > const & leftEigenvectors,
+  Matrix< std::complex< double > > const & rightEigenvectors,
+  Workspace< std::complex< double > > & workspace );
 
 } // namespace dense
 } // namespace LvArray

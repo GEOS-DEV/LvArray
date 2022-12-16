@@ -52,6 +52,39 @@ struct RealVersion< std::complex< T > >
 } // namespace internal
 
 /**
+ * Base exception
+ */
+struct Error : public std::runtime_error
+{
+  template< typename ... ARGS >
+  Error( ARGS && ... args ):
+    std::runtime_error( std::forward< ARGS >( args ) ... )
+  {}
+};
+
+/**
+ * Used when iteration doesn't work.
+ */
+struct IterationError : public Error
+{
+  template< typename ... ARGS >
+  IterationError( ARGS && ... args ):
+    Error( std::forward< ARGS >( args ) ... )
+  {}
+};
+
+/**
+ * Used for matrices that should be positive definite but are not.
+ */
+struct PositiveDefiniteError : public Error
+{
+  template< typename ... ARGS >
+  PositiveDefiniteError( ARGS && ... args ):
+    Error( std::forward< ARGS >( args ) ... )
+  {}
+};
+
+/**
  *
  */
 enum class SymmetricMatrixStorageType

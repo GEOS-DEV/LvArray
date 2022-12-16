@@ -424,5 +424,54 @@ void hegvd(
     storageType );
 }
 
+/**
+ *
+ */
+template< typename T >
+void ggev(
+  BuiltInBackends const backend,
+  EigenDecompositionOptions const decompositionOptions,
+  Matrix< std::complex< T > > const & A,
+  Matrix< std::complex< T > > const & B,
+  Vector< std::complex< T > > const & alpha,
+  Vector< std::complex< T > > const & beta,
+  Matrix< std::complex< T > > const & leftEigenvectors,
+  Matrix< std::complex< T > > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace );
+
+/**
+ *
+ */
+template< typename BACK_END, typename T, int USD_A, int USD_B, int USD_C, int USD_D, typename INDEX_TYPE >
+void ggev(
+  BACK_END && backend,
+  EigenDecompositionOptions const decompositionOptions,
+  ArraySlice< std::complex< T >, 2, USD_A, INDEX_TYPE > const & A,
+  ArraySlice< std::complex< T >, 2, USD_B, INDEX_TYPE > const & B,
+  ArraySlice< std::complex< T >, 1, 0, INDEX_TYPE > const & alpha,
+  ArraySlice< std::complex< T >, 1, 0, INDEX_TYPE > const & beta,
+  ArraySlice< std::complex< T >, 2, USD_C, INDEX_TYPE > const & leftEigenvectors,
+  ArraySlice< std::complex< T >, 2, USD_D, INDEX_TYPE > const & rightEigenvectors,
+  Workspace< std::complex< T > > & workspace )
+{
+  Matrix< std::complex< T > > AMatrix( A );
+  Matrix< std::complex< T > > BMatrix( B );
+  Vector< std::complex< T > > alphaVector( alpha );
+  Vector< std::complex< T > > betaVector( beta );
+  Matrix< std::complex< T > > leftEigenvectorsMatrix( leftEigenvectors );
+  Matrix< std::complex< T > > rightEigenvectorsMatrix( rightEigenvectors );
+
+  ggev(
+    std::forward< BACK_END >( backend ),
+    decompositionOptions,
+    AMatrix,
+    BMatrix,
+    alphaVector,
+    betaVector,
+    leftEigenvectorsMatrix,
+    rightEigenvectorsMatrix,
+    workspace );
+}
+
 } // namespace dense
 } // namespace LvArray
