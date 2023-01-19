@@ -3,20 +3,20 @@ set(CONFIG_NAME "tioga-cce@14.0.1" CACHE PATH "")
 include( ${CMAKE_CURRENT_LIST_DIR}/tioga-base.cmake )
 
 # Set up the tpls
-set(GEOSX_TPL_DIR "/usr/workspace/dudouit1/spack/opt/spack/linux-rhel8-x86_64/cce-14.0.1" CACHE PATH "")
+set(TPL_INSTALL_DATE 2023-01-19)
+set(GEOSX_TPL_DIR "/usr/WS1/GEOS/GEOSX/TPLs_${TPL_INSTALL_DATE}/install-${CONFIG_NAME}" CACHE PATH "")
 
-set(CAMP_DIR "${GEOSX_TPL_DIR}/camp-2022.03.2-uzyab2oftavddnkf6pqnjhogfeie6zw3" CACHE PATH "" )
-
-set(RAJA_DIR "${GEOSX_TPL_DIR}/raja-2022.03.0-wkr76cympyfdh5zt5elss6vocbtqq3wy" CACHE PATH "" )
+set(CAMP_DIR "${GEOSX_TPL_DIR}/camp" CACHE PATH "" )
+set(RAJA_DIR "${GEOSX_TPL_DIR}/raja" CACHE PATH "" )
 
 set(ENABLE_UMPIRE TRUE CACHE BOOL "" )
-set(UMPIRE_DIR "${GEOSX_TPL_DIR}/umpire-2022.03.0-4a76dy3xxyr7c574v6cthu6olo6djsnf" CACHE PATH "" )
+set(UMPIRE_DIR "${GEOSX_TPL_DIR}/umpire" CACHE PATH "" )
 
 set(ENABLE_CHAI TRUE CACHE BOOL "" )
-set(CHAI_DIR "${GEOSX_TPL_DIR}/chai-2022.03.0-wzou726pxbpr5ll7koufjzxwda7yjqcz" CACHE PATH "" )
+set(CHAI_DIR "${GEOSX_TPL_DIR}/chai" CACHE PATH "" )
 
-set(METIS_DIR "${GEOSX_TPL_DIR}/metis-5.1.0-5hcqp42kkq3njvpw25f45l2jikaecofm" CACHE PATH "" )
-set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis-4.0.3-4duubemdbsj3oipdf3s3vvce2aeegzlb" CACHE PATH "" )
+set(METIS_DIR "${GEOSX_TPL_DIR}/metis" CACHE PATH "" )
+set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis" CACHE PATH "" )
 
 # C++ options
 set(CRAYPE_VERSION "2.7.19")
