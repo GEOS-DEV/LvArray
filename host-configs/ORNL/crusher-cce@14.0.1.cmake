@@ -26,7 +26,8 @@ set(CMAKE_CXX_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/CC" CACHE PATH
 set(CMAKE_Fortran_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/ftn" CACHE PATH "")
 
 if( ENABLE_HIP )
-  set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE ) # don't invoke hipcc, rely on cce link-time compilation
+  set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE ) 
+  # don't invoke hipcc, rely on cce link-time compilation
 
   set( HIP_VERSION_STRING "5.1.0" CACHE STRING "" )
   set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
@@ -35,4 +36,10 @@ if( ENABLE_HIP )
   set( AMDGPU_TARGETS "${CMAKE_HIP_ARCHITECTURES}" CACHE STRING "" FORCE )
   set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
   set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
+  
+  # OLCF office houes:
+  # qipa=3/1  #file cce important bug on this "how can we get as much parallelism in the link as possible"
+  # email olcf to pass on the compiler team about the debug symbols bug.. 
+  # -mllvm -amdgpu-early-inline-all=false -mllvm -amdgpu-function-calls=true
+  # try -flto=thin
 endif()
