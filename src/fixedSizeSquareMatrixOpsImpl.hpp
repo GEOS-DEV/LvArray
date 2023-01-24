@@ -1253,6 +1253,50 @@ private:
 
     return row;
   }
+
+  /**
+   * @brief Determine the polar decomposition using the Higham algorithm such that @p R . U = V . @p R = @p matrix
+   * @tparam DST_MATRIX The type of @p R.
+   * @tparam MATRIX The type of @p matrix.
+   * @param R The resultant rotation matrix, of size ISIZE x ISIZE.
+   * @param matrix The matrix to be decomposed, of size ISIZE x ISIZE.
+   */
+  template< typename DST_MATRIX, typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
+  {
+    checkSizes< 3, 3 >( R );
+    checkSizes< 3, 3 >( matrix );
+
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+
+    // Initialize
+    copy< 3, 3>( R, matrix );
+    realType RInverse[3][3], RInverseTranspose[3][3], RRTMinusI[3][3];
+
+    // Higham Algorithm
+    realType error = 1.0;
+    int iter = 0;
+    while( error > 1.0e-16 )
+    {
+      iter++;
+      invert( RInverse, R );
+      transpose< 3, 3 >( RInverseTranspose, RInverse );
+      add< 3, 3 >( R, RInverseTranspose );
+      scale< 3, 3 >( R, 0.5 );
+      Rij_eq_AikBjk< 3, 3 >( RRTMinusI, R, R );
+      addIdentity< 3, 3 >( RRTMinusI, -1.0 );
+      for( std::ptrdiff_t i = 0 ; i < 3 ; i++ )
+      {
+        for( std::ptrdiff_t j = 0 ; j < 3 ; j++ )
+        {
+          error += RRTMinusI[i][j] * RRTMinusI[i][j];
+        }
+      }
+      LVARRAY_ERROR_IF( iter >= 100, "Polar decomposition failed to converge!");
+    }
+  }
 };
 
 } // namespace internal
