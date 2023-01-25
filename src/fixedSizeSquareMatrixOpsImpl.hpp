@@ -529,6 +529,56 @@ struct SquareMatrixOps< 2 >
     dstMatrix[ 1 ][ 0 ] = srcSymMatrix[ 2 ];
   }
 
+  /**
+   * @brief Determine the polar decomposition of the 2x2 matrix @p matrix
+   * @tparam DST_MATRIX The type of @p R.
+   * @tparam MATRIX The type of @p matrix.
+   * @param R The resultant rotation matrix.
+   * @param matrix The matrix to be decomposed.
+   * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p matrix.
+   *   This is done using Higham's iterative algorithm.
+   */
+  template< typename DST_MATRIX, typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
+  {
+    checkSizes< 2, 2 >( R );
+    checkSizes< 2, 2 >( matrix );
+
+    using FloatingPoint = std::decay_t< decltype( matrix[ 0 ][ 0 ] ) >;
+
+    // Initialize
+    copy< 2, 2 >( R, matrix );
+    FloatingPoint RInverse[2][2] = { {0} },
+                  RInverseTranspose[2][2] = { {0} },
+                  RRTMinusI[2][2] = { {0} };
+
+    // Higham Algorithm
+    FloatingPoint error = 1.0;
+    int iter = 0;
+    while( error > 1.0e-16 && iter < 100 )
+    {
+      iter++;
+      error = 0.0;
+
+      invert( RInverse, R );
+      transpose< 2, 2 >( RInverseTranspose, RInverse );
+      add< 2, 2 >( R, RInverseTranspose );
+      scale< 2, 2 >( R, 0.5 );
+      Rij_eq_AikBjk< 2, 2, 2 >( RRTMinusI, R, R );
+      addIdentity< 2 >( RRTMinusI, -1.0 );
+
+      for( std::ptrdiff_t i = 0 ; i < 2 ; i++ )
+      {
+        for( std::ptrdiff_t j = 0 ; j < 2 ; j++ )
+        {
+          error += RRTMinusI[i][j] * RRTMinusI[i][j];
+        }
+      }
+    }
+  }
+
 private:
 
   /**
@@ -1162,6 +1212,56 @@ struct SquareMatrixOps< 3 >
     dstMatrix[ 2 ][ 1 ] = srcSymMatrix[ 3 ];
   }
 
+  /**
+   * @brief Determine the polar decomposition of the 3x3 matrix @p matrix
+   * @tparam DST_MATRIX The type of @p R.
+   * @tparam MATRIX The type of @p matrix.
+   * @param R The resultant rotation matrix.
+   * @param matrix The matrix to be decomposed.
+   * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p matrix.
+   *   This is done using Higham's iterative algorithm.
+   */
+  template< typename DST_MATRIX, typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
+  {
+    checkSizes< 3, 3 >( R );
+    checkSizes< 3, 3 >( matrix );
+
+    using FloatingPoint = std::decay_t< decltype( matrix[ 0 ][ 0 ] ) >;
+
+    // Initialize
+    copy< 3, 3 >( R, matrix );
+    FloatingPoint RInverse[3][3] = { {0} },
+                  RInverseTranspose[3][3] = { {0} },
+                  RRTMinusI[3][3] = { {0} };
+
+    // Higham Algorithm
+    FloatingPoint error = 1.0;
+    int iter = 0;
+    while( error > 1.0e-16 && iter < 100 )
+    {
+      iter++;
+      error = 0.0;
+
+      invert( RInverse, R );
+      transpose< 3, 3 >( RInverseTranspose, RInverse );
+      add< 3, 3 >( R, RInverseTranspose );
+      scale< 3, 3 >( R, 0.5 );
+      Rij_eq_AikBjk< 3, 3, 3 >( RRTMinusI, R, R );
+      addIdentity< 3 >( RRTMinusI, -1.0 );
+
+      for( std::ptrdiff_t i = 0 ; i < 3 ; i++ )
+      {
+        for( std::ptrdiff_t j = 0 ; j < 3 ; j++ )
+        {
+          error += RRTMinusI[i][j] * RRTMinusI[i][j];
+        }
+      }
+    }
+  }
+
 private:
   /**
    * @brief Compute the eigenvalues of the 3x3 symmetric matrix @p matrix.
@@ -1252,50 +1352,6 @@ private:
     { scaledCopy< 3 >( nullVector, nullVectorCandidate, math::invSqrt( n1 ) ); }
 
     return row;
-  }
-
-  /**
-   * @brief Determine the polar decomposition using the Higham algorithm such that @p R . U = V . @p R = @p matrix
-   * @tparam DST_MATRIX The type of @p R.
-   * @tparam MATRIX The type of @p matrix.
-   * @param R The resultant rotation matrix, of size ISIZE x ISIZE.
-   * @param matrix The matrix to be decomposed, of size ISIZE x ISIZE.
-   */
-  template< typename DST_MATRIX, typename MATRIX >
-  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
-                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
-  {
-    checkSizes< 3, 3 >( R );
-    checkSizes< 3, 3 >( matrix );
-
-    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
-
-    // Initialize
-    copy< 3, 3>( R, matrix );
-    realType RInverse[3][3], RInverseTranspose[3][3], RRTMinusI[3][3];
-
-    // Higham Algorithm
-    realType error = 1.0;
-    int iter = 0;
-    while( error > 1.0e-16 )
-    {
-      iter++;
-      invert( RInverse, R );
-      transpose< 3, 3 >( RInverseTranspose, RInverse );
-      add< 3, 3 >( R, RInverseTranspose );
-      scale< 3, 3 >( R, 0.5 );
-      Rij_eq_AikBjk< 3, 3 >( RRTMinusI, R, R );
-      addIdentity< 3, 3 >( RRTMinusI, -1.0 );
-      for( std::ptrdiff_t i = 0 ; i < 3 ; i++ )
-      {
-        for( std::ptrdiff_t j = 0 ; j < 3 ; j++ )
-        {
-          error += RRTMinusI[i][j] * RRTMinusI[i][j];
-        }
-      }
-      LVARRAY_ERROR_IF( iter >= 100, "Polar decomposition failed to converge!");
-    }
   }
 };
 
