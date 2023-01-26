@@ -56,31 +56,35 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('docs', default=False, description='Build docs')
     variant('addr2line', default=True,
             description='Build support for addr2line.')
-
+        
     depends_on('blt', when='@0.2.0:', type='build')
 
     depends_on('camp')
-    depends_on('camp+cuda', when='+cuda')
 
     depends_on('raja')
-    depends_on('raja+cuda', when='+cuda')
 
-    # At the moment Umpire doesn't support shared when building with CUDA.
     depends_on('umpire', when='+umpire')
-    depends_on('umpire+cuda~shared', when='+umpire+cuda')
 
     depends_on('chai+raja', when='+chai')
-    depends_on('chai+raja+cuda', when='+chai+cuda')
 
     depends_on('caliper', when='+caliper')
 
     depends_on('python +shared +pic', when='+pylvarray')
-    depends_on('py-numpy@1.19: +blas +lapack +force-parallel-build', when='+pylvarray')
-    depends_on('py-scipy@1.5.2: +force-parallel-build', when='+pylvarray')
+    depends_on('py-numpy@1.19: +blas +lapack', when='+pylvarray')
+    depends_on('py-scipy@1.5.2:', when='+pylvarray')
     depends_on('py-pip', when='+pylvarray')
 
     depends_on('doxygen@1.8.13:', when='+docs', type='build')
     depends_on('py-sphinx@1.6.3:', when='+docs', type='build')
+
+    with when('+cuda'):
+        for sm_ in CudaPackage.cuda_arch_values:
+            depends_on('camp +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+            depends_on('raja +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+            depends_on('umpire +cuda ~shared cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+            depends_on('chai +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+            depends_on('caliper +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+    
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
 
@@ -285,10 +289,6 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write("#{0}\n\n".format("-" * 80))
 
         if "+caliper" in spec:
-            cfg.write("#{0}\n".format("-" * 80))
-            cfg.write("# Caliper\n")
-            cfg.write("#{0}\n\n".format("-" * 80))
-
             cfg.write(cmake_cache_option("ENABLE_CALIPER", True))
             cfg.write(cmake_cache_entry("CALIPER_DIR", spec['caliper'].prefix))
         else:
@@ -297,6 +297,7 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write('#{0}\n'.format('-' * 80))
         cfg.write('# Python\n')
         cfg.write('#{0}\n\n'.format('-' * 80))
+
         if '+pylvarray' in spec:
             cfg.write(cmake_cache_option('ENABLE_PYLVARRAY', True))
             cfg.write(cmake_cache_entry('Python3_EXECUTABLE', os.path.join(spec['python'].prefix.bin, 'python3')))
@@ -306,6 +307,7 @@ class Lvarray(CMakePackage, CudaPackage):
         cfg.write("#{0}\n".format("-" * 80))
         cfg.write("# Documentation\n")
         cfg.write("#{0}\n\n".format("-" * 80))
+
         if "+docs" in spec:
             cfg.write(cmake_cache_option("ENABLE_DOCS", True))
             sphinx_dir = spec['py-sphinx'].prefix
