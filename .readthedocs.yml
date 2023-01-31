@@ -4,6 +4,17 @@
 
 # Required
 version: 2
+# Print tree
+
+build:
+  os: ubuntu-20.04
+  apt_packages:
+    - tree
+  tools:
+    python: "3.7"
+  jobs:
+    post_build:
+      - tree -J 
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -18,8 +29,8 @@ sphinx:
 formats: all
 
 # Optionally set the version of Python and requirements required to build your docs
-python:
-  version: 3.7
+#python:
+#  version: 3.7
 #  install:
 #    - requirements: docs/requirements.txt
     
