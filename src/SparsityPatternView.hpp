@@ -77,6 +77,7 @@ public:
   /// The integer type used to enumerate the columns.
 
   using ColType = COL_TYPE;
+  using ColTypeNC = COL_TYPE_NC;
   using typename ParentClass::IndexType;
 
   /**

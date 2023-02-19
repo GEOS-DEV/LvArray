@@ -4,7 +4,7 @@ set(CCE_VERSION 15.0.0)
 set(CONFIG_NAME "crusher-cce@${CCE_VERSION}" CACHE PATH "")
 
 # Set up the tpls
-set(GEOSX_TPL_DIR "/gpfs/alpine/geo127/world-shared/spack/opt/spack/linux-sles15-zen3/cce-${CCE_VERSION}" CACHE PATH "")
+set(GEOSX_TPL_DIR "/gpfs/alpine/geo127/world-shared/spack/opt/2023-02-17/linux-sles15-zen3/cce-${CCE_VERSION}" CACHE PATH "")
 
 set(CAMP_DIR "${GEOSX_TPL_DIR}/camp" CACHE PATH "" )
 set(RAJA_DIR "${GEOSX_TPL_DIR}/raja" CACHE PATH "" )
@@ -32,4 +32,6 @@ if( ENABLE_HIP )
   set( AMDGPU_TARGETS "${CMAKE_HIP_ARCHITECTURES}" CACHE STRING "" FORCE )
   set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc" CACHE STRING "" FORCE ) #-mno-unsafe-fp-atomics
   set( CMAKE_CXX_LINK_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc --hip-link" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_FLAGS_DEBUG "-O1 -g ${CMAKE_CXX_FLAGS}" CACHE STRING "" )
+
 endif()
