@@ -73,6 +73,7 @@ template< typename T,
           >
 class CRSMatrixView : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
+  using ColTypeNC = std::remove_const_t< COL_TYPE >;
 
   /// An alias for the parent class.
   using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
@@ -127,7 +128,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   CRSMatrixView( INDEX_TYPE const nRows,
-                 INDEX_TYPE const nCols,
+                 ColTypeNC const nCols,
                  BUFFER_TYPE< INDEX_TYPE > const & offsets,
                  BUFFER_TYPE< SIZE_TYPE > const & nnz,
                  BUFFER_TYPE< COL_TYPE > const & columns,
@@ -277,7 +278,7 @@ public:
    *   up to the user to ensure that the given row has enough space for the new entry.
    */
   LVARRAY_HOST_DEVICE inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry ) const
+  bool insertNonZero( INDEX_TYPE const row, ColTypeNC const col, T const & entry ) const
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
@@ -293,9 +294,9 @@ public:
    */
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC insertNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                ColTypeNC const * const LVARRAY_RESTRICT cols,
                                 T const * const LVARRAY_RESTRICT entriesToInsert,
-                                INDEX_TYPE const ncols ) const
+                                ColTypeNC const ncols ) const
   { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   /**
@@ -305,7 +306,7 @@ public:
    * @return True iff the entry was removed (the entry was non-zero before).
    */
   LVARRAY_HOST_DEVICE inline
-  bool removeNonZero( INDEX_TYPE const row, COL_TYPE const col ) const
+  bool removeNonZero( INDEX_TYPE const row, ColTypeNC const col ) const
   { return ParentClass::removeFromSetImpl( row, col, CallBacks( *this, row, nullptr )); }
 
   /**
@@ -319,8 +320,8 @@ public:
   DISABLE_HD_WARNING
   LVARRAY_HOST_DEVICE inline
   INDEX_TYPE_NC removeNonZeros( INDEX_TYPE const row,
-                                COL_TYPE const * const LVARRAY_RESTRICT cols,
-                                INDEX_TYPE const ncols ) const
+                                ColTypeNC const * const LVARRAY_RESTRICT cols,
+                                ColTypeNC const ncols ) const
   {
     T * const entries = getEntries( row );
     INDEX_TYPE const rowNNZ = numNonZeros( row );
@@ -401,9 +402,9 @@ public:
   template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRow( INDEX_TYPE const row,
-                 COL_TYPE const * const LVARRAY_RESTRICT cols,
+                 ColTypeNC const * const LVARRAY_RESTRICT cols,
                  T const * const LVARRAY_RESTRICT vals,
-                 INDEX_TYPE const nCols ) const
+                 ColTypeNC const nCols ) const
   {
     INDEX_TYPE const nnz = numNonZeros( row );
     if( nCols < nnz / 4 && nnz > 64 )
@@ -431,9 +432,9 @@ public:
   template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRowBinarySearch( INDEX_TYPE const row,
-                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             ColTypeNC const * const LVARRAY_RESTRICT cols,
                              T const * const LVARRAY_RESTRICT vals,
-                             INDEX_TYPE const nCols ) const
+                             ColTypeNC const nCols ) const
   {
     LVARRAY_ASSERT( sortedArrayManipulation::isSortedUnique( cols, cols + nCols ) );
 
@@ -468,9 +469,9 @@ public:
   template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRowLinearSearch( INDEX_TYPE const row,
-                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             ColTypeNC const * const LVARRAY_RESTRICT cols,
                              T const * const LVARRAY_RESTRICT vals,
-                             INDEX_TYPE const nCols ) const
+                             ColTypeNC const nCols ) const
   {
     LVARRAY_ASSERT( sortedArrayManipulation::isSortedUnique( cols, cols + nCols ) );
 
@@ -509,9 +510,9 @@ public:
   template< typename AtomicPolicy >
   LVARRAY_HOST_DEVICE inline
   void addToRowBinarySearchUnsorted( INDEX_TYPE const row,
-                                     COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                     ColTypeNC const * const LVARRAY_RESTRICT cols,
                                      T const * const LVARRAY_RESTRICT vals,
-                                     INDEX_TYPE const nCols ) const
+                                     ColTypeNC const nCols ) const
   {
     INDEX_TYPE const nnz = numNonZeros( row );
     COL_TYPE const * const columns = getColumns( row );
@@ -610,7 +611,7 @@ public:
      * @return a pointer to the rows columns.
      */
     LVARRAY_HOST_DEVICE inline
-    COL_TYPE * incrementSize( COL_TYPE * const curPtr, INDEX_TYPE const nToAdd ) const
+    ColTypeNC * incrementSize( ColTypeNC * const curPtr, INDEX_TYPE const nToAdd ) const
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef LVARRAY_BOUNDS_CHECK
@@ -640,7 +641,7 @@ public:
      */
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
-    void set( INDEX_TYPE const pos, INDEX_TYPE const colPos ) const
+    void set( INDEX_TYPE const pos, ColTypeNC const colPos ) const
     { new (&m_entries[ pos ]) T( m_entriesToInsert[ colPos ] ); }
 
     /**
@@ -655,9 +656,9 @@ public:
     DISABLE_HD_WARNING
     LVARRAY_HOST_DEVICE inline
     void insert( INDEX_TYPE const nLeftToInsert,
-                 INDEX_TYPE const colPos,
-                 INDEX_TYPE const pos,
-                 INDEX_TYPE const prevPos ) const
+                 ColTypeNC const colPos,
+                 ColTypeNC const pos,
+                 ColTypeNC const prevPos ) const
     {
       arrayManipulation::shiftUp( m_entries, prevPos, pos, nLeftToInsert );
       new (&m_entries[pos + nLeftToInsert - 1]) T( m_entriesToInsert[colPos] );
@@ -670,7 +671,7 @@ public:
      * @param removePos the position the column was removed from.
      */
     LVARRAY_HOST_DEVICE inline
-    void remove( INDEX_TYPE_NC removePos ) const
+    void remove( ColTypeNC removePos ) const
     { arrayManipulation::erase( m_entries, m_rowNNZ, removePos ); }
 
     /**
@@ -685,8 +686,8 @@ public:
      */
     LVARRAY_HOST_DEVICE inline
     void remove( INDEX_TYPE const nRemoved,
-                 INDEX_TYPE const curPos,
-                 INDEX_TYPE const nextPos ) const
+                 ColTypeNC const curPos,
+                 ColTypeNC const nextPos ) const
     { arrayManipulation::shiftDown( m_entries, nextPos, curPos + 1, nRemoved ); }
 
 private:
