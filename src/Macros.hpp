@@ -670,3 +670,58 @@
  */
 #define CONSTEXPR_WITH_NDEBUG
 #endif
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
+
+template< typename >
+struct RAJAHelper
+{};
+
+using serialPolicy = RAJA::loop_exec;
+
+template<>
+struct RAJAHelper< serialPolicy >
+{
+  using ReducePolicy = RAJA::seq_reduce;
+  using AtomicPolicy = RAJA::seq_atomic;
+};
+
+#if defined(RAJA_ENABLE_OPENMP)
+
+using parallelHostPolicy = RAJA::omp_parallel_for_exec;
+
+template<>
+struct RAJAHelper< parallelHostPolicy >
+{
+  using ReducePolicy = RAJA::omp_reduce;
+  using AtomicPolicy = RAJA::omp_atomic;
+};
+
+#endif
+
+#if defined(LVARRAY_USE_CUDA)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
+
+template< unsigned long N >
+struct RAJAHelper< RAJA::cuda_exec< N > >
+{
+  using ReducePolicy = RAJA::cuda_reduce;
+  using AtomicPolicy = RAJA::cuda_atomic;
+};
+
+#elif defined(LVARRAY_USE_HIP)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
+
+template< unsigned long N >
+struct RAJAHelper< RAJA::hip_exec< N > >
+{
+  using ReducePolicy = RAJA::hip_reduce;
+  using AtomicPolicy = RAJA::hip_atomic;
+};
+
+#endif

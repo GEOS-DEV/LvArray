@@ -16,6 +16,7 @@
 #include "arrayManipulation.hpp"
 #include "ArraySlice.hpp"
 #include "umpireInterface.hpp"
+#include "math.hpp"
 
 namespace LvArray
 {
@@ -256,6 +257,25 @@ public:
   {
     return m_entries.data();
   }
+
+
+  template< typename POLICY >
+  inline
+  bool NaNCheck( ) const
+  {
+    RAJA::ReduceMax< typename RAJAHelper< POLICY >::ReducePolicy, int > anyNaN( 0 );
+    CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConst();
+    RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
+                            [view, anyNaN] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
+    {
+      forValuesInSlice( view[row], [&anyNaN] ( T const & value )
+      {
+        anyNaN.max( std::isnan(value) ? 1 : 0 );
+      } );
+    } );
+    return anyNaN.get() == 1;
+  }
+
 
   using ParentClass::getColumns;
   using ParentClass::getOffsets;
