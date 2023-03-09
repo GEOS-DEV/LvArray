@@ -70,6 +70,7 @@ set( testSources
      testTensorOpsEigen.cpp
      testTensorOpsInverseOneArg.cpp
      testTensorOpsInverseTwoArgs.cpp
+     testTensorOpsPolarDecomposition.cpp
      testTensorOpsSymDeterminant.cpp
      testTensorOpsSymInverseOneArg.cpp
      testTensorOpsSymInverseTwoArgs.cpp

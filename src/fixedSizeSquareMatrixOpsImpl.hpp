@@ -13,6 +13,7 @@
 #pragma once
 
 #include "genericTensorOps.hpp"
+#include "limits.hpp"
 
 namespace LvArray
 {
@@ -70,6 +71,60 @@ static void shiftAndScale( FloatingPoint (& matrix)[ ( M * ( M + 1 ) ) / 2 ],
 template< std::ptrdiff_t M >
 struct SquareMatrixOps
 {};
+
+/**
+ * @brief Determine the polar decomposition of @p matrix
+ * @tparam DST_MATRIX The type of @p R.
+ * @tparam MATRIX The type of @p matrix.
+ * @param R The resultant orthogonal matrix.
+ * @param matrix The matrix to be decomposed.
+ * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
+ *   This is done using Higham's iterative algorithm.
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
+LVARRAY_HOST_DEVICE inline
+static void polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                    MATRIX const & LVARRAY_RESTRICT_REF matrix )
+{
+  checkSizes< M, M >( R );
+  checkSizes< M, M >( matrix );
+
+  using FloatingPoint = std::decay_t< decltype( R[0][0] ) >;
+
+  // Initialize
+  copy< M, M >( R, matrix );
+  FloatingPoint RInverse[M][M] = { {0} },
+                RInverseTranspose[M][M] = { {0} },
+                RRTMinusI[M][M] = { {0} };
+
+  // Higham Algorithm
+  FloatingPoint errorSquared = 1.0;
+  FloatingPoint tolerance = 10 * LvArray::NumericLimits< FloatingPoint >::epsilon;
+  int iter = 0;
+  while( errorSquared > tolerance * tolerance && iter < 100 )
+  {
+    iter++;
+    errorSquared = 0.0;
+
+    // Average the current R with its inverse tranpose
+    SquareMatrixOps< M >::invert( RInverse, R );
+    transpose< M, M >( RInverseTranspose, RInverse );
+    add< M, M >( R, RInverseTranspose );
+    scale< M, M >( R, 0.5 );
+
+    // Determine how close R is to being orthogonal using L2Norm(R.R^T-I)
+    Rij_eq_AikBjk< M, M, M >( RRTMinusI, R, R );
+    addIdentity< M >( RRTMinusI, -1.0 );
+    for( std::ptrdiff_t i = 0 ; i < M ; i++ )
+    {
+      for( std::ptrdiff_t j = 0 ; j < M ; j++ )
+      {
+        errorSquared += RRTMinusI[i][j] * RRTMinusI[i][j];
+      }
+    }
+  }
+  LVARRAY_WARNING_IF( iter == 100, "Polar decomposition did not converge in 100 iterations!");
+}
 
 /**
  * @struct SquareMatrixOps< 2 >
@@ -533,9 +588,9 @@ struct SquareMatrixOps< 2 >
    * @brief Determine the polar decomposition of the 2x2 matrix @p matrix
    * @tparam DST_MATRIX The type of @p R.
    * @tparam MATRIX The type of @p matrix.
-   * @param R The resultant rotation matrix.
+   * @param R The resultant orthogonal matrix.
    * @param matrix The matrix to be decomposed.
-   * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p matrix.
+   * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
    *   This is done using Higham's iterative algorithm.
    */
   template< typename DST_MATRIX, typename MATRIX >
@@ -543,44 +598,10 @@ struct SquareMatrixOps< 2 >
   static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
                                   MATRIX const & LVARRAY_RESTRICT_REF matrix )
   {
-    checkSizes< 2, 2 >( R );
-    checkSizes< 2, 2 >( matrix );
-
-    using FloatingPoint = std::decay_t< decltype( matrix[ 0 ][ 0 ] ) >;
-
-    // Initialize
-    copy< 2, 2 >( R, matrix );
-    FloatingPoint RInverse[2][2] = { {0} },
-                  RInverseTranspose[2][2] = { {0} },
-                  RRTMinusI[2][2] = { {0} };
-
-    // Higham Algorithm
-    FloatingPoint error = 1.0;
-    int iter = 0;
-    while( error > 1.0e-16 && iter < 100 )
-    {
-      iter++;
-      error = 0.0;
-
-      invert( RInverse, R );
-      transpose< 2, 2 >( RInverseTranspose, RInverse );
-      add< 2, 2 >( R, RInverseTranspose );
-      scale< 2, 2 >( R, 0.5 );
-      Rij_eq_AikBjk< 2, 2, 2 >( RRTMinusI, R, R );
-      addIdentity< 2 >( RRTMinusI, -1.0 );
-
-      for( std::ptrdiff_t i = 0 ; i < 2 ; i++ )
-      {
-        for( std::ptrdiff_t j = 0 ; j < 2 ; j++ )
-        {
-          error += RRTMinusI[i][j] * RRTMinusI[i][j];
-        }
-      }
-    }
+    polarDecompositionBase< 2 >( R, matrix );
   }
 
 private:
-
   /**
    * @brief Compute the eigenvalues of the 2x2 symmetric matrix @p matrix.
    * @tparam FloatingPoint A floating point type.
@@ -1216,9 +1237,9 @@ struct SquareMatrixOps< 3 >
    * @brief Determine the polar decomposition of the 3x3 matrix @p matrix
    * @tparam DST_MATRIX The type of @p R.
    * @tparam MATRIX The type of @p matrix.
-   * @param R The resultant rotation matrix.
+   * @param R The resultant orthogonal matrix.
    * @param matrix The matrix to be decomposed.
-   * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p matrix.
+   * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
    *   This is done using Higham's iterative algorithm.
    */
   template< typename DST_MATRIX, typename MATRIX >
@@ -1226,40 +1247,7 @@ struct SquareMatrixOps< 3 >
   static void polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
                                   MATRIX const & LVARRAY_RESTRICT_REF matrix )
   {
-    checkSizes< 3, 3 >( R );
-    checkSizes< 3, 3 >( matrix );
-
-    using FloatingPoint = std::decay_t< decltype( matrix[ 0 ][ 0 ] ) >;
-
-    // Initialize
-    copy< 3, 3 >( R, matrix );
-    FloatingPoint RInverse[3][3] = { {0} },
-                  RInverseTranspose[3][3] = { {0} },
-                  RRTMinusI[3][3] = { {0} };
-
-    // Higham Algorithm
-    FloatingPoint error = 1.0;
-    int iter = 0;
-    while( error > 1.0e-16 && iter < 100 )
-    {
-      iter++;
-      error = 0.0;
-
-      invert( RInverse, R );
-      transpose< 3, 3 >( RInverseTranspose, RInverse );
-      add< 3, 3 >( R, RInverseTranspose );
-      scale< 3, 3 >( R, 0.5 );
-      Rij_eq_AikBjk< 3, 3, 3 >( RRTMinusI, R, R );
-      addIdentity< 3 >( RRTMinusI, -1.0 );
-
-      for( std::ptrdiff_t i = 0 ; i < 3 ; i++ )
-      {
-        for( std::ptrdiff_t j = 0 ; j < 3 ; j++ )
-        {
-          error += RRTMinusI[i][j] * RRTMinusI[i][j];
-        }
-      }
-    }
+    polarDecompositionBase< 3 >( R, matrix );
   }
 
 private:

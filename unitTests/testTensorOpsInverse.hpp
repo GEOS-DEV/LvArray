@@ -244,6 +244,52 @@ public:
         } );
   }
 
+  void polarDecomposition()
+  {
+    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+
+    ArrayViewT< FLOAT, 3, 2 > const dstMatrix_IJK = m_dstMatrix_IJK.toView();
+    ArrayViewT< FLOAT, 3, 1 > const dstMatrix_IKJ = m_dstMatrix_IKJ.toView();
+    ArrayViewT< FLOAT, 3, 0 > const dstMatrix_KJI = m_dstMatrix_KJI.toView();
+
+    ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
+
+    T scale = 100;
+    for( T & value : arrayOfMatrices )
+    {
+      value = randomValue( scale, m_gen );
+    }
+
+    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+
+    forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    {
+      T srcLocal[ M ][ M ];
+      FLOAT dstLocal[ M ][ M ];
+
+      #define _TEST( output, input ) \
+        tensorOps::copy< M, M >( input, matrices[ i ] ); \
+        tensorOps::polarDecomposition< M >( output, input ); \
+        checkPolarDecomposition( output, input )
+
+      #define _TEST_PERMS( input, output0, output1, output2, output3 ) \
+        _TEST( output0, input ); \
+        _TEST( output1, input ); \
+        _TEST( output2, input ); \
+        _TEST( output3, input )
+
+      _TEST_PERMS( srcMatrix_IJK[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+      _TEST_PERMS( srcMatrix_IKJ[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+      _TEST_PERMS( srcMatrix_KJI[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+      _TEST_PERMS( srcLocal, dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+
+      #undef _TEST_PERMS
+      #undef _TEST
+    } );
+  }
+
 
 private:
 
@@ -344,6 +390,53 @@ private:
     {
       for( int j = 0; j < M; ++j )
       { PORTABLE_EXPECT_NEAR( product[ i ][ j ], i == j, 4 * scale * epsilon ); }
+    }
+  }
+
+  template< typename MATRIX_A, typename MATRIX_B >
+  static void LVARRAY_HOST_DEVICE checkPolarDecomposition( MATRIX_A const & orthogonalMatrix, MATRIX_B const & sourceMatrix )
+  {
+    // Error tolerance (depends on the implementation!)
+    using FloatingPoint = std::decay_t< decltype( orthogonalMatrix[0][0] ) >;
+    FloatingPoint tolerance = 10 * LvArray::NumericLimits< FloatingPoint >::epsilon;
+    FloatingPoint sqrtTolerance = math::sqrt( tolerance );
+    
+    if( M == 2 )
+    {
+      // Check if orthogonalMatrix is actually orthogonal
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[0][0] + orthogonalMatrix[0][1] * orthogonalMatrix[0][1], 1.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[0][1] + orthogonalMatrix[1][0] * orthogonalMatrix[1][1], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[1][0] + orthogonalMatrix[0][1] * orthogonalMatrix[1][1], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * orthogonalMatrix[1][0] + orthogonalMatrix[1][1] * orthogonalMatrix[1][1], 1.0, tolerance );
+
+      // Check if sourceMatrix.(orthogonalMatrix^T) yields a symmetric matrix
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * sourceMatrix[0][0] + orthogonalMatrix[1][1] * sourceMatrix[0][1],
+                            orthogonalMatrix[0][0] * sourceMatrix[1][0] + orthogonalMatrix[0][1] * sourceMatrix[1][1],
+                            sqrtTolerance );
+    }
+    else if( M == 3 )
+    {
+      // Check if orthogonalMatrix is actually orthogonal
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[0][0] + orthogonalMatrix[0][1] * orthogonalMatrix[0][1] + orthogonalMatrix[0][2] * orthogonalMatrix[0][2], 1.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[1][0] + orthogonalMatrix[0][1] * orthogonalMatrix[1][1] + orthogonalMatrix[0][2] * orthogonalMatrix[1][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[2][0] + orthogonalMatrix[0][1] * orthogonalMatrix[2][1] + orthogonalMatrix[0][2] * orthogonalMatrix[2][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[1][0] + orthogonalMatrix[0][1] * orthogonalMatrix[1][1] + orthogonalMatrix[0][2] * orthogonalMatrix[1][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * orthogonalMatrix[1][0] + orthogonalMatrix[1][1] * orthogonalMatrix[1][1] + orthogonalMatrix[1][2] * orthogonalMatrix[1][2], 1.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * orthogonalMatrix[2][0] + orthogonalMatrix[1][1] * orthogonalMatrix[2][1] + orthogonalMatrix[1][2] * orthogonalMatrix[2][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[0][0] * orthogonalMatrix[2][0] + orthogonalMatrix[0][1] * orthogonalMatrix[2][1] + orthogonalMatrix[0][2] * orthogonalMatrix[2][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * orthogonalMatrix[2][0] + orthogonalMatrix[1][1] * orthogonalMatrix[2][1] + orthogonalMatrix[1][2] * orthogonalMatrix[2][2], 0.0, tolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[2][0] * orthogonalMatrix[2][0] + orthogonalMatrix[2][1] * orthogonalMatrix[2][1] + orthogonalMatrix[2][2] * orthogonalMatrix[2][2], 1.0, tolerance );
+
+      // Check if sourceMatrix.(orthogonalMatrix^T) yields a symmetric matrix
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[1][0] * sourceMatrix[0][0] + orthogonalMatrix[1][1] * sourceMatrix[0][1] + orthogonalMatrix[1][2] * sourceMatrix[0][2],
+                            orthogonalMatrix[0][0] * sourceMatrix[1][0] + orthogonalMatrix[0][1] * sourceMatrix[1][1] + orthogonalMatrix[0][2] * sourceMatrix[1][2],
+                            sqrtTolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[2][0] * sourceMatrix[0][0] + orthogonalMatrix[2][1] * sourceMatrix[0][1] + orthogonalMatrix[2][2] * sourceMatrix[0][2],
+                            orthogonalMatrix[0][0] * sourceMatrix[2][0] + orthogonalMatrix[0][1] * sourceMatrix[2][1] + orthogonalMatrix[0][2] * sourceMatrix[2][2],
+                            sqrtTolerance );
+      PORTABLE_EXPECT_NEAR( orthogonalMatrix[2][0] * sourceMatrix[1][0] + orthogonalMatrix[2][1] * sourceMatrix[1][1] + orthogonalMatrix[2][2] * sourceMatrix[1][2],
+                            orthogonalMatrix[1][0] * sourceMatrix[2][0] + orthogonalMatrix[1][1] * sourceMatrix[2][1] + orthogonalMatrix[1][2] * sourceMatrix[2][2],
+                            sqrtTolerance );
     }
   }
 
