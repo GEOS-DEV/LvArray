@@ -242,6 +242,10 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
     }
     else if( c=='}' )
     {
+      LVARRAY_THROW_IF( lastChar==',',
+                        "character '}' follows '"<<lastChar<<"'. Closing brace must follow an array value.",
+                        std::invalid_argument );
+
       // } means that we are closing a dimension. That means we know the size of this dimLevel
       dimSet[dimLevel] = true;
       LVARRAY_THROW_IF( dims[dimLevel]!=currentDims[dimLevel],
