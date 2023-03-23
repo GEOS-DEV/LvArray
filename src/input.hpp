@@ -80,7 +80,7 @@ struct StringToArrayHelper
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {
-    LVARRAY_THROW_IF( inputStream.peek() != '{', "opening { not found for input array: "<<inputStream.str(),
+    LVARRAY_THROW_IF( inputStream.peek() != '{', "Opening '{' not found for input array: "<<inputStream.str(),
                       std::invalid_argument );
     inputStream.ignore();
 
@@ -91,7 +91,7 @@ struct StringToArrayHelper
     }
 
     skipDelimiters( inputStream );
-    LVARRAY_THROW_IF( inputStream.peek() != '}', "closing } not found for input array: "<<inputStream.str(),
+    LVARRAY_THROW_IF( inputStream.peek() != '}', "Closing '}' not found for input array: "<<inputStream.str(),
                       std::invalid_argument );
     inputStream.ignore();
   }
@@ -183,14 +183,14 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
                     std::invalid_argument );
 
   LVARRAY_THROW_IF( valueString[0]!='{',
-                    "First non-space character of input string for an array must be {. Given string is: \n"<<valueString,
+                    "First non-space character of input string for an array must be '{'. Given string is: \n"<<valueString,
                     std::invalid_argument );
 
   size_t const numOpen = std::count( valueString.begin(), valueString.end(), '{' );
   size_t const numClose = std::count( valueString.begin(), valueString.end(), '}' );
 
   LVARRAY_THROW_IF( numOpen != numClose,
-                    "Number of opening { not equal to number of } in processing of string for filling"
+                    "Number of opening '{' not equal to number of '}' in processing of string for filling"
                     " an Array. Given string is: \n"<<valueString,
                     std::invalid_argument );
 
