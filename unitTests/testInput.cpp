@@ -38,62 +38,62 @@ TEST( input, stringToArrayErrors )
   {
     input = " { 10 1 } ";
     ArrayT< int, RAJA::PERM_I > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
 
   {
     input = " { { 1, 2 }{ 3, 4 } } ";
     ArrayT< int, RAJA::PERM_IJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
 
   // This should fail the num('{')==num('}') test
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17}  , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IKJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14,{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_JIK > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = " { { {0,1,2},{3,4,5} }, { {6,7,8,{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_JKI > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = " { { 0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_KIJ > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = "  { {0,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } ";
     ArrayT< int, RAJA::PERM_KJI > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
 
   {
     input = " { { {,1,2},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
 
   {
     input = " { { {},{3,4,5} }, { {6,7,8},{9,10,11} }, { {12,13,14},{15,16,17} } , { {18,19,20},{21,22,23} } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
   {
     input = " { { {0,1,2}}{ } }";
     ArrayT< int, RAJA::PERM_IJK > array;
-    EXPECT_DEATH_IF_SUPPORTED( input::stringToArray( array, input ), IGNORE_OUTPUT );
+    ASSERT_THROW( input::stringToArray( array, input ), std::invalid_argument );
   }
 
 
