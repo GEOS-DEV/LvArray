@@ -211,6 +211,12 @@
     } \
   } while( false )
 
+/**
+ * @brief Throw an exception.
+ * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
+ */
+#define LVARRAY_THROW( MSG, TYPE ) LVARRAY_THROW_IF( true, MSG, TYPE )
+
 /// Assert @p EXP is true with no message.
 #define LVARRAY_ASSERT( EXP ) LVARRAY_ASSERT_MSG( EXP, "" )
 
