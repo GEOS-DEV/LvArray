@@ -61,15 +61,15 @@ Example below demonstrates the difference between pretty printer output and raw 
 .. code-block:: none
 
    (gdb) p dofNumber
-   $1 = const geosx::arrayView1d & of size [10] = {gdb_view = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45}}
+   $1 = const geos::arrayView1d & of size [10] = {gdb_view = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45}}
    (gdb) p /r dofNumber
-   $2 = (const geosx::arrayView1d &) @0x7ffcda2a8ab0: {static NDIM = 1, static USD = 0, m_dims = {data = {10}}, m_strides = {data = {1}}, m_dataBuffer = {static hasShallowCopy = <optimized out>, m_pointer = 0x55bec1de4860, m_capacity = 10, m_pointerRecord = 0x55bec1dfa5c0}, m_singleParameterResizeIndex = 0}
+   $2 = (const geos::arrayView1d &) @0x7ffcda2a8ab0: {static NDIM = 1, static USD = 0, m_dims = {data = {10}}, m_strides = {data = {1}}, m_dataBuffer = {static hasShallowCopy = <optimized out>, m_pointer = 0x55bec1de4860, m_capacity = 10, m_pointerRecord = 0x55bec1dfa5c0}, m_singleParameterResizeIndex = 0}
 
 This is how the variable is viewed in a debugging session in CLion IDE:
 
 .. code-block:: none
 
-   dofNumber = {const geosx::arrayView1d &}
+   dofNumber = {const geos::arrayView1d &}
     gdb_view = {const long long [10]}
      [0] = {const long long} 0
      [1] = {const long long} 5
