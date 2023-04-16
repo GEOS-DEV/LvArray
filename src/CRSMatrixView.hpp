@@ -267,12 +267,12 @@ public:
     CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const view = toViewConst();
     RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numRows() ),
                             [view, anyNaN] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
-    {
-      forValuesInSlice( view[row], [&anyNaN] ( T const & value )
       {
-        anyNaN.max( std::isnan(value) ? 1 : 0 );
+        forValuesInSlice( view[row], [&anyNaN] ( T const & value )
+      {
+        anyNaN.max( std::isnan( value ) ? 1 : 0 );
       } );
-    } );
+      } );
     return anyNaN.get() == 1;
   }
 
