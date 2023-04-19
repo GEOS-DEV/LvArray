@@ -28,7 +28,7 @@ namespace LvArray
 {
 
 /**
- * @brief Contains protable wrappers around cmath functions and some cuda specific functions.
+ * @brief Contains portable wrappers around cmath functions and some cuda specific functions.
  */
 namespace math
 {
@@ -315,6 +315,46 @@ max( T const a, T const b )
 #else
   return std::max( a, b );
 #endif
+}
+
+/**
+ * @return Returns @p x * @p y + @p z.
+ * @tparam T A floating point type.
+ * @param x The first number.
+ * @param y The second number.
+ * @param z The third number.
+ * @note fma stands for fused multiply add.
+ *
+ * The function computes the result without losing precision in any intermediate result.
+ * Integer arguments cast to double.
+ * We want to avoid that by providing a version dedicated to integers.
+ */
+template< typename T >
+LVARRAY_HOST_DEVICE inline constexpr
+std::enable_if_t< std::is_floating_point< T >::value, T >
+fma( T const x, T const y, T const z )
+{
+#if defined(__CUDA_ARCH__)
+  return ::fma( x, y, z );
+#else
+  return std::fma( x, y, z );
+#endif
+}
+
+/**
+ * @return Returns @p x * @p y + @p z.
+ * @tparam T A floating point type.
+ * @param x The first number.
+ * @param y The second number.
+ * @param z The third number.
+ * @note This is a dummy implementation for integers (in order to not cast to doubles).
+ */
+template< typename T >
+LVARRAY_HOST_DEVICE inline constexpr
+std::enable_if_t< std::is_integral< T >::value, T >
+fma( T const x, T const y, T const z )
+{
+  return x * y + z;
 }
 
 #if defined( LVARRAY_USE_CUDA )

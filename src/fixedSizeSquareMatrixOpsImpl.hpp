@@ -88,7 +88,10 @@ struct SquareMatrixOps< 2 >
   static auto determinant( MATRIX const & matrix )
   {
     checkSizes< 2, 2 >( matrix );
-    return matrix[ 0 ][ 0 ] * matrix[ 1 ][ 1 ] - matrix[ 0 ][ 1 ] * matrix[ 1 ][ 0 ];
+
+    // Using the more precise Kahan method to compute the 2x2 determinant.
+    auto const tmp = matrix[0][1] * matrix[1][0];
+    return math::fma( -matrix[0][1], matrix[1][0], tmp ) + math::fma( matrix[0][0], matrix[1][1], -tmp );
   }
 
   /**
