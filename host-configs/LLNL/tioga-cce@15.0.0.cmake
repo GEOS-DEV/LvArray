@@ -28,10 +28,9 @@ if( ENABLE_HIP )
   set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE ) # don't invoke hipcc, rely on cce link-time compilation
 
   set( HIP_VERSION_STRING "5.4.0" CACHE STRING "" )
-  set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" ) 
-  
+  set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
+
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
-  # set( AMDGPU_TARGETS "gfx90a" CACHE STRING "" FORCE )
   set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
   set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
