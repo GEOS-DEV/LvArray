@@ -1,4 +1,4 @@
-set(CONFIG_NAME "quartz-clang@14.0.6" CACHE PATH "")
+set(CONFIG_NAME "quartz-clang@14" CACHE PATH "")
 
 set(COMPILER_DIR /usr/tce/packages/clang/clang-14.0.6)
 

@@ -1,4 +1,4 @@
-set(CONFIG_NAME "quartz-gcc@12.1.1" CACHE PATH "") 
+set(CONFIG_NAME "quartz-gcc@12" CACHE PATH "") 
 
 set(COMPILER_DIR /usr/tce/packages/gcc/gcc-12.1.1)
 
