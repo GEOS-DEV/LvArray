@@ -16,8 +16,6 @@
 // System includes
 #include <string>
 
-const char IGNORE_OUTPUT[] = ".*";
-
 namespace LvArray
 {
 
