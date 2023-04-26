@@ -84,6 +84,7 @@ public:
         isInitiallySortedUnique = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp ) &&
                                   ( m_ref.size() == refSet.size() );
         m_ref.clear();
+        m_ref.resize( refSet.size() );
         m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }

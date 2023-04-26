@@ -84,6 +84,7 @@
     _Pragma( "GCC diagnostic push" ) \
     _Pragma( "GCC diagnostic ignored \"-Wpedantic\"" ) \
     _Pragma( "GCC diagnostic ignored \"-Wmissing-field-initializers\"" )
+    _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
 #endif
 
 /**
