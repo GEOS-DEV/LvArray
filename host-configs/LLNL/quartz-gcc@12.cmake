@@ -1,6 +1,6 @@
 set(CONFIG_NAME "quartz-gcc@12" CACHE PATH "") 
 
-set(COMPILER_DIR /usr/tce/packages/gcc/gcc-12.1.1)
+set(COMPILER_DIR /usr/tce/packages/gcc/gcc-12.1.1-magic)
 
 # C
 set(CMAKE_C_COMPILER ${COMPILER_DIR}/bin/gcc CACHE PATH "")
