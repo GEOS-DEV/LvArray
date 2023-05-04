@@ -162,9 +162,10 @@ void initialize( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, int & iter 
   } );
 }
 
-
+// Return type is RajaView< T, PERMUTATION >,
+// unexpected function type error on CUDA > 11.2 without auto
 template< typename T, typename PERMUTATION >
-RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array )
+auto makeRajaView( ArrayT< T, PERMUTATION > const & array )
 {
   constexpr int NDIM = typeManipulation::getDimension< PERMUTATION >;
   std::array< INDEX_TYPE, NDIM > sizes;
