@@ -123,7 +123,10 @@ static void polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
       }
     }
   }
-  LVARRAY_WARNING_IF( iter == 100, "Polar decomposition did not converge in 100 iterations!");
+  if( iter == 100 )
+  {
+    printf("Polar decomposition did not converge in 100 iterations!");
+  }
 }
 
 /**
