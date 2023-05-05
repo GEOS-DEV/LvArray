@@ -84,7 +84,11 @@ public:
         isInitiallySortedUnique = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp ) &&
                                   ( m_ref.size() == refSet.size() );
         m_ref.clear();
-        m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        // workaround bug/feature in gcc12 ( error: iteration 4611686018427387903 invokes undefined behavior )
+        //m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        m_ref.resize( refSet.size());
+        std::copy( refSet.begin(), refSet.end(), m_ref.begin() );
+
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }
 
