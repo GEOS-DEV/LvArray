@@ -72,8 +72,10 @@
     #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
       _Pragma( "GCC diagnostic push" ) \
       _Pragma( "GCC diagnostic ignored \"-Wc99-extensions\"") \
-      _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"") \
+      _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"")
+    #if __has_warning( "-Wc99-designator" )
       _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
+    #endif
   #else
     #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
       _Pragma( "GCC diagnostic push" ) \
