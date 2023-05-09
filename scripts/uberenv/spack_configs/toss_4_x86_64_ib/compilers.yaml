@@ -9,7 +9,7 @@ compilers:
     flags:
       cflags: -march=native -mtune=native
       cxxflags: -march=native -mtune=native
-    operating_system: rhel7
+    operating_system: rhel8
     target: x86_64
     modules: []
     environment: {}
@@ -24,7 +24,7 @@ compilers:
     flags:
       cflags: -march=native -mtune=native
       cxxflags: -march=native -mtune=native
-    operating_system: rhel7
+    operating_system: rhel8
     target: x86_64
     modules: []
     environment: {}

@@ -56,6 +56,8 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('docs', default=False, description='Build docs')
     variant('addr2line', default=True,
             description='Build support for addr2line.')
+    variant('tpl_build_type', default='none', description='TPL build type',
+            values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel', 'none'))
         
     depends_on('blt', when='@0.2.0:', type='build')
 
@@ -82,9 +84,16 @@ class Lvarray(CMakePackage, CudaPackage):
             depends_on('camp +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
             depends_on('raja +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
             depends_on('umpire +cuda ~shared cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
-            depends_on('chai +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
-            depends_on('caliper +cuda cuda_arch={0}'.format(sm_), when='cuda_arch={0}'.format(sm_))
+            depends_on('chai +cuda cuda_arch={0}'.format(sm_), when='+chai cuda_arch={0}'.format(sm_))
+            depends_on('caliper +cuda cuda_arch={0}'.format(sm_), when='+caliper cuda_arch={0}'.format(sm_))
     
+    for bt in ('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'):
+        with when('tpl_build_type={}'.format(bt)):
+            depends_on('camp build_type={}'.format(bt))
+            depends_on('raja build_type={}'.format(bt))
+            depends_on('umpire build_type={}'.format(bt))
+            depends_on('chai build_type={}'.format(bt), when='+chai')
+            depends_on('caliper build_type={}'.format(bt), when='+caliper')
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
 

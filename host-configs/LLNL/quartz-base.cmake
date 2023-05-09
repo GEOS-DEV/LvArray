@@ -12,6 +12,9 @@ set(UMPIRE_DIR ${GEOSX_TPL_DIR}/chai CACHE PATH "")
 set(ENABLE_CHAI ON CACHE BOOL "")
 set(CHAI_DIR ${GEOSX_TPL_DIR}/chai CACHE PATH "")
 
+set(ENABLE_CALIPER ON CACHE BOOL "")
+set(CALIPER_DIR ${GEOSX_TPL_DIR}/caliper CACHE PATH "")
+
 # set(ENABLE_PYLVARRAY ON CACHE BOOL "")
 # set(PYTHON_DIR /usr/tce/packages/python/python-3.7.2 CACHE PATH "")
 
