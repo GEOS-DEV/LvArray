@@ -112,5 +112,5 @@ packages:
     buildable: False
     externals:
     - spec: ninja@kitware
-      prefix: /g/g14/corbett5/Programs/ninja/ninja-1.9.0.g99df1.kitware.dyndep-1.jobserver-1/quartz-build/
+      prefix: /g/g14/corbett5/Programs/ninja/ninja-1.9.0.g99df1.kitware.dyndep-1.jobserver-1/quartz-build/ninja
 

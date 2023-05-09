@@ -1,0 +1,1 @@
+./scripts/uberenv/uberenv.py --prefix=../uberenv-libs/ --spack-config-dir=./scripts/uberenv/spack_configs/toss_3_x86_64_ib_python/ --spec="%clang@10.0.1 +umpire +chai +caliper +pylvarray +benchmarks +examples ^caliper ~adiak ~mpi ~libunwind ~libdw ~papi"
