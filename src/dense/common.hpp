@@ -41,10 +41,14 @@ enum class SymmetricMatrixStorageType
   LOWER_TRIANGULAR,
 };
 
-/**
- * TODO: move to internal namespace
- */
-char const * getOption( SymmetricMatrixStorageType const option );
+enum class Operation
+{
+  NO_OP,
+  TRANSPOSE,
+  ADJOINT,
+};
+
+Operation transposeOp( Operation const op );
 
 /**
  *
@@ -67,80 +71,72 @@ static constexpr bool IsComplexT = IsComplex< T > && std::is_same< RealVersion< 
 /**
  *
  */
-enum class BuiltInBackends
-{
-  LAPACK,
-#if defined( LVARRAY_USE_MAGMA )
-  MAGMA,
-  MAGMA_GPU,
-#endif
-};
-
-/**
- *
- */
-MemorySpace getSpaceForBackend( BuiltInBackends const backend );
-
-/**
- *
- */
-using DenseInt = int;
-
-/**
- *
- */
 template< typename T >
 struct Matrix
 {
-  /**
-   *
-   */
-  template< typename INDEX_TYPE  >
-  Matrix( ArraySlice< T, 2, 0, INDEX_TYPE > const & slice ):
-    nRows{ integerConversion< DenseInt >( slice.size( 0 ) ) },
-    nCols{ integerConversion< DenseInt >( slice.size( 1 ) ) },
-    stride{ integerConversion< DenseInt >( slice.stride( 1 ) ) },
-    isColumnMajor{ true },
-    data{ slice.data() }
-  {}
+  Matrix(
+    typeManipulation::CArray< std::ptrdiff_t, 2 > const & sizesIn,
+    typeManipulation::CArray< std::ptrdiff_t, 2 > const & stridesIn,
+    T * const dataIn ):
+    sizes{ sizesIn },
+    strides{ stridesIn },
+    data{ dataIn }
+  {
+    LVARRAY_ERROR_IF_LT( sizes[ 0 ], 0 );
+    LVARRAY_ERROR_IF_LT( sizes[ 1 ], 0 );
+    LVARRAY_ERROR_IF_LT( strides[ 0 ], 0 );
+    LVARRAY_ERROR_IF_LT( strides[ 1 ], 0 );
+  }
 
-  /**
-   *
-   */
-  template< typename INDEX_TYPE, int USD >
-  Matrix( ArraySlice< T, 1, USD, INDEX_TYPE > const & slice ):
-    nRows{ integerConversion< DenseInt >( slice.size( 1 ) ) },
-    nCols{ integerConversion< DenseInt >( 1 ) },
-    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) },
-    isColumnMajor{ true },
-    data{ slice.data() }
-  {}
-
-  /**
-   *
-   */
   Matrix( T & value ):
-    nRows{ 1 },
-    nCols{ 1 },
-    stride{ 1 },
-    isColumnMajor{ true },
+    sizes{ 1, 1 },
+    strides{ 1, 1 },
     data{ &value }
   {}
 
-  /**
-   *
-   */
+  Matrix( Matrix< std::remove_const_t< T > > const & src ):
+    sizes{ src.sizes },
+    strides{ src.strides },
+    data{ src.data }
+  {}
+
   bool isSquare() const
+  { return sizes[0] == sizes[1]; }
+
+  bool isColumnMajor() const
+  { return strides[ 0 ] == 1; }
+
+  bool isRowMajor() const
+  { return strides[ 1 ] == 1; }
+
+  bool isContiguous() const
+  { return isColumnMajor() || isRowMajor(); }
+
+  std::ptrdiff_t nRows() const
+  { return sizes[ 0 ]; }
+
+  std::ptrdiff_t nCols() const
+  { return sizes[ 1 ]; }
+
+  Matrix transpose() const
   {
-    return nRows == nCols;
+    return Matrix( { sizes[ 1 ], sizes[ 0 ] }, { strides[ 1 ], strides[ 0 ] }, data );
   }
 
-  DenseInt const nRows;
-  DenseInt const nCols;
-  DenseInt const stride;
-  bool const isColumnMajor;
-  T * const data;
+  typeManipulation::CArray< std::ptrdiff_t, 2 > sizes;
+  typeManipulation::CArray< std::ptrdiff_t, 2 > strides;
+  T * data;
 };
+
+template< typename T, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+Matrix< T > toMatrix(
+  Array< T, 2, PERM, INDEX_TYPE, BUFFER_TYPE > const & array,
+  MemorySpace const space,
+  bool const touch )
+{
+  array.move( space, touch );
+  return Matrix< T >( array.dimsArray(), array.stridesArray(), array.data() );
+}
 
 /**
  *
@@ -150,8 +146,8 @@ struct Vector
 {
   template< int USD, typename INDEX_TYPE >
   Vector( ArraySlice< T, 1, USD, INDEX_TYPE > const & slice ):
-    size{ integerConversion< DenseInt >( slice.size() ) },
-    stride{ integerConversion< DenseInt >( slice.stride( 0 ) ) },
+    size{ integerConversion< std::ptrdiff_t >( slice.size() ) },
+    stride{ integerConversion< std::ptrdiff_t >( slice.stride( 0 ) ) },
     data{ slice.data() }
   {}
 
@@ -161,8 +157,8 @@ struct Vector
     data{ &value }
   {}
 
-  DenseInt const size;
-  DenseInt const stride;
+  std::ptrdiff_t const size;
+  std::ptrdiff_t const stride;
   T * const data;
 };
 
@@ -183,17 +179,17 @@ struct Workspace
 
   virtual Vector< RealVersion< T > > rwork() = 0;
 
-  virtual Vector< DenseInt > iwork() = 0;
+  virtual Vector< int > iwork() = 0;
 
-  virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) = 0;
+  virtual void resizeWork( MemorySpace const space, std::ptrdiff_t const newSize ) = 0;
 
-  virtual void resizeWork2( MemorySpace const space, DenseInt const newSize ) = 0;
+  virtual void resizeWork2( MemorySpace const space, std::ptrdiff_t const newSize ) = 0;
 
-  virtual void resizeWork3( MemorySpace const space, DenseInt const newSize ) = 0;
+  virtual void resizeWork3( MemorySpace const space, std::ptrdiff_t const newSize ) = 0;
 
-  virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) = 0;
+  virtual void resizeRWork( MemorySpace const space, std::ptrdiff_t const newSize ) = 0;
 
-  virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) = 0;
+  virtual void resizeIWork( MemorySpace const space, std::ptrdiff_t const newSize ) = 0;
 };
 
 /**
@@ -223,44 +219,44 @@ struct ArrayWorkspace : public Workspace< T >
   virtual Vector< RealVersion< T > > rwork() override
   { return m_rwork.toSlice(); }
 
-  virtual Vector< DenseInt > iwork() override
+  virtual Vector< int > iwork() override
   { return m_iwork.toSlice(); }
 
-  virtual void resizeWork( MemorySpace const space, DenseInt const newSize ) override
+  virtual void resizeWork( MemorySpace const space, std::ptrdiff_t const newSize ) override
   {
     m_work.resizeWithoutInitializationOrDestruction( space, newSize );
   }
 
-  virtual void resizeWork2( MemorySpace const space, DenseInt const newSize ) override
+  virtual void resizeWork2( MemorySpace const space, std::ptrdiff_t const newSize ) override
   {
     m_work2.resizeWithoutInitializationOrDestruction( space, newSize );
   }
 
-  virtual void resizeWork3( MemorySpace const space, DenseInt const newSize ) override
+  virtual void resizeWork3( MemorySpace const space, std::ptrdiff_t const newSize ) override
   {
     m_work3.resizeWithoutInitializationOrDestruction( space, newSize );
   }
  
-  virtual void resizeRWork( MemorySpace const space, DenseInt const newSize ) override
+  virtual void resizeRWork( MemorySpace const space, std::ptrdiff_t const newSize ) override
   {
     m_rwork.resizeWithoutInitializationOrDestruction( space, newSize );
   }
 
-  virtual void resizeIWork( MemorySpace const space, DenseInt const newSize ) override
+  virtual void resizeIWork( MemorySpace const space, std::ptrdiff_t const newSize ) override
   {
     m_iwork.resizeWithoutInitializationOrDestruction( space, newSize );
   }
 
 private:
-  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work;
+  Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > m_work;
 
-  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work2;
+  Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > m_work2;
 
-  Array< T, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_work3;
+  Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > m_work3;
 
-  Array< RealVersion< T >, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_rwork;
+  Array< RealVersion< T >, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > m_rwork;
 
-  Array< DenseInt, 1, RAJA::PERM_I, DenseInt, BUFFER_TYPE > m_iwork;
+  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > m_iwork;
 };
 
 /**
@@ -287,28 +283,28 @@ struct OptimalSizeCalculation : public Workspace< T >
   virtual Vector< int > iwork() override
   { return m_iwork; }
 
-  virtual void resizeWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  virtual void resizeWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), std::ptrdiff_t const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
-  virtual void resizeWork2( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  virtual void resizeWork2( MemorySpace const LVARRAY_UNUSED_ARG( space ), std::ptrdiff_t const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
-  virtual void resizeWork3( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  virtual void resizeWork3( MemorySpace const LVARRAY_UNUSED_ARG( space ), std::ptrdiff_t const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
-  virtual void resizeRWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  virtual void resizeRWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), std::ptrdiff_t const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
-  virtual void resizeIWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), DenseInt const LVARRAY_UNUSED_ARG( newSize ) ) override
+  virtual void resizeIWork( MemorySpace const LVARRAY_UNUSED_ARG( space ), std::ptrdiff_t const LVARRAY_UNUSED_ARG( newSize ) ) override
   { LVARRAY_ERROR( "Not supported by OptimalSizeCalculation." ); }
 
-  DenseInt optimalWorkSize() const
-  { return static_cast< DenseInt >( m_work.real() ); }
+  std::ptrdiff_t optimalWorkSize() const
+  { return static_cast< std::ptrdiff_t >( m_work.real() ); }
 
-  DenseInt optimalRWorkSize() const
-  { return static_cast< DenseInt >( m_rwork ); }
+  std::ptrdiff_t optimalRWorkSize() const
+  { return static_cast< std::ptrdiff_t >( m_rwork ); }
 
-  DenseInt optimalIWorkSize() const
+  std::ptrdiff_t optimalIWorkSize() const
   { return m_iwork; }
 
 private:
@@ -320,7 +316,7 @@ private:
 
   RealVersion< T > m_rwork { -1 };
 
-  DenseInt m_iwork { -1 };
+  int m_iwork { -1 };
 };
 
 } // namespace dense

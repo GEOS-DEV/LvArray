@@ -3,14 +3,14 @@ packages:
     target: [default]
     compiler: [gcc, clang, intel]
     providers:
-      blas: [intel-mkl]
-      lapack: [intel-mkl]
+      blas: [intel-oneapi-mkl]
+      lapack: [intel-oneapi-mkl]
 
-  intel-mkl:
+  intel-oneapi-mkl:
     buildable: False
     externals:
-      - spec: intel-mkl@2020.0.166 threads=openmp
-        prefix: /usr/tce/packages/mkl/mkl-2020.0/
+      - spec: intel-oneapi-mkl@2022.1.0
+        prefix: /usr/tce/backend/installations/linux-rhel8-x86_64/intel-19.0.4/intel-oneapi-mkl-2022.1.0-sksz67twjxftvwchnagedk36gf7plkrp/
 
   cmake:
     buildable: False

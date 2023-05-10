@@ -90,8 +90,8 @@ DenseInt heevr(
   char const * const JOBZ = decompositionOptions.typeArg();
   char const * const RANGE = decompositionOptions.rangeArg();
   char const * const UPLO = getOption( storageType );
-  DenseInt const N = A.nCols;
-  DenseInt const LDA = A.stride;
+  DenseInt const N = A.sizes[ 1 ];
+  DenseInt const LDA = A.strides[ 1 ];
 
   T const VL = decompositionOptions.rangeMin;
   T const VU = decompositionOptions.rangeMax;
@@ -112,11 +112,11 @@ DenseInt heevr(
 
   if( decompositionOptions.type == EigenDecompositionOptions::EIGENVALUES_AND_VECTORS )
   {
-    LVARRAY_ERROR_IF_NE( eigenvectors.nRows, N );
-    LVARRAY_ERROR_IF_LT( eigenvectors.nCols, maxEigenvaluesToFind );
+    LVARRAY_ERROR_IF_NE( eigenvectors.sizes[ 0 ], N );
+    LVARRAY_ERROR_IF_LT( eigenvectors.sizes[ 1 ], maxEigenvaluesToFind );
   }
 
-  DenseInt const LDZ = std::max( 1, eigenvectors.stride );
+  DenseInt const LDZ = std::max( 1, eigenvectors.strides[ 1 ] );
 
   if( decompositionOptions.range == EigenDecompositionOptions::ALL ||
       ( decompositionOptions.range == EigenDecompositionOptions::BY_INDEX &&
@@ -348,12 +348,12 @@ DenseInt heevr(
 {
   // TODO(corbett5): I think we can support row major by simply complex-conjugating all entries.
   // I'm not sure exactly how this would work for the eigenvectors though.
-  LVARRAY_ERROR_IF( !A.isColumnMajor, "Row major is not yet supported." );
-  LVARRAY_ERROR_IF( !eigenvectors.isColumnMajor, "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !A.isColumnMajor(), "Row major is not yet supported." );
+  LVARRAY_ERROR_IF( !eigenvectors.isColumnMajor(), "Row major is not yet supported." );
 
-  bool const reallocateWork = workspace.work().size < 2 * A.nRows;
-  bool const reallocateRWork = workspace.rwork().size < 24 * A.nRows;
-  bool const reallocateIWork = workspace.iwork().size < 10 * A.nRows;
+  bool const reallocateWork = workspace.work().size < 2 * A.sizes[ 0 ];
+  bool const reallocateRWork = workspace.rwork().size < 24 * A.sizes[ 0 ];
+  bool const reallocateIWork = workspace.iwork().size < 10 * A.sizes[ 0 ];
 
   if( reallocateWork || reallocateRWork || reallocateIWork )
   {

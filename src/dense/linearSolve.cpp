@@ -67,17 +67,17 @@ void gesv(
   Vector< DenseInt > const & pivots )
 {
   LVARRAY_ERROR_IF( !A.isSquare(), "The matrix A must be square." );
-  LVARRAY_ERROR_IF( !A.isColumnMajor, "The matrix A must be column major." );
+  LVARRAY_ERROR_IF( !A.isColumnMajor(), "The matrix A must be column major." );
 
-  LVARRAY_ERROR_IF_NE( A.nRows, B.nRows );
-  LVARRAY_ERROR_IF( !B.isColumnMajor, "The matrix B must be column major." );
+  LVARRAY_ERROR_IF_NE( A.sizes[ 0 ], B.sizes[ 0 ] );
+  LVARRAY_ERROR_IF( !B.isColumnMajor(), "The matrix B must be column major." );
 
-  LVARRAY_ERROR_IF_NE( pivots.size, A.nRows );
+  LVARRAY_ERROR_IF_NE( pivots.size, A.sizes[ 0 ] );
 
-  DenseInt const N = A.nCols;
-  DenseInt const NRHS = B.nCols;
-  DenseInt const LDA = A.stride;
-  DenseInt const LDB = B.stride;
+  DenseInt const N = A.sizes[ 1 ];
+  DenseInt const NRHS = B.sizes[ 1 ];
+  DenseInt const LDA = A.strides[ 1 ];
+  DenseInt const LDB = B.strides[ 1 ];
   DenseInt INFO = 0;
 
   if( backend == BuiltInBackends::LAPACK )

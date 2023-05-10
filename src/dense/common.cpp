@@ -5,26 +5,16 @@ namespace LvArray
 namespace dense
 {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-char const * getOption( SymmetricMatrixStorageType const option )
+Operation transposeOp( Operation const op )
 {
-  static constexpr char const * const upper = "U";
-  static constexpr char const * const lower = "L";
+  switch( op )
+  {
+    case Operation::NO_OP: return Operation::TRANSPOSE;
+    case Operation::TRANSPOSE: return Operation::NO_OP;
+    case Operation::ADJOINT: LVARRAY_ERROR( "Not supported" );
+  }
 
-  return option == SymmetricMatrixStorageType::UPPER_TRIANGULAR ? upper : lower;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-MemorySpace getSpaceForBackend( BuiltInBackends const backend )
-{
-#if defined( LVARRAY_USE_MAGMA )
-  // TODO: This needs to be changed to MemorySpace::hip or whatever.
-  if( backend == BuiltInBackends::MAGMA_GPU ) return MemorySpace::cuda;
-#else
-  LVARRAY_UNUSED_VARIABLE( backend );
-#endif
-
-  return MemorySpace::host;
+  return Operation::NO_OP;
 }
 
 } // namespace dense

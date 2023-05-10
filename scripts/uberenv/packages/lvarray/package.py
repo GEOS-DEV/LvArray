@@ -65,15 +65,10 @@ class Lvarray(CMakePackage, CudaPackage):
     variant('addr2line', default=True,
             description='Build support for addr2line.')
 
-<<<<<<< HEAD
     variant('tpl_build_type', default='none', description='TPL build type',
             values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel', 'none'))
         
-
-    # conflicts('~lapack', when='+magma')
-=======
     conflicts('~lapack', when='+magma')
->>>>>>> cde43f2 (Building and compiling with MAGMA. GPU not yet working, think it's something to do with the new workspaces.)
 
     depends_on('blt@0.4.1:', when='@0.2.0:', type='build')
 
@@ -114,6 +109,7 @@ class Lvarray(CMakePackage, CudaPackage):
             depends_on('umpire build_type={}'.format(bt))
             depends_on('chai build_type={}'.format(bt), when='+chai')
             depends_on('caliper build_type={}'.format(bt), when='+caliper')
+            depends_on('magma build_type={}'.format(bt), when='+magma')
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
 

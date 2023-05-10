@@ -9,9 +9,8 @@
 # Specify list of tests
 #
 set( testSources
-     testEigenDecomposition.cpp
-     testLinearSolve.cpp
-   )
+     testgemm.cpp
+)
 
 #
 # Add gtest C++ based tests

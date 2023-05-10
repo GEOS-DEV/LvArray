@@ -1,14 +1,12 @@
 set( lvarraydense_headers
      common.hpp
      backendHelpers.hpp
-     eigenDecomposition.hpp
-     linearSolve.hpp
+     BlasLapackInterface.hpp
     )
 
 set( lvarraydense_sources
      common.cpp
-     eigenDecomposition.cpp
-     linearSolve.cpp
+     BlasLapackInterface.cpp
     )
 
 set( dependencies lvarray ${lvarray_dependencies} blas lapack )
