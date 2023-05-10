@@ -181,12 +181,12 @@ static PyObject * PySortedArray_setAccessLevel( PySortedArray * const self, PyOb
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  int newSpace = static_cast< int >( hostMemorySpace );
+  int newSpace = static_cast< int >( LvArray::MemorySpace::host );
   if( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   {
     return nullptr;
   }
-  if( newSpace != static_cast< int >( hostMemorySpace ) )
+  if( newSpace != static_cast< int >( LvArray::MemorySpace::host ) )
   {
     PyErr_SetString( PyExc_ValueError, "Invalid space" );
     return nullptr;
