@@ -1,6 +1,6 @@
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-05-01/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-05-09/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
@@ -21,7 +21,8 @@ set(ENABLE_CUDA ON CACHE BOOL "")
 set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-10.1.243 CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER} CACHE STRING "")
 set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc CACHE STRING "")
-set(CUDA_ARCH sm_70 CACHE STRING "")
+set(CUDA_ARCH "sm_70" CACHE STRING "")
+set(CMAKE_CUDA_ARCHITECTURES "70" CACHE STRING "")
 set(CMAKE_CUDA_STANDARD 14 CACHE STRING "")
 set(CMAKE_CUDA_FLAGS "-restrict -arch ${CUDA_ARCH} --expt-extended-lambda -Werror cross-execution-space-call,reorder,deprecated-declarations" CACHE STRING "")
 set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -Xcompiler -DNDEBUG -Xcompiler -O3 -Xcompiler -mcpu=powerpc64le -Xcompiler -mtune=powerpc64le" CACHE STRING "")
