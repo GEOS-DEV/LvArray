@@ -29,6 +29,7 @@ if( ENABLE_HIP )
 
   set( HIP_VERSION_STRING "5.4.0" CACHE STRING "" )
   set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
+  set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
   set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
