@@ -1,4 +1,4 @@
-set(CONFIG_NAME "lassen-clang13-cuda11" CACHE PATH "") 
+set(CONFIG_NAME "lassen-clang13-cuda11" CACHE PATH "")
 
 
 set(COMPILER_DIR /usr/tce/packages/clang/clang-13.0.1-gcc-8.3.1 )
@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
 # Set up the tpls
 set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-01-23/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-03-15/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")

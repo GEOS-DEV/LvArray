@@ -28,13 +28,13 @@ template< typename COL_TYPE,
           template< typename > class BUFFER_TYPE >
 class SparsityPattern : protected SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
-
   /// An alias for the parent class.
   using ParentClass = SparsityPatternView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
 public:
 
   using typename ParentClass::ColType;
+  using typename ParentClass::ColTypeNC;
   using typename ParentClass::IndexType;
 
   /**
@@ -50,7 +50,7 @@ public:
    */
   inline
   SparsityPattern( INDEX_TYPE const nrows=0,
-                   INDEX_TYPE const ncols=0,
+                   ColTypeNC const ncols=0,
                    INDEX_TYPE initialRowCapacity=0 ):
     ParentClass( true )
   {
@@ -127,7 +127,7 @@ public:
    *   of each new row.
    */
   template< typename POLICY >
-  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
+  void resizeFromRowCapacities( INDEX_TYPE const nRows, ColTypeNC const nCols, INDEX_TYPE const * const rowCapacities )
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
     LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
@@ -290,7 +290,7 @@ public:
    *   or where a specific column is greater than the number of columns in the matrix.
    *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity )
+  void resize( INDEX_TYPE const nRows, ColTypeNC const nCols, INDEX_TYPE const initialRowCapacity )
   { ParentClass::resize( nRows, nCols, initialRowCapacity ); }
 
 

@@ -252,6 +252,7 @@ public:
    * @param src the SparsityPatternView to be moved from.
    * @return *this.
    */
+  LVARRAY_HOST_DEVICE
   inline
   ArrayOfArraysView & operator=( ArrayOfArraysView && src )
   {
@@ -588,6 +589,9 @@ public:
   #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::cuda ) touch = false;
   #endif
+  #if defined(LVARRAY_USE_HIP)
+    if( space == MemorySpace::hip ) touch = false;
+  #endif
     m_offsets.move( space, touch );
   }
 
@@ -725,10 +729,6 @@ protected:
     auto const fillOffsets = [&]()
     {
       m_offsets[ 0 ] = 0;
-//      RAJA::inclusive_scan< POLICY >( capacities,
-//                                      capacities + numSubArrays,
-//                                      m_offsets.data() + 1 );
-
       RAJA::inclusive_scan< POLICY >( RAJA::make_span< INDEX_TYPE const * >( capacities, numSubArrays ),
                                       RAJA::make_span< INDEX_TYPE * >( m_offsets.data()+1, numSubArrays ) );
     };

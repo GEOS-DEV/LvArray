@@ -1036,7 +1036,7 @@ using CRSMatrixViewTestTypes = ::testing::Types<
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
@@ -1276,7 +1276,7 @@ using CRSMatrixViewAtomicTestTypes = ::testing::Types<
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelHostPolicy >
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< double, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
