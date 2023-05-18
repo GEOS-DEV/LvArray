@@ -277,7 +277,7 @@ void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSi
 
   arrayManipulation::resize( buf.data(), size, newSize, std::forward< ARGS >( args )... );
 
-#if !defined(__CUDA_ARCH__)
+#if !defined(LVARRAY_DEVICE_COMPILE)
   if( newSize > 0 )
   {
     buf.registerTouch( MemorySpace::host );

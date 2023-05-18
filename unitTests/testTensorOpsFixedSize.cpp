@@ -569,7 +569,7 @@ using FixedSizeSquareMatrixTestTypes = ::testing::Types<
   std::tuple< double, std::integral_constant< int, 2 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 3 >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
 #endif
@@ -616,6 +616,5 @@ TYPED_TEST( FixedSizeSquareMatrixTest, denseToSymmetric )
 {
   this->denseToSymmetric();
 }
-
 } // namespace testing
 } // namespace LvArray

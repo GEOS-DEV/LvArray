@@ -1016,7 +1016,7 @@ using SparsityPatternViewTestTypes = ::testing::Types<
 #endif
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< SparsityPattern< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #if !defined( __ibmxl__ )
   , std::pair< SparsityPattern< uint, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
@@ -1171,7 +1171,7 @@ using CRSMatrixTestTypes = ::testing::Types<
   std::pair< CRSMatrix< int, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
   , std::pair< CRSMatrix< TestString, int, std::ptrdiff_t, MallocBuffer >, serialPolicy >
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< CRSMatrix< int, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< CRSMatrix< Tensor, int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

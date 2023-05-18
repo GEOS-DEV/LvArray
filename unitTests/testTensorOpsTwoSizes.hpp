@@ -930,7 +930,7 @@ using TwoSizesTestTypes = ::testing::Types<
   , std::tuple< int, std::integral_constant< int, 5 >, std::integral_constant< int, 4 >, serialPolicy >
   , std::tuple< double, std::integral_constant< int, 3 >, std::integral_constant< int, 3 >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, std::integral_constant< int, 2 >, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, std::integral_constant< int, 5 >, std::integral_constant< int, 4 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, std::integral_constant< int, 3 >, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
