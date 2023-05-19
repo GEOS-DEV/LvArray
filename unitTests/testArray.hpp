@@ -43,7 +43,6 @@ public:
   {
     ARRAY array;
     EXPECT_TRUE( array.empty() );
-    EXPECT_EQ( array.getSingleParameterResizeIndex(), 0 );
 
     for( int i = 0; i < NDIM; ++i )
     {
@@ -65,7 +64,6 @@ public:
                                                          [] ( auto const ... args )
     { return std::make_unique< ARRAY >( args ... ); } );
     EXPECT_FALSE( array->empty() );
-    EXPECT_EQ( array->getSingleParameterResizeIndex(), 0 );
 
     INDEX_TYPE totalSize = 1;
     for( int i = 0; i < NDIM; ++i )
@@ -155,17 +153,6 @@ public:
     array.reset();
 
     compare( copy, movedCopy );
-  }
-
-  static void getSetSingleParameterResizeIndex()
-  {
-    std::unique_ptr< ARRAY > array = sizedConstructor();
-
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      array->setSingleParameterResizeIndex( dim );
-      EXPECT_EQ( array->getSingleParameterResizeIndex(), dim );
-    }
   }
 
   static void resizeFromPointer()
@@ -298,47 +285,43 @@ public:
     // Iterate over randomly generated sizes.
     for( int i = 0; i < 10; ++i )
     {
-      // Iterate over the dimensions
-      for( int dim = 0; dim < NDIM; ++dim )
+      constexpr int dim = ARRAY::SingleResizeDim;
+
+      std::array< INDEX_TYPE, NDIM > oldSizes;
+      for( int d = 0; d < NDIM; ++d )
+      { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
+
+      std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
+
+      array.resize( NDIM, oldSizes.data() );
+
+      fill( array );
+
+      // Increase the size
+      newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
+      if( useDefault )
       {
-        array.setSingleParameterResizeIndex( dim );
+        array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
+        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
+      }
+      else
+      {
+        array.resize( newSizes[ dim ] );
+        checkResize( array, oldSizes, newSizes, true, true );
+      }
+      oldSizes = newSizes;
 
-        std::array< INDEX_TYPE, NDIM > oldSizes;
-        for( int d = 0; d < NDIM; ++d )
-        { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
-
-        std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
-
-        array.resize( NDIM, oldSizes.data() );
-
-        fill( array );
-
-        // Increase the size
-        newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
-        if( useDefault )
-        {
-          array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
-          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
-        }
-        else
-        {
-          array.resize( newSizes[ dim ] );
-          checkResize( array, oldSizes, newSizes, true, true );
-        }
-        oldSizes = newSizes;
-
-        // Decrease the size
-        newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
-        if( useDefault )
-        {
-          array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
-          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
-        }
-        else
-        {
-          array.resize( newSizes[ dim ] );
-          checkResize( array, oldSizes, newSizes, true, true );
-        }
+      // Decrease the size
+      newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
+      if( useDefault )
+      {
+        array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
+        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
+      }
+      else
+      {
+        array.resize( newSizes[ dim ] );
+        checkResize( array, oldSizes, newSizes, true, true );
       }
     }
   }
@@ -349,7 +332,7 @@ public:
     INDEX_TYPE const initialSize = array->size();
     EXPECT_EQ( array->capacity(), initialSize );
 
-    INDEX_TYPE const defaultDimSize = array->size( array->getSingleParameterResizeIndex() );
+    INDEX_TYPE const defaultDimSize = array->size( 0 );
     array->reserve( 2 * initialSize );
     T const * const pointerAfterReserve = array->data();
 
@@ -394,7 +377,7 @@ public:
     EXPECT_EQ( array->data(), oldPointer );
     for( int dim = 0; dim < NDIM; ++dim )
     {
-      if( dim == array->getSingleParameterResizeIndex() )
+      if( dim == 0 )
       {
         EXPECT_EQ( array->size( dim ), 0 );
       }
@@ -404,7 +387,7 @@ public:
       }
     }
 
-    array->resize( oldSizes[ array->getSingleParameterResizeIndex() ] );
+    array->resize( oldSizes[ 0 ] );
 
     EXPECT_EQ( array->size(), oldSize );
     EXPECT_EQ( array->capacity(), oldCapacity );
@@ -417,6 +400,20 @@ public:
 
     fill( *array );
   }
+
+  template< typename IDX >
+  struct LayoutChecker
+  {
+    IDX const * data;
+    int dim = 0;
+
+    template< typename T >
+    LVARRAY_HOST_DEVICE
+    void operator()( T && v )
+    {
+      EXPECT_EQ( v, data[ dim++ ] );
+    }
+  };
 
   static void checkIndexing()
   {
@@ -436,11 +433,11 @@ public:
     EXPECT_EQ( array.data(), getRAJAViewData( view ) );
 
     RAJA::Layout< NDIM > const & layout = getRAJAViewLayout( view );
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      EXPECT_EQ( array.size( dim ), layout.sizes[ dim ] );
-      EXPECT_EQ( array.strides()[ dim ], layout.strides[ dim ] );
-    }
+    // The following should work but produces host-device errors with nvcc-12.1:
+    // tupleManipulation::forEach( array.layout().extent(), [layout, dim] LVARRAY_HOST_DEVICE ( auto e ) mutable { EXPECT_EQ( e, layout.sizes[ dim++ ] ); } );
+    // tupleManipulation::forEach( array.layout().stride(), [layout, dim] LVARRAY_HOST_DEVICE ( auto e ) mutable { EXPECT_EQ( e, layout.strides[ dim++ ] ); } );
+    tupleManipulation::forEach( array.layout().extent(), LayoutChecker< typename RAJA::Layout< NDIM >::IndexLinear >{ layout.sizes } );
+    tupleManipulation::forEach( array.layout().stride(), LayoutChecker< typename RAJA::Layout< NDIM >::IndexLinear >{ layout.strides } );
 
     compareToRAJAView( array, view );
   }
@@ -785,31 +782,31 @@ protected:
 };
 
 using ArrayTestTypes = ::testing::Types<
-  Array< int, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< TestString, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >
+  Array< int, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IKJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JIK, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JKI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KIJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >
+  , Array< TestString, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >
   >;
 
 TYPED_TEST_SUITE( ArrayTest, ArrayTestTypes, );
@@ -859,24 +856,24 @@ protected:
 };
 
 using ArrayOfTrivialObjectsTestTypes = ::testing::Types<
-  Array< int, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >
-  , Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >
+  Array< int, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IKJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JIK, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JKI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KIJ, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >
+  , Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >
+  , Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >
   >;
 
 TYPED_TEST_SUITE( ArrayOfTrivialObjectsTest, ArrayOfTrivialObjectsTestTypes, );

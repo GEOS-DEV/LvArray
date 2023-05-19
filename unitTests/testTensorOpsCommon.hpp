@@ -27,15 +27,15 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, std::ptrdiff_t, DEFAULT_BUFFER >;
+using ArrayT = Array< T, DynamicExtent< typeManipulation::getDimension< PERMUTATION >, std::ptrdiff_t >, PERMUTATION, DEFAULT_BUFFER >;
 
-template< typename T, int NDIM, int USD >
-using ArrayViewT = ArrayView< T, NDIM, USD, std::ptrdiff_t, DEFAULT_BUFFER >;
+template< typename T, int NDIM, typename PERMUTATION >
+using ArrayViewT = ArrayView< T, DynamicLayout< NDIM, std::ptrdiff_t, PERMUTATION >, DEFAULT_BUFFER >;
 
 
-template< typename T, int NDIM, int USD, typename ... SIZES >
+template< typename T, typename LAYOUT, typename ... SIZES >
 LVARRAY_HOST_DEVICE
-void fill( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, std::ptrdiff_t offset )
+void fill( ArraySlice< T, LAYOUT > const slice, std::ptrdiff_t offset )
 {
   forValuesInSlice( slice, [&offset] ( T & value )
   {

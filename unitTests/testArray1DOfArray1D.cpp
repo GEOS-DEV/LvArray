@@ -34,11 +34,11 @@ template< typename U, typename T >
 struct ToArray1D
 {};
 
-template< typename U, typename T, int NDIM, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-struct ToArray1D< U, Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > >
+template< typename U, typename T, typename EXTENT, typename PERM, template< typename > class BUFFER_TYPE >
+struct ToArray1D< U, Array< T, EXTENT, PERM, BUFFER_TYPE > >
 {
-  using array = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
-  using view = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
+  using array = Array< U, Extent< INDEX_TYPE >, RAJA::PERM_I, BUFFER_TYPE >;
+  using view = typename array::ViewType;
 };
 
 template< typename ARRAY1D_POLICY_PAIR >
@@ -222,7 +222,7 @@ private:
 };
 
 template< typename T, template< typename > class BUFFER_TYPE >
-using Array1D = Array< T, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
+using Array1D = Array< T, Extent< INDEX_TYPE >, RAJA::PERM_I, BUFFER_TYPE >;
 
 using Array1DOfArray1DTestTypes = ::testing::Types<
   std::pair< Array1D< int, MallocBuffer >, serialPolicy >

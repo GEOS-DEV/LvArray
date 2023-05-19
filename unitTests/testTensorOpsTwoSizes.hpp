@@ -74,9 +74,9 @@ public:
       }
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
     std::ptrdiff_t const aSeed = m_matrixASeed;
     forall< POLICY >( 1, [scale, result, matrixA_IJK, matrixA_IKJ, matrixA_KJI, aSeed] LVARRAY_HOST_DEVICE ( int )
@@ -99,9 +99,9 @@ public:
 
   void testFill()
   {
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
     forall< POLICY >( 1, [matrixA_IJK, matrixA_IKJ, matrixA_KJI] LVARRAY_HOST_DEVICE ( int )
         {
@@ -159,16 +159,16 @@ public:
       }
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorN_JI = m_vectorN_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toViewConst();
     T const ( &vectorN_local )[ N ] = m_vectorN_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorM_JI = m_vectorM_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toViewConst();
     T const ( &vectorM_local )[ M ] = m_vectorM_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;
@@ -217,16 +217,16 @@ public:
       }
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorN_JI = m_vectorN_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toViewConst();
     T const ( &vectorN_local )[ N ] = m_vectorN_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorM_JI = m_vectorM_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toViewConst();
     T const ( &vectorM_local )[ M ] = m_vectorM_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;
@@ -278,16 +278,16 @@ public:
       result[ i ] = dot;
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrix_local )[ N ][ M ] = m_matrixA_local;
 
-    ArrayViewT< T, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorN_JI = m_vectorN_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorM_JI = m_vectorM_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toViewConst();
     T const ( &vectorM_local )[ M ] = m_vectorM_local;
 
     std::ptrdiff_t const vectorNSeed = m_vectorNSeed;
@@ -339,16 +339,16 @@ public:
       result[ i ] = m_vectorN_local[ i ] + dot;
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrix_local )[ N ][ M ] = m_matrixA_local;
 
-    ArrayViewT< T, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorN_JI = m_vectorN_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorM_JI = m_vectorM_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toViewConst();
     T const ( &vectorM_local )[ M ] = m_vectorM_local;
 
     std::ptrdiff_t const vectorNSeed = m_vectorNSeed;
@@ -400,17 +400,17 @@ public:
       result[ i ] = dot;
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrix_local )[ N ][ M ] = m_matrixA_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorN_JI = m_vectorN_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toViewConst();
     T const ( &vectorN_local )[ N ] = m_vectorN_local;
 
-    ArrayViewT< T, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorM_JI = m_vectorM_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toView();
 
     std::ptrdiff_t const vectorMSeed = m_vectorMSeed;
 
@@ -461,17 +461,17 @@ public:
       result[ i ] = m_vectorM_local[ i ] + dot;
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrix_local )[ N ][ M ] = m_matrixA_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorN_IJ = m_vectorN_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorN_JI = m_vectorN_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorN_IJ = m_vectorN_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorN_JI = m_vectorN_JI.toViewConst();
     T const ( &vectorN_local )[ N ] = m_vectorN_local;
 
-    ArrayViewT< T, 2, 1 > const vectorM_IJ = m_vectorM_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorM_JI = m_vectorM_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorM_IJ = m_vectorM_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorM_JI = m_vectorM_JI.toView();
 
     std::ptrdiff_t const vectorMSeed = m_vectorMSeed;
 
@@ -511,13 +511,13 @@ public:
 
   void testCopy()
   {
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
     T const ( &matrixB_local )[ N ][ M ] = m_matrixB_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;
@@ -568,13 +568,13 @@ public:
       }
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
     T const ( &matrixB_local )[ N ][ M ] = m_matrixB_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;
@@ -624,13 +624,13 @@ public:
       }
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixB_IJK_view = m_matrixB_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixB_IKJ_view = m_matrixB_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixB_KJI_view = m_matrixB_KJI.toViewConst();
     T const ( &matrixB_local )[ N ][ M ] = m_matrixB_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;
@@ -671,13 +671,13 @@ public:
 
   void testScaledAdd()
   {
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixB_IJK_view = m_matrixB_IJK.toView();
-    ArrayViewT< T const, 3, 1 > const matrixB_IKJ_view = m_matrixB_IKJ.toView();
-    ArrayViewT< T const, 3, 0 > const matrixB_KJI_view = m_matrixB_KJI.toView();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixB_IJK_view = m_matrixB_IJK.toView();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixB_IKJ_view = m_matrixB_IKJ.toView();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixB_KJI_view = m_matrixB_KJI.toView();
 
     T const ( &matrixB_local )[ N ][ M ] = m_matrixB_local;
 
@@ -744,14 +744,14 @@ public:
       }
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixMN_IJK = m_matrixMN_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixMN_IKJ = m_matrixMN_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixMN_KJI = m_matrixMN_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixMN_IJK = m_matrixMN_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixMN_IKJ = m_matrixMN_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixMN_KJI = m_matrixMN_KJI.toViewConst();
     T const ( &matrixMN_local )[ M ][ N ] = m_matrixMN_local;
 
-    ArrayViewT< T, 3, 2 > const matrixNN_IJK = m_matrixNN_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixNN_IKJ = m_matrixNN_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixNN_KJI = m_matrixNN_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixNN_IJK = m_matrixNN_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixNN_IKJ = m_matrixNN_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixNN_KJI = m_matrixNN_KJI.toView();
 
     std::ptrdiff_t const matrixNNSeed = m_matrixNNSeed;
 
@@ -798,14 +798,14 @@ public:
       }
     }
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrixA_local )[ N ][ M ] = m_matrixA_local;
 
-    ArrayViewT< T, 3, 2 > const matrixNN_IJK = m_matrixNN_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixNN_IKJ = m_matrixNN_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixNN_KJI = m_matrixNN_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixNN_IJK = m_matrixNN_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixNN_IKJ = m_matrixNN_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixNN_KJI = m_matrixNN_KJI.toView();
 
     std::ptrdiff_t const matrixNNSeed = m_matrixNNSeed;
 
@@ -838,13 +838,13 @@ public:
 
   void testTranspose()
   {
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixMN_IJK_view = m_matrixMN_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixMN_IKJ_view = m_matrixMN_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixMN_KJI_view = m_matrixMN_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixMN_IJK_view = m_matrixMN_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixMN_IKJ_view = m_matrixMN_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixMN_KJI_view = m_matrixMN_KJI.toViewConst();
     T const ( &matrixMN_local )[ M ][ N ] = m_matrixMN_local;
 
     std::ptrdiff_t const matrixSeed = m_matrixASeed;

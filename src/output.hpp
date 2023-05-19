@@ -45,9 +45,9 @@ namespace LvArray
  * @return @p stream .
  */
 // Sphinx start after Array stream IO
-template< typename T, int NDIM, int USD, typename INDEX_TYPE >
+template< typename T, typename LAYOUT >
 std::ostream & operator<<( std::ostream & stream,
-                           ::LvArray::ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice )
+                           ::LvArray::ArraySlice< T, LAYOUT > const slice )
 {
   stream << "{ ";
 
@@ -56,7 +56,7 @@ std::ostream & operator<<( std::ostream & stream,
     stream << slice[ 0 ];
   }
 
-  for( INDEX_TYPE i = 1; i < slice.size( 0 ); ++i )
+  for( typename LvArray::ArraySlice< T, LAYOUT >::IndexType i = 1; i < slice.size( 0 ); ++i )
   {
     stream << ", " << slice[ i ];
   }
@@ -79,12 +79,10 @@ std::ostream & operator<<( std::ostream & stream,
  * @return @p stream .
  */
 template< typename T,
-          int NDIM,
-          int USD,
-          typename INDEX_TYPE,
+          typename LAYOUT,
           template< typename > class BUFFER_TYPE >
 std::ostream & operator<<( std::ostream & stream,
-                           ::LvArray::ArrayView< T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & view )
+                           ::LvArray::ArrayView< T, LAYOUT, BUFFER_TYPE > const & view )
 { return stream << view.toSliceConst(); }
 
 /**

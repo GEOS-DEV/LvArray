@@ -36,8 +36,10 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" )
 
 // Source includes
 #include "LvArrayConfig.hpp"
+#include "Layout.hpp"
 #include "indexing.hpp"
 #include "Macros.hpp"
+#include "sortedArrayManipulation.hpp"
 
 // System includes
 #ifndef NDEBUG
@@ -80,29 +82,38 @@ namespace LvArray
  *   this is the last dimension.
  * @tparam INDEX_TYPE The integer to use for indexing the components of the array.
  * @brief This class serves as a sliced interface to an array. This is a lightweight class that contains
- *   only pointers, and provides an operator[] to create a lower dimensionsal slice and an operator()
+ *   only pointers, and provides an operator[] to create a lower dimensional slice and an operator()
  *   to access values given a multidimensional index.
  *   In general, instantiations of ArraySlice should only result either taking a slice of an an Array or
  *   an ArrayView via operator[] or from a direct creation via the toSlice/toSliceConst method.
  */
-template< typename T, int NDIM_TPARAM, int USD_TPARAM, typename INDEX_TYPE >
+template< typename T, typename LAYOUT >
 class ArraySlice
 {
 public:
 
-  static_assert( USD_TPARAM < NDIM_TPARAM, "USD must be less than NDIM." );
+  static_assert( is_layout_v< LAYOUT >, "LAYOUT template parameter must be a Layout instantiation" );
+
+  /// The type of layout.
+  using LayoutType = LAYOUT;
+
+  /// The type of extent.
+  using Extent = typename LayoutType::ExtentType;
+
+  /// The type of stride.
+  using Stride = typename LayoutType::StrideType;
+
+  /// The number of dimensions.
+  static constexpr int NDIM = LayoutType::NDIM;
+
+  /// The unit-stride dimension index.
+  static constexpr int USD = LayoutType::USD;
 
   /// The type of the value in the ArraySlice.
   using ValueType = T;
 
-  /// The number of dimensions.
-  static constexpr int NDIM = NDIM_TPARAM;
-
-  /// The unit stride dimension.
-  static constexpr int USD = USD_TPARAM;
-
   /// The integer type used for indexing.
-  using IndexType = INDEX_TYPE;
+  using IndexType = typename LayoutType::IndexType;
 
   /**
    * @name Constructors, destructor and assignment operators.
@@ -118,13 +129,11 @@ public:
    * @param inputDimensions pointer to the beginning of the dimensions for this slice.
    * @param inputStrides pointer to the beginning of the strides for this slice
    */
-  LVARRAY_HOST_DEVICE inline explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  LVARRAY_HOST_DEVICE explicit CONSTEXPR_WITHOUT_BOUNDS_CHECK
   ArraySlice( T * const LVARRAY_RESTRICT inputData,
-              INDEX_TYPE const * const LVARRAY_RESTRICT inputDimensions,
-              INDEX_TYPE const * const LVARRAY_RESTRICT inputStrides ) noexcept:
+               LayoutType const & layout ) noexcept:
     m_data( inputData ),
-    m_dims( inputDimensions ),
-    m_strides( inputStrides )
+    m_layout( layout )
   {
 #if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(LVARRAY_DEVICE_COMPILE) && defined(LVARRAY_BOUNDS_CHECK)
     ArraySlice::TV_ttf_display_type( nullptr );
@@ -141,18 +150,18 @@ public:
   /**
    * @return Return a new immutable slice.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
-  ArraySlice< T const, NDIM, USD, INDEX_TYPE >
+  LVARRAY_HOST_DEVICE constexpr
+  ArraySlice< T const, LayoutType >
   toSliceConst() const noexcept
-  { return ArraySlice< T const, NDIM, USD, INDEX_TYPE >( m_data, m_dims, m_strides ); }
+  { return ArraySlice< T const, LayoutType >( m_data, m_layout ); }
 
   /**
    * @return Return a new immutable slice.
    */
   template< typename U=T >
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< !std::is_const< U >::value,
-                             ArraySlice< T const, NDIM, USD, INDEX_TYPE > >
+                             ArraySlice< T const, LayoutType > >
     () const noexcept
   { return toSliceConst(); }
 
@@ -163,73 +172,104 @@ public:
    */
   ///@{
 
+  LVARRAY_HOST_DEVICE constexpr
+  auto const &
+  layout() const noexcept
+  {
+    return m_layout;
+  }
+
   /**
    * @return Return the total size of the slice.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
-  INDEX_TYPE size() const noexcept
+  LVARRAY_HOST_DEVICE constexpr
+  auto
+  size() const noexcept
   {
-  #if defined( __ibmxl__ )
-    // Note: This used to be done with a recursive template but XL-release would produce incorrect results.
-    // Specifically in exampleArray it would return an "old" size even after being updated, strange.
-    INDEX_TYPE val = m_dims[ 0 ];
-    for( int i = 1; i < NDIM; ++i )
-    { val *= m_dims[ i ]; }
-
-    return val;
-  #else
-    return indexing::multiplyAll< NDIM >( m_dims );
-  #endif
+    return m_layout.size();
   }
 
   /**
    * @return Return the length of the given dimension.
    * @param dim the dimension to get the length of.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE size( int const dim ) const noexcept
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  auto
+  size( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
-    return m_dims[ dim ];
+    return tupleManipulation::getValue( m_layout.extent(), dim );
+  }
+
+  /**
+   * @return Return the length of the given dimension.
+   * @param N the dimension to get the length of.
+   */
+  template< int N >
+  LVARRAY_HOST_DEVICE constexpr
+  IndexType size() const noexcept
+  {
+    static_assert( N < NDIM, "Dimension index must be less than number of dimensions." );
+    return camp::get< N >( m_layout.extent() );
   }
 
   /**
    * @return Return the stride of the given dimension.
    * @param dim the dimension to get the stride of.
    */
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE stride( int const dim ) const noexcept
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  IndexType stride( int const dim ) const noexcept
   {
 #ifdef LVARRAY_BOUNDS_CHECK
     LVARRAY_ERROR_IF_GE( dim, NDIM );
 #endif
-    return m_strides[ dim ];
+    return tupleManipulation::getValue( m_layout.stride(), dim );
+  }
+
+  /**
+   * @return Return the stride of the given dimension.
+   * @param N the dimension to get the stride of.
+   */
+  template< int N >
+  LVARRAY_HOST_DEVICE constexpr
+  auto stride() const noexcept
+  {
+    static_assert( N < NDIM, "Dimension index must be less than number of dimensions." );
+    return camp::get< N >( m_layout.stride() );
   }
 
   /**
    * @brief Check if the slice is contiguous in memory
    * @return @p true if represented slice is contiguous in memory
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE constexpr
   bool isContiguous() const
   {
+    // Deal with obvious cases
     if( USD < 0 ) return false;
     if( NDIM == 1 && USD == 0 ) return true;
 
-    bool rval = true;
+    // Slice is contiguous when strides are an ex-scan of extents.
+    // Since they might be permuted, we need to sort them first.
+    // Can't sort tuples directly, so decay to arrays.
+    // XXX: Is there an easier/faster way?
+
+    auto sortedExtents = tupleManipulation::toArray( m_layout.extent() );
+    auto sortedStrides = tupleManipulation::toArray( m_layout.stride() );
+    sortedArrayManipulation::dualSort( sortedStrides.data, sortedStrides.data + NDIM, sortedExtents.data );
+
+    IndexType stride = 1;
     for( int i = 0; i < NDIM; ++i )
     {
-      if( i == USD ) continue;
-      INDEX_TYPE prod = 1;
-      for( int j = 0; j < NDIM; ++j )
+      if ( stride != sortedStrides[i] )
       {
-        if( j != i ) prod *= m_dims[j];
+        return false;
       }
-      rval &= (m_strides[i] <= prod);
+      stride *= sortedExtents[i];
     }
-    return rval;
+    return true;
   }
 
   /**
@@ -238,14 +278,11 @@ public:
    * @param indices The indices of the value to get the linear index of.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  INDEX_TYPE linearIndex( INDICES... indices ) const
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  IndexType linearIndex( INDICES... indices ) const
   {
     static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-#ifdef LVARRAY_BOUNDS_CHECK
-    indexing::checkIndices( m_dims, indices ... );
-#endif
-    return indexing::getLinearIndex< USD >( m_strides, indices ... );
+    return m_layout( indices... );
   }
 
   ///@}
@@ -260,52 +297,47 @@ public:
    * @note This method is only active when NDIM == 1 and USD == 0.
    */
   template< int NDIM_=NDIM, int USD_=USD >
-  LVARRAY_HOST_DEVICE constexpr inline
+  LVARRAY_HOST_DEVICE constexpr
   operator std::enable_if_t< NDIM_ == 1 && USD_ == 0, T * const LVARRAY_RESTRICT >
     () const noexcept
   { return m_data; }
-
-  /**
-   * @return Return a lower dimensionsal slice of this ArrayView.
-   * @param index The index of the slice to create.
-   * @note This method is only active when NDIM > 1.
-   */
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< (U > 1), ArraySlice< T, NDIM - 1, USD - 1, INDEX_TYPE > >
-  operator[]( INDEX_TYPE const index ) const noexcept
-  {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( m_data + indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ),
-                                                       m_dims + 1,
-                                                       m_strides + 1 );
-  }
 
   /**
    * @return Return a reference to the value at the given index.
    * @param index The index of the value to access.
    * @note This method is only active when NDIM == 1.
    */
-  template< int U=NDIM >
-  LVARRAY_HOST_DEVICE inline CONSTEXPR_WITHOUT_BOUNDS_CHECK
-  std::enable_if_t< U == 1, T & >
-  operator[]( INDEX_TYPE const index ) const noexcept
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  decltype(auto)
+  operator[]( IndexType const index ) const noexcept
   {
-    ARRAY_SLICE_CHECK_BOUNDS( index );
-    return m_data[ indexing::ConditionalMultiply< USD == 0 >::multiply( index, m_strides[ 0 ] ) ];
+    return operator()( index );
   }
 
   /**
    * @tparam INDICES A variadic pack of integral types.
-   * @return Return a reference to the value at the given multidimensional index.
+   * @return Return a reference to the value at the given multidimensional index or a lower-dimensional slice.
    * @param indices The indices of the value to access.
+   *
+   * If the number of indices matches the number of slice dimensions, and none of the indices are a slicer (_{})
+   * a value reference is returned. Otherwise the set of indices is applied to the left-most dimensions, and
+   * a slice representing the remaining dimension is returned.
    */
   template< typename ... INDICES >
-  LVARRAY_HOST_DEVICE inline constexpr
-  T & operator()( INDICES... indices ) const
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK
+  decltype(auto)
+  operator()( INDICES... indices ) const
   {
-    static_assert( sizeof ... (INDICES) == NDIM, "number of indices does not match NDIM" );
-    return m_data[ linearIndex( indices ... ) ];
+    auto const sliceLayout = m_layout.slice( indices... );
+    auto const sliceOffset = m_layout( indices... );
+    if constexpr ( decltype( sliceLayout )::NDIM == 0 )
+    {
+      return m_data[ sliceOffset ];
+    }
+    else
+    {
+      return ArraySlice< T, std::remove_cv_t< decltype( sliceLayout ) > >( m_data + sliceOffset, sliceLayout );
+    }
   }
 
   /**
@@ -314,7 +346,7 @@ public:
    * @pre The slice must be contiguous.
    */
   template< int USD_ = USD >
-  LVARRAY_HOST_DEVICE inline
+  LVARRAY_HOST_DEVICE
   T * dataIfContiguous() const
   {
     // Note: need both compile-time and runtime checks as USD >= 0 does not guarantee contiguous data.
@@ -327,7 +359,7 @@ public:
    * @return Return a pointer to the values.
    * @pre The slice must be contiguous.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE constexpr
   T * begin() const
   { return dataIfContiguous(); }
 
@@ -335,7 +367,7 @@ public:
    * @return Return a pointer to the end values.
    * @pre The slice must be contiguous.
    */
-  LVARRAY_HOST_DEVICE inline constexpr
+  LVARRAY_HOST_DEVICE constexpr
   T * end() const
   { return dataIfContiguous() + size(); }
 
@@ -367,11 +399,8 @@ protected:
   /// pointer to beginning of data for this array, or sub-array.
   T * const LVARRAY_RESTRICT m_data;
 
-  /// pointer to array of length NDIM that contains the lengths of each array dimension
-  INDEX_TYPE const * const LVARRAY_RESTRICT m_dims;
-
-  /// pointer to array of length NDIM that contains the strides of each array dimension
-  INDEX_TYPE const * const LVARRAY_RESTRICT m_strides;
+  /// layout describing the mapping from coordinates to memory offsets
+  LayoutType m_layout;
 
 };
 

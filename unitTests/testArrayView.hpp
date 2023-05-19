@@ -299,18 +299,11 @@ public:
     T * const hostPointer = array->data();
     array->move( RAJAHelper< POLICY >::space, false );
     T const * const devicePointer = array->data();
+    auto layout = array->layout();
 
-    INDEX_TYPE sizes[ NDIM ];
-    INDEX_TYPE strides[ NDIM ];
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      sizes[ dim ] = array->size( dim );
-      strides[ dim ] = array->strides()[ dim ];
-    }
-
-    forall< POLICY >( array->size( 0 ), [devicePointer, sizes, strides] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    forall< POLICY >( array->size( 0 ), [devicePointer, layout] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          SliceTypeConst slice( devicePointer, sizes, strides );
+          SliceTypeConst slice( devicePointer, layout );
           checkFillDevice( slice, i );
         } );
 
@@ -481,7 +474,7 @@ public:
     ARRAY array;
     std::unique_ptr< ARRAY > arrayToCopy = ParentClass::sizedConstructor();
 
-    array.resize( NDIM, arrayToCopy->dims() );
+    array.resize( arrayToCopy->layout().extent() );
     T const * const initialPtr = array.data();
 
     ViewTypeConst const viewToCopy = arrayToCopy->toViewConst();
@@ -507,7 +500,7 @@ protected:
   template< typename ARRAY >
   class CheckIndices
   {
-public:
+  public:
     LVARRAY_HOST_DEVICE CheckIndices( ARRAY const slice, INDEX_TYPE const i ):
       m_slice( slice ),
       m_i( i )
@@ -520,7 +513,7 @@ public:
       PORTABLE_EXPECT_EQ( &value, &m_slice( m_i, indices ... ) );
     }
 
-private:
+  private:
     ARRAY const m_slice;
     INDEX_TYPE const m_i;
   };
@@ -529,51 +522,51 @@ private:
                                                    INDEX_TYPE const i )
   { forValuesInSliceWithIndices( view[ i ], CheckIndices< ViewTypeConst >( view, i ) ); }
 
-  template< int DIM, int USD >
-  static LVARRAY_HOST_DEVICE void checkFillDevice( ArraySlice< T const, DIM, USD, INDEX_TYPE > const slice,
+  //template< int DIM, int USD >
+  static LVARRAY_HOST_DEVICE void checkFillDevice( SliceTypeConst const slice,
                                                    INDEX_TYPE const i )
-  { forValuesInSliceWithIndices( slice[ i ], CheckIndices< ArraySlice< T const, DIM, USD, INDEX_TYPE > >( slice, i ) ); }
+  { forValuesInSliceWithIndices( slice[ i ], CheckIndices< SliceTypeConst >( slice, i ) ); }
 };
 
 using ArrayViewPolicyTestTypes = ::testing::Types<
-  std::pair< Array< int, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, DEFAULT_BUFFER >, serialPolicy >
+  std::pair< Array< int, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IKJ, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JIK, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JKI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KIJ, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, DEFAULT_BUFFER >, serialPolicy >
+  , std::pair< Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, DEFAULT_BUFFER >, serialPolicy >
 
 #if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
-  , std::pair< Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 2, RAJA::PERM_IJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 2, RAJA::PERM_JI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_IJK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_IKJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_JIK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_JKI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_KIJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 3, RAJA::PERM_KJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 4, RAJA::PERM_IJKL, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< int, 4, RAJA::PERM_LKJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_IJ, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 2, RAJA::PERM_JI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_IJK, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 3, RAJA::PERM_KJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_IJKL, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
-  , std::pair< Array< Tensor, 4, RAJA::PERM_LKJI, INDEX_TYPE, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IKJ, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JIK, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_JKI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KIJ, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< int, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_JI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_IJK, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 3, INDEX_TYPE >, RAJA::PERM_KJI, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_IJKL, ChaiBuffer >, parallelDevicePolicy< 32 > >
+  , std::pair< Array< Tensor, DynamicExtent< 4, INDEX_TYPE >, RAJA::PERM_LKJI, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif
   >;
 

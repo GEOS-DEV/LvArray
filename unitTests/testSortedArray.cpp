@@ -48,7 +48,7 @@ public:
     }
 
     T const * ptr = m_set.data();
-    ArraySlice< T const, 1, 0, INDEX_TYPE > const slice = m_set.toSlice();
+    ArraySlice< T const, DynamicLayout1D< INDEX_TYPE > > const slice = m_set.toSlice();
     typename std::set< T >::const_iterator it = m_ref.begin();
     for( int i = 0; i < m_set.size(); ++i )
     {

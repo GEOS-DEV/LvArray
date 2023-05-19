@@ -279,7 +279,7 @@ public:
    * @param row the row to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< COL_TYPE const, 1, 0, INDEX_TYPE_NC >getColumns( INDEX_TYPE const row ) const
+  ArraySlice< COL_TYPE const, DynamicLayout1D< INDEX_TYPE_NC > >getColumns( INDEX_TYPE const row ) const
   { return (*this)[row]; }
 
   /**

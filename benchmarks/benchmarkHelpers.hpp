@@ -66,20 +66,13 @@ inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_K
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = LvArray::Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = LvArray::Array< T, DynamicExtent< typeManipulation::getDimension< PERMUTATION >, INDEX_TYPE >, PERMUTATION, DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
-using ArrayViewT = LvArray::ArrayView< T,
-typeManipulation::getDimension< PERMUTATION >,
-typeManipulation::getStrideOneDimension( PERMUTATION {} ),
-INDEX_TYPE,
-DEFAULT_BUFFER >;
+using ArrayViewT = LvArray::ArrayView< T, DynamicLayout< typeManipulation::getDimension< PERMUTATION >, INDEX_TYPE, PERMUTATION >, DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
-using ArraySliceT = LvArray::ArraySlice< T,
-typeManipulation::getDimension< PERMUTATION >,
-typeManipulation::getStrideOneDimension( PERMUTATION {} ),
-INDEX_TYPE >;
+using ArraySliceT = LvArray::ArraySlice< T, DynamicLayout< typeManipulation::getDimension< PERMUTATION >, INDEX_TYPE, PERMUTATION > >;
 
 template< typename T, typename PERMUTATION >
 using RajaView = RAJA::View< T,
@@ -145,8 +138,8 @@ inline std::uint_fast64_t getSeed()
 }
 
 
-template< typename T, int NDIM, int USD >
-void initialize( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, int & iter )
+template< typename T, typename LAYOUT >
+void initialize( ArraySlice< T, LAYOUT > const slice, int & iter )
 {
   ++iter;
   std::mt19937_64 gen( iter * getSeed() );
@@ -171,7 +164,7 @@ RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array 
 
   for( int i = 0; i < NDIM; ++i )
   {
-    sizes[ i ] = array.dims()[ i ];
+    sizes[ i ] = array.size( i );
   }
 
   constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();

@@ -26,41 +26,24 @@ namespace internal
 {
 
 /**
- * @brief Specialization for when all the indices have been consumed.
- * @return @p curSlice.
- * @tparam N_LEFT The number of indices left to consume, this is a specialization for @c N_LEFT == 0.
- * @tparam T The type of values in the slice.
- * @tparam NDIM The number of dimensions in the slice.
- * @tparam USD The unit stride dimension of the slice.
- * @tparam INDEX_TYPE The index type of the slice.
- * @param curSlice The slice to return.
- */
-template< int N_LEFT, typename T, int NDIM, int USD, typename INDEX_TYPE >
-std::enable_if_t< N_LEFT == 0, ArraySlice< T, NDIM, USD, INDEX_TYPE > >
-slice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const curSlice, INDEX_TYPE const * )
-{ return curSlice; }
-
-/**
  * @brief Slice @p curSlice until all of @p remainingIndices have been consumed.
- * @tparam N_LEFT The number of indices left to consume.
  * @tparam T The type of values in the slice.
- * @tparam NDIM The number of dimensions in the slice.
- * @tparam USD The unit stride dimension of the slice.
- * @tparam INDEX_TYPE The index type of the slice.
+ * @tparam LAYOUT The layout of the slice
+ * @tparam Is a pack of indices to access @p indices
  * @param curSlice The ArraySlice to further slice.
- * @param remainingIndices The indices used to slice @p curSlice.
+ * @param indices The indices used to slice @p curSlice.
  * @return @code curSlice[ remainingIndices[ 0 ] ][ remainingIndices[ 1 ] ][ ... ] @endcode.
  */
-template< int N_LEFT, typename T, int NDIM, int USD, typename INDEX_TYPE >
-std::enable_if_t< N_LEFT != 0, ArraySlice< T, NDIM - N_LEFT, USD - N_LEFT, INDEX_TYPE > >
-slice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const curSlice, INDEX_TYPE const * const remainingIndices )
-{ return slice< N_LEFT - 1 >( curSlice[ remainingIndices[ 0 ] ], remainingIndices + 1 ); }
+template< typename T, typename LAYOUT, camp::idx_t ... Is >
+auto
+slice( ArraySlice< T, LAYOUT > const curSlice, typename LAYOUT::IndexType const * const indices, camp::idx_seq< Is... > )
+{ return curSlice( indices[Is]... ); }
 
 } // namespace internal
 
 /**
  * @brief Use memcpy to copy @p src in to @p dst.
- * @tparam T The type contined by @p dst and @p src.
+ * @tparam T The type contained by @p dst and @p src.
  * @tparam NDIM The number of dimensions in @p dst and @p src.
  * @tparam DST_USD The unit stride dimension of @p dst and @p src.
  * @tparam DST_INDEX_TYPE The index type of @p dst.
@@ -70,13 +53,13 @@ slice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const curSlice, INDEX_TYPE const *
  * @details If both @p src and @p dst were allocated with Umpire then the Umpire ResouceManager is used to perform
  *   the copy, otherwise std::memcpy is used.
  */
-template< typename T, int NDIM, int USD, typename DST_INDEX_TYPE, typename SRC_INDEX_TYPE >
-void memcpy( ArraySlice< T, NDIM, USD, DST_INDEX_TYPE > const dst,
-             ArraySlice< T const, NDIM, USD, SRC_INDEX_TYPE > const src )
+template< typename T, typename LAYOUT >
+void memcpy( ArraySlice< T, LAYOUT > const dst,
+             ArraySlice< T const, LAYOUT > const src )
 {
   LVARRAY_ERROR_IF_NE( dst.size(), src.size() );
 
-  for( int i = 0; i < NDIM; ++i )
+  for( int i = 0; i < LAYOUT::NDIM; ++i )
   {
     LVARRAY_ERROR_IF_NE( dst.stride( i ), src.stride( i ) );
   }
@@ -104,14 +87,14 @@ void memcpy( ArraySlice< T, NDIM, USD, DST_INDEX_TYPE > const dst,
  *   resources, in fact it does not even support synchronous copying with host resources. As such if a @p resource
  *   wraps a resource of type @c camp::resouces::Host the method that doesn't take a resource is used.
  */
-template< typename T, int NDIM, int USD, typename DST_INDEX_TYPE, typename SRC_INDEX_TYPE >
+template< typename T, typename LAYOUT >
 camp::resources::Event memcpy( camp::resources::Resource & resource,
-                               ArraySlice< T, NDIM, USD, DST_INDEX_TYPE > const dst,
-                               ArraySlice< T const, NDIM, USD, SRC_INDEX_TYPE > const src )
+                               ArraySlice< T, LAYOUT > const dst,
+                               ArraySlice< T const, LAYOUT > const src )
 {
   LVARRAY_ERROR_IF_NE( dst.size(), src.size() );
 
-  for( int i = 0; i < NDIM; ++i )
+  for( int i = 0; i < LAYOUT::NDIM; ++i )
   {
     LVARRAY_ERROR_IF_NE( dst.stride( i ), src.stride( i ) );
   }
@@ -149,13 +132,13 @@ camp::resources::Event memcpy( camp::resources::Resource & resource,
  *   memcpy< 1, 0 >( x, { 5 }, y, {} );
  * @endcode
  */
-template< std::size_t N_DST_INDICES, std::size_t N_SRC_INDICES, typename T, int DST_NDIM, int DST_USD,
-          typename DST_INDEX_TYPE, template< typename > class DST_BUFFER, int SRC_NDIM, int SRC_USD,
-          typename SRC_INDEX_TYPE, template< typename > class SRC_BUFFER >
-void memcpy( ArrayView< T, DST_NDIM, DST_USD, DST_INDEX_TYPE, DST_BUFFER > const & dst,
-             std::array< DST_INDEX_TYPE, N_DST_INDICES > const & dstIndices,
-             ArrayView< T const, SRC_NDIM, SRC_USD, SRC_INDEX_TYPE, SRC_BUFFER > const & src,
-             std::array< SRC_INDEX_TYPE, N_SRC_INDICES > const & srcIndices )
+template< std::size_t N_DST_INDICES, std::size_t N_SRC_INDICES, typename T,
+          typename DST_LAYOUT, template< typename > class DST_BUFFER,
+          typename SRC_LAYOUT, template< typename > class SRC_BUFFER >
+void memcpy( ArrayView< T, DST_LAYOUT, DST_BUFFER > const & dst,
+             std::array< typename DST_LAYOUT::IndexType, N_DST_INDICES > const & dstIndices,
+             ArrayView< T const, SRC_LAYOUT, SRC_BUFFER > const & src,
+             std::array< typename SRC_LAYOUT::IndexType, N_SRC_INDICES > const & srcIndices )
 {
 #if !defined( LVARRAY_USE_UMPIRE )
   LVARRAY_ERROR_IF_NE_MSG( dst.getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
@@ -165,11 +148,8 @@ void memcpy( ArrayView< T, DST_NDIM, DST_USD, DST_INDEX_TYPE, DST_BUFFER > const
   dst.move( dst.getPreviousSpace(), true );
   src.move( src.getPreviousSpace(), false );
 
-  ArraySlice< T, DST_NDIM - N_DST_INDICES, DST_USD - N_DST_INDICES, DST_INDEX_TYPE > const dstSlice =
-    internal::slice< N_DST_INDICES >( dst.toSlice(), dstIndices.data() );
-
-  ArraySlice< T const, SRC_NDIM - N_SRC_INDICES, SRC_USD - N_SRC_INDICES, SRC_INDEX_TYPE > const srcSlice =
-    internal::slice< N_SRC_INDICES >( src.toSlice(), srcIndices.data() );
+  auto const dstSlice = internal::slice( dst.toSlice(), dstIndices.data(), camp::make_idx_seq_t< N_DST_INDICES >{} );
+  auto const srcSlice = internal::slice( src.toSlice(), srcIndices.data(), camp::make_idx_seq_t< N_SRC_INDICES >{} );
 
   memcpy( dstSlice, srcSlice );
 }
@@ -196,23 +176,20 @@ void memcpy( ArrayView< T, DST_NDIM, DST_USD, DST_INDEX_TYPE, DST_BUFFER > const
  * @details The copy occurs from the current space of @p src to the current space of @p dst.
  *   Each array is moved to their current space.
  */
-template< std::size_t N_DST_INDICES, std::size_t N_SRC_INDICES, typename T, int DST_NDIM, int DST_USD,
-          typename DST_INDEX_TYPE, template< typename > class DST_BUFFER, int SRC_NDIM, int SRC_USD,
-          typename SRC_INDEX_TYPE, template< typename > class SRC_BUFFER >
+template< std::size_t N_DST_INDICES, std::size_t N_SRC_INDICES, typename T,
+          typename DST_LAYOUT, template< typename > class DST_BUFFER,
+          typename SRC_LAYOUT, template< typename > class SRC_BUFFER >
 camp::resources::Event memcpy( camp::resources::Resource & resource,
-                               ArrayView< T, DST_NDIM, DST_USD, DST_INDEX_TYPE, DST_BUFFER > const & dst,
-                               std::array< DST_INDEX_TYPE, N_DST_INDICES > const & dstIndices,
-                               ArrayView< T const, SRC_NDIM, SRC_USD, SRC_INDEX_TYPE, SRC_BUFFER > const & src,
-                               std::array< SRC_INDEX_TYPE, N_SRC_INDICES > const & srcIndices )
+                               ArrayView< T, DST_LAYOUT, DST_BUFFER > const & dst,
+                               std::array< typename DST_LAYOUT::IndexType, N_DST_INDICES > const & dstIndices,
+                               ArrayView< T const, SRC_LAYOUT, SRC_BUFFER > const & src,
+                               std::array< typename SRC_LAYOUT::IndexType, N_SRC_INDICES > const & srcIndices )
 {
   dst.move( dst.getPreviousSpace(), true );
   src.move( src.getPreviousSpace(), false );
 
-  ArraySlice< T, DST_NDIM - N_DST_INDICES, DST_USD - N_DST_INDICES, DST_INDEX_TYPE > const dstSlice =
-    internal::slice< N_DST_INDICES >( dst.toSlice(), dstIndices.data() );
-
-  ArraySlice< T const, SRC_NDIM - N_SRC_INDICES, SRC_USD - N_SRC_INDICES, SRC_INDEX_TYPE > const srcSlice =
-    internal::slice< N_SRC_INDICES >( src.toSlice(), srcIndices.data() );
+  auto const dstSlice = internal::slice( dst.toSlice(), dstIndices.data(), camp::make_idx_seq_t< N_DST_INDICES >{} );
+  auto const srcSlice = internal::slice( src.toSlice(), srcIndices.data(), camp::make_idx_seq_t< N_SRC_INDICES >{} );
 
   return memcpy( resource, dstSlice, srcSlice );
 }

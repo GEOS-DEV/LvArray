@@ -127,15 +127,15 @@ public:
       tensorOps::Ri_eq_AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
-    ArrayViewT< T, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const vectorASeed = m_seedVectorA;
@@ -182,15 +182,15 @@ public:
       tensorOps::Ri_add_AijBj< N, N >( result, denseSymA, m_vectorB_local );
     }
 
-    ArrayViewT< T, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorA_JI = m_vectorA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorA_IJ = m_vectorA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorA_JI = m_vectorA_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const vectorASeed = m_seedVectorA;
@@ -236,17 +236,17 @@ public:
       tensorOps::Rij_eq_AikBjk< N, N, N >( result, denseSymA, m_matrixB_local );
     }
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
-    ArrayViewT< T const, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayViewT< T const, 3, 2 > const matrixB_IJK = m_matrixB_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixB_IKJ = m_matrixB_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixB_KJI = m_matrixB_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixB_IJK = m_matrixB_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixB_IKJ = m_matrixB_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixB_KJI = m_matrixB_KJI.toViewConst();
     T const ( &matrixB_local )[ N ][ N ] = m_matrixB_local;
 
     std::ptrdiff_t const matrixASeed = m_seedMatrixA;
@@ -302,16 +302,16 @@ public:
       tensorOps::denseToSymmetric< N >( result, denseResult );
     }
 
-    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrixA_local )[ N ][ N ] = m_matrixA_local;
 
-    ArrayViewT< T const, 2, 1 > const symMatrixB_IJ = m_symMatrixB_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const symMatrixB_JI = m_symMatrixB_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const symMatrixB_IJ = m_symMatrixB_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const symMatrixB_JI = m_symMatrixB_JI.toViewConst();
     T const ( &symMatrixB_local )[ SYM_SIZE ] = m_symMatrixB_local;
 
     std::ptrdiff_t const matrixASeed = m_seedMatrixA;
@@ -365,11 +365,11 @@ public:
     T symResult[ SYM_SIZE ];
     tensorOps::denseToSymmetric< N >( symResult, result );
 
-    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA_JI = m_vectorA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorA_JI = m_vectorA_JI.toViewConst();
     T const ( &vectorA_local )[ N ] = m_vectorA_local;
 
     std::ptrdiff_t const matrixSeed = m_seedSymMatrixA;
@@ -412,15 +412,15 @@ public:
     T symResult[ SYM_SIZE ];
     tensorOps::denseToSymmetric< N >( symResult, result );
 
-    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorA_IJ = m_vectorA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA_JI = m_vectorA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorA_IJ = m_vectorA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorA_JI = m_vectorA_JI.toViewConst();
     T const ( &vectorA_local )[ N ] = m_vectorA_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorB_IJ = m_vectorB_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorB_JI = m_vectorB_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorB_IJ = m_vectorB_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorB_JI = m_vectorB_JI.toViewConst();
     T const ( &vectorB_local )[ N ] = m_vectorB_local;
 
     std::ptrdiff_t const matrixSeed = m_seedSymMatrixA;
@@ -460,13 +460,13 @@ public:
 
   void symmetricToDense()
   {
-    ArrayViewT< T const, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toViewConst();
     T const ( &symMatrixA_local )[ SYM_SIZE ] = m_symMatrixA_local;
 
-    ArrayViewT< T, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toView();
 
     std::ptrdiff_t const matrixASeed = m_seedMatrixA;
 
@@ -496,12 +496,12 @@ public:
 
   void denseToSymmetric()
   {
-    ArrayViewT< T, 2, 1 > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
-    ArrayViewT< T, 2, 0 > const symMatrixA_JI = m_symMatrixA_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const symMatrixA_IJ = m_symMatrixA_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const symMatrixA_JI = m_symMatrixA_JI.toView();
 
-    ArrayViewT< T const, 3, 2 > const matrixA_IJK = m_matrixA_IJK.toViewConst();
-    ArrayViewT< T const, 3, 1 > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
-    ArrayViewT< T const, 3, 0 > const matrixA_KJI = m_matrixA_KJI.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrixA_IJK = m_matrixA_IJK.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IKJ > const matrixA_IKJ = m_matrixA_IKJ.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_KJI > const matrixA_KJI = m_matrixA_KJI.toViewConst();
     T const ( &matrixA_local )[ N ][ N ] = m_matrixA_local;
 
     std::ptrdiff_t const symMatrixASeed = m_seedSymMatrixA;

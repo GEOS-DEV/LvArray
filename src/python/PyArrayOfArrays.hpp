@@ -210,7 +210,7 @@ public:
   virtual PyObject * operator[]( long long arrayIndex ) final override
   {
     INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( arrayIndex );
-    ArraySlice< T, 1, 0, INDEX_TYPE > slice = m_arrayOfArrays[ convertedIndex ];
+    ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > slice = m_arrayOfArrays[ convertedIndex ];
     T * data = slice;
     constexpr INDEX_TYPE strides = 1;
     INDEX_TYPE size = slice.size();

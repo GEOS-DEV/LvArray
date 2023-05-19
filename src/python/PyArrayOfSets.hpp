@@ -193,7 +193,7 @@ public:
   virtual PyObject * operator[]( long long const setIndex ) final override
   {
     INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( setIndex );
-    ArraySlice< T const, 1, 0, INDEX_TYPE > slice = m_arrayOfSets[ convertedIndex ];
+    ArraySlice< T const, DynamicLayout1D< INDEX_TYPE > > slice = m_arrayOfSets[ convertedIndex ];
     T const * data = slice;
     constexpr INDEX_TYPE strides = 1;
     INDEX_TYPE size = slice.size();

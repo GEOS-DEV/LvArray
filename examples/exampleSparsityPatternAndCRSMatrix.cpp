@@ -47,8 +47,8 @@ TEST( CRSMatrix, examples )
   // Row 1 does have an entry for column 1.
   EXPECT_FALSE( matrix.empty( 1, 1 ) );
 
-  LvArray::ArraySlice< int const, 1, 0, std::ptrdiff_t > columns = matrix.getColumns( 0 );
-  LvArray::ArraySlice< double, 1, 0, std::ptrdiff_t > entries = matrix.getEntries( 0 );
+  LvArray::ArraySlice< int const, LvArray::DynamicLayout1D< std::ptrdiff_t > > columns = matrix.getColumns( 0 );
+  LvArray::ArraySlice< double, LvArray::DynamicLayout1D< std::ptrdiff_t > > entries = matrix.getEntries( 0 );
 
   // Check the entries of the matrix.
   EXPECT_EQ( columns.size(), 2 );
@@ -217,8 +217,8 @@ TEST( CRSMatrix, views )
   {
     EXPECT_EQ( matrix.numNonZeros( row ), 3 );
 
-    LvArray::ArraySlice< int const, 1, 0, std::ptrdiff_t > const rowColumns = matrix.getColumns( row );
-    LvArray::ArraySlice< double const, 1, 0, std::ptrdiff_t > const rowEntries = matrix.getEntries( row );
+    LvArray::ArraySlice< int const, LvArray::DynamicLayout1D< std::ptrdiff_t > > const rowColumns = matrix.getColumns( row );
+    LvArray::ArraySlice< double const, LvArray::DynamicLayout1D< std::ptrdiff_t > > const rowEntries = matrix.getEntries( row );
 
     for( std::ptrdiff_t i = 0; i < matrix.numNonZeros( row ); ++i )
     {

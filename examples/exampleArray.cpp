@@ -31,9 +31,8 @@ TEST( Array, constructors )
   {
     // Create an empty 2D array of integers.
     LvArray::Array< int,
-                    2,
+                    LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                     camp::idx_seq< 0, 1 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array;
     EXPECT_TRUE( array.empty() );
     EXPECT_EQ( array.size(), 0 );
@@ -44,9 +43,8 @@ TEST( Array, constructors )
   {
     // Create a 3D array of std::string of size 3 x 4 x 5.
     LvArray::Array< std::string,
-                    3,
+                    LvArray::DynamicExtent< 3, std::ptrdiff_t >,
                     camp::idx_seq< 0, 1, 2 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array( 3, 4, 5 );
     EXPECT_FALSE( array.empty() );
     EXPECT_EQ( array.size(), 3 * 4 * 5 );
@@ -69,9 +67,8 @@ TEST( Array, accessors )
 {
   // Create a 2D array of integers.
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 0, 1 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > array( 3, 4 );
 
   // Access using operator().
@@ -100,15 +97,14 @@ TEST( Array, permutations )
   {
     // Create a 3D array of doubles in the standard layout.
     LvArray::Array< int,
-                    3,
+                    LvArray::DynamicExtent< 3, std::ptrdiff_t >,
                     camp::idx_seq< 0, 1, 2 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array( 3, 4, 5 );
 
     // Index 0 has the largest stride while index 2 has unit stride.
-    EXPECT_EQ( array.strides()[ 0 ], array.size( 2 ) * array.size( 1 ) );
-    EXPECT_EQ( array.strides()[ 1 ], array.size( 2 ) );
-    EXPECT_EQ( array.strides()[ 2 ], 1 );
+    EXPECT_EQ( array.stride< 0 >(), array.size( 2 ) * array.size( 1 ) );
+    EXPECT_EQ( array.stride< 1 >(), array.size( 2 ) );
+    EXPECT_EQ( array.stride< 2 >(), 1 );
 
     int const * const pointer = array.data();
     for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
@@ -128,15 +124,14 @@ TEST( Array, permutations )
   {
     // Create a 3D array of doubles in a flipped layout.
     LvArray::Array< int,
-                    3,
+                    LvArray::DynamicExtent< 3, std::ptrdiff_t >,
                     camp::idx_seq< 2, 1, 0 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array( 3, 4, 5 );
 
     // Index 0 has the unit stride while index 2 has the largest stride.
-    EXPECT_EQ( array.strides()[ 0 ], 1 );
-    EXPECT_EQ( array.strides()[ 1 ], array.size( 0 ) );
-    EXPECT_EQ( array.strides()[ 2 ], array.size( 0 ) * array.size( 1 ) );
+    EXPECT_EQ( array.stride< 0 >(), 1 );
+    EXPECT_EQ( array.stride< 1 >(), array.size( 0 ) );
+    EXPECT_EQ( array.stride< 2 >(), array.size( 0 ) * array.size( 1 ) );
 
     int const * const pointer = array.data();
     for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
@@ -159,9 +154,8 @@ TEST( Array, permutations )
 TEST( Array, resize )
 {
   LvArray::Array< int,
-                  3,
+                  LvArray::DynamicExtent< 3, std::ptrdiff_t >,
                   camp::idx_seq< 0, 1, 2 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > array;
 
   // Resize using a pointer
@@ -192,9 +186,8 @@ TEST( Array, resize )
 TEST( Array, resizeSingleDimension )
 {
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > array( 5, 6 );
 
   for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
@@ -223,8 +216,7 @@ TEST( Array, resizeSingleDimension )
   }
 
   // Shrink the second dimension from 6 to 3;
-  array.setSingleParameterResizeIndex( 1 );
-  array.resize( 3 );
+  array.resizeDimension< 1 >( 3 );
   for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
   {
     for( std::ptrdiff_t j = 0; j < array.size( 1 ); ++j )
@@ -246,32 +238,25 @@ TEST( Array, resizeSingleDimension )
 TEST( Array, arrayView )
 {
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > array( 5, 6 );
 
   // Create a view.
   LvArray::ArrayView< int,
-                      2,
-                      0,
-                      std::ptrdiff_t,
+                      LvArray::DynamicLayout< 2, std::ptrdiff_t, camp::idx_seq< 1, 0 > >,
                       LvArray::MallocBuffer > const view = array;
   EXPECT_EQ( view.data(), array.data() );
 
   // Create a view with const values.
   LvArray::ArrayView< int const,
-                      2,
-                      0,
-                      std::ptrdiff_t,
+                      LvArray::DynamicLayout< 2, std::ptrdiff_t, camp::idx_seq< 1, 0 > >,
                       LvArray::MallocBuffer > const viewConst = array.toViewConst();
   EXPECT_EQ( viewConst.data(), array.data() );
 
   // Copy a view.
   LvArray::ArrayView< int,
-                      2,
-                      0,
-                      std::ptrdiff_t,
+                      LvArray::DynamicLayout< 2, std::ptrdiff_t, camp::idx_seq< 1, 0 > >,
                       LvArray::MallocBuffer > const viewCopy = view;
   EXPECT_EQ( viewCopy.data(), array.data() );
 }
@@ -282,17 +267,14 @@ TEST( Array, arraySlice )
 {
   {
     LvArray::Array< int,
-                    2,
+                    LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                     camp::idx_seq< 0, 1 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array( 5, 6 );
 
     // The unit stride dimension of array is 1 so when we slice off
     // the first dimension the unit stride dimension of the slice is 0.
     LvArray::ArraySlice< int,
-                         1,
-                         0,
-                         std::ptrdiff_t > const slice = array[ 2 ];
+                         LvArray::DynamicLayout1D< std::ptrdiff_t > > const slice = array[ 2 ];
     EXPECT_TRUE( slice.isContiguous() );
     EXPECT_EQ( slice.size(), 6 );
     EXPECT_EQ( slice.size( 0 ), 6 );
@@ -301,17 +283,14 @@ TEST( Array, arraySlice )
 
   {
     LvArray::Array< int,
-                    3,
+                    LvArray::DynamicExtent< 3, std::ptrdiff_t >,
                     camp::idx_seq< 2, 1, 0 >,
-                    std::ptrdiff_t,
                     LvArray::MallocBuffer > array( 3, 5, 6 );
 
     // The unit stride dimension of array is 0 so when we slice off
     // the first dimension the unit stride dimension of the slice is -1.
     LvArray::ArraySlice< int,
-                         2,
-                         -1,
-                         std::ptrdiff_t > const slice = array[ 2 ];
+                         LvArray::NonContiguousLayout< 2, std::ptrdiff_t > > const slice = array[ 2 ];
     EXPECT_FALSE( slice.isContiguous() );
     EXPECT_EQ( slice.size(), 5 * 6 );
     EXPECT_EQ( slice.size( 0 ), 5 );
@@ -326,9 +305,8 @@ TEST( Array, arraySlice )
 CUDA_TEST( Array, chaiBuffer )
 {
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::ChaiBuffer > array( 5, 6 );
 
   // Move the array to the device.
@@ -344,9 +322,7 @@ CUDA_TEST( Array, chaiBuffer )
     );
 
   LvArray::ArrayView< int,
-                      2,
-                      0,
-                      std::ptrdiff_t,
+                      LvArray::DynamicLayout< 2, std::ptrdiff_t, camp::idx_seq< 1, 0 > >,
                       LvArray::ChaiBuffer > const & view = array;
 
   // Capture the view in a host kernel which moves the data back to the host.
@@ -364,9 +340,8 @@ CUDA_TEST( Array, chaiBuffer )
 TEST( Array, setName )
 {
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::ChaiBuffer > array( 1024, 1024 );
 
   // Move the array to the device.
@@ -381,8 +356,8 @@ TEST( Array, setName )
 #endif
 
 // Sphinx start after sum int
-template< int NDIM, int USD >
-int sum( LvArray::ArraySlice< int const, NDIM, USD, std::ptrdiff_t > const slice )
+template< typename LAYOUT >
+int sum( LvArray::ArraySlice< int const, LAYOUT > const slice )
 {
   int value = 0;
   for( int const val : slice )
@@ -395,8 +370,8 @@ int sum( LvArray::ArraySlice< int const, NDIM, USD, std::ptrdiff_t > const slice
 // Sphinx end before sum int
 
 // Sphinx start after sum double
-template< int NDIM, int USD >
-double sum( LvArray::ArraySlice< double const, NDIM, USD, std::ptrdiff_t > const slice )
+template< typename LAYOUT >
+double sum( LvArray::ArraySlice< double const, LAYOUT > const slice )
 {
   double value = 0;
   LvArray::forValuesInSlice( slice, [&value] ( double const val )
@@ -409,11 +384,12 @@ double sum( LvArray::ArraySlice< double const, NDIM, USD, std::ptrdiff_t > const
 // Sphinx end before sum double
 
 // Sphinx start after copy
-template< int NDIM, int DST_USD, int SRC_USD >
-void copy( LvArray::ArraySlice< int, NDIM, DST_USD, std::ptrdiff_t > const dst,
-           LvArray::ArraySlice< int const, NDIM, SRC_USD, std::ptrdiff_t > const src )
+template< typename SRC_LAYOUT, typename DST_LAYOUT >
+void copy( LvArray::ArraySlice< int, DST_LAYOUT > const dst,
+           LvArray::ArraySlice< int const, SRC_LAYOUT > const src )
 {
-  for( int dim = 0; dim < NDIM; ++dim )
+  static_assert( DST_LAYOUT::NDIM == SRC_LAYOUT::NDIM, "Layout ranks must match" );
+  for( int dim = 0; dim < DST_LAYOUT::NDIM; ++dim )
   {
     LVARRAY_ERROR_IF_NE( dst.size( dim ), src.size( dim ) );
   }
@@ -431,7 +407,7 @@ void copy( LvArray::ArraySlice< int, NDIM, DST_USD, std::ptrdiff_t > const dst,
 TEST( Array, boundsCheck )
 {
 #if defined(ARRAY_USE_BOUNDS_CHECK)
-  LvArray::Array< int, 3, camp::idx_seq< 0, 1, 2 >, std::ptrdiff_t, LvArray::MallocBuffer > x( 3, 4, 5 );
+  LvArray::Array< int, LvArray::DynamicExtent< 3, std::ptrdiff_t >, camp::idx_seq< 0, 1, 2 >, LvArray::MallocBuffer > x( 3, 4, 5 );
 
   // Out of bounds access aborts the program.
   EXPECT_DEATH_IF_SUPPORTED( x( 2, 3, 4 ), "" );
@@ -439,7 +415,7 @@ TEST( Array, boundsCheck )
   EXPECT_DEATH_IF_SUPPORTED( x[ 0 ][ 10 ][ 2 ], "" );
 
   // Out of bounds emplace
-  LvArray::Array< int, 1, camp::idx_seq< 0 >, std::ptrdiff_t, LvArray::MallocBuffer > x( 10 );
+  LvArray::Array< int, LvArray::DynamicExtent< 1, std::ptrdiff_t >, camp::idx_seq< 0 >, LvArray::MallocBuffer > x( 10 );
   EXPECT_DEATH_IF_SUPPORTED( x.emplace( -1, 5 ) );
 #endif
 }

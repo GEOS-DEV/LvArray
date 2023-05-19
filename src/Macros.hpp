@@ -67,6 +67,18 @@
 #define STRINGIZE( A ) STRINGIZE_NX( A )
 
 /**
+ * @brief Perfect forwarding macro.
+ * @param X the variable to forward
+ */
+#define LVARRAY_FWD( X ) static_cast< decltype( X ) && >( X )
+
+/**
+ * @brief Perfect forwarding macro.
+ * @param X the variable to forward
+ */
+#define LVARRAY_REQUIRES( ... ) std::enable_if_t< __VA_ARGS__ >* = nullptr
+
+/**
  * @brief Mark @p X as an unused argument, used to silence compiler warnings.
  * @param X the unused argument.
  */

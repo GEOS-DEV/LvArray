@@ -146,7 +146,7 @@ public:
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
                               [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[i];
+          ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > const setValues = view[i];
           sortedArrayManipulation::makeSorted( setValues.begin(), setValues.end() );
         } );
     }
@@ -155,7 +155,7 @@ public:
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
                               [view, sizes] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[i];
+          ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > const setValues = view[i];
           INDEX_TYPE const numUniqueValues = sortedArrayManipulation::removeDuplicates( setValues.begin(), setValues.end() );
           arrayManipulation::resize< T >( setValues, setValues.size(), numUniqueValues );
           sizes[ i ] = numUniqueValues;
@@ -166,7 +166,7 @@ public:
       RAJA::forall< POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, numSets ),
                               [view, sizes] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          ArraySlice< T, 1, 0, INDEX_TYPE > const setValues = view[ i ];
+          ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > const setValues = view[ i ];
           INDEX_TYPE const numUniqueValues = sortedArrayManipulation::makeSortedUnique( setValues.begin(), setValues.end() );
           arrayManipulation::resize< T >( setValues, setValues.size(), numUniqueValues );
           sizes[ i ] = numUniqueValues;

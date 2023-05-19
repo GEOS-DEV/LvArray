@@ -90,7 +90,7 @@ protected:
   }
 
   static constexpr INDEX_TYPE CAPACITY = pow( 8, NDIM );
-  StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > m_array;
+  StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > m_array;
 };
 
 using StackArrayTestTypes = ::testing::Types<
@@ -128,7 +128,7 @@ public:
   {
     this->init();
 
-    StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > const & array = this->m_array;
+    StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > const & array = this->m_array;
     forall< POLICY >( 10, [array] LVARRAY_HOST_DEVICE ( int const )
         {
           forValuesInSliceWithIndices( array.toSlice(), [] ( int & value, auto const ... indices )
@@ -144,7 +144,7 @@ public:
     INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [capacity] LVARRAY_HOST_DEVICE ( INDEX_TYPE )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > const array;
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > const array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
         } );
@@ -159,7 +159,7 @@ public:
     INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [dims, capacity] LVARRAY_HOST_DEVICE ( int )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
 
@@ -182,7 +182,7 @@ public:
     INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > array;
           PORTABLE_EXPECT_EQ( array.size(), 0 );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
 
@@ -214,7 +214,7 @@ public:
     INDEX_TYPE const capacity = CAPACITY;
     forall< POLICY >( 10, [capacity] LVARRAY_DEVICE ( int )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( CAPACITY );
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > array( CAPACITY );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
           PORTABLE_EXPECT_EQ( array.size(), capacity );
           PORTABLE_EXPECT_EQ( array.size( 0 ), capacity );
@@ -229,7 +229,7 @@ public:
     int const size = 8;
     forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 1, size );
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > array( size - 1, size );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
           PORTABLE_EXPECT_EQ( array.size(), ( size - 1 ) * size );
           PORTABLE_EXPECT_EQ( array.size( 0 ), size - 1 );
@@ -245,7 +245,7 @@ public:
     int const size = 8;
     forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
         {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 2, size - 1, size );
+          StackArray< int, DynamicExtent< NDIM, INDEX_TYPE >, PERMUTATION, CAPACITY > array( size - 2, size - 1, size );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
           PORTABLE_EXPECT_EQ( array.size(), ( size - 2 ) * ( size - 1 ) * size );
           PORTABLE_EXPECT_EQ( array.size( 0 ), size - 2 );

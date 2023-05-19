@@ -154,8 +154,8 @@ public:
    * @return Return an ArraySlice representing this SortedArrayView.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const &
-  { return ArraySlice< T const, 1, 0, INDEX_TYPE >( data(), &m_size, nullptr ); }
+  ArraySlice< T const, DynamicLayout1D< INDEX_TYPE > > toSlice() const &
+  { return ArraySlice< T const, DynamicLayout1D< INDEX_TYPE > >( data(), makeLayout( makeExtent( m_size ) ) ); }
 
   /**
    * @brief Overload for rvalues that is deleted.
@@ -165,7 +165,7 @@ public:
    *   about to be destroyed. This overload prevents that from happening.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE > toSlice() const && = delete;
+  ArraySlice< T const, DynamicLayout1D< INDEX_TYPE > > toSlice() const && = delete;
 
   ///@}
 

@@ -34,9 +34,9 @@ public:
 
   void determinant()
   {
-    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
-    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
 
     ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
 
@@ -44,7 +44,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -64,8 +64,8 @@ public:
 
   void symDeterminant()
   {
-    ArrayViewT< T, 2, 1 > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
-    ArrayViewT< T, 2, 0 > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
 
     ArrayT< T, RAJA::PERM_IJ > arrayOfMatrices( numMatrices, SYM_SIZE );
 
@@ -73,7 +73,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 2, 1 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -92,13 +92,13 @@ public:
 
   void inverseTwoArgs()
   {
-    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
-    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
 
-    ArrayViewT< FLOAT, 3, 2 > const dstMatrix_IJK = m_dstMatrix_IJK.toView();
-    ArrayViewT< FLOAT, 3, 1 > const dstMatrix_IKJ = m_dstMatrix_IKJ.toView();
-    ArrayViewT< FLOAT, 3, 0 > const dstMatrix_KJI = m_dstMatrix_KJI.toView();
+    ArrayViewT< FLOAT, 3, RAJA::PERM_IJK > const dstMatrix_IJK = m_dstMatrix_IJK.toView();
+    ArrayViewT< FLOAT, 3, RAJA::PERM_IKJ > const dstMatrix_IKJ = m_dstMatrix_IKJ.toView();
+    ArrayViewT< FLOAT, 3, RAJA::PERM_KJI > const dstMatrix_KJI = m_dstMatrix_KJI.toView();
 
     ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
 
@@ -106,7 +106,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -137,9 +137,9 @@ public:
 
   void inverseOneArg()
   {
-    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
-    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
 
     ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
 
@@ -147,7 +147,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 3, RAJA::PERM_IJK > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -172,11 +172,11 @@ public:
 
   void symInverseTwoArgs()
   {
-    ArrayViewT< T, 2, 1 > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
-    ArrayViewT< T, 2, 0 > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
 
-    ArrayViewT< FLOAT, 2, 1 > const dstSymMatrix_IJ = m_dstSymMatrix_IJ.toView();
-    ArrayViewT< FLOAT, 2, 0 > const dstSymMatrix_JI = m_dstSymMatrix_JI.toView();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_IJ > const dstSymMatrix_IJ = m_dstSymMatrix_IJ.toView();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_JI > const dstSymMatrix_JI = m_dstSymMatrix_JI.toView();
 
     ArrayT< T, RAJA::PERM_IJ > arrayOfMatrices( numMatrices, SYM_SIZE );
 
@@ -184,7 +184,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 2, 1 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
@@ -213,8 +213,8 @@ public:
 
   void symInverseOneArg()
   {
-    ArrayViewT< T, 2, 1 > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
-    ArrayViewT< T, 2, 0 > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const srcSymMatrix_IJ = m_srcSymMatrix_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const srcSymMatrix_JI = m_srcSymMatrix_JI.toView();
 
     ArrayT< T, RAJA::PERM_IJ > arrayOfMatrices( numMatrices, SYM_SIZE );
 
@@ -222,7 +222,7 @@ public:
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
-    ArrayViewT< T const, 2, 1 > const matrices = arrayOfMatrices.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {

@@ -38,16 +38,16 @@ HAS_RVALUE_MEMBER_FUNCTION_NO_RTYPE( toSparsityPatternView, );
 IS_VALID_EXPRESSION( HasRvalueSubscriptOperator, CLASS, std::declval< CLASS && >()[ 0 ] );
 
 template< typename T >
-using ArrayT = Array< T, 1, RAJA::PERM_I, std::ptrdiff_t, MallocBuffer >;
+using ArrayT = Array< T, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, MallocBuffer >;
 
 template< typename T >
-using ArrayT2D = Array< T, 2, RAJA::PERM_IJ, std::ptrdiff_t, MallocBuffer >;
+using ArrayT2D = Array< T, DynamicExtent< 2, std::ptrdiff_t >, RAJA::PERM_IJ, MallocBuffer >;
 
 template< typename T >
-using ArrayViewT = ArrayView< T, 1, 0, std::ptrdiff_t, MallocBuffer >;
+using ArrayViewT = ArrayView< T, DynamicLayout< 1, std::ptrdiff_t, RAJA::PERM_I >, MallocBuffer >;
 
 template< typename T >
-using ArraySliceT = ArraySlice< T, 1, 0, std::ptrdiff_t >;
+using ArraySliceT = ArraySlice< T, DynamicLayout1D< std::ptrdiff_t > >;
 
 // Array
 static_assert( !HasRvalueMemberFunction_toView< ArrayT< int > >,
@@ -70,7 +70,7 @@ static_assert( !std::is_convertible< ArrayViewT< int > &&, ArraySliceT< int > >:
                "The conversion from an ArrayView< T > rvalue to an ArraySlice< T > is not allowed." );
 static_assert( !std::is_convertible< ArrayViewT< int > &&, ArraySliceT< int const > >::value,
                "The conversion from an ArrayView< T > rvalue to an ArraySlice< T const > is not allowed." );
-static_assert( !HasRvalueSubscriptOperator< ArrayView< int, 2, 1, std::ptrdiff_t, MallocBuffer > >,
+static_assert( !HasRvalueSubscriptOperator< ArrayView< int, DynamicLayout< 2, std::ptrdiff_t, RAJA::PERM_IJ >, MallocBuffer > >,
                "The subscript operator on a multidimensional ArrayView rvalue is not allowed." );
 
 // SortedArrayView

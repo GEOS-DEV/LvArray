@@ -406,10 +406,10 @@ public:
    * @param i the array to access.
    */
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const
+  ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > operator[]( INDEX_TYPE const i ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( i );
-    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_values.data() + m_offsets[ i ], &m_sizes[ i ], nullptr );
+    return ArraySlice< T, DynamicLayout1D< INDEX_TYPE > >( m_values.data() + m_offsets[ i ], makeLayout( makeExtent( m_sizes[ i ] ) ) );
   }
 
   /**

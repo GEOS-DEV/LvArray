@@ -21,14 +21,14 @@ namespace testing
 template< template< typename > class BUFFER_TYPE >
 void testMemcpy1D()
 {
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > x( 100 );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     x[ i ] = i;
   }
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > y( x.size() );
 
   memcpy( y.toSlice(), x.toSliceConst() );
 
@@ -55,14 +55,14 @@ void testAsyncMemcpy1D()
 {
   camp::resources::Resource host{ camp::resources::Host{} };
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > x( 100 );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     x[ i ] = i;
   }
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > y( x.size() );
 
   camp::resources::Event e = memcpy( host, y.toSlice(), x.toSliceConst() );
   host.wait_for( &e );
@@ -89,7 +89,7 @@ void testAsyncMemcpy1D()
 template< template< typename > class BUFFER_TYPE >
 void testMemcpy2D()
 {
-  Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, BUFFER_TYPE > x( 2, 10 );
+  Array< int, DynamicExtent< 2, std::ptrdiff_t >, RAJA::PERM_IJ, BUFFER_TYPE > x( 2, 10 );
 
   for( std::ptrdiff_t i = 0; i < x.size( 0 ); ++i )
   {
@@ -99,7 +99,7 @@ void testMemcpy2D()
     }
   }
 
-  Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, BUFFER_TYPE > y( x.size( 0 ), x.size( 1 ) );
+  Array< int, DynamicExtent< 2, std::ptrdiff_t >, RAJA::PERM_IJ, BUFFER_TYPE > y( x.size( 0 ), x.size( 1 ) );
 
   memcpy( y[ 0 ], x[ 1 ].toSliceConst() );
   memcpy( y[ 1 ], x[ 0 ].toSliceConst() );
@@ -136,8 +136,8 @@ void testMemcpy2D()
 template< template< typename > class BUFFER_TYPE >
 void testInvalidMemcpy()
 {
-  Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, BUFFER_TYPE > x( 6, 7 );
-  Array< int, 2, RAJA::PERM_IJ, std::ptrdiff_t, BUFFER_TYPE > y( 4, 3 );
+  Array< int, DynamicExtent< 2, std::ptrdiff_t >, RAJA::PERM_IJ, BUFFER_TYPE > x( 6, 7 );
+  Array< int, DynamicExtent< 2, std::ptrdiff_t >, RAJA::PERM_IJ, BUFFER_TYPE > y( 4, 3 );
 
   EXPECT_DEATH_IF_SUPPORTED( memcpy( x.toSlice(), y.toSliceConst() ), "" );
 }
@@ -147,14 +147,14 @@ void testInvalidMemcpy()
 template< template< typename > class BUFFER_TYPE >
 void testMemcpyDevice()
 {
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > x( 100 );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     x[ i ] = i;
   }
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > y( x.size() );
   y.move( MemorySpace::cuda );
   int * yPtr = y.data();
 
@@ -177,7 +177,7 @@ void testMemcpyDevice()
   // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
   y.move( MemorySpace::host );
 
-  ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
+  ArrayView< int, DynamicLayout1D< std::ptrdiff_t >, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;
@@ -196,14 +196,14 @@ void testAsyncMemcpyDevice()
 {
   camp::resources::Resource stream{ camp::resources::Cuda{} };
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > x( 100 );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
     x[ i ] = i;
   }
 
-  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  Array< int, DynamicExtent< 1, std::ptrdiff_t >, RAJA::PERM_I, BUFFER_TYPE > y( x.size() );
   y.move( MemorySpace::cuda );
   int * yPtr = y.data();
 
@@ -228,7 +228,7 @@ void testAsyncMemcpyDevice()
   // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
   y.move( MemorySpace::host );
 
-  ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
+  ArrayView< int, DynamicLayout1D< std::ptrdiff_t >, BUFFER_TYPE > const yView = y.toView();
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;

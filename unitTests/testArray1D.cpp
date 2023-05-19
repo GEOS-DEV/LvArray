@@ -194,13 +194,13 @@ protected:
 };
 
 using Array1DTestTypes = ::testing::Types<
-  Array< int, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
-  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
-  , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, MallocBuffer >
+  Array< int, Extent< INDEX_TYPE >, RAJA::PERM_I, MallocBuffer >
+  , Array< Tensor, Extent< INDEX_TYPE >, RAJA::PERM_I, MallocBuffer >
+  , Array< TestString, Extent< INDEX_TYPE >, RAJA::PERM_I, MallocBuffer >
 #if defined(LVARRAY_USE_CHAI)
-  , Array< int, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
-  , Array< Tensor, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
-  , Array< TestString, 1, RAJA::PERM_I, INDEX_TYPE, ChaiBuffer >
+  , Array< int, Extent< INDEX_TYPE >, RAJA::PERM_I, ChaiBuffer >
+  , Array< Tensor, Extent< INDEX_TYPE >, RAJA::PERM_I, ChaiBuffer >
+  , Array< TestString, Extent< INDEX_TYPE >, RAJA::PERM_I, ChaiBuffer >
 #endif
   >;
 
