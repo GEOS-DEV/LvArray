@@ -1,22 +1,22 @@
 
-set(CONFIG_NAME "tioga-cce@15.0.0" CACHE PATH "")
+set(CONFIG_NAME "tioga-cce@15.0.0c" CACHE PATH "")
 include( ${CMAKE_CURRENT_LIST_DIR}/tioga-base.cmake )
 
 # Set up the tpls
-set(TPL_INSTALL_DATE 2023-01-19)
+set(TPL_INSTALL_DATE 2023-05-17)
 set(GEOSX_TPL_DIR "/usr/WS1/GEOS/GEOSX/TPLs_${TPL_INSTALL_DATE}/install-${CONFIG_NAME}" CACHE PATH "")
 
-set(CAMP_DIR "${GEOSX_TPL_DIR}/camp" CACHE PATH "" )
-set(RAJA_DIR "${GEOSX_TPL_DIR}/raja" CACHE PATH "" )
+set(CAMP_DIR "${GEOSX_TPL_DIR}/camp-main" CACHE PATH "" )
+set(RAJA_DIR "${GEOSX_TPL_DIR}/raja-develop" CACHE PATH "" )
 
 set(ENABLE_UMPIRE TRUE CACHE BOOL "" )
-set(UMPIRE_DIR "${GEOSX_TPL_DIR}/umpire" CACHE PATH "" )
+set(UMPIRE_DIR "${GEOSX_TPL_DIR}/umpire-develop" CACHE PATH "" )
 
 set(ENABLE_CHAI TRUE CACHE BOOL "" )
-set(CHAI_DIR "${GEOSX_TPL_DIR}/chai" CACHE PATH "" )
+set(CHAI_DIR "${GEOSX_TPL_DIR}/chai-develop" CACHE PATH "" )
 
-set(METIS_DIR "${GEOSX_TPL_DIR}/metis" CACHE PATH "" )
-set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis" CACHE PATH "" )
+set(METIS_DIR "${GEOSX_TPL_DIR}/metis-5.1.0" CACHE PATH "" )
+set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis-4.0.3" CACHE PATH "" )
 
 # C++ options
 set(CRAYPE_VERSION "2.7.19")
@@ -32,6 +32,6 @@ if( ENABLE_HIP )
   set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_FLAGS "-mno-unsafe-fp-atomics -fno-gpu-rdc" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_LINK_FLAGS "-fno-gpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
