@@ -32,6 +32,6 @@ if( ENABLE_HIP )
   set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_LINK_FLAGS "-fno-gpu-rdc --hip-link" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
