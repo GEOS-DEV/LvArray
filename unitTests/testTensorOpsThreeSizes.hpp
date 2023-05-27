@@ -530,7 +530,7 @@ using ThreeSizesTestTypes = ::testing::Types<
                 std::integral_constant< int, 3 >,
                 serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double,
                 std::integral_constant< int, 2 >,
                 std::integral_constant< int, 3 >,

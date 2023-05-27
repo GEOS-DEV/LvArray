@@ -1,4 +1,4 @@
-set(CONFIG_NAME "lassen-clang13-cuda11" CACHE PATH "") 
+set(CONFIG_NAME "lassen-clang13-cuda11" CACHE PATH "")
 
 
 set(COMPILER_DIR /usr/tce/packages/clang/clang-13.0.1-gcc-8.3.1 )

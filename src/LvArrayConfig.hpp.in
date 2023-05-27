@@ -26,6 +26,8 @@
 
 #cmakedefine LVARRAY_USE_CUDA
 
+#cmakedefine LVARRAY_USE_HIP
+
 #cmakedefine LVARRAY_USE_TOTALVIEW_OUTPUT
 
 #cmakedefine LVARRAY_USE_CALIPER

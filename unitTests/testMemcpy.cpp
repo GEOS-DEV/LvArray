@@ -242,7 +242,106 @@ void testAsyncMemcpyDevice()
     EXPECT_EQ( x[ i ], -i );
   }
 }
+#elif defined(LVARRAY_USE_HIP)
 
+template< template< typename > class BUFFER_TYPE >
+void testMemcpyDevice()
+{
+  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    x[ i ] = i;
+  }
+
+  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  y.move( MemorySpace::hip );
+  int * yPtr = y.data();
+
+  memcpy< 0, 0 >( y, {}, x.toViewConst(), {} );
+
+  forall< RAJA::hip_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+      {
+        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        yPtr[ i ] *= 2;
+      } );
+
+  memcpy< 0, 0 >( x, {}, y.toViewConst(), {} );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    EXPECT_EQ( x[ i ], 2 * i );
+  }
+
+  // Move y to the CPU but then capture and modify a view on device. This way y's data pointer is still pointing
+  // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
+  y.move( MemorySpace::host );
+
+  ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
+  forall< RAJA::hip_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+      {
+        yView[ i ] = -i;
+      } );
+
+  memcpy< 0, 0 >( x, {}, y.toViewConst(), {} );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    EXPECT_EQ( x[ i ], -i );
+  }
+}
+
+template< template< typename > class BUFFER_TYPE >
+void testAsyncMemcpyDevice()
+{
+  camp::resources::Resource stream{ camp::resources::Hip{} };
+
+  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    x[ i ] = i;
+  }
+
+  Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
+  y.move( MemorySpace::hip );
+  int * yPtr = y.data();
+
+  camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
+  stream.wait_for( &e );
+
+  forall< RAJA::hip_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+      {
+        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        yPtr[ i ] *= 2;
+      } );
+
+  e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
+  stream.wait_for( &e );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    EXPECT_EQ( x[ i ], 2 * i );
+  }
+
+  // Move y to the CPU but then capture and modify a view on device. This way y's data pointer is still pointing
+  // to host memory but the subsequent memcpy should pick up that it's previous space is on device.
+  y.move( MemorySpace::host );
+
+  ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
+  forall< RAJA::hip_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+      {
+        yView[ i ] = -i;
+      } );
+
+  e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
+  stream.wait_for( &e );
+
+  for( std::ptrdiff_t i = 0; i < x.size(); ++i )
+  {
+    EXPECT_EQ( x[ i ], -i );
+  }
+}
 #endif
 
 TEST( TestMemcpy, MallocBuffer1D )
@@ -282,7 +381,7 @@ TEST( TestMemcpy, ChaiBuffer2D )
   testMemcpy2D< ChaiBuffer >();
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
 
 TEST( TestMemcpy, ChaiBufferDevice )
 {

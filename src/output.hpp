@@ -211,7 +211,7 @@ std::ostream & operator<< ( std::ostream & stream, CRSMatrixView< T const, COL_T
  * @param view The matrix view object to print.
  */
 template< typename POLICY, typename T, typename COL_TYPE, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-void print( CRSMatrixView< T const, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )
+void print( CRSMatrixView< T, COL_TYPE const, INDEX_TYPE const, BUFFER_TYPE > const & view )
 {
   INDEX_TYPE const numRows = view.numRows();
 

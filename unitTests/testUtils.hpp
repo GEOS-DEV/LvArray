@@ -20,6 +20,7 @@
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
+#include <umpire/strategy/QuickPool.hpp>
 #include <gtest/gtest.h>
 
 // System includes
@@ -103,14 +104,14 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 }
 
 
-#ifndef __CUDA_ARCH__
-#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
-#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
-    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
-#else
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GE_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
                                                                        STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
+#else
+#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
+    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
 #endif
 
 // Comparator that compares a std::pair by it's first object.

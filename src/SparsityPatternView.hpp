@@ -61,6 +61,7 @@ template< typename COL_TYPE,
 class SparsityPatternView : protected ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
 protected:
+  using COL_TYPE_NC = std::remove_const_t< COL_TYPE >;
   /// An alias for the parent class.
   using ParentClass = ArrayOfSetsView< COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
@@ -74,7 +75,9 @@ public:
   static_assert( std::is_integral< INDEX_TYPE >::value, "INDEX_TYPE must be integral." );
 
   /// The integer type used to enumerate the columns.
+
   using ColType = COL_TYPE;
+  using ColTypeNC = COL_TYPE_NC;
   using typename ParentClass::IndexType;
 
   /**
@@ -115,7 +118,7 @@ public:
    */
   LVARRAY_HOST_DEVICE constexpr inline
   SparsityPatternView( INDEX_TYPE const nRows,
-                       INDEX_TYPE const nCols,
+                       COL_TYPE const nCols,
                        BUFFER_TYPE< INDEX_TYPE > const & offsets,
                        BUFFER_TYPE< SIZE_TYPE > const & nnz,
                        BUFFER_TYPE< COL_TYPE > const & columns ):
@@ -191,14 +194,14 @@ public:
    * @return Return the number of rows in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numRows() const
+  INDEX_TYPE_NC const numRows() const
   { return ParentClass::size(); }
 
   /**
    * @return Return the number of columns in the matrix.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numColumns() const
+  COL_TYPE const numColumns() const
   { return m_numCols; }
 
   /**
@@ -221,14 +224,14 @@ public:
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC numNonZeros( INDEX_TYPE const row ) const
+  INDEX_TYPE_NC const numNonZeros( INDEX_TYPE const row ) const
   { return ParentClass::sizeOfSet( row ); }
 
   /**
    * @return Return the total number of non zero entries able to be stored without a reallocation.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC nonZeroCapacity() const
+  INDEX_TYPE_NC const nonZeroCapacity() const
   { return ParentClass::valueCapacity(); }
 
   /**
@@ -237,7 +240,7 @@ public:
    * @param row the row to query.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  INDEX_TYPE_NC nonZeroCapacity( INDEX_TYPE const row ) const
+  INDEX_TYPE_NC const nonZeroCapacity( INDEX_TYPE const row ) const
   { return ParentClass::capacityOfSet( row ); }
 
   /**
@@ -432,7 +435,7 @@ protected:
    */
   template< class ... BUFFERS >
   void resize( INDEX_TYPE const nrows,
-               INDEX_TYPE const ncols,
+               COL_TYPE const ncols,
                INDEX_TYPE_NC initialRowCapacity,
                BUFFERS & ... buffers )
   {
@@ -446,7 +449,7 @@ protected:
   }
 
   /// The number of columns in the matrix.
-  INDEX_TYPE_NC m_numCols;
+  COL_TYPE_NC m_numCols;
 };
 
 } // namespace LvArray

@@ -925,7 +925,7 @@ using ArrayOfSetsViewTestTypes = ::testing::Types<
   , std::pair< ArrayOfSets< TestString, std::ptrdiff_t, ChaiBuffer >, serialPolicy >
 #endif
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA)  || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::pair< ArrayOfSets< int, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
   , std::pair< ArrayOfSets< Tensor, std::ptrdiff_t, ChaiBuffer >, parallelDevicePolicy< 32 > >
 #endif

@@ -375,7 +375,7 @@ using InverseTestTypes = ::testing::Types<
   , std::tuple< float, float, std::integral_constant< int, 3 >, serialPolicy >
   , std::tuple< int, double, std::integral_constant< int, 3 >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< float, float, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< int, double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
@@ -400,7 +400,7 @@ using InverseFloatOnlyTestTypes = ::testing::Types<
   , std::tuple< double, double, std::integral_constant< int, 3 >, serialPolicy >
   , std::tuple< float, float, std::integral_constant< int, 3 >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< double, double, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< float, float, std::integral_constant< int, 2 >, parallelDevicePolicy< 32 > >
   , std::tuple< double, double, std::integral_constant< int, 3 >, parallelDevicePolicy< 32 > >
