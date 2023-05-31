@@ -24,7 +24,7 @@ if( NOT is_submodule )
 
     project( LvArray LANGUAGES C CXX )
 
-    set( BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE )
+    set( BLT_CXX_STD "c++17" CACHE STRING "Version of C++ standard" FORCE )
     set( ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "" )
 
     option( ENABLE_TESTS "Builds tests" ON )
