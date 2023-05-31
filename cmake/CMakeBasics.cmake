@@ -12,9 +12,9 @@ option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 set( LVARRAY_BUILD_OBJ_LIBS OFF CACHE BOOL "" )
 
 
-# if( NOT BLT_CXX_STD STREQUAL c++17 )
-#     MESSAGE(FATAL_ERROR "c++14 is NOT enabled. LvArray requires c++14")
-# endif()
+if( NOT BLT_CXX_STD STREQUAL c++17 )
+    MESSAGE(FATAL_ERROR "c++17 is NOT enabled. LvArray requires c++17")
+endif()
 
 
 blt_append_custom_compiler_flag( FLAGS_VAR CMAKE_CXX_FLAGS DEFAULT "${OpenMP_CXX_FLAGS}")
