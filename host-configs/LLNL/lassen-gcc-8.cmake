@@ -9,4 +9,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=power9 -mtune=power9" CACHE STRI
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
-include(${CMAKE_CURRENT_LIST_DIR}/lassen-base.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/lassen-cuda11-base.cmake)
