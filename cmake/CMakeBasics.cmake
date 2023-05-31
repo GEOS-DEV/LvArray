@@ -12,7 +12,7 @@ option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 set( LVARRAY_BUILD_OBJ_LIBS OFF CACHE BOOL "" )
 
 
-# if( NOT BLT_CXX_STD STREQUAL c++14 )
+# if( NOT BLT_CXX_STD STREQUAL c++17 )
 #     MESSAGE(FATAL_ERROR "c++14 is NOT enabled. LvArray requires c++14")
 # endif()
 
