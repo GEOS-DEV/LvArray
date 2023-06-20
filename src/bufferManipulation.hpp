@@ -122,6 +122,15 @@ struct VoidBuffer
   { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." ); }
 
   /**
+   * @brief Check if the buffer has been touched in the current space.
+   * @note The default behavior is that the Buffer can only exist on the CPU and an error
+   *   occurs if you try to move it to a different space.
+   */
+  bool checkTouch( ) const
+  { return false; }
+
+
+  /**
    * @tparam The type of the owning object.
    * @brief Set the name associated with this buffer.
    * @param name the name of the buffer.

@@ -681,6 +681,14 @@ public:
   void registerTouch( MemorySpace const space ) const
   { m_dataBuffer.registerTouch( space ); }
 
+    /**
+   * @return Whether the buffer has been touched in the current space.
+   * @note The default behavior is that the Buffer can only exist on the CPU and an error
+   *   occurs if you try to move it to a different space.
+   */
+  bool checkTouch( )
+  { return m_dataBuffer.checkTouch(); }
+
   /**
    * @brief Move the Array to the given execution space, optionally touching it.
    * @param space the space to move the Array to.

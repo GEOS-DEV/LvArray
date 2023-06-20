@@ -474,6 +474,17 @@ public:
   }
 
   /**
+   * @return Whether the buffer has been touched in the current space.
+   * @note The default behavior is that the Buffer can only exist on the CPU and an error
+   *   occurs if you try to move it to a different space.
+   */
+  inline
+  bool checkTouch( )
+  {
+    return m_pointerRecord->m_touched[ m_pointerRecord->m_last_space ];
+  }
+
+  /**
    * @tparam U The type of the owning class, will be displayed in the callback.
    * @brief Set the name associated with this buffer which is used in the chai callback.
    * @param name the of the buffer.
