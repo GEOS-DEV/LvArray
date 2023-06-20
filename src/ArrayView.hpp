@@ -686,7 +686,7 @@ public:
    * @note The default behavior is that the Buffer can only exist on the CPU and an error
    *   occurs if you try to move it to a different space.
    */
-  bool checkTouch( )
+  bool checkTouch( ) const
   { return m_dataBuffer.checkTouch(); }
 
   /**

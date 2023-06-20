@@ -479,7 +479,7 @@ public:
    *   occurs if you try to move it to a different space.
    */
   inline
-  bool checkTouch( )
+  bool checkTouch( ) const
   {
     return m_pointerRecord->m_touched[ m_pointerRecord->m_last_space ];
   }
