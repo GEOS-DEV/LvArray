@@ -145,7 +145,7 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { SERIAL_N, SERIAL_M } ), RAJAViewNative, PERMUTATION );
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { SERIAL_N, SERIAL_M } ), pointerNative, PERMUTATION );
   },
-                                RAJA::PERM_IJ {}
+                                  RAJA::PERM_IJ {}
                                 , RAJA::PERM_JI {}
                                 );
 
@@ -163,7 +163,7 @@ void registerBenchmarks()
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { N, M } ), RAJAViewRAJA, PERMUTATION, POLICY );
     REGISTER_BENCHMARK_TEMPLATE( WRAP( { N, M } ), pointerRAJA, PERMUTATION, POLICY );
   },
-                                std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
+                                  std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_IJ {}, serialPolicy {} )
                                 , std::make_tuple( SERIAL_N, SERIAL_M, RAJA::PERM_JI {}, serialPolicy {} )
   #if defined(RAJA_ENABLE_OPENMP)
                                 , std::make_tuple( OMP_N, OMP_M, RAJA::PERM_IJ {}, parallelHostPolicy {} )

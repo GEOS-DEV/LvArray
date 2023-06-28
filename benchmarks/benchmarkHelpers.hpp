@@ -66,7 +66,11 @@ inline std::string typeToString( RAJA::PERM_KJI const & ) { return "RAJA::PERM_K
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = LvArray::Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = LvArray::Array< T,
+                               typeManipulation::getDimension< PERMUTATION >,
+                               PERMUTATION,
+                               INDEX_TYPE,
+                               DEFAULT_BUFFER >;
 
 template< typename T, typename PERMUTATION >
 using ArrayViewT = LvArray::ArrayView< T,
@@ -83,9 +87,7 @@ INDEX_TYPE >;
 
 template< typename T, typename PERMUTATION >
 using RajaView = RAJA::View< T,
-RAJA::Layout< typeManipulation::getDimension< PERMUTATION >,
-INDEX_TYPE,
-typeManipulation::getStrideOneDimension( PERMUTATION {} ) >>;
+                             RAJA::Layout< typeManipulation::getDimension< PERMUTATION >, INDEX_TYPE, typeManipulation::getStrideOneDimension( PERMUTATION {} ) >>;
 
 template< typename T >
 using ArrayOfArraysT = ArrayOfArrays< T, INDEX_TYPE, DEFAULT_BUFFER >;
@@ -162,7 +164,6 @@ void initialize( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, int & iter 
   } );
 }
 
-
 template< typename T, typename PERMUTATION >
 RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array )
 {
@@ -177,7 +178,6 @@ RajaView< T, PERMUTATION > makeRajaView( ArrayT< T, PERMUTATION > const & array 
   constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< PERMUTATION >::get();
   return RajaView< T, PERMUTATION >( array.data(), RAJA::make_permuted_layout( sizes, permutation ) );
 }
-
 
 template< typename T, typename PERMUTATION >
 INDEX_TYPE reduce( ArrayT< T, PERMUTATION > const & array )

@@ -83,7 +83,16 @@ public:
 
   void RAJAView()
   {
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const view = makeRajaView( m_array );
+    constexpr int NDIM = typeManipulation::getDimension< RAJA::PERM_I >;
+    std::array< INDEX_TYPE, NDIM > sizes;
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      sizes[ i ] = m_array.dims()[ i ];
+    }
+
+    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< RAJA::PERM_I >::get();
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const view = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_array.data(), RAJA::make_permuted_layout( sizes, permutation ) );
     TIMING_LOOP( RAJAViewKernel( view ) );
   }
 
@@ -159,7 +168,16 @@ public:
 
   void RAJAView()
   {
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const view = makeRajaView( m_array );
+    constexpr int NDIM = typeManipulation::getDimension< RAJA::PERM_I >;
+    std::array< INDEX_TYPE, NDIM > sizes;
+
+    for( int i = 0; i < NDIM; ++i )
+    {
+      sizes[ i ] = m_array.dims()[ i ];
+    }
+
+    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< RAJA::PERM_I >::get();
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const view = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_array.data(), RAJA::make_permuted_layout( sizes, permutation ) );
     TIMING_LOOP( RAJAViewKernel( view ) );
   }
 

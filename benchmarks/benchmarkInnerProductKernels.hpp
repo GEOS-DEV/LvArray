@@ -91,8 +91,22 @@ public:
 
   void RAJAView()
   {
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = makeRajaView( m_a );
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = makeRajaView( m_b );
+    constexpr int NDIM = typeManipulation::getDimension< RAJA::PERM_I >;
+    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< RAJA::PERM_I >::get();
+
+    std::array< INDEX_TYPE, NDIM > a_sizes;
+    for( int i = 0; i < NDIM; ++i )
+    {
+      a_sizes[ i ] = m_a.dims()[ i ];
+    }
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_a.data(), RAJA::make_permuted_layout( a_sizes, permutation ) );
+
+    std::array< INDEX_TYPE, NDIM > b_sizes;
+    for( int i = 0; i < NDIM; ++i )
+    {
+      b_sizes[ i ] = m_b.dims()[ i ];
+    }
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_b.data(), RAJA::make_permuted_layout( b_sizes, permutation ) );
     TIMING_LOOP( RAJAViewKernel( a, b ) );
   }
 
@@ -180,8 +194,22 @@ public:
 
   void RAJAView()
   {
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = makeRajaView( m_a );
-    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = makeRajaView( m_b );
+    constexpr int NDIM = typeManipulation::getDimension< RAJA::PERM_I >;
+    constexpr std::array< camp::idx_t, NDIM > const permutation = RAJA::as_array< RAJA::PERM_I >::get();
+
+    std::array< INDEX_TYPE, NDIM > a_sizes;
+    for( int i = 0; i < NDIM; ++i )
+    {
+      a_sizes[ i ] = m_a.dims()[ i ];
+    }
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const a = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_a.data(), RAJA::make_permuted_layout( a_sizes, permutation ) );
+
+    std::array< INDEX_TYPE, NDIM > b_sizes;
+    for( int i = 0; i < NDIM; ++i )
+    {
+      b_sizes[ i ] = m_b.dims()[ i ];
+    }
+    RajaView< VALUE_TYPE const, RAJA::PERM_I > const b = RajaView< VALUE_TYPE const, RAJA::PERM_I >( m_b.data(), RAJA::make_permuted_layout( b_sizes, permutation ) );
     TIMING_LOOP( RAJAViewKernel( a, b ) );
   }
 
