@@ -1,7 +1,6 @@
 set(ENABLE_FORTRAN OFF CACHE BOOL "")
 
-set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-05-26/install-${CONFIG_NAME}-release CACHE PATH "")
+include(${CMAKE_CURRENT_LIST_DIR}/llnl-tpls-base.cmake)
 
 set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
