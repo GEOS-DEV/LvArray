@@ -151,7 +151,7 @@ public:
   {}
 
   template< class T >
-  TestString( T val ):
+  explicit TestString( T val ):
     m_string( std::to_string( val ) +
               std::string( " The rest of this is to avoid any small string optimizations. " ) +
               std::to_string( 2 * val ) )
