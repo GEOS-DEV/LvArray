@@ -34,7 +34,7 @@ template< typename T,
           template< typename > class BUFFER_TYPE >
 class CRSMatrix : protected CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE >
 {
-
+  using ColTypeNC = std::remove_const_t< COL_TYPE >;
   /// An alias for the parent class.
   using ParentClass = CRSMatrixView< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE >;
 
@@ -56,7 +56,7 @@ public:
    * @param initialRowCapacity the initial non zero capacity of each row.
    */
   CRSMatrix( INDEX_TYPE const nrows=0,
-             INDEX_TYPE const ncols=0,
+             ColTypeNC const ncols=0,
              INDEX_TYPE const initialRowCapacity=0 ):
     ParentClass( true )
   {
@@ -174,7 +174,7 @@ public:
    *   of each new row.
    */
   template< typename POLICY >
-  void resizeFromRowCapacities( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const * const rowCapacities )
+  void resizeFromRowCapacities( INDEX_TYPE const nRows, ColTypeNC const nCols, INDEX_TYPE const * const rowCapacities )
   {
     LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nCols ), "nCols must be positive." );
     LVARRAY_ERROR_IF( nCols - 1 > std::numeric_limits< COL_TYPE >::max(),
@@ -348,7 +348,7 @@ public:
    *   or where a specific column is greater than the number of columns in the matrix.
    *   If you will be constructing the matrix from scratch it is reccomended to clear it first.
    */
-  void resize( INDEX_TYPE const nRows, INDEX_TYPE const nCols, INDEX_TYPE const initialRowCapacity )
+  void resize( INDEX_TYPE const nRows, ColTypeNC const nCols, INDEX_TYPE const initialRowCapacity )
   { ParentClass::resize( nRows, nCols, initialRowCapacity, this->m_entries ); }
 
   /**
@@ -375,7 +375,7 @@ public:
    * @return True iff the entry was inserted (the entry was zero before).
    */
   inline
-  bool insertNonZero( INDEX_TYPE const row, COL_TYPE const col, T const & entry )
+  bool insertNonZero( INDEX_TYPE const row, ColTypeNC const col, T const & entry )
   { return ParentClass::insertIntoSetImpl( row, col, CallBacks( *this, row, &entry ) ); }
 
   /**
@@ -390,9 +390,9 @@ public:
    */
   inline
   INDEX_TYPE insertNonZeros( INDEX_TYPE const row,
-                             COL_TYPE const * const cols,
+                             ColTypeNC const * const cols,
                              T const * const entriesToInsert,
-                             INDEX_TYPE const ncols )
+                             ColTypeNC const ncols )
   { return ParentClass::insertIntoSetImpl( row, cols, cols + ncols, CallBacks( *this, row, entriesToInsert ) ); }
 
   using ParentClass::removeNonZero;
@@ -423,9 +423,9 @@ public:
   template< typename AtomicPolicy >
   inline
   void addToRow( INDEX_TYPE const row,
-                 COL_TYPE const * const LVARRAY_RESTRICT cols,
+                 ColTypeNC const * const LVARRAY_RESTRICT cols,
                  T const * const LVARRAY_RESTRICT vals,
-                 INDEX_TYPE const nCols ) const
+                 ColTypeNC const nCols ) const
   { ParentClass::template addToRow< AtomicPolicy >( row, cols, vals, nCols ); }
 
   /**
@@ -435,9 +435,9 @@ public:
   template< typename AtomicPolicy >
   inline
   void addToRowBinarySearch( INDEX_TYPE const row,
-                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             ColTypeNC const * const LVARRAY_RESTRICT cols,
                              T const * const LVARRAY_RESTRICT vals,
-                             INDEX_TYPE const nCols ) const
+                             ColTypeNC const nCols ) const
   { ParentClass::template addToRowBinarySearch< AtomicPolicy >( row, cols, vals, nCols ); }
 
   /**
@@ -447,9 +447,9 @@ public:
   template< typename AtomicPolicy >
   inline
   void addToRowLinearSearch( INDEX_TYPE const row,
-                             COL_TYPE const * const LVARRAY_RESTRICT cols,
+                             ColTypeNC const * const LVARRAY_RESTRICT cols,
                              T const * const LVARRAY_RESTRICT vals,
-                             INDEX_TYPE const nCols ) const
+                             ColTypeNC const nCols ) const
   { ParentClass::template addToRowLinearSearch< AtomicPolicy >( row, cols, vals, nCols ); }
 
   /**
@@ -459,9 +459,9 @@ public:
   template< typename AtomicPolicy >
   inline
   void addToRowBinarySearchUnsorted( INDEX_TYPE const row,
-                                     COL_TYPE const * const LVARRAY_RESTRICT cols,
+                                     ColTypeNC const * const LVARRAY_RESTRICT cols,
                                      T const * const LVARRAY_RESTRICT vals,
-                                     INDEX_TYPE const nCols ) const
+                                     ColTypeNC const nCols ) const
   { ParentClass::template addToRowBinarySearchUnsorted< AtomicPolicy >( row, cols, vals, nCols ); }
 
   ///@}

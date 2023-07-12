@@ -211,7 +211,7 @@ LVARRAY_HOST_DEVICE inline void makeSorted( RandomAccessIterator const first,
                                             RandomAccessIterator const last,
                                             Compare && comp=Compare() )
 {
-#ifdef __CUDA_ARCH__
+#if defined(LVARRAY_DEVICE_COMPILE)
   if( last - first > internal::INTROSORT_THRESHOLD )
   {
     internal::introsortLoop( first, last, comp );

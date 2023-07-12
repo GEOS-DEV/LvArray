@@ -72,18 +72,23 @@
     #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
       _Pragma( "GCC diagnostic push" ) \
       _Pragma( "GCC diagnostic ignored \"-Wc99-extensions\"") \
-      _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"") \
+      _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"")
+    #if __has_warning( "-Wc99-designator" )
       _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
+    #endif
   #else
     #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
       _Pragma( "GCC diagnostic push" ) \
       _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
   #endif
-#else
+#elif defined( __GNUC__ )
   #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
     _Pragma( "GCC diagnostic push" ) \
     _Pragma( "GCC diagnostic ignored \"-Wpedantic\"" ) \
     _Pragma( "GCC diagnostic ignored \"-Wmissing-field-initializers\"" )
+    #if __GNUC__ > 8 
+      _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
+    #endif
 #endif
 
 /**

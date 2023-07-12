@@ -77,7 +77,7 @@ public:
       INDEX_TYPE const j = tmp / nodeJp;
       INDEX_TYPE const i = tmp - nodeJp * j;
 
-      INDEX_TYPE elements[ 8 ];
+      INDEX_TYPE elements[ 16 ];
       INDEX_TYPE numElements = 0;
 
       for( INDEX_TYPE di = -1; di < 1; ++di )
@@ -98,6 +98,7 @@ public:
       }
 
       LVARRAY_ERROR_IF_NE_MSG( numElements, nodeToElementMap.sizeOfArray( nodeIndex ), nodeIndex );
+      LVARRAY_ERROR_IF_GT( numElements, 8 );
 
       std::sort( elements, elements + numElements );
       std::sort( nodeToElementMap[ nodeIndex ].begin(), nodeToElementMap[ nodeIndex ].end() );

@@ -275,6 +275,9 @@ public:
   #if defined(LVARRAY_USE_CUDA)
     if( space == MemorySpace::cuda ) touch = false;
   #endif
+  #if defined(LVARRAY_USE_HIP)
+    if( space == MemorySpace::hip ) touch = false;
+  #endif
     m_values.move( space, touch );
   }
 

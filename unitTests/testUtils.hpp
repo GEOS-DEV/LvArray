@@ -20,6 +20,7 @@
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
+#include <umpire/strategy/QuickPool.hpp>
 #include <gtest/gtest.h>
 
 // System includes
@@ -64,8 +65,9 @@ struct RAJAHelper< parallelHostPolicy >
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
-template< unsigned long N >
-struct RAJAHelper< RAJA::cuda_exec< N > >
+
+template< typename X, typename Y, size_t BLOCK_SIZE, bool ASYNC >
+struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, BLOCK_SIZE, ASYNC > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
@@ -103,14 +105,14 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 }
 
 
-#ifndef __CUDA_ARCH__
-#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
-#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
-    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
-#else
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GE_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
                                                                        STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
+#else
+#define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
+    STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
 #endif
 
 // Comparator that compares a std::pair by it's first object.
@@ -149,7 +151,7 @@ public:
   {}
 
   template< class T >
-  TestString( T val ):
+  explicit TestString( T val ):
     m_string( std::to_string( val ) +
               std::string( " The rest of this is to avoid any small string optimizations. " ) +
               std::to_string( 2 * val ) )

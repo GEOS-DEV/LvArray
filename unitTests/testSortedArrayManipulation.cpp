@@ -84,7 +84,11 @@ public:
         isInitiallySortedUnique = std::is_sorted( m_ref.begin(), m_ref.end(), m_comp ) &&
                                   ( m_ref.size() == refSet.size() );
         m_ref.clear();
-        m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        // workaround bug/feature in gcc12 ( error: iteration 4611686018427387903 invokes undefined behavior )
+        //m_ref.insert( m_ref.begin(), refSet.begin(), refSet.end() );
+        m_ref.resize( refSet.size());
+        std::copy( refSet.begin(), refSet.end(), m_ref.begin() );
+
         EXPECT_TRUE( sortedArrayManipulation::isSortedUnique( m_ref.begin(), m_ref.end(), m_comp ) );
       }
 
@@ -186,7 +190,7 @@ using SingleArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) ) && defined(LVARRAY_USE_CHAI)
   , std::tuple< int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >
@@ -286,7 +290,7 @@ using DualArrayTestTypes = ::testing::Types<
   , std::tuple< TestString, TestString, sortedArrayManipulation::less< TestString >, serialPolicy >
   , std::tuple< TestString, TestString, sortedArrayManipulation::greater< TestString >, serialPolicy >
 
-#if defined(LVARRAY_USE_CUDA) && defined(LVARRAY_USE_CHAI)
+#if ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) )&& defined(LVARRAY_USE_CHAI)
   , std::tuple< int, int, sortedArrayManipulation::less< int >, parallelDevicePolicy< 256 > >
   , std::tuple< int, int, sortedArrayManipulation::greater< int >, parallelDevicePolicy< 256 > >
   , std::tuple< Tensor, Tensor, sortedArrayManipulation::less< Tensor >, parallelDevicePolicy< 256 > >

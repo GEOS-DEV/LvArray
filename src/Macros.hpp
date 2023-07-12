@@ -22,9 +22,37 @@
 #include <iostream>
 #include <type_traits>
 
-#if defined(LVARRAY_USE_CUDA)
-  #include <cassert>
+
+#if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP)
+/// Macro defined when using a device.
+#define LVARRAY_USE_DEVICE
 #endif
+
+#if defined(LVARRAY_USE_CUDA)
+#define LVARRAY_DEFAULT_DEVICE_SPACE MemorySpace::cuda
+#elif defined(LVARRAY_USE_HIP)
+#define LVARRAY_DEFAULT_DEVICE_SPACE MemorySpace::hip
+#endif
+
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+/// Macro defined when currently compiling on device (only defined in the device context).
+#define LVARRAY_DEVICE_COMPILE
+/// Marks a function/lambda for inlining
+#define LVARRAY_FORCE_INLINE __forceinline__
+#else
+/// Marks a function/lambda for inlining
+#define LVARRAY_FORCE_INLINE inline
+#endif
+
+#if defined(__CUDACC__) || defined(__HIPCC__)
+// Denotes whether to define decorator macros later in this file.
+#define LVARRAY_DECORATE
+#endif
+
+
+//#if !defined(NDEBUG) && defined(LVARRAY_DEVICE_COMPILE)
+  #include <cassert>
+//#endif
 
 /**
  * @brief Convert @p A into a string.
@@ -37,6 +65,8 @@
  * @param A the token to convert to a string.
  */
 #define STRINGIZE( A ) STRINGIZE_NX( A )
+
+//#pragma message "LVARRAY_DEVICE_COMPILE: " STRINGIZE(LVARRAY_DEVICE_COMPILE)
 
 /**
  * @brief Mark @p X as an unused argument, used to silence compiler warnings.
@@ -91,8 +121,9 @@
  *       and a stack trace along with the provided message. On device none of this is
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
-#if defined(__CUDA_ARCH__)
-  #if !defined(NDEBUG)
+
+#if defined(LVARRAY_DEVICE_COMPILE)
+  #if !defined(NDEBUG) || __HIP_DEVICE_COMPILE__ == 1
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
@@ -179,6 +210,12 @@
       throw TYPE( __oss.str() ); \
     } \
   } while( false )
+
+/**
+ * @brief Throw an exception.
+ * @param MSG The message to associate with the error, can be anything streamable to a std::ostream.
+ */
+#define LVARRAY_THROW( MSG, TYPE ) LVARRAY_THROW_IF( true, MSG, TYPE )
 
 /// Assert @p EXP is true with no message.
 #define LVARRAY_ASSERT( EXP ) LVARRAY_ASSERT_MSG( EXP, "" )
@@ -529,9 +566,17 @@
  */
 #define LVARRAY_ASSERT_GE( lhs, rhs ) LVARRAY_ASSERT_GE_MSG( lhs, rhs, "" )
 
-#if defined(LVARRAY_USE_CUDA) && defined(__CUDACC__)
+#if defined(LVARRAY_DECORATE)
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE __host__ __device__
+
+#if defined( LVARRAY_USE_HIP )
+/// Mark a function for both host and device usage when using HIP only.
+#define LVARRAY_HOST_DEVICE_HIP __host__ __device__
+#else
+/// Mark a function for both host and device usage when using HIP only.
+#define LVARRAY_HOST_DEVICE_HIP
+#endif
 
 /// Mark a function for only device usage.
 #define LVARRAY_DEVICE __device__
@@ -543,10 +588,16 @@
  *   call host only code. This is safe as long as the host only instantiations are only called on
  *   the host. To use place directly above a the template.
  */
+#if defined(LVARRAY_USE_CUDA)
 #define DISABLE_HD_WARNING _Pragma("hd_warning_disable")
+#else
+#define DISABLE_HD_WARNING
+#endif
 #else
 /// Mark a function for both host and device usage.
 #define LVARRAY_HOST_DEVICE
+/// Mark a function for both host and device usage when using HIP only.
+#define LVARRAY_HOST_DEVICE_HIP
 
 /// Mark a function for only device usage.
 #define LVARRAY_DEVICE
@@ -624,4 +675,59 @@
  * @brief Expands to constexpr in release builds (when NDEBUG is defined).
  */
 #define CONSTEXPR_WITH_NDEBUG
+#endif
+
+// TPL includes
+#include <RAJA/RAJA.hpp>
+
+template< typename >
+struct RAJAHelper
+{};
+
+using serialPolicy = RAJA::loop_exec;
+
+template<>
+struct RAJAHelper< serialPolicy >
+{
+  using ReducePolicy = RAJA::seq_reduce;
+  using AtomicPolicy = RAJA::seq_atomic;
+};
+
+#if defined(RAJA_ENABLE_OPENMP)
+
+using parallelHostPolicy = RAJA::omp_parallel_for_exec;
+
+template<>
+struct RAJAHelper< parallelHostPolicy >
+{
+  using ReducePolicy = RAJA::omp_reduce;
+  using AtomicPolicy = RAJA::omp_atomic;
+};
+
+#endif
+
+#if defined(LVARRAY_USE_CUDA)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
+
+template< unsigned long N >
+struct RAJAHelper< RAJA::cuda_exec< N > >
+{
+  using ReducePolicy = RAJA::cuda_reduce;
+  using AtomicPolicy = RAJA::cuda_atomic;
+};
+
+#elif defined(LVARRAY_USE_HIP)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
+
+template< unsigned long N >
+struct RAJAHelper< RAJA::hip_exec< N > >
+{
+  using ReducePolicy = RAJA::hip_reduce;
+  using AtomicPolicy = RAJA::hip_atomic;
+};
+
 #endif
