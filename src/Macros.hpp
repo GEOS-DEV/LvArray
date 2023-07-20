@@ -142,6 +142,10 @@
  */
 
 #if defined(LVARRAY_DEVICE_COMPILE)
+//   #if defined(__HIP_DEVICE_COMPILE__)
+// // empty impl to avoid the possibility of printfs in device code
+// //   on AMD, which can cause performance degradation just by being present
+// #define LVARRAY_ERROR_IF( EXP, MSG )
   #if (!defined(NDEBUG)) || defined(__HIP_DEVICE_COMPILE__)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
