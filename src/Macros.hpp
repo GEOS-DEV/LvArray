@@ -67,27 +67,6 @@
 #define STRINGIZE( A ) STRINGIZE_NX( A )
 
 /**
- * @brief [[maybe_unused]] when >= C++17, or compiler-specific implementations
- *        when < C++17
- */
-#if __cplusplus >= 201703L
-#define LVARRAY_MAYBE_UNUSED [[maybe_unused]]
-#else
-// If not C++17 or later, check the compiler.
-    #ifdef _MSC_VER
-// Microsoft Visual Studio
-#define LVARRAY_MAYBE_UNUSED __pragma(warning(suppress: 4100))
-    #elif defined(__GNUC__) || defined(__clang__)
-// GCC or Clang
-#define LVARRAY_MAYBE_UNUSED __attribute__((unused))
-    #else
-// If the compiler is unknown, we can't suppress the warning,
-// so we define LVARRAY_MAYBE_UNUSED as an empty macro.
-#define LVARRAY_MAYBE_UNUSED
-    #endif
-#endif
-
-/**
  * @brief Mark @p X as an unused argument, used to silence compiler warnings.
  * @param X the unused argument.
  */
