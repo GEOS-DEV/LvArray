@@ -156,6 +156,12 @@ public:
   }
 
   /**
+   * @brief Delete the buffer on device (no-op here)
+   */
+  LVARRAY_HOST_DEVICE inline
+  void freeOnDevice() const {}
+
+  /**
    * @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline

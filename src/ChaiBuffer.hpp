@@ -367,6 +367,21 @@ public:
   }
 
   /**
+   * @brief Delete the buffer on device (no-op here)
+   */
+  inline
+  void freeOnDevice() const
+  {
+  #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP )
+    chai::ExecutionSpace const chaiSpace = chai::CPU;
+    move( internal::toMemorySpace( chaiSpace ), true );
+    // if T is const the touch == true is ignored in move(), we force it.
+    m_pointerRecord->m_touched[ chaiSpace ] = true;
+    internal::getArrayManager().free( m_pointerRecord, chai::GPU );
+  #endif
+  }
+
+  /**
    * @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
