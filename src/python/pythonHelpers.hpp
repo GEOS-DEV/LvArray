@@ -86,9 +86,9 @@
     _Pragma( "GCC diagnostic push" ) \
     _Pragma( "GCC diagnostic ignored \"-Wpedantic\"" ) \
     _Pragma( "GCC diagnostic ignored \"-Wmissing-field-initializers\"" )
-    #if __GNUC__ > 8 
-      _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
-    #endif
+    // #if __GNUC__ > 8 
+    //   _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
+    // #endif
 #endif
 
 /**
