@@ -507,6 +507,28 @@ public:
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
       }
+
+      if( act == chai::ACTION_ALLOC )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name << " Free memory on device: " << size2 );
+      }
+
+      if( act == chai::ACTION_FREE )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name  << " Free memory on device: " << size2 );
+      }
     };
   }
 
