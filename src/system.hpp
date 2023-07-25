@@ -118,6 +118,18 @@ int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPoi
 void setFPE();
 
 /**
+ * @brief Retieves current available memory on host
+ * @return the available memory in bytes.
+ */
+size_t getAvailableMemoryOnHost();
+
+/**
+ * @brief Retieves current available memory on device
+ * @return the available memory in bytes.
+ */
+size_t getAvailableMemoryOnDevice();
+
+/**
  * @class FloatingPointExceptionGuard
  * @brief Changes the floating point environment and reverts it when destoyed.
  */
