@@ -512,22 +512,34 @@ public:
       {
         std::string const size = system::calculateSize( record->m_size );
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
         size_t free, total;
         cudaMemGetInfo( &free, &total );
         std::string const size2 = system::calculateSize( free );
+        #endif
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
         LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
       }
 
       if( act == chai::ACTION_FREE )
       {
         std::string const size = system::calculateSize( record->m_size );
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
         size_t free, total;
         cudaMemGetInfo( &free, &total );
         std::string const size2 = system::calculateSize( free );
+        #endif
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
         LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name  << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
       }
     };
   }
