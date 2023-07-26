@@ -9,8 +9,8 @@
  * @file system.hpp
  * @brief Contains functions that interact with the system or runtime environment.
  */
-
-#pragma once
+#ifndef LVARRAY_SYSTEM_HPP
+#define LVARRAY_SYSTEM_HPP
 
 // System includes
 #include <string>
@@ -156,11 +156,11 @@ private:
 };
 
 /**
- * @return A string representing @p bytes converted to either
- *   KB, MB, or GB.
+ * @return A string representing @p bytes converted to either KB, MB, or GB.
  * @param bytes The number of bytes.
  */
 std::string calculateSize( size_t const bytes );
 
 } // namespace system
 } // namespace LvArray
+#endif /* !LVARRAY_SYSTEM_HPP */
