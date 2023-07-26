@@ -30,15 +30,16 @@
   #include <sys/wait.h>
 #endif
 
-#include <unitstd.h>
 #if defined(__APPLE__) && defined(__MACH__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
+  #include <sys/types.h>
+  #include <sys/sysctl.h>
 
-#include <mach/host_info.h>
-#include <mach/mach_host.h>
-#include <mach/task_info.h>
-#include <mach/task.h>
+  #include <mach/host_info.h>
+  #include <mach/mach_host.h>
+  #include <mach/task_info.h>
+  #include <mach/task.h>
+#else
+  #include <unistd.h>
 #endif
 
 /**
