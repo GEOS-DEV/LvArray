@@ -30,7 +30,7 @@
   #include <sys/wait.h>
 #endif
 
-#include <sys/stat.h>
+#include <unitstd.h>
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
