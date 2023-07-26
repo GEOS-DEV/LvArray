@@ -704,7 +704,7 @@ size_t getAvailableMemoryOnDevice()
   size_t free=0;
 #if defined(LVARRAY_USE_CUDA)
   size_t total;
-  LVARRAYERROR_IF( cudaSuccess != cudaMemGetInfo( &free, &total ), "Error getting CUDA device available memory" );
+  LVARRAY_ERROR_IF( cudaSuccess != cudaMemGetInfo( &free, &total ), "Error getting CUDA device available memory" );
 #endif
   return free;
 }
