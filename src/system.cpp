@@ -700,11 +700,11 @@ size_t getAvailableMemoryOnHost()
  */
 size_t getAvailableMemoryOnDevice()
 {
-    size_t free=0, total;
+  size_t free=0, total;
 #if defined(LVARRA_USE_CUDA)
-    LVARRAYERROR_IF( cudaSuccess != cudaMemGetInfo( &free, &total ), "Error getting CUDA device available memory" );
+  LVARRAYERROR_IF( cudaSuccess != cudaMemGetInfo( &free, &total ), "Error getting CUDA device available memory" );
 #endif
-    return free;
+  return free;
 }
 
 } // namespace system
