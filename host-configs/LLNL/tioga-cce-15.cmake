@@ -27,7 +27,7 @@ set(CMAKE_Fortran_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/ftn" CACHE
 if( ENABLE_HIP )
   set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE )
 
-  set( HIP_VERSION_STRING "5.4.0" CACHE STRING "" )
+  set( HIP_VERSION_STRING "5.4.3" CACHE STRING "" )
   set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
   set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
