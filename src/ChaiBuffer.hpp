@@ -183,6 +183,8 @@ public:
   {
   #if defined(LVARRAY_DEVICE_COMPILE)
     LVARRAY_ERROR( "Creating a new ChaiBuffer on device is not supported." );
+    LVARRAY_UNUSED_VARIABLE( spaces );
+    LVARRAY_UNUSED_VARIABLE( allocators );
   #else
     m_pointerRecord->m_size = 0;
     setName( "" );
@@ -308,10 +310,15 @@ public:
    * @note Although it is marked as a host-device method, this is only valid to call from the host.
    */
   LVARRAY_HOST_DEVICE
-  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
+  void reallocate( std::ptrdiff_t const size,
+                   MemorySpace const space,
+                   std::ptrdiff_t const newCapacity )
   {
   #if defined(LVARRAY_DEVICE_COMPILE)
     LVARRAY_ERROR( "Allocation from device is not supported." );
+    LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( space );
+    LVARRAY_UNUSED_VARIABLE( newCapacity );
   #else
     move( space, true );
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
