@@ -62,10 +62,9 @@ struct StringToArrayHelper
   {
     inputStream >> arrayValue;
 
-    LVARRAY_THROW_IF( inputStream.fail(),
-                      "Invalid value of type " << typeid(T).name() << " in: " <<
-                      ( inputStream.eof()  ?  "" : inputStream.str().substr( inputStream.tellg() ) ),
-                      std::invalid_argument );
+    LVARRAY_THROW_IF( std::invalid_argument, inputStream.fail(),
+                      "Invalid value of type %s in: %s", typeid(T).name(),
+                      inputStream.eof() ?  "" : inputStream.str().substr( inputStream.tellg() ).c_str() );
   }
 
   /**
@@ -80,8 +79,7 @@ struct StringToArrayHelper
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {
-    LVARRAY_THROW_IF( inputStream.peek() != '{', "Opening '{' not found for input array: "<<inputStream.str(),
-                      std::invalid_argument );
+    LVARRAY_THROW_IF( std::invalid_argument, inputStream.peek() != '{', "Opening '{' not found for input array: %s", inputStream.str().c_str() );
     inputStream.ignore();
 
     for( int i=0; i<(*dims); ++i )
@@ -91,8 +89,7 @@ struct StringToArrayHelper
     }
 
     skipDelimiters( inputStream );
-    LVARRAY_THROW_IF( inputStream.peek() != '}', "Closing '}' not found for input array: "<<inputStream.str(),
-                      std::invalid_argument );
+    LVARRAY_THROW_IF( std::invalid_argument, inputStream.peek() != '}', "Closing '}' not found for input array: %s", inputStream.str().c_str() );
     inputStream.ignore();
   }
 };
@@ -139,8 +136,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
       {
         if( valueOnLeft && spaceOnLeft )
         {
-          LVARRAY_THROW( "Array value sequence specified without ',' delimiter: "<<valueString,
-                         std::invalid_argument );
+          LVARRAY_THROW( std::invalid_argument, "Array value sequence specified without ',' delimiter: %s", valueString.c_str() );
         }
       }
 
@@ -178,36 +174,30 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
   }
 
   // checking for various formatting errors
-  LVARRAY_THROW_IF( valueString.find( "}{" ) != std::string::npos,
-                    "Sub arrays not separated by ',' delimiter: "<<valueString,
-                    std::invalid_argument );
+  LVARRAY_THROW_IF( std::invalid_argument, valueString.find( "}{" ) != std::string::npos,
+                    "Sub arrays not separated by ',' delimiter: %s", valueString.c_str() );
 
-  LVARRAY_THROW_IF( valueString[0]!='{',
-                    "First non-space character of input string for an array must be '{'. Given string is: \n"<<valueString,
-                    std::invalid_argument );
+  LVARRAY_THROW_IF( std::invalid_argument, valueString[0]!='{',
+                    "First non-space character of input string for an array must be '{'. Given string is: \n%s", valueString.c_str() );
 
   size_t const numOpen = std::count( valueString.begin(), valueString.end(), '{' );
   size_t const numClose = std::count( valueString.begin(), valueString.end(), '}' );
 
-  LVARRAY_THROW_IF( numOpen != numClose,
+  LVARRAY_THROW_IF( std::invalid_argument, numOpen != numClose,
                     "Number of opening '{' not equal to number of '}' in processing of string for filling"
-                    " an Array. Given string is: \n"<<valueString,
-                    std::invalid_argument );
+                    " an Array. Given string is: \n%s", valueString.c_str() );
 
 
   // after allowing for the null input, disallow a sub-array null input
-  LVARRAY_THROW_IF( valueString.find( "{}" )!=std::string::npos,
+  LVARRAY_THROW_IF( std::invalid_argument, valueString.find( "{}" )!=std::string::npos,
                     "Cannot have an empty sub-dimension of an array, i.e. { { 0, 1}, {} }. "
-                    "The input is"<<valueString,
-                    std::invalid_argument );
+                    "The input is %s", valueString.c_str() );
 
   // get the number of dimensions from the number of { characters that begin the input string
   int const ndims = LvArray::integerConversion< int >( valueString.find_first_not_of( '{' ));
-  LVARRAY_THROW_IF( ndims!=NDIM,
-                    "number of dimensions in string ("<<ndims<<
-                    ") does not match dimensions of array("<<NDIM<<
-                    "). String is:/n"<<valueString,
-                    std::invalid_argument );
+  LVARRAY_THROW_IF( std::invalid_argument, ndims!=NDIM,
+                    "number of dimensions in string (%i) does not match dimensions of array(%i). String is:/n%s",
+                    ndims, NDIM, valueString.c_str() );
 
 
   // now get the number of dimensions, and the size of each dimension.
@@ -242,36 +232,31 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
     }
     else if( c=='}' )
     {
-      LVARRAY_THROW_IF( lastChar==',',
-                        "character '}' follows '"<<lastChar<<"'. Closing brace must follow an array value.",
-                        std::invalid_argument );
+      LVARRAY_THROW_IF( std::invalid_argument, lastChar==',',
+                        "character '}' follows '%c'. Closing brace must follow an array value.", lastChar );
 
       // } means that we are closing a dimension. That means we know the size of this dimLevel
       dimSet[dimLevel] = true;
-      LVARRAY_THROW_IF( dims[dimLevel]!=currentDims[dimLevel],
-                        "Dimension "<<dimLevel<<" is inconsistent across the expression. "
-                                                "The first set value of the dimension is "<<dims[dimLevel]<<
-                        " while the current value of the dimension is"<<currentDims[dimLevel]<<
-                        ". The values that have been parsed prior to the error are:\n"<<
-                        valueString.substr( 0, charCount+1 ),
-                        std::invalid_argument );
+      LVARRAY_THROW_IF( std::invalid_argument, dims[dimLevel]!=currentDims[dimLevel],
+                        "Dimension %i is inconsistent across the expression.\n"
+                        "The first set value of the dimension is %i while the current value of the dimension is %i."
+                        "The values that have been parsed prior to the error are:%s\n", dimLevel, dims[dimLevel], currentDims[dimLevel],
+                        valueString.substr( 0, charCount+1 ).c_str() );
 
       // reset currentDims and drop dimLevel for post-closure parsing
       currentDims[dimLevel] = 1;
       --dimLevel;
-      LVARRAY_THROW_IF( dimLevel<0 && charCount<(valueString.size()-1),
+      LVARRAY_THROW_IF( std::invalid_argument, dimLevel<0 && charCount<(valueString.size()-1),
                         "In parsing the input string, the current dimension of the array has dropped "
                         "below 0. This means that there are more '}' than '{' at some point in the"
-                        " parsing. The values that have been parsed prior to the error are:\n"<<
-                        valueString.substr( 0, charCount+1 ),
-                        std::invalid_argument );
+                        " parsing. The values that have been parsed prior to the error are:\n%s",
+                        valueString.substr( 0, charCount+1 ).c_str() );
 
     }
     else if( c==',' ) // we are counting the dimension sizes because there is a delimiter.
     {
-      LVARRAY_THROW_IF( lastChar=='{' || lastChar==',',
-                        "character of ',' follows '"<<lastChar<<"'. Comma must follow an array value.",
-                        std::invalid_argument );
+      LVARRAY_THROW_IF( std::invalid_argument, lastChar=='{' || lastChar==',',
+                        "character of ',' follows '%c'. Comma must follow an array value.", lastChar );
       if( dimSet[dimLevel]==false )
       {
         ++(dims[dimLevel]);
@@ -280,10 +265,8 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
     }
     lastChar = c;
   }
-  LVARRAY_THROW_IF( dimLevel!=-1,
-                    "Expression fails to close all '{' with a corresponding '}'. Check your input:"<<
-                    valueString,
-                    std::invalid_argument );
+  LVARRAY_THROW_IF( std::invalid_argument, dimLevel!=-1,
+                    "Expression fails to close all '{' with a corresponding '}'. Check your input:%s", valueString.c_str() );
 
   array.resize( NDIM, dims );
 
@@ -309,3 +292,4 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
 
 } // namespace input
 } // namespace LvArray
+

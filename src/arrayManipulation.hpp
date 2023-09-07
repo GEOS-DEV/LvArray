@@ -29,7 +29,7 @@
  */
 #define ARRAYMANIPULATION_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index >= size, \
-                    "Array Bounds Check Failed: index=" << index << " size()=" << size )
+                    "Array Bounds Check Failed: index=%i size()=%i", index, size )
 
 /**
  * @brief Check that @p index is a valid insertion position in the array.
@@ -38,7 +38,7 @@
  */
 #define ARRAYMANIPULATION_CHECK_INSERT_BOUNDS( index ) \
   LVARRAY_ERROR_IF( !isPositive( index ) || index > size, \
-                    "Array Bounds Insert Check Failed: index=" << index << " size()=" << size )
+                    "Array Bounds Insert Check Failed: index=%i size()=%i", index, size )
 
 #else // LVARRAY_BOUNDS_CHECK
 

@@ -629,7 +629,7 @@ public:
   inline void zero() const
   {
   #if !defined( LVARRAY_USE_UMPIRE )
-    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
+    LVARRAY_ERROR_IF_NE_MSG( getPreviousSpace(), MemorySpace::host, "%s", "Without Umpire only host memory is supported." );
   #endif
 
     if( size() > 0 )
@@ -650,7 +650,7 @@ public:
     for( int dim = 0; dim < NDIM; ++dim )
     {
       LVARRAY_ERROR_IF_NE( size( dim ), rhs.size( dim ) );
-      LVARRAY_ERROR_IF_NE_MSG( strides()[ dim ], rhs.strides()[ dim ],
+      LVARRAY_ERROR_IF_NE_MSG( strides()[ dim ], rhs.strides()[ dim ], "%s",
                                "This method only works with Arrays with the same data layout." );
     }
 

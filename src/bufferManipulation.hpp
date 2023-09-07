@@ -51,7 +51,7 @@ inline std::ostream & operator<<( std::ostream & os, MemorySpace const space )
   if( space == MemorySpace::sycl )
     return os << "sycl";
 
-  LVARRAY_ERROR( "Unrecognized memory space " << static_cast< int >( space ) );
+  LVARRAY_ERROR( "Unrecognized memory space %i", static_cast< int >( space ) );
   return os;
 }
 
@@ -89,7 +89,7 @@ struct VoidBuffer
   {
     LVARRAY_UNUSED_VARIABLE( size );
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "%s", "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -102,7 +102,7 @@ struct VoidBuffer
   void move( MemorySpace const space, bool const touch ) const
   {
     LVARRAY_UNUSED_VARIABLE( touch );
-    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." );
+    LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "%s", "This Buffer type can only be used on the CPU." );
   }
 
   /**
@@ -119,7 +119,7 @@ struct VoidBuffer
    *   occurs if you try to move it to a different space.
    */
   void registerTouch( MemorySpace const space ) const
-  { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "This Buffer type can only be used on the CPU." ); }
+  { LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "%s", "This Buffer type can only be used on the CPU." ); }
 
   /**
    * @tparam The type of the owning object.

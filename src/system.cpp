@@ -444,7 +444,7 @@ std::function< void() > * s_errorHandler = nullptr;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setErrorHandler( std::function< void() > const & handler )
 {
-  LVARRAY_ERROR_IF( handler == nullptr, "Error handler cannot be null." );
+  LVARRAY_ERROR_IF( handler == nullptr, "%s", "Error handler cannot be null." );
   if( s_errorHandler != nullptr )
   {
     delete s_errorHandler;

@@ -392,7 +392,7 @@ public:
   inline void zero() const
   {
   #if !defined( LVARRAY_USE_UMPIRE )
-    LVARRAY_ERROR_IF_NE_MSG( m_entries.getPreviousSpace(), MemorySpace::host, "Without Umpire only host memory is supported." );
+    LVARRAY_ERROR_IF_NE_MSG( m_entries.getPreviousSpace(), MemorySpace::host, "%s", "Without Umpire only host memory is supported." );
   #endif
 
     if( m_entries.capacity() > 0 )
@@ -635,7 +635,7 @@ public:
     {
       LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef LVARRAY_BOUNDS_CHECK
-      LVARRAY_ERROR_IF_GT_MSG( m_rowNNZ + nToAdd, m_rowCapacity, "CRSMatrixView cannot do reallocation." );
+      LVARRAY_ERROR_IF_GT_MSG( m_rowNNZ + nToAdd, m_rowCapacity, "%s", "CRSMatrixView cannot do reallocation." );
 #else
       LVARRAY_DEBUG_VAR( nToAdd );
 #endif

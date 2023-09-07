@@ -36,7 +36,7 @@
  */
 #define ARRAYOFARRAYS_CHECK_BOUNDS( i ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size(), \
-                    "Bounds Check Failed: i=" << i << " size()=" << this->size() )
+                    "Bounds Check Failed: i=%i size()=%i", i, this->size() )
 
 /**
  * @brief Check that @p i is a valid array index and that @p j is a valid index into that array.
@@ -47,8 +47,7 @@
 #define ARRAYOFARRAYS_CHECK_BOUNDS2( i, j ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
                     !arrayManipulation::isPositive( j ) || j >= this->m_sizes[ i ], \
-                    "Bounds Check Failed: i=" << i << " size()=" << this->size() << \
-                    " j=" << j << " m_sizes[ i ]=" << this->m_sizes[ i ] )
+                    "Bounds Check Failed: i=%i size()=%i j=%i m_sizes[ i ]=%i", i, this->size(), j, this->m_sizes[ i ] )
 
 /**
  * @brief Check that @p i is a valid index to insert an array at.
@@ -57,7 +56,7 @@
  */
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS( i ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i > this->size(), \
-                    "Insert Bounds Check Failed: i=" << i << " size()=" << this->size() )
+                    "Insert Bounds Check Failed: i=%i size()=%i", i, this->size() )
 
 /**
  * @brief Check that @p i is a valid array index and that @p j is a valid insertion index into that array.
@@ -68,8 +67,8 @@
 #define ARRAYOFARRAYS_CHECK_INSERT_BOUNDS2( i, j ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( i ) || i >= this->size() || \
                     !arrayManipulation::isPositive( j ) || j > this->sizeOfArray( i ), \
-                    "Insert Bounds Check Failed: i=" << i << " size()=" << this->size() << \
-                    " j=" << j << " sizeOfArray( i )=" << this->sizeOfArray( i ) )
+                    "Insert Bounds Check Failed: i=%i size()=%i j=%i sizeOfArray( i )=%i", \
+                    i, this->size(), j, this->sizeOfArray( i ) )
 
 /**
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
@@ -79,9 +78,8 @@
  */
 #define ARRAYOFARRAYS_CAPACITY_CHECK( i, increase ) \
   LVARRAY_ERROR_IF( this->sizeOfArray( i ) + increase > this->capacityOfArray( i ), \
-                    "Capacity Check Failed: i=" << i << " increase=" << increase << \
-                    " sizeOfArray( i )=" << this->sizeOfArray( i ) << " capacityOfArray( i )=" << \
-                    this->capacityOfArray( i ) )
+                    "Capacity Check Failed: i=%i increase=%i sizeOfArray( i )=%i capacityOfArray( i )=%i", \
+                    i, increase, this->sizeOfArray( i ), this->capacityOfArray( i ) )
 
 /**
  * @brief Check that the capacity of array @p i isn't exceeded when the size is increased by @p increase.
@@ -92,9 +90,8 @@
  */
 #define ARRAYOFARRAYS_ATOMIC_CAPACITY_CHECK( i, previousSize, increase ) \
   LVARRAY_ERROR_IF( previousSize + increase > this->capacityOfArray( i ), \
-                    "Capacity Check Failed: i=" << i << " increase=" << increase << \
-                    " sizeOfArray( i )=" << previousSize << " capacityOfArray( i )=" << \
-                    this->capacityOfArray( i ) )
+                    "Capacity Check Failed: i=%i increase=%i sizeOfArray( i )=%i capacityOfArray( i )=%i", \
+                    i, increase, previousSize, this->capacityOfArray( i ) )
 
 #else // LVARRAY_BOUNDS_CHECK
 

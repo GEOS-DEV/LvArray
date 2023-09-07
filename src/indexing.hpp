@@ -206,7 +206,7 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
-{ LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); }
+{ LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. %s", printDimsAndIndices( dims, indices ... ).c_str() ); }
 
 /**
  * @brief Calculate the strides given the dimensions and permutation.

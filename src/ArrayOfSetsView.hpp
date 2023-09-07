@@ -214,7 +214,7 @@ public:
       T * const setValues = getSetValues( i );
       INDEX_TYPE const numValues = sizeOfSet( i );
       LVARRAY_ERROR_IF( !sortedArrayManipulation::isSortedUnique( setValues, setValues + numValues ),
-                        "Values should be sorted and unique!" );
+                        "%s", "Values should be sorted and unique!" );
     }
   }
 
@@ -496,7 +496,7 @@ public:
       LVARRAY_UNUSED_VARIABLE( curPtr );
 #ifdef LVARRAY_BOUNDS_CHECK
       LVARRAY_ERROR_IF_GT_MSG( m_aos.sizeOfSet( m_indexOfSet ) + nToAdd, m_aos.capacityOfSet( m_indexOfSet ),
-                               "ArrayOfSetsView cannot do reallocation." );
+                               "%s", "ArrayOfSetsView cannot do reallocation." );
 #else
       LVARRAY_DEBUG_VAR( nToAdd );
 #endif

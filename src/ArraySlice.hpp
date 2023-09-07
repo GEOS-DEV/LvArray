@@ -54,7 +54,7 @@ DEFINE_GDB_PY_SCRIPT( "scripts/gdb-printers.py" )
  */
 #define ARRAY_SLICE_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= m_dims[ 0 ], \
-                    "Array Bounds Check Failed: index=" << index << " m_dims[0]=" << m_dims[0] )
+                    "Array Bounds Check Failed: index=%i m_dims[0]=%i", index, m_dims[0] )
 
 #else // LVARRAY_BOUNDS_CHECK
 
@@ -319,7 +319,7 @@ public:
   {
     // Note: need both compile-time and runtime checks as USD >= 0 does not guarantee contiguous data.
     static_assert( USD_ >= 0, "Direct data access not supported for non-contiguous slices" );
-    LVARRAY_ERROR_IF( !isContiguous(), "Direct data access not supported for non-contiguous slices" );
+    LVARRAY_ERROR_IF( !isContiguous(), "%s", "Direct data access not supported for non-contiguous slices" );
     return m_data;
   }
 

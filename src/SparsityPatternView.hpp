@@ -27,7 +27,7 @@
  */
 #define SPARSITYPATTERN_COLUMN_CHECK( col ) \
   LVARRAY_ERROR_IF( !arrayManipulation::isPositive( col ) || col >= this->numColumns(), \
-                    "Column Check Failed: col=" << col << " numColumns=" << this->numColumns() )
+                    "Column Check Failed: col=%i numColumns=%i", col, this->numColumns() )
 
 #else // LVARRAY_BOUNDS_CHECK
 
@@ -439,10 +439,10 @@ protected:
                INDEX_TYPE_NC initialRowCapacity,
                BUFFERS & ... buffers )
   {
-    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nrows ), "nrows must be positive." );
-    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( ncols ), "ncols must be positive." );
+    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( nrows ), "%s", "nrows must be positive." );
+    LVARRAY_ERROR_IF( !arrayManipulation::isPositive( ncols ), "%s", "ncols must be positive." );
     LVARRAY_ERROR_IF( ncols - 1 > std::numeric_limits< COL_TYPE >::max(),
-                      "COL_TYPE must be able to hold the range of columns: [0, " << ncols - 1 << "]." );
+                      "COL_TYPE must be able to hold the range of columns: [0, %i]", ncols - 1 );
 
     m_numCols = ncols;
     ParentClass::resizeImpl( nrows, initialRowCapacity, buffers ... );

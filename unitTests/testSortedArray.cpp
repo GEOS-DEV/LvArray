@@ -361,7 +361,7 @@ public:
     ViewType const view = m_set.toView();
     forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          LVARRAY_ERROR_IF( view[ i ] != T( i ), "Values changed when moved." );
+          LVARRAY_ERROR_IF( view[ i ] != T( i ), "%s", "Values changed when moved." );
         } );
 
     // Change the values.
@@ -401,7 +401,7 @@ public:
     T const * const devicePointer = m_set.data();
     forall< POLICY >( size, [devicePointer] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          LVARRAY_ERROR_IF( devicePointer[ i ] != T( i ), "Values changed when moved." );
+          LVARRAY_ERROR_IF( devicePointer[ i ] != T( i ), "%s", "Values changed when moved." );
         } );
 
     // Change the values.
@@ -437,8 +437,8 @@ public:
     ViewType const view = m_set.toView();
     forall< POLICY >( size, [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "view should contain even numbers." );
-          LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "view should not contain odd numbers." );
+          LVARRAY_ERROR_IF( !view.contains( T( 2 * i )), "%s", "view should contain even numbers." );
+          LVARRAY_ERROR_IF( view.contains( T( 2 * i + 1 )), "%s", "view should not contain odd numbers." );
         } );
   }
 

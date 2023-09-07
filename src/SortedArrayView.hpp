@@ -26,7 +26,7 @@
  */
 #define SORTEDARRAY_CHECK_BOUNDS( index ) \
   LVARRAY_ERROR_IF( index < 0 || index >= size(), \
-                    "Array Bounds Check Failed: index=" << index << " size()=" << size())
+                    "Array Bounds Check Failed: index=%i size()=%i", index, size())
 
 #else // LVARRAY_BOUNDS_CHECK
 

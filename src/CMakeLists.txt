@@ -45,6 +45,7 @@ set( lvarray_headers
 blt_list_append( TO lvarray_headers ELEMENTS ChaiBuffer.hpp IF ENABLE_CHAI )
 
 set( lvarray_sources
+     Macros.cpp
      system.cpp
 #     totalview/tv_data_display.c
      umpireInterface.cpp )

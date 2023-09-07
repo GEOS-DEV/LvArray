@@ -697,7 +697,7 @@ public:
           T * const entries = view.getEntries( row );
           for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
-            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "Invalid column." );
+            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "%s", "Invalid column." );
             entries[ i ] = T( 2 * i + 7 );
           }
         } );
@@ -738,8 +738,8 @@ public:
           T const * const entries = view.getEntries( row );
           for( IndexType i = 0; i < view.numNonZeros( row ); ++i )
           {
-            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "Invalid column." );
-            LVARRAY_ERROR_IF( entries[ i ] != T( columns[ i ] ), "Incorrect value." );
+            LVARRAY_ERROR_IF( !arrayManipulation::isPositive( columns[ i ] ) || columns[ i ] >= numCols, "%s", "Invalid column." );
+            LVARRAY_ERROR_IF( entries[ i ] != T( columns[ i ] ), "%s", "Incorrect value." );
           }
         }
                       );
