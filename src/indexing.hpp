@@ -128,7 +128,7 @@ INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, IN
 
 /// @return A string representing an empty set of indices.
 inline
-std::string getIndexString()
+char const * getIndexString()
 { return "{}"; }
 
 /**

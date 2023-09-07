@@ -117,8 +117,6 @@
  *       guaranteed. In fact it is only guaranteed to abort the current kernel.
  */
 
-void eprint(char const * format, ...);
-
 #if defined(LVARRAY_DEVICE_COMPILE)
 //   #if defined(__HIP_DEVICE_COMPILE__)
 // // empty impl to avoid the possibility of printfs in device code
@@ -130,7 +128,7 @@ void eprint(char const * format, ...);
   {                                                 \
     if( EXP )                                       \
     {                                               \
-      eprint(MSG, __VA_ARGS__);                     \
+      printf(MSG, __VA_ARGS__);                     \
       assert( false && "EXP = " STRINGIZE( EXP ) ); \
     }                                               \
   } while( false )
@@ -140,7 +138,7 @@ void eprint(char const * format, ...);
   {                                                                                     \
     if( EXP )                                                                           \
     {                                                                                   \
-      eprint( "***** ERROR\n"                                                           \
+      printf( "***** ERROR\n"                                                           \
               "***** LOCATION: " LOCATION "\n"                                          \
               "***** Block: [%u, %u, %u]\n"                                             \
               "***** Thread: [%u, %u, %u]\n"                                            \
@@ -158,7 +156,7 @@ void eprint(char const * format, ...);
   {                                                                                      \
     if( EXP )                                                                            \
     {                                                                                    \
-      eprint( "***** ERROR\n***** LOCATION: " LOCATION "\n"                              \
+      printf( "***** ERROR\n***** LOCATION: " LOCATION "\n"                              \
               "***** Controlling expression (should be false): " STRINGIZE( EXP )        \
               "***** MSG: " STRINGIZE( MSG ) "\n\n", __VA_ARGS__ );                      \
       std::cout << LvArray::system::stackTrace( true ) << std::endl;                     \
@@ -201,7 +199,7 @@ void eprint(char const * format, ...);
   {                                                                   \
     if( EXP )                                                         \
     {                                                                 \
-      eprint( "***** LOCATION: " LOCATION "\n"                        \
+      printf( "***** LOCATION: " LOCATION "\n"                        \
               "***** Controlling expression (should be false): "      \
               STRINGIZE( EXP ) "\n"                                   \
               "***** MSG: " STRINGIZE( MSG ) "\n\n", __VA_ARGS__ );   \
@@ -227,7 +225,7 @@ void eprint(char const * format, ...);
 #define LVARRAY_WARNING_IF( EXP, MSG, ... )                              \
   do                                                                     \
   {                                                                      \
-    if( EXP ) eprint( "***** WARNING\n"                                  \
+    if( EXP ) printf( "***** WARNING\n"                                  \
                       "***** LOCATION: " LOCATION "\n"                   \
                       "***** Controlling expression (should be false): " \
                       STRINGIZE( EXP ) "\n"                              \
@@ -248,7 +246,7 @@ void eprint(char const * format, ...);
 #define LVARRAY_INFO_IF( EXP, MSG, ... )               \
   do                                                   \
   {                                                    \
-    if( EXP ) eprint( "***** INFO\n"                   \
+    if( EXP ) printf( "***** INFO\n"                   \
                       "***** LOCATION: " LOCATION "\n" \
                       "***** Controlling expression: " \
                       STRINGIZE( EXP ) "\n"            \
@@ -270,7 +268,7 @@ void eprint(char const * format, ...);
  * @param msg The message to diplay.
  */
 #define LVARRAY_ERROR_IF_OP_MSG( lhs, OP, NOP, rhs, msg, ... ) \
-  LVARRAY_ERROR_IF( lhs OP rhs, "%s\nExpected #lhs %i #rhs\n#lhs = %i\n#rhs = %i\n", msg, __VA_ARGS__, STRINGIZE(NOP), lhs, rhs )
+  LVARRAY_ERROR_IF( lhs OP rhs, msg "\nExpected #lhs %s #rhs\n#lhs = %i\n#rhs = %i\n", __VA_ARGS__, STRINGIZE(NOP), lhs, rhs )
 
 /**
  * @brief Throw an exception if @p lhs @p OP @p rhs.
@@ -282,7 +280,7 @@ void eprint(char const * format, ...);
  * @param TYPE the type of exception to throw.
  */
 #define LVARRAY_THROW_IF_OP_EXC_MSG( lhs, OP, NOP, rhs, TYPE, msg, ... ) \
-  LVARRAY_THROW_IF( TYPE, lhs OP rhs, "%s\nExpected #lhs %i #rhs\n#lhs = %i\n#rhs = %i\n", msg, STRINGIZE(NOP), lhs, rhs )
+  LVARRAY_THROW_IF( TYPE, lhs OP rhs, msg "\nExpected #lhs %s #rhs\n#lhs = %i\n#rhs = %i\n", STRINGIZE(NOP), lhs, rhs )
 
 /**
  * @brief Raise a hard error if two values are equal.
