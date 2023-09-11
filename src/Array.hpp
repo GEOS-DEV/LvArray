@@ -473,6 +473,16 @@ public:
   }
 
   /**
+   * @brief Frees the buffer from the given memory space.
+   * @param space The memory space from which the Array is freed.
+   * @note When freeing from device, move data to host if not valid and register host as the last valid space.
+   */
+  LVARRAY_HOST_DEVICE
+  void free( MemorySpace const space ) 
+  { bufferManipulation::free( this->m_dataBuffer, this->size(), space ); }
+
+
+  /**
    * @brief Set the default resize dimension.
    * @param index The new default dimension.
    */

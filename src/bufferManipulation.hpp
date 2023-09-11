@@ -181,23 +181,30 @@ void checkInsert( BUFFER const & buf, std::ptrdiff_t const size, std::ptrdiff_t 
  * @tparam BUFFER the buffer type.
  * @param buf The buffer to free.
  * @param size The size of the buffer.
+ * @param space The space from which the buffer is freed
  */
 DISABLE_HD_WARNING
 template< typename BUFFER >
 LVARRAY_HOST_DEVICE
-void free( BUFFER & buf, std::ptrdiff_t const size )
+void free( BUFFER & buf, std::ptrdiff_t const size, MemorySpace const space = MemorySpace::host )
 {
   using T = typename BUFFER::value_type;
-
-  check( buf, size );
-
-  if( !std::is_trivially_destructible< T >::value )
+  if( space == MemorySpace::host)
   {
-    buf.move( MemorySpace::host, true );
-    arrayManipulation::destroy( buf.data(), size );
-  }
+    check( buf, size );
 
-  buf.free();
+    if( !std::is_trivially_destructible< T >::value )
+    {
+      buf.move( MemorySpace::host, true );
+      arrayManipulation::destroy( buf.data(), size );
+    }
+
+    buf.free();
+  }
+  else if( space == MemorySpace::cuda || space == MemorySpace::hip )
+  {
+    buf.freeOnDevice();
+  } 
 }
 
 /**
