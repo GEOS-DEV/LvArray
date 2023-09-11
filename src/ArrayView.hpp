@@ -690,14 +690,6 @@ public:
   void move( MemorySpace const space, bool const touch=true ) const
   { m_dataBuffer.moveNested( space, size(), touch ); }
 
-  /**
-   * Move data to host if not valid and register host as the last valid space and free data on device.
-   */
-  void freeOnDevice() const
-  {
-    m_dataBuffer.freeOnDevice();
-  }
-
   ///@}
 
 #if defined(LVARRAY_USE_TOTALVIEW_OUTPUT) && !defined(__CUDA_ARCH__)
