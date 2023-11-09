@@ -1,0 +1,7 @@
+#pragma once
+
+#cmakedefine JITTI_TEST_OUTPUT_DIR "@JITTI_TEST_OUTPUT_DIR@"
+
+#cmakedefine JITTI_CXX_COMPILER "@JITTI_CXX_COMPILER@"
+
+#cmakedefine JITTI_LINKER "@JITTI_LINKER@"
