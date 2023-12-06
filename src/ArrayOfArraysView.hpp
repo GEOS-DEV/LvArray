@@ -893,7 +893,7 @@ protected:
 
         if( buffer.capacity() > totalCapacity )
         {
-          // If the buffer has enough capacity then all we need to do is shift the sub-arrays around. 
+          // If the buffer has enough capacity then all we need to do is shift the sub-arrays around.
           for( INDEX_TYPE array = m_numArrays - 1; array > i; --array )
           {
             INDEX_TYPE const curArraySize = sizeOfArray( array );
@@ -905,7 +905,7 @@ protected:
         {
           // Otherwise we create a new buffer with enough capacity and move the values over.
           // We create a new buffer to avoid moving from uninitialized values, this should also be faster.
-          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true ); 
+          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
           bufferManipulation::dynamicReserve( newBuffer, 0, totalCapacity );
 
           for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
