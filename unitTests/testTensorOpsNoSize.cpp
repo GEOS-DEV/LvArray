@@ -63,8 +63,8 @@ public:
 
   void testInit2()
   {
-    ArrayViewT< T const, 2, 1 > const vectorA2_IJ = m_vectorA2_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA2_JI = m_vectorA2_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorA2_IJ = m_vectorA2_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorA2_JI = m_vectorA2_JI.toViewConst();
     T const ( &vectorA2_local )[ 2 ] = m_vectorA2_local;
 
     forall< POLICY >( 1, [vectorA2_IJ, vectorA2_JI, vectorA2_local] LVARRAY_HOST_DEVICE ( int )
@@ -91,8 +91,8 @@ public:
 
   void testInit3()
   {
-    ArrayViewT< T const, 2, 1 > const vectorA3_IJ = m_vectorA3_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA3_JI = m_vectorA3_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorA3_IJ = m_vectorA3_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorA3_JI = m_vectorA3_JI.toViewConst();
     T const ( &vectorA3_local )[ 3 ] = m_vectorA3_local;
 
     forall< POLICY >( 1, [vectorA3_IJ, vectorA3_JI, vectorA3_local] LVARRAY_HOST_DEVICE ( int )
@@ -119,8 +119,8 @@ public:
 
   void testInit6()
   {
-    ArrayViewT< T const, 2, 1 > const vectorA6_IJ = m_vectorA6_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorA6_JI = m_vectorA6_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorA6_IJ = m_vectorA6_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorA6_JI = m_vectorA6_JI.toViewConst();
     T const ( &vectorA6_local )[ 6 ] = m_vectorA6_local;
 
     forall< POLICY >( 1, [vectorA6_IJ, vectorA6_JI, vectorA6_local] LVARRAY_HOST_DEVICE ( int )
@@ -147,9 +147,9 @@ public:
 
   void testInit2x2()
   {
-    ArrayViewT< T, 3, 2 > const matrixA2_IJK = m_matrixA2_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA2_IKJ = m_matrixA2_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA2_KJI = m_matrixA2_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA2_IJK = m_matrixA2_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA2_IKJ = m_matrixA2_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA2_KJI = m_matrixA2_KJI.toView();
     T const ( &matrixA2_local )[ 2 ][ 2 ] = m_matrixA2_local;
 
     forall< POLICY >( 1, [matrixA2_IJK, matrixA2_IKJ, matrixA2_KJI, matrixA2_local] LVARRAY_HOST_DEVICE ( int )
@@ -202,9 +202,9 @@ public:
 
   void testInit3x3()
   {
-    ArrayViewT< T, 3, 2 > const matrixA3_IJK = m_matrixA3_IJK.toView();
-    ArrayViewT< T, 3, 1 > const matrixA3_IKJ = m_matrixA3_IKJ.toView();
-    ArrayViewT< T, 3, 0 > const matrixA3_KJI = m_matrixA3_KJI.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IJK > const matrixA3_IJK = m_matrixA3_IJK.toView();
+    ArrayViewT< T, 3, RAJA::PERM_IKJ > const matrixA3_IKJ = m_matrixA3_IKJ.toView();
+    ArrayViewT< T, 3, RAJA::PERM_KJI > const matrixA3_KJI = m_matrixA3_KJI.toView();
     T const ( &matrixA3_local )[ 3 ][ 3 ] = m_matrixA3_local;
 
     forall< POLICY >( 1, [matrixA3_IJK, matrixA3_IKJ, matrixA3_KJI, matrixA3_local] LVARRAY_HOST_DEVICE ( int )
@@ -262,15 +262,15 @@ public:
     result[ 1 ] = m_vectorB3_local[ 2 ] * m_vectorC3_local[ 0 ] - m_vectorB3_local[ 0 ] * m_vectorC3_local[ 2 ];
     result[ 2 ] = m_vectorB3_local[ 0 ] * m_vectorC3_local[ 1 ] - m_vectorB3_local[ 1 ] * m_vectorC3_local[ 0 ];
 
-    ArrayViewT< T, 2, 1 > const vectorA3_IJ = m_vectorA3_IJ.toView();
-    ArrayViewT< T, 2, 0 > const vectorA3_JI = m_vectorA3_JI.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const vectorA3_IJ = m_vectorA3_IJ.toView();
+    ArrayViewT< T, 2, RAJA::PERM_JI > const vectorA3_JI = m_vectorA3_JI.toView();
 
-    ArrayViewT< T const, 2, 1 > const vectorB3_IJ = m_vectorB3_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorB3_JI = m_vectorB3_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorB3_IJ = m_vectorB3_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorB3_JI = m_vectorB3_JI.toViewConst();
     T const ( &vectorB3_local )[ 3 ] = m_vectorB3_local;
 
-    ArrayViewT< T const, 2, 1 > const vectorC3_IJ = m_vectorC3_IJ.toViewConst();
-    ArrayViewT< T const, 2, 0 > const vectorC3_JI = m_vectorC3_JI.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const vectorC3_IJ = m_vectorC3_IJ.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_JI > const vectorC3_JI = m_vectorC3_JI.toViewConst();
     T const ( &vectorC3_local )[ 3 ] = m_vectorC3_local;
 
     std::ptrdiff_t const aSeed = m_seedVectorA3;

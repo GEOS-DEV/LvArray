@@ -80,9 +80,9 @@ public:
   {
     FLOAT const tol = tolerance();
 
-    ArrayViewT< T const, 2, 1 > const matrices = m_matrices.toViewConst();
-    ArrayViewT< FLOAT, 2, 1 > const eigenvalues = m_eigenvalues.toView();
-    ArrayViewT< FLOAT, 3, 2 > const eigenvectors = m_eigenvectors.toView();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const matrices = m_matrices.toViewConst();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_IJ > const eigenvalues = m_eigenvalues.toView();
+    ArrayViewT< FLOAT, 3, RAJA::PERM_IJK > const eigenvectors = m_eigenvectors.toView();
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( std::ptrdiff_t const i )
         {
           FLOAT eigenvaluesOnly[ M ];
@@ -100,10 +100,10 @@ public:
     FLOAT const tol = ( iteration == 0 ) ? tolerance() : reducedTolerance();
     std::vector< double > relativeDiffs;
 
-    ArrayViewT< T const, 2, 1 > const matrices = m_matrices.toViewConst();
-    ArrayViewT< FLOAT const, 2, 1 > const eigenvalues = m_eigenvalues.toViewConst();
-    ArrayViewT< FLOAT, 2, 1 > const expectedEigenvalues = m_expectedEigenvalues.toView();
-    ArrayViewT< FLOAT const, 3, 2 > const eigenvectors = m_eigenvectors.toViewConst();
+    ArrayViewT< T const, 2, RAJA::PERM_IJ > const matrices = m_matrices.toViewConst();
+    ArrayViewT< FLOAT const, 2, RAJA::PERM_IJ > const eigenvalues = m_eigenvalues.toViewConst();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_IJ > const expectedEigenvalues = m_expectedEigenvalues.toView();
+    ArrayViewT< FLOAT const, 3, RAJA::PERM_IJK > const eigenvectors = m_eigenvectors.toViewConst();
     forall< serialPolicy >( matrices.size( 0 ), [=, &relativeDiffs] ( std::ptrdiff_t const i )
     {
       if( iteration > 0 )
@@ -170,10 +170,10 @@ public:
   // This is done by A = Q \lambda Q^T where Q is the matrix whose columns are the eigenvectors.
   void duplicateEigenvalues()
   {
-    ArrayViewT< T, 2, 1 > const matrices = m_matrices.toView();
-    ArrayViewT< FLOAT, 2, 1 > const eigenvalues = m_eigenvalues.toView();
-    ArrayViewT< FLOAT, 2, 1 > const expectedEigenvalues = m_expectedEigenvalues.toView();
-    ArrayViewT< FLOAT, 3, 2 > const eigenvectors = m_eigenvectors.toView();
+    ArrayViewT< T, 2, RAJA::PERM_IJ > const matrices = m_matrices.toView();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_IJ > const eigenvalues = m_eigenvalues.toView();
+    ArrayViewT< FLOAT, 2, RAJA::PERM_IJ > const expectedEigenvalues = m_expectedEigenvalues.toView();
+    ArrayViewT< FLOAT, 3, RAJA::PERM_IJK > const eigenvectors = m_eigenvectors.toView();
     forall< serialPolicy >( matrices.size( 0 ), [=] ( std::ptrdiff_t const i )
     {
       // Since we're constructing the matrix we know the eigenvalues beforehand.

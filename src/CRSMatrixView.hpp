@@ -241,12 +241,11 @@ public:
    * @param row The row to access.
    */
   LVARRAY_HOST_DEVICE inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getEntries( INDEX_TYPE const row ) const
+  ArraySlice< T, DynamicLayout1D< INDEX_TYPE > > getEntries( INDEX_TYPE const row ) const
   {
     ARRAYOFARRAYS_CHECK_BOUNDS( row );
-    return ArraySlice< T, 1, 0, INDEX_TYPE_NC >( m_entries.data() + this->m_offsets[ row ],
-                                                 &this->m_sizes[ row ],
-                                                 nullptr );
+    return ArraySlice< T, DynamicLayout1D< INDEX_TYPE > >( m_entries.data() + this->m_offsets[ row ],
+                                                            makeLayout( makeExtent( this->m_sizes[ row ] ) ) );
   }
 
   /**
@@ -372,7 +371,7 @@ public:
                             [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const row )
       {
         INDEX_TYPE const nnz = view.numNonZeros( row );
-        ArraySlice< T, 1, 0, INDEX_TYPE_NC > const entries = view.getEntries( row );
+        ArraySlice< T, DynamicLayout1D< INDEX_TYPE_NC > > const entries = view.getEntries( row );
 
         for( INDEX_TYPE_NC i = 0; i < nnz; ++i )
         { entries[ i ] = value; }

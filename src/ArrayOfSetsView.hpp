@@ -230,7 +230,7 @@ public:
    * @param i The set to access.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T const, 1, 0, INDEX_TYPE_NC > operator[]( INDEX_TYPE const i ) const
+  ArraySlice< T const, DynamicLayout1D< INDEX_TYPE_NC > > operator[]( INDEX_TYPE const i ) const
   { return ParentClass::operator[]( i ); }
 
   /**
@@ -343,7 +343,7 @@ protected:
    * @note Protected because it returns a non-const pointer.
    */
   LVARRAY_HOST_DEVICE constexpr inline
-  ArraySlice< T, 1, 0, INDEX_TYPE_NC > getSetValues( INDEX_TYPE const i ) const
+  ArraySlice< T, DynamicLayout1D< INDEX_TYPE_NC > > getSetValues( INDEX_TYPE const i ) const
   { return ParentClass::operator[]( i ); }
 
   /**

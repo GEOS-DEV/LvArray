@@ -20,64 +20,91 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T, typename PERMUTATION >
-using ArrayT = Array< T, typeManipulation::getDimension< PERMUTATION >, PERMUTATION, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayT = Array< T, DynamicExtent< typeManipulation::getDimension< PERMUTATION >, INDEX_TYPE >, PERMUTATION, DEFAULT_BUFFER >;
+
+//template< typename T >
+//void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const slice )
+//{
+//  INDEX_TYPE offset = 0;
+//  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
+//  {
+//    EXPECT_EQ( slice( i ), offset++ );
+//  }
+//}
+//
+//template< typename T, int USD >
+//void check( ArraySlice< T const, 2, USD, INDEX_TYPE > const slice )
+//{
+//  INDEX_TYPE offset = 0;
+//  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
+//  {
+//    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
+//    {
+//      EXPECT_EQ( slice( i, j ), offset++ );
+//    }
+//  }
+//}
+//
+//template< typename T, int USD >
+//void check( ArraySlice< T const, 3, USD, INDEX_TYPE > const slice )
+//{
+//  INDEX_TYPE offset = 0;
+//  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
+//  {
+//    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
+//    {
+//      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
+//      {
+//        EXPECT_EQ( slice( i, j, k ), offset++ );
+//      }
+//    }
+//  }
+//}
+//
+//template< typename T, int USD >
+//void check( ArraySlice< T const, 4, USD, INDEX_TYPE > const slice )
+//{
+//  INDEX_TYPE offset = 0;
+//  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
+//  {
+//    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
+//    {
+//      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
+//      {
+//        for( INDEX_TYPE l = 0; l < slice.size( 3 ); ++l )
+//        {
+//          EXPECT_EQ( slice( i, j, k, l ), offset++ );
+//        }
+//      }
+//    }
+//  }
+//}
+
+namespace internal
+{
 
 template< typename T >
-void check( ArraySlice< T const, 1, 0, INDEX_TYPE > const slice )
+void check( T value, T & offset )
 {
-  INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
+  EXPECT_EQ( value, offset++ );
+}
+
+template< typename T, typename LAYOUT >
+void check( ArraySlice< T const, LAYOUT > const slice, T & offset )
+{
+  for( typename LAYOUT::IndexType i = 0; i < slice.template size< 0 >(); ++i )
   {
-    EXPECT_EQ( slice( i ), offset++ );
+    check( slice( i ), offset );
   }
 }
 
-template< typename T, int USD >
-void check( ArraySlice< T const, 2, USD, INDEX_TYPE > const slice )
-{
-  INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
-  {
-    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
-    {
-      EXPECT_EQ( slice( i, j ), offset++ );
-    }
-  }
-}
+} // namespace internal
 
-template< typename T, int USD >
-void check( ArraySlice< T const, 3, USD, INDEX_TYPE > const slice )
+template< typename T, typename LAYOUT >
+void check( ArraySlice< T const, LAYOUT > const slice )
 {
-  INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
-  {
-    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
-    {
-      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
-      {
-        EXPECT_EQ( slice( i, j, k ), offset++ );
-      }
-    }
-  }
-}
-
-template< typename T, int USD >
-void check( ArraySlice< T const, 4, USD, INDEX_TYPE > const slice )
-{
-  INDEX_TYPE offset = 0;
-  for( INDEX_TYPE i = 0; i < slice.size( 0 ); ++i )
-  {
-    for( INDEX_TYPE j = 0; j < slice.size( 1 ); ++j )
-    {
-      for( INDEX_TYPE k = 0; k < slice.size( 2 ); ++k )
-      {
-        for( INDEX_TYPE l = 0; l < slice.size( 3 ); ++l )
-        {
-          EXPECT_EQ( slice( i, j, k, l ), offset++ );
-        }
-      }
-    }
-  }
+  T offset = 0;
+  internal::check( slice, offset );
 }
 
 template< typename ARRAY >
@@ -165,61 +192,95 @@ TEST( ForValuesInSlice, scalar )
 }
 
 
-template< typename T, int USD_SRC >
-void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const src,
-                ArraySlice< T const, 1, 0, INDEX_TYPE > const sums )
-{
-  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
-  {
-    T sum {};
-    for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
-    {
-      sum += src( i, j );
-    }
+//template< typename T, int USD_SRC >
+//void checkSums( ArraySlice< T const, 2, USD_SRC, INDEX_TYPE > const src,
+//                ArraySlice< T const, 1, 0, INDEX_TYPE > const sums )
+//{
+//  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
+//  {
+//    T sum {};
+//    for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
+//    {
+//      sum += src( i, j );
+//    }
+//
+//    EXPECT_EQ( sum, sums( j ) );
+//  }
+//}
+//
+//template< typename T, int USD_SRC, int USD_SUMS >
+//void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const src,
+//                ArraySlice< T const, 2, USD_SUMS, INDEX_TYPE > const sums )
+//{
+//  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
+//  {
+//    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
+//    {
+//      T sum {};
+//      for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
+//      {
+//        sum += src( i, j, k );
+//      }
+//
+//      EXPECT_EQ( sum, sums( j, k ) );
+//    }
+//  }
+//}
+//
+//template< typename T, int USD_SRC, int USD_SUMS >
+//void checkSums( ArraySlice< T const, 4, USD_SRC, INDEX_TYPE > const src,
+//                ArraySlice< T const, 3, USD_SUMS, INDEX_TYPE > const sums )
+//{
+//  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
+//  {
+//    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
+//    {
+//      for( INDEX_TYPE l = 0; l < src.size( 3 ); ++l )
+//      {
+//        T sum {};
+//        for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
+//        {
+//          sum += src( i, j, k, l );
+//        }
+//
+//        EXPECT_EQ( sum, sums( j, k, l ) );
+//      }
+//    }
+//  }
+//}
 
-    EXPECT_EQ( sum, sums( j ) );
+namespace internal
+{
+
+template< typename T, typename LAYOUT, std::enable_if_t< LAYOUT::NDIM == 1 >* = nullptr >
+void checkSums( ArraySlice< T const, LAYOUT > const src, T const & sums )
+{
+  T sum {};
+  for( INDEX_TYPE i = 0; i < src.template size< 0 >(); ++i )
+  {
+    sum += src( i );
+  }
+  EXPECT_EQ( sum, sums );
+}
+
+template< typename T, typename LAYOUT, typename LAYOUT_SUMS, std::enable_if_t< LAYOUT::NDIM != 1 >* = nullptr >
+void checkSums( ArraySlice< T const, LAYOUT > const src,
+                ArraySlice< T const, LAYOUT_SUMS > const sums )
+{
+  for( INDEX_TYPE i = 0; i < src.template size< 1 >(); ++i )
+  {
+    internal::checkSums( src( _{}, i ), sums( i ) );
   }
 }
 
-template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 3, USD_SRC, INDEX_TYPE > const src,
-                ArraySlice< T const, 2, USD_SUMS, INDEX_TYPE > const sums )
-{
-  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
-  {
-    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
-    {
-      T sum {};
-      for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
-      {
-        sum += src( i, j, k );
-      }
-
-      EXPECT_EQ( sum, sums( j, k ) );
-    }
-  }
 }
 
-template< typename T, int USD_SRC, int USD_SUMS >
-void checkSums( ArraySlice< T const, 4, USD_SRC, INDEX_TYPE > const src,
-                ArraySlice< T const, 3, USD_SUMS, INDEX_TYPE > const sums )
+template< typename T, typename LAYOUT, typename LAYOUT_SUMS >
+void checkSums( ArraySlice< T const, LAYOUT > const src,
+                ArraySlice< T const, LAYOUT_SUMS > const sums )
 {
-  for( INDEX_TYPE j = 0; j < src.size( 1 ); ++j )
-  {
-    for( INDEX_TYPE k = 0; k < src.size( 2 ); ++k )
-    {
-      for( INDEX_TYPE l = 0; l < src.size( 3 ); ++l )
-      {
-        T sum {};
-        for( INDEX_TYPE i = 0; i < src.size( 0 ); ++i )
-        {
-          sum += src( i, j, k, l );
-        }
-
-        EXPECT_EQ( sum, sums( j, k, l ) );
-      }
-    }
-  }
+  static_assert( LAYOUT_SUMS::NDIM == LAYOUT::NDIM - 1, "Invalid number of dimensions" );
+  internal::checkSums( src, sums );
 }
 
 template< typename ARRAY_PERM_PAIR >

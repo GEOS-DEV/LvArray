@@ -51,7 +51,7 @@ public:
     std::initializer_list< umpire::Allocator > const allocators = { hostPool };
   #endif
 
-    Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array( ChaiBuffer< T >( spaces, allocators ) );
+    Array< int, Extent< int >, RAJA::PERM_I, ChaiBuffer > array( ChaiBuffer< T >( spaces, allocators ) );
     array.resize( 100 );
 
     for( int i = 0; i < array.size(); ++i )
@@ -79,7 +79,7 @@ public:
 #if defined( LVARRAY_USE_CUDA )
   void testCudaDeviceAlloc()
   {
-    Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array;
+    Array< int, Extent< int >, RAJA::PERM_I, ChaiBuffer > array;
 
     array.resizeWithoutInitializationOrDestruction( MemorySpace::cuda, 100 );
 
@@ -99,7 +99,7 @@ public:
 #if defined(LVARRAY_USE_HIP)
   void testHIPDeviceAlloc()
   {
-    Array< int, 1, RAJA::PERM_I, int, ChaiBuffer > array;
+    Array< int, Extent< int >, RAJA::PERM_I, ChaiBuffer > array;
 
     array.resizeWithoutInitializationOrDestruction( MemorySpace::hip, 100 );
 

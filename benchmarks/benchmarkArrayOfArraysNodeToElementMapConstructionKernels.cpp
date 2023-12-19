@@ -15,7 +15,7 @@ namespace benchmarking
 
 // Sphinx start after vector
 void NaiveNodeToElemMapConstruction::
-  vector( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > const & elementToNodeMap,
+  vector( ArrayViewT< INDEX_TYPE const, RAJA::PERM_IJ > const & elementToNodeMap,
           std::vector< std::vector< INDEX_TYPE > > & nodeToElementMap,
           INDEX_TYPE const numNodes )
 {
@@ -33,7 +33,7 @@ void NaiveNodeToElemMapConstruction::
 
 // Sphinx start after naive
 void NaiveNodeToElemMapConstruction::
-  naive( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > const & elementToNodeMap,
+  naive( ArrayViewT< INDEX_TYPE const, RAJA::PERM_IJ > const & elementToNodeMap,
          ArrayOfArrays< INDEX_TYPE, INDEX_TYPE, DEFAULT_BUFFER > & nodeToElementMap,
          INDEX_TYPE const numNodes )
 {
@@ -52,7 +52,7 @@ void NaiveNodeToElemMapConstruction::
 // Sphinx start after overAllocation
 template< typename POLICY >
 void NodeToElemMapConstruction< POLICY >::
-overAllocation( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > const & elementToNodeMap,
+overAllocation( ArrayViewT< INDEX_TYPE const, RAJA::PERM_IJ > const & elementToNodeMap,
                 ArrayOfArrays< INDEX_TYPE, INDEX_TYPE, DEFAULT_BUFFER > & nodeToElementMap,
                 INDEX_TYPE const numNodes,
                 INDEX_TYPE const maxNodeElements )
@@ -83,14 +83,14 @@ overAllocation( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > 
 // Sphinx start after resizeFromCapacities
 template< typename POLICY >
 void NodeToElemMapConstruction< POLICY >::
-resizeFromCapacities( ArrayView< INDEX_TYPE const, 2, 1, INDEX_TYPE, DEFAULT_BUFFER > const & elementToNodeMap,
+resizeFromCapacities( ArrayViewT< INDEX_TYPE const, RAJA::PERM_IJ > const & elementToNodeMap,
                       ArrayOfArrays< INDEX_TYPE, INDEX_TYPE, DEFAULT_BUFFER > & nodeToElementMap,
                       INDEX_TYPE const numNodes )
 {
   using ATOMIC_POLICY = typename RAJAHelper< POLICY >::AtomicPolicy;
 
   // Create an Array containing the size of each inner array.
-  Array< INDEX_TYPE, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER > elementsPerNode( numNodes );
+  Array< INDEX_TYPE, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER > elementsPerNode( numNodes );
 
   // Calculate the size of each inner array.
   RAJA::forall< POLICY >(

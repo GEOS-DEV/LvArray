@@ -31,8 +31,8 @@ struct ToArray
 template< typename U, typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 struct ToArray< U, ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > >
 {
-  using OneD = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
-  using OneDView = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
+  using OneD = Array< U, Extent< INDEX_TYPE >, RAJA::PERM_I, BUFFER_TYPE >;
+  using OneDView = typename OneD::ViewType;
   using AoA = ArrayOfArrays< U, INDEX_TYPE, BUFFER_TYPE >;
 };
 

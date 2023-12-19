@@ -29,10 +29,10 @@ namespace testing
 using INDEX_TYPE = std::ptrdiff_t;
 
 template< typename T >
-using Array1D = Array< T, 1, RAJA::PERM_I, INDEX_TYPE, DEFAULT_BUFFER >;
+using Array1D = Array< T, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, DEFAULT_BUFFER >;
 
 template< typename T >
-using ArrayView1D = ArrayView< T, 1, 0, INDEX_TYPE, DEFAULT_BUFFER >;
+using ArrayView1D = ArrayView< T, DynamicLayout< 1, INDEX_TYPE, RAJA::PERM_I >, DEFAULT_BUFFER >;
 
 template< class T_COMP_POLICY >
 class SingleArrayTest : public ::testing::Test

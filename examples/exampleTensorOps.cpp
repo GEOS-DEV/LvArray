@@ -33,9 +33,8 @@ TEST( tensorOps, AiBi )
   EXPECT_EQ( LvArray::tensorOps::AiBi< 3 >( x, y ), 8 );
 
   LvArray::Array< double,
-                  1,
+                  LvArray::DynamicExtent< 1, std::ptrdiff_t >,
                   camp::idx_seq< 0 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > xArray( 3 );
 
   xArray( 0 ) = 0;
@@ -51,9 +50,8 @@ TEST( tensorOps, AiBi )
 
   // Create a 2D array with fortran layout.
   LvArray::Array< double,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > yArray( 1, 3 );
 
   yArray( 0, 0 ) = 1;
@@ -72,9 +70,8 @@ CUDA_TEST( tensorOps, device )
 {
   // Create an array of 5 3x3 symmetric matrices.
   LvArray::Array< int,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 1, 0 >,
-                  std::ptrdiff_t,
                   LvArray::ChaiBuffer > symmetricMatrices( 5, 6 );
 
   int offset = 0;
@@ -84,9 +81,7 @@ CUDA_TEST( tensorOps, device )
   }
 
   LvArray::ArrayView< int const,
-                      2,
-                      0,
-                      std::ptrdiff_t,
+                      LvArray::DynamicLayout< 2, std::ptrdiff_t, camp::idx_seq< 1, 0 > >,
                       LvArray::ChaiBuffer > symmetricMatricesView = symmetricMatrices.toViewConst();
 
   // The tensorOps methods work on device.
@@ -119,9 +114,8 @@ TEST( tensorOps, boundsCheck )
   // LvArray::tensorOps::normalize< 4 >( x );
 
   LvArray::Array< double,
-                  1,
+                  LvArray::DynamicExtent< 1, std::ptrdiff_t >,
                   camp::idx_seq< 0 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > xArray( 8 );
 
   xArray( 0 ) = 10;
@@ -138,9 +132,8 @@ TEST( tensorOps, boundsCheck )
   // LvArray::tensorOps::normalize< 4 >( matrix );
 
   LvArray::Array< double,
-                  2,
+                  LvArray::DynamicExtent< 2, std::ptrdiff_t >,
                   camp::idx_seq< 0, 1 >,
-                  std::ptrdiff_t,
                   LvArray::MallocBuffer > matrixArray( 2, 2 );
 
   matrixArray( 0, 0 ) = 1;

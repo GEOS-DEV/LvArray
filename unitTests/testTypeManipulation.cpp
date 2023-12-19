@@ -153,10 +153,10 @@ TEST( typeManipulation, is_instantiation_of )
 }
 
 template< typename T, int NDIM, typename PERM >
-using ArrayT = Array< T, NDIM, PERM, std::ptrdiff_t, DEFAULT_BUFFER >;
+using ArrayT = Array< T, DynamicExtent< NDIM, std::ptrdiff_t >, PERM, DEFAULT_BUFFER >;
 
-template< typename T, int NDIM, int USD >
-using ArrayViewT = ArrayView< T, NDIM, USD, std::ptrdiff_t, DEFAULT_BUFFER >;
+template< typename T, int NDIM, typename PERMUTATION >
+using ArrayViewT = ArrayView< T, DynamicLayout< NDIM, std::ptrdiff_t, PERMUTATION >, DEFAULT_BUFFER >;
 
 template< typename T >
 using SortedArrayT = SortedArray< T, std::ptrdiff_t, DEFAULT_BUFFER >;
@@ -218,9 +218,9 @@ using ObjectsThatHaveTheMethods = ::testing::Types<
   ArrayT< int, 3, RAJA::PERM_IJK >
   , ArrayT< std::string, 4, RAJA::PERM_IKLJ >
   , ArrayT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >
-  , ArrayViewT< double, 2, 1 >
-  , ArrayViewT< float const, 4, 2 >
-  , ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >
+  , ArrayViewT< double, 2, RAJA::PERM_IJ >
+  , ArrayViewT< float const, 4, RAJA::PERM_IJLK >
+  , ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ >
   , SortedArrayT< int >
   , SortedArrayT< std::string >
   , SortedArrayViewT< int >
@@ -307,53 +307,53 @@ struct GetViewTypes : public ::testing::Test
 
 using GetViewTypesTypes = ::testing::Types<
   std::tuple< ArrayT< int, 3, RAJA::PERM_IJK >,
-              ArrayViewT< int, 3, 2 >,
-              ArrayViewT< int, 3, 2 >,
-              ArrayViewT< int const, 3, 2 >,
-              ArrayViewT< int, 3, 2 > const,
-              ArrayViewT< int const, 3, 2 > const
+              ArrayViewT< int, 3, RAJA::PERM_IJK >,
+              ArrayViewT< int, 3, RAJA::PERM_IJK >,
+              ArrayViewT< int const, 3, RAJA::PERM_IJK >,
+              ArrayViewT< int, 3, RAJA::PERM_IJK > const,
+              ArrayViewT< int const, 3, RAJA::PERM_IJK > const
               >
   , std::tuple< ArrayT< std::string, 4, RAJA::PERM_IKLJ > const,
-                ArrayViewT< std::string, 4, 1 >,
-                ArrayViewT< std::string, 4, 1 >,
-                ArrayViewT< std::string const, 4, 1 >,
-                ArrayViewT< std::string, 4, 1 > const,
-                ArrayViewT< std::string const, 4, 1 > const
+                ArrayViewT< std::string, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< std::string, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< std::string const, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< std::string, 4, RAJA::PERM_IKLJ > const,
+                ArrayViewT< std::string const, 4, RAJA::PERM_IKLJ > const
                 >
   , std::tuple< ArrayT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
-                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, 0 >,
-                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, 0 >,
-                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I > const, 1, 0 >,
-                ArrayViewT< ArrayViewT< int, 1, 0 > const, 1, 0 > const,
-                ArrayViewT< ArrayViewT< int const, 1, 0 > const, 1, 0 > const
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< int, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayViewT< int, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I > const,
+                ArrayViewT< ArrayViewT< int const, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I > const
                 >
   , std::tuple< ArrayT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
-                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, 0 >,
-                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, 0 >,
-                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I > const, 1, 0 >,
-                ArrayViewT< ArrayViewT< ArrayViewT< int, 2, 0 > const, 1, 0 > const, 1, 0 > const,
-                ArrayViewT< ArrayViewT< ArrayViewT< int const, 2, 0 > const, 1, 0 > const, 1, 0 > const
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I >, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayT< ArrayT< int, 2, RAJA::PERM_JI >, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I >,
+                ArrayViewT< ArrayViewT< ArrayViewT< int, 2, RAJA::PERM_JI > const, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I > const,
+                ArrayViewT< ArrayViewT< ArrayViewT< int const, 2, RAJA::PERM_JI > const, 1, RAJA::PERM_I > const, 1, RAJA::PERM_I > const
                 >
-  , std::tuple< ArrayViewT< double, 2, 1 >,
-                ArrayViewT< double, 2, 1 >,
-                ArrayViewT< double, 2, 1 >,
-                ArrayViewT< double const, 2, 1 >,
-                ArrayViewT< double, 2, 1 > const,
-                ArrayViewT< double const, 2, 1 > const
+  , std::tuple< ArrayViewT< double, 2, RAJA::PERM_IJ >,
+                ArrayViewT< double, 2, RAJA::PERM_IJ >,
+                ArrayViewT< double, 2, RAJA::PERM_IJ >,
+                ArrayViewT< double const, 2, RAJA::PERM_IJ >,
+                ArrayViewT< double, 2, RAJA::PERM_IJ > const,
+                ArrayViewT< double const, 2, RAJA::PERM_IJ > const
                 >
-  , std::tuple< ArrayViewT< char const, 4, 2 > const,
-                ArrayViewT< char const, 4, 2 >,
-                ArrayViewT< char const, 4, 2 >,
-                ArrayViewT< char const, 4, 2 >,
-                ArrayViewT< char const, 4, 2 > const,
-                ArrayViewT< char const, 4, 2 > const
+  , std::tuple< ArrayViewT< char const, 4, RAJA::PERM_IKLJ > const,
+                ArrayViewT< char const, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< char const, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< char const, 4, RAJA::PERM_IKLJ >,
+                ArrayViewT< char const, 4, RAJA::PERM_IKLJ > const,
+                ArrayViewT< char const, 4, RAJA::PERM_IKLJ > const
                 >
-  , std::tuple< ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
-                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
-                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
-                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 >,
-                ArrayViewT< ArrayViewT< std::string, 2, 0 > const, 3, 1 > const,
-                ArrayViewT< ArrayViewT< std::string const, 2, 0 > const, 3, 1 > const
+  , std::tuple< ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ >,
+                ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ >,
+                ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ >,
+                ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ >,
+                ArrayViewT< ArrayViewT< std::string, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ > const,
+                ArrayViewT< ArrayViewT< std::string const, 2, RAJA::PERM_JI > const, 3, RAJA::PERM_IKJ > const
                 >
   , std::tuple< SortedArrayT< float >,
                 SortedArrayViewT< float const >,

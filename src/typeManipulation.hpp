@@ -118,6 +118,18 @@ namespace LvArray
 namespace typeManipulation
 {
 
+template< typename T >
+void printType()
+{
+  static_assert( sizeof( T ) == 0, "Printing type" );
+}
+
+template< typename T >
+void printType( T )
+{
+  static_assert( sizeof( T ) == 0, "Printing type" );
+}
+
 /**
  * @tparam F The type of the function to call.
  * @brief The recursive base case where no argument is provided.
@@ -162,6 +174,22 @@ using all_of = camp::concepts::metalib::all_of< BOOLS ... >;
  */
 template< typename ... TYPES >
 using all_of_t = camp::concepts::metalib::all_of_t< TYPES ... >;
+
+/**
+ * @brief A struct that contains a static constexpr bool value that is true if any of BOOLS are true.
+ * @tparam BOOLS A variadic pack of bool.
+ * @note Not a static constexpr bool so it can be used on device.
+ */
+template< bool ... BOOLS >
+using any_of = camp::concepts::metalib::any_of< BOOLS ... >;
+
+/**
+ * @brief A struct that contains a static constexpr bool value that is true if any of TYPES::value are true.
+ * @tparam TYPES A variadic pack of types all of which define a static constexpr bool value.
+ * @note Not a static constexpr bool so it can be used on device.
+ */
+template< typename ... TYPES >
+using any_of_t = camp::concepts::metalib::any_of_t< TYPES ... >;
 
 /**
  * @tparam TEMPLATE The template to check if @p TYPE is an instantiation of.

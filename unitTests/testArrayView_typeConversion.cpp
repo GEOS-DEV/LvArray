@@ -21,20 +21,20 @@ template< template< typename > class BUFFER_TYPE >
 void testTypeConversion()
 {
   {
-    Array< int, 1, RAJA::PERM_I, int, BUFFER_TYPE > array( 20 );
-    ArrayView< int[ 4 ], 1, 0, int, BUFFER_TYPE > const view4( array );
+    Array< int, DynamicExtent< 1, int >, RAJA::PERM_I, BUFFER_TYPE > array( 20 );
+    ArrayView< int[ 4 ], DynamicLayout< 1, int, RAJA::PERM_I >, BUFFER_TYPE > const view4( array );
 
     EXPECT_EQ( view4.size(), array.size() / 4 );
     EXPECT_EQ( reinterpret_cast< int * >( view4.data() ), array.data() );
 
-    ArrayView< int[ 2 ], 1, 0, int, BUFFER_TYPE > const view2( view4 );
+    ArrayView< int[ 2 ], DynamicLayout< 1, int, RAJA::PERM_I >, BUFFER_TYPE > const view2( view4 );
     EXPECT_EQ( view2.size(), array.size() / 2 );
     EXPECT_EQ( reinterpret_cast< int * >( view2.data() ), array.data() );
   }
 
   {
-    Array< int, 2, RAJA::PERM_IJ, int, BUFFER_TYPE > array( 10, 20 );
-    ArrayView< int[ 4 ], 2, 1, int, BUFFER_TYPE > const view4( array );
+    Array< int, DynamicExtent< 2, int >, RAJA::PERM_IJ, BUFFER_TYPE > array( 10, 20 );
+    ArrayView< int[ 4 ], DynamicLayout< 2, int, RAJA::PERM_IJ >, BUFFER_TYPE > const view4( array );
     EXPECT_EQ( view4.size(), array.size() / 4 );
     EXPECT_EQ( view4.size( 0 ), array.size( 0 ) );
     EXPECT_EQ( view4.size( 1 ), array.size( 1 ) / 4 );
@@ -50,7 +50,7 @@ void testTypeConversion()
       }
     }
 
-    ArrayView< int[ 2 ], 2, 1, int, BUFFER_TYPE > view2( view4 );
+    ArrayView< int[ 2 ], DynamicLayout< 2, int, RAJA::PERM_IJ >, BUFFER_TYPE > view2( view4 );
     EXPECT_EQ( view2.size(), array.size() / 2 );
     EXPECT_EQ( view2.size( 0 ), array.size( 0 ) );
     EXPECT_EQ( view2.size( 1 ), array.size( 1 ) / 2 );
@@ -68,8 +68,8 @@ void testTypeConversion()
   }
 
   {
-    Array< int, 3, RAJA::PERM_KJI, int, BUFFER_TYPE > array( 8, 10, 11 );
-    ArrayView< int[ 4 ], 3, 0, int, BUFFER_TYPE > const view4( array );
+    Array< int, DynamicExtent< 3, int >, RAJA::PERM_KJI, BUFFER_TYPE > array( 8, 10, 11 );
+    ArrayView< int[ 4 ], DynamicLayout< 3, int, RAJA::PERM_KJI >, BUFFER_TYPE > const view4( array );
     EXPECT_EQ( view4.size(), array.size() / 4 );
     EXPECT_EQ( view4.size( 0 ), array.size( 0 ) / 4 );
     EXPECT_EQ( view4.size( 1 ), array.size( 1 ) );
@@ -89,7 +89,7 @@ void testTypeConversion()
       }
     }
 
-    ArrayView< int[ 2 ], 3, 0, int, BUFFER_TYPE > const view2( view4 );
+    ArrayView< int[ 2 ], DynamicLayout< 3, int, RAJA::PERM_KJI >, BUFFER_TYPE > const view2( view4 );
     EXPECT_EQ( view2.size(), array.size() / 2 );
     EXPECT_EQ( view2.size( 0 ), array.size( 0 ) / 2 );
     EXPECT_EQ( view2.size( 1 ), array.size( 1 ) );

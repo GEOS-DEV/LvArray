@@ -55,7 +55,6 @@ struct StringToArrayHelper
    * @param arrayValue A reference to the array value to read in
    * @param inputStream the stream to read a value from
    */
-  template< int NDIM >
   static void Read( T & arrayValue,
                     INDEX_TYPE const *,
                     std::istringstream & inputStream )
@@ -74,9 +73,9 @@ struct StringToArrayHelper
    * @param dims The dimensions of the array.
    * @param inputStream The stream to read from.
    */
-  template< int NDIM, int USD >
+  template< typename LAYOUT >
   static void
-  Read( ArraySlice< T, NDIM, USD, INDEX_TYPE > const arraySlice,
+  Read( ArraySlice< T, LAYOUT > const arraySlice,
         INDEX_TYPE const * const dims,
         std::istringstream & inputStream )
   {
@@ -87,7 +86,7 @@ struct StringToArrayHelper
     for( int i=0; i<(*dims); ++i )
     {
       skipDelimiters( inputStream );
-      Read< NDIM-1 >( arraySlice[i], dims+1, inputStream );
+      Read( arraySlice[i], dims+1, inputStream );
     }
 
     skipDelimiters( inputStream );
@@ -117,13 +116,15 @@ struct StringToArrayHelper
  *   All spaces are stripped prior to processing, please don't use tabs for anything.
  */
 template< typename T,
-          int NDIM,
+          typename EXTENT,
           typename PERMUTATION,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE > & array,
+  template< typename > class BUFFER_TYPE >
+static void stringToArray( Array< T, EXTENT, PERMUTATION, BUFFER_TYPE > & array,
                            std::string valueString )
 {
+  using IndexType = typename Array< T, EXTENT, PERMUTATION, BUFFER_TYPE >::IndexType;
+  constexpr int NDIM = Array< T, EXTENT, PERMUTATION, BUFFER_TYPE >::NDIM;
+
   // Check to make sure there are no space delimited values. The assumption is anything that is not
   // a '{' or '}' or ',' or ' ' is part of a value. Loope over the string and keep track of whether
   // or not there is a value on the left of the char. If there is a value to the left, with a space
@@ -216,10 +217,10 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
   int dimLevel = -1;
 
   // dims is the dimensions that get set the first diving down.
-  INDEX_TYPE dims[NDIM] = {0};
+  IndexType dims[NDIM] = {0};
 
   // currentDims is used to track the dimensions for subsequent dives down the dimensions.
-  INDEX_TYPE currentDims[NDIM] = {0};
+  IndexType currentDims[NDIM] = {0};
 
   // flag to see if the dims value has been set for a given dimension
   bool dimSet[NDIM] = {false};
@@ -304,7 +305,7 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
   }
   std::istringstream strstream( valueString );
   // this recursively reads the values from the stringstream
-  internal::StringToArrayHelper< T, INDEX_TYPE >::Read( array.toSlice(), array.dims(), strstream );
+  internal::StringToArrayHelper< T, IndexType >::Read( array.toSlice(), dims, strstream );
 }
 
 } // namespace input

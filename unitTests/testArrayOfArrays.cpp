@@ -920,11 +920,11 @@ struct ToArray
 template< typename U, typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 struct ToArray< U, ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > >
 {
-  using OneD = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
-  using OneDView = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
+  using OneD = Array< U, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, BUFFER_TYPE >;
+  using OneDView = typename OneD::ViewType;
 
-  using TwoD = Array< U, 2, RAJA::PERM_IJ, INDEX_TYPE, BUFFER_TYPE >;
-  using TwoDView = ArrayView< U, 2, 1, INDEX_TYPE, BUFFER_TYPE >;
+  using TwoD = Array< U, DynamicExtent< 2, INDEX_TYPE >, RAJA::PERM_IJ, BUFFER_TYPE >;
+  using TwoDView = typename TwoD::ViewType;
 };
 
 

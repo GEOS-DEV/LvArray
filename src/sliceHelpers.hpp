@@ -35,19 +35,18 @@ void forValuesInSlice( T & value, LAMBDA && f )
  * @tparam T The type of values stored in @p slice.
  * @tparam NDIM the dimension of @p slice.
  * @tparam USD the unit stride dimension of @p slice.
- * @tparam INDEX_TYPE the integer used to index into @p slice.
  * @tparam LAMBDA the type of the function @p f to apply.
  * @brief Iterate over the values in the slice in lexicographic order.
  * @param slice the slice to iterate over.
  * @param f the function to apply to each value.
  */
 DISABLE_HD_WARNING
-template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
+template< typename T, typename LAYOUT, typename LAMBDA >
 LVARRAY_HOST_DEVICE
-void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, LAMBDA && f )
+void forValuesInSlice( ArraySlice< T, LAYOUT > const slice, LAMBDA && f )
 {
-  INDEX_TYPE const bounds = slice.size( 0 );
-  for( INDEX_TYPE i = 0; i < bounds; ++i )
+  auto const bounds = slice.template size< 0 >();
+  for( typename LAYOUT::IndexType i = 0; i < bounds; ++i )
   {
     forValuesInSlice( slice[ i ], f );
   }
@@ -82,14 +81,14 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
  * @param indices The previous sliced off indices.
  */
 DISABLE_HD_WARNING
-template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
+template< typename T, typename LAYOUT, typename LAMBDA, typename ... INDICES >
 LVARRAY_HOST_DEVICE
-void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice,
+void forValuesInSliceWithIndices( ArraySlice< T, LAYOUT > const slice,
                                   LAMBDA && f,
                                   INDICES const ... indices )
 {
-  INDEX_TYPE const bounds = slice.size( 0 );
-  for( INDEX_TYPE i = 0; i < bounds; ++i )
+  auto const bounds = slice.template size< 0 >();
+  for( typename LAYOUT::IndexType i = 0; i < bounds; ++i )
   {
     forValuesInSliceWithIndices( slice[ i ], f, indices ..., i );
   }
@@ -104,12 +103,12 @@ void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const s
  * @param src The array slice to sum over.
  * @param dst The value to add the sum to.
  */
-template< typename T, int USD_SRC, typename INDEX_TYPE >
-void sumOverFirstDimension( ArraySlice< T const, 1, USD_SRC, INDEX_TYPE > const src,
+template< typename T, typename LAYOUT >
+void sumOverFirstDimension( ArraySlice< T const, LAYOUT > const src,
                             T & dst )
 {
-  INDEX_TYPE const bounds = src.size( 0 );
-  for( INDEX_TYPE i = 0; i < bounds; ++i )
+  auto const bounds = src.template size< 0 >();
+  for( typename LAYOUT::IndexType i = 0; i < bounds; ++i )
   {
     dst += src( i );
   }
@@ -125,18 +124,19 @@ void sumOverFirstDimension( ArraySlice< T const, 1, USD_SRC, INDEX_TYPE > const 
  * @param src The slice to sum over.
  * @param dst The slice to add to.
  */
-template< typename T, int NDIM, int USD_SRC, int USD_DST, typename INDEX_TYPE >
-void sumOverFirstDimension( ArraySlice< T const, NDIM, USD_SRC, INDEX_TYPE > const src,
-                            ArraySlice< T, NDIM - 1, USD_DST, INDEX_TYPE > const dst )
+template< typename T, typename LAYOUT_SRC, typename LAYOUT_DST >
+void sumOverFirstDimension( ArraySlice< T const, LAYOUT_SRC > const src,
+                            ArraySlice< T, LAYOUT_DST > const dst )
 {
+  static_assert(LAYOUT_DST::NDIM == LAYOUT_SRC::NDIM - 1, "Destination slice must have dimension one less than source");
 #ifdef ARRAY_SLICE_CHECK_BOUNDS
-  for( int i = 1; i < NDIM; ++i )
+  tupleManipulation::forEach2( tupleManipulation::drop_front< 1 >( src.layout().extent() ), dst.layout().extent(), []( auto src_size, auto dst_size )
   {
-    LVARRAY_ERROR_IF_NE( src.size( i ), dst.size( i - 1 ) );
-  }
+    LVARRAY_ERROR_IF_NE( src_size, dst_size );
+  } );
 #endif
 
-  forValuesInSliceWithIndices( src, [dst] ( T const & value, INDEX_TYPE const, auto const ... indices )
+  forValuesInSliceWithIndices( src, [dst] ( T const & value, auto, auto const ... indices )
   {
     dst( indices ... ) += value;
   } );

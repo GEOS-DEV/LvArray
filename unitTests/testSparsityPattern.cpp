@@ -34,8 +34,8 @@ struct ToArray1D
 template< typename U, typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 struct ToArray1D< U, SparsityPattern< T, INDEX_TYPE, BUFFER_TYPE > >
 {
-  using array = Array< U, 1, RAJA::PERM_I, INDEX_TYPE, BUFFER_TYPE >;
-  using view = ArrayView< U, 1, 0, INDEX_TYPE, BUFFER_TYPE >;
+  using array = Array< U, DynamicExtent< 1, INDEX_TYPE >, RAJA::PERM_I, BUFFER_TYPE >;
+  using view = typename array::ViewType;
 };
 
 template< typename SPARSITY_PATTERN >
