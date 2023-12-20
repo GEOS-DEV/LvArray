@@ -350,7 +350,7 @@ CUDA_TEST( Array, chaiBuffer )
                       LvArray::ChaiBuffer > const & view = array;
 
   // Capture the view in a host kernel which moves the data back to the host.
-  RAJA::forall< RAJA::loop_exec >(
+  RAJA::forall< RAJA::seq_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, view.size() ),
     [view] ( std::ptrdiff_t const i )
   {
