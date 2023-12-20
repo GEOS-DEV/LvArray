@@ -60,7 +60,7 @@ TEST( ArrayOfSets, assimilate )
 
   // Assimilate arrayOfArrays into arrayOfSets.
   arrayOfSets.assimilate< RAJA::seq_exec >( std::move( arrayOfArrays ),
-                                             LvArray::sortedArrayManipulation::Description::SORTED_UNIQUE );
+                                            LvArray::sortedArrayManipulation::Description::SORTED_UNIQUE );
 
   // After being assimilated arrayOfArrays is empty.
   EXPECT_EQ( arrayOfArrays.size(), 0 );
@@ -85,7 +85,7 @@ TEST( ArrayOfSets, assimilate )
 
   // Assimilate the arrayOfArrays yet again.
   arrayOfSets.assimilate< RAJA::seq_exec >( std::move( arrayOfArrays ),
-                                             LvArray::sortedArrayManipulation::Description::UNSORTED_WITH_DUPLICATES );
+                                            LvArray::sortedArrayManipulation::Description::UNSORTED_WITH_DUPLICATES );
 
   EXPECT_EQ( arrayOfSets.size(), 2 );
   EXPECT_EQ( arrayOfSets.sizeOfSet( 0 ), 2 );
