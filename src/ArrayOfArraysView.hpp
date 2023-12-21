@@ -733,34 +733,11 @@ protected:
   {
     auto const fillOffsets = [&]()
     {
-      LVARRAY_ERROR_IF_LT( capacities[ i ], 0 );
-    }
-  #endif
-
-    destroyValues( 0, m_numArrays, buffers ... );
-
-    bufferManipulation::reserve( m_sizes, m_numArrays, MemorySpace::host, numSubArrays );
-    std::fill_n( m_sizes.data(), numSubArrays, 0 );
-
-    INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    bufferManipulation::reserve( m_offsets, offsetsSize, MemorySpace::host, numSubArrays + 1 );
-
-    m_offsets[ 0 ] = 0;
-    // RAJA::inclusive_scan fails on empty input range
-    if( numSubArrays > 0 )
-    {
-      bufferManipulation::ContainerShim< INDEX_TYPE const > capacitiesShim( capacities, capacities + numSubArrays );
-      bufferManipulation::ContainerShim< INDEX_TYPE > offsetsShim( m_offsets.data() + 1, m_offsets.data() + numSubArrays );
-      // const_cast needed until for RAJA bug.
-      RAJA::inclusive_scan< POLICY >( capacitiesShim, offsetsShim );
-    }
-
-    m_numArrays = numSubArrays;
-    INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-    typeManipulation::forEachArg( [ maxOffset] ( auto & buffer )
-    {
-      bufferManipulation::reserve( buffer, 0, MemorySpace::host, maxOffset );
-    }, m_values, buffers ... );
+      m_offsets[ 0 ] = 0;
+      RAJA::inclusive_scan< POLICY >( RAJA::make_span< INDEX_TYPE const * >( capacities, numSubArrays ),
+                                      RAJA::make_span< INDEX_TYPE * >( m_offsets.data()+1, numSubArrays ) );
+    };
+    resizeFromOffsetsImpl( numSubArrays, fillOffsets, buffers ... );
   }
 
   ///@}
