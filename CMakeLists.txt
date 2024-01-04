@@ -79,6 +79,11 @@ blt_list_append( TO lvarray_dependencies ELEMENTS camp RAJA )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 
+# Ignore umpire warnings as errors by using -isystem flag
+if (ENABLE_UMPIRE)
+    blt_convert_to_system_includes(TARGET umpire)
+endif()
+
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS blt::hip IF ENABLE_HIP )
