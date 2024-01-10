@@ -467,7 +467,7 @@ public:
   {
     bufferManipulation::resize( this->m_dataBuffer, this->size(), 0 );
 
-    this->m_dims[ singleParameterResizeIndex ] = 0;
+    this->m_dims[ ParentClass::singleParameterResizeIndex ] = 0;
 
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
   }
@@ -607,10 +607,10 @@ private:
 
     // If singleParameterResizeIndex is the first dimension in memory than a simple 1D resizing is sufficient. The
     // check if NDIM == 1 is to give the compiler compile time knowledge that this path is always taken for 1D arrays.
-    if( NDIM == 1 || typeManipulation::asArray( PERMUTATION {} )[ 0 ] == singleParameterResizeIndex )
+    if( NDIM == 1 || typeManipulation::asArray( PERMUTATION {} )[ 0 ] == ParentClass::singleParameterResizeIndex )
     {
       INDEX_TYPE const oldSize = this->size();
-      this->m_dims[ singleParameterResizeIndex ] = newDimLength;
+      this->m_dims[ ParentClass::singleParameterResizeIndex ] = newDimLength;
       this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
       bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size(), std::forward< ARGS >( args )... );
@@ -618,12 +618,12 @@ private:
     }
 
     // Get the current length and stride of the dimension as well as the size of the whole Array.
-    INDEX_TYPE const curDimLength = this->m_dims[ singleParameterResizeIndex ];
-    INDEX_TYPE const curDimStride = this->m_strides[ singleParameterResizeIndex ];
+    INDEX_TYPE const curDimLength = this->m_dims[ ParentClass::singleParameterResizeIndex ];
+    INDEX_TYPE const curDimStride = this->m_strides[ ParentClass::singleParameterResizeIndex ];
     INDEX_TYPE const curSize = this->size();
 
     // Set the size of the dimension, recalculate the strides and get the new total size.
-    this->m_dims[ singleParameterResizeIndex ] = newDimLength;
+    this->m_dims[ ParentClass::singleParameterResizeIndex ] = newDimLength;
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
     INDEX_TYPE const newSize = this->size();
