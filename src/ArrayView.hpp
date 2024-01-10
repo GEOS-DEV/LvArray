@@ -745,7 +745,7 @@ protected:
 
   /// this data member specifies the dimension that will be resized as a result of a call to the
   /// single dimension resize method.
-  static constexpr singleParameterResizeIndex = 0;
+  static constexpr int singleParameterResizeIndex = 0;
 };
 
 /**
