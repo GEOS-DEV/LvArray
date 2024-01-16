@@ -189,13 +189,11 @@ public:
    * @brief Construct a new ArrayView from existing components.
    * @param dims The array of dimensions.
    * @param strides The array of strides.
-   * @param singleParameterResizeIndex The single parameter resize index.
    * @param buffer The buffer to copy construct.
    */
   inline LVARRAY_HOST_DEVICE constexpr explicit
   ArrayView( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims,
              typeManipulation::CArray< INDEX_TYPE, NDIM > const & strides,
-             int const LVARRAY_UNUSED_ARG ( singleParameterResizeIndex ),
              BUFFER_TYPE< T > const & buffer ):
     m_dims( dims ),
     m_strides( strides ),
@@ -267,7 +265,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView toView() const &
-  { return ArrayView( m_dims, m_strides, singleParameterResizeIndex, m_dataBuffer ); }
+  { return ArrayView( m_dims, m_strides, m_dataBuffer ); }
 
   /**
    * @return Return a new ArrayView where @c T is @c const.
@@ -277,7 +275,6 @@ public:
   {
     return ViewTypeConst( m_dims,
                           m_strides,
-                          singleParameterResizeIndex,
                           m_dataBuffer );
   }
 
@@ -742,10 +739,6 @@ protected:
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;
-
-  /// this data member specifies the dimension that will be resized as a result of a call to the
-  /// single dimension resize method.
-  static constexpr int singleParameterResizeIndex = 0;
 };
 
 /**

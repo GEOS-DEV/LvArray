@@ -180,7 +180,6 @@ public:
       this->m_strides[ i ] = rhs.m_strides[ i ];
     }
 
-    setSingleParameterResizeIndex( rhs.getSingleParameterResizeIndex() );
     return *this;
   }
 
@@ -202,7 +201,6 @@ public:
       this->m_strides[ i ] = strides[ i ];
     }
 
-    setSingleParameterResizeIndex( rhs.getSingleParameterResizeIndex() );
     return *this;
   }
 
@@ -441,7 +439,6 @@ public:
    * @brief Resize the default dimension of the Array.
    * @param newdim the new size of the default dimension.
    * @note This preserves the values in the Array.
-   * @note The default dimension is given by singleParameterResizeIndex.
    */
   LVARRAY_HOST_DEVICE
   void resize( INDEX_TYPE const newdim )
@@ -452,7 +449,6 @@ public:
    * @param newdim the new size of the default dimension.
    * @param defaultValue the value to initialize the new values with.
    * @note This preserves the values in the Array.
-   * @note The default dimension is given by singleParameterResizeIndex.
    */
   LVARRAY_HOST_DEVICE
   void resizeDefault( INDEX_TYPE const newdim, T const & defaultValue )
@@ -460,14 +456,14 @@ public:
 
   /**
    * @brief Sets the size of the Array to zero and destroys all the values.
-   * @details Sets the size of singleParameterResizeIndex to 0 but leaves the
+   * @details Sets the size of the first dimension to 0 but leaves the
    *  size of the other dimensions untouched. Equivalent to resize( 0 ).
    */
   void clear()
   {
     bufferManipulation::resize( this->m_dataBuffer, this->size(), 0 );
 
-    this->m_dims[ ParentClass::singleParameterResizeIndex ] = 0;
+    this->m_dims[ 0 ] = 0;
 
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
   }
@@ -596,7 +592,6 @@ private:
    * @param newDimLength the new size of the default dimension.
    * @param args arguments to initialize the new values with.
    * @note This preserves the values in the Array.
-   * @note The default dimension is given by singleParameterResizeIndex.
    */
   DISABLE_HD_WARNING
   template< typename ... ARGS >
@@ -605,12 +600,12 @@ private:
   {
     LVARRAY_ERROR_IF_LT( newDimLength, 0 );
 
-    // If singleParameterResizeIndex is the first dimension in memory than a simple 1D resizing is sufficient. The
+    // If the first dimension in memory is 0 then a simple 1D resizing is sufficient. The
     // check if NDIM == 1 is to give the compiler compile time knowledge that this path is always taken for 1D arrays.
-    if( NDIM == 1 || typeManipulation::asArray( PERMUTATION {} )[ 0 ] == ParentClass::singleParameterResizeIndex )
+    if( NDIM == 1 || typeManipulation::asArray( PERMUTATION {} )[ 0 ] == 0 )
     {
       INDEX_TYPE const oldSize = this->size();
-      this->m_dims[ ParentClass::singleParameterResizeIndex ] = newDimLength;
+      this->m_dims[ 0 ] = newDimLength;
       this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
       bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size(), std::forward< ARGS >( args )... );
@@ -618,12 +613,12 @@ private:
     }
 
     // Get the current length and stride of the dimension as well as the size of the whole Array.
-    INDEX_TYPE const curDimLength = this->m_dims[ ParentClass::singleParameterResizeIndex ];
-    INDEX_TYPE const curDimStride = this->m_strides[ ParentClass::singleParameterResizeIndex ];
+    INDEX_TYPE const curDimLength = this->m_dims[ 0 ];
+    INDEX_TYPE const curDimStride = this->m_strides[ 0 ];
     INDEX_TYPE const curSize = this->size();
 
     // Set the size of the dimension, recalculate the strides and get the new total size.
-    this->m_dims[ ParentClass::singleParameterResizeIndex ] = newDimLength;
+    this->m_dims[ 0 ] = newDimLength;
     this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
     INDEX_TYPE const newSize = this->size();
