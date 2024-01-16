@@ -436,8 +436,8 @@ public:
   }
 
   /**
-   * @brief Resize the default dimension of the Array.
-   * @param newdim the new size of the default dimension.
+   * @brief Resize the first dimension of the Array.
+   * @param newdim the new size of the first dimension.
    * @note This preserves the values in the Array.
    */
   LVARRAY_HOST_DEVICE
@@ -445,8 +445,8 @@ public:
   { resizeDefaultDimension( newdim ); }
 
   /**
-   * @brief Resize the default dimension of the Array.
-   * @param newdim the new size of the default dimension.
+   * @brief Resize the first dimension of the Array.
+   * @param newdim the new size of the first dimension.
    * @param defaultValue the value to initialize the new values with.
    * @note This preserves the values in the Array.
    */
