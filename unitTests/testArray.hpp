@@ -43,7 +43,6 @@ public:
   {
     ARRAY array;
     EXPECT_TRUE( array.empty() );
-    EXPECT_EQ( array.getSingleParameterResizeIndex(), 0 );
 
     for( int i = 0; i < NDIM; ++i )
     {
@@ -65,7 +64,6 @@ public:
                                                          [] ( auto const ... args )
     { return std::make_unique< ARRAY >( args ... ); } );
     EXPECT_FALSE( array->empty() );
-    EXPECT_EQ( array->getSingleParameterResizeIndex(), 0 );
 
     INDEX_TYPE totalSize = 1;
     for( int i = 0; i < NDIM; ++i )
@@ -155,17 +153,6 @@ public:
     array.reset();
 
     compare( copy, movedCopy );
-  }
-
-  static void getSetSingleParameterResizeIndex()
-  {
-    std::unique_ptr< ARRAY > array = sizedConstructor();
-
-    for( int dim = 0; dim < NDIM; ++dim )
-    {
-      array->setSingleParameterResizeIndex( dim );
-      EXPECT_EQ( array->getSingleParameterResizeIndex(), dim );
-    }
   }
 
   static void resizeFromPointer()
@@ -301,8 +288,6 @@ public:
       // Iterate over the dimensions
       for( int dim = 0; dim < NDIM; ++dim )
       {
-        array.setSingleParameterResizeIndex( dim );
-
         std::array< INDEX_TYPE, NDIM > oldSizes;
         for( int d = 0; d < NDIM; ++d )
         { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
@@ -349,7 +334,7 @@ public:
     INDEX_TYPE const initialSize = array->size();
     EXPECT_EQ( array->capacity(), initialSize );
 
-    INDEX_TYPE const defaultDimSize = array->size( array->getSingleParameterResizeIndex() );
+    INDEX_TYPE const defaultDimSize = array->size( 0 );
     array->reserve( 2 * initialSize );
     T const * const pointerAfterReserve = array->data();
 
@@ -394,7 +379,7 @@ public:
     EXPECT_EQ( array->data(), oldPointer );
     for( int dim = 0; dim < NDIM; ++dim )
     {
-      if( dim == array->getSingleParameterResizeIndex() )
+      if( dim == 0 )
       {
         EXPECT_EQ( array->size( dim ), 0 );
       }
@@ -404,7 +389,7 @@ public:
       }
     }
 
-    array->resize( oldSizes[ array->getSingleParameterResizeIndex() ] );
+    array->resize( oldSizes[ 0 ] );
 
     EXPECT_EQ( array->size(), oldSize );
     EXPECT_EQ( array->capacity(), oldCapacity );
