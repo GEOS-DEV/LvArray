@@ -285,45 +285,44 @@ public:
     // Iterate over randomly generated sizes.
     for( int i = 0; i < 10; ++i )
     {
-      // Iterate over the dimensions
-      for( int dim = 0; dim < NDIM; ++dim )
+      // Default dimension is the first dimension
+      int constexpr dim = 0;
+
+      std::array< INDEX_TYPE, NDIM > oldSizes;
+      for( int d = 0; d < NDIM; ++d )
+      { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
+
+      std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
+
+      array.resize( NDIM, oldSizes.data() );
+
+      fill( array );
+
+      // Increase the size
+      newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
+      if( useDefault )
       {
-        std::array< INDEX_TYPE, NDIM > oldSizes;
-        for( int d = 0; d < NDIM; ++d )
-        { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
+        array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
+        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
+      }
+      else
+      {
+        array.resize( newSizes[ dim ] );
+        checkResize( array, oldSizes, newSizes, true, true );
+      }
+      oldSizes = newSizes;
 
-        std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
-
-        array.resize( NDIM, oldSizes.data() );
-
-        fill( array );
-
-        // Increase the size
-        newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
-        if( useDefault )
-        {
-          array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
-          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
-        }
-        else
-        {
-          array.resize( newSizes[ dim ] );
-          checkResize( array, oldSizes, newSizes, true, true );
-        }
-        oldSizes = newSizes;
-
-        // Decrease the size
-        newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
-        if( useDefault )
-        {
-          array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
-          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
-        }
-        else
-        {
-          array.resize( newSizes[ dim ] );
-          checkResize( array, oldSizes, newSizes, true, true );
-        }
+      // Decrease the size
+      newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
+      if( useDefault )
+      {
+        array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
+        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
+      }
+      else
+      {
+        array.resize( newSizes[ dim ] );
+        checkResize( array, oldSizes, newSizes, true, true );
       }
     }
   }
