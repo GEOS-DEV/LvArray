@@ -2,7 +2,6 @@ set(ENABLE_FORTRAN OFF CACHE BOOL "")
 
 include(${CMAKE_CURRENT_LIST_DIR}/llnl-tpls-base.cmake)
 
-set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")

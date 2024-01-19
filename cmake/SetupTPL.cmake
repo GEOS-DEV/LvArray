@@ -3,17 +3,22 @@ set(thirdPartyLibs "")
 ################################
 # CAMP
 ################################
-if(NOT EXISTS ${CAMP_DIR})
-    message(FATAL_ERROR "CAMP_DIR must be defined and point to a valid directory when using CAMP.")
+if(DEFINED CAMP_DIR)
+
+    if(NOT EXISTS ${CAMP_DIR})
+        message(FATAL_ERROR "CAMP_DIR must be defined and point to a valid directory when using CAMP.")
+    endif()
+
+    message(STATUS "Using CAMP from ${CAMP_DIR}")
+
+    find_package(camp REQUIRED PATHS ${CAMP_DIR})
+
+    set(ENABLE_CAMP ON CACHE BOOL "")
+
+    set(thirdPartyLibs ${thirdPartyLibs} camp)
+else()
+    message(STATUS "CAMP_DIR is not defined, will attempt to find CAMP provided by RAJA.")
 endif()
-
-message(STATUS "Using CAMP from ${CAMP_DIR}")
-
-find_package(camp REQUIRED PATHS ${CAMP_DIR})
-
-set(ENABLE_CAMP ON CACHE BOOL "")
-
-set(thirdPartyLibs ${thirdPartyLibs} camp)
 
 ################################
 # RAJA
@@ -70,11 +75,9 @@ if(ENABLE_CHAI)
     find_package(chai REQUIRED
                  PATHS ${CHAI_DIR})
 
-    # If this isn't done chai will add -lRAJA to the link line, but we don't link to RAJA like that.
-    get_target_property(CHAI_LINK_LIBRARIES chai INTERFACE_LINK_LIBRARIES)
-    list(REMOVE_ITEM CHAI_LINK_LIBRARIES RAJA)
+    get_target_property(CHAI_INCLUDE_DIRS chai INTERFACE_INCLUDE_DIRECTORIES)
     set_target_properties(chai
-                          PROPERTIES INTERFACE_LINK_LIBRARIES "${CHAI_LINK_LIBRARIES}")
+                          PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CHAI_INCLUDE_DIRS}")
 
     set(thirdPartyLibs ${thirdPartyLibs} chai)
 else()
