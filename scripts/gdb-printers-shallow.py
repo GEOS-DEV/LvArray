@@ -162,7 +162,7 @@ class ArrayOfArraysPrinter(LvArrayPrinter):
 
 
 def build_array_printer():
-    pp = gdb.printing.RegexpCollectionPrettyPrinter("my-LvArray-arrays")
+    pp = gdb.printing.RegexpCollectionPrettyPrinter("LvArray-arrays-shallow")
     pp.add_printer('LvArray::Array', '^LvArray::Array(View)?<.*>$', ArrayPrinter)
     pp.add_printer('LvArray::ArraySlice', '^LvArray::ArraySlice<.*>$', ArraySlicePrinter)
     pp.add_printer('LvArray::ArrayOfArrays', '^LvArray::ArrayOfArrays(View)?<.*>$', ArrayOfArraysPrinter)
