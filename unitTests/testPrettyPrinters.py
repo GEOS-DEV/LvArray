@@ -84,7 +84,7 @@ def test_pretty_printer(test_case: TestCase):
     src_dir: str = os.environ["LVARRAY_SRC_DIR"]  # Skip tedious CLI pytest configuration, see comments above.
     cli = ["/usr/bin/gdb",
            "-iex", f"source {os.path.join(src_dir, 'scripts/gdb-printers-shallow.py')}",
-           "-ex", "set width 300",  # I do not wan t the output to be polluted with carriage returns.
+           "-ex", "set width 300",  # I do not want the output to be polluted with carriage returns.
            "-ex", "set style enabled off",
            "-ex", "set verbose off",
            "-ex", "set confirm off",
@@ -95,7 +95,7 @@ def test_pretty_printer(test_case: TestCase):
            "-ex", "quit",
            test_case.executable]
     try:
-        # I'm using a simple `subprocess.run` because I can use define all the interactions I need
+        # I'm using a simple `subprocess.run` because I can define all the actions I need
         # through the `-ex` options of `gdb`. In the case something more complex would be needed,
         # it's possible to create a `subprocess.Popen`, to manage the `std{in,out,err}` as `subprocess.PIPE`,
         # and to send the information using `process.stdin.write("run\n")`.

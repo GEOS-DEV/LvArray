@@ -111,7 +111,7 @@ class __ArrayPrinter(LvArrayPrinter):
     def children(self) ->  Iterable[tuple[str, gdb.Value]]:
         d0, ds = self.dimensions[0], self.dimensions[1:]
 
-        # The main idea of this loop is to build the mutli-dimensional array type to the data (e.g. `int[2][3]`).
+        # The main idea of this loop is to build the multi-dimensional array type to the data (e.g. `int[2][3]`).
         # Then we'll cast the raw pointer into this n-d array and gdb will be able to manage it.
         array_type: gdb.Type = self.data.type.target()
         for d in reversed(ds):  # Note that we ditch the first dimension from our loop in order to have it as first level children.

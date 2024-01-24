@@ -30,7 +30,7 @@ int main()
   v1.emplace_back( 2 );
 
   auto v1v = v1.toView();
-  LVARRAY_LOG( v1v[0] );
+  LVARRAY_LOG( v1v[0] );  // Calling `LVARRAY_LOG` to prevent the variable from being unused.
   auto v1vc = v1.toViewConst();
   LVARRAY_LOG( v1vc[0] );
 
