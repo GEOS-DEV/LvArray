@@ -105,10 +105,22 @@ class __ArrayPrinter(LvArrayPrinter):
         self.dimensions: tuple[int] = tuple(map(int, dimensions))
 
     def to_string(self) -> str:
+        # Extracting the permutations from the type name (looks like the integer template parameters are optimized out)
+        permutation = self.val.type.strip_typedefs().template_argument(2)
+        if m := re.search(r"\d+(?:[ \t]*,[ \t]*\d+)*", str(permutation)):  # Extract a list of integers separated with commas
+            s = m.group()
+            permutation: tuple[int, ...] = tuple(map(int, s.split(",")))
+            if permutation != tuple(range(len(self.dimensions))):
+                msg = f"Only sorted permutation is supported by pretty printers. " \
+                      f"{permutation} is not sorted so the output of the pretty printers will be jumbled."
+                logging.warning(msg)
+        else:
+            raise ValueError(f"Could not parse permutation for {permutation}.")
+
         dimensions = map(str, self.dimensions)
         return f'{self.real_type()} of shape [{", ".join(dimensions)}]'
 
-    def children(self) ->  Iterable[tuple[str, gdb.Value]]:
+    def children(self) -> Iterable[tuple[str, gdb.Value]]:
         d0, ds = self.dimensions[0], self.dimensions[1:]
 
         # The main idea of this loop is to build the multi-dimensional array type to the data (e.g. `int[2][3]`).

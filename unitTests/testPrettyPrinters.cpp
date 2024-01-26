@@ -13,8 +13,8 @@ void breakpoint_helper()
 
 template< typename T >
 using array1d = LvArray::Array< int, 1, RAJA::PERM_I, int, LvArray::MallocBuffer >;
-template< typename T >
-using array2d = LvArray::Array< int, 2, RAJA::PERM_IJ, int, LvArray::MallocBuffer >;
+template< typename T, typename P = RAJA::PERM_IJ >
+using array2d = LvArray::Array< int, 2, P, int, LvArray::MallocBuffer >;
 template< typename T >
 using array3d = LvArray::Array< int, 3, RAJA::PERM_IJK, int, LvArray::MallocBuffer >;
 template< typename T >
@@ -41,6 +41,7 @@ int main()
   v2[1][0] = 4;
   v2[1][1] = 5;
   v2[1][2] = 6;
+  array2d< int, RAJA::PERM_JI > v2ji( 2, 3 );
 
   auto v2v = v2.toView();
   LVARRAY_LOG( v2v[0][0] );

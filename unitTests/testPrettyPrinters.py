@@ -77,6 +77,7 @@ def generate_data() -> Iterable[TestCase]:
     yield TestCase(exe, "aoa0v", build_output_str("ArrayOfArraysView", "int", d, v, p))
     yield TestCase(exe, "aoa0vc", build_output_str("ArrayOfArraysView", "int const", d, v, p))
     yield TestCase(exe, "aoa0s", build_output_str("ArraySlice", "int", d, v[1], p))
+    yield TestCase(exe, "v2ji", "Only sorted permutation is supported by pretty printers.")
 
 
 @pytest.mark.parametrize("test_case", generate_data())
@@ -102,7 +103,7 @@ def test_pretty_printer(test_case: TestCase):
         # Another more flexible approach would be to use Pexpect (https://github.com/pexpect/pexpect).
         process = subprocess.run(cli, timeout=1, check=True, capture_output=True, text=True)
         logging.debug(process.stdout, process.stderr)
-        assert test_case.expected in process.stdout
+        assert test_case.expected in process.stdout or test_case.expected in process.stderr
     except subprocess.TimeoutExpired as e:
         logging.error(e.stdout, e.stderr)
         raise e
