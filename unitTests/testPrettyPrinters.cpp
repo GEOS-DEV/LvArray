@@ -1,9 +1,8 @@
 #include "Array.hpp"
 #include "ArrayOfArrays.hpp"
-#include <RAJA/util/Permutations.hpp>
-
 #include "MallocBuffer.hpp"
 
+#include <RAJA/util/Permutations.hpp>
 
 void breakpoint_helper()
 {
