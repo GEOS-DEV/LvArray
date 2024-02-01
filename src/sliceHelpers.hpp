@@ -27,7 +27,7 @@ namespace LvArray
  */
 DISABLE_HD_WARNING
 template< typename T, typename LAMBDA >
-LVARRAY_HOST_DEVICE
+LVARRAY_HOST_DEVICE inline 
 void forValuesInSlice( T & value, LAMBDA && f )
 { f( value ); }
 
@@ -43,8 +43,8 @@ void forValuesInSlice( T & value, LAMBDA && f )
  */
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
-LVARRAY_HOST_DEVICE
-void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, LAMBDA && f )
+LVARRAY_HOST_DEVICE inline
+void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAMBDA && f )
 {
   INDEX_TYPE const bounds = slice.size( 0 );
   for( INDEX_TYPE i = 0; i < bounds; ++i )
@@ -64,7 +64,7 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice, LAMBD
  */
 DISABLE_HD_WARNING
 template< typename T, typename LAMBDA, typename ... INDICES >
-LVARRAY_HOST_DEVICE
+LVARRAY_HOST_DEVICE inline
 void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indices )
 { f( value, indices ... ); }
 
@@ -83,7 +83,7 @@ void forValuesInSliceWithIndices( T & value, LAMBDA && f, INDICES const ... indi
  */
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA, typename ... INDICES >
-LVARRAY_HOST_DEVICE
+LVARRAY_HOST_DEVICE inline
 void forValuesInSliceWithIndices( ArraySlice< T, NDIM, USD, INDEX_TYPE > const slice,
                                   LAMBDA && f,
                                   INDICES const ... indices )
