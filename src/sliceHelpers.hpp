@@ -53,12 +53,28 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAM
   }
 }
 
+/**
+ * @brief Set the values in a @p value to @p rhs.
+ * @tparam T The type of @p value.
+ * @param value the slice to set.
+ * @param rhs The value to set the slice to.
+ */
 DISABLE_HD_WARNING
 template< typename T >
 LVARRAY_HOST_DEVICE inline
 void setValueOfSlice( T & value, T const & rhs )
 { value = rhs; }
 
+
+/**
+ * @brief Set the values in a slice to a value.
+ * @tparam T The type of values stored in @p slice.
+ * @tparam NDIM the dimension of @p slice.
+ * @tparam USD the unit stride dimension of @p slice.
+ * @tparam INDEX_TYPE the integer used to index into @p slice.
+ * @param slice the slice to set.
+ * @param rhs The value to set the slice to.
+ */
 DISABLE_HD_WARNING
 template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
