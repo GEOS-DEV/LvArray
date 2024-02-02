@@ -53,6 +53,27 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAM
   }
 }
 
+DISABLE_HD_WARNING
+template< typename T, typename LAMBDA >
+LVARRAY_HOST_DEVICE inline 
+void setValueOfSlice( T & value, T const & rhs )
+{ value = rhs; }
+
+DISABLE_HD_WARNING
+template< typename T, typename LAMBDA >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
+LVARRAY_HOST_DEVICE inline
+void setValueOfSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, T const & rhs )
+{
+  INDEX_TYPE const bounds = slice.size( 0 );
+  for( INDEX_TYPE i = 0; i < bounds; ++i )
+  {
+    setValueOfSlice( slice[ i ], rhs );
+  }
+ }
+
+
+
 /**
  * @tparam T The type of @p value.
  * @tparam INDICES variadic pack of indices.
