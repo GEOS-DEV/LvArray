@@ -54,14 +54,13 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAM
 }
 
 DISABLE_HD_WARNING
-template< typename T, typename LAMBDA >
+template< typename T >
 LVARRAY_HOST_DEVICE inline 
 void setValueOfSlice( T & value, T const & rhs )
 { value = rhs; }
 
 DISABLE_HD_WARNING
-template< typename T, typename LAMBDA >
-template< typename T, int NDIM, int USD, typename INDEX_TYPE, typename LAMBDA >
+template< typename T, int NDIM, int USD, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline
 void setValueOfSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, T const & rhs )
 {
