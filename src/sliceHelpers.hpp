@@ -27,7 +27,7 @@ namespace LvArray
  */
 DISABLE_HD_WARNING
 template< typename T, typename LAMBDA >
-LVARRAY_HOST_DEVICE inline 
+LVARRAY_HOST_DEVICE inline
 void forValuesInSlice( T & value, LAMBDA && f )
 { f( value ); }
 
@@ -55,7 +55,7 @@ void forValuesInSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, LAM
 
 DISABLE_HD_WARNING
 template< typename T >
-LVARRAY_HOST_DEVICE inline 
+LVARRAY_HOST_DEVICE inline
 void setValueOfSlice( T & value, T const & rhs )
 { value = rhs; }
 
@@ -69,7 +69,7 @@ void setValueOfSlice( ArraySlice< T, NDIM, USD, INDEX_TYPE > const & slice, T co
   {
     setValueOfSlice( slice[ i ], rhs );
   }
- }
+}
 
 
 
