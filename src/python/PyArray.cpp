@@ -90,43 +90,6 @@ static PyObject * PyArray_repr( PyObject * const obj )
   return PyUnicode_FromString( repr.c_str() );
 }
 
-static constexpr char const * PyArray_getSingleParameterResizeIndexDocString =
-  "get_single_parameter_resize_index(self)\n"
-  "--\n\n"
-  "Return the default resize dimension.\n";
-static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
-{
-  LVARRAY_UNUSED_VARIABLE( args );
-  VERIFY_NON_NULL_SELF( self );
-  VERIFY_INITIALIZED( self );
-
-  return PyLong_FromLongLong( self->array->getSingleParameterResizeIndex() );
-}
-
-static constexpr char const * PyArray_setSingleParameterResizeIndexDocString =
-  "set_single_parameter_resize_index(self, dim)\n"
-  "--\n\n"
-  "Set the default resize dimension.";
-static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
-{
-  VERIFY_NON_NULL_SELF( self );
-  VERIFY_INITIALIZED( self );
-  VERIFY_RESIZEABLE( self );
-
-  int dim;
-  if( !PyArg_ParseTuple( args, "i", &dim ) )
-  {
-    return nullptr;
-  }
-
-  PYTHON_ERROR_IF( dim < 0 || dim >= self->array->ndim(), PyExc_ValueError,
-                   "argument out of bounds", nullptr );
-
-  self->array->setSingleParameterResizeIndex( dim );
-
-  Py_RETURN_NONE;
-}
-
 static constexpr char const * PyArray_resizeDocString =
   "resize(self, size)\n"
   "--\n\n"
@@ -247,8 +210,6 @@ static PyMemberDef PyArray_members[] = {
 };
 
 static PyMethodDef PyArray_methods[] = {
-  { "get_single_parameter_resize_index", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_NOARGS, PyArray_getSingleParameterResizeIndexDocString },
-  { "set_single_parameter_resize_index", (PyCFunction) PyArray_setSingleParameterResizeIndex, METH_VARARGS, PyArray_setSingleParameterResizeIndexDocString },
   { "resize", (PyCFunction) PyArray_resize, METH_VARARGS, PyArray_resizeDocString },
   { "resize_all", (PyCFunction) PyArray_resizeAll, METH_VARARGS, PyArray_resizeAllDocString },
   { "to_numpy", (PyCFunction) PyArray_toNumPy, METH_VARARGS, PyArray_toNumPyDocString },

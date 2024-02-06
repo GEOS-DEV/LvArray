@@ -221,24 +221,6 @@ TEST( Array, resizeSingleDimension )
       }
     }
   }
-
-  // Shrink the second dimension from 6 to 3;
-  array.setSingleParameterResizeIndex( 1 );
-  array.resize( 3 );
-  for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
-  {
-    for( std::ptrdiff_t j = 0; j < array.size( 1 ); ++j )
-    {
-      if( i < 5 )
-      {
-        EXPECT_EQ( array( i, j ), 6 * i + j );
-      }
-      else
-      {
-        EXPECT_EQ( array( i, j ), 0 );
-      }
-    }
-  }
 }
 // Sphinx end before resizeSingleDimension
 
