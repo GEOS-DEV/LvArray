@@ -130,16 +130,14 @@ public:
   void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
     LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
-
-#if (defined(__GNUC__) && (__GNUC__ == 8))
-    // This is a workaround for a GCC bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87544
-    std::size_t constexpr maxSize = (NumericLimits< std::size_t >::max / sizeof( T )) >> 1;
-    std::size_t newSpaceSize = math::min( static_cast< std::size_t >(newCapacity), maxSize ) * sizeof( T );
-#else
     std::size_t newSpaceSize = newCapacity * sizeof( T );
-#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Walloc-size-larger-than="
     // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
     T * const newPtr = reinterpret_cast< T * >( std::malloc( newSpaceSize ) );
+#pragma GCC diagnostic pop
+
 
     std::ptrdiff_t const overlapAmount = math::min( newCapacity, size );
     arrayManipulation::uninitializedMove( newPtr, overlapAmount, m_data );
