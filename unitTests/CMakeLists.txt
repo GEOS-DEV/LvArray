@@ -40,7 +40,6 @@ set( testSources
      testArray_copyAssignmentOperator.cpp
      testArray_copyConstructor.cpp
      testArray_defaultConstructor.cpp
-     testArray_getSetSingleParameterResizeIndex.cpp
      testArray_indexing.cpp
      testArray_moveAssignmentOperator.cpp
      testArray_moveConstructor.cpp
