@@ -298,11 +298,15 @@ void resize( T * const LVARRAY_RESTRICT ptr,
     if( newSize - size > 0 )
     {
       std::size_t const sizeDiff = integerConversion< std::size_t >( newSize - size );
+#if __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
 #pragma GCC diagnostic ignored "-Wstringop-overflow="
+#endif
       memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
+#if __GNUC__
 #pragma GCC diagnostic pop
+#endif
     }
   }
   else
