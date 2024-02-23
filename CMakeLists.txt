@@ -24,7 +24,7 @@ if( NOT is_submodule )
 
     project( LvArray LANGUAGES C CXX )
 
-    set( BLT_CXX_STD "c++17" CACHE STRING "Version of C++ standard" FORCE )
+    set( BLT_CXX_STD "c++14" CACHE STRING "Version of C++ standard" FORCE )
     set( ENABLE_WARNINGS_AS_ERRORS "ON" CACHE PATH "" )
 
     option( ENABLE_TESTS "Builds tests" ON )
@@ -73,16 +73,11 @@ include( cmake/Config.cmake )
 
 set( lvarray_dependencies dl )
 
-blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
-
 blt_list_append( TO lvarray_dependencies ELEMENTS camp RAJA )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 
-# Ignore umpire warnings as errors by using -isystem flag
-if (ENABLE_UMPIRE)
-    blt_convert_to_system_includes(TARGET umpire)
-endif()
+blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
 

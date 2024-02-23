@@ -43,6 +43,7 @@ public:
   {
     ARRAY array;
     EXPECT_TRUE( array.empty() );
+    EXPECT_EQ( array.getSingleParameterResizeIndex(), 0 );
 
     for( int i = 0; i < NDIM; ++i )
     {
@@ -64,6 +65,7 @@ public:
                                                          [] ( auto const ... args )
     { return std::make_unique< ARRAY >( args ... ); } );
     EXPECT_FALSE( array->empty() );
+    EXPECT_EQ( array->getSingleParameterResizeIndex(), 0 );
 
     INDEX_TYPE totalSize = 1;
     for( int i = 0; i < NDIM; ++i )
@@ -153,6 +155,17 @@ public:
     array.reset();
 
     compare( copy, movedCopy );
+  }
+
+  static void getSetSingleParameterResizeIndex()
+  {
+    std::unique_ptr< ARRAY > array = sizedConstructor();
+
+    for( int dim = 0; dim < NDIM; ++dim )
+    {
+      array->setSingleParameterResizeIndex( dim );
+      EXPECT_EQ( array->getSingleParameterResizeIndex(), dim );
+    }
   }
 
   static void resizeFromPointer()
@@ -285,44 +298,47 @@ public:
     // Iterate over randomly generated sizes.
     for( int i = 0; i < 10; ++i )
     {
-      // Default dimension is the first dimension
-      int constexpr dim = 0;
-
-      std::array< INDEX_TYPE, NDIM > oldSizes;
-      for( int d = 0; d < NDIM; ++d )
-      { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
-
-      std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
-
-      array.resize( NDIM, oldSizes.data() );
-
-      fill( array );
-
-      // Increase the size
-      newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
-      if( useDefault )
+      // Iterate over the dimensions
+      for( int dim = 0; dim < NDIM; ++dim )
       {
-        array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
-        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
-      }
-      else
-      {
-        array.resize( newSizes[ dim ] );
-        checkResize( array, oldSizes, newSizes, true, true );
-      }
-      oldSizes = newSizes;
+        array.setSingleParameterResizeIndex( dim );
 
-      // Decrease the size
-      newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
-      if( useDefault )
-      {
-        array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
-        checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
-      }
-      else
-      {
-        array.resize( newSizes[ dim ] );
-        checkResize( array, oldSizes, newSizes, true, true );
+        std::array< INDEX_TYPE, NDIM > oldSizes;
+        for( int d = 0; d < NDIM; ++d )
+        { oldSizes[ d ] = randomInteger( 1, maxDimSize / 2 ); }
+
+        std::array< INDEX_TYPE, NDIM > newSizes = oldSizes;
+
+        array.resize( NDIM, oldSizes.data() );
+
+        fill( array );
+
+        // Increase the size
+        newSizes[ dim ] = randomInteger( oldSizes[ dim ], maxDimSize );
+        if( useDefault )
+        {
+          array.resizeDefault( newSizes[ dim ], T( -i * dim ) );
+          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim ) );
+        }
+        else
+        {
+          array.resize( newSizes[ dim ] );
+          checkResize( array, oldSizes, newSizes, true, true );
+        }
+        oldSizes = newSizes;
+
+        // Decrease the size
+        newSizes[ dim ] = randomInteger( 0, oldSizes[ dim ] );
+        if( useDefault )
+        {
+          array.resizeDefault( newSizes[ dim ], T( -i * dim - 1 ) );
+          checkResize( array, oldSizes, newSizes, true, true, T( -i * dim -1 ) );
+        }
+        else
+        {
+          array.resize( newSizes[ dim ] );
+          checkResize( array, oldSizes, newSizes, true, true );
+        }
       }
     }
   }
@@ -333,7 +349,7 @@ public:
     INDEX_TYPE const initialSize = array->size();
     EXPECT_EQ( array->capacity(), initialSize );
 
-    INDEX_TYPE const defaultDimSize = array->size( 0 );
+    INDEX_TYPE const defaultDimSize = array->size( array->getSingleParameterResizeIndex() );
     array->reserve( 2 * initialSize );
     T const * const pointerAfterReserve = array->data();
 
@@ -378,7 +394,7 @@ public:
     EXPECT_EQ( array->data(), oldPointer );
     for( int dim = 0; dim < NDIM; ++dim )
     {
-      if( dim == 0 )
+      if( dim == array->getSingleParameterResizeIndex() )
       {
         EXPECT_EQ( array->size( dim ), 0 );
       }
@@ -388,7 +404,7 @@ public:
       }
     }
 
-    array->resize( oldSizes[ 0 ] );
+    array->resize( oldSizes[ array->getSingleParameterResizeIndex() ] );
 
     EXPECT_EQ( array->size(), oldSize );
     EXPECT_EQ( array->capacity(), oldCapacity );

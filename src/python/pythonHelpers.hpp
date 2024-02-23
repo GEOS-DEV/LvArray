@@ -81,14 +81,12 @@
       _Pragma( "GCC diagnostic push" ) \
       _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
   #endif
-#elif defined( __GNUC__ )
+#else
   #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
     _Pragma( "GCC diagnostic push" ) \
     _Pragma( "GCC diagnostic ignored \"-Wpedantic\"" ) \
     _Pragma( "GCC diagnostic ignored \"-Wmissing-field-initializers\"" )
-    #if __GNUC__ > 8 
-      _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
-    #endif
+    _Pragma( "GCC diagnostic ignored \"-Wc++20-extensions\"")
 #endif
 
 /**

@@ -40,6 +40,7 @@ set( testSources
      testArray_copyAssignmentOperator.cpp
      testArray_copyConstructor.cpp
      testArray_defaultConstructor.cpp
+     testArray_getSetSingleParameterResizeIndex.cpp
      testArray_indexing.cpp
      testArray_moveAssignmentOperator.cpp
      testArray_moveConstructor.cpp
@@ -58,16 +59,13 @@ set( testSources
      testIndexing.cpp
      testInput.cpp
      testIntegerConversion.cpp
-     testInvalidOperations.cpp
      testMath.cpp
      testMemcpy.cpp
-     testPrettyPrinters.cpp
      testSliceHelpers.cpp
      testSortedArray.cpp
      testSortedArrayManipulation.cpp
      testSparsityPattern.cpp
      testStackArray.cpp
-     testStackTrace.cpp
      testTensorOpsDeterminant.cpp
      testTensorOpsEigen.cpp
      testTensorOpsInverseOneArg.cpp
@@ -76,6 +74,8 @@ set( testSources
      testTensorOpsSymInverseOneArg.cpp
      testTensorOpsSymInverseTwoArgs.cpp
      testTypeManipulation.cpp
+     testStackTrace.cpp
+     testInvalidOperations.cpp
    )
 
 blt_list_append( TO testSources ELEMENTS testChaiBuffer.cpp testArray_ChaiBuffer.cpp IF ENABLE_CHAI )
