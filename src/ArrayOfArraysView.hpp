@@ -596,6 +596,16 @@ public:
   }
 
 
+  /**
+   * Move data to host if not valid and register host as the last valid space and free data on device.
+   */
+  void freeOnDevice() const
+  {
+    m_values.freeOnDevice();
+    m_sizes.freeOnDevice();
+    m_offsets.freeOnDevice();
+  }
+
   ///@}
 
 protected:
