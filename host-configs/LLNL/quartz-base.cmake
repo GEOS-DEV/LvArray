@@ -1,26 +1,31 @@
 set(ENABLE_FORTRAN OFF CACHE BOOL "")
 
-set(GEOSX_TPL_ROOT_DIR /usr/workspace/appleton/PSAAPSpace/GEOS CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
+if( NOT DEFINED GEOS_ROOT_DIR )
+	set(GEOS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR/../../../../../ CACHE PATH " Path to GEOS root directory")
+endif()	
+if ( NOT DEFINED GEOS_TPL_ROOT_DIR )
+	string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+	set(GEOS_TPL_DIR ${GEOS_TPL_ROOT_DIR}/tplInstall-${CONFIG_NAME}-${CMAKE_BUILD_TYPE_LOWER} CACHE PATH "")
+endif()
 
-set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
-set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
+set(CAMP_DIR ${GEOS_TPL_DIR}/raja CACHE PATH "")
+set(RAJA_DIR ${GEOS_TPL_DIR}/raja CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
-set(UMPIRE_DIR ${GEOSX_TPL_DIR}/chai CACHE PATH "")
+set(UMPIRE_DIR ${GEOS_TPL_DIR}/chai CACHE PATH "")
 
 set(ENABLE_CHAI ON CACHE BOOL "")
-set(CHAI_DIR ${GEOSX_TPL_DIR}/chai CACHE PATH "")
+set(CHAI_DIR ${GEOS_TPL_DIR}/chai CACHE PATH "")
 
 set(ENABLE_CALIPER ON CACHE BOOL "")
-set(CALIPER_DIR ${GEOSX_TPL_DIR}/caliper CACHE PATH "")
+set(CALIPER_DIR ${GEOS_TPL_DIR}/caliper CACHE PATH "")
 
 # set(ENABLE_PYLVARRAY ON CACHE BOOL "")
 # set(PYTHON_DIR /usr/tce/packages/python/python-3.7.2 CACHE PATH "")
 
 #set(SPHINX_EXECUTABLE /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu/bin/sphinx-build CACHE PATH "")
 
-set(DOXYGEN_EXECUTABLE ${GEOSX_TPL_DIR}/doxygen/bin/doxygen CACHE PATH "")
+set(DOXYGEN_EXECUTABLE ${GEOS_TPL_DIR}/doxygen/bin/doxygen CACHE PATH "")
 
 set(ENABLE_GTEST_DEATH_TESTS ON CACHE BOOL "")
 
