@@ -1,7 +1,7 @@
 set(ENABLE_FORTRAN OFF CACHE BOOL "")
 
 if( NOT DEFINED GEOS_ROOT_DIR )
-	set(GEOS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR/../../../../../ CACHE PATH " Path to GEOS root directory")
+	set(GEOS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ CACHE PATH " Path to GEOS root directory")
 endif()	
 if ( NOT DEFINED GEOS_TPL_DIR )
 	string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
