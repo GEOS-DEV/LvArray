@@ -258,7 +258,7 @@ public:
     using EXEC_POLICY = RAJA::omp_parallel_for_exec;
     using REDUCE_POLICY = RAJA::omp_reduce;
     #else
-    using EXEC_POLICY = RAJA::loop_exec;
+    using EXEC_POLICY = RAJA::seq_exec;
     using REDUCE_POLICY = RAJA::seq_reduce;
     #endif
 

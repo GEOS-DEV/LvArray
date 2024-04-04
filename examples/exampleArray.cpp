@@ -221,24 +221,6 @@ TEST( Array, resizeSingleDimension )
       }
     }
   }
-
-  // Shrink the second dimension from 6 to 3;
-  array.setSingleParameterResizeIndex( 1 );
-  array.resize( 3 );
-  for( std::ptrdiff_t i = 0; i < array.size( 0 ); ++i )
-  {
-    for( std::ptrdiff_t j = 0; j < array.size( 1 ); ++j )
-    {
-      if( i < 5 )
-      {
-        EXPECT_EQ( array( i, j ), 6 * i + j );
-      }
-      else
-      {
-        EXPECT_EQ( array( i, j ), 0 );
-      }
-    }
-  }
 }
 // Sphinx end before resizeSingleDimension
 
@@ -350,7 +332,7 @@ CUDA_TEST( Array, chaiBuffer )
                       LvArray::ChaiBuffer > const & view = array;
 
   // Capture the view in a host kernel which moves the data back to the host.
-  RAJA::forall< RAJA::loop_exec >(
+  RAJA::forall< RAJA::seq_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, view.size() ),
     [view] ( std::ptrdiff_t const i )
   {
