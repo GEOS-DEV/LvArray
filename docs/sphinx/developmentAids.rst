@@ -63,7 +63,7 @@ Example below demonstrates the difference between pretty printer output and raw 
    (gdb) p dofNumber
    $1 = const geos::arrayView1d & of size [10] = {gdb_view = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45}}
    (gdb) p /r dofNumber
-   $2 = (const geos::arrayView1d &) @0x7ffcda2a8ab0: {static NDIM = 1, static USD = 0, m_dims = {data = {10}}, m_strides = {data = {1}}, m_dataBuffer = {static hasShallowCopy = <optimized out>, m_pointer = 0x55bec1de4860, m_capacity = 10, m_pointerRecord = 0x55bec1dfa5c0}, m_singleParameterResizeIndex = 0}
+   $2 = (const geos::arrayView1d &) @0x7ffcda2a8ab0: {static NDIM = 1, static USD = 0, m_dims = {data = {10}}, m_strides = {data = {1}}, m_dataBuffer = {static hasShallowCopy = <optimized out>, m_pointer = 0x55bec1de4860, m_capacity = 10, m_pointerRecord = 0x55bec1dfa5c0}}
 
 This is how the variable is viewed in a debugging session in CLion IDE:
 
@@ -86,7 +86,6 @@ This is how the variable is viewed in a debugging session in CLion IDE:
     m_dims = {LvArray::typeManipulation::CArray<long, 1>}
     m_strides = {LvArray::typeManipulation::CArray<long, 1>}
     m_dataBuffer = {LvArray::ChaiBuffer<long long const>}
-    m_singleParameterResizeIndex = {int} 0
 
 .. warning::
 
