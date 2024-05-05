@@ -2,7 +2,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/lassen-base.cmake)
 
 # Cuda options
 set(ENABLE_CUDA ON CACHE BOOL "")
-set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-12.2.2 CACHE STRING "")
+set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-12.0.0 CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER} CACHE STRING "")
 set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc CACHE STRING "")
 set(CUDA_ARCH sm_70 CACHE STRING "")
