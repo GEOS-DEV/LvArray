@@ -1,4 +1,4 @@
-set(CONFIG_NAME "ruby-clang-14" CACHE PATH "")
+set(CONFIG_NAME "ruby-gcc-12" CACHE PATH "")
 
 set(COMPILER_DIR /usr/tce/packages/gcc/gcc-12.1.1-magic)
 
