@@ -10,4 +10,4 @@ set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -mtune=native" CACHE STRIN
 set(CMAKE_CXX_COMPILER ${COMPILER_DIR}/bin/clang++ CACHE PATH "")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -mtune=native" CACHE STRING "")
 
-include(${CMAKE_CURRENT_LIST_DIR}/ruby-base.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/llnl-cpu-base.cmake)
