@@ -374,6 +374,21 @@ public:
   }
 
   /**
+   * @brief Delete the buffer on device (no-op here)
+   */
+  inline
+  void freeOnDevice() const
+  {
+  #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP )
+    chai::ExecutionSpace const chaiSpace = chai::CPU;
+    move( internal::toMemorySpace( chaiSpace ), true );
+    // if T is const the touch == true is ignored in move(), we force it.
+    m_pointerRecord->m_touched[ chaiSpace ] = true;
+    internal::getArrayManager().free( m_pointerRecord, chai::GPU );
+  #endif
+  }
+
+  /**
    * @return Return the capacity of the buffer.
    */
   LVARRAY_HOST_DEVICE inline constexpr
@@ -498,6 +513,40 @@ public:
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+      }
+
+      if( act == chai::ACTION_ALLOC )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        #endif
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
+      }
+
+      if( act == chai::ACTION_FREE )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        #endif
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name  << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
       }
     };
   }
