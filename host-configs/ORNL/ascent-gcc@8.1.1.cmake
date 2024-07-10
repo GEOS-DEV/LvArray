@@ -1,8 +1,8 @@
 set(CONFIG_NAME "ascent-gcc@8.1.1" CACHE PATH "") 
 
 # Set up the tpls
-set(GEOSX_TPL_ROOT_DIR "/ccsopen/proj/gen136/GEOSX/thirdPartyLibs" CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOS_TPL_ROOT_DIR "/ccsopen/proj/gen136/GEOSX/thirdPartyLibs" CACHE PATH "")
+set(GEOS_TPL_DIR ${GEOS_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
 
 # C++ options
 set(CMAKE_CXX_COMPILER "/sw/ascent/gcc/8.1.1/bin/g++" CACHE PATH "")
