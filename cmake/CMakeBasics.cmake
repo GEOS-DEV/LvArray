@@ -28,7 +28,7 @@ blt_append_custom_compiler_flag( FLAGS_VAR CMAKE_CXX_FLAGS_DEBUG
                                  CLANG "-fstandalone-debug"
                                 )
 
-blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
+blt_append_custom_compiler_flag(FLAGS_VAR GEOS_NINJA_FLAGS
                   DEFAULT     " "
                   GNU         "-fdiagnostics-color=always"
                   CLANG       "-fcolor-diagnostics"
@@ -40,6 +40,6 @@ blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
 #set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 if( ${CMAKE_MAKE_PROGRAM} STREQUAL "ninja" OR ${CMAKE_MAKE_PROGRAM} MATCHES ".*/ninja$" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOSX_NINJA_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOS_NINJA_FLAGS}")
 endif()
 
