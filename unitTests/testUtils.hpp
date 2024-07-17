@@ -66,8 +66,8 @@ template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
 
-template< typename X, typename Y, size_t BLOCK_SIZE, bool ASYNC >
-struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, BLOCK_SIZE, ASYNC > >
+template< typename X, typename Y, typename C, size_t BLOCK_SIZE, bool ASYNC >
+struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, C, BLOCK_SIZE, ASYNC > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
