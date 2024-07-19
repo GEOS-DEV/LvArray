@@ -1,8 +1,8 @@
 set(CONFIG_NAME "corigpu-gcc7" CACHE PATH "") 
 
 # Set up the tpls
-set(GEOSX_TPL_ROOT_DIR /global/cscratch1/sd/settgast/thirdPartyLibs/ CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
+set(GEOS_TPL_ROOT_DIR /global/cscratch1/sd/settgast/thirdPartyLibs/ CACHE PATH "")
+set(GEOS_TPL_DIR ${GEOS_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
 
 # C++ options
 set(CMAKE_CXX_COMPILER /opt/gcc/7.3.0/bin/g++ CACHE PATH "")
