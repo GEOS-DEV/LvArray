@@ -111,8 +111,8 @@ LvArray has an associated `Spack <https://github.com/spack/spack>`_ package. For
     class Lvarray(CMakePackage, CudaPackage):
         """LvArray portable HPC containers."""
 
-        homepage = "https://github.com/GEOSX/lvarray"
-        git      = "https://github.com/GEOSX/LvArray.git"
+        homepage = "https://github.com/GEOS-DEV/lvarray"
+        git      = "https://github.com/GEOS-DEV/LvArray.git"
 
         version('develop', branch='develop', submodules='True')
         version('tribol', branch='temp/feature/corbett/tribol', submodules='True')
