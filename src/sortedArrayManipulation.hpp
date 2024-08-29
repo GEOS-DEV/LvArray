@@ -306,7 +306,9 @@ template< typename ITER, typename Compare=less< typename std::iterator_traits< I
 LVARRAY_HOST_DEVICE inline
 std::ptrdiff_t removeDuplicates( ITER first, ITER const last, Compare && comp=Compare() )
 {
-  LVARRAY_ASSERT( isSorted( first, last, comp ) );
+#ifdef LVARRAY_BOUNDS_CHECK
+  LVARRAY_ERROR_IF( !isSorted( first, last, comp ), "Input needs to be sorted" );
+#endif
 
   if( first == last )
   {
@@ -520,7 +522,9 @@ std::ptrdiff_t remove( T * const LVARRAY_RESTRICT ptr,
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( isSortedUnique( ptr, ptr + size ) );
 
-  LVARRAY_ASSERT( isSortedUnique( first, last ) );
+#ifdef LVARRAY_BOUNDS_CHECK
+  LVARRAY_ERROR_IF( !isSortedUnique( first, last ), "Input needs to be unique and sorted." );
+#endif
 
   // Find the position of the first value to remove and the position it's at in the array.
   ITER valueToRemove = first;
@@ -683,7 +687,9 @@ std::ptrdiff_t insert( T * const LVARRAY_RESTRICT ptr,
   LVARRAY_ASSERT( arrayManipulation::isPositive( size ) );
   LVARRAY_ASSERT( isSortedUnique( ptr, ptr + size ) );
 
-  LVARRAY_ASSERT( isSortedUnique( first, last ) );
+#ifdef LVARRAY_BOUNDS_CHECK
+  LVARRAY_ERROR_IF( !isSortedUnique( first, last ), "Input needs to be unique and sorted." );
+#endif
 
   // Special case for inserting into an empty array.
   if( size == 0 )
