@@ -1093,7 +1093,6 @@ double asinh( T const x )
 #endif
 }
 
-#endif
 
 ///@}
 
