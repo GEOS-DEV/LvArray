@@ -1065,6 +1065,36 @@ __half2 log( __half2 const x )
 
 #endif
 
+/**
+ * @return asinh of @p x.
+ * @param x the argument.
+ * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
+ *   and the return type is double.
+ */
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+float asinh( float const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::asinhf( x );
+#else
+  return std::asinh( x );
+#endif
+}
+
+/// @copydoc asinh( float )
+template< typename T >
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+double asinh( T const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::asinh( double( x ) );
+#else
+  return std::asinh( x );
+#endif
+}
+
+#endif
+
 ///@}
 
 } // namespace math
