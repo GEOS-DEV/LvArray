@@ -75,7 +75,7 @@ set( lvarray_dependencies dl )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
-blt_list_append( TO lvarray_dependencies ELEMENTS camp RAJA )
+blt_list_append( TO lvarray_dependencies ELEMENTS RAJA )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
 
