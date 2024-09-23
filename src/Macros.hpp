@@ -17,6 +17,7 @@
 #include "system.hpp"
 
 // System includes
+#include <cstdlib> // std::getenv
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -100,9 +101,24 @@
 #define TYPEOFREF( X ) std::remove_reference_t< decltype( X ) >
 
 /**
- * @brief Print the expression.
+ * @brief Conditionally print the provided expression
+ *
+ * This macro checks the value of the LVARRAY_LOG_LEVEL environment variable.
+ * If the variable is set and its value is a positive integer, the macro prints
+ * the provided expression(s) to std::cout followed by a newline.
+ * Otherwise, no output is produced.
+ *
+ * @param ... Variadic macro parameters representing the expression(s) to print.
  */
-#define LVARRAY_LOG( ... ) std::cout << __VA_ARGS__ << std::endl
+#define LVARRAY_LOG( ... ) \
+  do \
+  { \
+    const char* const log_level = std::getenv("LVARRAY_LOG_LEVEL"); \
+    if (log_level && std::atoi(log_level) > 0) \
+    { \
+      std::cout << __VA_ARGS__ << std::endl; \
+    } \
+  } while(0)
 
 /**
  * @brief Print the expression string along with its value.
