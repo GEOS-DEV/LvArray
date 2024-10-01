@@ -292,29 +292,20 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   // Delete things between newSize and size.
   destroy( ptr + newSize, size - newSize );
 
-  // Initialize things between size and newSize.
-  if( sizeof ... ( ARGS ) == 0 && std::is_trivially_default_constructible< T >::value )
+  if( newSize - size > 0 )
   {
-    if( newSize - size > 0 )
+    // Initialize things between size and newSize.
+    if constexpr ( sizeof ... ( ARGS ) == 0 && std::is_trivially_default_constructible< T >::value )
     {
       std::size_t const sizeDiff = integerConversion< std::size_t >( newSize - size );
-#if !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#pragma GCC diagnostic ignored "-Wstringop-overflow="
-#endif
-      memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
-#if !defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
+      std::memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
     }
-  }
-  else
-  {
-    // Use std::size_t so that when GCC optimizes this it doesn't produce sign warnings.
-    for( std::size_t i = size; i < std::size_t( newSize ); ++i )
+    else
     {
-      new ( ptr + i ) T( std::forward< ARGS >( args )... );
+      for( T * iptr = ptr + size; iptr < ptr + newSize; ++iptr )
+      {
+        new ( iptr ) T( std::forward< ARGS >( args )... );
+      }
     }
   }
 }
