@@ -293,7 +293,7 @@ void resize( T * const LVARRAY_RESTRICT ptr,
   destroy( ptr + newSize, size - newSize );
 
   // Initialize things between size and newSize.
-  if( sizeof ... ( ARGS ) == 0 && std::is_trivially_default_constructible< T >::value )
+  if constexpr ( sizeof ... ( ARGS ) == 0 && std::is_trivially_default_constructible< T >::value )
   {
     if( newSize - size > 0 )
     {
@@ -303,7 +303,7 @@ void resize( T * const LVARRAY_RESTRICT ptr,
 #pragma GCC diagnostic ignored "-Warray-bounds"
 #pragma GCC diagnostic ignored "-Wstringop-overflow="
 #endif
-      memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
+      std::memset( reinterpret_cast< void * >( ptr + size ), 0, ( sizeDiff ) * sizeof( T ) );
 #if !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
