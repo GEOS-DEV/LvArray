@@ -71,8 +71,15 @@ void memset( void * const dstPointer, int const val, std::size_t const size )
     return rm.memset( dstPointer, val, size );
   }
 #endif
-
+#if !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overflow="
+#endif
   std::memset( dstPointer, val, size );
+#if !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 }
 
 } // namespace umpireInterface
