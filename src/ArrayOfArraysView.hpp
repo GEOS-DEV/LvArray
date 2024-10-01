@@ -639,7 +639,9 @@ protected:
    * @param defaultArrayCapacity the default capacity for each new array.
    */
   void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity=0 )
-  { return resizeImpl( newSize, defaultArrayCapacity ); }
+  {
+    return resizeImpl( newSize, defaultArrayCapacity ); 
+  }
 
   /**
    * @brief Reserve space for the given number of arrays.
