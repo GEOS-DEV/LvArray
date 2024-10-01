@@ -64,17 +64,17 @@ camp::resources::Event copy( void * const dstPointer, void * const srcPointer,
 
 void memset( void * const dstPointer, int const val, std::size_t const size )
 {
+#if !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overflow="
+#endif
 #if defined( LVARRAY_USE_UMPIRE )
   umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
   if( rm.hasAllocator( dstPointer ) )
   {
     return rm.memset( dstPointer, val, size );
   }
-#endif
-#if !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#pragma GCC diagnostic ignored "-Wstringop-overflow="
 #endif
   std::memset( dstPointer, val, size );
 #if !defined(__clang__)
