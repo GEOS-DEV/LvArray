@@ -139,6 +139,7 @@ struct TestMath : public ::testing::Test
 
   void asinh()
   {
+    using FloatingPoint = decltype( math::asinh( T() ) );
     forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
        {
           FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
