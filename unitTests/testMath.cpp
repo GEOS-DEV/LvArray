@@ -136,18 +136,6 @@ struct TestMath : public ::testing::Test
           PORTABLE_EXPECT_NEAR( math::log( T( 2 ) ), FloatingPoint( ::log( 2.0 ) ), epsilon );
         } );
   }
-
-  void asinh()
-  {
-    using FloatingPoint = decltype( math::asinh( T() ) );
-    forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
-       {
-          FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
-
-          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
-          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
-        } );
-  }
 };
 
 
@@ -226,9 +214,29 @@ using TestComplexMathTypes = ::testing::Types<
 #endif
   >;
 
-TYPED_TEST_SUITE( TestMath, TestComplexMathTypes, );
+template< typename T_POLICY_PAIR >
+struct TestComplexMath : public ::testing::Test
+{
+  using T = typename T_POLICY_PAIR::first_type;
+  using POLICY = typename T_POLICY_PAIR::second_type;
 
-TYPED_TEST( TestMath, exponential )
+  void asinh()
+  {
+    using FloatingPoint = decltype( math::asinh( T() ) );
+    forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
+       {
+          FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
+
+          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
+          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
+        } );
+  }
+
+};
+
+TYPED_TEST_SUITE( TestComplexMath, TestComplexMathTypes, );
+
+TYPED_TEST( TestComplexMath, exponential )
 {
   this->asinh();
 }
