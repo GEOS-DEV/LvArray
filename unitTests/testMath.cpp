@@ -136,6 +136,17 @@ struct TestMath : public ::testing::Test
           PORTABLE_EXPECT_NEAR( math::log( T( 2 ) ), FloatingPoint( ::log( 2.0 ) ), epsilon );
         } );
   }
+
+  void asinh()
+  {
+    forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
+       {
+          FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
+
+          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
+          PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
+        } );
+  }
 };
 
 
@@ -199,7 +210,27 @@ TYPED_TEST( TestMath, exponential )
   this->exponential();
 }
 
+using TestComplexMathTypes = ::testing::Types<
+  std::pair< int, serialPolicy >
+  , std::pair< long int, serialPolicy >
+  , std::pair< long long int, serialPolicy >
+  , std::pair< float, serialPolicy >
+  , std::pair< double, serialPolicy >
+#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
+  , std::pair< int, parallelDevicePolicy< 32 > >
+  , std::pair< long int, parallelDevicePolicy< 32 > >
+  , std::pair< long long int, parallelDevicePolicy< 32 > >
+  , std::pair< float, parallelDevicePolicy< 32 > >
+  , std::pair< double, parallelDevicePolicy< 32 > >
+#endif
+  >;
 
+TYPED_TEST_SUITE( TestMath, TestComplexMathTypes, );
+
+TYPED_TEST( TestMath, exponential )
+{
+  this->asinh();
+}
 template< typename T_POLICY_PAIR >
 struct TestMath2 : public ::testing::Test
 {
