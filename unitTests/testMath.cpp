@@ -141,7 +141,7 @@ struct TestMath : public ::testing::Test
   {
     using FloatingPoint = decltype( math::asinh( T() ) );
     forall< POLICY >( 1, [] LVARRAY_HOST_DEVICE ( int )
-       {
+        {
           FloatingPoint const epsilon = NumericLimitsNC< FloatingPoint >{}.epsilon;
 
           PORTABLE_EXPECT_NEAR( math::asinh( T( 5.0 ) ), FloatingPoint( ::asinh( 5.0 ) ), epsilon );
