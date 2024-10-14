@@ -302,13 +302,9 @@ private:
   {
     FLOAT const epsilon = NumericLimitsNC< FLOAT >{}.epsilon;
 
-    // The bounds for this specific check need to be increased a lot for XL. About 100x for
-    // 2x2 even more for 3x3. I'm not sure why, especially since the check below passes.
-    #if !defined( __ibmxl__ ) || defined( __CUDA_ARCH__ )
-    PORTABLE_EXPECT_NEAR( det, tensorOps::determinant< M >( source ), scale * epsilon );
-    #endif
-
-    PORTABLE_EXPECT_NEAR( 1.0 / det, tensorOps::determinant< M >( inverse ), scale * epsilon );
+    // Not the most numerically stable algorithm, but in double precision it is still accurate to the first 13 digits.
+    PORTABLE_EXPECT_NEAR( det, tensorOps::determinant< M >( source ), 1e3 * math::abs( det ) * epsilon );
+    PORTABLE_EXPECT_NEAR( 1.0 / det, tensorOps::determinant< M >( inverse ), 1e4 * math::abs( 1.0 / det ) * epsilon );
 
     FLOAT product[ M ][ M ];
     tensorOps::Rij_eq_AikBkj< M, M, M >( product, inverse, source );
