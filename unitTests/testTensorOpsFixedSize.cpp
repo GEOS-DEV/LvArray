@@ -257,7 +257,7 @@ public:
                        matrixASeed] LVARRAY_HOST_DEVICE ( int )
         {
           #define _TEST( matrixA, symMatrix, matrixB ) \
-            fill( matrixA, matrixASeed ); \
+            fill( matrixA, 0 ); \
             tensorOps::Rij_eq_symAikBjk< N >( matrixA, symMatrix, matrixB ); \
             CHECK_EQUALITY_2D( N, N, matrixA, result )
 

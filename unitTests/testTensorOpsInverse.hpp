@@ -267,7 +267,8 @@ private:
 
     // The transpose has the same determinant.
     tensorOps::transpose< M >( matrix );
-    PORTABLE_EXPECT_NEAR( originalDet, tensorOps::determinant< M >( matrix ), 3 * epsilonScale3 );
+    T const transposeDet = tensorOps::determinant< M >( matrix );
+    PORTABLE_EXPECT_NEAR( originalDet, transposeDet, 3 * epsilonScale3 );
 
     // Adding one row to another doesn't change the determinant.
     tensorOps::scaledAdd< M >( matrix[ 0 ], matrix[ 1 ], 2 );
