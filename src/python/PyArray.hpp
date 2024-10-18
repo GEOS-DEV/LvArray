@@ -137,15 +137,18 @@ template< typename T,
 class PyArrayWrapper final : public PyArrayWrapperBase
 {
 public:
-
   /**
    * @brief Constructor.
    * @param array The array to wrap.
+   * @param accessLevel The access level (see PyModify).
    */
-  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array ):
-    PyArrayWrapperBase( ),
+  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, 
+                  int accessLevel = static_cast< int >( LvArray::python::PyModify::READ_ONLY )):
+    PyArrayWrapperBase(),
     m_array( array )
-  {}
+  {
+    setAccessLevel(accessLevel, static_cast<int>(LvArray::MemorySpace::host));
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual ~PyArrayWrapper() = default;
@@ -240,7 +243,7 @@ PyObject * create( std::unique_ptr< internal::PyArrayWrapperBase > && array );
 } // namespace internal
 
 /**
- * @brief Create a Python object corresponding to @c array.
+ * @brief Create a MODIFIABLE Python object corresponding to @c array.
  * @tparam T The type of values in the array.
  * @tparam NDIM The dimensionality of the array.
  * @tparam PERM The permutation of the array.
@@ -251,16 +254,32 @@ PyObject * create( std::unique_ptr< internal::PyArrayWrapperBase > && array );
  * @note The returned Python object holds a reference to @c array, you must ensure
  *   the reference remains valid throughout the lifetime of the object.
  */
-template< typename T,
-          int NDIM,
-          typename PERM,
-          typename INDEX_TYPE,
-          template< typename > class BUFFER_TYPE >
-std::enable_if_t< internal::canExportToNumpy< T > || ( std::is_same< T, std::string >::value && NDIM == 1 ), PyObject * >
+template< typename T, int NDIM, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::enable_if_t< internal::canExportToNumpy< T > || (std::is_same< T, std::string >::value && NDIM == 1 ), PyObject * >
 create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array )
 {
   using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
-  return internal::create( std::make_unique< WrapperType >( array ) );
+  return internal::create( std::make_unique< WrapperType >( array, static_cast<int>(LvArray::python::PyModify::MODIFIABLE) ) );
+}
+
+/**
+ * @brief Create a READ_ONLY Python object corresponding to @c array.
+ * @tparam T The type of values in the array.
+ * @tparam NDIM The dimensionality of the array.
+ * @tparam PERM The permutation of the array.
+ * @tparam INDEX_TYPE The index type of the array.
+ * @tparam BUFFER_TYPE The buffer type of the array.
+ * @param array The Array to export to Python.
+ * @return A Python object corresponding to @c array.
+ * @note The returned Python object holds a reference to @c array, you must ensure
+ *   the reference remains valid throughout the lifetime of the object.
+ */
+template< typename T, int NDIM, typename PERM, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
+std::enable_if_t< internal::canExportToNumpy< T > || (std::is_same< T, std::string >::value && NDIM == 1 ), PyObject * >
+create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > const & array )
+{
+  using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
+  return internal::create( std::make_unique< WrapperType >( const_cast< Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & >( array ), static_cast<int>(LvArray::python::PyModify::READ_ONLY) ) );
 }
 
 /**
