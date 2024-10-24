@@ -142,12 +142,12 @@ public:
    * @param array The array to wrap.
    * @param accessLevel The access level (see PyModify).
    */
-  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, 
+  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array,
                   int accessLevel = static_cast< int >( LvArray::python::PyModify::READ_ONLY )):
     PyArrayWrapperBase(),
     m_array( array )
   {
-    setAccessLevel(accessLevel, static_cast<int>(LvArray::MemorySpace::host));
+    setAccessLevel( accessLevel, static_cast< int >(LvArray::MemorySpace::host));
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,7 +259,7 @@ std::enable_if_t< internal::canExportToNumpy< T > || (std::is_same< T, std::stri
 create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array )
 {
   using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
-  return internal::create( std::make_unique< WrapperType >( array, static_cast<int>(LvArray::python::PyModify::MODIFIABLE) ) );
+  return internal::create( std::make_unique< WrapperType >( array, static_cast< int >(LvArray::python::PyModify::MODIFIABLE) ) );
 }
 
 /**
@@ -279,7 +279,7 @@ std::enable_if_t< internal::canExportToNumpy< T > || (std::is_same< T, std::stri
 create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > const & array )
 {
   using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
-  return internal::create( std::make_unique< WrapperType >( const_cast< Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & >( array ), static_cast<int>(LvArray::python::PyModify::READ_ONLY) ) );
+  return internal::create( std::make_unique< WrapperType >( const_cast< Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & >( array ), static_cast< int >(LvArray::python::PyModify::READ_ONLY) ) );
 }
 
 /**
