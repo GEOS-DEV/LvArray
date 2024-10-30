@@ -440,6 +440,113 @@ __half2 abs( __half2 const x )
 
 #endif
 
+
+/**
+ * @return The ceiling value of @p x.
+ * @param x The number to get the ceiling value of.
+ * @note This set of overloads is valid for any numeric type.
+ */
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+float ceil( float const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::ceilf( x );
+#else
+  return std::ceil( x );
+#endif
+}
+
+template< typename T >
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
+double ceil( T const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::ceil( double ( x ) );
+#else
+  return std::ceil( x );
+#endif
+}
+
+#if defined( LVARRAY_USE_DEVICE )
+
+/// @copydoc ceil( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half ceil( __half const x )
+{
+#if CUDART_VERSION > 11000
+  return hceil( x );
+#else
+  return x > __half( 0 ) ? x : -x;
+#endif
+}
+
+/// @copydoc ceil( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half2 ceil( __half2 const x )
+{
+#if CUDART_VERSION > 11000
+  return h2ceil( x );
+#else
+  return LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to mimic
+#endif
+}
+
+#endif
+
+
+/**
+ * @return The floor value of @p x.
+ * @param x The number to get the floor value of.
+ * @note This set of overloads is valid for any numeric type.
+ */
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+float floor( float const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::floorf( x );
+#else
+  return std::floor( x );
+#endif
+}
+
+template< typename T >
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
+double floor( T const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::floor( double ( x ) );
+#else
+  return std::floor( x );
+#endif
+}
+
+#if defined( LVARRAY_USE_DEVICE )
+
+/// @copydoc floor( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half floor( __half const x )
+{
+#if CUDART_VERSION > 11000
+  return hfloor( x );
+#else
+  return x > __half( 0 ) ? x : -x;
+#endif
+}
+
+/// @copydoc floor( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half2 floor( __half2 const x )
+{
+#if CUDART_VERSION > 11000
+  return h2floor( x );
+#else
+  return LVARRAY_THROW( "h2floor is not implemented for host", std::runtime_error );
+#endif
+}
+
+#endif
+
+
 /**
  * @return @code x * x @endcode.
  * @tparam T The typeof @p x.
@@ -451,6 +558,44 @@ T square( T const x )
 { return x * x; }
 
 ///@}
+
+
+/**
+ * @name Power.
+ */
+///@{
+
+/**
+ * @return The power of @p x.
+ * @param x The number to get the power of.
+ * @param n The exponent.
+ * @note This set of overloads is valid for any numeric type. If @p x is integral it is converted to @c double
+ *   and the return type is @c double.
+ */
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+float pow( float const x, float const n )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::powf( x, n );
+#else
+  return std::pow( x, n );
+#endif
+}
+
+/// @copydoc pow( float )
+template< typename T >
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+double pow( T const x, T const n )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::pow( double( x ), double( n ) );
+#else
+  return std::pow( x, n );
+#endif
+}
+
+///@}
+
 
 /**
  * @name Square root and inverse square root.
