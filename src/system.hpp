@@ -117,6 +117,9 @@ int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPoi
  */
 void setFPE();
 
+
+void setFlushToZero();
+
 /**
  * @class FloatingPointExceptionGuard
  * @brief Changes the floating point environment and reverts it when destoyed.

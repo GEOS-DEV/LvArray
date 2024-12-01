@@ -530,7 +530,48 @@ void resetSignalHandling()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int getDefaultFloatingPointExceptions()
 {
-  return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
+  return ( FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID );
+}
+
+unsigned long long int translateFloatingPointException( unsigned long long int const exception )
+{
+  unsigned long long int result = 0;
+#if defined(__APPLE__) && defined(__MACH__) // if apple
+  if( exception & FE_INEXACT )
+  {
+    result |= __fpcr_trap_inexact;
+  }
+  if( exception & FE_UNDERFLOW )
+  {
+    result |= __fpcr_trap_underflow;
+  }
+  if( exception & FE_OVERFLOW )
+  {
+    result |= __fpcr_trap_overflow;
+  }
+  if( exception & FE_DIVBYZERO )
+  {
+    result |= __fpcr_trap_divbyzero;
+  }
+  if( exception & FE_INVALID )
+  {
+    result |= __fpcr_trap_invalid;
+  }
+
+#if defined(__arm__) || defined(__arm64__) // if apple arm
+#elif defined(__x86_64__) // if apple x86_64
+#else // if apple but not arm or x86_64
+  std::cerr<< "LvArray::system::translateFloatingPointException() not implemented for this architecture" << std::endl;
+#endif
+
+
+#else // if not apple
+#if defined(__x86_64__)
+  result = exception;
+#endif
+#endif
+
+return result;
 }
 
 #if defined(__APPLE__) && defined(__MACH__)&& !defined(__x86_64__)
@@ -542,10 +583,8 @@ fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
 
   int fe_code = sip->si_code;
 
-  printf( "In signal handler : " );
-
   if( fe_code == ILL_ILLTRP )
-    printf( "Illegal trap detected\n" );
+    printf( "Illegal trap detected. If you see this you have a FPE, but Apple Silicon doesn't provide data on which FPE has occured.\n" );
   else
     printf( "Code detected : %d\n", fe_code );
 
@@ -559,19 +598,22 @@ int enableFloatingPointExceptions( int const exceptions )
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
 
-  LVARRAY_UNUSED_VARIABLE( exceptions );
+   unsigned long long int const exceptionMasks = translateFloatingPointException( exceptions );
 
   fenv_t env;
   fegetenv( &env );
 
-  env.__fpcr = env.__fpcr | __fpcr_trap_invalid;
+//  std::cout<<std::hex<<"env.__fpcr = " << env.__fpcr << std::endl;
+  env.__fpcr = env.__fpcr | exceptionMasks ;
+//  std::cout<<std::hex<<"env.__fpcr = " << env.__fpcr << std::endl;
+
   fesetenv( &env );
 
   struct sigaction act;
   act.sa_sigaction = fpe_signal_handler;
   sigemptyset ( &act.sa_mask );
   act.sa_flags = SA_SIGINFO;
-  sigaction( SIGILL, &act, NULL );
+  sigaction( SIGFPE, &act, NULL );
   return 0;
 #else
   // Public domain polyfill for feenableexcept on OS X
@@ -632,22 +674,40 @@ int disableFloatingPointExceptions( int const exceptions )
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void setFPE()
-{
-#if defined(__APPLE__) && defined(__MACH__)
-#if !defined(__x86_64__)
 
-#else
+void setFlushToZero()
+{
+
+#if defined(__APPLE__) && defined(__MACH__) // if apple
+
+#if defined(__arm__) || defined(__arm64__) // if apple arm
+  fenv_t env;
+  fegetenv( &env );
+  env.__fpcr = env.__fpcr | __fpcr_flush_to_zero ;
+  // std::cout<<std::hex<<"env.__fpcr                         = " << env.__fpcr << std::endl;
+  // std::cout<<std::hex<<"_FE_DFL_DISABLE_DENORMS_ENV.__fpcr = " << _FE_DFL_DISABLE_DENORMS_ENV.__fpcr << std::endl;
+  fesetenv( &env );
+#elif defined(__x86_64__) // if apple x86_64
   fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
+#else // if apple but not arm or x86_64
+  std::cerr<< "LvArray::system::setFlushToZero() not implemented for this architecture" << std::endl;
 #endif
-#elif defined(__x86_64__)
+
+// if not apple
+#else
+#if defined(__x86_64__)
   _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
   _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
 #endif
-#if defined(__x86_64__)
-  enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
+
 #endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void setFPE()
+{
+enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
+setFlushToZero();
 }
 
 } // namespace system

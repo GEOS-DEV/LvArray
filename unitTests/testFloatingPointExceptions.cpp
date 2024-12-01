@@ -18,9 +18,6 @@
 #include <cmath>
 #include <float.h>
 
-
-#if defined(__x86_64__)
-
 using namespace testFloatingPointExceptionsHelpers;
 
 const char IGNORE_OUTPUT[] = ".*";
@@ -74,7 +71,6 @@ TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
 } // namespace testing
 } // namespace LvArray
 
-#endif
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
