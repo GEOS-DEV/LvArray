@@ -640,7 +640,7 @@ protected:
    */
   void resize( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity=0 )
   {
-    return resizeImpl( newSize, defaultArrayCapacity ); 
+    return resizeImpl( newSize, defaultArrayCapacity );
   }
 
   /**
