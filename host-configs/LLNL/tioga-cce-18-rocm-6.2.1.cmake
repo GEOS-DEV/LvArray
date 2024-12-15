@@ -18,6 +18,10 @@ set( UMPIRE_DIR ${GEOS_TPL_DIR}/chai CACHE PATH "" )
 set( CHAI_DIR ${GEOS_TPL_DIR}/chai CACHE PATH "" )
 set( CALIPER_DIR ${GEOS_TPL_DIR}/caliper CACHE PATH "" )
 
+# MPI options
+set(MPI_HOME /opt/cray/pe/mpich/8.1.31/ofi/crayclang/18.0 CACHE PATH "")
+set(MPI_INCLUDE_DIR ${MPI_HOME}/include CACHE PATH "") # Needed by hypre
+
 # C++ options
 set( CRAYPE_VERSION "2.7.33")
 set( CMAKE_C_COMPILER "/opt/cray/pe/craype/${CRAYPE_VERSION}/bin/cc" CACHE PATH "" )
