@@ -35,6 +35,15 @@ if( ENABLE_HIP )
   set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
-  set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc" CACHE STRING "" FORCE )
+  set( CMAKE_CXX_LINK_FLAGS "-fno-gpu-rdc --hip-link" CACHE STRING "" FORCE )
+
+  ##############################################################################
+  # The flag "fgpu-rdc" causes link issues when using cce-18
+  # lld: /workspace/llvm/lib/Analysis/LoopAccessAnalysis.cpp:430:
+  #      bool llvm::RuntimeCheckingPtrGroup::addPointer(unsigned int, const llvm::SCEV*, const llvm::SCEV*, unsigned int, bool, llvm::ScalarEvolution&):
+  # Assertion `AddressSpace == AS && "all pointers in a checking group must be in the same address space"' failed.
+  ##############################################################################
+  #set( CMAKE_CXX_FLAGS "-munsafe-fp-atomics -fgpu-rdc" CACHE STRING "" FORCE )
+  #set( CMAKE_CXX_LINK_FLAGS "-fgpu-rdc --hip-link" CACHE STRING "" FORCE )
 endif()
