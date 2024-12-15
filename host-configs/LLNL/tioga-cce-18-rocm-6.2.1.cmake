@@ -1,7 +1,7 @@
 set( CCE_VERSION_STRING "18.0.1" )
 set( HIP_VERSION_STRING "6.2.1" )
 set( CONFIG_NAME "tioga-cce-${CCE_VERSION_STRING}-rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
-include( ${CMAKE_CURRENT_LIST_DIR}/tioga-base.cmake )
+include( ${CMAKE_CURRENT_LIST_DIR}/amdgpu-base.cmake )
 
 # TODO: Set up the tpls
 #set(TPL_INSTALL_DATE 2023-05-17)
