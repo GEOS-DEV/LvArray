@@ -124,10 +124,12 @@ namespace typeManipulation
  * @param f The function to not call.
  */
 DISABLE_HD_WARNING
-template< typename F >
+template< typename F, typename ARG >
 inline constexpr LVARRAY_HOST_DEVICE
-void forEachArg( F && f )
-{ LVARRAY_UNUSED_VARIABLE( f ); }
+void forEachArg( F && f, ARG && arg )
+{ 
+  f(arg); 
+}
 
 /**
  * @tparam F The type of the function to call.

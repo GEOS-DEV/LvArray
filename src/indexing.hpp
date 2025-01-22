@@ -159,20 +159,40 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
  * @param indices A variadic pack of indices.
  */
 template< typename INDEX_TYPE, typename ... INDICES >
-std::string printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
+LVARRAY_HOST_DEVICE
+void printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES);
-  std::ostringstream oss;
-  oss << "dimensions = { " << dims[ 0 ];
+  printf( "dimensions = { %d", dims[ 0 ] );
   for( int i = 1; i < NDIM; ++i )
   {
-    oss << ", " << dims[ i ];
+    printf( ", %d", dims[ i ] );
   }
+  printf( "}\n");
 
-  oss << " } indices = " << getIndexString( indices ... );
-
-  return oss.str();
+  printf( "   indices = { " );
+  (printf(" %d, ", indices ),...);
+  printf( "}\n");
 }
+
+
+/**
+ * @brief Function to check if an index is invalid
+ * @tparam DIMS_TYPE The integral type used for the dimensions of the space
+ * @tparam INDEX_TYPE The Integral types of the index to check against 
+ * @param dims A pointer to the dimensions of the space.
+ * @param indices the index to check against.
+ * @return whether the index is invalid
+ */
+template< typename DIMS_TYPE, typename INDEX_TYPE >
+LVARRAY_HOST_DEVICE inline constexpr
+bool invalidIndex( DIMS_TYPE const * const LVARRAY_RESTRICT dims, 
+                   int const dimsIndex,
+                   INDEX_TYPE const index )
+{
+  return (index < 0) || (index >= dims[dimsIndex]);
+}
+
 
 /**
  * @tparam INDEX_TYPE The integral type used for the dimensions of the space.
@@ -185,14 +205,9 @@ template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline constexpr
 bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
 {
-  int curDim = 0;
   bool invalid = false;
-  typeManipulation::forEachArg( [dims, &curDim, &invalid]( auto const index )
-  {
-    invalid = invalid || ( index < 0 ) || ( index >= dims[ curDim ] );
-    ++curDim;
-  }, indices ... );
-
+  int curDim = 0;
+  (invalidIndex(dims, curDim++, indices),...);
   return invalid;
 }
 
@@ -206,7 +221,14 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
-{ LVARRAY_ERROR_IF( false , "Invalid indices. " ); }
+{ 
+  bool const invalid = invalidIndices( dims, indices ... );
+  if( invalid )
+  {
+    printDimsAndIndices( dims, indices ... );
+    LVARRAY_ERROR( "Invalid indices. Info precedes this line." ); 
+  }
+}
 
 /**
  * @brief Calculate the strides given the dimensions and permutation.
