@@ -207,7 +207,7 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 {
   bool invalid = false;
   int curDim = 0;
-  (invalidIndex(dims, curDim++, indices),...);
+  ( (invalid = invalid || invalidIndex(dims, curDim++, indices)), ...);
   return invalid;
 }
 
