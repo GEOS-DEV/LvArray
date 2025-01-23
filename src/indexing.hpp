@@ -161,17 +161,31 @@ template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
 {
+  static_assert( std::is_integral_v< INDEX_TYPE >, "INDEX_TYPE must be an integral type." );
+  
   if constexpr( std::is_same_v<INDEX_TYPE, int> )
   {
     printf( "%d", val );
+  }
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned int> )
+  {
+    printf( "%u", val );
   }
   else if constexpr( std::is_same_v<INDEX_TYPE, long> )
   {
     printf( "%ld", val );
   }
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long> )
+  {
+    printf( "%lu", val );
+  }
   else if constexpr( std::is_same_v<INDEX_TYPE, long long> )
   {
     printf( "%lld", val );
+  }
+  else if constexpr( std::is_same_v<INDEX_TYPE, short> )
+  {
+    printf( "%hd", val );
   }
   else
   {
