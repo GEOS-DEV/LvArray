@@ -172,7 +172,7 @@ void printIndexValue( INDEX_TYPE const & val )
   }
   else
   {
-    static_assert(!sizeof(T*), "Unsupported integral type for print_value");
+    static_assert(!sizeof(T*), "Unsupported integral type for printIndexValue");
   }
 }
 
