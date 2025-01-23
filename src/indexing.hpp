@@ -153,7 +153,10 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
   return oss.str();
 }
 
-
+/**
+ * @tparam INDEX_TYPE The integral type to be printed.
+ * @param val the value to be printed
+ */
 template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
