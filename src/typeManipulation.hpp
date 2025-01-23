@@ -549,5 +549,9 @@ LVARRAY_HOST_DEVICE inline constexpr
 CArray< camp::idx_t, sizeof...( INDICES ) > asArray( camp::idx_seq< INDICES... > )
 { return { INDICES ... }; }
 
+
+
+
+
 } // namespace typeManipulation
 } // namespace LvArray

@@ -20,8 +20,6 @@
 // TPL includes
 #include <RAJA/RAJA.hpp>
 
-#include <inttypes.h>
-
 namespace LvArray
 {
 
@@ -162,7 +160,15 @@ LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
 {
   static_assert( std::is_integral_v< INDEX_TYPE >, "INDEX_TYPE must be an integral type." );
-  
+
+  static_assert( std::is_same_v<INDEX_TYPE, int> ||
+                 std::is_same_v<INDEX_TYPE, unsigned int> ||
+                 std::is_same_v<INDEX_TYPE, long> ||
+                 std::is_same_v<INDEX_TYPE, unsigned long> ||
+                 std::is_same_v<INDEX_TYPE, long long> ||
+                 std::is_same_v<INDEX_TYPE, short>, "Unsupported integral type for printIndexValue" );
+
+
   if constexpr( std::is_same_v<INDEX_TYPE, int> )
   {
     printf( "%d", val );
