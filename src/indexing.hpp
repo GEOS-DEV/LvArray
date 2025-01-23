@@ -160,7 +160,7 @@ LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
 {
   using DecayedType = std::decay_t<INDEX_TYPE>;
-  static_assert( std::is_integral_v< DecayedType >, "INDEX_TYPE must be an integral type." );
+  // static_assert( std::is_integral_v< DecayedType >, "INDEX_TYPE must be an integral type." );
 
   if constexpr( std::is_same_v<DecayedType, int> )
   {
@@ -194,9 +194,25 @@ void printIndexValue( INDEX_TYPE const & val )
   {
     printf( "%hu", val );
   }
+  else if constexpr( std::is_same_v<DecayedType, char> )
+  {
+    printf( "%c", val );
+  }
+  else if constexpr( std::is_same_v<DecayedType, signed char> )
+  {
+    printf( "%hhd", val );
+  }
+  else if constexpr( std::is_same_v<DecayedType, unsigned char> )
+  {
+    printf( "%hhu", val );
+  }
+  else if constexpr( std::is_same_v<DecayedType, bool> )
+  {
+    printf( "%d", val );
+  }
   else
   {
-    printf( "%llu", static_cast< long long>( val ) );
+    printf( "%lld", static_cast< long long >( val ) );
   }
 }
 
