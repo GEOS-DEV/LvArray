@@ -161,14 +161,6 @@ void printIndexValue( INDEX_TYPE const & val )
 {
   static_assert( std::is_integral_v< INDEX_TYPE >, "INDEX_TYPE must be an integral type." );
 
-  static_assert( std::is_same_v<INDEX_TYPE, int> ||
-                 std::is_same_v<INDEX_TYPE, unsigned int> ||
-                 std::is_same_v<INDEX_TYPE, long> ||
-                 std::is_same_v<INDEX_TYPE, unsigned long> ||
-                 std::is_same_v<INDEX_TYPE, long long> ||
-                 std::is_same_v<INDEX_TYPE, short>, "Unsupported integral type for printIndexValue" );
-
-
   if constexpr( std::is_same_v<INDEX_TYPE, int> )
   {
     printf( "%d", val );
@@ -189,10 +181,34 @@ void printIndexValue( INDEX_TYPE const & val )
   {
     printf( "%lld", val );
   }
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long long> )
+  {
+    printf( "%llu", val );
+  }
   else if constexpr( std::is_same_v<INDEX_TYPE, short> )
   {
     printf( "%hd", val );
   }
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned short> )
+  {
+    printf( "%hu", val );
+  }
+  // else if constexpr( std::is_same_v<INDEX_TYPE, char> )
+  // {
+  //   printf( "%c", val );
+  // }
+  // else if constexpr( std::is_same_v<INDEX_TYPE, signed char> )
+  // {
+  //   printf( "%hhd", val );
+  // }
+  // else if constexpr( std::is_same_v<INDEX_TYPE, unsigned char> )
+  // {
+  //   printf( "%hhu", val );
+  // }
+  // else if constexpr( std::is_same_v<INDEX_TYPE, bool> )
+  // {
+  //   printf( "%d", val );
+  // }
   else
   {
     static_assert(!sizeof(INDEX_TYPE*), "Unsupported integral type for printIndexValue");
