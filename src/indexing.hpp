@@ -20,6 +20,8 @@
 // TPL includes
 #include <RAJA/RAJA.hpp>
 
+#include <inttypes.h>
+
 namespace LvArray
 {
 
@@ -151,6 +153,29 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
   return oss.str();
 }
 
+
+template< typename INDEX_TYPE >
+LVARRAY_HOST_DEVICE
+void printIndexValue( INDEX_TYPE const & val )
+{
+  if constexpr( std::is_same_v<INDEX_TYPE, int> )
+  {
+    printf( "%d", val );
+  }
+  else if constexpr( std::is_same_v<INDEX_TYPE, long> )
+  {
+    printf( "%ld", val );
+  }
+  else if constexpr( std::is_same_v<INDEX_TYPE, long long> )
+  {
+    printf( "%lld", val );
+  }
+  else
+  {
+    static_assert(!sizeof(T*), "Unsupported integral type for print_value");
+  }
+}
+
 /**
  * @tparam INDEX_TYPE The integral type of the dimensions.
  * @tparam INDICES A variadic pack of the integral types of the indices.
@@ -163,16 +188,19 @@ LVARRAY_HOST_DEVICE
 void printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES);
-  printf( "dimensions = { %d", dims[ 0 ] );
+  printf( "dimensions = { ");
+  printIndexValue( dims[0] );
   for( int i = 1; i < NDIM; ++i )
   {
-    printf( ", %d", dims[ i ] );
+    printf( ", ");
+    printIndexValue(dims[i]);
   }
   printf( "}\n");
-
-  printf( "   indices = { " );
-  (printf(" %d, ", indices ),...);
-  printf( "}\n");
+  
+  printf( "indices = { ");
+  bool firstIndex = true;
+  ( (firstIndex ? ( firstIndex = false, printIndexValue(indices) ) : (printf(", "), printIndexValue(indices))), ...);
+  printf(" }\n");
 }
 
 
