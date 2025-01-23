@@ -159,59 +159,44 @@ template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
 {
-  static_assert( std::is_integral_v< INDEX_TYPE >, "INDEX_TYPE must be an integral type." );
+  using DecayedType = std::decay_t<INDEX_TYPE>;
+  static_assert( std::is_integral_v< DecayedType >, "INDEX_TYPE must be an integral type." );
 
-  if constexpr( std::is_same_v<INDEX_TYPE, int> )
+  if constexpr( std::is_same_v<DecayedType, int> )
   {
     printf( "%d", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned int> )
+  else if constexpr( std::is_same_v<DecayedType, unsigned int> )
   {
     printf( "%u", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, long> )
+  else if constexpr( std::is_same_v<DecayedType, long> )
   {
     printf( "%ld", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long> )
+  else if constexpr( std::is_same_v<DecayedType, unsigned long> )
   {
     printf( "%lu", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, long long> )
+  else if constexpr( std::is_same_v<DecayedType, long long> )
   {
     printf( "%lld", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long long> )
+  else if constexpr( std::is_same_v<DecayedType, unsigned long long> )
   {
     printf( "%llu", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, short> )
+  else if constexpr( std::is_same_v<DecayedType, short> )
   {
     printf( "%hd", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned short> )
+  else if constexpr( std::is_same_v<DecayedType, unsigned short> )
   {
     printf( "%hu", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, char> )
-  {
-    printf( "%c", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, signed char> )
-  {
-    printf( "%hhd", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned char> )
-  {
-    printf( "%hhu", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, bool> )
-  {
-    printf( "%d", val );
-  }
   else
   {
-    static_assert(!sizeof(INDEX_TYPE*), "Unsupported integral type for printIndexValue");
+    static_assert(!sizeof(DecayedType*), "Unsupported integral type for printIndexValue");
   }
 }
 
