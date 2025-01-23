@@ -159,54 +159,55 @@ template< typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE
 void printIndexValue( INDEX_TYPE const & val )
 {
-  using DecayedType = std::decay_t<INDEX_TYPE>;
+  /// NOTE: the assert is removed because of an error on one of the GEOS CI jobs.
+  // using DecayedType = std::decay_t<INDEX_TYPE>;
   // static_assert( std::is_integral_v< DecayedType >, "INDEX_TYPE must be an integral type." );
 
-  if constexpr( std::is_same_v<DecayedType, int> )
+  if constexpr( std::is_same_v<INDEX_TYPE, int> )
   {
     printf( "%d", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, unsigned int> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned int> )
   {
     printf( "%u", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, long> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, long> )
   {
     printf( "%ld", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, unsigned long> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long> )
   {
     printf( "%lu", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, long long> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, long long> )
   {
     printf( "%lld", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, unsigned long long> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long long> )
   {
     printf( "%llu", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, short> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, short> )
   {
     printf( "%hd", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, unsigned short> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned short> )
   {
     printf( "%hu", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, char> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, char> )
   {
     printf( "%c", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, signed char> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, signed char> )
   {
     printf( "%hhd", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, unsigned char> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned char> )
   {
     printf( "%hhu", val );
   }
-  else if constexpr( std::is_same_v<DecayedType, bool> )
+  else if constexpr( std::is_same_v<INDEX_TYPE, bool> )
   {
     printf( "%d", val );
   }
