@@ -196,7 +196,7 @@ void printIndexValue( INDEX_TYPE const & val )
   }
   else
   {
-    static_assert(!sizeof(DecayedType*), "Unsupported integral type for printIndexValue");
+    printf( "%llu", static_cast< long long>( val ) );
   }
 }
 
