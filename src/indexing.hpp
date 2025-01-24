@@ -163,8 +163,7 @@ LVARRAY_HOST_DEVICE
 void printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES);
-  printf( "dimensions = { " );
-  printIndexValue( dims[0] );
+  printf( "dimensions = { %lld", static_cast< long long >( dims[ 0 ] ) );
   for( int i = 1; i < NDIM; ++i )
   {
     printf( ", %lld", static_cast< long long >( dims[ i ] ));
