@@ -195,22 +195,6 @@ void printIndexValue( INDEX_TYPE const & val )
   {
     printf( "%hu", val );
   }
-  else if constexpr( std::is_same_v<INDEX_TYPE, char> )
-  {
-    printf( "%c", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, signed char> )
-  {
-    printf( "%hhd", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned char> )
-  {
-    printf( "%hhu", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, bool> )
-  {
-    printf( "%d", val );
-  }
   else
   {
     printf( "%lld", static_cast< long long >( val ) );
