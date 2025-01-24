@@ -152,56 +152,6 @@ std::string getIndexString( INDEX const index, REMAINING_INDICES const ... indic
 }
 
 /**
- * @tparam INDEX_TYPE The integral type to be printed.
- * @param val the value to be printed
- */
-template< typename INDEX_TYPE >
-LVARRAY_HOST_DEVICE
-void printIndexValue( INDEX_TYPE const & val )
-{
-  /// NOTE: the assert is removed because of an error on one of the GEOS CI jobs.
-  // using DecayedType = std::decay_t<INDEX_TYPE>;
-  // static_assert( std::is_integral_v< DecayedType >, "INDEX_TYPE must be an integral type." );
-
-  if constexpr( std::is_same_v<INDEX_TYPE, int> )
-  {
-    printf( "%d", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned int> )
-  {
-    printf( "%u", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, long> )
-  {
-    printf( "%ld", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long> )
-  {
-    printf( "%lu", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, long long> )
-  {
-    printf( "%lld", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned long long> )
-  {
-    printf( "%llu", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, short> )
-  {
-    printf( "%hd", val );
-  }
-  else if constexpr( std::is_same_v<INDEX_TYPE, unsigned short> )
-  {
-    printf( "%hu", val );
-  }
-  else
-  {
-    printf( "%lld", static_cast< long long >( val ) );
-  }
-}
-
-/**
  * @tparam INDEX_TYPE The integral type of the dimensions.
  * @tparam INDICES A variadic pack of the integral types of the indices.
  * @return A string representing the dimensions of the multidimensional space and the indices into it.
@@ -213,33 +163,31 @@ LVARRAY_HOST_DEVICE
 void printDimsAndIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const... indices )
 {
   constexpr int NDIM = sizeof ... (INDICES);
-  printf( "dimensions = { ");
+  printf( "dimensions = { " );
   printIndexValue( dims[0] );
   for( int i = 1; i < NDIM; ++i )
   {
-    printf( ", ");
-    printIndexValue(dims[i]);
+    printf( ", %lld", static_cast< long long >( dims[ i ] ));
   }
-  printf( "}\n");
-  
-  printf( "indices = { ");
-  bool firstIndex = true;
-  ( (firstIndex ? ( firstIndex = false, printIndexValue(indices) ) : (printf(", "), printIndexValue(indices))), ...);
-  printf(" }\n");
+  printf( "}\n" );
+
+  printf( "indices = { " );
+  (printf( ", %lld", static_cast< long long >(indices)), ...);
+  printf( "}\n" );
 }
 
 
 /**
  * @brief Function to check if an index is invalid
  * @tparam DIMS_TYPE The integral type used for the dimensions of the space
- * @tparam INDEX_TYPE The Integral types of the index to check against 
+ * @tparam INDEX_TYPE The Integral types of the index to check against
  * @param dims A pointer to the dimensions of the space.
  * @param indices the index to check against.
  * @return whether the index is invalid
  */
 template< typename DIMS_TYPE, typename INDEX_TYPE >
 LVARRAY_HOST_DEVICE inline constexpr
-bool invalidIndex( DIMS_TYPE const * const LVARRAY_RESTRICT dims, 
+bool invalidIndex( DIMS_TYPE const * const LVARRAY_RESTRICT dims,
                    int const dimsIndex,
                    INDEX_TYPE const index )
 {
@@ -260,7 +208,7 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 {
   bool invalid = false;
   int curDim = 0;
-  ( (invalid = invalid || invalidIndex(dims, curDim++, indices)), ...);
+  ( (invalid = invalid || invalidIndex( dims, curDim++, indices )), ...);
   return invalid;
 }
 
@@ -274,12 +222,12 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
-{ 
+{
   bool const invalid = invalidIndices( dims, indices ... );
   if( invalid )
   {
     printDimsAndIndices( dims, indices ... );
-    LVARRAY_ERROR( "Invalid indices. Info precedes this line." ); 
+    LVARRAY_ERROR( "Invalid indices. Info precedes this line." );
   }
 }
 
