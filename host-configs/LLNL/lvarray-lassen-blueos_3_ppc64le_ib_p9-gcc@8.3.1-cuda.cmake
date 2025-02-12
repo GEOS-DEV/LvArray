@@ -49,15 +49,15 @@ set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 set(ENABLE_CHAI ON CACHE BOOL "")
 
-set(CHAI_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-jvnmbz3nfrjym77m2m2ddxfgyigf2hqv" CACHE PATH "")
+set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-jvnmbz3nfrjym77m2m2ddxfgyigf2hqv" CACHE PATH "")
 
-set(RAJA_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-ktim3j27la76tmlr6ryj2vjfllltmz4o" CACHE PATH "")
+set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-ktim3j27la76tmlr6ryj2vjfllltmz4o" CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 
-set(UMPIRE_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-xmi5nbcsff7dz76ljlmr5catjxa4hzjn" CACHE PATH "")
+set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-xmi5nbcsff7dz76ljlmr5catjxa4hzjn" CACHE PATH "")
 
-set(CAMP_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-d4ymmapzrvlzw6jwjiyenqd5l2sy7pg7" CACHE PATH "")
+set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-d4ymmapzrvlzw6jwjiyenqd5l2sy7pg7" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # IO TPLs
@@ -65,9 +65,9 @@ set(CAMP_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-
 
 set(ENABLE_CALIPER ON CACHE BOOL "")
 
-set(CALIPER_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-rw6xo4fv4xn4oapuiypwwn7cz3m73naz" CACHE PATH "")
+set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-rw6xo4fv4xn4oapuiypwwn7cz3m73naz" CACHE PATH "")
 
-set(adiak_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/adiak-0.4.0-n3yugcwz5o3ggvi2nrwybgmfattinedh/lib/cmake/adiak" CACHE PATH "")
+set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/adiak-0.4.0-n3yugcwz5o3ggvi2nrwybgmfattinedh/lib/cmake/adiak" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # Documentation

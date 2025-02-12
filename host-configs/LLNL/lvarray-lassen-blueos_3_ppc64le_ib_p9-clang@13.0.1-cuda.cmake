@@ -49,15 +49,15 @@ set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 set(ENABLE_CHAI ON CACHE BOOL "")
 
-set(CHAI_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-nmmjzxisecb5fpqfnvsm7q25riyc4v6n" CACHE PATH "")
+set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-nmmjzxisecb5fpqfnvsm7q25riyc4v6n" CACHE PATH "")
 
-set(RAJA_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-54zp6bxl3yepw3nh3awk455q22vakj2u" CACHE PATH "")
+set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-54zp6bxl3yepw3nh3awk455q22vakj2u" CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 
-set(UMPIRE_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-ztjsbkdojxcrgqnqrkvm7wq5oz4lm7cw" CACHE PATH "")
+set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-ztjsbkdojxcrgqnqrkvm7wq5oz4lm7cw" CACHE PATH "")
 
-set(CAMP_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-fs7yeokq6dq3pql5hndzczn36ykkfhon" CACHE PATH "")
+set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-fs7yeokq6dq3pql5hndzczn36ykkfhon" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # IO TPLs
@@ -65,9 +65,9 @@ set(CAMP_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/c
 
 set(ENABLE_CALIPER ON CACHE BOOL "")
 
-set(CALIPER_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-4gu3btnlno2sbv56vhd3ux2uvgoupkgi" CACHE PATH "")
+set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-4gu3btnlno2sbv56vhd3ux2uvgoupkgi" CACHE PATH "")
 
-set(adiak_DIR "/usr/WS1/GEOS/GEOSX/TPLs_2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/adiak-0.4.0-hqwcvthhjo5zs4b3u52glnlcxk5bp34n/lib/cmake/adiak" CACHE PATH "")
+set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-13-cuda-12_tpls/clang-13.0.1/adiak-0.4.0-hqwcvthhjo5zs4b3u52glnlcxk5bp34n/lib/cmake/adiak" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # Documentation
