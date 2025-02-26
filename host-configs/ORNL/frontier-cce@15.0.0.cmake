@@ -4,20 +4,20 @@ set(CCE_VERSION 15.0.0)
 set(CONFIG_NAME "frontier-cce@${CCE_VERSION}" CACHE PATH "")
 
 # Set up the tpls
-set( GEOSX_TPL_DATE 2023-04-04 )
-set( GEOSX_TPL_DIR "/lustre/orion/geo127/world-shared/tpls/${GEOSX_TPL_DATE}/install-${CONFIG_NAME}/" CACHE PATH "")
+set( GEOS_TPL_DATE 2023-04-04 )
+set( GEOS_TPL_DIR "/lustre/orion/geo127/world-shared/tpls/${GEOS_TPL_DATE}/install-${CONFIG_NAME}/" CACHE PATH "")
 
-set(CAMP_DIR "${GEOSX_TPL_DIR}/camp-2022.03.2" CACHE PATH "" )
-set(RAJA_DIR "${GEOSX_TPL_DIR}/raja-2022.03.0" CACHE PATH "" )
+set(CAMP_DIR "${GEOS_TPL_DIR}/camp-2022.03.2" CACHE PATH "" )
+set(RAJA_DIR "${GEOS_TPL_DIR}/raja-2022.03.0" CACHE PATH "" )
 
 set(ENABLE_UMPIRE TRUE CACHE BOOL "" )
-set(UMPIRE_DIR "${GEOSX_TPL_DIR}/umpire-2022.03.0" CACHE PATH "" )
+set(UMPIRE_DIR "${GEOS_TPL_DIR}/umpire-2022.03.0" CACHE PATH "" )
 
 set(ENABLE_CHAI TRUE CACHE BOOL "" )
-set(CHAI_DIR "${GEOSX_TPL_DIR}/chai-2022.03.0" CACHE PATH "" )
+set(CHAI_DIR "${GEOS_TPL_DIR}/chai-2022.03.0" CACHE PATH "" )
 
-set(METIS_DIR "${GEOSX_TPL_DIR}/metis-5.1.0" CACHE PATH "" )
-set(PARMETIS_DIR "${GEOSX_TPL_DIR}/parmetis-4.0.3" CACHE PATH "" )
+set(METIS_DIR "${GEOS_TPL_DIR}/metis-5.1.0" CACHE PATH "" )
+set(PARMETIS_DIR "${GEOS_TPL_DIR}/parmetis-4.0.3" CACHE PATH "" )
 
 # C++ options
 set(CRAYPE_VERSION "2.7.16")

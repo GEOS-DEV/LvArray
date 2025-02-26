@@ -23,7 +23,8 @@ set(CALIPER_DIR ${GEOS_TPL_DIR}/caliper CACHE PATH "")
 # set(ENABLE_PYLVARRAY ON CACHE BOOL "")
 # set(PYTHON_DIR /usr/tce/packages/python/python-3.7.2 CACHE PATH "")
 
-#set(SPHINX_EXECUTABLE /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu/bin/sphinx-build CACHE PATH "")
+# VPM: Need to be updated!
+set(SPHINX_EXECUTABLE /collab/usr/gapps/python/build/spack-toss3.2/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/python-2.7.14-7rci3jkmuht2uiwp433afigveuf4ocnu/bin/sphinx-build CACHE PATH "")
 
 set(DOXYGEN_EXECUTABLE ${GEOS_TPL_DIR}/doxygen/bin/doxygen CACHE PATH "")
 
