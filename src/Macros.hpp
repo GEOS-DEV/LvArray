@@ -66,8 +66,6 @@
  */
 #define STRINGIZE( A ) STRINGIZE_NX( A )
 
-//#pragma message "LVARRAY_DEVICE_COMPILE: " STRINGIZE(LVARRAY_DEVICE_COMPILE)
-
 /**
  * @brief Mark @p X as an unused argument, used to silence compiler warnings.
  * @param X the unused argument.
@@ -123,7 +121,11 @@
  */
 
 #if defined(LVARRAY_DEVICE_COMPILE)
-  #if !defined(NDEBUG) || __HIP_DEVICE_COMPILE__ == 1
+//   #if defined(__HIP_DEVICE_COMPILE__)
+// // empty impl to avoid the possibility of printfs in device code
+// //   on AMD, which can cause performance degradation just by being present
+// #define LVARRAY_ERROR_IF( EXP, MSG )
+  #if (!defined(NDEBUG)) || defined(__HIP_DEVICE_COMPILE__)
 #define LVARRAY_ERROR_IF( EXP, MSG ) \
   do \
   { \
@@ -684,7 +686,7 @@ template< typename >
 struct RAJAHelper
 {};
 
-using serialPolicy = RAJA::loop_exec;
+using serialPolicy = RAJA::seq_exec;
 
 template<>
 struct RAJAHelper< serialPolicy >

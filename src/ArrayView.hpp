@@ -131,8 +131,7 @@ public:
   ArrayView( ArrayView const & source ) noexcept:
     m_dims{ source.m_dims },
     m_strides{ source.m_strides },
-    m_dataBuffer{ source.m_dataBuffer, source.size() },
-    m_singleParameterResizeIndex( source.m_singleParameterResizeIndex )
+    m_dataBuffer{ source.m_dataBuffer, source.size() }
   {}
 
   /**
@@ -155,8 +154,7 @@ public:
   explicit ArrayView( ArrayView< U, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & source ):
     m_dims{ source.dimsArray() },
     m_strides{ source.stridesArray() },
-    m_dataBuffer{ source.dataBuffer() },
-    m_singleParameterResizeIndex( source.getSingleParameterResizeIndex() )
+    m_dataBuffer{ source.dataBuffer() }
   {
     m_dims[ USD ] = typeManipulation::convertSize< T, U >( m_dims[ USD ] );
 
@@ -191,18 +189,15 @@ public:
    * @brief Construct a new ArrayView from existing components.
    * @param dims The array of dimensions.
    * @param strides The array of strides.
-   * @param singleParameterResizeIndex The single parameter resize index.
    * @param buffer The buffer to copy construct.
    */
   inline LVARRAY_HOST_DEVICE constexpr explicit
   ArrayView( typeManipulation::CArray< INDEX_TYPE, NDIM > const & dims,
              typeManipulation::CArray< INDEX_TYPE, NDIM > const & strides,
-             int const singleParameterResizeIndex,
              BUFFER_TYPE< T > const & buffer ):
     m_dims( dims ),
     m_strides( strides ),
-    m_dataBuffer( buffer ),
-    m_singleParameterResizeIndex( singleParameterResizeIndex )
+    m_dataBuffer( buffer )
   {}
 
   /// The default destructor.
@@ -231,7 +226,6 @@ public:
   ArrayView & operator=( ArrayView && rhs )
   {
     m_dataBuffer = std::move( rhs.m_dataBuffer );
-    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
     for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
@@ -250,7 +244,6 @@ public:
   ArrayView & operator=( ArrayView const & rhs ) noexcept
   {
     m_dataBuffer = rhs.m_dataBuffer;
-    m_singleParameterResizeIndex = rhs.m_singleParameterResizeIndex;
     for( int i = 0; i < NDIM; ++i )
     {
       m_dims[ i ] = rhs.m_dims[ i ];
@@ -272,7 +265,7 @@ public:
    */
   inline LVARRAY_HOST_DEVICE constexpr
   ArrayView toView() const &
-  { return ArrayView( m_dims, m_strides, m_singleParameterResizeIndex, m_dataBuffer ); }
+  { return ArrayView( m_dims, m_strides, m_dataBuffer ); }
 
   /**
    * @return Return a new ArrayView where @c T is @c const.
@@ -282,7 +275,6 @@ public:
   {
     return ViewTypeConst( m_dims,
                           m_strides,
-                          m_singleParameterResizeIndex,
                           m_dataBuffer );
   }
 
@@ -439,13 +431,6 @@ public:
   LVARRAY_HOST_DEVICE constexpr
   INDEX_TYPE capacity() const
   { return LvArray::integerConversion< INDEX_TYPE >( m_dataBuffer.capacity() ); }
-
-  /**
-   * @return Return the default resize dimension.
-   */
-  LVARRAY_HOST_DEVICE inline constexpr
-  int getSingleParameterResizeIndex() const
-  { return m_singleParameterResizeIndex; }
 
   /**
    * @tparam INDICES A variadic pack of integral types.
@@ -710,7 +695,6 @@ public:
       TV_ttf_add_row( "m_dims", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_dims) );
       TV_ttf_add_row( "m_strides", totalview::format< INDEX_TYPE, int >( 1, &ndim ).c_str(), (av->m_strides) );
       TV_ttf_add_row( "m_dataBuffer", LvArray::system::demangle< BUFFER_TYPE< T > >().c_str(), &(av->m_dataBuffer) );
-      TV_ttf_add_row( "m_singleParameterResizeIndex", "int", &(av->m_singleParameterResizeIndex) );
     }
     return 0;
   }
@@ -744,8 +728,7 @@ protected:
   ArrayView( BUFFER_TYPE< T > && buffer ) noexcept:
     m_dims{ 0 },
     m_strides{ 0 },
-    m_dataBuffer{ std::move( buffer ) },
-    m_singleParameterResizeIndex{ 0 }
+    m_dataBuffer{ std::move( buffer ) }
   {}
 
   /// the dimensions of the array.
@@ -756,10 +739,6 @@ protected:
 
   /// this data member contains the actual data for the array.
   BUFFER_TYPE< T > m_dataBuffer;
-
-  /// this data member specifies the dimension that will be resized as a result of a call to the
-  /// single dimension resize method.
-  int m_singleParameterResizeIndex = 0;
 };
 
 /**
