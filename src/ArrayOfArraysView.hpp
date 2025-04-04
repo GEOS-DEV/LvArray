@@ -794,8 +794,6 @@ protected:
         }
 
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
-
-        INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
         typeManipulation::forEachArg( [this, totalSize]( auto & buffer )
         {
           // We create a new buffer to avoid moving from uninitialized values.
@@ -809,7 +807,7 @@ protected:
             arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset ], curArraySize, &buffer[ curArrayOffset ] );
             arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
           }
-          
+
           buffer.free();
           buffer = std::move( newBuffer );
         }, m_values, buffers ... );
@@ -939,7 +937,7 @@ protected:
             arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset + shift ], curArraySize, &buffer[ curArrayOffset ] );
             arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
           }
-          
+
           buffer.free();
           buffer = std::move( newBuffer );
         }
