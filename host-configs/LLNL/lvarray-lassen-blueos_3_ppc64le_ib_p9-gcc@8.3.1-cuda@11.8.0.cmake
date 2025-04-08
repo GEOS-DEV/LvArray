@@ -3,7 +3,7 @@
 #################################################################################
 #--------------------------------------------------------------------------------
 # SYS_TYPE: blueos_3_ppc64le_ib_p9
-# Compiler Spec: clang@=10.0.1
+# Compiler Spec: gcc@=8.3.1
 # CMake executable path: /usr/tce/packages/cmake/cmake-3.29.2/bin/cmake
 #--------------------------------------------------------------------------------
 
@@ -11,9 +11,9 @@
 # Compilers
 #--------------------------------------------------------------------------------
 
-set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-10.0.1-gcc-8.3.1/bin/clang" CACHE PATH "")
+set(CMAKE_C_COMPILER "/usr/tce/packages/gcc/gcc-8.3.1/bin/gcc" CACHE PATH "")
 
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-10.0.1-gcc-8.3.1/bin/clang++" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/gcc/gcc-8.3.1/bin/g++" CACHE PATH "")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "")
 
@@ -49,15 +49,15 @@ set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 set(ENABLE_CHAI ON CACHE BOOL "")
 
-set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-ogxmfhtalme6gpcoykptldthjmg4rm4q" CACHE PATH "")
+set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/chai-git.4b9060b18b9bec1167026cfb3132bd540c4bd56b_develop-wqfiegcvs7mcvwfbsfhvlp67dq6pgkmj" CACHE PATH "")
 
-set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-lsyisibfnsvy4fo3qfc6ohj5l4cheu3g" CACHE PATH "")
+set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/raja-git.1d70abf171474d331f1409908bdf1b1c3fe19222_develop-r4gqy5cs36b365up22noodxozbhox5aa" CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 
-set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-jmbjlbdi44jyb6yjcgpmnvavj7opvgmk" CACHE PATH "")
+set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/umpire-git.1ed0669c57f041baa1f1070693991c3a7a43e7ee_develop-f73tjzjdmo7cbxqe4mp7eehf4o5hyamp" CACHE PATH "")
 
-set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-v3j74o2uag4ty7xyngak7ogbmvireubt" CACHE PATH "")
+set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/camp-git.ee0a3069a7ae72da8bcea63c06260fad34901d43_main-5zgnrmmdn2pijqefj2onhesyqxzoijm3" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # IO TPLs
@@ -65,9 +65,9 @@ set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11
 
 set(ENABLE_CALIPER ON CACHE BOOL "")
 
-set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-xiwon23mamhn2tkcnqks5crznnqaovjt" CACHE PATH "")
+set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-rw6xo4fv4xn4oapuiypwwn7cz3m73naz" CACHE PATH "")
 
-set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/lassen-clang-10-cuda-11_tpls/clang-10.0.1/adiak-0.4.0-tp3jxzzp7ifbreg2erbvusm34w64jau7/lib/cmake/adiak" CACHE PATH "")
+set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/lassen-gcc-8-cuda-11_tpls/gcc-8.3.1/adiak-0.4.0-n3yugcwz5o3ggvi2nrwybgmfattinedh/lib/cmake/adiak" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # Documentation
