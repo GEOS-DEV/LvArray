@@ -249,7 +249,7 @@ public:
 
   /**
    * @brief Move assignment operator..
-   * @param src the SparsityPatternView to be moved from.
+   * @param src the ArrayOfArraysView to be moved from.
    * @return *this.
    */
   LVARRAY_HOST_DEVICE
