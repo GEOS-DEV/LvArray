@@ -249,7 +249,7 @@ public:
 
   /**
    * @brief Move assignment operator..
-   * @param src the SparsityPatternView to be moved from.
+   * @param src the ArrayOfArraysView to be moved from.
    * @return *this.
    */
   LVARRAY_HOST_DEVICE
@@ -1073,5 +1073,24 @@ private:
     }, m_values, buffers ... );
   }
 };
+
+/**
+ * @brief True if the template type is an ArrayOfArraysView.
+ */
+template< class >
+constexpr bool isArrayOfArraysView = false;
+
+/**
+ * @tparam T The type contained in the ArrayOfArraysView.
+ * @tparam INDEX_TYPE The integral type used as an index.
+ * @tparam CONST_SIZES True iff the size of each array is constant.
+ * @tparam BUFFER_TYPE The type used to manager the underlying allocation.
+ * @brief Specialization of isArrayOfArraysView for the ArrayOfArraysView class.
+ */
+template< typename T,
+      typename INDEX_TYPE,
+      bool CONST_SIZES,
+      template< typename > class BUFFER_TYPE >
+constexpr bool isArrayOfArraysView< ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES, BUFFER_TYPE > > = true;
 
 } /* namespace LvArray */
