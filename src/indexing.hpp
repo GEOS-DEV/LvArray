@@ -221,26 +221,6 @@ bool invalidIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES con
 template< typename INDEX_TYPE, typename ... INDICES >
 LVARRAY_HOST_DEVICE inline
 void checkIndices( INDEX_TYPE const * const LVARRAY_RESTRICT dims, INDICES const ... indices )
-// { 
-//   if( invalidIndices( dims, indices ... ) )
-//   {
-//     constexpr int NDIM = sizeof ... (INDICES);
-//     printf( "Invalid indices. \n");
-
-
-//     printf( "  ( indices ) = { ");
-//     (printf( " %d", indices),...);
-//     printf( "\n");
-
-//     printf( "  ( dims ) = { ");
-//     for( INDEX_TYPE dim=0; dim<NDIM; ++dim )
-//     {
-//       printf( "( %d) ", dims[dim] );
-//     }
-//     printf( "\n");
-//     asm ( "trap;" );
-//   }
-//   //LVARRAY_ERROR_IF( invalidIndices( dims, indices ... ), "Invalid indices. " << printDimsAndIndices( dims, indices ... ) ); 
 {
   bool const invalid = invalidIndices( dims, indices ... );
   if( invalid )

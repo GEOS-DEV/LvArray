@@ -847,10 +847,10 @@ protected:
     destroyValues( 0, m_numArrays, pairs.first ... );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-
+    
     bufferManipulation::copyInto( m_offsets, offsetsSize, srcOffsets, srcNumArrays + 1 );
     bufferManipulation::copyInto( m_sizes, m_numArrays, srcSizes, srcNumArrays );
-
+    
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
     {
