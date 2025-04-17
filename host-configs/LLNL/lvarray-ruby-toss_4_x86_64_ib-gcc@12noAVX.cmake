@@ -35,15 +35,15 @@ set(ENABLE_CUDA OFF CACHE BOOL "")
 
 set(ENABLE_CHAI ON CACHE BOOL "")
 
-set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/chai-git.df7741f1dbbdc5fff5f7d626151fdf1904e62b19_develop-wtbhnhf2zdlchyvk3xfgwni2wnjxo3js" CACHE PATH "")
+set(CHAI_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/chai-git.4b9060b18b9bec1167026cfb3132bd540c4bd56b_develop-leifvg5jj3pqsdbt2jvujdotbvjavidq" CACHE PATH "")
 
-set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/raja-git.4d7fcba55ebc7cb972b7cc9f6778b48e43792ea1_develop-e2mjbgvxgfyunnduvgkuntfkblvmrvjo" CACHE PATH "")
+set(RAJA_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/raja-git.1d70abf171474d331f1409908bdf1b1c3fe19222_develop-2y47wpygfea35spibzd657rncwjgr3xk" CACHE PATH "")
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 
-set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/umpire-git.abd729f40064175e999a83d11d6b073dac4c01d2_develop-ixn6mth7nl44zyt34hztcdnqit6h6aqy" CACHE PATH "")
+set(UMPIRE_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/umpire-git.1ed0669c57f041baa1f1070693991c3a7a43e7ee_develop-2fsgks5hmrb5eep4xrcn7cn6tf2s25qt" CACHE PATH "")
 
-set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/camp-git.0f07de4240c42e0b38a8d872a20440cb4b33d9f5_main-mjbymoc6da5vwtgx7kgfcg6x37ilciyg" CACHE PATH "")
+set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/camp-git.ee0a3069a7ae72da8bcea63c06260fad34901d43_main-sw3zpyoowyj5f2eo43rnd5sxmdeopmzi" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # IO TPLs
@@ -51,9 +51,9 @@ set(CAMP_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/g
 
 set(ENABLE_CALIPER ON CACHE BOOL "")
 
-set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-olusdj2xpppf5tam6ktcysn6ogeq4i2d" CACHE PATH "")
+set(CALIPER_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/caliper-git.287b7f3ad2d12f520aad04268d44f353cd05403c_2.12.0-olusdj2xpppf5tam6ktcysn6ogeq4i2d" CACHE PATH "")
 
-set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/adiak-0.4.0-kgrknuu6drw34t7svfcen5t5u37i4jnf/lib/cmake/adiak" CACHE PATH "")
+set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/adiak-0.4.0-kgrknuu6drw34t7svfcen5t5u37i4jnf/lib/cmake/adiak" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # Documentation
@@ -61,7 +61,7 @@ set(adiak_DIR "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/
 
 set(SPHINX_EXECUTABLE "/usr/gapps/GEOSX/thirdPartyLibs/python/quartz-gcc-python/python/bin/sphinx-build" CACHE PATH "")
 
-set(DOXYGEN_EXECUTABLE "/usr/gapps/GEOSX/thirdPartyLibs/2025-02-12/ruby-gcc-12noAVX_tpls/gcc-12noAVX/doxygen-1.8.20-c4zarmc366msdoizvmau2bs7n76ob7vo/bin/doxygen" CACHE PATH "")
+set(DOXYGEN_EXECUTABLE "/usr/gapps/GEOSX/thirdPartyLibs/2025-04-03_spack/ruby-gcc-12noAVX_tpls/gcc-12noAVX/doxygen-1.8.20-c4zarmc366msdoizvmau2bs7n76ob7vo/bin/doxygen" CACHE PATH "")
 
 #--------------------------------------------------------------------------------
 # Development tools
