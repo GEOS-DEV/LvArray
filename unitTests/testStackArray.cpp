@@ -5,6 +5,11 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
+#if defined(__GNUC__) && __GNUC__ == 11
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 // Source includes
 #include "StackBuffer.hpp"
 #include "Array.hpp"
@@ -13,10 +18,6 @@
 // TPL includes
 #include <gtest/gtest.h>
 
-#if defined(__GNUC__) && __GNUC__ == 11
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
 
 namespace LvArray
 {
