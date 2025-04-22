@@ -132,6 +132,12 @@ struct VoidBuffer
   { LVARRAY_UNUSED_VARIABLE( name ); }
 };
 
+
+#if defined(__GNUC__) && __GNUC__ == 11
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 /**
  * @brief Check that given Buffer and size are valid.
  * @tparam BUFFER the buffer type.
@@ -152,6 +158,11 @@ void check( BUFFER const & buf, std::ptrdiff_t const size )
   LVARRAY_DEBUG_VAR( size );
 #endif
 }
+
+#if defined(__GNUC__) && __GNUC__ == 11
+  #pragma GCC diagnostic pop
+#endif
+
 
 /**
  * @brief Check that given Buffer, size, and insertion position, are valid.

@@ -5,11 +5,6 @@
  * SPDX-License-Identifier: (BSD-3-Clause)
  */
 
-#if defined(__GNUC__) && __GNUC__ == 11
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-
 // Source includes
 #include "StackBuffer.hpp"
 #include "Array.hpp"
@@ -330,9 +325,7 @@ TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 } // namespace testing
 } // namespace LvArray
 
-#if defined(__GNUC__) && __GNUC__ == 11
-  #pragma GCC diagnostic pop
-#endif
+
 
 
 // This is the default gtest main method. It is included for ease of debugging.
