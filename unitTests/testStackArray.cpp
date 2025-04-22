@@ -13,6 +13,11 @@
 // TPL includes
 #include <gtest/gtest.h>
 
+#if defined(__GNUC__) && __GNUC__ == 11
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 namespace LvArray
 {
 namespace testing
@@ -323,6 +328,11 @@ TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 
 } // namespace testing
 } // namespace LvArray
+
+#if defined(__GNUC__) && __GNUC__ == 11
+  #pragma GCC diagnostic pop
+#endif
+
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
