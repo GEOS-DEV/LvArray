@@ -13,7 +13,6 @@
 // TPL includes
 #include <gtest/gtest.h>
 
-
 namespace LvArray
 {
 namespace testing
@@ -324,9 +323,6 @@ TYPED_TEST( StackArrayCaptureTest, sizedConstructorInLambda )
 
 } // namespace testing
 } // namespace LvArray
-
-
-
 
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
