@@ -29,9 +29,10 @@ if( ENABLE_HIP )
   set( ENABLE_CLANG_HIP ON CACHE BOOL "" FORCE )
 
   set( HIP_ROOT "/opt/rocm-${HIP_VERSION_STRING}" CACHE PATH "" )
+  set( HIP_ROOT_DIR ${HIP_ROOT} CACHE PATH "" )
   set( ROCM_PATH ${HIP_ROOT} CACHE PATH "" )
 
   set( CMAKE_HIP_ARCHITECTURES "gfx90a" CACHE STRING "" FORCE )
-  set( CMAKE_HIP_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc" CACHE STRING "" FORCE )
+  set( CMAKE_HIP_FLAGS "-munsafe-fp-atomics -fno-gpu-rdc -I${MPI_INCLUDE_DIR}" CACHE STRING "" FORCE )
   set( CMAKE_HIP_LINK_FLAGS "-fno-gpu-rdc --hip-link -Wl,--allow-shlib-undefined" CACHE STRING "" FORCE )
 endif()
