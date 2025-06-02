@@ -354,6 +354,24 @@ void symmetricToDense( DST_MATRIX && dstMatrix, SRC_SYM_MATRIX const & srcSymMat
                                                            srcSymMatrix );
 }
 
+/**
+ * @brief Determine the polar decomposition of the matrix @p srcMatrix
+ * @tparam M The size of @p R and @p srcMatrix.
+ * @tparam DST_MATRIX The type of @p R.
+ * @tparam MATRIX The type of @p srcMatrix.
+ * @param R The resultant rotation matrix.
+ * @param matrix The matrix to be decomposed.
+ * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p srcMatrix.
+ *   This is done using Higham's iterative algorithm.
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
+LVARRAY_HOST_DEVICE constexpr inline
+void polarDecomposition( DST_MATRIX && R, MATRIX const & srcMatrix )
+{
+  return internal::SquareMatrixOps< M >::polarDecomposition( std::forward< DST_MATRIX >( R ),
+                                                             srcMatrix );
+}
+
 ///@}
 
 } // namespace tensorOps
