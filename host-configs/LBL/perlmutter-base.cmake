@@ -1,23 +1,10 @@
-set(CONFIG_NAME "lassen-clang13-cuda11" CACHE PATH "")
-
-
-set(COMPILER_DIR /usr/tce/packages/clang/clang-13.0.1-gcc-8.3.1 )
-set(CMAKE_C_COMPILER ${COMPILER_DIR}/bin/clang CACHE PATH "")
-set(CMAKE_CXX_COMPILER ${COMPILER_DIR}/bin/clang++ CACHE PATH "")
-
-
-# C++ options
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mcpu=powerpc64le -mtune=powerpc64le" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g ${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
-
-
 # Set up the tpls
-set(GEOSX_TPL_ROOT_DIR /usr/gapps/GEOSX/thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/2023-03-15/install-${CONFIG_NAME}-release CACHE PATH "")
+set( GEOSX_TPL_ROOT_DIR ${CMAKE_SOURCE_DIR}/../../thirdPartyLibs CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
+set( RAJA_ENABLE_VECTORIZATION OFF CACHE BOOL "" FORCE)
 
 set(ENABLE_UMPIRE ON CACHE BOOL "")
 set(UMPIRE_DIR ${GEOSX_TPL_DIR}/chai CACHE PATH "")
@@ -32,13 +19,15 @@ set(ENABLE_ADDR2LINE ON CACHE BOOL "")
 
 # Cuda options
 set(ENABLE_CUDA ON CACHE BOOL "")
-set(CUDA_TOOLKIT_ROOT_DIR /usr/tce/packages/cuda/cuda-11.6.1 CACHE STRING "")
+set(CUDA_TOOLKIT_ROOT_DIR /opt/nvidia/hpc_sdk/Linux_x86_64/22.7/cuda/11.7 CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER} CACHE STRING "")
 set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc CACHE STRING "")
-set(CUDA_ARCH sm_70 CACHE STRING "")
+
+set(CMAKE_CUDA_ARCHITECTURES "80" CACHE STRING "")
+set(CUDA_ARCH sm_80 CACHE STRING "")
 set(CMAKE_CUDA_STANDARD 14 CACHE STRING "")
 set(CMAKE_CUDA_FLAGS "-restrict -arch ${CUDA_ARCH} --expt-extended-lambda -Werror cross-execution-space-call,reorder,deprecated-declarations" CACHE STRING "")
-set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -Xcompiler -DNDEBUG -Xcompiler -O3 -Xcompiler -mcpu=powerpc64le -Xcompiler -mtune=powerpc64le" CACHE STRING "")
+set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG -Xcompiler -DNDEBUG -Xcompiler -O3" CACHE STRING "")
 set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-g -lineinfo ${CMAKE_CUDA_FLAGS_RELEASE}" CACHE STRING "")
 set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
@@ -54,4 +43,3 @@ set(gtest_disable_pthreads ON CACHE BOOL "")
 # Documentation
 set(ENABLE_UNCRUSTIFY OFF CACHE BOOL "" FORCE)
 set(ENABLE_DOXYGEN OFF CACHE BOOL "" FORCE)
-

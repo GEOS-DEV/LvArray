@@ -138,12 +138,21 @@ public:
    * @brief Constructor for creating an empty Buffer.
    * @details An empty buffer may hold resources and needs to be free'd.
    * @note The unused boolean parameter is to distinguish this from default constructor.
+   * @note Although it is marked as a host-device method, this is only valid to call from the host.
    */
+  LVARRAY_HOST_DEVICE
   ChaiBuffer( bool ):
     m_pointer( nullptr ),
-    m_capacity( 0 ),
-    m_pointerRecord( new chai::PointerRecord{} )
+    m_capacity( 0 )
+  #if !defined(LVARRAY_DEVICE_COMPILE)
+    , m_pointerRecord( new chai::PointerRecord{} )
+  #else
+    , m_pointerRecord( nullptr )
+  #endif
   {
+  #if defined(LVARRAY_DEVICE_COMPILE)
+    LVARRAY_ERROR( "Creating a new ChaiBuffer on device is not supported. This is often the result of capturing an array on device instead of a view." );
+  #else
     m_pointerRecord->m_size = 0;
     setName( "" );
 
@@ -151,6 +160,7 @@ public:
     {
       m_pointerRecord->m_allocators[ space ] = internal::getArrayManager().getAllocatorId( chai::ExecutionSpace( space ) );
     }
+  #endif
   }
 
   /**
@@ -158,13 +168,24 @@ public:
    * @param spaces The list of spaces.
    * @param allocators The allocators, must be the same length as @p spaces.
    * @details @code allocator[ i ] @endcode is used for the memory space @code spaces[ i ] @endcode.
+   * @note Although it is marked as a host-device method, this is only valid to call from the host.
    */
+  LVARRAY_HOST_DEVICE
   ChaiBuffer( std::initializer_list< MemorySpace > const & spaces,
               std::initializer_list< umpire::Allocator > const & allocators ):
     m_pointer( nullptr ),
-    m_capacity( 0 ),
-    m_pointerRecord( new chai::PointerRecord{} )
+    m_capacity( 0 )
+  #if !defined(LVARRAY_DEVICE_COMPILE)
+    , m_pointerRecord( new chai::PointerRecord{} )
+  #else
+    , m_pointerRecord( nullptr )
+  #endif
   {
+  #if defined(LVARRAY_DEVICE_COMPILE)
+    LVARRAY_ERROR( "Creating a new ChaiBuffer on device is not supported." );
+    LVARRAY_UNUSED_VARIABLE( spaces );
+    LVARRAY_UNUSED_VARIABLE( allocators );
+  #else
     m_pointerRecord->m_size = 0;
     setName( "" );
 
@@ -179,6 +200,7 @@ public:
     {
       m_pointerRecord->m_allocators[ internal::toChaiExecutionSpace( spaces.begin()[ i ] ) ] = allocators.begin()[ i ].getId();
     }
+  #endif
   }
 
   /**
@@ -285,9 +307,19 @@ public:
    * @param space The space to perform the reallocation in. If space is the CPU then the buffer is reallocated
    *   only on the CPU and it is free'd in the other spaces. If the space is the GPU the the current size must be zero.
    * @param newCapacity the new capacity of the buffer.
+   * @note Although it is marked as a host-device method, this is only valid to call from the host.
    */
-  void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
+  LVARRAY_HOST_DEVICE
+  void reallocate( std::ptrdiff_t const size,
+                   MemorySpace const space,
+                   std::ptrdiff_t const newCapacity )
   {
+  #if defined(LVARRAY_DEVICE_COMPILE)
+    LVARRAY_ERROR( "Allocation from device is not supported." );
+    LVARRAY_UNUSED_VARIABLE( size );
+    LVARRAY_UNUSED_VARIABLE( space );
+    LVARRAY_UNUSED_VARIABLE( newCapacity );
+  #else
     move( space, true );
     chai::PointerRecord * const newRecord = new chai::PointerRecord{};
     newRecord->m_size = newCapacity * sizeof( T );
@@ -319,20 +351,41 @@ public:
     m_pointer = newPointer;
     m_pointerRecord = newRecord;
     registerTouch( space );
+  #endif
   }
 
   /**
    * @brief Free the data in the buffer but does not destroy any values.
    * @note To destroy the values and free the data call bufferManipulation::free.
+   * @note Although it is marked as a host-device method, this is only valid to call from the host.
    */
-  inline
+  LVARRAY_HOST_DEVICE inline
   void free()
   {
+  #if defined(LVARRAY_DEVICE_COMPILE)
+    LVARRAY_ERROR( "Deallocation from device is not supported." );
+  #else
     std::lock_guard< std::mutex > lock( internal::chaiLock );
     internal::getArrayManager().free( m_pointerRecord );
     m_capacity = 0;
     m_pointer = nullptr;
     m_pointerRecord = nullptr;
+  #endif
+  }
+
+  /**
+   * @brief Delete the buffer on device (no-op here)
+   */
+  inline
+  void freeOnDevice() const
+  {
+  #if defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP )
+    chai::ExecutionSpace const chaiSpace = chai::CPU;
+    move( internal::toMemorySpace( chaiSpace ), true );
+    // if T is const the touch == true is ignored in move(), we force it.
+    m_pointerRecord->m_touched[ chaiSpace ] = true;
+    internal::getArrayManager().free( m_pointerRecord, chai::GPU );
+  #endif
   }
 
   /**
@@ -460,6 +513,40 @@ public:
         std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
         char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
         LVARRAY_LOG( "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+      }
+
+      if( act == chai::ACTION_ALLOC )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        #endif
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Allocated " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
+      }
+
+      if( act == chai::ACTION_FREE )
+      {
+        std::string const size = system::calculateSize( record->m_size );
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        #if defined(LVARRAY_USE_CUDA)
+        size_t free, total;
+        cudaMemGetInfo( &free, &total );
+        std::string const size2 = system::calculateSize( free );
+        #endif
+        char const * const spaceStr = ( s == chai::CPU ) ? "HOST  " : "DEVICE";
+        #if defined(LVARRAY_USE_CUDA)
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name  << " Free memory on device: " << size2 );
+        #else
+        LVARRAY_LOG( "Freed " << paddedSize << " to the " << spaceStr << ": " << typeString << " " << name );
+        #endif
       }
     };
   }

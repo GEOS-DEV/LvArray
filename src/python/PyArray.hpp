@@ -84,20 +84,6 @@ public:
   virtual int ndim() const = 0;
 
   /**
-   * @brief Return the single parameter resize index of the Array.
-   * @return the single parameter resize index of the array.
-   * @note This wraps Array::getSingleParameterResizeIndex().
-   */
-  virtual int getSingleParameterResizeIndex() const = 0;
-
-  /**
-   * @brief Set the single parameter resize index of the Array.
-   * @param dim The dimension to make the single parameter resize index.
-   * @note This wraps Array::setSingleParameterResizeIndex( int ).
-   */
-  virtual void setSingleParameterResizeIndex( int const dim ) const = 0;
-
-  /**
    * @brief Resize the default dimension of the Array.
    * @param newSize The new size of the default dimension.
    * @note This wraps Array::resize( INDEX_TYPE ).
@@ -171,14 +157,6 @@ public:
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual int ndim() const final override
   { return NDIM; }
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual int getSingleParameterResizeIndex() const final override
-  { return m_array.getSingleParameterResizeIndex(); }
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual void setSingleParameterResizeIndex( int const dim ) const final override
-  { m_array.setSingleParameterResizeIndex( dim ); }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual void resize( long long const newSize ) final override

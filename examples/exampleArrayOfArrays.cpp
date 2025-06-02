@@ -266,7 +266,7 @@ TEST( ArrayOfArrays, resizeFromCapacities )
 
   // Resize the ArrayOfArrays from a new list of capacities.
   std::array< std::ptrdiff_t, 3 > newCapacities = { 3, 5, 2 };
-  arrayOfArrays.resizeFromCapacities< RAJA::loop_exec >( newCapacities.size(), newCapacities.data() );
+  arrayOfArrays.resizeFromCapacities< RAJA::seq_exec >( newCapacities.size(), newCapacities.data() );
 
   // This will clear any existing arrays.
   EXPECT_EQ( arrayOfArrays.size(), 3 );
@@ -311,7 +311,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 
     // Capture the view on the host. This will copy back the values and sizes since they were previously touched
     // on device. It will only touch the values on host.
-    RAJA::forall< RAJA::loop_exec >(
+    RAJA::forall< RAJA::seq_exec >(
       RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, viewConstSizes.size() ),
       [viewConstSizes] ( std::ptrdiff_t const i )
     {
@@ -332,7 +332,7 @@ CUDA_TEST( ArrayOfArrays, ChaiBuffer )
 
     // Capture the view on device. Since the values were previously touched on host it will copy them over.
     // Both the sizes and offsets are current on device so they are not copied over. Nothing is touched.
-    RAJA::forall< RAJA::loop_exec >(
+    RAJA::forall< RAJA::seq_exec >(
       RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, viewConst.size() ),
       [viewConst] ( std::ptrdiff_t const i )
     {

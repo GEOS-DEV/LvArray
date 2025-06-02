@@ -69,7 +69,7 @@ Resizing a ``LvArray::Array``
 
 It is important to note that unless the array being resized is one dimensional the resize methods above do not preserve the values in the array. That is if you have a two dimensional array ``A`` of size :math:`M \times N` and you resize it to :math:`P \times Q` using any of the methods above then you cannot rely on ``A( i, j )`` having the same value it did before the resize.
 
-There is also a method ``resize`` which takes a single parameter and will resize the dimension given by ``getSingleParameterResizeIndex``. Unlike the previous methods this will preserve the values in the array. By default the first dimension is resized but you can choose the dimension with ``setSingleParameterResizeIndex``.
+There is also a method ``resize`` which takes a single parameter and will resize the first dimension of the array.
 
 .. literalinclude:: ../../examples/exampleArray.cpp
   :language: c++

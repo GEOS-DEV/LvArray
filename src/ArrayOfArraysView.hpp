@@ -596,6 +596,16 @@ public:
   }
 
 
+  /**
+   * Move data to host if not valid and register host as the last valid space and free data on device.
+   */
+  void freeOnDevice() const
+  {
+    m_values.freeOnDevice();
+    m_sizes.freeOnDevice();
+    m_offsets.freeOnDevice();
+  }
+
   ///@}
 
 protected:
@@ -784,11 +794,22 @@ protected:
         }
 
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
-
-        INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-        typeManipulation::forEachArg( [totalSize, maxOffset]( auto & buffer )
+        typeManipulation::forEachArg( [this, totalSize]( auto & buffer )
         {
-          bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, totalSize );
+          // We create a new buffer to avoid moving from uninitialized values.
+          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
+          bufferManipulation::reserve( newBuffer, 0, MemorySpace::host, totalSize );
+
+          for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset ], curArraySize, &buffer[ curArrayOffset ] );
+            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+          }
+
+          buffer.free();
+          buffer = std::move( newBuffer );
         }, m_values, buffers ... );
       }
     }
@@ -889,15 +910,36 @@ protected:
       typeManipulation::forEachArg(
         [this, i, maxOffset, capacityIncrease]( auto & buffer )
       {
-        // Increase the size of the buffer.
-        bufferManipulation::dynamicReserve( buffer, maxOffset, maxOffset + capacityIncrease );
+        INDEX_TYPE const totalCapacity = maxOffset + capacityIncrease;
 
-        // Shift up the values.
-        for( INDEX_TYPE array = m_numArrays - 1; array > i; --array )
+        if( buffer.capacity() > totalCapacity )
         {
-          INDEX_TYPE const curArraySize = sizeOfArray( array );
-          INDEX_TYPE const curArrayOffset = m_offsets[ array ];
-          arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+          // If the buffer has enough capacity then all we need to do is shift the sub-arrays around.
+          for( INDEX_TYPE array = m_numArrays - 1; array > i; --array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+          }
+        }
+        else
+        {
+          // Otherwise we create a new buffer with enough capacity and move the values over.
+          // We create a new buffer to avoid moving from uninitialized values.
+          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
+          bufferManipulation::dynamicReserve( newBuffer, 0, totalCapacity );
+
+          for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            INDEX_TYPE shift = array > i ? capacityIncrease : 0;
+            arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset + shift ], curArraySize, &buffer[ curArrayOffset ] );
+            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+          }
+
+          buffer.free();
+          buffer = std::move( newBuffer );
         }
       },
         m_values, buffers ...

@@ -1,20 +1,20 @@
 set(CMAKE_ENABLE_EXPORTS ON)
+option( LVARRAY_BOUNDS_CHECK "Enable bounds checking in LvArray" OFF )
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  option( LVARRAY_BOUNDS_CHECK "" ON )
+  set( LVARRAY_BOUNDS_CHECK ON CACHE BOOL "")
 else()
-  option( LVARRAY_BOUNDS_CHECK "" OFF )
+  set( LVARRAY_BOUNDS_CHECK OFF CACHE BOOL "")
 endif()
-
 
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
 set( LVARRAY_BUILD_OBJ_LIBS OFF CACHE BOOL "" )
 
 
-# if( NOT BLT_CXX_STD STREQUAL c++14 )
-#     MESSAGE(FATAL_ERROR "c++14 is NOT enabled. LvArray requires c++14")
-# endif()
+if( CMAKE_CXX_STANDARD IN_LIST "98; 11" )
+    MESSAGE(FATAL_ERROR "LvArray requires at least c++14")
+endif()
 
 
 blt_append_custom_compiler_flag( FLAGS_VAR CMAKE_CXX_FLAGS DEFAULT "${OpenMP_CXX_FLAGS}")
@@ -28,7 +28,7 @@ blt_append_custom_compiler_flag( FLAGS_VAR CMAKE_CXX_FLAGS_DEBUG
                                  CLANG "-fstandalone-debug"
                                 )
 
-blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
+blt_append_custom_compiler_flag(FLAGS_VAR GEOS_NINJA_FLAGS
                   DEFAULT     " "
                   GNU         "-fdiagnostics-color=always"
                   CLANG       "-fcolor-diagnostics"
@@ -40,6 +40,6 @@ blt_append_custom_compiler_flag(FLAGS_VAR GEOSX_NINJA_FLAGS
 #set(CMAKE_CUDA_FLAGS_DEBUG "-g -G -O0 -Xcompiler -O0" CACHE STRING "")
 
 if( ${CMAKE_MAKE_PROGRAM} STREQUAL "ninja" OR ${CMAKE_MAKE_PROGRAM} MATCHES ".*/ninja$" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOSX_NINJA_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEOS_NINJA_FLAGS}")
 endif()
 

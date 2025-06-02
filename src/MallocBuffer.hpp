@@ -16,6 +16,7 @@
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
 #include "bufferManipulation.hpp"
+#include "math.hpp"
 
 // System includes
 #include <stddef.h>
@@ -125,14 +126,23 @@ public:
    * @param space The space to perform the reallocation in, not used.
    * @param newCapacity The new capacity of the buffer.
    */
+  LVARRAY_HOST_DEVICE inline
   void reallocate( std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
   {
     LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
+    std::size_t newSpaceSize = newCapacity * sizeof( T );
 
+#if !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Walloc-size-larger-than="
+#endif
     // TODO: If std::is_trivially_copyable_v< T > then we could use std::realloc.
-    T * const newPtr = reinterpret_cast< T * >( std::malloc( newCapacity * sizeof( T ) ) );
+    T * const newPtr = reinterpret_cast< T * >( std::malloc( newSpaceSize ) );
+#if !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
-    std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
+    std::ptrdiff_t const overlapAmount = math::min( newCapacity, size );
     arrayManipulation::uninitializedMove( newPtr, overlapAmount, m_data );
     arrayManipulation::destroy( m_data, size );
 
@@ -152,6 +162,12 @@ public:
     m_capacity = 0;
     m_data = nullptr;
   }
+
+  /**
+   * @brief Delete the buffer on device (no-op here)
+   */
+  LVARRAY_HOST_DEVICE inline
+  void freeOnDevice() const {}
 
   /**
    * @return Return the capacity of the buffer.

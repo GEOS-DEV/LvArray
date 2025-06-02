@@ -102,7 +102,7 @@ CUDA_TEST( ChaiBuffer, captureOnDevice )
   } );
 
   // Capture buffer in a host kernel moving the data back to the host allocation.
-  RAJA::forall< RAJA::loop_exec >(
+  RAJA::forall< RAJA::seq_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, size ),
     [buffer] ( std::ptrdiff_t const i )
   {
@@ -138,7 +138,7 @@ CUDA_TEST( ChaiBuffer, captureOnDeviceConst )
   // Capture buffer in a host kernel moving the data back to the host allocation.
   // If constBuffer didn't contain "int const" then this check would fail because
   // the data would be copied back from device.
-  RAJA::forall< RAJA::loop_exec >(
+  RAJA::forall< RAJA::seq_exec >(
     RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, size ),
     [buffer] ( std::ptrdiff_t const i )
   {

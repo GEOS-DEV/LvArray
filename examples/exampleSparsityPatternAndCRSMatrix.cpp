@@ -122,7 +122,7 @@ TEST( CRSMatrix, assimilate )
 
   // Create a matrix with the sparsity pattern
   LvArray::CRSMatrix< double, int, std::ptrdiff_t, LvArray::MallocBuffer > matrix;
-  matrix.assimilate< RAJA::loop_exec >( std::move( sparsity ) );
+  matrix.assimilate< RAJA::seq_exec >( std::move( sparsity ) );
 
   // The sparsity is empty after being assimilated.
   EXPECT_EQ( sparsity.numRows(), 0 );

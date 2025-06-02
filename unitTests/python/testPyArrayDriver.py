@@ -84,24 +84,13 @@ class ArrayTests(unittest.TestCase):
             arr.resize_all(new_dims)
             testing.assert_array_equal(new_dims, np.array(arr.to_numpy().shape))
 
-    def test_resize_one_dim_bad_input(self):
-        for getter in self.lvarrays:
-            arr = getter()
-            arr.set_access_level(pylvarray.RESIZEABLE)
-            arr.set_single_parameter_resize_index(0)
-            self.assertEqual(arr.get_single_parameter_resize_index(), 0)
-            with self.assertRaisesRegex(ValueError, "out of bounds"):
-                arr.set_single_parameter_resize_index(10)
-
     def test_resize_one_dim(self):
         for getter in self.lvarrays:
             arr = getter()
             arr.set_access_level(pylvarray.RESIZEABLE)
-            for dim in range(len(arr.to_numpy().shape)):
-                arr.set_single_parameter_resize_index(dim)
-                for resize_val in (100, 75, 76):
-                    arr.resize(resize_val)
-                    self.assertEqual(resize_val, arr.to_numpy().shape[dim])
+            for resize_val in (100, 75, 76):
+                arr.resize(resize_val)
+                self.assertEqual(resize_val, arr.to_numpy().shape[0])
 
 
 if __name__ == "__main__":

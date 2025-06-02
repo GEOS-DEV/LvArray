@@ -226,8 +226,8 @@ The following timings are from a clang 10 release build on LLNL's Quartz system 
 Function                 RAJA Policy               Time
 ======================== ========================= ======
 ``vector``               N/A                       0.99s
-``overAllocation``       ``loop_exec``             0.49s
-``resizeFromCapacities`` ``loop_exec``             0.58s
+``overAllocation``       ``seq_exec``             0.49s
+``resizeFromCapacities`` ``seq_exec``             0.58s
 ``overAllocation``       ``omp_parallel_for_exec`` 0.11s
 ``resizeFromCapacities`` ``omp_parallel_for_exec`` 0.17s
 ======================== ========================= ======

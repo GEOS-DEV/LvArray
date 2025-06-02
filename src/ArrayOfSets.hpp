@@ -173,7 +173,7 @@ public:
         } );
     }
 
-#ifdef ARRAY_BOUNDS_CHECK
+#ifdef LVARRAY_BOUNDS_CHECK
     consistencyCheck();
 #endif
   }

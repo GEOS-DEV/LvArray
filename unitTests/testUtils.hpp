@@ -36,7 +36,7 @@ template< typename >
 struct RAJAHelper
 {};
 
-using serialPolicy = RAJA::loop_exec;
+using serialPolicy = RAJA::seq_exec;
 
 template<>
 struct RAJAHelper< serialPolicy >
@@ -65,8 +65,9 @@ struct RAJAHelper< parallelHostPolicy >
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
-template< unsigned long N >
-struct RAJAHelper< RAJA::cuda_exec< N > >
+
+template< typename X, typename Y, typename C, size_t BLOCK_SIZE, bool ASYNC >
+struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, C, BLOCK_SIZE, ASYNC > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
@@ -150,7 +151,7 @@ public:
   {}
 
   template< class T >
-  TestString( T val ):
+  explicit TestString( T val ):
     m_string( std::to_string( val ) +
               std::string( " The rest of this is to avoid any small string optimizations. " ) +
               std::to_string( 2 * val ) )
