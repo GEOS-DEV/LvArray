@@ -24,4 +24,4 @@ set( ENABLE_BENCHMARKS OFF CACHE BOOL "" FORCE )
 set( ENABLE_DOCS OFF CACHE BOOL "" FORCE )
 
 # BLT trying to find MPI fails on cray with cce
-set( ENABLE_FIND_MPI OFF CACHE BOOL "" )
+#set( ENABLE_FIND_MPI OFF CACHE BOOL "" )
