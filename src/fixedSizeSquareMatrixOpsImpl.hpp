@@ -114,7 +114,7 @@ static void polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
 
     // Determine how close R is to being orthogonal using L2Norm(R.R^T-I)
     real64 copyR[M][M] = { { 0.0 } };
-    LvArray::tensorOps::copy< M, M >( copyR, R);
+    copy< M, M >( copyR, R);
     Rij_eq_AikBjk< M, M, M >( RRTMinusI, R, copyR );
     addIdentity< M >( RRTMinusI, -1.0 );
     for( std::ptrdiff_t i = 0 ; i < M ; i++ )
