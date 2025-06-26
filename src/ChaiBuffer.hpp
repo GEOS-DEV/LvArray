@@ -151,6 +151,7 @@ public:
   #endif
   {
   #if defined(LVARRAY_DEVICE_COMPILE)
+    stackTrace(true);
     LVARRAY_ERROR( "Creating a new ChaiBuffer on device is not supported. This is often the result of capturing an array on device instead of a view." );
   #else
     m_pointerRecord->m_size = 0;
