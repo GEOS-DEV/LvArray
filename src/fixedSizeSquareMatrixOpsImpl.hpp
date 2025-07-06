@@ -152,6 +152,26 @@ struct SquareMatrixOps< 2 >
   }
 
   /**
+   * @return Compute the cofactor of the source matrix @p srcMatrix and store the result in @p dstMatrix
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 2x2 matrix to write the cofactor to.
+   * @param srcMatrix The 2x2 matrix to take the cofactor of.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix, 
+                        SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 2, 2 >( dstMatrix );
+    checkSizes< 2, 2 >( srcMatrix );
+    dstMatrix[0][0] = srcMatrix[1][1];
+    dstMatrix[1][1] = srcMatrix[0][0];
+    dstMatrix[0][1] = -srcMatrix[1][0];
+    dstMatrix[1][0] = -srcMatrix[0][1];
+  }
+
+  /**
    * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
    * @tparam DST_MATRIX The type of @p dstMatrix.
    * @tparam SRC_MATRIX The type of @p srcMatrix.
@@ -179,6 +199,24 @@ struct SquareMatrixOps< 2 >
     dstMatrix[ 1 ][ 0 ] = srcMatrix[ 1 ][ 0 ] * -invDet;
 
     return det;
+  }
+
+  /**
+   * @brief Compute the cofactor of the matrix @p srcMatrix overwritting it.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 2x2 matrix to take the cofactor of and overwrite.
+   * @note @p matrix must contain floating point values.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( MATRIX && matrix )
+  {
+    checkSizes< 2, 2 >( matrix );
+
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+    realType temp[ 2 ][ 2 ];
+    copy< 2, 2 >( temp, matrix );
+    return cofactor( matrix, temp );
   }
 
   /**
@@ -656,6 +694,31 @@ struct SquareMatrixOps< 3 >
   }
 
   /**
+   * @return Compute the cofactor of the source matrix @p srcMatrix and store the result in @p dstMatrix
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 3x3 matrix to write the cofactor to.
+   * @param srcMatrix The 3x3 matrix to take the cofactor of.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix, 
+                        SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 3, 3 >( dstMatrix );
+    checkSizes< 3, 3 >( srcMatrix );
+    dstMatrix[0][0] = srcMatrix[1][1] * srcMatrix[2][2] - srcMatrix[1][2] * srcMatrix[2][1];
+    dstMatrix[0][1] = srcMatrix[1][2] * srcMatrix[2][0] - srcMatrix[1][0] * srcMatrix[2][2];
+    dstMatrix[0][2] = srcMatrix[1][0] * srcMatrix[2][1] - srcMatrix[1][1] * srcMatrix[2][0];
+    dstMatrix[1][0] = srcMatrix[0][2] * srcMatrix[2][1] - srcMatrix[0][1] * srcMatrix[2][2];
+    dstMatrix[1][1] = srcMatrix[0][0] * srcMatrix[2][2] - srcMatrix[0][2] * srcMatrix[2][0];
+    dstMatrix[1][2] = srcMatrix[0][1] * srcMatrix[2][0] - srcMatrix[0][0] * srcMatrix[2][1];
+    dstMatrix[2][0] = srcMatrix[0][1] * srcMatrix[1][2] - srcMatrix[0][2] * srcMatrix[1][1];
+    dstMatrix[2][1] = srcMatrix[0][2] * srcMatrix[1][0] - srcMatrix[0][0] * srcMatrix[1][2];
+    dstMatrix[2][2] = srcMatrix[0][0] * srcMatrix[1][1] - srcMatrix[0][1] * srcMatrix[1][0];
+  }
+
+  /**
    * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
    * @tparam DST_MATRIX The type of @p dstMatrix.
    * @tparam SRC_MATRIX The type of @p srcMatrix.
@@ -694,6 +757,22 @@ struct SquareMatrixOps< 3 >
     dstMatrix[ 2 ][ 2 ] = ( srcMatrix[ 0 ][ 0 ] * srcMatrix[ 1 ][ 1 ] - srcMatrix[ 0 ][ 1 ] * srcMatrix[ 1 ][ 0 ] ) * invDet;
 
     return det;
+  }
+
+   /**
+   * @brief Compute the cofactor of the matrix @p srcMatrix overwritting it.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 3x3 matrix to take the cofactor of and overwrite.
+   * @note @p srcMatrix must contain floating point values.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE constexpr inline
+  static auto cofactor( MATRIX && matrix )
+  {
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+    realType temp[ 3 ][ 3 ];
+    copy< 3, 3 >( temp, matrix );
+    return cofactor( matrix, temp );
   }
 
   /**

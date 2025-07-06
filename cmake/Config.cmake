@@ -2,7 +2,7 @@
 set( PREPROCESSOR_DEFINES UMPIRE
                           CHAI
                           CUDA
-			  HIP
+                          HIP
                           TOTALVIEW_OUTPUT
                           CALIPER )
 

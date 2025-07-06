@@ -442,6 +442,51 @@ __half2 abs( __half2 const x )
 
 
 /**
+ * @return The round value of @p x.
+ * @param x The number to get the round value of.
+ * @note This set of overloads is valid for any numeric type.
+ */
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
+float round( float const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::roundf( x );
+#else
+  return std::round( x );
+#endif
+}
+
+template< typename T >
+LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE constexpr
+double round( T const x )
+{
+#if defined(LVARRAY_DEVICE_COMPILE)
+  return ::round( double ( x ) );
+#else
+  return std::round( x );
+#endif
+}
+
+#if defined( LVARRAY_USE_DEVICE )
+
+/// @copydoc round( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half round( __half const x )
+{
+  return round( x );
+}
+
+/// @copydoc round( T )
+LVARRAY_DEVICE LVARRAY_FORCE_INLINE
+__half2 round( __half2 const x )
+{
+  return round( x );
+}
+
+#endif
+
+
+/**
  * @return The ceiling value of @p x.
  * @param x The number to get the ceiling value of.
  * @note This set of overloads is valid for any numeric type.
