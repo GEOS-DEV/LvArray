@@ -90,6 +90,85 @@ public:
         } );
   }
 
+  void cofactorTwoArgs()
+  {
+    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+
+    ArrayViewT< FLOAT, 3, 2 > const dstMatrix_IJK = m_dstMatrix_IJK.toView();
+    ArrayViewT< FLOAT, 3, 1 > const dstMatrix_IKJ = m_dstMatrix_IKJ.toView();
+    ArrayViewT< FLOAT, 3, 0 > const dstMatrix_KJI = m_dstMatrix_KJI.toView();
+
+    ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
+
+    T scale = 100;
+    for( T & value : arrayOfMatrices )
+    { value = randomValue( scale, m_gen ); }
+
+    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+
+    forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          T srcLocal[ M ][ M ];
+          FLOAT dstLocal[ M ][ M ];
+
+          #define _TEST( output, input ) \
+            tensorOps::copy< M, M >( input, matrices[ i ] ); \
+            tensorOps::cofactor< M >( output, input ); \
+            checkCofactor( scale, output, input )
+
+          #define _TEST_PERMS( input, output0, output1, output2, output3 ) \
+            _TEST( output0, input ); \
+            _TEST( output1, input ); \
+            _TEST( output2, input ); \
+            _TEST( output3, input )
+
+          _TEST_PERMS( srcMatrix_IJK[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcMatrix_IKJ[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcMatrix_KJI[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcLocal, dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+
+      #undef _TEST_PERMS
+      #undef _TEST
+        } );
+  }
+
+  void cofactorOneArg()
+  {
+    ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
+    ArrayViewT< T, 3, 1 > const srcMatrix_IKJ = m_srcMatrix_IKJ.toView();
+    ArrayViewT< T, 3, 0 > const srcMatrix_KJI = m_srcMatrix_KJI.toView();
+
+    ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
+
+    T scale = 100;
+    for( T & value : arrayOfMatrices )
+    { value = randomValue( scale, m_gen ); }
+
+    ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
+
+    forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+        {
+          T initialMatrix[ M ][ M ];
+          T srcLocal[ M ][ M ];
+          T det;
+
+          #define _TEST( matrix ) \
+            tensorOps::copy< M, M >( initialMatrix, matrices[ i ] ); \
+            tensorOps::copy< M, M >( matrix, initialMatrix ); \
+            tensorOps::cofactor< M >( matrix ); \
+            checkCofactor( scale, matrix, initialMatrix )
+
+          _TEST( srcMatrix_IJK[ i ] );
+          _TEST( srcMatrix_IKJ[ i ] );
+          _TEST( srcMatrix_KJI[ i ] );
+          _TEST( srcLocal );
+
+      #undef _TEST
+        } );
+  }
+
   void inverseTwoArgs()
   {
     ArrayViewT< T, 3, 2 > const srcMatrix_IJK = m_srcMatrix_IJK.toView();
@@ -338,6 +417,24 @@ private:
     PORTABLE_EXPECT_NEAR( tensorOps::symDeterminant< M >( matrix ),
                           tensorOps::determinant< M >( dense ),
                           3 * scale * scale * scale * epsilon )
+  }
+
+
+  template< typename MATRIX_A, typename MATRIX_B >
+  static void LVARRAY_HOST_DEVICE checkCofactor( T const scale, MATRIX_A && cofactor, MATRIX_B && source )
+  {
+    FLOAT const epsilon = NumericLimitsNC< FLOAT >{}.epsilon;
+
+    FLOAT inverse[ M ][ M ];
+    T det = tensorOps::invert< M >( inverse, src );
+    tensorOps::transpose< M >( inverse );
+    tensorOps::scale< M, M >( inverse, det );
+
+    for( int i = 0; i < M; ++i )
+    {
+      for( int j = 0; j < M; ++j )
+      { PORTABLE_EXPECT_NEAR( cofactor[ i ][ j ], inverse[ i ][ j ], 5 * scale * epsilon ); }
+    }
   }
 
   template< typename MATRIX_A, typename MATRIX_B >
