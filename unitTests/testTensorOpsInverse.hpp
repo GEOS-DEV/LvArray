@@ -152,7 +152,6 @@ public:
         {
           T initialMatrix[ M ][ M ];
           T srcLocal[ M ][ M ];
-          T det;
 
           #define _TEST( matrix ) \
             tensorOps::copy< M, M >( initialMatrix, matrices[ i ] ); \
