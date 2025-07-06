@@ -12,7 +12,7 @@ namespace LvArray
 namespace testing
 {
 
-TYPED_TEST( CofactorTest, cofactorTwoArgs )
+TYPED_TEST( InverseTest, cofactorTwoArgs )
 {
   this->cofactorTwoArgs();
 }
