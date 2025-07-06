@@ -497,8 +497,8 @@ constexpr bool isArrayOfArrays = false;
  * @brief Specialization of isArrayOfArrays for the ArrayOfArrays class.
  */
 template< typename T,
-  typename INDEX_TYPE,
-  template< typename > class BUFFER_TYPE >
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
 constexpr bool isArrayOfArrays< ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > > = true;
 
 } /* namespace LvArray */

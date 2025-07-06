@@ -265,29 +265,29 @@ public:
     ArrayViewT< T const, 3, 2 > const matrices = arrayOfMatrices.toViewConst();
 
     forall< POLICY >( matrices.size( 0 ), [=] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
-    {
-      T srcLocal[ M ][ M ];
-      FLOAT dstLocal[ M ][ M ];
+        {
+          T srcLocal[ M ][ M ];
+          FLOAT dstLocal[ M ][ M ];
 
-      #define _TEST( output, input ) \
-        tensorOps::copy< M, M >( input, matrices[ i ] ); \
-        tensorOps::polarDecomposition< M >( output, input ); \
-        checkPolarDecomposition( output, input )
+          #define _TEST( output, input ) \
+            tensorOps::copy< M, M >( input, matrices[ i ] ); \
+            tensorOps::polarDecomposition< M >( output, input ); \
+            checkPolarDecomposition( output, input )
 
-      #define _TEST_PERMS( input, output0, output1, output2, output3 ) \
-        _TEST( output0, input ); \
-        _TEST( output1, input ); \
-        _TEST( output2, input ); \
-        _TEST( output3, input )
+          #define _TEST_PERMS( input, output0, output1, output2, output3 ) \
+            _TEST( output0, input ); \
+            _TEST( output1, input ); \
+            _TEST( output2, input ); \
+            _TEST( output3, input )
 
-      _TEST_PERMS( srcMatrix_IJK[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
-      _TEST_PERMS( srcMatrix_IKJ[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
-      _TEST_PERMS( srcMatrix_KJI[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
-      _TEST_PERMS( srcLocal, dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcMatrix_IJK[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcMatrix_IKJ[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcMatrix_KJI[ i ], dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
+          _TEST_PERMS( srcLocal, dstMatrix_IJK[ i ], dstMatrix_IKJ[ i ], dstMatrix_KJI[ i ], dstLocal );
 
       #undef _TEST_PERMS
       #undef _TEST
-    } );
+        } );
   }
 
 
@@ -400,7 +400,7 @@ private:
     using FloatingPoint = std::decay_t< decltype( orthogonalMatrix[0][0] ) >;
     FloatingPoint tolerance = 10 * LvArray::NumericLimits< FloatingPoint >::epsilon;
     FloatingPoint sqrtTolerance = math::sqrt( tolerance );
-    
+
     if( M == 2 )
     {
       // Check if orthogonalMatrix is actually orthogonal

@@ -487,7 +487,8 @@ __half2 ceil( __half2 const x )
 #if CUDART_VERSION > 11000
   return h2ceil( x );
 #else
-  return LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to mimic
+  return LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to
+                                                                                    // mimic
 #endif
 }
 

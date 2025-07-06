@@ -114,12 +114,12 @@ static void polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
 
     // Determine how close R is to being orthogonal using L2Norm(R.R^T-I)
     FloatingPoint copyR[M][M] = { { 0.0 } };
-    copy< M, M >( copyR, R);
+    copy< M, M >( copyR, R );
     Rij_eq_AikBjk< M, M, M >( RRTMinusI, R, copyR );
     addIdentity< M >( RRTMinusI, -1.0 );
-    for( std::ptrdiff_t i = 0 ; i < M ; i++ )
+    for( std::ptrdiff_t i = 0; i < M; i++ )
     {
-      for( std::ptrdiff_t j = 0 ; j < M ; j++ )
+      for( std::ptrdiff_t j = 0; j < M; j++ )
       {
         errorSquared += RRTMinusI[i][j] * RRTMinusI[i][j];
       }
@@ -127,7 +127,7 @@ static void polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
   }
   if( iter == 100 )
   {
-    printf("Polar decomposition did not converge in 100 iterations!");
+    printf( "Polar decomposition did not converge in 100 iterations!" );
   }
 }
 

@@ -858,10 +858,10 @@ protected:
     destroyValues( 0, m_numArrays, pairs.first ... );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
-    
+
     bufferManipulation::copyInto( m_offsets, offsetsSize, srcOffsets, srcNumArrays + 1 );
     bufferManipulation::copyInto( m_sizes, m_numArrays, srcSizes, srcNumArrays );
-    
+
     INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
     typeManipulation::forEachArg( [maxOffset, srcMaxOffset]( auto & dstBuffer )
     {
@@ -1101,9 +1101,9 @@ constexpr bool isArrayOfArraysView = false;
  * @brief Specialization of isArrayOfArraysView for the ArrayOfArraysView class.
  */
 template< typename T,
-      typename INDEX_TYPE,
-      bool CONST_SIZES,
-      template< typename > class BUFFER_TYPE >
+          typename INDEX_TYPE,
+          bool CONST_SIZES,
+          template< typename > class BUFFER_TYPE >
 constexpr bool isArrayOfArraysView< ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES, BUFFER_TYPE > > = true;
 
 } /* namespace LvArray */
