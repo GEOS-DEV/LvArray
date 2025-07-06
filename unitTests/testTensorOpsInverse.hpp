@@ -426,7 +426,7 @@ private:
     FLOAT const epsilon = NumericLimitsNC< FLOAT >{}.epsilon;
 
     FLOAT inverse[ M ][ M ];
-    T det = tensorOps::invert< M >( inverse, src );
+    T det = tensorOps::invert< M >( inverse, source );
     tensorOps::transpose< M >( inverse );
     tensorOps::scale< M, M >( inverse, det );
 
