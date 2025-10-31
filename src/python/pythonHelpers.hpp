@@ -80,6 +80,9 @@
     #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
       _Pragma( "GCC diagnostic push" ) \
       _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
+      #if __has_warning( "-Wmissing-designated-field-initializers" )
+        _Pragma( "GCC diagnostic ignored \"-Wmissing-designated-field-initializers\"")
+      #endif
   #endif
 #elif defined( __GNUC__ )
   #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
