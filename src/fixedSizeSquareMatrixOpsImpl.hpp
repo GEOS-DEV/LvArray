@@ -160,7 +160,7 @@ struct SquareMatrixOps< 2 >
    */
   template< typename DST_MATRIX, typename SRC_MATRIX >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix, 
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                         SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
   {
     checkSizes< 2, 2 >( dstMatrix );
@@ -702,7 +702,7 @@ struct SquareMatrixOps< 3 >
    */
   template< typename DST_MATRIX, typename SRC_MATRIX >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix, 
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                         SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
   {
     checkSizes< 3, 3 >( dstMatrix );
@@ -759,7 +759,7 @@ struct SquareMatrixOps< 3 >
     return det;
   }
 
-   /**
+  /**
    * @brief Compute the cofactor of the matrix @p srcMatrix overwritting it.
    * @tparam MATRIX The type of @p matrix.
    * @param matrix The 3x3 matrix to take the cofactor of and overwrite.
@@ -1434,109 +1434,125 @@ private:
 template<>
 struct SquareMatrixOps< 4 >
 {
-    /**
-    * @return Return the determinant of the matrix @p matrix.
-    * @tparam MATRIX The type of @p matrix.
-    * @param matrix The 4x4 matrix to get the determinant of.
-    */
-    template< typename MATRIX >
-    LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-    static auto determinant( MATRIX const & matrix )
-    {
-      checkSizes< 4, 4 >( matrix );
+  /**
+   * @return Return the determinant of the matrix @p matrix.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 4x4 matrix to get the determinant of.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto determinant( MATRIX const & matrix )
+  {
+    checkSizes< 4, 4 >( matrix );
 
-      return matrix[0][0]*(
-                            matrix[1][1]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][1] + matrix[1][3]*matrix[2][1]*matrix[3][2]
-                            - matrix[1][3]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][1]*matrix[3][3]
-                          )
+    return matrix[0][0]*(
+      matrix[1][1]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][1] + matrix[1][3]*matrix[2][1]*matrix[3][2]
+      - matrix[1][3]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][1]*matrix[3][3]
+      )
            - matrix[0][1]*(
-                              matrix[1][0]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][2]
-                              - matrix[1][3]*matrix[2][2]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][0]*matrix[3][3]
-                          )
+      matrix[1][0]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][2]
+      - matrix[1][3]*matrix[2][2]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][0]*matrix[3][3]
+      )
            + matrix[0][2]*(
-                              matrix[1][0]*matrix[2][1]*matrix[3][3] + matrix[1][1]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][1]
-                              - matrix[1][3]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][3]
-                          )
-          - matrix[0][3]*(
-                              matrix[1][0]*matrix[2][1]*matrix[3][2] + matrix[1][1]*matrix[2][2]*matrix[3][0] + matrix[1][2]*matrix[2][0]*matrix[3][1]
-                              - matrix[1][2]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][2]
-                          );
+      matrix[1][0]*matrix[2][1]*matrix[3][3] + matrix[1][1]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][1]
+      - matrix[1][3]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][3]
+      )
+           - matrix[0][3]*(
+      matrix[1][0]*matrix[2][1]*matrix[3][2] + matrix[1][1]*matrix[2][2]*matrix[3][0] + matrix[1][2]*matrix[2][0]*matrix[3][1]
+      - matrix[1][2]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][2]
+      );
 
-      // return matrix[0][0] * matrix[1][1] * matrix[2][2] * matrix[3][3] - 
-      //        matrix[0][0] * matrix[1][1] * matrix[2][3] * matrix[3][2] - 
-      //        matrix[0][0] * matrix[1][2] * matrix[2][1] * matrix[3][3] + 
-      //        matrix[0][0] * matrix[1][2] * matrix[2][3] * matrix[3][1] + 
-      //        matrix[0][0] * matrix[1][3] * matrix[2][1] * matrix[3][2] - 
-      //        matrix[0][0] * matrix[1][3] * matrix[2][2] * matrix[3][1] - 
-  
-      //        matrix[0][1] * matrix[1][0] * matrix[2][2] * matrix[3][3] + 
-      //        matrix[0][1] * matrix[1][0] * matrix[2][3] * matrix[3][2] + 
-      //        matrix[0][1] * matrix[1][2] * matrix[2][0] * matrix[3][3] - 
-      //        matrix[0][1] * matrix[1][2] * matrix[2][3] * matrix[3][0] - 
-      //        matrix[0][1] * matrix[1][3] * matrix[2][0] * matrix[3][2] + 
-      //        matrix[0][1] * matrix[1][3] * matrix[2][2] * matrix[3][0] + 
+    // return matrix[0][0] * matrix[1][1] * matrix[2][2] * matrix[3][3] -
+    //        matrix[0][0] * matrix[1][1] * matrix[2][3] * matrix[3][2] -
+    //        matrix[0][0] * matrix[1][2] * matrix[2][1] * matrix[3][3] +
+    //        matrix[0][0] * matrix[1][2] * matrix[2][3] * matrix[3][1] +
+    //        matrix[0][0] * matrix[1][3] * matrix[2][1] * matrix[3][2] -
+    //        matrix[0][0] * matrix[1][3] * matrix[2][2] * matrix[3][1] -
 
-      //        matrix[0][2] * matrix[1][0] * matrix[2][1] * matrix[3][3] - 
-      //        matrix[0][2] * matrix[1][0] * matrix[2][3] * matrix[3][1] - 
-      //        matrix[0][2] * matrix[1][1] * matrix[2][0] * matrix[3][3] + 
-      //        matrix[0][2] * matrix[1][1] * matrix[2][3] * matrix[3][0] + 
-      //        matrix[0][2] * matrix[1][3] * matrix[2][0] * matrix[3][1] - 
-      //        matrix[0][2] * matrix[1][3] * matrix[2][1] * matrix[3][0] - 
-         
-      //        matrix[0][3] * matrix[1][0] * matrix[2][1] * matrix[3][2] + 
-      //        matrix[0][3] * matrix[1][0] * matrix[2][2] * matrix[3][1] + 
-      //        matrix[0][3] * matrix[1][1] * matrix[2][0] * matrix[3][2] - 
-      //        matrix[0][3] * matrix[1][1] * matrix[2][2] * matrix[3][0] - 
-      //        matrix[0][3] * matrix[1][2] * matrix[2][0] * matrix[3][1] + 
-      //        matrix[0][3] * matrix[1][2] * matrix[2][1] * matrix[3][0];
-    }
+    //        matrix[0][1] * matrix[1][0] * matrix[2][2] * matrix[3][3] +
+    //        matrix[0][1] * matrix[1][0] * matrix[2][3] * matrix[3][2] +
+    //        matrix[0][1] * matrix[1][2] * matrix[2][0] * matrix[3][3] -
+    //        matrix[0][1] * matrix[1][2] * matrix[2][3] * matrix[3][0] -
+    //        matrix[0][1] * matrix[1][3] * matrix[2][0] * matrix[3][2] +
+    //        matrix[0][1] * matrix[1][3] * matrix[2][2] * matrix[3][0] +
 
-    /**
-    * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
-    * @tparam DST_MATRIX The type of @p dstMatrix.
-    * @tparam SRC_MATRIX The type of @p srcMatrix.
-    * @param dstMatrix The 4x4 matrix to write the inverse to.
-    * @param srcMatrix The 4x4 matrix to take the inverse of.
-    * @return The determinant.
-    * @note @p srcMatrix can contain integers but @p dstMatrix must contain floating point values.
-    */
-    template< typename DST_MATRIX, typename SRC_MATRIX >
-    LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
-    static auto invert( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
-                        SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
-    {
-      checkSizes< 4, 4 >( dstMatrix );
-      checkSizes< 4, 4 >( srcMatrix );
+    //        matrix[0][2] * matrix[1][0] * matrix[2][1] * matrix[3][3] -
+    //        matrix[0][2] * matrix[1][0] * matrix[2][3] * matrix[3][1] -
+    //        matrix[0][2] * matrix[1][1] * matrix[2][0] * matrix[3][3] +
+    //        matrix[0][2] * matrix[1][1] * matrix[2][3] * matrix[3][0] +
+    //        matrix[0][2] * matrix[1][3] * matrix[2][0] * matrix[3][1] -
+    //        matrix[0][2] * matrix[1][3] * matrix[2][1] * matrix[3][0] -
 
-      using FloatingPoint = std::decay_t< decltype( dstMatrix[ 0 ][ 0 ] ) >;
+    //        matrix[0][3] * matrix[1][0] * matrix[2][1] * matrix[3][2] +
+    //        matrix[0][3] * matrix[1][0] * matrix[2][2] * matrix[3][1] +
+    //        matrix[0][3] * matrix[1][1] * matrix[2][0] * matrix[3][2] -
+    //        matrix[0][3] * matrix[1][1] * matrix[2][2] * matrix[3][0] -
+    //        matrix[0][3] * matrix[1][2] * matrix[2][0] * matrix[3][1] +
+    //        matrix[0][3] * matrix[1][2] * matrix[2][1] * matrix[3][0];
+  }
 
-      FloatingPoint const det = determinant( srcMatrix );
-      FloatingPoint const invDet = FloatingPoint( 1 ) / det;
+  /**
+   * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 4x4 matrix to write the inverse to.
+   * @param srcMatrix The 4x4 matrix to take the inverse of.
+   * @return The determinant.
+   * @note @p srcMatrix can contain integers but @p dstMatrix must contain floating point values.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto invert( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                      SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 4, 4 >( dstMatrix );
+    checkSizes< 4, 4 >( srcMatrix );
 
-      dstMatrix[0][0] = srcMatrix[1][1]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[1][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[1][2]*srcMatrix[2][3]*srcMatrix[3][1] + srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][1];
-      dstMatrix[0][1] = srcMatrix[0][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][1]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[0][2]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][1];
-      dstMatrix[0][2] = srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[3][3] - srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[1][3]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][1];
-      dstMatrix[0][3] = srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[2][3] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][3] - srcMatrix[0][2]*srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][1];
+    using FloatingPoint = std::decay_t< decltype( dstMatrix[ 0 ][ 0 ] ) >;
 
-      dstMatrix[1][0] = srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[1][2]*srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][0];
-      dstMatrix[1][1] = srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][0];
-      dstMatrix[1][2] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][3] - srcMatrix[0][2]*srcMatrix[1][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][0];
-      dstMatrix[1][3] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][3] + srcMatrix[0][2]*srcMatrix[1][3]*srcMatrix[2][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][0];
+    FloatingPoint const det = determinant( srcMatrix );
+    FloatingPoint const invDet = FloatingPoint( 1 ) / det;
 
-      dstMatrix[2][0] = srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[1][1]*srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][0];
-      dstMatrix[2][1] = srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[0][1]*srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][0];
-      dstMatrix[2][2] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][3] + srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][0];
-      dstMatrix[2][3] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][3] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][3] - srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[2][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][0];
-      
-      dstMatrix[3][0] = srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[1][1]*srcMatrix[2][2]*srcMatrix[3][0] - srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][0];
-      dstMatrix[3][1] = srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[0][1]*srcMatrix[2][2]*srcMatrix[3][0] + srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][0];
-      dstMatrix[3][2] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][2] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][2] - srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[3][0] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][1] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][0];
-      dstMatrix[3][3] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][2] + srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[2][0] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][1] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][0];
+    dstMatrix[0][0] = srcMatrix[1][1]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[1][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[1][2]*
+                      srcMatrix[2][3]*srcMatrix[3][1] + srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][1];
+    dstMatrix[0][1] = srcMatrix[0][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][1]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[0][2]*
+                      srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][1];
+    dstMatrix[0][2] = srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[3][3] - srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][3] + srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][1];
+    dstMatrix[0][3] = srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[2][3] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][3] - srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][1];
 
-      scale< 4, 4 >( dstMatrix, invDet );
+    dstMatrix[1][0] = srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[1][2]*
+                      srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][0];
+    dstMatrix[1][1] = srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[0][2]*
+                      srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][0];
+    dstMatrix[1][2] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][3] - srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][0];
+    dstMatrix[1][3] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][3] + srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[2][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][0];
 
-      return det;
-    }
+    dstMatrix[2][0] = srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[1][1]*
+                      srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[2][1] = srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[0][1]*
+                      srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[2][2] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][3] + srcMatrix[0][1]*
+                      srcMatrix[1][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][0];
+    dstMatrix[2][3] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][3] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][3] - srcMatrix[0][1]*
+                      srcMatrix[1][3]*srcMatrix[2][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][0];
+
+    dstMatrix[3][0] = srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[1][1]*
+                      srcMatrix[2][2]*srcMatrix[3][0] - srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[3][1] = srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[0][1]*
+                      srcMatrix[2][2]*srcMatrix[3][0] + srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[3][2] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][2] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][2] - srcMatrix[0][1]*
+                      srcMatrix[1][2]*srcMatrix[3][0] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][1] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][0];
+    dstMatrix[3][3] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][2] + srcMatrix[0][1]*
+                      srcMatrix[1][2]*srcMatrix[2][0] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][1] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][0];
+
+    scale< 4, 4 >( dstMatrix, invDet );
+
+    return det;
+  }
 
   /**
    * @brief Invert the matrix @p srcMatrix overwritting it.
