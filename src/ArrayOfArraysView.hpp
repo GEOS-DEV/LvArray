@@ -794,11 +794,22 @@ protected:
         }
 
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
-
-        INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
-        typeManipulation::forEachArg( [totalSize, maxOffset]( auto & buffer )
+        typeManipulation::forEachArg( [this, totalSize]( auto & buffer )
         {
-          bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, totalSize );
+          // We create a new buffer to avoid moving from uninitialized values.
+          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
+          bufferManipulation::reserve( newBuffer, 0, MemorySpace::host, totalSize );
+
+          for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
+          {
+            INDEX_TYPE const curArraySize = sizeOfArray( array );
+            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+            arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset ], curArraySize, &buffer[ curArrayOffset ] );
+            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+          }
+
+          buffer.free();
+          buffer = std::move( newBuffer );
         }, m_values, buffers ... );
       }
     }
@@ -914,7 +925,7 @@ protected:
         else
         {
           // Otherwise we create a new buffer with enough capacity and move the values over.
-          // We create a new buffer to avoid moving from uninitialized values, this should also be faster.
+          // We create a new buffer to avoid moving from uninitialized values.
           auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
           bufferManipulation::dynamicReserve( newBuffer, 0, totalCapacity );
 
@@ -924,8 +935,10 @@ protected:
             INDEX_TYPE const curArrayOffset = m_offsets[ array ];
             INDEX_TYPE shift = array > i ? capacityIncrease : 0;
             arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset + shift ], curArraySize, &buffer[ curArrayOffset ] );
+            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
           }
 
+          buffer.free();
           buffer = std::move( newBuffer );
         }
       },

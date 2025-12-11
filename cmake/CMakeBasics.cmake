@@ -1,11 +1,11 @@
 set(CMAKE_ENABLE_EXPORTS ON)
+option( LVARRAY_BOUNDS_CHECK "Enable bounds checking in LvArray" OFF )
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  option( LVARRAY_BOUNDS_CHECK "" ON )
+  set( LVARRAY_BOUNDS_CHECK ON CACHE BOOL "")
 else()
-  option( LVARRAY_BOUNDS_CHECK "" OFF )
+  set( LVARRAY_BOUNDS_CHECK OFF CACHE BOOL "")
 endif()
-
 
 option( ENABLE_TOTALVIEW_OUTPUT "" OFF )
 
