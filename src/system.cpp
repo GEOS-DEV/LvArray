@@ -18,7 +18,8 @@
 #include <cxxabi.h>
 #include <string.h>
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+  #include <xmmintrin.h>   // or <immintrin.h>
   #include <pmmintrin.h>
 #endif
 
@@ -311,41 +312,6 @@ static std::string getSourceLocationFromFrame( void const * const address )
   return "";
 }
 
-/**
- * @brief Return a string representing the current floating point exception.
- * @return A string representing the current floating point exception.
- */
-static std::string getFpeDetails()
-{
-  std::ostringstream oss;
-  int const fpe = fetestexcept( FE_ALL_EXCEPT );
-
-  oss << "Floating point exception:";
-
-  if( fpe & FE_DIVBYZERO )
-  {
-    oss << " Division by zero;";
-  }
-  if( fpe & FE_INEXACT )
-  {
-    oss << " Inexact result;";
-  }
-  if( fpe & FE_INVALID )
-  {
-    oss << " Invalid argument;";
-  }
-  if( fpe & FE_OVERFLOW )
-  {
-    oss << " Overflow;";
-  }
-  if( fpe & FE_UNDERFLOW )
-  {
-    oss << " Underflow;";
-  }
-
-  return oss.str();
-}
-
 namespace LvArray
 {
 namespace system
@@ -465,72 +431,78 @@ void callErrorHandler()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void stackTraceHandler( int const sig, bool const exit )
+
+void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ )
 {
   std::ostringstream oss;
 
   if( sig >= 0 && sig < NSIG )
   {
-    // sys_signame not available on linux, so just print the code; strsignal is POSIX
     oss << "Received signal " << sig << ": " << strsignal( sig ) << "\n";
 
     if( sig == SIGFPE )
     {
-      oss << getFpeDetails() << "\n";
+      if( info )
+      {
+        oss << "  SIGFPE si_code = " << info->si_code << " ";
+
+        switch( info->si_code )
+        {
+          case FPE_FLTDIV: oss << "(floating divide by zero)\n"; break;
+          case FPE_FLTOVF: oss << "(floating overflow)\n"; break;
+          case FPE_FLTUND: oss << "(floating underflow)\n"; break;
+          case FPE_FLTINV: oss << "(floating invalid operation)\n"; break;
+          case FPE_FLTRES: oss << "(floating inexact)\n"; break;
+          case FPE_INTDIV: oss << "(integer divide by zero)\n"; break;
+          case FPE_INTOVF: oss << "(integer overflow)\n"; break;
+          default:         oss << "(other)\n"; break;
+        }
+      }
     }
   }
 
   oss << stackTrace( true ) << std::endl;
-  std::cout << oss.str();
+  std::cerr << oss.str();
 
-  if( exit )
-  {
-    // An infinite loop was encountered when an FPE was received. Resetting the handlers didn't
-    // fix it because they would just recurse. This does.
-    setSignalHandling( nullptr );
-    callErrorHandler();
-  }
+  std::_Exit( 1 );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void setSignalHandling( void (* handler)( int ) )
+
+static struct sigaction g_oldAction[NSIG];
+
+void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
 {
-  initialHandler[SIGHUP] = signal( SIGHUP, handler );
-  initialHandler[SIGINT] = signal( SIGINT, handler );
-  initialHandler[SIGQUIT] = signal( SIGQUIT, handler );
-  initialHandler[SIGILL] = signal( SIGILL, handler );
-  initialHandler[SIGTRAP] = signal( SIGTRAP, handler );
-  initialHandler[SIGABRT] = signal( SIGABRT, handler );
-#if  (defined(_POSIX_C_SOURCE) && !defined(_DARWIN_C_SOURCE))
-  initialHandler[SIGPOLL] = signal( SIGPOLL, handler );
-#else
-  initialHandler[SIGIOT] = signal( SIGIOT, handler );
-  initialHandler[SIGEMT] = signal( SIGEMT, handler );
-#endif
-  initialHandler[SIGFPE] = signal( SIGFPE, handler );
-  initialHandler[SIGKILL] = signal( SIGKILL, handler );
-  initialHandler[SIGBUS] = signal( SIGBUS, handler );
-  initialHandler[SIGSEGV] = signal( SIGSEGV, handler );
-  initialHandler[SIGSYS] = signal( SIGSYS, handler );
-  initialHandler[SIGPIPE] = signal( SIGPIPE, handler );
-  initialHandler[SIGTERM] = signal( SIGTERM, handler );
+  struct sigaction sa;
+  sigemptyset( &sa.sa_mask );
+  sa.sa_sigaction = handler;
+  sa.sa_flags = SA_SIGINFO;
 
-  return;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void resetSignalHandling()
-{
-  for( auto a : initialHandler )
+  auto install = [&]( int sig )
   {
-    signal( a.first, a.second );
-  }
+    sigaction( sig, &sa, &g_oldAction[sig] );
+  };
+
+  install( SIGHUP );
+  install( SIGINT );
+  install( SIGQUIT );
+  install( SIGILL );
+  install( SIGTRAP );
+  install( SIGABRT );
+  install( SIGFPE );
+  install( SIGBUS );
+  install( SIGSEGV );
+  install( SIGSYS );
+  install( SIGPIPE );
+  install( SIGTERM );
+  // Do NOT try SIGKILL/SIGSTOP: they can’t be caught.
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int getDefaultFloatingPointExceptions()
 {
-  return ( FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID );
+  return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 }
 
 unsigned long long int translateFloatingPointException( unsigned long long int const exception )
@@ -674,40 +646,48 @@ int disableFloatingPointExceptions( int const exceptions )
 #endif
 }
 
-
-void setFlushToZero()
+static void enableFlushDenormalsToZero()
 {
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 
-#if defined(__APPLE__) && defined(__MACH__) // if apple
+    // x86/x86-64: MXCSR control, via SSE intrinsics
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+    #ifdef _MM_DENORMALS_ZERO_ON
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    #endif
 
-#if defined(__arm__) || defined(__arm64__) // if apple arm
-  fenv_t env;
-  fegetenv( &env );
-  env.__fpcr = env.__fpcr | __fpcr_flush_to_zero ;
-  // std::cout<<std::hex<<"env.__fpcr                         = " << env.__fpcr << std::endl;
-  // std::cout<<std::hex<<"_FE_DFL_DISABLE_DENORMS_ENV.__fpcr = " << _FE_DFL_DISABLE_DENORMS_ENV.__fpcr << std::endl;
-  fesetenv( &env );
-#elif defined(__x86_64__) // if apple x86_64
-  fesetenv( FE_DFL_DISABLE_SSE_DENORMS_ENV );
-#else // if apple but not arm or x86_64
-  std::cerr<< "LvArray::system::setFlushToZero() not implemented for this architecture" << std::endl;
-#endif
+#elif defined(__aarch64__)
 
-// if not apple
+    // AArch64: control FPCR (GCC/Clang builtins)
+    unsigned long fpcr = __builtin_aarch64_get_fpcr();
+    // FZ bit is bit 24 in FPCR (flush-to-zero)
+    fpcr |= (1ul << 24);
+    __builtin_aarch64_set_fpcr(fpcr);
+
+#elif defined(__arm__) && !defined(__aarch64__)
+
+    // 32-bit ARM with VFP/NEON: FPSCR control
+    unsigned int fpscr;
+    asm volatile("vmrs %0, fpscr" : "=r"(fpscr));
+    // FZ bit is also bit 24 in FPSCR
+    fpscr |= (1u << 24);
+    asm volatile("vmsr fpscr, %0" : : "r"(fpscr));
+
 #else
-#if defined(__x86_64__)
-  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
-  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
-#endif
+    std::cout<< "LvArray::system::enableFlushDenormalsToZero() did not work "<<std::endl;
+    // Unknown or unsupported architecture: no-op.
+    // Could add a runtime warning or static_assert behind a config macro.
+    (void)0;
 
 #endif
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setFPE()
 {
 enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
-setFlushToZero();
+enableFlushDenormalsToZero();
 }
 
 } // namespace system

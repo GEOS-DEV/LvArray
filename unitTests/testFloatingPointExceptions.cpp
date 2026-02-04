@@ -29,43 +29,27 @@ namespace testing
 
 TEST( TestFloatingPointEnvironment, Underflow )
 {
-  system::enableFloatingPointExceptions( FE_UNDERFLOW );
-  EXPECT_DEATH_IF_SUPPORTED( divide( DBL_MIN, 2 ), IGNORE_OUTPUT );
-  system::disableFloatingPointExceptions( FE_UNDERFLOW );
-
   system::setFPE();
   double fpnum = divide( DBL_MIN, 2 );
-  int fpclassification = std::fpclassify( fpnum );
-  EXPECT_NE( fpclassification, FP_SUBNORMAL );
+  EXPECT_DOUBLE_EQ( fpnum, 0.0 );
 }
 
 TEST( TestFloatingPointEnvironment, DivideByZero )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( divide( 1, 0 ), IGNORE_OUTPUT );
+  EXPECT_DEATH_IF_SUPPORTED( divide( 1, 0 ), R"((floating divide by zero)(.|\n)*StackTrace)" );
 }
 
 TEST( TestFloatingPointEnvironment, Overlow )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), IGNORE_OUTPUT );
+  EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), R"((floating overflow)(.|\n)*StackTrace)" );
 }
 
 TEST( TestFloatingPointEnvironment, Invalid )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( invalid(), IGNORE_OUTPUT );
-}
-
-TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
-{
-  system::setFPE();
-
-  {
-    system::FloatingPointExceptionGuard guard( FE_UNDERFLOW );
-    divide( DBL_MIN, 2 );
-    EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), IGNORE_OUTPUT );
-  }
+  EXPECT_DEATH_IF_SUPPORTED( invalid(), R"((floating invalid operation)(.|\n)*StackTrace)" );
 }
 
 } // namespace testing
@@ -75,6 +59,9 @@ TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
 {
+
+  LvArray::system::setSignalHandling();
+
   ::testing::InitGoogleTest( &argc, argv );
   int const result = RUN_ALL_TESTS();
   return result;

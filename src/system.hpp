@@ -17,6 +17,9 @@
 #include <typeinfo>
 #include <functional>
 #include <dlfcn.h>
+#include <signal.h>
+
+
 
 namespace LvArray
 {
@@ -77,13 +80,14 @@ void callErrorHandler();
  * @param sig The signal received.
  * @param exit If true abort execution.
  */
-void stackTraceHandler( int const sig, bool const exit );
+void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ );
+
 
 /**
  * @brief Set the signal handler for common signals.
  * @param handler The signal handler.
  */
-void setSignalHandling( void (* handler)( int ) );
+void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) = signalHandler );
 
 /**
  * @brief Rest the signal handling back to the original state.
@@ -116,9 +120,6 @@ int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPoi
  *   or FE_INVALID throw exceptions. Denormal numbers are flushed to zero.
  */
 void setFPE();
-
-
-void setFlushToZero();
 
 /**
  * @class FloatingPointExceptionGuard
