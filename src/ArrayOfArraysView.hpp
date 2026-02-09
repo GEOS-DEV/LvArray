@@ -23,6 +23,7 @@
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
+#include <caliper/cali.h>
 
 // System includes
 #include <cstring>
@@ -759,6 +760,11 @@ protected:
   void assimilate( ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES, BUFFER_TYPE > && src )
   { *this = std::move( src ); }
 
+
+
+// #define LVA_CALIPER_MARK_BEGIN(name) CALI_MARK_BEGIN(STRINGIZE(name))
+// #define LVA_CALIPER_MARK_END(name) CALI_MARK_END(STRINGIZE(name))
+
   /**
    * @copydoc resize
    * @tparam BUFFERS variadic template where each type is BUFFER_TYPE.
@@ -768,49 +774,67 @@ protected:
   template< typename ... BUFFERS >
   void resizeImpl( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ... buffers )
   {
+    cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
     LVARRAY_ASSERT( arrayManipulation::isPositive( newSize ) );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
 
     if( newSize < m_numArrays )
     {
+//      LVA_CALIPER_MARK_BEGIN( "newSize < m_numArrays" );
       destroyValues( newSize, m_numArrays, buffers ... );
       bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, 0 );
       bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
+//      LVA_CALIPER_MARK_END( "newSize < m_numArrays" );
     }
     else
     {
+//      LVA_CALIPER_MARK_BEGIN( "newSize >= m_numArrays::1" );
       // The ternary here accounts for the case where m_offsets hasn't been allocated yet (when calling from a
       // constructor).
       INDEX_TYPE const originalOffset = (m_numArrays == 0) ? 0 : m_offsets[m_numArrays];
       bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, originalOffset );
       bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
+//      LVA_CALIPER_MARK_END( "newSize >= m_numArrays::1" );
 
       if( defaultArrayCapacity > 0 )
       {
+//        LVA_CALIPER_MARK_BEGIN( "defaultArrayCapacity > 0" );
         for( INDEX_TYPE i = 1; i < newSize + 1 - m_numArrays; ++i )
         {
           m_offsets[ m_numArrays + i ] = originalOffset + i * defaultArrayCapacity;
         }
 
+
         INDEX_TYPE const totalSize = m_offsets[ newSize ];
-        typeManipulation::forEachArg( [this, totalSize]( auto & buffer )
+        INDEX_TYPE const maxOffset = m_offsets[ m_numArrays ];
+        typeManipulation::forEachArg( [this, totalSize, maxOffset]( auto & buffer )
         {
-          // We create a new buffer to avoid moving from uninitialized values.
-          auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
-          bufferManipulation::reserve( newBuffer, 0, MemorySpace::host, totalSize );
-
-          for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
+          using TBUFF = typename std::remove_reference_t< decltype( buffer ) >::value_type;
+          if ( std::is_trivially_copyable_v< TBUFF > )
           {
-            INDEX_TYPE const curArraySize = sizeOfArray( array );
-            INDEX_TYPE const curArrayOffset = m_offsets[ array ];
-            arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset ], curArraySize, &buffer[ curArrayOffset ] );
-            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+            bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, totalSize );
           }
+          else
+          {
+            // We create a new buffer to avoid moving from uninitialized values.
+            auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
+            bufferManipulation::reserve( newBuffer, 0, MemorySpace::host, totalSize );
+            
+            for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
+            {
+              INDEX_TYPE const curArraySize = sizeOfArray( array );
+              INDEX_TYPE const curArrayOffset = m_offsets[ array ];
+              arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset ], curArraySize, &buffer[ curArrayOffset ] );
+              arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+            }
 
-          buffer.free();
-          buffer = std::move( newBuffer );
+            buffer.free();
+            buffer = std::move( newBuffer );
+          }
         }, m_values, buffers ... );
+        
+//        LVA_CALIPER_MARK_END( "defaultArrayCapacity > 0" );
       }
     }
 

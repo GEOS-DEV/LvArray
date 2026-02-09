@@ -20,6 +20,7 @@
 
 // TPL includes
 #include <camp/resource.hpp>
+#include <caliper/cali.h>
 
 // System includes
 #include <utility>
@@ -213,6 +214,7 @@ template< typename BUFFER >
 LVARRAY_HOST_DEVICE
 void setCapacity( BUFFER & buf, std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
 {
+  //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
   check( buf, size );
   buf.reallocate( size, space, newCapacity );
 }
@@ -229,6 +231,8 @@ template< typename BUFFER >
 LVARRAY_HOST_DEVICE
 void reserve( BUFFER & buf, std::ptrdiff_t const size, MemorySpace const space, std::ptrdiff_t const newCapacity )
 {
+    //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
+
   check( buf, size );
 
   if( newCapacity > buf.capacity() )
@@ -271,6 +275,8 @@ template< typename BUFFER, typename ... ARGS >
 LVARRAY_HOST_DEVICE
 void resize( BUFFER & buf, std::ptrdiff_t const size, std::ptrdiff_t const newSize, ARGS && ... args )
 {
+  //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
+
   check( buf, size );
 
   reserve( buf, size, MemorySpace::host, newSize );
