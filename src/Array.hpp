@@ -586,9 +586,6 @@ public:
 
 private:
 
-// #define LVA_CALIPER_MARK_BEGIN(name) CALI_MARK_BEGIN(STRINGIZE(name))
-// #define LVA_CALIPER_MARK_END(name) CALI_MARK_END(STRINGIZE(name))
-
 
   /**
    * @brief Resize the default dimension of the Array.
@@ -602,24 +599,20 @@ private:
   LVARRAY_HOST_DEVICE
   void resizeDefaultDimension( INDEX_TYPE const newDimLength, ARGS && ... args )
   {
-//    cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
     LVARRAY_ERROR_IF_LT( newDimLength, 0 );
 
     // If the first dimension in memory is 0 then a simple 1D resizing is sufficient. The
     // check if NDIM == 1 is to give the compiler compile time knowledge that this path is always taken for 1D arrays.
     if( NDIM == 1 || typeManipulation::asArray( PERMUTATION {} )[ 0 ] == 0 )
     {
-      //LVA_CALIPER_MARK_BEGIN( "step1" );
       INDEX_TYPE const oldSize = this->size();
       this->m_dims[ 0 ] = newDimLength;
       this->m_strides = indexing::calculateStrides< PERMUTATION >( this->m_dims );
 
       bufferManipulation::resize( this->m_dataBuffer, oldSize, this->size(), std::forward< ARGS >( args )... );
-      //LVA_CALIPER_MARK_END( "step1" );
       return;
     }
 
-    //LVA_CALIPER_MARK_BEGIN( "step2" );
     // Get the current length and stride of the dimension as well as the size of the whole Array.
     INDEX_TYPE const curDimLength = this->m_dims[ 0 ];
     INDEX_TYPE const curDimStride = this->m_strides[ 0 ];
@@ -631,13 +624,9 @@ private:
 
     INDEX_TYPE const newSize = this->size();
 
-    //LVA_CALIPER_MARK_END( "step2" );
-
     // If we aren't changing the total size then we can return early.
     if( newSize == curSize ) return;
 
-
-    //LVA_CALIPER_MARK_BEGIN( "step3" );
     // If the size is increasing do one thing, if it's decreasing do another.
     if( newDimLength > curDimLength )
     {
@@ -696,7 +685,6 @@ private:
         ptr[ newSize + i ].~T();
       }
     }
-    //LVA_CALIPER_MARK_END( "step3" );
   }
 };
 
