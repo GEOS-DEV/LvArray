@@ -285,7 +285,6 @@ void resize( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const newSize,
              ARGS && ... args )
 {
-
   LVARRAY_ASSERT( ptr != nullptr || (size == 0 && newSize == 0) );
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( isPositive( newSize ) );

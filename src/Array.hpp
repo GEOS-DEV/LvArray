@@ -586,7 +586,6 @@ public:
 
 private:
 
-
   /**
    * @brief Resize the default dimension of the Array.
    * @tparam ARGS variadic pack containing the types to initialize the new values with.

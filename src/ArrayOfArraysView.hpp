@@ -759,8 +759,6 @@ protected:
   void assimilate( ArrayOfArraysView< T, INDEX_TYPE, CONST_SIZES, BUFFER_TYPE > && src )
   { *this = std::move( src ); }
 
-
-
   /**
    * @copydoc resize
    * @tparam BUFFERS variadic template where each type is BUFFER_TYPE.
