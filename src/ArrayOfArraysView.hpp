@@ -761,9 +761,6 @@ protected:
 
 
 
-// #define LVA_CALIPER_MARK_BEGIN(name) CALI_MARK_BEGIN(STRINGIZE(name))
-// #define LVA_CALIPER_MARK_END(name) CALI_MARK_END(STRINGIZE(name))
-
   /**
    * @copydoc resize
    * @tparam BUFFERS variadic template where each type is BUFFER_TYPE.
@@ -785,17 +782,14 @@ protected:
     }
     else
     {
-//      LVA_CALIPER_MARK_BEGIN( "newSize >= m_numArrays::1" );
       // The ternary here accounts for the case where m_offsets hasn't been allocated yet (when calling from a
       // constructor).
       INDEX_TYPE const originalOffset = (m_numArrays == 0) ? 0 : m_offsets[m_numArrays];
       bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, originalOffset );
       bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
-//      LVA_CALIPER_MARK_END( "newSize >= m_numArrays::1" );
 
       if( defaultArrayCapacity > 0 )
       {
-//        LVA_CALIPER_MARK_BEGIN( "defaultArrayCapacity > 0" );
         for( INDEX_TYPE i = 1; i < newSize + 1 - m_numArrays; ++i )
         {
           m_offsets[ m_numArrays + i ] = originalOffset + i * defaultArrayCapacity;

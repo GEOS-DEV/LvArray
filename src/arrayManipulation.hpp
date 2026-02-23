@@ -152,7 +152,6 @@ LVARRAY_HOST_DEVICE inline
 void destroy( T * const LVARRAY_RESTRICT ptr,
               std::ptrdiff_t const size )
 {
-  //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
   LVARRAY_ASSERT( ptr != nullptr || size == 0 );
 
   if( !std::is_trivially_destructible< T >::value )
@@ -203,7 +202,6 @@ void uninitializedMove( T * const LVARRAY_RESTRICT dst,
                         std::ptrdiff_t const size,
                         T * const LVARRAY_RESTRICT src )
 {
-  //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
   LVARRAY_ASSERT( dst != nullptr || size == 0 );
   LVARRAY_ASSERT( isPositive( size ) );
   LVARRAY_ASSERT( src != nullptr || size == 0 );
@@ -287,7 +285,6 @@ void resize( T * const LVARRAY_RESTRICT ptr,
              std::ptrdiff_t const newSize,
              ARGS && ... args )
 {
-  //cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
 
   LVARRAY_ASSERT( ptr != nullptr || (size == 0 && newSize == 0) );
   LVARRAY_ASSERT( isPositive( size ) );
