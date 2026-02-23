@@ -16,7 +16,6 @@
 #include "limits.hpp"
 #include "Macros.hpp"
 #include "typeManipulation.hpp"
-#include <caliper/cali.h>
 
 // System includes
 #include <cstring>

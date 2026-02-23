@@ -23,7 +23,6 @@
 
 // TPL includes
 #include <RAJA/RAJA.hpp>
-#include <caliper/cali.h>
 
 // System includes
 #include <cstring>
@@ -774,18 +773,15 @@ protected:
   template< typename ... BUFFERS >
   void resizeImpl( INDEX_TYPE const newSize, INDEX_TYPE const defaultArrayCapacity, BUFFERS & ... buffers )
   {
-    cali::Function _cali_ann_func( __PRETTY_FUNCTION__);
     LVARRAY_ASSERT( arrayManipulation::isPositive( newSize ) );
 
     INDEX_TYPE const offsetsSize = ( m_numArrays == 0 ) ? 0 : m_numArrays + 1;
 
     if( newSize < m_numArrays )
     {
-//      LVA_CALIPER_MARK_BEGIN( "newSize < m_numArrays" );
       destroyValues( newSize, m_numArrays, buffers ... );
       bufferManipulation::resize( m_offsets, offsetsSize, newSize + 1, 0 );
       bufferManipulation::resize( m_sizes, m_numArrays, newSize, 0 );
-//      LVA_CALIPER_MARK_END( "newSize < m_numArrays" );
     }
     else
     {
@@ -811,7 +807,7 @@ protected:
         typeManipulation::forEachArg( [this, totalSize, maxOffset]( auto & buffer )
         {
           using TBUFF = typename std::remove_reference_t< decltype( buffer ) >::value_type;
-          if ( std::is_trivially_copyable_v< TBUFF > )
+          if( std::is_trivially_copyable_v< TBUFF > )
           {
             bufferManipulation::reserve( buffer, maxOffset, MemorySpace::host, totalSize );
           }
@@ -820,7 +816,7 @@ protected:
             // We create a new buffer to avoid moving from uninitialized values.
             auto newBuffer = std::remove_reference_t< decltype( buffer ) >( true );
             bufferManipulation::reserve( newBuffer, 0, MemorySpace::host, totalSize );
-            
+
             for( INDEX_TYPE array = 0; array < m_numArrays; ++array )
             {
               INDEX_TYPE const curArraySize = sizeOfArray( array );
@@ -833,8 +829,6 @@ protected:
             buffer = std::move( newBuffer );
           }
         }, m_values, buffers ... );
-        
-//        LVA_CALIPER_MARK_END( "defaultArrayCapacity > 0" );
       }
     }
 
