@@ -10,7 +10,6 @@
 #include "Macros.hpp"
 
 // System includes
-#include <map>
 #include <sstream>
 #include <iostream>
 #include <signal.h>
@@ -30,6 +29,17 @@
   #include <unistd.h>
   #include <sys/wait.h>
 #endif
+
+/*
+ * Implementation map:
+ * 1) Low-level stack frame collection and symbol/source resolution.
+ * 2) Public stack trace and type demangling helpers.
+ * 3) Error and signal handling (including FPE signal decoding).
+ * 4) Cross-platform floating-point environment control:
+ *    - enable/disable traps,
+ *    - translate FE_* masks where platform internals differ,
+ *    - flush denormals/subnormals to zero.
+ */
 
 /**
  * @struct UnwindState
@@ -300,6 +310,7 @@ static std::string addr2line( const char * flag, const void * addr )
 static std::string getSourceLocationFromFrame( void const * const address )
 {
   #if defined( LVARRAY_ADDR2LINE_EXEC )
+  // "-Cpe" asks addr2line for demangled symbol + file:line + inlined call info.
   std::string const source_line = addr2line( "-Cpe", address );
   if( !source_line.empty() && source_line[0] != '?' )
   {
@@ -317,11 +328,10 @@ namespace LvArray
 namespace system
 {
 
-/// An alias for a function that takes an int and returns nothing.
-using handle_type = void ( * )( int );
-
-/// A map containing the initial signal handlers.
-static std::map< int, handle_type > initialHandler;
+// Snapshot of handlers that were active before LvArray installs its own handlers.
+// We keep these so resetSignalHandling() can restore previous process behavior.
+static struct sigaction g_oldAction[NSIG];
+static bool g_oldActionSet[NSIG] = {};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string stackTrace( bool const location )
@@ -329,6 +339,7 @@ std::string stackTrace( bool const location )
   constexpr int MAX_FRAMES = 25;
   void * array[ MAX_FRAMES ];
 
+  // Skip this helper frame so frame 0 is the caller of stackTrace().
   std::size_t const size = collect( array, MAX_FRAMES, 1 );
 
   std::ostringstream oss;
@@ -432,8 +443,9 @@ void callErrorHandler()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ )
+void signalHandler( int sig, siginfo_t * info, void * ucontext )
 {
+  LVARRAY_UNUSED_VARIABLE( ucontext );
   std::ostringstream oss;
 
   if( sig >= 0 && sig < NSIG )
@@ -448,6 +460,7 @@ void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ )
 
         switch( info->si_code )
         {
+          // POSIX SIGFPE subcodes let us report the concrete floating-point fault.
           case FPE_FLTDIV: oss << "(floating divide by zero)\n"; break;
           case FPE_FLTOVF: oss << "(floating overflow)\n"; break;
           case FPE_FLTUND: oss << "(floating underflow)\n"; break;
@@ -459,6 +472,22 @@ void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ )
         }
       }
     }
+    else if( sig == SIGILL && info )
+    {
+#if defined(__APPLE__) && defined(__MACH__) && defined(__aarch64__)
+      if( info->si_code == ILL_ILLTRP )
+      {
+        // Apple arm64 may report FP traps as SIGILL/ILL_ILLTRP instead of SIGFPE.
+        // In that mode the subtype is not exposed, so we emit the best available text.
+        oss << "  SIGILL si_code = " << info->si_code
+            << " (floating-point trap, subtype unavailable on this platform)\n";
+      }
+      else
+#endif
+      {
+        oss << "  SIGILL si_code = " << info->si_code << "\n";
+      }
+    }
   }
 
   oss << stackTrace( true ) << std::endl;
@@ -468,33 +497,129 @@ void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ )
 }
 
 
-static struct sigaction g_oldAction[NSIG];
-
 void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
 {
   struct sigaction sa;
+  memset( &sa, 0, sizeof( sa ) );
   sigemptyset( &sa.sa_mask );
-  sa.sa_sigaction = handler;
-  sa.sa_flags = SA_SIGINFO;
+  if( handler == nullptr )
+  {
+    sa.sa_handler = SIG_DFL;
+    sa.sa_flags = 0;
+  }
+  else
+  {
+    sa.sa_sigaction = handler;
+    sa.sa_flags = SA_SIGINFO;
+  }
 
   auto install = [&]( int sig )
   {
-    sigaction( sig, &sa, &g_oldAction[sig] );
+    if( sig <= 0 || sig >= NSIG )
+    {
+      return;
+    }
+
+    if( g_oldActionSet[sig] )
+    {
+      // We already cached the original action for this signal, so do not overwrite it.
+      sigaction( sig, &sa, nullptr );
+    }
+    else if( sigaction( sig, &sa, &g_oldAction[sig] ) == 0 )
+    {
+      // First install: capture previous action for future resetSignalHandling().
+      g_oldActionSet[sig] = true;
+    }
   };
 
+#ifdef SIGHUP
   install( SIGHUP );
+#endif
+#ifdef SIGINT
   install( SIGINT );
+#endif
+#ifdef SIGQUIT
   install( SIGQUIT );
+#endif
+#ifdef SIGILL
   install( SIGILL );
+#endif
+#ifdef SIGTRAP
   install( SIGTRAP );
+#endif
+#ifdef SIGABRT
   install( SIGABRT );
+#endif
+#ifdef SIGFPE
   install( SIGFPE );
+#endif
+#ifdef SIGBUS
   install( SIGBUS );
+#endif
+#ifdef SIGSEGV
   install( SIGSEGV );
+#endif
+#ifdef SIGSYS
   install( SIGSYS );
+#endif
+#ifdef SIGPIPE
   install( SIGPIPE );
+#endif
+#ifdef SIGTERM
   install( SIGTERM );
+#endif
   // Do NOT try SIGKILL/SIGSTOP: they can’t be caught.
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void resetSignalHandling()
+{
+  auto restore = []( int sig )
+  {
+    if( sig <= 0 || sig >= NSIG || !g_oldActionSet[sig] )
+    {
+      return;
+    }
+
+    sigaction( sig, &g_oldAction[sig], nullptr );
+  };
+
+#ifdef SIGHUP
+  restore( SIGHUP );
+#endif
+#ifdef SIGINT
+  restore( SIGINT );
+#endif
+#ifdef SIGQUIT
+  restore( SIGQUIT );
+#endif
+#ifdef SIGILL
+  restore( SIGILL );
+#endif
+#ifdef SIGTRAP
+  restore( SIGTRAP );
+#endif
+#ifdef SIGABRT
+  restore( SIGABRT );
+#endif
+#ifdef SIGFPE
+  restore( SIGFPE );
+#endif
+#ifdef SIGBUS
+  restore( SIGBUS );
+#endif
+#ifdef SIGSEGV
+  restore( SIGSEGV );
+#endif
+#ifdef SIGSYS
+  restore( SIGSYS );
+#endif
+#ifdef SIGPIPE
+  restore( SIGPIPE );
+#endif
+#ifdef SIGTERM
+  restore( SIGTERM );
+#endif
 }
 
 
@@ -502,13 +627,16 @@ void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int getDefaultFloatingPointExceptions()
 {
+  // These are the "hard" numerical faults that should typically stop execution.
   return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 }
 
-unsigned long long int translateFloatingPointException( unsigned long long int const exception )
+static unsigned long long int translateFloatingPointException( unsigned long long int const exception )
 {
   unsigned long long int result = 0;
 #if defined(__APPLE__) && defined(__MACH__) // if apple
+  // Darwin arm64 stores trap masks in fpcr-specific bits (__fpcr_trap_*),
+  // so FE_* must be translated before writing env.__fpcr.
   if( exception & FE_INEXACT )
   {
     result |= __fpcr_trap_inexact;
@@ -529,40 +657,15 @@ unsigned long long int translateFloatingPointException( unsigned long long int c
   {
     result |= __fpcr_trap_invalid;
   }
-
-#if defined(__arm__) || defined(__arm64__) // if apple arm
-#elif defined(__x86_64__) // if apple x86_64
-#else // if apple but not arm or x86_64
-  std::cerr<< "LvArray::system::translateFloatingPointException() not implemented for this architecture" << std::endl;
-#endif
-
-
 #else // if not apple
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__i386__)
+  // Linux x86 feenableexcept/fedisableexcept already use FE_* bit positions.
   result = exception;
 #endif
 #endif
 
-return result;
+  return result;
 }
-
-#if defined(__APPLE__) && defined(__MACH__)&& !defined(__x86_64__)
-static void
-fpe_signal_handler( int sig, siginfo_t *sip, void *scp )
-{
-  LVARRAY_UNUSED_VARIABLE( sig );
-  LVARRAY_UNUSED_VARIABLE( scp );
-
-  int fe_code = sip->si_code;
-
-  if( fe_code == ILL_ILLTRP )
-    printf( "Illegal trap detected. If you see this you have a FPE, but Apple Silicon doesn't provide data on which FPE has occured.\n" );
-  else
-    printf( "Code detected : %d\n", fe_code );
-
-  abort();
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )
@@ -570,23 +673,17 @@ int enableFloatingPointExceptions( int const exceptions )
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
 
-   unsigned long long int const exceptionMasks = translateFloatingPointException( exceptions );
+  // Apple arm64 path: manipulate fpcr trap bits via fenv_t.
+  unsigned long long int const exceptionMasks = translateFloatingPointException( exceptions );
 
   fenv_t env;
-  fegetenv( &env );
+  if( fegetenv( &env ))
+  {
+    return -1;
+  }
 
-//  std::cout<<std::hex<<"env.__fpcr = " << env.__fpcr << std::endl;
-  env.__fpcr = env.__fpcr | exceptionMasks ;
-//  std::cout<<std::hex<<"env.__fpcr = " << env.__fpcr << std::endl;
-
-  fesetenv( &env );
-
-  struct sigaction act;
-  act.sa_sigaction = fpe_signal_handler;
-  sigemptyset ( &act.sa_mask );
-  act.sa_flags = SA_SIGINFO;
-  sigaction( SIGFPE, &act, NULL );
-  return 0;
+  env.__fpcr |= exceptionMasks;
+  return fesetenv( &env ) ? -1 : 0;
 #else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
@@ -607,6 +704,7 @@ int enableFloatingPointExceptions( int const exceptions )
   return fesetenv( &fenv ) ? -1 : oldExcepts;
 #endif
 #else
+  // Linux/glibc path: use native API.
   int const oldExceptions = feenableexcept( exceptions );
   LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
   return oldExceptions;
@@ -618,8 +716,25 @@ int disableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
-  LVARRAY_UNUSED_VARIABLE( exceptions );
-  return 0;
+  // Apple arm64 path mirrors enableFloatingPointExceptions():
+  // read fpcr, clear selected trap bits, and return previous FE_* state.
+  unsigned long long int const exceptionMasks = translateFloatingPointException( exceptions );
+
+  fenv_t env;
+  if( fegetenv( &env ))
+  {
+    return -1;
+  }
+
+  int oldExcepts = 0;
+  if( env.__fpcr & __fpcr_trap_inexact ) oldExcepts |= FE_INEXACT;
+  if( env.__fpcr & __fpcr_trap_underflow ) oldExcepts |= FE_UNDERFLOW;
+  if( env.__fpcr & __fpcr_trap_overflow ) oldExcepts |= FE_OVERFLOW;
+  if( env.__fpcr & __fpcr_trap_divbyzero ) oldExcepts |= FE_DIVBYZERO;
+  if( env.__fpcr & __fpcr_trap_invalid ) oldExcepts |= FE_INVALID;
+
+  env.__fpcr &= ~exceptionMasks;
+  return fesetenv( &env ) ? -1 : oldExcepts;
 #else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
@@ -640,6 +755,7 @@ int disableFloatingPointExceptions( int const exceptions )
   return fesetenv( &fenv ) ? -1 : oldExcepts;
 #endif
 #else
+  // Linux/glibc path: use native API.
   int const oldExceptions = fedisableexcept( exceptions );
   LVARRAY_ERROR_IF_EQ( oldExceptions, -1 );
   return oldExceptions;
@@ -648,36 +764,34 @@ int disableFloatingPointExceptions( int const exceptions )
 
 static void enableFlushDenormalsToZero()
 {
+  // Flushing denormals prevents very slow subnormal arithmetic paths on many CPUs.
+  // The mechanism is architecture-specific, but intent is the same.
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 
-    // x86/x86-64: MXCSR control, via SSE intrinsics
-    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-    #ifdef _MM_DENORMALS_ZERO_ON
-    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-    #endif
+  // x86/x86-64: MXCSR control, via SSE intrinsics.
+  _MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
+  #ifdef _MM_DENORMALS_ZERO_ON
+  _MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );
+  #endif
 
 #elif defined(__aarch64__)
-
-    // AArch64: control FPCR (GCC/Clang builtins)
-    unsigned long fpcr = __builtin_aarch64_get_fpcr();
-    // FZ bit is bit 24 in FPCR (flush-to-zero)
-    fpcr |= (1ul << 24);
-    __builtin_aarch64_set_fpcr(fpcr);
+  // AArch64: control FPCR directly.
+  unsigned long long fpcr = 0;
+  asm volatile( "mrs %0, fpcr" : "=r"( fpcr ) );
+  fpcr |= ( 1ULL << 24 ); // FZ bit.
+  asm volatile( "msr fpcr, %0" : : "r"( fpcr ) );
 
 #elif defined(__arm__) && !defined(__aarch64__)
 
-    // 32-bit ARM with VFP/NEON: FPSCR control
-    unsigned int fpscr;
-    asm volatile("vmrs %0, fpscr" : "=r"(fpscr));
-    // FZ bit is also bit 24 in FPSCR
-    fpscr |= (1u << 24);
-    asm volatile("vmsr fpscr, %0" : : "r"(fpscr));
+  // 32-bit ARM with VFP/NEON: FPSCR control.
+  unsigned int fpscr;
+  asm volatile( "vmrs %0, fpscr" : "=r"( fpscr ) );
+  fpscr |= ( 1u << 24 ); // FZ bit.
+  asm volatile( "vmsr fpscr, %0" : : "r"( fpscr ) );
 
 #else
-    std::cout<< "LvArray::system::enableFlushDenormalsToZero() did not work "<<std::endl;
-    // Unknown or unsupported architecture: no-op.
-    // Could add a runtime warning or static_assert behind a config macro.
-    (void)0;
+  // Unknown or unsupported architecture: no-op.
+  (void)0;
 
 #endif
 }
@@ -686,8 +800,8 @@ static void enableFlushDenormalsToZero()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setFPE()
 {
-enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
-enableFlushDenormalsToZero();
+  enableFloatingPointExceptions( getDefaultFloatingPointExceptions() );
+  enableFlushDenormalsToZero();
 }
 
 } // namespace system

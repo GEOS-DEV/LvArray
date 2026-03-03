@@ -8,7 +8,6 @@
 // Source includes
 #include "testFloatingPointExceptionsHelpers.hpp"
 #include "system.hpp"
-#include "system.hpp"
 
 // TPL includes
 #include <gtest/gtest.h>
@@ -20,7 +19,18 @@
 
 using namespace testFloatingPointExceptionsHelpers;
 
-const char IGNORE_OUTPUT[] = ".*";
+#if defined(__APPLE__) && defined(__MACH__) && defined(__aarch64__)
+char const DIVIDE_BY_ZERO_REGEX[] =
+  R"(((floating divide by zero)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+char const OVERFLOW_REGEX[] =
+  R"(((floating overflow)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+char const INVALID_REGEX[] =
+  R"(((floating invalid operation)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+#else
+char const DIVIDE_BY_ZERO_REGEX[] = R"((floating divide by zero)(.|\n)*StackTrace)";
+char const OVERFLOW_REGEX[] = R"((floating overflow)(.|\n)*StackTrace)";
+char const INVALID_REGEX[] = R"((floating invalid operation)(.|\n)*StackTrace)";
+#endif
 
 namespace LvArray
 {
@@ -37,19 +47,30 @@ TEST( TestFloatingPointEnvironment, Underflow )
 TEST( TestFloatingPointEnvironment, DivideByZero )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( divide( 1, 0 ), R"((floating divide by zero)(.|\n)*StackTrace)" );
+  EXPECT_DEATH_IF_SUPPORTED( divide( 1, 0 ), DIVIDE_BY_ZERO_REGEX );
 }
 
-TEST( TestFloatingPointEnvironment, Overlow )
+TEST( TestFloatingPointEnvironment, Overflow )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), R"((floating overflow)(.|\n)*StackTrace)" );
+  EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), OVERFLOW_REGEX );
 }
 
 TEST( TestFloatingPointEnvironment, Invalid )
 {
   system::setFPE();
-  EXPECT_DEATH_IF_SUPPORTED( invalid(), R"((floating invalid operation)(.|\n)*StackTrace)" );
+  EXPECT_DEATH_IF_SUPPORTED( invalid(), INVALID_REGEX );
+}
+
+TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
+{
+  system::setFPE();
+
+  {
+    system::FloatingPointExceptionGuard guard( FE_UNDERFLOW );
+    divide( DBL_MIN, 2 );
+    EXPECT_DEATH_IF_SUPPORTED( multiply( DBL_MAX, 2 ), OVERFLOW_REGEX );
+  }
 }
 
 } // namespace testing

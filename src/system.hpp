@@ -76,11 +76,12 @@ void setErrorHandler( std::function< void() > const & handler );
 void callErrorHandler();
 
 /**
- * @brief Print signal information and a stack trace to standard out, optionally aborting.
+ * @brief Print signal information and a stack trace, then terminate.
  * @param sig The signal received.
- * @param exit If true abort execution.
+ * @param info Additional signal information.
+ * @param ucontext Platform-specific user context (unused).
  */
-void signalHandler( int sig, siginfo_t * info, void * /*ucontext*/ );
+void signalHandler( int sig, siginfo_t * info, void * ucontext );
 
 
 /**
