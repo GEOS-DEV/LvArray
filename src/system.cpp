@@ -443,6 +443,16 @@ void callErrorHandler()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Default signal handler: print diagnostics and exit.
+ * @param sig The signal received.
+ * @param info Additional signal information (si_code identifies the fault).
+ * @param ucontext Platform-specific user context (unused).
+ * @note Uses non-async-signal-safe functions (ostringstream, strsignal, cerr)
+ *       for actionable diagnostics. This is a deliberate best-effort tradeoff;
+ *       if the process is in a state where these fail, the _Exit below will
+ *       still terminate cleanly.
+ */
 void signalHandler( int sig, siginfo_t * info, void * ucontext )
 {
   LVARRAY_UNUSED_VARIABLE( ucontext );
@@ -493,9 +503,49 @@ void signalHandler( int sig, siginfo_t * info, void * ucontext )
   oss << stackTrace( true ) << std::endl;
   std::cerr << oss.str();
 
-  std::_Exit( 1 );
+  std::_Exit( ( sig > 0 ) ? ( 128 + sig ) : EXIT_FAILURE );
 }
 
+/// Signals that LvArray installs handlers for.
+/// Do NOT include SIGKILL or SIGSTOP — they cannot be caught.
+static constexpr int handledSignals[] = {
+#ifdef SIGHUP
+  SIGHUP,
+#endif
+#ifdef SIGINT
+  SIGINT,
+#endif
+#ifdef SIGQUIT
+  SIGQUIT,
+#endif
+#ifdef SIGILL
+  SIGILL,
+#endif
+#ifdef SIGTRAP
+  SIGTRAP,
+#endif
+#ifdef SIGABRT
+  SIGABRT,
+#endif
+#ifdef SIGFPE
+  SIGFPE,
+#endif
+#ifdef SIGBUS
+  SIGBUS,
+#endif
+#ifdef SIGSEGV
+  SIGSEGV,
+#endif
+#ifdef SIGSYS
+  SIGSYS,
+#endif
+#ifdef SIGPIPE
+  SIGPIPE,
+#endif
+#ifdef SIGTERM
+  SIGTERM,
+#endif
+};
 
 void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
 {
@@ -513,11 +563,11 @@ void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
     sa.sa_flags = SA_SIGINFO;
   }
 
-  auto install = [&]( int sig )
+  for( int sig : handledSignals )
   {
     if( sig <= 0 || sig >= NSIG )
     {
-      return;
+      continue;
     }
 
     if( g_oldActionSet[sig] )
@@ -530,98 +580,22 @@ void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) )
       // First install: capture previous action for future resetSignalHandling().
       g_oldActionSet[sig] = true;
     }
-  };
-
-#ifdef SIGHUP
-  install( SIGHUP );
-#endif
-#ifdef SIGINT
-  install( SIGINT );
-#endif
-#ifdef SIGQUIT
-  install( SIGQUIT );
-#endif
-#ifdef SIGILL
-  install( SIGILL );
-#endif
-#ifdef SIGTRAP
-  install( SIGTRAP );
-#endif
-#ifdef SIGABRT
-  install( SIGABRT );
-#endif
-#ifdef SIGFPE
-  install( SIGFPE );
-#endif
-#ifdef SIGBUS
-  install( SIGBUS );
-#endif
-#ifdef SIGSEGV
-  install( SIGSEGV );
-#endif
-#ifdef SIGSYS
-  install( SIGSYS );
-#endif
-#ifdef SIGPIPE
-  install( SIGPIPE );
-#endif
-#ifdef SIGTERM
-  install( SIGTERM );
-#endif
-  // Do NOT try SIGKILL/SIGSTOP: they can’t be caught.
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void resetSignalHandling()
 {
-  auto restore = []( int sig )
+  for( int sig : handledSignals )
   {
     if( sig <= 0 || sig >= NSIG || !g_oldActionSet[sig] )
     {
-      return;
+      continue;
     }
 
     sigaction( sig, &g_oldAction[sig], nullptr );
-  };
-
-#ifdef SIGHUP
-  restore( SIGHUP );
-#endif
-#ifdef SIGINT
-  restore( SIGINT );
-#endif
-#ifdef SIGQUIT
-  restore( SIGQUIT );
-#endif
-#ifdef SIGILL
-  restore( SIGILL );
-#endif
-#ifdef SIGTRAP
-  restore( SIGTRAP );
-#endif
-#ifdef SIGABRT
-  restore( SIGABRT );
-#endif
-#ifdef SIGFPE
-  restore( SIGFPE );
-#endif
-#ifdef SIGBUS
-  restore( SIGBUS );
-#endif
-#ifdef SIGSEGV
-  restore( SIGSEGV );
-#endif
-#ifdef SIGSYS
-  restore( SIGSYS );
-#endif
-#ifdef SIGPIPE
-  restore( SIGPIPE );
-#endif
-#ifdef SIGTERM
-  restore( SIGTERM );
-#endif
+  }
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -631,12 +605,15 @@ int getDefaultFloatingPointExceptions()
   return ( FE_DIVBYZERO | FE_OVERFLOW | FE_INVALID );
 }
 
+/// Translate standard FE_* masks to platform-specific fpcr trap bits.
+/// This is only needed on Apple arm64 where fpcr uses a different bit layout.
+/// Linux (x86 and aarch64) uses feenableexcept/fedisableexcept directly.
+#if defined(__APPLE__) && defined(__MACH__) && !defined(__x86_64__)
 static unsigned long long int translateFloatingPointException( unsigned long long int const exception )
 {
-  unsigned long long int result = 0;
-#if defined(__APPLE__) && defined(__MACH__) // if apple
   // Darwin arm64 stores trap masks in fpcr-specific bits (__fpcr_trap_*),
   // so FE_* must be translated before writing env.__fpcr.
+  unsigned long long int result = 0;
   if( exception & FE_INEXACT )
   {
     result |= __fpcr_trap_inexact;
@@ -657,15 +634,9 @@ static unsigned long long int translateFloatingPointException( unsigned long lon
   {
     result |= __fpcr_trap_invalid;
   }
-#else // if not apple
-#if defined(__x86_64__) || defined(__i386__)
-  // Linux x86 feenableexcept/fedisableexcept already use FE_* bit positions.
-  result = exception;
-#endif
-#endif
-
   return result;
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int enableFloatingPointExceptions( int const exceptions )

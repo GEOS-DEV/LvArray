@@ -18,8 +18,7 @@
 #include <functional>
 #include <dlfcn.h>
 #include <signal.h>
-
-
+#include <cfenv>
 
 namespace LvArray
 {
@@ -83,7 +82,6 @@ void callErrorHandler();
  */
 void signalHandler( int sig, siginfo_t * info, void * ucontext );
 
-
 /**
  * @brief Set the signal handler for common signals.
  * @param handler The signal handler.
@@ -124,7 +122,7 @@ void setFPE();
 
 /**
  * @class FloatingPointExceptionGuard
- * @brief Changes the floating point environment and reverts it when destoyed.
+ * @brief Changes the floating point environment and reverts it when destroyed.
  */
 class FloatingPointExceptionGuard
 {
@@ -138,10 +136,16 @@ public:
   {}
 
   /**
-   * @brief Re-enable the floating point exceptions that were active on construction.
+   * @brief Clear stale FE status flags and re-enable the floating point exceptions
+   *        that were active on construction.
+   * @details Clearing flags before re-enabling traps prevents spurious SIGFPE
+   *          from FE flags accumulated by third-party libraries during the guarded scope.
    */
   ~FloatingPointExceptionGuard()
-  { enableFloatingPointExceptions( m_previousExceptions ); }
+  {
+    std::feclearexcept( FE_ALL_EXCEPT );
+    enableFloatingPointExceptions( m_previousExceptions );
+  }
 
 private:
   /// The floating point exceptions that were active on construction.
