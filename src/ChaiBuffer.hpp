@@ -436,14 +436,7 @@ public:
     if( m_pointerRecord == nullptr ||
         m_capacity == 0 ||
         chaiSpace == chai::NONE ) return;
-
-    chai::ExecutionSpace const prevSpace = m_pointerRecord->m_last_space;
-
-    if( prevSpace == chai::CPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
-
-    move( space, touch );
-
-    if( prevSpace == chai::GPU && prevSpace != chaiSpace ) moveInnerData( space, size, touch );
+    moveNestedImpl( space, size, touch );
   #else
     LVARRAY_ERROR_IF_NE( space, MemorySpace::host );
     LVARRAY_UNUSED_VARIABLE( size );
@@ -552,6 +545,24 @@ public:
   }
 
 private:
+
+  template< typename U=T_non_const >
+  std::enable_if_t< bufferManipulation::HasMemberFunction_move< U > >
+  moveNestedImpl( MemorySpace const space, std::ptrdiff_t const size, bool const touch ) const
+  {
+    if( m_pointerRecord->m_last_space != chai::CPU )
+    {
+      move( MemorySpace::host, false );
+    }
+
+    moveInnerData( space, size, touch );
+    move( space, touch );
+  }
+
+  template< typename U=T_non_const >
+  std::enable_if_t< !bufferManipulation::HasMemberFunction_move< U > >
+  moveNestedImpl( MemorySpace const space, std::ptrdiff_t const, bool const touch ) const
+  { move( space, touch ); }
 
   /**
    * @tparam U A dummy parameter to enable SFINAE, do not specify.

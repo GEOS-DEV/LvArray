@@ -66,12 +66,26 @@ template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
 
 
-template< typename X, typename Y, typename C, size_t BLOCK_SIZE, bool ASYNC >
-struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, C, BLOCK_SIZE, ASYNC > >
+template< unsigned long THREADS_PER_BLOCK >
+struct RAJAHelper< RAJA::cuda_exec< THREADS_PER_BLOCK > >
 {
   using ReducePolicy = RAJA::cuda_reduce;
   using AtomicPolicy = RAJA::cuda_atomic;
   static constexpr MemorySpace space = MemorySpace::cuda;
+};
+
+#elif defined(LVARRAY_USE_HIP)
+
+template< unsigned long THREADS_PER_BLOCK >
+using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
+
+
+template< unsigned long THREADS_PER_BLOCK >
+struct RAJAHelper< RAJA::hip_exec< THREADS_PER_BLOCK > >
+{
+  using ReducePolicy = RAJA::hip_reduce;
+  using AtomicPolicy = RAJA::hip_atomic;
+  static constexpr MemorySpace space = MemorySpace::hip;
 };
 
 #endif
