@@ -6,3 +6,4 @@ docs/doxygen/LvArrayConfig.hpp
 uberenv_libs
 spack-*.txt
 *__pycache__
+**/.DS_Store
