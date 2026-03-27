@@ -266,6 +266,229 @@ TYPED_TEST( Array1DOfArray1DTest, emptyMove )
   this->emptyMove();
 }
 
+#if defined(LVARRAY_USE_CHAI) && ( defined(LVARRAY_USE_CUDA) || defined(LVARRAY_USE_HIP) )
+
+class Array1DOfArray1DOfArrayView2DTest : public ::testing::Test
+{
+public:
+  using T = double;
+  using IndexType = std::ptrdiff_t;
+
+  template< typename U >
+  using Array1D = Array< U, 1, RAJA::PERM_I, IndexType, ChaiBuffer >;
+
+  template< typename U >
+  using Array2D = Array< U, 2, RAJA::PERM_IJ, IndexType, ChaiBuffer >;
+
+  template< typename U >
+  using ArrayView2D = ArrayView< U, 2, 1, IndexType, ChaiBuffer >;
+
+  using LeafOwners = Array1D< Array1D< Array2D< T > > >;
+  using NestedViews = Array1D< Array1D< ArrayView2D< T const > > >;
+  using NestedViewConst = typename NestedViews::NestedViewTypeConst;
+
+  static constexpr IndexType OUTER_SIZE = 3;
+
+  static constexpr IndexType innerSize( IndexType const i )
+  { return i + 1; }
+
+  static constexpr IndexType numRows( IndexType const i, IndexType const )
+  { return i + 1; }
+
+  static constexpr IndexType numCols( IndexType const, IndexType const j )
+  { return j + 2; }
+
+  static LVARRAY_HOST_DEVICE constexpr T initialValue( IndexType const i,
+                                                       IndexType const j,
+                                                       IndexType const r,
+                                                       IndexType const c )
+  { return T( 1000 * i + 100 * j + 10 * r + c ); }
+
+  static LVARRAY_HOST_DEVICE constexpr T deviceTouchedValue( IndexType const i,
+                                                             IndexType const j,
+                                                             IndexType const r,
+                                                             IndexType const c )
+  { return initialValue( i, j, r, c ) + T( 5000 ); }
+
+  static LVARRAY_HOST_DEVICE constexpr T hostTouchedValue( IndexType const i,
+                                                           IndexType const j,
+                                                           IndexType const r,
+                                                           IndexType const c )
+  { return initialValue( i, j, r, c ) + T( 9000 ); }
+
+  static void initialize( LeafOwners & owners, NestedViews & views )
+  {
+    owners.resize( OUTER_SIZE );
+    views.resize( OUTER_SIZE );
+
+    for( IndexType i = 0; i < OUTER_SIZE; ++i )
+    {
+      owners[ i ].resize( innerSize( i ) );
+      views[ i ].resize( innerSize( i ) );
+
+      for( IndexType j = 0; j < owners[ i ].size(); ++j )
+      {
+        owners[ i ][ j ].resize( numRows( i, j ), numCols( i, j ) );
+
+        for( IndexType r = 0; r < owners[ i ][ j ].size( 0 ); ++r )
+        {
+          for( IndexType c = 0; c < owners[ i ][ j ].size( 1 ); ++c )
+          {
+            owners[ i ][ j ]( r, c ) = initialValue( i, j, r, c );
+          }
+        }
+
+        views[ i ][ j ] = owners[ i ][ j ].toViewConst();
+      }
+    }
+  }
+
+  static void touchLeavesOnDevice( LeafOwners & owners )
+  {
+    for( IndexType i = 0; i < owners.size(); ++i )
+    {
+      for( IndexType j = 0; j < owners[ i ].size(); ++j )
+      {
+        ArrayView2D< T > const leafView = owners[ i ][ j ].toView();
+        forall< parallelDevicePolicy< 32 > >( leafView.size( 0 ), [leafView, i, j] LVARRAY_HOST_DEVICE ( IndexType const r )
+            {
+              for( IndexType c = 0; c < leafView.size( 1 ); ++c )
+              {
+                leafView( r, c ) = deviceTouchedValue( i, j, r, c );
+              }
+            } );
+      }
+    }
+  }
+
+  static void touchLeavesOnHost( LeafOwners & owners )
+  {
+    for( IndexType i = 0; i < owners.size(); ++i )
+    {
+      for( IndexType j = 0; j < owners[ i ].size(); ++j )
+      {
+        ArrayView2D< T > const leafView = owners[ i ][ j ].toView();
+        forall< serialPolicy >( leafView.size( 0 ), [leafView, i, j] LVARRAY_HOST_DEVICE ( IndexType const r )
+            {
+              for( IndexType c = 0; c < leafView.size( 1 ); ++c )
+              {
+                leafView( r, c ) = hostTouchedValue( i, j, r, c );
+              }
+            } );
+      }
+    }
+  }
+
+  static void expectDeviceTouchedValuesInHostKernel( NestedViewConst const & nestedView )
+  {
+    forall< serialPolicy >( nestedView.size(), [nestedView] LVARRAY_HOST_DEVICE ( IndexType const i )
+        {
+          for( IndexType j = 0; j < nestedView[ i ].size(); ++j )
+          {
+            for( IndexType r = 0; r < nestedView[ i ][ j ].size( 0 ); ++r )
+            {
+              for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
+              {
+                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), deviceTouchedValue( i, j, r, c ) );
+              }
+            }
+          }
+        } );
+  }
+
+  static void expectDeviceTouchedValuesOnHost( NestedViewConst const & nestedView )
+  {
+    for( IndexType i = 0; i < nestedView.size(); ++i )
+    {
+      for( IndexType j = 0; j < nestedView[ i ].size(); ++j )
+      {
+        for( IndexType r = 0; r < nestedView[ i ][ j ].size( 0 ); ++r )
+        {
+          for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
+          {
+            EXPECT_EQ( nestedView[ i ][ j ]( r, c ), deviceTouchedValue( i, j, r, c ) );
+          }
+        }
+      }
+    }
+  }
+
+  static void warmOuterViewOnDevice( NestedViewConst const & nestedView )
+  {
+    forall< parallelDevicePolicy< 32 > >( nestedView.size(), [nestedView] LVARRAY_HOST_DEVICE ( IndexType const i )
+        {
+          for( IndexType j = 0; j < nestedView[ i ].size(); ++j )
+          {
+            for( IndexType r = 0; r < nestedView[ i ][ j ].size( 0 ); ++r )
+            {
+              for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
+              {
+                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), initialValue( i, j, r, c ) );
+              }
+            }
+          }
+        } );
+  }
+
+  static void expectHostTouchedValuesInDeviceKernel( NestedViewConst const & nestedView )
+  {
+    forall< parallelDevicePolicy< 32 > >( nestedView.size(), [nestedView] LVARRAY_HOST_DEVICE ( IndexType const i )
+        {
+          for( IndexType j = 0; j < nestedView[ i ].size(); ++j )
+          {
+            for( IndexType r = 0; r < nestedView[ i ][ j ].size( 0 ); ++r )
+            {
+              for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
+              {
+                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), hostTouchedValue( i, j, r, c ) );
+              }
+            }
+          }
+        } );
+  }
+};
+
+TEST_F( Array1DOfArray1DOfArrayView2DTest, hostCaptureAfterDeviceTouch )
+{
+  LeafOwners owners;
+  NestedViews views;
+  initialize( owners, views );
+
+  touchLeavesOnDevice( owners );
+
+  NestedViewConst const & nestedViewConst = views.toNestedViewConst();
+  expectDeviceTouchedValuesInHostKernel( nestedViewConst );
+}
+
+TEST_F( Array1DOfArray1DOfArrayView2DTest, explicitHostMoveAfterDeviceTouch )
+{
+  LeafOwners owners;
+  NestedViews views;
+  initialize( owners, views );
+
+  touchLeavesOnDevice( owners );
+
+  NestedViewConst const & nestedViewConst = views.toNestedViewConst();
+  nestedViewConst.move( MemorySpace::host );
+  expectDeviceTouchedValuesOnHost( nestedViewConst );
+}
+
+TEST_F( Array1DOfArray1DOfArrayView2DTest, deviceCaptureAfterHostTouchFollowingDeviceUse )
+{
+  LeafOwners owners;
+  NestedViews views;
+  initialize( owners, views );
+
+  NestedViewConst const & nestedViewConst = views.toNestedViewConst();
+  warmOuterViewOnDevice( nestedViewConst );
+
+  touchLeavesOnHost( owners );
+
+  expectHostTouchedValuesInDeviceKernel( nestedViewConst );
+}
+
+#endif
+
 } // namespace testing
 } // namespace LvArray
 
