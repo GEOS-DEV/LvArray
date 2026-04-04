@@ -149,3 +149,5 @@ install(TARGETS testTensorOps
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )
 endif()
+
+add_subdirectory( jitti )

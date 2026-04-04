@@ -79,3 +79,5 @@ lvarray_add_code_checks( PREFIX lvarray
 if( ENABLE_PYLVARRAY )
     add_subdirectory( python )
 endif()
+
+add_subdirectory( jitti )
