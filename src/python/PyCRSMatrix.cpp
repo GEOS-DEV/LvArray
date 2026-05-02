@@ -177,7 +177,16 @@ static PyObject * PyCRSMatrix_toSciPy( PyCRSMatrix * const self, PyObject * cons
                    "Error constructing the offsets NumPy array", nullptr );
 
   PyObjectRef<> sciPySparse = PyImport_ImportModule( "scipy.sparse" );
+  if( sciPySparse == nullptr )
+  {
+    return nullptr;
+  }
+
   PyObjectRef<> constructor = PyObject_GetAttrString( sciPySparse, "csr_matrix" );
+  if( constructor == nullptr )
+  {
+    return nullptr;
+  }
 
   return PyObject_CallFunction( constructor,
                                 "(OOO)(ll)",

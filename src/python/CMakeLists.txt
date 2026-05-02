@@ -31,6 +31,8 @@ blt_add_library( NAME             pylvarray
                  CLEAR_PREFIX TRUE
                  )
 
+set_target_properties( pylvarray PROPERTIES SUFFIX "${CMAKE_SHARED_MODULE_SUFFIX}" )
+
 target_include_directories( pylvarray
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>

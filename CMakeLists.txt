@@ -73,6 +73,16 @@ include( cmake/Config.cmake )
 
 set( lvarray_dependencies dl )
 
+if( ENABLE_PYLVARRAY )
+    execute_process( COMMAND ${Python3_EXECUTABLE} -c "import scipy.sparse"
+                     RESULT_VARIABLE scipy_sparse_result
+                     ERROR_VARIABLE scipy_sparse_error
+                     OUTPUT_QUIET )
+    if( NOT scipy_sparse_result EQUAL 0 )
+        message( FATAL_ERROR "ENABLE_PYLVARRAY requires scipy.sparse in ${Python3_EXECUTABLE}: ${scipy_sparse_error}" )
+    endif()
+endif()
+
 blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS RAJA )
@@ -116,5 +126,4 @@ endif()
 if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
-
 
