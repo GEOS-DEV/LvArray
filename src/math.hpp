@@ -532,7 +532,12 @@ __half2 ceil( __half2 const x )
 #if CUDART_VERSION > 11000
   return h2ceil( x );
 #else
-  return LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to
+  #if defined( __HIP__ ) || defined( __HIPCC__ ) || defined( __HIP_DEVICE_COMPILE__ )
+    return x;
+  #else
+    LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to
+    return x;
+  #endif
                                                                                     // mimic
 #endif
 }
@@ -586,7 +591,12 @@ __half2 floor( __half2 const x )
 #if CUDART_VERSION > 11000
   return h2floor( x );
 #else
-  return LVARRAY_THROW( "h2floor is not implemented for host", std::runtime_error );
+  #if defined( __HIP__ ) || defined( __HIPCC__ ) || defined( __HIP_DEVICE_COMPILE__ )
+    return x;
+  #else
+    LVARRAY_THROW( "h2floor is not implemented for host", std::runtime_error );
+    return x;
+  #endif
 #endif
 }
 
