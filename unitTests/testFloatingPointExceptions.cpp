@@ -21,11 +21,11 @@ using namespace testFloatingPointExceptionsHelpers;
 
 #if defined(__APPLE__) && defined(__MACH__) && defined(__aarch64__)
 char const DIVIDE_BY_ZERO_REGEX[] =
-  R"(((floating divide by zero)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+  R"(((floating divide by zero)|(possible floating-point trap; subtype unavailable on this platform))(.|\n)*StackTrace)";
 char const OVERFLOW_REGEX[] =
-  R"(((floating overflow)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+  R"(((floating overflow)|(possible floating-point trap; subtype unavailable on this platform))(.|\n)*StackTrace)";
 char const INVALID_REGEX[] =
-  R"(((floating invalid operation)|(floating-point trap, subtype unavailable on this platform))(.|\n)*StackTrace)";
+  R"(((floating invalid operation)|(possible floating-point trap; subtype unavailable on this platform))(.|\n)*StackTrace)";
 #else
 char const DIVIDE_BY_ZERO_REGEX[] = R"((floating divide by zero)(.|\n)*StackTrace)";
 char const OVERFLOW_REGEX[] = R"((floating overflow)(.|\n)*StackTrace)";

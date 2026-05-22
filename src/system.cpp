@@ -490,7 +490,7 @@ void signalHandler( int sig, siginfo_t * info, void * ucontext )
         // Apple arm64 may report FP traps as SIGILL/ILL_ILLTRP instead of SIGFPE.
         // In that mode the subtype is not exposed, so we emit the best available text.
         oss << "  SIGILL si_code = " << info->si_code
-            << " (floating-point trap, subtype unavailable on this platform)\n";
+            << " (possible floating-point trap; subtype unavailable on this platform)\n";
       }
       else
 #endif
