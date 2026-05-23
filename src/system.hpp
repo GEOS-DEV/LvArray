@@ -114,6 +114,20 @@ int enableFloatingPointExceptions( int const exceptions = getDefaultFloatingPoin
 int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPointExceptions() );
 
 /**
+ * @brief Query which floating-point exceptions are currently set to trap.
+ * @return A bitmask of @c FE_* values that are currently trap-enabled. A return
+ *         of 0 means no exceptions will trap on this thread — including the
+ *         case of a trapless hardware FPU (some aarch64 implementations) where
+ *         enableFloatingPointExceptions() appeared to succeed but the hardware
+ *         did not honor the request.
+ * @note On glibc this calls @c fegetexcept(). On Apple arm64 it reads FPCR
+ *       trap-enable bits and translates back to @c FE_* values. On Apple x86
+ *       it reads the SSE/x87 control word via @c fenv_t (where SET bits mean
+ *       masked/disabled, so the enabled set is the bitwise inverse).
+ */
+int queryEnabledFloatingPointExceptions();
+
+/**
  * @brief Sets the floating point environment.
  * @details Sets the floating point environment such that FE_DIVBYZERO, FE_OVERFLOW
  *   or FE_INVALID throw exceptions. Denormal numbers are flushed to zero.

@@ -733,6 +733,45 @@ int disableFloatingPointExceptions( int const exceptions )
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int queryEnabledFloatingPointExceptions()
+{
+#if defined(__APPLE__) && defined(__MACH__)
+#if !defined(__x86_64__)
+  // Apple arm64: read FPCR trap-enable bits and translate back to FE_*.
+  // If the underlying FPU is trapless, the bits we previously wrote will read
+  // back as 0 here and the caller can warn the user.
+  fenv_t env;
+  if( fegetenv( &env ) )
+  {
+    return 0;
+  }
+
+  int enabled = 0;
+  if( env.__fpcr & __fpcr_trap_inexact )   enabled |= FE_INEXACT;
+  if( env.__fpcr & __fpcr_trap_underflow ) enabled |= FE_UNDERFLOW;
+  if( env.__fpcr & __fpcr_trap_overflow )  enabled |= FE_OVERFLOW;
+  if( env.__fpcr & __fpcr_trap_divbyzero ) enabled |= FE_DIVBYZERO;
+  if( env.__fpcr & __fpcr_trap_invalid )   enabled |= FE_INVALID;
+  return enabled;
+#else
+  // Apple x86: a bit SET in fenv.__control means the exception is masked
+  // (disabled). The enabled set is the bitwise inverse, restricted to
+  // FE_ALL_EXCEPT.
+  fenv_t env;
+  if( fegetenv( &env ) )
+  {
+    return 0;
+  }
+  return ( ~env.__control ) & FE_ALL_EXCEPT;
+#endif
+#else
+  // Linux/glibc: native API. fegetexcept returns -1 on error; treat as none.
+  int const enabled = fegetexcept();
+  return ( enabled < 0 ) ? 0 : enabled;
+#endif
+}
+
 static void enableFlushDenormalsToZero()
 {
   // Flushing denormals prevents very slow subnormal arithmetic paths on many CPUs.

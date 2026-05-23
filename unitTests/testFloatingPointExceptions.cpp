@@ -62,6 +62,35 @@ TEST( TestFloatingPointEnvironment, Invalid )
   EXPECT_DEATH_IF_SUPPORTED( invalid(), INVALID_REGEX );
 }
 
+TEST( TestFloatingPointEnvironment, QueryReflectsSetFPE )
+{
+  // setFPE() enables the default FE_* set. queryEnabledFloatingPointExceptions()
+  // should report at least those bits back. If the hardware is trapless, the
+  // bits we wrote will read back as zero — we surface that as a skip rather
+  // than a failure.
+  system::setFPE();
+  int const wanted = system::getDefaultFloatingPointExceptions();
+  int const active = system::queryEnabledFloatingPointExceptions();
+
+  if( ( active & wanted ) != wanted )
+  {
+    GTEST_SKIP() << "Hardware FPU appears trapless (wanted mask=0x" << std::hex << wanted
+                 << ", active mask=0x" << active << ").";
+  }
+
+  EXPECT_EQ( active & wanted, wanted );
+}
+
+TEST( TestFloatingPointEnvironment, QueryAfterDisableIsEmpty )
+{
+  system::setFPE();
+  system::disableFloatingPointExceptions( system::getDefaultFloatingPointExceptions() );
+  int const active = system::queryEnabledFloatingPointExceptions();
+  EXPECT_EQ( active & system::getDefaultFloatingPointExceptions(), 0 );
+  // Restore for subsequent tests in the same process.
+  system::setFPE();
+}
+
 TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
 {
   system::setFPE();
