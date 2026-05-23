@@ -18,6 +18,8 @@ foreach(test ${pythonTests})
                      SHARED TRUE
                      CLEAR_PREFIX TRUE )
 
+    set_target_properties( ${test_name} PROPERTIES SUFFIX "${CMAKE_SHARED_MODULE_SUFFIX}" )
+
     target_include_directories( ${test_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../src )
 
 

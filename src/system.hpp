@@ -17,6 +17,8 @@
 #include <typeinfo>
 #include <functional>
 #include <dlfcn.h>
+#include <signal.h>
+#include <cfenv>
 
 namespace LvArray
 {
@@ -73,17 +75,18 @@ void setErrorHandler( std::function< void() > const & handler );
 void callErrorHandler();
 
 /**
- * @brief Print signal information and a stack trace to standard out, optionally aborting.
+ * @brief Print signal information and a stack trace, then terminate.
  * @param sig The signal received.
- * @param exit If true abort execution.
+ * @param info Additional signal information.
+ * @param ucontext Platform-specific user context (unused).
  */
-void stackTraceHandler( int const sig, bool const exit );
+void signalHandler( int sig, siginfo_t * info, void * ucontext );
 
 /**
  * @brief Set the signal handler for common signals.
  * @param handler The signal handler.
  */
-void setSignalHandling( void (* handler)( int ) );
+void setSignalHandling( void (* handler)( int, siginfo_t * info, void * ) = signalHandler );
 
 /**
  * @brief Rest the signal handling back to the original state.
@@ -111,6 +114,20 @@ int enableFloatingPointExceptions( int const exceptions = getDefaultFloatingPoin
 int disableFloatingPointExceptions( int const exceptions = getDefaultFloatingPointExceptions() );
 
 /**
+ * @brief Query which floating-point exceptions are currently set to trap.
+ * @return A bitmask of @c FE_* values that are currently trap-enabled. A return
+ *         of 0 means no exceptions will trap on this thread — including the
+ *         case of a trapless hardware FPU (some aarch64 implementations) where
+ *         enableFloatingPointExceptions() appeared to succeed but the hardware
+ *         did not honor the request.
+ * @note On glibc this calls @c fegetexcept(). On Apple arm64 it reads FPCR
+ *       trap-enable bits and translates back to @c FE_* values. On Apple x86
+ *       it reads the SSE/x87 control word via @c fenv_t (where SET bits mean
+ *       masked/disabled, so the enabled set is the bitwise inverse).
+ */
+int queryEnabledFloatingPointExceptions();
+
+/**
  * @brief Sets the floating point environment.
  * @details Sets the floating point environment such that FE_DIVBYZERO, FE_OVERFLOW
  *   or FE_INVALID throw exceptions. Denormal numbers are flushed to zero.
@@ -119,7 +136,7 @@ void setFPE();
 
 /**
  * @class FloatingPointExceptionGuard
- * @brief Changes the floating point environment and reverts it when destoyed.
+ * @brief Changes the floating point environment and reverts it when destroyed.
  */
 class FloatingPointExceptionGuard
 {
@@ -133,10 +150,16 @@ public:
   {}
 
   /**
-   * @brief Re-enable the floating point exceptions that were active on construction.
+   * @brief Clear stale FE status flags and re-enable the floating point exceptions
+   *        that were active on construction.
+   * @details Clearing flags before re-enabling traps prevents spurious SIGFPE
+   *          from FE flags accumulated by third-party libraries during the guarded scope.
    */
   ~FloatingPointExceptionGuard()
-  { enableFloatingPointExceptions( m_previousExceptions ); }
+  {
+    std::feclearexcept( FE_ALL_EXCEPT );
+    enableFloatingPointExceptions( m_previousExceptions );
+  }
 
 private:
   /// The floating point exceptions that were active on construction.
