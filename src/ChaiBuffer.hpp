@@ -496,6 +496,10 @@ public:
   template< typename U=ChaiBuffer< T > >
   void setName( std::string const & name )
   {
+#if defined(LVARRAY_DISABLE_MEMORY_LOGGING)
+    LVARRAY_UNUSED_VARIABLE( name );
+    m_pointerRecord->m_user_callback = nullptr;
+#else
     std::string const typeString = system::demangleType< U >();
     m_pointerRecord->m_user_callback =
       [name, typeString]( chai::PointerRecord const * const record, chai::Action const act, chai::ExecutionSpace const s )
@@ -542,6 +546,7 @@ public:
         #endif
       }
     };
+#endif
   }
 
 private:
