@@ -65,7 +65,7 @@ void testAsyncMemcpy1D()
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
 
   camp::resources::Event e = memcpy( host, y.toSlice(), x.toSliceConst() );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -78,7 +78,7 @@ void testAsyncMemcpy1D()
   }
 
   e = memcpy< 0, 0 >( host, y, {}, x.toViewConst(), {} );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
