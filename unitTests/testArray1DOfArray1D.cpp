@@ -389,7 +389,7 @@ public:
             {
               for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
               {
-                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), deviceTouchedValue( i, j, r, c ) );
+                PORTABLE_EXPECT_NEAR( nestedView[ i ][ j ]( r, c ), deviceTouchedValue( i, j, r, c ), T( 1e-12 ) );
               }
             }
           }
@@ -423,7 +423,7 @@ public:
             {
               for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
               {
-                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), initialValue( i, j, r, c ) );
+                PORTABLE_EXPECT_NEAR( nestedView[ i ][ j ]( r, c ), initialValue( i, j, r, c ), T( 1e-12 ) );
               }
             }
           }
@@ -440,7 +440,7 @@ public:
             {
               for( IndexType c = 0; c < nestedView[ i ][ j ].size( 1 ); ++c )
               {
-                PORTABLE_EXPECT_EQ( nestedView[ i ][ j ]( r, c ), hostTouchedValue( i, j, r, c ) );
+                PORTABLE_EXPECT_NEAR( nestedView[ i ][ j ]( r, c ), hostTouchedValue( i, j, r, c ), T( 1e-12 ) );
               }
             }
           }

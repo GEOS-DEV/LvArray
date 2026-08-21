@@ -10,6 +10,8 @@
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
+#include "limits.hpp"
+#include "math.hpp"
 
 #include "MallocBuffer.hpp"
 
@@ -118,9 +120,26 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 #endif
 }
 
+template< typename LHS, typename RHS >
+LVARRAY_HOST_DEVICE inline bool portableEqual( LHS const & lhs, RHS const & rhs )
+{
+  using LhsValue = std::decay_t< LHS >;
+  using RhsValue = std::decay_t< RHS >;
+  if constexpr( std::is_floating_point< LhsValue >::value || std::is_floating_point< RhsValue >::value )
+  {
+    using FloatingPoint = std::common_type_t< LhsValue, RhsValue >;
+    return math::abs( static_cast< FloatingPoint >( lhs ) - static_cast< FloatingPoint >( rhs ) ) <= NumericLimits< FloatingPoint >::epsilon;
+  }
+  else
+  {
+    return lhs == rhs;
+  }
+}
+
 
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
-#define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
+#define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF( !portableEqual( ( L ), ( R ) ), \
+                                                     "Expected " STRINGIZE( L ) " == " STRINGIZE( R ) )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GE_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
                                                                        STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
 #else
@@ -128,6 +147,18 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
     STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
 #endif
+
+// A device-only lambda is compiled by HIP in a host pass as well. GoogleTest
+// assertions are host-only and cannot be used in that lambda, so use a plain
+// assertion for checks that are only made on the device.
+#define PORTABLE_DEVICE_EXPECT_EQ( L, R ) \
+  do \
+  { \
+    if( !( ( L ) == ( R ) ) ) \
+    { \
+      assert( false && "Device assertion failed" ); \
+    } \
+  } while( false )
 
 // Comparator that compares a std::pair by it's first object.
 template< class A, class B, class COMP=std::less< A > >

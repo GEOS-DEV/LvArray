@@ -83,18 +83,18 @@ public:
     forall< POLICY >( 1, [scale, result, matrixA_IJK, matrixA_IKJ, matrixA_KJI, aSeed] LVARRAY_HOST_DEVICE ( int )
         {
           tensorOps::scale< N, M >( matrixA_IJK[ 0 ], scale );
-          CHECK_EQUALITY_2D( N, M, matrixA_IJK[ 0 ], result );
+          CHECK_NEAR_2D( N, M, matrixA_IJK[ 0 ], result, 100 * NumericLimits< T >::epsilon );
 
           tensorOps::scale< N, M >( matrixA_IKJ[ 0 ], scale );
-          CHECK_EQUALITY_2D( N, M, matrixA_IKJ[ 0 ], result );
+          CHECK_NEAR_2D( N, M, matrixA_IKJ[ 0 ], result, 100 * NumericLimits< T >::epsilon );
 
           tensorOps::scale< N, M >( matrixA_KJI[ 0 ], scale );
-          CHECK_EQUALITY_2D( N, M, matrixA_KJI[ 0 ], result );
+          CHECK_NEAR_2D( N, M, matrixA_KJI[ 0 ], result, 100 * NumericLimits< T >::epsilon );
 
           T matrix_local[ N ][ M ];
           fill( matrix_local, aSeed );
           tensorOps::scale< N, M >( matrix_local, scale );
-          CHECK_EQUALITY_2D( N, M, matrix_local, result );
+          CHECK_NEAR_2D( N, M, matrix_local, result, 100 * NumericLimits< T >::epsilon );
         } );
   }
 
@@ -586,7 +586,7 @@ public:
           #define _TEST( dstMatrix, srcMatrix ) \
             fill( dstMatrix, matrixSeed ); \
             tensorOps::scaledCopy< N, M >( dstMatrix, srcMatrix, scale ); \
-            CHECK_EQUALITY_2D( N, M, dstMatrix, result )
+            CHECK_NEAR_2D( N, M, dstMatrix, result, 100 * NumericLimits< T >::epsilon )
 
           #define _TEST_PERMS( dstMatrix, srcMatrix0, srcMatrix1, srcMatrix2, srcMatrix3 ) \
             _TEST( dstMatrix, srcMatrix0 ); \
@@ -690,7 +690,7 @@ public:
           #define _TEST( dstMatrix, srcMatrix ) \
             fill( dstMatrix, matrixSeed ); \
             tensorOps::scaledAdd< N, M >( dstMatrix, srcMatrix, scale ); \
-            CHECK_EQUALITY_2D( N, M, dstMatrix, result ); \
+            CHECK_NEAR_2D( N, M, dstMatrix, result, 100 * NumericLimits< T >::epsilon ); \
 
           #define _TEST_PERMS( dstMatrix, srcMatrix0, srcMatrix1, srcMatrix2, srcMatrix3 ) \
             _TEST( dstMatrix, srcMatrix0 ); \

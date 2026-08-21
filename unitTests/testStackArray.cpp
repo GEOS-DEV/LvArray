@@ -175,36 +175,43 @@ public:
   /// This needs to use the parallelDevice policy because you can't nest host-device lambdas.
   static void resizeMultipleInLambda()
   {
-    INDEX_TYPE dims[ NDIM ];
-    for( int i = 0; i < NDIM; ++i )
-    { dims[ i ] = 8; }
+    if constexpr( std::is_same< POLICY, serialPolicy >::value )
+    {
+      GTEST_SKIP() << "Nested device lambdas are only supported by a device execution policy.";
+      return;
+    }
+    else
+    {
+      INDEX_TYPE dims[ NDIM ];
+      for( int i = 0; i < NDIM; ++i )
+      { dims[ i ] = 8; }
 
-    INDEX_TYPE const capacity = CAPACITY;
-    forall< POLICY >( 10, [dims, capacity] LVARRAY_DEVICE ( int )
+      forall< POLICY >( 10, [dims] LVARRAY_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
-          PORTABLE_EXPECT_EQ( array.size(), 0 );
-          PORTABLE_EXPECT_EQ( array.capacity(), capacity );
+          PORTABLE_DEVICE_EXPECT_EQ( array.size(), 0 );
+          PORTABLE_DEVICE_EXPECT_EQ( array.capacity(), CAPACITY );
 
           array.resize( NDIM, dims );
 
           for( int i = 0; i < NDIM; ++i )
-          { PORTABLE_EXPECT_EQ( array.size( i ), 8 ); }
+          { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
 
-          PORTABLE_EXPECT_EQ( array.size(), capacity );
+          PORTABLE_DEVICE_EXPECT_EQ( array.size(), CAPACITY );
 
           forValuesInSliceWithIndices( array.toSlice(), SetValue() );
 
           array.resize( 2 );
 
-          PORTABLE_EXPECT_EQ( array.size( 0 ), 2 );
+          PORTABLE_DEVICE_EXPECT_EQ( array.size( 0 ), 2 );
           for( int i = 1; i < NDIM; ++i )
-          { PORTABLE_EXPECT_EQ( array.size( i ), 8 ); }
+          { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
 
-          PORTABLE_EXPECT_EQ( array.size(), array.capacity() / 4 );
+          PORTABLE_DEVICE_EXPECT_EQ( array.size(), array.capacity() / 4 );
 
           forValuesInSliceWithIndices( array.toSlice(), CheckValue() );
         } );
+    }
   }
 
   template< typename _PERMUTATION=PERMUTATION >
@@ -212,7 +219,7 @@ public:
   sizedConstructorInLambda()
   {
     INDEX_TYPE const capacity = CAPACITY;
-    forall< POLICY >( 10, [capacity] LVARRAY_DEVICE ( int )
+    forall< POLICY >( 10, [capacity] LVARRAY_HOST_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( CAPACITY );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
@@ -227,7 +234,7 @@ public:
   {
     INDEX_TYPE const capacity = CAPACITY;
     int const size = 8;
-    forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
+    forall< POLICY >( 10, [capacity, size] LVARRAY_HOST_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 1, size );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );
@@ -243,7 +250,7 @@ public:
   {
     INDEX_TYPE const capacity = CAPACITY;
     int const size = 8;
-    forall< POLICY >( 10, [capacity, size] LVARRAY_DEVICE ( int )
+    forall< POLICY >( 10, [capacity, size] LVARRAY_HOST_DEVICE ( int )
         {
           StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array( size - 2, size - 1, size );
           PORTABLE_EXPECT_EQ( array.capacity(), capacity );

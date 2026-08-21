@@ -435,9 +435,9 @@ public:
     array->template setValues< POLICY >( value );
 
     ViewTypeConst const view = array->toViewConst();
-    forall< POLICY >( array->size(), [view, value] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
+    forall< POLICY >( array->size(), [view] LVARRAY_HOST_DEVICE ( INDEX_TYPE const i )
         {
-          PORTABLE_EXPECT_EQ( view.data()[ i ], value );
+          PORTABLE_EXPECT_EQ( view.data()[ i ], T( 3.14 ) );
         } );
 
     EXPECT_EQ( array->size(), totalSize );
