@@ -175,7 +175,7 @@ public:
   /// This needs to use the parallelDevice policy because you can't nest host-device lambdas.
   static void resizeMultipleInLambda()
   {
-    if constexpr( std::is_same< POLICY, serialPolicy >::value )
+    if constexpr ( std::is_same< POLICY, serialPolicy >::value )
     {
       GTEST_SKIP() << "Nested device lambdas are only supported by a device execution policy.";
       return;
@@ -187,30 +187,30 @@ public:
       { dims[ i ] = 8; }
 
       forall< POLICY >( 10, [dims] LVARRAY_DEVICE ( int )
-        {
-          StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
-          PORTABLE_DEVICE_EXPECT_EQ( array.size(), 0 );
-          PORTABLE_DEVICE_EXPECT_EQ( array.capacity(), CAPACITY );
+          {
+            StackArray< int, NDIM, PERMUTATION, INDEX_TYPE, CAPACITY > array;
+            PORTABLE_DEVICE_EXPECT_EQ( array.size(), 0 );
+            PORTABLE_DEVICE_EXPECT_EQ( array.capacity(), CAPACITY );
 
-          array.resize( NDIM, dims );
+            array.resize( NDIM, dims );
 
-          for( int i = 0; i < NDIM; ++i )
-          { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
+            for( int i = 0; i < NDIM; ++i )
+            { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
 
-          PORTABLE_DEVICE_EXPECT_EQ( array.size(), CAPACITY );
+            PORTABLE_DEVICE_EXPECT_EQ( array.size(), CAPACITY );
 
-          forValuesInSliceWithIndices( array.toSlice(), SetValue() );
+            forValuesInSliceWithIndices( array.toSlice(), SetValue() );
 
-          array.resize( 2 );
+            array.resize( 2 );
 
-          PORTABLE_DEVICE_EXPECT_EQ( array.size( 0 ), 2 );
-          for( int i = 1; i < NDIM; ++i )
-          { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
+            PORTABLE_DEVICE_EXPECT_EQ( array.size( 0 ), 2 );
+            for( int i = 1; i < NDIM; ++i )
+            { PORTABLE_DEVICE_EXPECT_EQ( array.size( i ), 8 ); }
 
-          PORTABLE_DEVICE_EXPECT_EQ( array.size(), array.capacity() / 4 );
+            PORTABLE_DEVICE_EXPECT_EQ( array.size(), array.capacity() / 4 );
 
-          forValuesInSliceWithIndices( array.toSlice(), CheckValue() );
-        } );
+            forValuesInSliceWithIndices( array.toSlice(), CheckValue() );
+          } );
     }
   }
 

@@ -211,8 +211,8 @@ void testAsyncMemcpyDevice()
   stream.wait_for( e );
 
   RAJA::forall< RAJA::cuda_exec< 32 > >( stream.get< camp::resources::Cuda >(),
-                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
-                                        [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+                                         RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                         [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
@@ -232,8 +232,8 @@ void testAsyncMemcpyDevice()
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   RAJA::forall< RAJA::cuda_exec< 32 > >( stream.get< camp::resources::Cuda >(),
-                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
-                                        [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+                                         RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                         [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;
       } );
@@ -315,8 +315,8 @@ void testAsyncMemcpyDevice()
   stream.wait_for( e );
 
   RAJA::forall< RAJA::hip_exec< 32 > >( stream.get< camp::resources::Hip >(),
-                                       RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
-                                       [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                        [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
@@ -336,8 +336,8 @@ void testAsyncMemcpyDevice()
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
   RAJA::forall< RAJA::hip_exec< 32 > >( stream.get< camp::resources::Hip >(),
-                                       RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
-                                       [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                        [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;
       } );

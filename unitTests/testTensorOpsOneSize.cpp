@@ -265,7 +265,7 @@ public:
             tensorOps::scaledCopy< N >( a, b, scale ); \
             for( std::ptrdiff_t i = 0; i < N; ++i ) \
             { \
-              if constexpr( std::is_integral< T >::value ) \
+              if constexpr ( std::is_integral< T >::value ) \
               { PORTABLE_EXPECT_EQ( a[ i ], scale * b[ i ] ); } \
               else \
               { PORTABLE_EXPECT_NEAR( a[ i ], scale * b[ i ], 100 * NumericLimits< T >::epsilon ); } \

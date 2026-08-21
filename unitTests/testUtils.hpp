@@ -125,7 +125,7 @@ LVARRAY_HOST_DEVICE inline bool portableEqual( LHS const & lhs, RHS const & rhs 
 {
   using LhsValue = std::decay_t< LHS >;
   using RhsValue = std::decay_t< RHS >;
-  if constexpr( std::is_floating_point< LhsValue >::value || std::is_floating_point< RhsValue >::value )
+  if constexpr ( std::is_floating_point< LhsValue >::value || std::is_floating_point< RhsValue >::value )
   {
     using FloatingPoint = std::common_type_t< LhsValue, RhsValue >;
     return math::abs( static_cast< FloatingPoint >( lhs ) - static_cast< FloatingPoint >( rhs ) ) <= NumericLimits< FloatingPoint >::epsilon;
