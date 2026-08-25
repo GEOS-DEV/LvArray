@@ -104,7 +104,16 @@ multiplyAll( T const * const LVARRAY_RESTRICT values )
 template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
-{ return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ); }
+{
+  if constexpr( USD == 0 )
+  {
+    return index;
+  }
+  else
+  {
+    return index * strides[ 0 ];
+  }
+}
 
 /**
  * @tparam USD The unit stride dimension of strides.
@@ -122,8 +131,15 @@ template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_I
 LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
-  return ConditionalMultiply< USD == 0 >::multiply( index, strides[ 0 ] ) +
-         getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
+  if constexpr( USD == 0 )
+  {
+    return index + getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
+  }
+  else
+  {
+    return index * strides[ 0 ] +
+           getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
+  }
 }
 
 /// @return A string representing an empty set of indices.
