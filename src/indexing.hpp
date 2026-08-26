@@ -105,7 +105,7 @@ template< int USD, typename INDEX_TYPE, typename INDEX >
 LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index )
 {
-  if constexpr( USD == 0 )
+  if constexpr ( USD == 0 )
   {
     return index;
   }
@@ -131,7 +131,7 @@ template< int USD, typename INDEX_TYPE, typename INDEX, typename ... REMAINING_I
 LVARRAY_HOST_DEVICE inline constexpr
 INDEX_TYPE getLinearIndex( INDEX_TYPE const * const LVARRAY_RESTRICT strides, INDEX const index, REMAINING_INDICES const ... indices )
 {
-  if constexpr( USD == 0 )
+  if constexpr ( USD == 0 )
   {
     return index + getLinearIndex< USD - 1, INDEX_TYPE, REMAINING_INDICES... >( strides + 1, indices ... );
   }

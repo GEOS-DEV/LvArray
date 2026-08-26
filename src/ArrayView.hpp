@@ -502,7 +502,7 @@ public:
   operator[]( INDEX_TYPE const index ) const & noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    if constexpr( USD == 0 )
+    if constexpr ( USD == 0 )
     {
       return ArraySlice< T, NDIM-1, USD-1, INDEX_TYPE >( data() + index,
                                                          m_dims.data + 1,
@@ -540,7 +540,7 @@ public:
   operator[]( INDEX_TYPE const index ) const & noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    if constexpr( USD == 0 )
+    if constexpr ( USD == 0 )
     {
       return data()[ index ];
     }

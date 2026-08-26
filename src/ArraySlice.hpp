@@ -292,7 +292,7 @@ public:
   operator[]( INDEX_TYPE const index ) const noexcept
   {
     ARRAY_SLICE_CHECK_BOUNDS( index );
-    if constexpr( USD == 0 )
+    if constexpr ( USD == 0 )
     {
       return m_data[ index ];
     }
