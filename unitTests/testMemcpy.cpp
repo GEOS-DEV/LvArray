@@ -65,7 +65,7 @@ void testAsyncMemcpy1D()
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
 
   camp::resources::Event e = memcpy( host, y.toSlice(), x.toSliceConst() );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -78,7 +78,7 @@ void testAsyncMemcpy1D()
   }
 
   e = memcpy< 0, 0 >( host, y, {}, x.toViewConst(), {} );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -162,7 +162,7 @@ void testMemcpyDevice()
 
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
-        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
       } );
 
@@ -194,7 +194,7 @@ void testMemcpyDevice()
 template< template< typename > class BUFFER_TYPE >
 void testAsyncMemcpyDevice()
 {
-  camp::resources::Resource stream{ camp::resources::Cuda{} };
+  camp::resources::Resource stream{ camp::resources::Cuda::get_default() };
 
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
 
@@ -208,16 +208,18 @@ void testAsyncMemcpyDevice()
   int * yPtr = y.data();
 
   camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
-  forall< RAJA::cuda_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+  RAJA::forall< RAJA::cuda_exec< 32 > >( stream.get< camp::resources::Cuda >(),
+                                         RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                         [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
-        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -229,13 +231,15 @@ void testAsyncMemcpyDevice()
   y.move( MemorySpace::host );
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
-  forall< RAJA::cuda_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+  RAJA::forall< RAJA::cuda_exec< 32 > >( stream.get< camp::resources::Cuda >(),
+                                         RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                         [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -262,7 +266,7 @@ void testMemcpyDevice()
 
   forall< RAJA::hip_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
-        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
       } );
 
@@ -294,7 +298,7 @@ void testMemcpyDevice()
 template< template< typename > class BUFFER_TYPE >
 void testAsyncMemcpyDevice()
 {
-  camp::resources::Resource stream{ camp::resources::Hip{} };
+  camp::resources::Resource stream{ camp::resources::Hip::get_default() };
 
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > x( 100 );
 
@@ -308,16 +312,18 @@ void testAsyncMemcpyDevice()
   int * yPtr = y.data();
 
   camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
-  forall< RAJA::hip_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+  RAJA::forall< RAJA::hip_exec< 32 > >( stream.get< camp::resources::Hip >(),
+                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                        [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
-        PORTABLE_EXPECT_EQ( yPtr[ i ], i );
+        PORTABLE_DEVICE_EXPECT_EQ( yPtr[ i ], i );
         yPtr[ i ] *= 2;
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -329,13 +335,15 @@ void testAsyncMemcpyDevice()
   y.move( MemorySpace::host );
 
   ArrayView< int, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const yView = y.toView();
-  forall< RAJA::hip_exec< 32 > >( y.size(), [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
+  RAJA::forall< RAJA::hip_exec< 32 > >( stream.get< camp::resources::Hip >(),
+                                        RAJA::TypedRangeSegment< std::ptrdiff_t >( 0, y.size() ),
+                                        [yView] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
         yView[ i ] = -i;
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
