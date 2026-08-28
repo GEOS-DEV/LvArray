@@ -119,5 +119,22 @@ randomValue( T const maxVal, std::mt19937_64 & gen )
     } \
   } while ( false )
 
+#define CHECK_NEAR_2D( N, M, A, RESULT, EPSILON ) \
+  tensorOps::internal::checkSizes< N, M >( A ); \
+  tensorOps::internal::checkSizes< N, M >( RESULT ); \
+  do \
+  { \
+    for( std::ptrdiff_t _i = 0; _i < N; ++_i ) \
+    { \
+      for( std::ptrdiff_t _j = 0; _j < M; ++_j ) \
+      { \
+        if( std::is_integral< std::remove_reference_t< decltype( A[ _i ][ _j ] ) > >::value ) \
+        { PORTABLE_EXPECT_EQ( A[ _i ][ _j ], RESULT[ _i ][ _j ] ); } \
+        else \
+        { PORTABLE_EXPECT_NEAR( A[ _i ][ _j ], RESULT[ _i ][ _j ], EPSILON ); } \
+      } \
+    } \
+  } while ( false )
+
 } // namespace testing
 } // namespace LvArray
