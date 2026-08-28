@@ -65,7 +65,7 @@ void testAsyncMemcpy1D()
   Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, BUFFER_TYPE > y( x.size() );
 
   camp::resources::Event e = memcpy( host, y.toSlice(), x.toSliceConst() );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -78,7 +78,7 @@ void testAsyncMemcpy1D()
   }
 
   e = memcpy< 0, 0 >( host, y, {}, x.toViewConst(), {} );
-  host.wait_for( &e );
+  host.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -208,7 +208,7 @@ void testAsyncMemcpyDevice()
   int * yPtr = y.data();
 
   camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   forall< RAJA::cuda_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
@@ -217,7 +217,7 @@ void testAsyncMemcpyDevice()
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -235,7 +235,7 @@ void testAsyncMemcpyDevice()
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -308,7 +308,7 @@ void testAsyncMemcpyDevice()
   int * yPtr = y.data();
 
   camp::resources::Event e = memcpy< 0, 0 >( stream, y.toView(), {}, x.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   forall< RAJA::hip_exec< 32 > >( y.size(), [yPtr] LVARRAY_DEVICE ( std::ptrdiff_t const i )
       {
@@ -317,7 +317,7 @@ void testAsyncMemcpyDevice()
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -335,7 +335,7 @@ void testAsyncMemcpyDevice()
       } );
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
-  stream.wait_for( &e );
+  stream.wait_for( e );
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
