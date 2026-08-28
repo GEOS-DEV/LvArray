@@ -294,15 +294,17 @@ static void stringToArray( Array< T, NDIM, PERMUTATION, INDEX_TYPE, BUFFER_TYPE 
 
   // we also need to add a ' ' in front of any '}' otherwise the
   // stringstream::operator>> will grab the }
-  for( std::string::size_type a=0; a<valueString.size(); ++a )
+  std::string valueStringWithSpaces;
+  valueStringWithSpaces.reserve( valueString.size() + numClose );
+  for( char const c : valueString )
   {
-    if( valueString[a] == '}' )
+    if( c == '}' )
     {
-      valueString.insert( a, " " );
-      ++a;
+      valueStringWithSpaces.push_back( ' ' );
     }
+    valueStringWithSpaces.push_back( c );
   }
-  std::istringstream strstream( valueString );
+  std::istringstream strstream( valueStringWithSpaces );
   // this recursively reads the values from the stringstream
   internal::StringToArrayHelper< T, INDEX_TYPE >::Read( array.toSlice(), array.dims(), strstream );
 }
