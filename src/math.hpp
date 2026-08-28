@@ -1075,7 +1075,7 @@ LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float asinh( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
-  return ::asinhf( x );
+  return static_cast< float >( ::asinh( static_cast< double >( x ) ) );
 #else
   return std::asinh( x );
 #endif
