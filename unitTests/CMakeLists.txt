@@ -140,6 +140,14 @@ blt_add_executable( NAME testTensorOps
 
 target_include_directories( testTensorOps PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
 
+# ROCm 7.2/amdclang can generate a non-retiring kernel for this exhaustive
+# single-kernel test on gfx10/gfx11 when all tensor operations are inlined.
+# Keep the workaround local to the test target so normal LvArray kernels retain
+# their usual optimization settings.
+if( ENABLE_HIP AND CMAKE_HIP_ARCHITECTURES MATCHES "(^|;)gfx(10|11)" )
+    target_compile_options( testTensorOps PRIVATE -fno-inline )
+endif()
+
 blt_add_test( NAME testTensorOps
               COMMAND testTensorOps )
 

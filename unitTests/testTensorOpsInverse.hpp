@@ -305,7 +305,12 @@ private:
     // The bounds for this specific check need to be increased a lot for XL. About 100x for
     // 2x2 even more for 3x3. I'm not sure why, especially since the check below passes.
     #if !defined( __ibmxl__ ) || defined( __CUDA_ARCH__ )
-    PORTABLE_EXPECT_NEAR( det, tensorOps::determinant< M >( source ), scale * epsilon );
+    // The absolute roundoff in a determinant scales with the matrix entries raised to
+    // the matrix dimension. The previous scale * epsilon bound was too strict for
+    // independent 3x3 evaluation orders on HIP.
+    double determinantScale = 1.0;
+    for( int i = 0; i < M; ++i ) determinantScale *= scale;
+    PORTABLE_EXPECT_NEAR( det, tensorOps::determinant< M >( source ), determinantScale * epsilon );
     #endif
 
     PORTABLE_EXPECT_NEAR( 1.0 / det, tensorOps::determinant< M >( inverse ), scale * epsilon );
