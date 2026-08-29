@@ -191,7 +191,7 @@ void free( BUFFER & buf, std::ptrdiff_t const size )
 
   check( buf, size );
 
-  if constexpr( !std::is_trivially_destructible< T >::value )
+  if constexpr ( !std::is_trivially_destructible< T >::value )
   {
     buf.move( MemorySpace::host, true );
     arrayManipulation::destroy( buf.data(), size );
