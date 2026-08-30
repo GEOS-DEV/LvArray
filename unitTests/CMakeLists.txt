@@ -92,6 +92,10 @@ foreach(test ${testSources})
 
     target_include_directories( ${test_name} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
 
+    if( test_name STREQUAL "testCRSMatrix" )
+      target_compile_definitions( ${test_name} PRIVATE LVARRAY_DISABLE_MEMORY_LOGGING )
+    endif()
+
     blt_add_test( NAME ${test_name}
                   COMMAND ${test_name} )
 
