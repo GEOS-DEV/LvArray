@@ -690,7 +690,12 @@ protected:
       typeManipulation::forEachArg(
         [sizeOfNextArray, nextOffset, shiftAmount] ( auto & buffer )
       {
-        arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
+        // arrayManipulation::uninitializedShiftDown( &buffer[ nextOffset ], sizeOfNextArray, shiftAmount );
+        T * const LVARRAY_RESTRICT ptr = &buffer[ nextOffset ];
+        for (std::ptrdiff_t j = 0; j < sizeOfNextArray; ++j)
+        {
+          ptr[j - shiftAmount] = std::move(ptr[j]);
+        }
       }, m_values, buffers ... );
 
       // And update the offsets.
