@@ -86,7 +86,6 @@ void memset( void * const dstPointer, int const val, std::size_t const size )
     return rm.memset( dstPointer, val, size );
   }
 #endif
-
   std::memset( dstPointer, val, size );
 }
 
