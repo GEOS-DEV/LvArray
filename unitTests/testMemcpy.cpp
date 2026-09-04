@@ -324,6 +324,7 @@ void testAsyncMemcpyDevice()
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
   stream.wait_for( e );
+  stream.wait();
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {
@@ -344,6 +345,7 @@ void testAsyncMemcpyDevice()
 
   e = memcpy< 0, 0 >( stream, x, {}, y.toViewConst(), {} );
   stream.wait_for( e );
+  stream.wait();
 
   for( std::ptrdiff_t i = 0; i < x.size(); ++i )
   {

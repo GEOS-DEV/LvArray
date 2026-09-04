@@ -140,6 +140,16 @@ blt_add_executable( NAME testTensorOps
 
 target_include_directories( testTensorOps PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../src )
 
+# amdclang can generate invalid or non-retiring kernels for these exhaustive
+# tensor tests when all tensor operations are inlined on the affected AMD
+# architectures. Keep the workaround local to the test targets so normal
+# LvArray kernels retain their usual optimization settings.
+if( ENABLE_HIP AND CMAKE_HIP_COMPILER_ID STREQUAL "Clang" )
+    target_compile_options( testTensorOps PRIVATE -fno-inline )
+    target_compile_options( testTensorOpsInverseOneArg PRIVATE -fno-inline )
+    target_compile_options( testTensorOpsInverseTwoArgs PRIVATE -fno-inline )
+endif()
+
 blt_add_test( NAME testTensorOps
               COMMAND testTensorOps )
 

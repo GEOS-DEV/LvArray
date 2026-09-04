@@ -620,7 +620,9 @@ protected:
   IndexType rand( IndexType const min, IndexType const max )
   { return std::uniform_int_distribution< IndexType >( min, max )( m_gen ); }
 
-  static constexpr IndexType LARGE_NUMBER = 1E6;
+  // Keep generated values distinct while leaving enough headroom for the
+  // in-place arithmetic in modifyInKernel when T is an integral type.
+  static constexpr IndexType LARGE_NUMBER = 1E4;
 
   ARRAY_OF_ARRAYS m_array;
 

@@ -690,7 +690,7 @@ public:
           #define _TEST( dstMatrix, srcMatrix ) \
             fill( dstMatrix, matrixSeed ); \
             tensorOps::scaledAdd< N, M >( dstMatrix, srcMatrix, scale ); \
-            CHECK_NEAR_2D( N, M, dstMatrix, result, 100 * NumericLimits< T >::epsilon ); \
+            CHECK_NEAR_2D( N, M, dstMatrix, result, result[ N - 1 ][ M - 1 ] * epsilon ); \
 
           #define _TEST_PERMS( dstMatrix, srcMatrix0, srcMatrix1, srcMatrix2, srcMatrix3 ) \
             _TEST( dstMatrix, srcMatrix0 ); \
@@ -702,6 +702,7 @@ public:
           fill( matrixA_local, matrixSeed );
 
           T const scale = T( 3.14 );
+          T const epsilon = NumericLimitsNC< T >{}.epsilon;
           T result[ N ][ M ];
           for( std::ptrdiff_t i = 0; i < N; ++i )
           {
