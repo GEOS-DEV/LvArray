@@ -40,7 +40,10 @@ public:
 
     ArrayT< T, RAJA::PERM_IJK > arrayOfMatrices( numMatrices, M, M );
 
-    T scale = 100;
+    // The determinant-product check performs arithmetic in T. Use a smaller
+    // range for integral T so the test exercises exact arithmetic without
+    // invoking signed overflow in the test itself.
+    T scale = std::is_integral< T >::value ? T( 1 ) : T( 100 );
     for( T & value : arrayOfMatrices )
     { value = randomValue( scale, m_gen ); }
 
