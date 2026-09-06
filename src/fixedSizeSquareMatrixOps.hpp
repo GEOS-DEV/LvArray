@@ -402,11 +402,10 @@ void symmetricToDense( DST_MATRIX && dstMatrix, SRC_SYM_MATRIX const & srcSymMat
  */
 template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
 LVARRAY_HOST_DEVICE constexpr inline
-bool polarDecomposition( DST_MATRIX && R, MATRIX const & srcMatrix, bool debug = false )
+bool polarDecomposition( DST_MATRIX && R, MATRIX const & srcMatrix )
 {
   return internal::SquareMatrixOps< M >::polarDecomposition( std::forward< DST_MATRIX >( R ),
-                                                             srcMatrix,
-                                                            debug );
+                                                             srcMatrix );
 }
 
 ///@}

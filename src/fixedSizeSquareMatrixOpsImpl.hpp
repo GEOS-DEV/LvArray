@@ -84,8 +84,7 @@ struct SquareMatrixOps
 template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
 LVARRAY_HOST_DEVICE inline
 static bool polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
-                                    MATRIX const & LVARRAY_RESTRICT_REF matrix,
-                                  bool debug = false )
+                                    MATRIX const & LVARRAY_RESTRICT_REF matrix )
 {
   checkSizes< M, M >( R );
   checkSizes< M, M >( matrix );
@@ -98,45 +97,6 @@ static bool polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
                 RInverseTranspose[M][M] = { },
                 RRTMinusI[M][M] = { };
 
-
-  if(debug)
-  {
-    if constexpr( M == 3)
-    {
-printf( "Polar decomp start - matrix: {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}, R: {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n",
-            matrix[0][0],
-            matrix[0][1],
-            matrix[0][2],
-            matrix[1][0],
-            matrix[1][1],
-            matrix[1][2],
-            matrix[2][0],
-            matrix[2][1],
-            matrix[2][2],
-            R[0][0],
-            R[0][1],
-            R[0][2],
-            R[1][0],
-            R[1][1],
-            R[1][2],
-            R[2][0],
-            R[2][1],
-            R[2][2]
-            );
-    }else{
-printf( "Polar decomp start - matrix: {{%f, %f}, {%f, %f}}, R: {{%f, %f}, {%f, %f}}\n",
-            matrix[0][0],
-            matrix[0][1],
-            matrix[1][0],
-            matrix[1][1],
-            R[0][0],
-            R[0][1],
-            R[1][0],
-            R[1][1]
-            );
-    }
-     
-  }
   // Higham Algorithm
   FloatingPoint errorSquared = 0.0;
   FloatingPoint tolerance = 10 * LvArray::NumericLimits< FloatingPoint >::epsilon;
@@ -149,64 +109,8 @@ printf( "Polar decomp start - matrix: {{%f, %f}, {%f, %f}}, R: {{%f, %f}, {%f, %
     iter++;
     errorSquared = 0.0;
 
-    if(debug)
-    {
-      if constexpr( M == 3)
-      {
-      printf( "iter: %d - R: {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n",
-              iter,
-              R[0][0],
-              R[0][1],
-              R[0][2],
-              R[1][0],
-              R[1][1],
-              R[1][2],
-              R[2][0],
-              R[2][1],
-              R[2][2]
-              );
-      }
-              else 
-              {
-      printf( "iter: %d - R: {{%f, %f}, {%f, %f}}\n",
-              iter,
-              R[0][0],
-              R[0][1],
-              R[1][0],
-              R[1][1]
-              );
-              }
-    }
-
     // Average the current R with its inverse tranpose
     SquareMatrixOps< M >::invert( RInverse, R );
-
-    if(debug)
-    {
-      if constexpr( M == 3)
-      {
-         printf( "iter: %d - Rinv: {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n",
-              iter,
-              RInverse[0][0],
-              RInverse[0][1],
-              RInverse[0][2],
-              RInverse[1][0],
-              RInverse[1][1],
-              RInverse[1][2],
-              RInverse[2][0],
-              RInverse[2][1],
-              RInverse[2][2]
-              );
-      } else{
- printf( "iter: %d - Rinv: {{%f, %f}, {%f, %f}}\n",
-              iter,
-              RInverse[0][0],
-              RInverse[0][1],
-              RInverse[1][0],
-              RInverse[1][1]
-              );
-      }
-    }
 
     transpose< M, M >( RInverseTranspose, RInverse );
     add< M, M >( R, RInverseTranspose );
@@ -225,11 +129,6 @@ printf( "Polar decomp start - matrix: {{%f, %f}, {%f, %f}}, R: {{%f, %f}, {%f, %
       }
     }
     converged = errorSquared < toleranceSquared && std::isfinite(errorSquared);
-
-    if( debug )
-    {
-      printf("ErrorSqr: %f, Converged? %d\n", errorSquared, converged);
-    }
   }
   if( !converged )
   {
@@ -746,10 +645,9 @@ struct SquareMatrixOps< 2 >
   template< typename DST_MATRIX, typename MATRIX >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   static bool polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
-                                  MATRIX const & LVARRAY_RESTRICT_REF matrix,
-                                  bool debug = false)
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
   {
-    return polarDecompositionBase< 2 >( R, matrix, debug );
+    return polarDecompositionBase< 2 >( R, matrix );
   }
 
 private:
@@ -1437,10 +1335,9 @@ struct SquareMatrixOps< 3 >
   template< typename DST_MATRIX, typename MATRIX >
   LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
   static bool polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
-                                  MATRIX const & LVARRAY_RESTRICT_REF matrix,\
-                                  bool debug = false)
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
   {
-    return polarDecompositionBase< 3 >( R, matrix, debug );
+    return polarDecompositionBase< 3 >( R, matrix );
   }
 
 private:
