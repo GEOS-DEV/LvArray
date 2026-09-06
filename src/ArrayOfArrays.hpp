@@ -484,4 +484,21 @@ private:
   }
 };
 
+/**
+ * @brief True if the template type is an ArrayOfArrays.
+ */
+template< class >
+constexpr bool isArrayOfArrays = false;
+
+/**
+ * @tparam T The type contained in the ArrayOfArrays.
+ * @tparam INDEX_TYPE The integral type used as an index.
+ * @tparam BUFFER_TYPE The type used to manage the underlying allocation.
+ * @brief Specialization of isArrayOfArrays for the ArrayOfArrays class.
+ */
+template< typename T,
+          typename INDEX_TYPE,
+          template< typename > class BUFFER_TYPE >
+constexpr bool isArrayOfArrays< ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > > = true;
+
 } /* namespace LvArray */

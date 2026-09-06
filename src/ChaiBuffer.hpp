@@ -340,7 +340,7 @@ public:
 
     if( size > 0 )
     {
-      LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Calling reallocate with a non-zero current size is not yet supporeted for the GPU." );
+      LVARRAY_ERROR_IF_NE_MSG( space, MemorySpace::host, "Calling reallocate with a non-zero current size is not yet supported for the GPU." );
       std::ptrdiff_t const overlapAmount = std::min( newCapacity, size );
       arrayManipulation::uninitializedMove( newPointer, overlapAmount, m_pointer );
       arrayManipulation::destroy( m_pointer, size );
