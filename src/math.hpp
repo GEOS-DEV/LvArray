@@ -529,12 +529,17 @@ __half ceil( __half const x )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 ceil( __half2 const x )
 {
-// #if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000
   return h2ceil( x );
-// #else
-//   // LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error );
-//   return 0.0;
-// #endif
+#else
+  #if defined( __HIP__ ) || defined( __HIPCC__ ) || defined( __HIP_DEVICE_COMPILE__ )
+    return x;
+  #else
+    LVARRAY_THROW( "h2ceil is not implemented for host", std::runtime_error ); // This is wrong, copied from other function used to
+    return x;
+  #endif
+                                                                                    // mimic
+#endif
 }
 
 #endif
@@ -583,12 +588,16 @@ __half floor( __half const x )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
 __half2 floor( __half2 const x )
 {
-// #if CUDART_VERSION > 11000
+#if CUDART_VERSION > 11000
   return h2floor( x );
-// #else
-//   // LVARRAY_THROW( "h2floor is not implemented for host", std::runtime_error );
-//   // return 0.0;
-// #endif
+#else
+  #if defined( __HIP__ ) || defined( __HIPCC__ ) || defined( __HIP_DEVICE_COMPILE__ )
+    return x;
+  #else
+    LVARRAY_THROW( "h2floor is not implemented for host", std::runtime_error );
+    return x;
+  #endif
+#endif
 }
 
 #endif
