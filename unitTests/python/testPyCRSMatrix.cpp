@@ -57,7 +57,7 @@ static PyMethodDef testPyCRSMatrixFuncs[] = {
  * Initialize the module object for Python with the exported functions
  */
 static struct PyModuleDef testPyCRSMatrixModule = {
-  PyModuleDef_HEAD_INIT,
+  .m_base = PyModuleDef_HEAD_INIT,
   .m_name = "testPyCRSMatrix",
   .m_doc = "",
   .m_size = -1,
