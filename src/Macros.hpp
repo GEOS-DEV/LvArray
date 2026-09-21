@@ -708,7 +708,7 @@ struct RAJAHelper< parallelHostPolicy >
 
 #endif
 
-#if defined(LVARRAY_USE_CUDA)
+#if defined(LVARRAY_USE_CUDA) && defined(RAJA_CUDA_ACTIVE)
 
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
@@ -720,7 +720,7 @@ struct RAJAHelper< RAJA::cuda_exec< N > >
   using AtomicPolicy = RAJA::cuda_atomic;
 };
 
-#elif defined(LVARRAY_USE_HIP)
+#elif defined(LVARRAY_USE_HIP) && defined(RAJA_HIP_ACTIVE)
 
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
