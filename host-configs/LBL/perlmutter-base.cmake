@@ -1,6 +1,6 @@
 # Set up the tpls
-set( GEOSX_TPL_ROOT_DIR ${CMAKE_SOURCE_DIR}/../../thirdPartyLibs CACHE PATH "")
-set(GEOSX_TPL_DIR ${GEOSX_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
+set( GEOS_TPL_ROOT_DIR ${CMAKE_SOURCE_DIR}/../../thirdPartyLibs CACHE PATH "")
+set(GEOSX_TPL_DIR ${GEOS_TPL_ROOT_DIR}/install-${CONFIG_NAME}-release CACHE PATH "")
 
 set(CAMP_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
 set(RAJA_DIR ${GEOSX_TPL_DIR}/raja CACHE PATH "")
