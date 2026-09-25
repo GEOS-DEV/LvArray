@@ -34,9 +34,6 @@ endif()
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
                 ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp )
 
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/LvArrayConfig.hpp.in
-                ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/LvArrayConfig.hpp )
-
 # Install the generated header.
 install( FILES ${CMAKE_BINARY_DIR}/include/LvArrayConfig.hpp
          DESTINATION include )
