@@ -409,8 +409,8 @@ static PyMethodDef PyCRSMatrix_methods[] = {
 };
 
 static PyTypeObject PyCRSMatrixType = {
-  PyVarObject_HEAD_INIT( nullptr, 0 )
-    .tp_name = "pylvarray.CRSMatrix",
+  .ob_base = PyVarObject_HEAD_INIT( nullptr, 0 )
+  .tp_name = "pylvarray.CRSMatrix",
   .tp_basicsize = sizeof( PyCRSMatrix ),
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PyCRSMatrix_dealloc,
