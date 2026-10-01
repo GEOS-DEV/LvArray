@@ -53,7 +53,7 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Initialize the module object for Python with the exported functions
  */
 static struct PyModuleDef LvArrayModuleFunctions = {
-  PyModuleDef_HEAD_INIT,
+  .m_base = PyModuleDef_HEAD_INIT,
   .m_name = "LvArray",
   .m_doc = LvArrayDocString,
   .m_size = -1,

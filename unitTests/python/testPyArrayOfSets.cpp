@@ -52,7 +52,7 @@ static PyMethodDef testPyArrayOfSetsFuncs[] = {
  * Initialize the module object for Python with the exported functions
  */
 static struct PyModuleDef testPyArrayOfSetsModule = {
-  PyModuleDef_HEAD_INIT,
+  .m_base = PyModuleDef_HEAD_INIT,
   .m_name = "testPyArrayOfSets",
   .m_doc = "",
   .m_size = -1,
