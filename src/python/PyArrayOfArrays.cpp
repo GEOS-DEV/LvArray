@@ -287,7 +287,7 @@ static PySequenceMethods PyArrayOfArraysSequenceMethods = {
 
 static PyTypeObject PyArrayOfArraysType = {
   .ob_base = PyVarObject_HEAD_INIT( nullptr, 0 )
-  .tp_name = "pylvarray.ArrayOfArrays",
+               .tp_name = "pylvarray.ArrayOfArrays",
   .tp_basicsize = sizeof( PyArrayOfArrays ),
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PyArrayOfArrays_dealloc,

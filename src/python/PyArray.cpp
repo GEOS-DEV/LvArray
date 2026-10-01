@@ -220,7 +220,7 @@ static PyMethodDef PyArray_methods[] = {
 
 static PyTypeObject PyArrayType = {
   .ob_base = PyVarObject_HEAD_INIT( nullptr, 0 )
-  .tp_name = "pylvarray.Array",
+               .tp_name = "pylvarray.Array",
   .tp_basicsize = sizeof( PyArray ),
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PyArray_dealloc,
