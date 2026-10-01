@@ -69,6 +69,21 @@ namespace bufferManipulation
  */
 HAS_MEMBER_FUNCTION_NO_RTYPE( move, MemorySpace::host, true );
 
+
+template < typename T >
+struct ContainerShim
+{
+  ContainerShim( T * begin, T * end )
+    : m_begin( begin )
+    , m_end( end )
+  {}
+  T * begin() const { return m_begin; }
+  T * end() const { return m_end; }
+  T * m_begin;
+  T * m_end;
+};
+  
+  
 /**
  * @class VoidBuffer
  * @brief This class implements the default behavior for the Buffer methods related
