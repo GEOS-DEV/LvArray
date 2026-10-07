@@ -1094,6 +1094,147 @@ void Rij_eq_AikBkj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   }
 }
 
+//TODO rewrite
+/**
+ * @brief Multiply transpose @p matrixP with @p matrixB  and @p matrixQ and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP / @p matrixQ.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @tparam MATRIX_Q The type of @p matrixQ.
+ * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
+ * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
+ * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B,
+          typename MATRIX_Q >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_PkiBklQlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                    MATRIX_B const & LVARRAY_RESTRICT_REF matrixB,
+                    MATRIX_Q const & LVARRAY_RESTRICT_REF matrixQ)
+{
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< ISIZE, JSIZE >( matrixP );
+  internal::checkSizes< ISIZE, JSIZE >( matrixQ );
+  internal::checkSizes< ISIZE, ISIZE >( matrixB );
+
+
+  for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] = 0.;
+      for( std::ptrdiff_t k = 0; k < ISIZE; ++k )
+        for( std::ptrdiff_t l = 0; l < ISIZE; ++l )
+          dstMatrix[ i ][ j ] +=  matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixQ[ l ][ j ];
+  }
+}
+
+/**
+ * @brief Multiply @p matrixP with @p matrixB  and transpose @p matrixQ and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP / @p matrixQ.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @tparam MATRIX_Q The type of @p matrixQ.
+ * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
+ * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
+ * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B,
+          typename MATRIX_Q >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_PikBklQjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                    MATRIX_B const & LVARRAY_RESTRICT_REF matrixB,
+                    MATRIX_Q const & LVARRAY_RESTRICT_REF matrixQ)
+{
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< ISIZE, JSIZE >( matrixP );
+  internal::checkSizes< ISIZE, JSIZE >( matrixQ );
+  internal::checkSizes< ISIZE, ISIZE >( matrixB );
+
+
+  for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
+    for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
+    {
+      dstMatrix[ i ][ j ] = 0.;
+      for( std::ptrdiff_t k = 0; k < ISIZE; ++k )
+        for( std::ptrdiff_t l = 0; l < ISIZE; ++l )
+          dstMatrix[ i ][ j ] +=  matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixQ[ j ][ l ];
+  }
+}
+
+
+/**
+ * @brief Change of basis of  @p matrixB via @p matrixP operator and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p matrixP and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
+ * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
+ * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_PkiBklPlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                    MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
+{
+  return Rij_eq_PkiBklQlj<ISIZE,JSIZE>(dstMatrix,matrixP,matrixB,matrixP);
+}
+
+/**
+ * @brief Reverse projection of @p matrix B using @p matrixP and put the result into @p dstMatrix.
+ * @tparam ISIZE The size of the first dimension of @p matrixP and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
+ * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
+ * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_eq_PikBklPjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                    MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                    MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
+{
+  return Rij_eq_PikBklQjl<ISIZE,JSIZE>(dstMatrix,matrixP,matrixB,matrixP);
+}
 /**
  * @brief Multiply @p matrixA with @p matrixB and add the result to @p dstMatrix.
  * @tparam ISIZE The size of the first dimension of @p dstMatrix and @p matrixA.
