@@ -39,6 +39,42 @@ auto determinant( MATRIX const & matrix )
 { return internal::SquareMatrixOps< M >::determinant( matrix ); }
 
 /**
+ * @brief Compute the cofactor of the source matrix @p srcMatrix and store the result in @p dstMatrix.
+ * @tparam M The size of the matrices @p dstMatrix and @p srcMatrix.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam SRC_MATRIX The type of @p srcMatrix.
+ * @param dstMatrix The M x M matrix to write the cofactor to.
+ * @param srcMatrix The M x M matrix to take the cofactor of.
+ * @note @p srcMatrix can contain integers but @p dstMatrix must contain floating point values.
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename SRC_MATRIX >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+               SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+{
+  static_assert( std::is_floating_point< std::decay_t< decltype( dstMatrix[ 0 ][ 0 ] ) > >::value,
+                 "The destination matrix must be contain floating point values." );
+  internal::SquareMatrixOps< M >::cofactor( std::forward< DST_MATRIX >( dstMatrix ), srcMatrix );
+}
+
+/**
+ * @brief Compute the cofactor of the matrix @p matrix overwritting it.
+ * @tparam M The size of the matrix @p matrix.
+ * @tparam MATRIX The type of @p matrix.
+ * @param matrix The M x M matrix to take the cofactor of and overwrite.
+ * @return The determinant.
+ * @note @p matrix must contain floating point values.
+ */
+template< std::ptrdiff_t M, typename MATRIX >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+auto cofactor( MATRIX && matrix )
+{
+  static_assert( std::is_floating_point< std::decay_t< decltype( matrix[ 0 ][ 0 ] ) > >::value,
+                 "The matrix must be contain floating point values." );
+  internal::SquareMatrixOps< M >::cofactor( std::forward< MATRIX >( matrix ) );
+}
+
+/**
  * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
  * @tparam M The size of the matrices @p dstMatrix and @p srcMatrix.
  * @tparam DST_MATRIX The type of @p dstMatrix.
@@ -352,6 +388,24 @@ void symmetricToDense( DST_MATRIX && dstMatrix, SRC_SYM_MATRIX const & srcSymMat
 {
   return internal::SquareMatrixOps< M >::symmetricToDense( std::forward< DST_MATRIX >( dstMatrix ),
                                                            srcSymMatrix );
+}
+
+/**
+ * @brief Determine the polar decomposition of the matrix @p srcMatrix
+ * @tparam M The size of @p R and @p srcMatrix.
+ * @tparam DST_MATRIX The type of @p R.
+ * @tparam MATRIX The type of @p srcMatrix.
+ * @param R The resultant rotation matrix.
+ * @param matrix The matrix to be decomposed.
+ * @details The polar decomposition returns a rotation matrix such that @p R . U = V . @p R = @p srcMatrix.
+ *   This is done using Higham's iterative algorithm.
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
+LVARRAY_HOST_DEVICE constexpr inline
+bool polarDecomposition( DST_MATRIX && R, MATRIX const & srcMatrix )
+{
+  return internal::SquareMatrixOps< M >::polarDecomposition( std::forward< DST_MATRIX >( R ),
+                                                             srcMatrix );
 }
 
 ///@}

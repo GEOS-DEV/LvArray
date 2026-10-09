@@ -13,6 +13,7 @@
 #pragma once
 
 #include "genericTensorOps.hpp"
+#include "limits.hpp"
 
 namespace LvArray
 {
@@ -72,6 +73,71 @@ struct SquareMatrixOps
 {};
 
 /**
+ * @brief Determine the polar decomposition of @p matrix
+ * @tparam DST_MATRIX The type of @p R.
+ * @tparam MATRIX The type of @p matrix.
+ * @param R The resultant orthogonal matrix.
+ * @param matrix The matrix to be decomposed.
+ * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
+ *   This is done using Higham's iterative algorithm.
+ */
+template< std::ptrdiff_t M, typename DST_MATRIX, typename MATRIX >
+LVARRAY_HOST_DEVICE inline
+static bool polarDecompositionBase( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                    MATRIX const & LVARRAY_RESTRICT_REF matrix )
+{
+  checkSizes< M, M >( R );
+  checkSizes< M, M >( matrix );
+
+  using FloatingPoint = std::decay_t< decltype( R[0][0] ) >;
+
+  // Initialize
+  copy< M, M >( R, matrix );
+  FloatingPoint RInverse[M][M] = { },
+                RInverseTranspose[M][M] = { },
+                RRTMinusI[M][M] = { };
+
+  // Higham Algorithm
+  FloatingPoint errorSquared = 0.0;
+  FloatingPoint tolerance = 10 * LvArray::NumericLimits< FloatingPoint >::epsilon;
+  FloatingPoint toleranceSquared = tolerance * tolerance;
+
+  bool converged = false;
+  int iter = 0;
+  while( !converged && iter < 100 )
+  {
+    iter++;
+    errorSquared = 0.0;
+
+    // Average the current R with its inverse tranpose
+    SquareMatrixOps< M >::invert( RInverse, R );
+
+    transpose< M, M >( RInverseTranspose, RInverse );
+    add< M, M >( R, RInverseTranspose );
+    scale< M, M >( R, 0.5 );
+
+    // Determine how close R is to being orthogonal using L2Norm(R.R^T-I)
+    FloatingPoint copyR[M][M] = { };
+    copy< M, M >( copyR, R );
+    Rij_eq_AikBjk< M, M, M >( RRTMinusI, R, copyR );
+    addIdentity< M >( RRTMinusI, -1.0 );
+    for( std::ptrdiff_t i = 0; i < M; i++ )
+    {
+      for( std::ptrdiff_t j = 0; j < M; j++ )
+      {
+        errorSquared += RRTMinusI[i][j] * RRTMinusI[i][j];
+      }
+    }
+    converged = errorSquared < toleranceSquared && std::isfinite(errorSquared);
+  }
+  if( !converged )
+  {
+    printf( "Polar decomposition did not converge!");
+  }
+  return converged;
+}
+
+/**
  * @struct SquareMatrixOps< 2 >
  * @brief Performs operations on 2x2 square matrices.
  */
@@ -89,6 +155,26 @@ struct SquareMatrixOps< 2 >
   {
     checkSizes< 2, 2 >( matrix );
     return matrix[ 0 ][ 0 ] * matrix[ 1 ][ 1 ] - matrix[ 0 ][ 1 ] * matrix[ 1 ][ 0 ];
+  }
+
+  /**
+   * @return Compute the cofactor of the source matrix @p srcMatrix and store the result in @p dstMatrix
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 2x2 matrix to write the cofactor to.
+   * @param srcMatrix The 2x2 matrix to take the cofactor of.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                        SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 2, 2 >( dstMatrix );
+    checkSizes< 2, 2 >( srcMatrix );
+    dstMatrix[0][0] = srcMatrix[1][1];
+    dstMatrix[1][1] = srcMatrix[0][0];
+    dstMatrix[0][1] = -srcMatrix[1][0];
+    dstMatrix[1][0] = -srcMatrix[0][1];
   }
 
   /**
@@ -119,6 +205,24 @@ struct SquareMatrixOps< 2 >
     dstMatrix[ 1 ][ 0 ] = srcMatrix[ 1 ][ 0 ] * -invDet;
 
     return det;
+  }
+
+  /**
+   * @brief Compute the cofactor of the matrix @p srcMatrix overwritting it.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 2x2 matrix to take the cofactor of and overwrite.
+   * @note @p matrix must contain floating point values.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( MATRIX && matrix )
+  {
+    checkSizes< 2, 2 >( matrix );
+
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+    realType temp[ 2 ][ 2 ];
+    copy< 2, 2 >( temp, matrix );
+    return cofactor( matrix, temp );
   }
 
   /**
@@ -529,8 +633,24 @@ struct SquareMatrixOps< 2 >
     dstMatrix[ 1 ][ 0 ] = srcSymMatrix[ 2 ];
   }
 
-private:
+  /**
+   * @brief Determine the polar decomposition of the 2x2 matrix @p matrix
+   * @tparam DST_MATRIX The type of @p R.
+   * @tparam MATRIX The type of @p matrix.
+   * @param R The resultant orthogonal matrix.
+   * @param matrix The matrix to be decomposed.
+   * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
+   *   This is done using Higham's iterative algorithm.
+   */
+  template< typename DST_MATRIX, typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static bool polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
+  {
+    return polarDecompositionBase< 2 >( R, matrix );
+  }
 
+private:
   /**
    * @brief Compute the eigenvalues of the 2x2 symmetric matrix @p matrix.
    * @tparam FloatingPoint A floating point type.
@@ -580,6 +700,31 @@ struct SquareMatrixOps< 3 >
   }
 
   /**
+   * @return Compute the cofactor of the source matrix @p srcMatrix and store the result in @p dstMatrix
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 3x3 matrix to write the cofactor to.
+   * @param srcMatrix The 3x3 matrix to take the cofactor of.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto cofactor( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                        SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 3, 3 >( dstMatrix );
+    checkSizes< 3, 3 >( srcMatrix );
+    dstMatrix[0][0] = srcMatrix[1][1] * srcMatrix[2][2] - srcMatrix[1][2] * srcMatrix[2][1];
+    dstMatrix[0][1] = srcMatrix[1][2] * srcMatrix[2][0] - srcMatrix[1][0] * srcMatrix[2][2];
+    dstMatrix[0][2] = srcMatrix[1][0] * srcMatrix[2][1] - srcMatrix[1][1] * srcMatrix[2][0];
+    dstMatrix[1][0] = srcMatrix[0][2] * srcMatrix[2][1] - srcMatrix[0][1] * srcMatrix[2][2];
+    dstMatrix[1][1] = srcMatrix[0][0] * srcMatrix[2][2] - srcMatrix[0][2] * srcMatrix[2][0];
+    dstMatrix[1][2] = srcMatrix[0][1] * srcMatrix[2][0] - srcMatrix[0][0] * srcMatrix[2][1];
+    dstMatrix[2][0] = srcMatrix[0][1] * srcMatrix[1][2] - srcMatrix[0][2] * srcMatrix[1][1];
+    dstMatrix[2][1] = srcMatrix[0][2] * srcMatrix[1][0] - srcMatrix[0][0] * srcMatrix[1][2];
+    dstMatrix[2][2] = srcMatrix[0][0] * srcMatrix[1][1] - srcMatrix[0][1] * srcMatrix[1][0];
+  }
+
+  /**
    * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
    * @tparam DST_MATRIX The type of @p dstMatrix.
    * @tparam SRC_MATRIX The type of @p srcMatrix.
@@ -618,6 +763,22 @@ struct SquareMatrixOps< 3 >
     dstMatrix[ 2 ][ 2 ] = ( srcMatrix[ 0 ][ 0 ] * srcMatrix[ 1 ][ 1 ] - srcMatrix[ 0 ][ 1 ] * srcMatrix[ 1 ][ 0 ] ) * invDet;
 
     return det;
+  }
+
+  /**
+   * @brief Compute the cofactor of the matrix @p srcMatrix overwritting it.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 3x3 matrix to take the cofactor of and overwrite.
+   * @note @p srcMatrix must contain floating point values.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE constexpr inline
+  static auto cofactor( MATRIX && matrix )
+  {
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+    realType temp[ 3 ][ 3 ];
+    copy< 3, 3 >( temp, matrix );
+    return cofactor( matrix, temp );
   }
 
   /**
@@ -1162,6 +1323,23 @@ struct SquareMatrixOps< 3 >
     dstMatrix[ 2 ][ 1 ] = srcSymMatrix[ 3 ];
   }
 
+  /**
+   * @brief Determine the polar decomposition of the 3x3 matrix @p matrix
+   * @tparam DST_MATRIX The type of @p R.
+   * @tparam MATRIX The type of @p matrix.
+   * @param R The resultant orthogonal matrix.
+   * @param matrix The matrix to be decomposed.
+   * @details The polar decomposition returns an orthogonal matrix such that @p R . U = V . @p R = @p matrix.
+   *   This is done using Higham's iterative algorithm.
+   */
+  template< typename DST_MATRIX, typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static bool polarDecomposition( DST_MATRIX && LVARRAY_RESTRICT_REF R,
+                                  MATRIX const & LVARRAY_RESTRICT_REF matrix )
+  {
+    return polarDecompositionBase< 3 >( R, matrix );
+  }
+
 private:
   /**
    * @brief Compute the eigenvalues of the 3x3 symmetric matrix @p matrix.
@@ -1252,6 +1430,152 @@ private:
     { scaledCopy< 3 >( nullVector, nullVectorCandidate, math::invSqrt( n1 ) ); }
 
     return row;
+  }
+};
+
+/**
+ * @struct SquareMatrixOps< 4 >
+ * @brief Performs operations on 4x4 square matrices.
+ */
+template<>
+struct SquareMatrixOps< 4 >
+{
+  /**
+   * @return Return the determinant of the matrix @p matrix.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 4x4 matrix to get the determinant of.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto determinant( MATRIX const & matrix )
+  {
+    checkSizes< 4, 4 >( matrix );
+
+    return matrix[0][0]*(
+      matrix[1][1]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][1] + matrix[1][3]*matrix[2][1]*matrix[3][2]
+      - matrix[1][3]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][1]*matrix[3][3]
+      )
+           - matrix[0][1]*(
+      matrix[1][0]*matrix[2][2]*matrix[3][3] + matrix[1][2]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][2]
+      - matrix[1][3]*matrix[2][2]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][2] - matrix[1][2]*matrix[2][0]*matrix[3][3]
+      )
+           + matrix[0][2]*(
+      matrix[1][0]*matrix[2][1]*matrix[3][3] + matrix[1][1]*matrix[2][3]*matrix[3][0] + matrix[1][3]*matrix[2][0]*matrix[3][1]
+      - matrix[1][3]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][3]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][3]
+      )
+           - matrix[0][3]*(
+      matrix[1][0]*matrix[2][1]*matrix[3][2] + matrix[1][1]*matrix[2][2]*matrix[3][0] + matrix[1][2]*matrix[2][0]*matrix[3][1]
+      - matrix[1][2]*matrix[2][1]*matrix[3][0] - matrix[1][0]*matrix[2][2]*matrix[3][1] - matrix[1][1]*matrix[2][0]*matrix[3][2]
+      );
+
+    // return matrix[0][0] * matrix[1][1] * matrix[2][2] * matrix[3][3] -
+    //        matrix[0][0] * matrix[1][1] * matrix[2][3] * matrix[3][2] -
+    //        matrix[0][0] * matrix[1][2] * matrix[2][1] * matrix[3][3] +
+    //        matrix[0][0] * matrix[1][2] * matrix[2][3] * matrix[3][1] +
+    //        matrix[0][0] * matrix[1][3] * matrix[2][1] * matrix[3][2] -
+    //        matrix[0][0] * matrix[1][3] * matrix[2][2] * matrix[3][1] -
+
+    //        matrix[0][1] * matrix[1][0] * matrix[2][2] * matrix[3][3] +
+    //        matrix[0][1] * matrix[1][0] * matrix[2][3] * matrix[3][2] +
+    //        matrix[0][1] * matrix[1][2] * matrix[2][0] * matrix[3][3] -
+    //        matrix[0][1] * matrix[1][2] * matrix[2][3] * matrix[3][0] -
+    //        matrix[0][1] * matrix[1][3] * matrix[2][0] * matrix[3][2] +
+    //        matrix[0][1] * matrix[1][3] * matrix[2][2] * matrix[3][0] +
+
+    //        matrix[0][2] * matrix[1][0] * matrix[2][1] * matrix[3][3] -
+    //        matrix[0][2] * matrix[1][0] * matrix[2][3] * matrix[3][1] -
+    //        matrix[0][2] * matrix[1][1] * matrix[2][0] * matrix[3][3] +
+    //        matrix[0][2] * matrix[1][1] * matrix[2][3] * matrix[3][0] +
+    //        matrix[0][2] * matrix[1][3] * matrix[2][0] * matrix[3][1] -
+    //        matrix[0][2] * matrix[1][3] * matrix[2][1] * matrix[3][0] -
+
+    //        matrix[0][3] * matrix[1][0] * matrix[2][1] * matrix[3][2] +
+    //        matrix[0][3] * matrix[1][0] * matrix[2][2] * matrix[3][1] +
+    //        matrix[0][3] * matrix[1][1] * matrix[2][0] * matrix[3][2] -
+    //        matrix[0][3] * matrix[1][1] * matrix[2][2] * matrix[3][0] -
+    //        matrix[0][3] * matrix[1][2] * matrix[2][0] * matrix[3][1] +
+    //        matrix[0][3] * matrix[1][2] * matrix[2][1] * matrix[3][0];
+  }
+
+  /**
+   * @brief Invert the source matrix @p srcMatrix and store the result in @p dstMatrix.
+   * @tparam DST_MATRIX The type of @p dstMatrix.
+   * @tparam SRC_MATRIX The type of @p srcMatrix.
+   * @param dstMatrix The 4x4 matrix to write the inverse to.
+   * @param srcMatrix The 4x4 matrix to take the inverse of.
+   * @return The determinant.
+   * @note @p srcMatrix can contain integers but @p dstMatrix must contain floating point values.
+   */
+  template< typename DST_MATRIX, typename SRC_MATRIX >
+  LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+  static auto invert( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                      SRC_MATRIX const & LVARRAY_RESTRICT_REF srcMatrix )
+  {
+    checkSizes< 4, 4 >( dstMatrix );
+    checkSizes< 4, 4 >( srcMatrix );
+
+    using FloatingPoint = std::decay_t< decltype( dstMatrix[ 0 ][ 0 ] ) >;
+
+    FloatingPoint const det = determinant( srcMatrix );
+    FloatingPoint const invDet = FloatingPoint( 1 ) / det;
+
+    dstMatrix[0][0] = srcMatrix[1][1]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[1][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[1][2]*
+                      srcMatrix[2][3]*srcMatrix[3][1] + srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][1];
+    dstMatrix[0][1] = srcMatrix[0][1]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][1]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[0][2]*
+                      srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][1];
+    dstMatrix[0][2] = srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[3][3] - srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][3] + srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][1];
+    dstMatrix[0][3] = srcMatrix[0][1]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][1]*srcMatrix[1][2]*srcMatrix[2][3] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][3] - srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][1];
+
+    dstMatrix[1][0] = srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][3] + srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[1][2]*
+                      srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[1][3]*srcMatrix[2][2]*srcMatrix[3][0];
+    dstMatrix[1][1] = srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][2] - srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[0][2]*
+                      srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[0][3]*srcMatrix[2][2]*srcMatrix[3][0];
+    dstMatrix[1][2] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][3] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][3] - srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][2] + srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[3][0];
+    dstMatrix[1][3] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][2] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][3] + srcMatrix[0][2]*
+                      srcMatrix[1][3]*srcMatrix[2][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][2] - srcMatrix[0][3]*srcMatrix[1][2]*srcMatrix[2][0];
+
+    dstMatrix[2][0] = srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][3] - srcMatrix[1][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][3] + srcMatrix[1][1]*
+                      srcMatrix[2][3]*srcMatrix[3][0] + srcMatrix[1][3]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[1][3]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[2][1] = srcMatrix[0][0]*srcMatrix[2][3]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][3] + srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][3] - srcMatrix[0][1]*
+                      srcMatrix[2][3]*srcMatrix[3][0] - srcMatrix[0][3]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[0][3]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[2][2] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][3] - srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][3] + srcMatrix[0][1]*
+                      srcMatrix[1][3]*srcMatrix[3][0] + srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[3][1] - srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[3][0];
+    dstMatrix[2][3] = srcMatrix[0][0]*srcMatrix[1][3]*srcMatrix[2][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][3] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][3] - srcMatrix[0][1]*
+                      srcMatrix[1][3]*srcMatrix[2][0] - srcMatrix[0][3]*srcMatrix[1][0]*srcMatrix[2][1] + srcMatrix[0][3]*srcMatrix[1][1]*srcMatrix[2][0];
+
+    dstMatrix[3][0] = srcMatrix[1][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[1][0]*srcMatrix[2][1]*srcMatrix[3][2] + srcMatrix[1][1]*srcMatrix[2][0]*srcMatrix[3][2] - srcMatrix[1][1]*
+                      srcMatrix[2][2]*srcMatrix[3][0] - srcMatrix[1][2]*srcMatrix[2][0]*srcMatrix[3][1] + srcMatrix[1][2]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[3][1] = srcMatrix[0][0]*srcMatrix[2][1]*srcMatrix[3][2] - srcMatrix[0][0]*srcMatrix[2][2]*srcMatrix[3][1] - srcMatrix[0][1]*srcMatrix[2][0]*srcMatrix[3][2] + srcMatrix[0][1]*
+                      srcMatrix[2][2]*srcMatrix[3][0] + srcMatrix[0][2]*srcMatrix[2][0]*srcMatrix[3][1] - srcMatrix[0][2]*srcMatrix[2][1]*srcMatrix[3][0];
+    dstMatrix[3][2] = srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[3][1] - srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[3][2] + srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[3][2] - srcMatrix[0][1]*
+                      srcMatrix[1][2]*srcMatrix[3][0] - srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[3][1] + srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[3][0];
+    dstMatrix[3][3] = srcMatrix[0][0]*srcMatrix[1][1]*srcMatrix[2][2] - srcMatrix[0][0]*srcMatrix[1][2]*srcMatrix[2][1] - srcMatrix[0][1]*srcMatrix[1][0]*srcMatrix[2][2] + srcMatrix[0][1]*
+                      srcMatrix[1][2]*srcMatrix[2][0] + srcMatrix[0][2]*srcMatrix[1][0]*srcMatrix[2][1] - srcMatrix[0][2]*srcMatrix[1][1]*srcMatrix[2][0];
+
+    scale< 4, 4 >( dstMatrix, invDet );
+
+    return det;
+  }
+
+  /**
+   * @brief Invert the matrix @p srcMatrix overwritting it.
+   * @tparam MATRIX The type of @p matrix.
+   * @param matrix The 4x4 matrix to take the inverse of and overwrite.
+   * @return The determinant.
+   * @note @p srcMatrix must contain floating point values.
+   */
+  template< typename MATRIX >
+  LVARRAY_HOST_DEVICE constexpr inline
+  static auto invert( MATRIX && matrix )
+  {
+    using realType = std::remove_reference_t< decltype( matrix[ 0 ][ 0 ] ) >;
+
+    realType temp[ 4 ][ 4 ];
+    copy< 4, 4 >( temp, matrix );
+    return invert( matrix, temp );
   }
 };
 
