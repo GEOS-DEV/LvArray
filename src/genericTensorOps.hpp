@@ -1141,17 +1141,18 @@ void Rij_eq_PkiBklQlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 
 /**
  * @brief Multiply @p matrixP with @p matrixB  and transpose @p matrixQ and put the result into @p dstMatrix.
- * @tparam ISIZE The size of the first dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
- * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP / @p matrixQ.
+ * @tparam ISIZE The size of the second dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and first dimension of @p matrixP / @p matrixQ.
  * @tparam DST_MATRIX The type of @p dstMatrix.
  * @tparam MATRIX_P The type of @p matrixP.
  * @tparam MATRIX_B The type of @p matrixB.
  * @tparam MATRIX_Q The type of @p matrixQ.
  * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
- * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
- * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @param matrixP The left matrix in the multiplication, of size JSIZE x ISIZE.
+ * @param matrixB The middle matrix in the multiplication, of size ISIZE x ISIZE.
+ * @param matrixQ The transposed right matrix in the multiplication, of size JSIZE x ISIZE.
  * @details Performs the operation
- *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ *   @code dstMatrix[ i ][ j ] = matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixQ[ j ][ l ] @endcode
  */
 template< std::ptrdiff_t ISIZE,
           std::ptrdiff_t JSIZE,
@@ -1168,8 +1169,8 @@ void Rij_eq_PikBklQjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
   static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
   internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
-  internal::checkSizes< ISIZE, JSIZE >( matrixP );
-  internal::checkSizes< ISIZE, JSIZE >( matrixQ );
+  internal::checkSizes< JSIZE, ISIZE >( matrixP );
+  internal::checkSizes< JSIZE, ISIZE >( matrixQ );
   internal::checkSizes< ISIZE, ISIZE >( matrixB );
 
 
@@ -1212,16 +1213,16 @@ void Rij_eq_PkiBklPlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 
 /**
  * @brief Reverse projection of @p matrix B using @p matrixP and put the result into @p dstMatrix.
- * @tparam ISIZE The size of the first dimension of @p matrixP and square dimension of @p matrixB.
- * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of  @p matrixP.
+ * @tparam ISIZE The size of the second dimension of @p matrixP and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and first dimension of @p matrixP.
  * @tparam DST_MATRIX The type of @p dstMatrix.
  * @tparam MATRIX_P The type of @p matrixP.
  * @tparam MATRIX_B The type of @p matrixB.
  * @param dstMatrix The matrix the result is written to, of size JSIZE x JSIZE.
- * @param matrixP The transposed left matrix and right matrix in the multiplication, of size ISIZE x JSIZE.
- * @param matrixB The matrix in the original space, of size ISIZE x ISIZE.
+ * @param matrixP The left and transposed right matrix in the multiplication, of size JSIZE x ISIZE.
+ * @param matrixB The middle matrix in the multiplication, of size ISIZE x ISIZE.
  * @details Performs the operation
- *   @code dstMatrix[ i ][ j ] = matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixP[ l ][ j ] @endcode
+ *   @code dstMatrix[ i ][ j ] = matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixP[ j ][ l ] @endcode
  */
 template< std::ptrdiff_t ISIZE,
           std::ptrdiff_t JSIZE,
