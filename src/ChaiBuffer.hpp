@@ -265,7 +265,7 @@ public:
   ChaiBuffer( ChaiBuffer< U > const & src ):
     m_pointer( reinterpret_cast< T * >( src.data() ) ),
     m_capacity( typeManipulation::convertSize< T, U >( src.capacity() ) ),
-    m_pointerRecord( &src.pointerRecord() )
+    m_pointerRecord( src.data() == nullptr ? nullptr : &src.pointerRecord() )
   {}
 
   /**

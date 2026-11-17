@@ -25,6 +25,11 @@ namespace umpireInterface
 
 void copy( void * const dstPointer, void * const srcPointer, std::size_t const size )
 {
+  if( size == 0 )
+  {
+    return;
+  }
+
 #if defined( LVARRAY_USE_UMPIRE )
   umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
   if( rm.hasAllocator( dstPointer ) && rm.hasAllocator( srcPointer ) )
@@ -40,6 +45,11 @@ void copy( void * const dstPointer, void * const srcPointer, std::size_t const s
 camp::resources::Event copy( void * const dstPointer, void * const srcPointer,
                              camp::resources::Resource & resource, std::size_t const size )
 {
+  if( size == 0 )
+  {
+    return resource.get_event();
+  }
+
 #if defined( LVARRAY_USE_UMPIRE )
   umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
 
@@ -64,6 +74,11 @@ camp::resources::Event copy( void * const dstPointer, void * const srcPointer,
 
 void memset( void * const dstPointer, int const val, std::size_t const size )
 {
+  if( size == 0 )
+  {
+    return;
+  }
+
 #if defined( LVARRAY_USE_UMPIRE )
   umpire::ResourceManager & rm = umpire::ResourceManager::getInstance();
   if( rm.hasAllocator( dstPointer ) )

@@ -104,7 +104,7 @@ public:
     ArrayViewT< FLOAT const, 2, 1 > const eigenvalues = m_eigenvalues.toViewConst();
     ArrayViewT< FLOAT, 2, 1 > const expectedEigenvalues = m_expectedEigenvalues.toView();
     ArrayViewT< FLOAT const, 3, 2 > const eigenvectors = m_eigenvectors.toViewConst();
-    forall< serialPolicy >( matrices.size( 0 ), [=, &relativeDiffs] ( std::ptrdiff_t const i )
+    forall< serialPolicy >( matrices.size( 0 ), [=, &relativeDiffs, this] ( std::ptrdiff_t const i )
     {
       if( iteration > 0 )
       {
@@ -174,7 +174,7 @@ public:
     ArrayViewT< FLOAT, 2, 1 > const eigenvalues = m_eigenvalues.toView();
     ArrayViewT< FLOAT, 2, 1 > const expectedEigenvalues = m_expectedEigenvalues.toView();
     ArrayViewT< FLOAT, 3, 2 > const eigenvectors = m_eigenvectors.toView();
-    forall< serialPolicy >( matrices.size( 0 ), [=] ( std::ptrdiff_t const i )
+    forall< serialPolicy >( matrices.size( 0 ), [=, this] ( std::ptrdiff_t const i )
     {
       // Since we're constructing the matrix we know the eigenvalues beforehand.
       for( INDEX_TYPE j = 0; j < M; ++j )

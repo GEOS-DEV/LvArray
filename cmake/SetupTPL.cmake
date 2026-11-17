@@ -44,7 +44,7 @@ if(ENABLE_UMPIRE)
     find_package(umpire REQUIRED
                  PATHS ${UMPIRE_DIR})
     
-    set(thirdPartyLibs ${thirdPartyLibs} umpire)
+    set(thirdPartyLibs ${thirdPartyLibs} umpire::umpire)
 else()
     message(STATUS "Not using Umpire.")
 endif()

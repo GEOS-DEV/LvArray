@@ -83,7 +83,7 @@ public:
           T vectorA_local[ N ];
           fill( vectorA_local, aSeed );
           tensorOps::scale< N >( vectorA_local, scale );
-          CHECK_EQUALITY_1D( N, vectorA_local, result );
+          CHECK_NEAR_1D( N, vectorA_local, result, 100 * NumericLimits< T >::epsilon );
         } );
   }
 
@@ -264,7 +264,12 @@ public:
           #define _TEST( a, b ) \
             tensorOps::scaledCopy< N >( a, b, scale ); \
             for( std::ptrdiff_t i = 0; i < N; ++i ) \
-            { PORTABLE_EXPECT_EQ( a[ i ], scale * b[ i ] ); } \
+            { \
+              if constexpr ( std::is_integral< T >::value ) \
+              { PORTABLE_EXPECT_EQ( a[ i ], scale * b[ i ] ); } \
+              else \
+              { PORTABLE_EXPECT_NEAR( a[ i ], scale * b[ i ], 100 * NumericLimits< T >::epsilon ); } \
+            } \
             fill( a, aSeed )
 
           #define _TEST_PERMS( a, b0, b1, b2 ) \

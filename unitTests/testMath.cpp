@@ -373,7 +373,7 @@ struct TestMath2 : public ::testing::Test
   }
 };
 
-#if defined( LVARRAY_USE_CUDA ) || defined( LVARRAY_USE_HIP )
+#if defined( LVARRAY_USE_CUDA )
 
 using TestMath2Types = ::testing::Types<
   std::pair< __half2, parallelDevicePolicy< 32 > >

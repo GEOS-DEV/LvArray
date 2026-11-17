@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###################################################################################################
 
-cmake_minimum_required( VERSION 3.9 )
+cmake_minimum_required( VERSION 3.24 )
 
 # Set version number
 set( LVARRAY_VERSION_MAJOR 0 )
@@ -77,11 +77,11 @@ blt_list_append( TO lvarray_dependencies ELEMENTS chai IF ENABLE_CHAI )
 
 blt_list_append( TO lvarray_dependencies ELEMENTS RAJA )
 
-blt_list_append( TO lvarray_dependencies ELEMENTS umpire IF ENABLE_UMPIRE )
+blt_list_append( TO lvarray_dependencies ELEMENTS umpire::umpire IF ENABLE_UMPIRE )
 
 # Ignore umpire warnings as errors by using -isystem flag
 if (ENABLE_UMPIRE)
-    blt_convert_to_system_includes(TARGET umpire)
+    blt_convert_to_system_includes(TARGET umpire::umpire)
 endif()
 
 blt_list_append( TO lvarray_dependencies ELEMENTS cuda IF ENABLE_CUDA )
@@ -116,5 +116,3 @@ endif()
 if( ENABLE_DOCS )
     add_subdirectory( docs )
 endif()
-
-

@@ -20,7 +20,7 @@
 #include <cmath>
 #include <type_traits>
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) && defined( LVARRAY_DECORATE )
   #include <cuda_fp16.h>
 #endif
 
@@ -101,7 +101,7 @@ LVARRAY_HOST_DEVICE inline constexpr
 T lessThan( T const x, T const y )
 { return __hlt( x, y ); }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) && defined( LVARRAY_DECORATE )
 /**
  * @brief Convert @p u to @c __half.
  * @tparam U The type to convert from.
@@ -207,7 +207,7 @@ __half getSecond( __half2 const x )
 
 #endif
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 /**
  * @return 1 if @p x is less than @p y, else 0.
  * @param x The first value.
@@ -319,7 +319,7 @@ max( T const a, T const b )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc max( T, T )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -368,7 +368,7 @@ min( T const a, T const b )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc min( T, T )
 LVARRAY_DEVICE
@@ -414,7 +414,7 @@ T abs( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc abs( T )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -485,7 +485,7 @@ double sqrt( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc sqrt( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -527,7 +527,7 @@ double invSqrt( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc invSqrt( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -576,7 +576,7 @@ double sin( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc sin( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -618,7 +618,7 @@ double cos( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc cos( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -682,7 +682,7 @@ void sincos( T const theta, double & sinTheta, double & cosTheta )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc sincos( float, float &, float & )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -730,7 +730,7 @@ double tan( T const theta )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc tan( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -875,7 +875,7 @@ double asin( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc asin( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -917,7 +917,7 @@ double acos( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc acos( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -960,7 +960,7 @@ double atan2( T const y, T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_CUDA )
+#if defined( LVARRAY_USE_CUDA ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc atan2( float, float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -1009,7 +1009,7 @@ double exp( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc exp( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -1051,7 +1051,7 @@ double log( T const x )
 #endif
 }
 
-#if defined( LVARRAY_USE_DEVICE )
+#if defined( LVARRAY_USE_DEVICE ) && defined( LVARRAY_DECORATE )
 
 /// @copydoc log( float )
 LVARRAY_DEVICE LVARRAY_FORCE_INLINE
@@ -1075,7 +1075,7 @@ LVARRAY_HOST_DEVICE LVARRAY_FORCE_INLINE
 float asinh( float const x )
 {
 #if defined(LVARRAY_DEVICE_COMPILE)
-  return ::asinhf( x );
+  return static_cast< float >( ::asinh( static_cast< double >( x ) ) );
 #else
   return std::asinh( x );
 #endif

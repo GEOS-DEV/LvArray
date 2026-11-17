@@ -10,6 +10,8 @@
 // Source includes
 #include "LvArrayConfig.hpp"
 #include "Macros.hpp"
+#include "limits.hpp"
+#include "math.hpp"
 
 #include "MallocBuffer.hpp"
 
@@ -60,7 +62,7 @@ struct RAJAHelper< parallelHostPolicy >
 
 #endif
 
-#if defined(LVARRAY_USE_CUDA)
+#if defined(LVARRAY_USE_CUDA) && defined(RAJA_CUDA_ACTIVE)
 
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::cuda_exec< THREADS_PER_BLOCK >;
@@ -74,7 +76,7 @@ struct RAJAHelper< RAJA::policy::cuda::cuda_exec_explicit< X, Y, C, BLOCK_SIZE, 
   static constexpr MemorySpace space = MemorySpace::cuda;
 };
 
-#elif defined(LVARRAY_USE_HIP)
+#elif defined(LVARRAY_USE_HIP) && defined(RAJA_HIP_ACTIVE)
 
 template< unsigned long THREADS_PER_BLOCK >
 using parallelDevicePolicy = RAJA::hip_exec< THREADS_PER_BLOCK >;
@@ -118,8 +120,27 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 #endif
 }
 
-
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#if defined(__HIPCC__)
+// Clang HIP parses device lambdas during the host pass as well. GoogleTest's
+// host-only assertion macros therefore cannot be used in those lambdas. Keep
+// the check valid in both passes; a failing device-side check traps the kernel.
+#define PORTABLE_EXPECT_EQ( L, R ) \
+  do \
+  { \
+    if( !(( L ) == ( R )) ) \
+    { \
+      __builtin_trap(); \
+    } \
+  } while( false )
+#define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) \
+  do \
+  { \
+    if( math::abs( ( L ) -( R ) ) > ( EPSILON ) ) \
+    { \
+      __builtin_trap(); \
+    } \
+  } while( false );
+#elif defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #define PORTABLE_EXPECT_EQ( L, R ) LVARRAY_ERROR_IF_NE( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) LVARRAY_ERROR_IF_GE_MSG( math::abs( ( L ) -( R ) ), EPSILON, \
                                                                        STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R ) );
@@ -127,6 +148,28 @@ LAYOUT const & getRAJAViewLayout( RAJA::View< T, LAYOUT > const & view )
 #define PORTABLE_EXPECT_EQ( L, R ) EXPECT_EQ( L, R )
 #define PORTABLE_EXPECT_NEAR( L, R, EPSILON ) EXPECT_LE( math::abs( ( L ) -( R ) ), EPSILON ) << \
     STRINGIZE( L ) " = " << ( L ) << "\n" << STRINGIZE( R ) " = " << ( R );
+#endif
+
+// A device-only lambda is compiled by HIP in a host pass as well. Keep this
+// assertion independent of GoogleTest and avoid device-side printf output.
+#if defined(__HIPCC__)
+#define PORTABLE_DEVICE_EXPECT_EQ( L, R ) \
+  do \
+  { \
+    if( !( ( L ) == ( R ) ) ) \
+    { \
+      __builtin_trap(); \
+    } \
+  } while( false )
+#else
+#define PORTABLE_DEVICE_EXPECT_EQ( L, R ) \
+  do \
+  { \
+    if( !( ( L ) == ( R ) ) ) \
+    { \
+      assert( false && "Device assertion failed" ); \
+    } \
+  } while( false )
 #endif
 
 // Comparator that compares a std::pair by it's first object.

@@ -929,7 +929,10 @@ protected:
           {
             INDEX_TYPE const curArraySize = sizeOfArray( array );
             INDEX_TYPE const curArrayOffset = m_offsets[ array ];
-            arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+            if( curArraySize > 0 )
+            {
+              arrayManipulation::uninitializedShiftUp( &buffer[ curArrayOffset ], curArraySize, capacityIncrease );
+            }
           }
         }
         else
@@ -944,8 +947,11 @@ protected:
             INDEX_TYPE const curArraySize = sizeOfArray( array );
             INDEX_TYPE const curArrayOffset = m_offsets[ array ];
             INDEX_TYPE shift = array > i ? capacityIncrease : 0;
-            arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset + shift ], curArraySize, &buffer[ curArrayOffset ] );
-            arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+            if( curArraySize > 0 )
+            {
+              arrayManipulation::uninitializedMove( &newBuffer[ curArrayOffset + shift ], curArraySize, &buffer[ curArrayOffset ] );
+              arrayManipulation::destroy( &buffer[ curArrayOffset ], curArraySize );
+            }
           }
 
           buffer.free();
@@ -968,14 +974,20 @@ protected:
         [this, i, capacityDecrease, arrayOffset, newArraySize, prevArraySize] ( auto & buffer )
       {
         // Delete the values at the end of the array.
-        arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
+        if( prevArraySize > newArraySize )
+        {
+          arrayManipulation::destroy( &buffer[ arrayOffset + newArraySize ], prevArraySize - newArraySize );
+        }
 
         // Shift down the values of subsequent arrays.
         for( INDEX_TYPE array = i + 1; array < m_numArrays; ++array )
         {
           INDEX_TYPE const curArraySize = sizeOfArray( array );
           INDEX_TYPE const curArrayOffset = m_offsets[array];
-          arrayManipulation::uninitializedShiftDown( &buffer[ curArrayOffset ], curArraySize, capacityDecrease );
+          if( curArraySize > 0 )
+          {
+            arrayManipulation::uninitializedShiftDown( &buffer[ curArrayOffset ], curArraySize, capacityDecrease );
+          }
         }
       },
         m_values, buffers ...
@@ -1056,7 +1068,10 @@ private:
         {
           INDEX_TYPE const offset = m_offsets[ i ];
           INDEX_TYPE const arraySize = sizeOfArray( i );
-          arrayManipulation::destroy( &buffer[ offset ], arraySize );
+          if( arraySize > 0 )
+          {
+            arrayManipulation::destroy( &buffer[ offset ], arraySize );
+          }
         }
       }
     }, m_values, buffers ... );
