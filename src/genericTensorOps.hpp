@@ -1441,6 +1441,7 @@ void Rij_add_PikBklPjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   internal::Rij_op_PikBklQjl< ISIZE, JSIZE, true, false >( dstMatrix, matrixP, matrixB, matrixP );
 }
 
+
 /**
  * @brief Incremental multiply transpose @p matrixP with @p matrixB and @p matrixQ and add the result to @p dstMatrix.
  * @tparam ISIZE The size of the first dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
