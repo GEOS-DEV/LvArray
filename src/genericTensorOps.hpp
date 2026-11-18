@@ -265,8 +265,10 @@ checkSizes( ARRAY const & array )
 
 /**
  * @brief Kernel for dstMatrix[ i ][ j ] (= or +=) matrixP[ k ][ i ] * matrixB[ k ][ l ] * matrixQ[ l ][ j ].
- * @details The k contraction is hoisted out of the j loop: row i of P^T * B is computed once
- *   into a stack buffer, then contracted with Q. Cost is O(2 * JSIZE * ISIZE^2) instead of O(JSIZE^2 * ISIZE^2).
+ * @details Computed as two dense products through a JSIZE x ISIZE stack temporary, tmp = P^T * B then
+ *   dst = tmp * Q. This costs O(2 * JSIZE * ISIZE^2) like a per-row buffer, but each stage is a plain
+ *   fixed-size loop nest that compilers fully unroll and vectorize across j. A per-row buffer kept the
+ *   outer loop rolled, hoisted all of B into registers and spilled (6x6: ~1.6x slower, gcc 13 -O3).
  *   Sizes are assumed to be checked by the caller.
  */
 template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, bool ADD,
@@ -278,21 +280,28 @@ void Rij_op_PkiBklQlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
                        MATRIX_Q const & matrixQ )
 {
   using T = std::remove_cv_t< std::remove_reference_t< decltype( matrixB[ 0 ][ 0 ] ) > >;
+
+  // tmp = P^T * B
+  T tmp[ JSIZE ][ ISIZE ]{};
   for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
   {
-    T tmp[ ISIZE ]{};
     for( std::ptrdiff_t l = 0; l < ISIZE; ++l )
     {
-      tmp[ l ] = matrixP[ 0 ][ i ] * matrixB[ 0 ][ l ];
+      T acc = matrixP[ 0 ][ i ] * matrixB[ 0 ][ l ];
       for( std::ptrdiff_t k = 1; k < ISIZE; ++k )
-        tmp[ l ] += matrixP[ k ][ i ] * matrixB[ k ][ l ];
+        acc += matrixP[ k ][ i ] * matrixB[ k ][ l ];
+      tmp[ i ][ l ] = acc;
     }
+  }
 
+  // dst (=|+=) tmp * Q
+  for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
+  {
     for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
     {
-      T acc = tmp[ 0 ] * matrixQ[ 0 ][ j ];
+      T acc = tmp[ i ][ 0 ] * matrixQ[ 0 ][ j ];
       for( std::ptrdiff_t l = 1; l < ISIZE; ++l )
-        acc += tmp[ l ] * matrixQ[ l ][ j ];
+        acc += tmp[ i ][ l ] * matrixQ[ l ][ j ];
       if( ADD ) dstMatrix[ i ][ j ] += acc;
       else dstMatrix[ i ][ j ] = acc;
     }
@@ -301,33 +310,40 @@ void Rij_op_PkiBklQlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 
 /**
  * @brief Kernel for dstMatrix[ i ][ j ] (= or +=) matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixQ[ j ][ l ].
- * @details Same hoisting as Rij_op_PkiBklQlj, with row i of P * B buffered.
+ * @details Same two-stage scheme as Rij_op_PkiBklQlj: tmp = P * B, then dst = tmp * Q^T.
  *   Sizes are assumed to be checked by the caller.
  */
 template< std::ptrdiff_t ISIZE, std::ptrdiff_t JSIZE, bool ADD,
           typename DST_MATRIX, typename MATRIX_P, typename MATRIX_B, typename MATRIX_Q >
 LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
 void Rij_op_PikBklQjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
-                       MATRIX_P const & matrixP, // P and Q are not restrict: the P^T B P
+                       MATRIX_P const & matrixP, // P and Q are not restrict: the P B P^T
                        MATRIX_B const & LVARRAY_RESTRICT_REF matrixB, // wrappers pass the same matrix twice
                        MATRIX_Q const & matrixQ )
 {
   using T = std::remove_cv_t< std::remove_reference_t< decltype( matrixB[ 0 ][ 0 ] ) > >;
+
+  // tmp = P * B
+  T tmp[ JSIZE ][ ISIZE ]{};
   for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
   {
-    T tmp[ ISIZE ]{};
     for( std::ptrdiff_t l = 0; l < ISIZE; ++l )
     {
-      tmp[ l ] = matrixP[ i ][ 0 ] * matrixB[ 0 ][ l ];
+      T acc = matrixP[ i ][ 0 ] * matrixB[ 0 ][ l ];
       for( std::ptrdiff_t k = 1; k < ISIZE; ++k )
-        tmp[ l ] += matrixP[ i ][ k ] * matrixB[ k ][ l ];
+        acc += matrixP[ i ][ k ] * matrixB[ k ][ l ];
+      tmp[ i ][ l ] = acc;
     }
+  }
 
+  // dst (=|+=) tmp * Q^T
+  for( std::ptrdiff_t i = 0; i < JSIZE; ++i )
+  {
     for( std::ptrdiff_t j = 0; j < JSIZE; ++j )
     {
-      T acc = tmp[ 0 ] * matrixQ[ j ][ 0 ];
+      T acc = tmp[ i ][ 0 ] * matrixQ[ j ][ 0 ];
       for( std::ptrdiff_t l = 1; l < ISIZE; ++l )
-        acc += tmp[ l ] * matrixQ[ j ][ l ];
+        acc += tmp[ i ][ l ] * matrixQ[ j ][ l ];
       if( ADD ) dstMatrix[ i ][ j ] += acc;
       else dstMatrix[ i ][ j ] = acc;
     }
@@ -1204,22 +1220,29 @@ void Rij_eq_PikBklQlj( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
   internal::checkSizes< JSIZE, KSIZE >( matrixB );
 
   using T = std::remove_cv_t< std::remove_reference_t< decltype( matrixB[ 0 ][ 0 ] ) > >;
+
+  // Two dense stages through an ISIZE x KSIZE temporary (see internal::Rij_op_PkiBklQlj for why).
+  // tmp = P * B
+  T tmp[ ISIZE ][ KSIZE ]{};
   for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
   {
-    // Row i of P * B, hoisted out of the j loop.
-    T tmp[ KSIZE ]{};
     for( std::ptrdiff_t l = 0; l < KSIZE; ++l )
     {
-      tmp[ l ] = matrixP[ i ][ 0 ] * matrixB[ 0 ][ l ];
+      T acc = matrixP[ i ][ 0 ] * matrixB[ 0 ][ l ];
       for( std::ptrdiff_t k = 1; k < JSIZE; ++k )
-        tmp[ l ] += matrixP[ i ][ k ] * matrixB[ k ][ l ];
+        acc += matrixP[ i ][ k ] * matrixB[ k ][ l ];
+      tmp[ i ][ l ] = acc;
     }
+  }
 
+  // dst = tmp * Q
+  for( std::ptrdiff_t i = 0; i < ISIZE; ++i )
+  {
     for( std::ptrdiff_t j = 0; j < LSIZE; ++j )
     {
-      T acc = tmp[ 0 ] * matrixQ[ 0 ][ j ];
+      T acc = tmp[ i ][ 0 ] * matrixQ[ 0 ][ j ];
       for( std::ptrdiff_t l = 1; l < KSIZE; ++l )
-        acc += tmp[ l ] * matrixQ[ l ][ j ];
+        acc += tmp[ i ][ l ] * matrixQ[ l ][ j ];
       dstMatrix[ i ][ j ] = acc;
     }
   }
@@ -1370,6 +1393,38 @@ void Rij_add_PikBklQjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 
 
   internal::Rij_op_PikBklQjl< ISIZE, JSIZE, true >( dstMatrix, matrixP, matrixB, matrixQ );
+}
+
+/**
+ * @brief Incremental reverse projection of @p matrixB using @p matrixP and add the result to @p dstMatrix.
+ * @tparam ISIZE The size of the second dimension of @p matrixP and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and first dimension of @p matrixP.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @param dstMatrix The matrix the result is added to, of size JSIZE x JSIZE.
+ * @param matrixP The left and transposed right matrix in the multiplication, of size JSIZE x ISIZE.
+ * @param matrixB The middle matrix in the multiplication, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] += matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixP[ j ][ l ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_add_PikBklPjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                        MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                        MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
+{
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< JSIZE, ISIZE >( matrixP );
+  internal::checkSizes< ISIZE, ISIZE >( matrixB );
+
+  internal::Rij_op_PikBklQjl< ISIZE, JSIZE, true >( dstMatrix, matrixP, matrixB, matrixP );
 }
 
 /**
