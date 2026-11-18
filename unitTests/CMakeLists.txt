@@ -135,6 +135,7 @@ blt_add_executable( NAME testTensorOps
                             testTensorOpsTwoSizes2.cpp
                             testTensorOpsTwoSizes3.cpp
                             testTensorOpsTwoSizes4.cpp
+                            testTensorOpsTripleProduct.cpp
                     OUTPUT_DIR ${TEST_OUTPUT_DIRECTORY}
                     DEPENDS_ON gtest lvarray ${lvarray_dependencies} )
 

@@ -1373,6 +1373,38 @@ void Rij_add_PikBklQjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
 }
 
 /**
+ * @brief Incremental reverse projection of @p matrixB using @p matrixP and add the result to @p dstMatrix.
+ * @tparam ISIZE The size of the second dimension of @p matrixP and square dimension of @p matrixB.
+ * @tparam JSIZE The size of the square dimension of @p dstMatrix and first dimension of @p matrixP.
+ * @tparam DST_MATRIX The type of @p dstMatrix.
+ * @tparam MATRIX_P The type of @p matrixP.
+ * @tparam MATRIX_B The type of @p matrixB.
+ * @param dstMatrix The matrix the result is added to, of size JSIZE x JSIZE.
+ * @param matrixP The left and transposed right matrix in the multiplication, of size JSIZE x ISIZE.
+ * @param matrixB The middle matrix in the multiplication, of size ISIZE x ISIZE.
+ * @details Performs the operation
+ *   @code dstMatrix[ i ][ j ] += matrixP[ i ][ k ] * matrixB[ k ][ l ] * matrixP[ j ][ l ] @endcode
+ */
+template< std::ptrdiff_t ISIZE,
+          std::ptrdiff_t JSIZE,
+          typename DST_MATRIX,
+          typename MATRIX_P,
+          typename MATRIX_B >
+LVARRAY_HOST_DEVICE CONSTEXPR_WITHOUT_BOUNDS_CHECK inline
+void Rij_add_PikBklPjl( DST_MATRIX && LVARRAY_RESTRICT_REF dstMatrix,
+                        MATRIX_P const & LVARRAY_RESTRICT_REF matrixP,
+                        MATRIX_B const & LVARRAY_RESTRICT_REF matrixB )
+{
+  static_assert( JSIZE > 0, "JSIZE must be greater than zero." );
+  static_assert( ISIZE > 0, "ISIZE must be greater than zero." );
+  internal::checkSizes< JSIZE, JSIZE >( dstMatrix );
+  internal::checkSizes< JSIZE, ISIZE >( matrixP );
+  internal::checkSizes< ISIZE, ISIZE >( matrixB );
+
+  internal::Rij_op_PikBklQjl< ISIZE, JSIZE, true >( dstMatrix, matrixP, matrixB, matrixP );
+}
+
+/**
  * @brief Incremental multiply transpose @p matrixP with @p matrixB and @p matrixQ and add the result to @p dstMatrix.
  * @tparam ISIZE The size of the first dimension of @p matrixP / @p matrixQ and square dimension of @p matrixB.
  * @tparam JSIZE The size of the square dimension of @p dstMatrix and second dimension of @p matrixP / @p matrixQ.
