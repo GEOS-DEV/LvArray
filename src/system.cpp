@@ -559,20 +559,26 @@ int enableFloatingPointExceptions( int const exceptions )
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
 
-  LVARRAY_UNUSED_VARIABLE( exceptions );
-
+  // The FPCR trap-enable bits sit 8 bits above the corresponding FE_* status flags.
   fenv_t env;
-  fegetenv( &env );
+  if( fegetenv( &env ) )
+  {
+    return -1;
+  }
+  int const oldExcepts = ( env.__fpcr >> 8 ) & FE_ALL_EXCEPT;
 
-  env.__fpcr = env.__fpcr | __fpcr_trap_invalid;
-  fesetenv( &env );
+  env.__fpcr = env.__fpcr | ( static_cast< unsigned long long >( exceptions & FE_ALL_EXCEPT ) << 8 );
+  if( fesetenv( &env ) )
+  {
+    return -1;
+  }
 
   struct sigaction act;
   act.sa_sigaction = fpe_signal_handler;
   sigemptyset ( &act.sa_mask );
   act.sa_flags = SA_SIGINFO;
   sigaction( SIGILL, &act, NULL );
-  return 0;
+  return oldExcepts;
 #else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
@@ -604,8 +610,15 @@ int disableFloatingPointExceptions( int const exceptions )
 {
 #if defined(__APPLE__) && defined(__MACH__)
 #if !defined(__x86_64__)
-  LVARRAY_UNUSED_VARIABLE( exceptions );
-  return 0;
+  fenv_t env;
+  if( fegetenv( &env ) )
+  {
+    return -1;
+  }
+  int const oldExcepts = ( env.__fpcr >> 8 ) & FE_ALL_EXCEPT;
+
+  env.__fpcr = env.__fpcr & ~( static_cast< unsigned long long >( exceptions & FE_ALL_EXCEPT ) << 8 );
+  return fesetenv( &env ) ? -1 : oldExcepts;
 #else
   // Public domain polyfill for feenableexcept on OS X
   // http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c

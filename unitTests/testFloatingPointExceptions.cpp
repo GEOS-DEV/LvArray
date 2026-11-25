@@ -76,6 +76,50 @@ TEST( TestFloatingPointEnvironment, FloatingPointExceptionGuard )
 
 #endif
 
+#if defined(__APPLE__) && !defined(__x86_64__)
+
+namespace LvArray
+{
+namespace testing
+{
+
+// The guard must only change the requested exceptions and restore the previous state. This
+// guards against an enable/disable pair that ignores its argument, which leaves exceptions
+// permanently enabled after the first guard is destroyed.
+TEST( TestFloatingPointEnvironmentArm, GuardRestoresPreviousState )
+{
+  system::disableFloatingPointExceptions( FE_ALL_EXCEPT );
+
+  // Nothing enabled: a guard must not leave anything enabled behind.
+  {
+    system::FloatingPointExceptionGuard guard( FE_ALL_EXCEPT );
+  }
+  EXPECT_EQ( system::disableFloatingPointExceptions( FE_ALL_EXCEPT ), 0 );
+
+  // Only division by zero enabled: the guard masks everything, then puts exactly that back.
+  system::enableFloatingPointExceptions( FE_DIVBYZERO );
+  {
+    system::FloatingPointExceptionGuard guard( FE_ALL_EXCEPT );
+    EXPECT_EQ( system::disableFloatingPointExceptions( FE_ALL_EXCEPT ), 0 );
+  }
+  EXPECT_EQ( system::disableFloatingPointExceptions( FE_ALL_EXCEPT ), FE_DIVBYZERO );
+}
+
+TEST( TestFloatingPointEnvironmentArm, EnableDisableHonorTheMask )
+{
+  system::disableFloatingPointExceptions( FE_ALL_EXCEPT );
+
+  EXPECT_EQ( system::enableFloatingPointExceptions( FE_DIVBYZERO ), 0 );
+  EXPECT_EQ( system::disableFloatingPointExceptions( FE_INVALID ), FE_DIVBYZERO );
+  EXPECT_EQ( system::disableFloatingPointExceptions( FE_DIVBYZERO ), FE_DIVBYZERO );
+  EXPECT_EQ( system::disableFloatingPointExceptions( FE_DIVBYZERO ), 0 );
+}
+
+} // namespace testing
+} // namespace LvArray
+
+#endif
+
 // This is the default gtest main method. It is included for ease of debugging.
 int main( int argc, char * * argv )
 {
